@@ -26,6 +26,8 @@ Route::middleware('auth')->group(function () {
 
         // get order
         Route::get('/get-order', 'getOrderInfo')->name('get-marker-order');
+        // get urutan
+        Route::get('/get-urutan', 'getUrutanMarker')->name('get-marker-count');
         // get colors
         Route::get('/get-colors', 'getColorList')->name('get-marker-colors');
         // get panels

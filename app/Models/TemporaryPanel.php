@@ -5,11 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Marker extends Model
+class TemporaryPanel extends Model
 {
     use HasFactory;
 
-    protected $table = 'markers';
-
-    protected $guarded = [];
+    protected $connection = 'mysql_sb';
+    protected $table = 'temporary_panels';
 }

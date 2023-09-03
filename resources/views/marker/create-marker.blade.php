@@ -103,7 +103,8 @@
                             <div class="col-md-3">
                                 <div class="mb-1">
                                     <label class="form-label"><small>Unit</small></label>
-                                    <select class="form-control input-sm select2bs4" id="p-unit" name="p_unit" style="width: 100%;">
+                                    <select class="form-control input-sm select2bs4" id="p-unit" name="p_unit"
+                                        style="width: 100%;">
                                         <option selected="selected" value="yard">YARD</option>
                                         <option value="meter">METER</option>
                                     </select>
@@ -118,7 +119,8 @@
                             <div class="col-md-3">
                                 <div class="mb-1">
                                     <label class="form-label"><small>Unit</small></label>
-                                    <input type="text" class="form-control" id="comma-unit" name="comma_unit" value="INCH">
+                                    <input type="text" class="form-control" id="comma-unit" name="comma_unit"
+                                        value="INCH">
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -130,7 +132,8 @@
                             <div class="col-md-6">
                                 <div class="mb-1">
                                     <label class="form-label"><small>Unit</small></label>
-                                    <select class="form-control input-sm select2bs4" id="l-unit" name="l_unit" style="width: 100%;">
+                                    <select class="form-control input-sm select2bs4" id="l-unit" name="l_unit"
+                                        style="width: 100%;">
                                         <option selected="selected" value="inch">INCH</option>
                                         <option value="cm">CM</option>
                                     </select>
@@ -145,7 +148,8 @@
                             <div class="col-md-6">
                                 <div class="mb-1">
                                     <label class="form-label"><small>Qty Gelar Marker</small></label>
-                                    <input type="number" class="form-control" id="gelar-marker-qty" name="gelar_marker_qty">
+                                    <input type="number" class="form-control" id="gelar-marker-qty"
+                                        name="gelar_marker_qty">
                                 </div>
                             </div>
                         </div>
@@ -159,7 +163,8 @@
                     <div class="col-md-6">
                         <div class="mb-1">
                             <label class="form-label"><small>No. Urut Marker</small></label>
-                            <input type="text" class="form-control" id="no-urut-marker" name="no_urut_marker" disabled>
+                            <input type="text" class="form-control" id="no-urut-marker" name="no_urut_marker"
+                                disabled>
                         </div>
                     </div>
                 </div>
@@ -217,33 +222,42 @@
                 url: '{!! route('get-marker-sizes') !!}',
                 dataType: 'json',
                 dataSrc: 'data',
-                data: function (d) {
+                data: function(d) {
                     d.act_costing_id = $('#ws_id').val(),
-                    d.color = $('#color').val()
+                        d.color = $('#color').val()
                 },
-                dataSrc: function ( res ) {
-                    console.log('The data has arrived'); // Here you can know that the data has been received
-                    return res;
-                },
-                error: function (xhr, error, thrown) {
-                    console.log('here you can track the error');
-                }
             },
-            columns: [
-                { data: 'no_ws' },
-                { data: 'color' },
-                { data: 'order_qty' },
-                { data: 'size' },
-                { data: 'id' },
-                { data: 'id' }
+            columns: [{
+                    data: 'no_ws'
+                },
+                {
+                    data: 'color'
+                },
+                {
+                    data: 'order_qty'
+                },
+                {
+                    data: 'size'
+                },
+                {
+                    data: 'id'
+                },
+                {
+                    data: 'id'
+                }
             ],
-            columnDefs: [
-                { targets: [4], render:  (data, type, row) => '<input type="number" id="ratio-'+data+'">' },
-                { targets: [5], render:  (data, type, row) => '<input type="number" id="cut-qty-'+data+'" disabled>' }
+            columnDefs: [{
+                    targets: [4],
+                    render: (data, type, row) => '<input type="number" id="ratio-' + data + '">'
+                },
+                {
+                    targets: [5],
+                    render: (data, type, row) => '<input type="number" id="cut-qty-' + data + '" disabled>'
+                }
             ]
         });
 
-        $(function () {
+        $(function() {
             //Initialize Select2 Elements
             $('.select2').select2()
 
@@ -252,26 +266,28 @@
                 theme: 'bootstrap4'
             })
 
-            if(document.getElementById('store-marker')) {
+            if (document.getElementById('store-marker')) {
                 document.getElementById('store-marker').reset();
             }
 
             $('#ws_id').val(null).trigger('change');
 
             function updateOrderInfo() {
-                $.ajax({
+                return $.ajax({
                     url: '{!! route('get-marker-order') !!}',
                     type: 'get',
+                    dataType: 'json',
                     data: {
-                        act_costing_id : $('#ws_id').val(),
+                        act_costing_id: $('#ws_id').val(),
                     },
                     success: function(res) {
+                        console.log(res);
                         if (res) {
                             $('#buyer').val(res.buyer);
                             $('#style').val(res.styleno);
                         }
                     },
-                    error: function (jqXHR) {
+                    error: function(jqXHR) {
                         let res = jqXHR.responseJSON;
                         console.error(res.message);
                         iziToast.error({
@@ -284,11 +300,12 @@
             }
 
             function updateColorList() {
-                $.ajax({
+                return $.ajax({
                     url: '{!! route('get-marker-colors') !!}',
                     type: 'get',
+                    dataType: 'json',
                     data: {
-                        act_costing_id : $('#ws_id').val(),
+                        act_costing_id: $('#ws_id').val(),
                     },
                     success: async function(res) {
                         // Clear options
@@ -301,7 +318,8 @@
                         }
 
                         res.forEach((element, index) => {
-                            if ($('#color').find("option[value='"+element.color+"']").length) {
+                            if ($('#color').find("option[value='" + element.color + "']")
+                                .length) {
                                 $('#color').val(element.color);
                             } else {
                                 let option = ""
@@ -310,13 +328,14 @@
                                     option += "<option value=''>Pilih Color</option>"
                                 }
 
-                                option += "<option value='"+element.color+"'>"+element.color+"</option>";
+                                option += "<option value='" + element.color + "'>" + element
+                                    .color + "</option>";
 
                                 colorElm.innerHTML += option;
                             }
                         });
                     },
-                    error: function (jqXHR) {
+                    error: function(jqXHR) {
                         let res = jqXHR.responseJSON;
                         console.error(res.message);
                         iziToast.error({
@@ -328,20 +347,22 @@
                 });
             }
 
-            $('#ws_id').on('change', function (e) {
-                $("#color").val(null).trigger('change');
-                $("#panel").val(null).trigger('change');
-                updateOrderInfo();
-                updateColorList();
+            $('#ws_id').on('change', async function(e) {
+                await $("#color").val(null).trigger('change');
+                await $("#panel").val(null).trigger('change');
+                await updateColorList();
+                await updateOrderInfo();
+                await getMarkerCount();
             });
 
             function updatePanelList() {
-                $.ajax({
+                return $.ajax({
                     url: '{!! route('get-marker-panels') !!}',
                     type: 'get',
+                    dataType: 'json',
                     data: {
-                        act_costing_id : $('#ws_id').val(),
-                        color : $('#color').val(),
+                        act_costing_id: $('#ws_id').val(),
+                        color: $('#color').val(),
                     },
                     success: function(res) {
                         // Clear options
@@ -354,7 +375,8 @@
                         }
 
                         res.forEach((element, index) => {
-                            if ($('#panel').find("option[value='"+element.panel+"']").length) {
+                            if ($('#panel').find("option[value='" + element.panel + "']")
+                                .length) {
                                 $('#panel').val(element.panel);
                             } else {
                                 let option = ""
@@ -363,13 +385,14 @@
                                     option += "<option value=''>Pilih Panel</option>"
                                 }
 
-                                option += "<option value='"+element.panel+"'>"+element.panel+"</option>";
+                                option += "<option value='" + element.panel + "'>" + element
+                                    .panel + "</option>";
 
                                 panelElm.innerHTML += option;
                             }
                         });
                     },
-                    error: function (jqXHR) {
+                    error: function(jqXHR) {
                         let res = jqXHR.responseJSON;
                         console.error(res.message);
                         iziToast.error({
@@ -382,12 +405,44 @@
             }
 
             function updateSizeList() {
-                $('#datatable').DataTable().ajax.reload();
+                return $('#datatable').DataTable().ajax.reload();
             }
 
-            $('#color').on('change', function (e) {
-                updatePanelList();
-                updateSizeList();
+            function getMarkerCount() {
+                return $.ajax({
+                    url: '{!! route('get-marker-count') !!}',
+                    type: 'get',
+                    dataType: 'json',
+                    data: {
+                        act_costing_id: $('#ws_id').val(),
+                        color: $('#color').val(),
+                        panel: $('#panel').val()
+                    },
+                    success: async function(res) {
+                        if (res) {
+                            $('#no-urut-marker').val(res);
+                        }
+                    },
+                    error: function(jqXHR) {
+                        let res = jqXHR.responseJSON;
+                        console.error(res.message);
+                        iziToast.error({
+                            title: 'Error',
+                            message: res.message,
+                            position: 'topCenter'
+                        });
+                    }
+                });
+            }
+
+            $('#color').on('change', async function(e) {
+                await updatePanelList();
+                await updateSizeList();
+                await getMarkerCount();
+            });
+
+            $('#panel').on('change', async function(e) {
+                await getMarkerCount();
             });
         })
     </script>
