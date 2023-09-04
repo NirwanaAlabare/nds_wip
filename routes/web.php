@@ -26,14 +26,16 @@ Route::middleware('auth')->group(function () {
 
         // get order
         Route::get('/get-order', 'getOrderInfo')->name('get-marker-order');
-        // get urutan
-        Route::get('/get-urutan', 'getUrutanMarker')->name('get-marker-count');
         // get colors
         Route::get('/get-colors', 'getColorList')->name('get-marker-colors');
         // get panels
         Route::get('/get-panels', 'getPanelList')->name('get-marker-panels');
         // get sizes
         Route::get('/get-sizes', 'getSizeList')->name('get-marker-sizes');
+        // get count
+        Route::get('/get-count', 'getCount')->name('get-marker-count');
+        // get number
+        Route::get('/get-number', 'getNumber')->name('get-marker-number');
     });
 });
 

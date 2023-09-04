@@ -6,8 +6,7 @@
 <script src="/assets/plugins/jquery-ui/jquery-ui.min.js"></script>
 <!-- Ekko Lightbox -->
 <script src="/assets/plugins/ekko-lightbox/ekko-lightbox.min.js"></script>
-
-@yield('custom-script')
-
 <!-- AdminLTE App -->
 <script src="/assets/dist/js/adminlte.min.js"></script>
+
+@yield('custom-script')

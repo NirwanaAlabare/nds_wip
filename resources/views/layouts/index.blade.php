@@ -58,14 +58,8 @@
                 @endphp
             @endif
 
-            @if ($footer = false)
-                <!-- Main Footer -->
+            @if ($footer)
                 <footer class="main-footer">
-                    <!-- To the right -->
-                    {{-- <div class="float-right d-none d-sm-inline">
-                        Anything you want
-                    </div> --}}
-                    <!-- Default to the left -->
                     <strong>
                         <a href="https://nirwanagroup.co.id/en/service/nirwana-alabare-santosa/" class="text-dark" target="_blank">
                             Nirwana Digital Solution

@@ -11,6 +11,7 @@
 @endsection
 
 @section('content')
+<form action="{{ route('store-marker') }}" method="post" id="store-marker" onsubmit="submitMarkerForm(this, event)">
     <div class="card card-sb card-outline">
         <div class="card-header">
             <h5 class="card-title fw-bold">
@@ -18,158 +19,155 @@
             </h5>
         </div>
         <div class="card-body">
-            <form action="{{ route('store-marker') }}" method="post" id="store-marker" onsubmit="submitForm(this, event)">
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="mb-1">
-                            <label class="form-label"><small>Tgl Cutting</small></label>
-                            <input type="date" class="form-control" id="tgl-cutting" name="tgl_cutting">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="mb-1">
+                        <label class="form-label"><small>Tgl Cutting</small></label>
+                        <input type="date" class="form-control" id="tgl-cutting" name="tgl_cutting">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-1">
+                        <div class="form-group">
+                            <label><small>No. WS</small></label>
+                            <select class="form-control select2bs4" id="ws_id" name="ws_id" style="width: 100%;">
+                                <option selected="selected" value="">Pilih WS</option>
+                                @foreach ($orders as $order)
+                                    <option value="{{ $order->id }}">
+                                        {{ $order->kpno }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-1">
+                        <div class="form-group">
+                            <label><small>Color</small></label>
+                            <select class="form-control select2bs4" id="color" name="color" style="width: 100%;">
+                                <option selected="selected" value="">Pilih Color</option>
+                                {{-- select 2 option --}}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-1">
+                        <div class="form-group">
+                            <label><small>Panel</small></label>
+                            <select class="form-control select2bs4" id="panel" name="panel" style="width: 100%;" >
+                                <option selected="selected" value="">Pilih Panel</option>
+                                {{-- select 2 option --}}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="d-flex flex-column">
+                        <input type="hidden" class="form-control" id="ws" name="ws" disabled>
                         <div class="mb-1">
-                            <div class="form-group">
-                                <label><small>No. WS</small></label>
-                                <select class="form-control select2bs4" id="ws_id" name="ws_id" style="width: 100%;">
-                                    <option selected="selected" value="">Pilih WS</option>
-                                    @foreach ($orders as $order)
-                                        <option value="{{ $order->id }}">
-                                            {{ $order->kpno }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                            <label class="form-label"><small>Buyer</small></label>
+                            <input type="text" class="form-control" id="buyer" name="buyer" disabled>
+                        </div>
+                        <div class="mb-1">
+                            <label class="form-label"><small>Style</small></label>
+                            <input type="text" class="form-control" id="style" name="style" disabled>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="mb-1">
+                                    <label class="form-label"><small>Cons WS</small></label>
+                                    <input type="text" class="form-control" id="cons-ws" name="cons_ws" disabled>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="mb-1">
-                            <div class="form-group">
-                                <label><small>Color</small></label>
-                                <select class="form-control select2bs4" id="color" name="color" style="width: 100%;">
-                                    <option selected="selected" value="">Pilih Color</option>
-                                    {{-- select 2 option --}}
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="mb-1">
-                            <div class="form-group">
-                                <label><small>Panel</small></label>
-                                <select class="form-control select2bs4" id="panel" name="panel" style="width: 100%;">
-                                    <option selected="selected" value="">Pilih Panel</option>
-                                    {{-- select 2 option --}}
-                                </select>
+                            <div class="col-md-6">
+                                <div class="mb-1">
+                                    <label class="form-label"><small>Qty Order</small></label>
+                                    <input type="text" class="form-control" id="order-qty" name="order_qty" disabled>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="d-flex flex-column">
-                            <input type="hidden" class="form-control" id="ws" name="ws" disabled>
+                <div class="col-md-6">
+                    <div class="row">
+                        <div class="col-md-3">
                             <div class="mb-1">
-                                <label class="form-label"><small>Buyer</small></label>
-                                <input type="text" class="form-control" id="buyer" name="buyer" disabled>
+                                <label class="form-label"><small>P. Marker</small></label>
+                                <input type="number" class="form-control" id="p-marker" name="p_marker">
                             </div>
+                        </div>
+                        <div class="col-md-3">
                             <div class="mb-1">
-                                <label class="form-label"><small>Style</small></label>
-                                <input type="text" class="form-control" id="style" name="style" disabled>
-                            </div>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <div class="mb-1">
-                                        <label class="form-label"><small>Cons WS</small></label>
-                                        <input type="text" class="form-control" id="cons-ws" name="cons_ws" disabled>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-1">
-                                        <label class="form-label"><small>Qty Order</small></label>
-                                        <input type="text" class="form-control" id="order-qty" name="order_qty" disabled>
-                                    </div>
-                                </div>
+                                <label class="form-label"><small>Unit</small></label>
+                                <select class="form-control input-sm select2bs4" id="p-unit" name="p_unit"
+                                    style="width: 100%;">
+                                    <option selected="selected" value="yard">YARD</option>
+                                    <option value="meter">METER</option>
+                                </select>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <div class="mb-1">
-                                    <label class="form-label"><small>P. Marker</small></label>
-                                    <input type="number" class="form-control" id="p-marker" name="p_marker">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="mb-1">
-                                    <label class="form-label"><small>Unit</small></label>
-                                    <select class="form-control input-sm select2bs4" id="p-unit" name="p_unit"
-                                        style="width: 100%;">
-                                        <option selected="selected" value="yard">YARD</option>
-                                        <option value="meter">METER</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="mb-1">
-                                    <label class="form-label"><small>Comma</small></label>
-                                    <input type="number" class="form-control" id="comma" name="comma">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="mb-1">
-                                    <label class="form-label"><small>Unit</small></label>
-                                    <input type="text" class="form-control" id="comma-unit" name="comma_unit"
-                                        value="INCH">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-1">
-                                    <label class="form-label"><small>L. Marker</small></label>
-                                    <input type="number" class="form-control" id="l-marker" name="l_marker">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-1">
-                                    <label class="form-label"><small>Unit</small></label>
-                                    <select class="form-control input-sm select2bs4" id="l-unit" name="l_unit"
-                                        style="width: 100%;">
-                                        <option selected="selected" value="inch">INCH</option>
-                                        <option value="cm">CM</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-1">
-                                    <label class="form-label"><small>Cons Marker</small></label>
-                                    <input type="number" class="form-control" id="cons-marker" name="cons_marker">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-1">
-                                    <label class="form-label"><small>Qty Gelar Marker</small></label>
-                                    <input type="number" class="form-control" id="gelar-marker-qty"
-                                        name="gelar_marker_qty">
-                                </div>
+                        <div class="col-md-3">
+                            <div class="mb-1">
+                                <label class="form-label"><small>Comma</small></label>
+                                <input type="number" class="form-control" id="comma" name="comma">
                             </div>
                         </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-1">
-                            <label class="form-label"><small>PO</small></label>
-                            <input type="text" class="form-control" id="po" name="po">
+                        <div class="col-md-3">
+                            <div class="mb-1">
+                                <label class="form-label"><small>Unit</small></label>
+                                <input type="text" class="form-control" id="comma-unit" name="comma_unit"
+                                    value="INCH" disabled>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-1">
-                            <label class="form-label"><small>No. Urut Marker</small></label>
-                            <input type="text" class="form-control" id="no-urut-marker" name="no_urut_marker"
-                                disabled>
+                        <div class="col-md-6">
+                            <div class="mb-1">
+                                <label class="form-label"><small>L. Marker</small></label>
+                                <input type="number" class="form-control" id="l-marker" name="l_marker">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-1">
+                                <label class="form-label"><small>Unit</small></label>
+                                <select class="form-control input-sm select2bs4" id="l-unit" name="l_unit"
+                                    style="width: 100%;">
+                                    <option selected="selected" value="inch">INCH</option>
+                                    <option value="cm">CM</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-1">
+                                <label class="form-label"><small>Cons Marker</small></label>
+                                <input type="number" class="form-control" id="cons-marker" name="cons_marker">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-1">
+                                <label class="form-label"><small>Qty Gelar Marker</small></label>
+                                <input type="number" class="form-control" id="gelar-marker-qty"
+                                    name="gelar_marker_qty" onchange="calculateAllRatio(this)" onkeyup="calculateAllRatio(this)">
+                            </div>
                         </div>
                     </div>
                 </div>
-                <button class="btn btn-sb mt-3 float-end" type="submit">SIMPAN</button>
-            </form>
+                <div class="col-md-6">
+                    <div class="mb-1">
+                        <label class="form-label"><small>PO</small></label>
+                        <input type="text" class="form-control" id="po" name="po">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-1">
+                        <label class="form-label"><small>No. Urut Marker</small></label>
+                        <input type="text" class="form-control" id="no-urut-marker" name="no_urut_marker"
+                            disabled>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <div class="card card-sb card-outline">
@@ -184,13 +182,16 @@
                         <th>Color</th>
                         <th>QTY Order</th>
                         <th>Size</th>
+                        <th>So Det Id</th>
                         <th>Ratio</th>
                         <th>Cut Qty</th>
                     </tr>
                 </thead>
             </table>
+            <button class="btn btn-sb float-end mt-3">Simpan</button>
         </div>
     </div>
+</form>
 @endsection
 
 @section('custom-script')
@@ -199,35 +200,117 @@
     <script src="/assets/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
     <script src="/assets/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
     <script src="/assets/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
-    <script src="/assets/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
-    <script src="/assets/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
-    <script src="/assets/plugins/jszip/jszip.min.js"></script>
-    <script src="/assets/plugins/pdfmake/pdfmake.min.js"></script>
-    <script src="/assets/plugins/pdfmake/vfs_fonts.js"></script>
-    <script src="/assets/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
-    <script src="/assets/plugins/datatables-buttons/js/buttons.print.min.js"></script>
-    <script src="/assets/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
     <!-- Select2 -->
     <script src="/assets/plugins/select2/js/select2.full.min.js"></script>
     <!-- Page specific script -->
     <script>
-        function showAlert(message) {
-            alert(message);
+        //Initialize Select2 Elements
+        $('.select2').select2()
+
+        //Initialize Select2 Elements
+        $('.select2bs4').select2({
+            theme: 'bootstrap4'
+        })
+
+        //Reset Form
+        if (document.getElementById('store-marker')) {
+            document.getElementById('store-marker').reset();
+        }
+
+        $('#ws_id').on('change', async function(e) {
+            await updateColorList();
+            await updateOrderInfo();
+        });
+
+        $('#color').on('change', async function(e) {
+            await updatePanelList();
+            await updateSizeList();
+        });
+
+        $('#panel').on('change', async function(e) {
+            await getMarkerCount();
+            await getNumber();
+        });
+
+        function updateOrderInfo() {
+            return $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '/marker/get-order',
+                type: 'get',
+                data: {
+                    act_costing_id: $('#ws_id').val(),
+                    color: $('#color').val(),
+                },
+                dataType: 'json',
+                success: function (res) {
+                    document.getElementById('buyer').value = res.buyer;
+                    document.getElementById('style').value = res.styleno;
+                },
+            });
+        }
+
+        function updateColorList() {
+            document.getElementById('color').value = null;
+            return $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '/marker/get-colors',
+                type: 'get',
+                data: {
+                    act_costing_id: $('#ws_id').val(),
+                },
+                success: function (res) {
+                    document.getElementById('color').innerHTML = res;
+                    document.getElementById('panel').innerHTML = null;
+                    document.getElementById('panel').value = null;
+                    document.getElementById('no-urut-marker').value = null;
+                    document.getElementById('cons-ws').value = null;
+                    document.getElementById('order-qty').value = null;
+                },
+            });
+        }
+
+        function updatePanelList() {
+            document.getElementById('panel').value = null;
+            return $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '/marker/get-panels',
+                type: 'get',
+                data: {
+                    act_costing_id: $('#ws_id').val(),
+                    color: $('#color').val(),
+                },
+                success: function (res) {
+                    document.getElementById('panel').innerHTML = res;
+                    document.getElementById('no-urut-marker').value = null;
+                    document.getElementById('cons-ws').value = null;
+                    document.getElementById('order-qty').value = null;
+                },
+            });
         }
 
         $("#datatable").DataTable({
             processing: true,
             serverSide: true,
             ajax: {
-                url: '{!! route('get-marker-sizes') !!}',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '/marker/get-sizes',
                 dataType: 'json',
                 dataSrc: 'data',
-                data: function(d) {
-                    d.act_costing_id = $('#ws_id').val(),
-                        d.color = $('#color').val()
+                data: function (d) {
+                    d.act_costing_id = $('#ws_id').val();
+                    d.color = $('#color').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'no_ws'
                 },
                 {
@@ -244,206 +327,181 @@
                 },
                 {
                     data: 'id'
+                },
+                {
+                    data: 'id'
                 }
             ],
-            columnDefs: [{
+            columnDefs: [
+                {
                     targets: [4],
-                    render: (data, type, row) => '<input type="number" id="ratio-' + data + '">'
+                    visible: false,
+                    render: (data, type, row, meta) => '<input type="text" id="so-det-id-' + meta.row + '" name="so_det_id['+meta.row+']" value="' + data + '">'
                 },
                 {
                     targets: [5],
-                    render: (data, type, row) => '<input type="number" id="cut-qty-' + data + '" disabled>'
+                    render: (data, type, row, meta) => '<input type="number" id="ratio-' + meta.row + '" name="ratio['+meta.row+']" onchange="calculateRatio(' + meta.row + ')" onkeyup="calculateRatio('+meta.row+')">'
+                },
+                {
+                    targets: [6],
+                    render: (data, type, row, meta) => '<input type="number" id="cut-qty-' + meta.row + '" name="cut_qty['+meta.row+']" disabled>'
                 }
             ]
         });
 
-        $(function() {
-            //Initialize Select2 Elements
-            $('.select2').select2()
+        function updateSizeList() {
+            return $('#datatable').DataTable().ajax.reload();
+        }
 
-            //Initialize Select2 Elements
-            $('.select2bs4').select2({
-                theme: 'bootstrap4'
-            })
+        function getMarkerCount() {
+            document.getElementById('no-urut-marker').value = "";
+            return $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '/marker/get-count',
+                type: 'get',
+                data: {
+                    act_costing_id: $('#ws_id').val(),
+                    color: $('#color').val(),
+                    panel: $('#panel').val()
+                },
+                success: function (res) {
+                    document.getElementById('no-urut-marker').value = res;
+                }
+            });
+        }
 
-            if (document.getElementById('store-marker')) {
-                document.getElementById('store-marker').reset();
-            }
+        function getNumber() {
+            document.getElementById('cons-ws').value = null;
+            document.getElementById('order-qty').value = null;
+            return $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '/marker/get-number',
+                type: 'get',
+                dataType: 'json',
+                data: {
+                    act_costing_id: $('#ws_id').val(),
+                    color: $('#color').val(),
+                    panel: $('#panel').val()
+                },
+                success: function (res) {
+                    document.getElementById('cons-ws').value = res.cons_ws;
+                    document.getElementById('order-qty').value = res.order_qty;
+                }
+            });
+        }
 
-            $('#ws_id').val(null).trigger('change');
+        function calculateRatio(id) {
+            let ratio = document.getElementById('ratio-'+id).value;
+            let gelarQty = document.getElementById('gelar-marker-qty').value;
+            document.getElementById('cut-qty-'+id).value = ratio * gelarQty;
+        }
 
-            function updateOrderInfo() {
-                return $.ajax({
-                    url: '{!! route('get-marker-order') !!}',
-                    type: 'get',
-                    dataType: 'json',
-                    data: {
-                        act_costing_id: $('#ws_id').val(),
-                    },
-                    success: function(res) {
-                        console.log(res);
-                        if (res) {
-                            $('#buyer').val(res.buyer);
-                            $('#style').val(res.styleno);
+        function calculateAllRatio(element) {
+            let gelarQty = element.value;
+            console.log(document.getElementsByName('ratio[]'));
+        }
+
+        function submitMarkerForm(e, event) {
+            evt.preventDefault();
+
+            $.ajax({
+                url: e.getAttribute('action'),
+                type: e.getAttribute('method'),
+                data: new FormData(e),
+                processData: false,
+                contentType: false,
+                success: function(res) {
+                    if (res.status == 200) {
+                        console.log(res.message);
+
+                        if (res.redirect != '') {
+                            location.href = res.redirect;
                         }
-                    },
-                    error: function(jqXHR) {
-                        let res = jqXHR.responseJSON;
-                        console.error(res.message);
+
+                        iziToast.success({
+                            title: 'Success',
+                            message: res.message,
+                            position: 'topCenter'
+                        });
+
+                        e.reset();
+
+                        if (document.getElementsByClassName('select2')) {
+                            $(".select2").val(null).trigger('change');
+                        }
+
+                        if (document.getElementsByClassName('select2bs4')) {
+                            $(".select2bs4").val(null).trigger('change');
+                        }
+                    } else {
+                        console.log(res.message);
+
+                        for(let i = 0;i < res.errors; i++) {
+                            document.getElementById(res.errors[i]).classList.add('is-invalid');
+                            modified.push([res.errors[i], 'classList', 'remove(', "'is-invalid')"])
+                        }
+
                         iziToast.error({
                             title: 'Error',
                             message: res.message,
                             position: 'topCenter'
                         });
                     }
-                });
-            }
 
-            function updateColorList() {
-                return $.ajax({
-                    url: '{!! route('get-marker-colors') !!}',
-                    type: 'get',
-                    dataType: 'json',
-                    data: {
-                        act_costing_id: $('#ws_id').val(),
-                    },
-                    success: async function(res) {
-                        // Clear options
-                        $("#color").html("");
+                    if (res.table != '') {
+                        $('#'+res.table).DataTable().ajax.reload();
+                    }
 
-                        let colorElm;
+                    if (Object.keys(res.additional).length > 0 ) {
+                        for (let key in res.additional) {
+                            if (document.getElementById(key)) {
+                                document.getElementById(key).classList.add('is-invalid');
 
-                        if (document.getElementById('color')) {
-                            colorElm = document.getElementById('color');
-                        }
-
-                        res.forEach((element, index) => {
-                            if ($('#color').find("option[value='" + element.color + "']")
-                                .length) {
-                                $('#color').val(element.color);
-                            } else {
-                                let option = ""
-
-                                if (index == 0) {
-                                    option += "<option value=''>Pilih Color</option>"
+                                if (res.additional[key].hasOwnProperty('message')) {
+                                    document.getElementById(key+'_error').classList.remove('d-none');
+                                    document.getElementById(key+'_error').innerHTML = res.additional[key]['message'];
                                 }
 
-                                option += "<option value='" + element.color + "'>" + element
-                                    .color + "</option>";
-
-                                colorElm.innerHTML += option;
-                            }
-                        });
-                    },
-                    error: function(jqXHR) {
-                        let res = jqXHR.responseJSON;
-                        console.error(res.message);
-                        iziToast.error({
-                            title: 'Error',
-                            message: res.message,
-                            position: 'topCenter'
-                        });
-                    }
-                });
-            }
-
-            $('#ws_id').on('change', async function(e) {
-                await $("#color").val(null).trigger('change');
-                await $("#panel").val(null).trigger('change');
-                await updateColorList();
-                await updateOrderInfo();
-                await getMarkerCount();
-            });
-
-            function updatePanelList() {
-                return $.ajax({
-                    url: '{!! route('get-marker-panels') !!}',
-                    type: 'get',
-                    dataType: 'json',
-                    data: {
-                        act_costing_id: $('#ws_id').val(),
-                        color: $('#color').val(),
-                    },
-                    success: function(res) {
-                        // Clear options
-                        $("#panel").html("");
-
-                        let panelElm;
-
-                        if (document.getElementById('panel')) {
-                            panelElm = document.getElementById('panel');
-                        }
-
-                        res.forEach((element, index) => {
-                            if ($('#panel').find("option[value='" + element.panel + "']")
-                                .length) {
-                                $('#panel').val(element.panel);
-                            } else {
-                                let option = ""
-
-                                if (index == 0) {
-                                    option += "<option value=''>Pilih Panel</option>"
+                                if (res.additional[key].hasOwnProperty('value')) {
+                                    document.getElementById(key).value = res.additional[key]['value'];
                                 }
 
-                                option += "<option value='" + element.panel + "'>" + element
-                                    .panel + "</option>";
-
-                                panelElm.innerHTML += option;
+                                modified.push(
+                                    [key, '.classList', '.remove(', "'is-invalid')"],
+                                    [key+'_error', '.classList', '.add(', "'d-none')"],
+                                    [key+'_error', '.innerHTML = ', "''"],
+                                )
                             }
-                        });
-                    },
-                    error: function(jqXHR) {
-                        let res = jqXHR.responseJSON;
-                        console.error(res.message);
-                        iziToast.error({
-                            title: 'Error',
-                            message: res.message,
-                            position: 'topCenter'
-                        });
-                    }
-                });
-            }
-
-            function updateSizeList() {
-                return $('#datatable').DataTable().ajax.reload();
-            }
-
-            function getMarkerCount() {
-                return $.ajax({
-                    url: '{!! route('get-marker-count') !!}',
-                    type: 'get',
-                    dataType: 'json',
-                    data: {
-                        act_costing_id: $('#ws_id').val(),
-                        color: $('#color').val(),
-                        panel: $('#panel').val()
-                    },
-                    success: async function(res) {
-                        if (res) {
-                            $('#no-urut-marker').val(res);
                         }
-                    },
-                    error: function(jqXHR) {
-                        let res = jqXHR.responseJSON;
-                        console.error(res.message);
-                        iziToast.error({
-                            title: 'Error',
-                            message: res.message,
-                            position: 'topCenter'
-                        });
                     }
-                });
-            }
+                }, error: function (jqXHR) {
+                    let res = jqXHR.responseJSON;
+                    let message = '';
 
-            $('#color').on('change', async function(e) {
-                await updatePanelList();
-                await updateSizeList();
-                await getMarkerCount();
-            });
+                    for (let key in res.errors) {
+                        message = res.errors[key];
+                        document.getElementById(key).classList.add('is-invalid');
+                        document.getElementById(key+'_error').classList.remove('d-none');
+                        document.getElementById(key+'_error').innerHTML = res.errors[key];
 
-            $('#panel').on('change', async function(e) {
-                await getMarkerCount();
+                        modified.push(
+                            [key, '.classList', '.remove(', "'is-invalid')"],
+                            [key+'_error', '.classList', '.add(', "'d-none')"],
+                            [key+'_error', '.innerHTML = ', "''"],
+                        )
+                    };
+
+                    iziToast.error({
+                        title: 'Error',
+                        message: 'Terjadi kesalahan.',
+                        position: 'topCenter'
+                    });
+                }
             });
-        })
+        }
     </script>
 @endsection

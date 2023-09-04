@@ -1,11 +1,11 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // CSRF token for ajax
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        }
-    });
+// CSRF token for ajax
+// $.ajaxSetup({
+//     headers: {
+//         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+//     }
+// });
 
+document.addEventListener('DOMContentLoaded', () => {
     // Bootstrap modal configuration
     $.fn.modal.Constructor.prototype.enforceFocus = function() {};
 

@@ -37,7 +37,7 @@ class MarkerController extends Controller
             table('act_costing')->
             select('id', 'kpno')->
             where('status', '!=', 'CANCEL')->
-            where('cost_date', '>=', '2022-01-01')->
+            where('cost_date', '>=', '2023-01-01')->
             where('type_ws', 'STD')->
             orderBy('cost_date', 'desc')->
             orderBy('kpno', 'asc')->
@@ -62,39 +62,38 @@ class MarkerController extends Controller
     public function getColorList(Request $request)
     {
         $colors = DB::connection('mysql_sb')->
-            table('so_det')->
-            select('so_det.color')->
-            leftJoin('so', 'so.id', '=', 'so_det.id_so')->
-            leftJoin('act_costing', 'act_costing.id', '=', 'so.id_cost')->
-            where('act_costing.id', $request->act_costing_id)->
-            groupBy('so_det.color')->
-            get();
+            select("select sd.color from so_det sd
+            inner join so on sd.id_so = so.id
+            inner join act_costing ac on so.id_cost = ac.id
+            where ac.id = '".$request->act_costing_id."' and sd.cancel = 'N'
+            group by sd.color");
 
-        return json_encode($colors);
+        $html = "<option value=''>Pilih Color</option>";
+
+        foreach ($colors as $color) {
+            $html .= " <option value='".$color->color."'>".$color->color."</option> ";
+        }
+
+        return $html;
     }
 
     public function getSizeList(Request $request)
     {
-        $sizesQuery = DB::connection('mysql_sb')->
-            table('so_det')->
-            selectRaw('so_det.id id, act_costing.kpno no_ws, so_det.color color, so_det.qty order_qty, so_det.size size')->
-            leftJoin('so', 'so.id', '=', 'so_det.id_so')->
-            leftJoin('act_costing', 'act_costing.id', '=', 'so.id_cost');
-
-        if ($request) {
-            $sizesQuery->where('act_costing.id', $request->act_costing_id)->
-            where('so_det.color', $request->color);
-        }
-
-        $sizes = $sizesQuery->where('so_det.cancel', 'N')->
-            where('so.cancel_h', 'N')->
-            groupBy('so_det.size')->
-            get();
+        $sizes = DB::connection('mysql_sb')->
+            select("
+                select sd.id, ac.kpno no_ws, sd.color, sd.qty order_qty, sd.size from so_det sd
+                    inner join so on sd.id_so = so.id
+                    inner join act_costing ac on so.id_cost = ac.id
+                    inner join master_size_new msn on sd.size = msn.size
+                where ac.id = '".$request->act_costing_id."' and sd.color = '".$request->color."' and sd.cancel = 'N'
+                group by sd.size
+                order by msn.urutan asc
+            ");
 
         return json_encode([
             "draw" => intval($request->input('draw')),
-            "recordsTotal" => intval($sizes->count()),
-            "recordsFiltered" => intval($sizes->count()),
+            "recordsTotal" => intval(count($sizes)),
+            "recordsFiltered" => intval(count($sizes)),
             "data" => $sizes
         ]);
     }
@@ -102,28 +101,57 @@ class MarkerController extends Controller
     public function getPanelList(Request $request)
     {
         $panels = DB::connection('mysql_sb')->
-            table('temporary_panels')->
-            selectRaw('temporary_panels.nama_panel panel')->
-            leftJoin('temporary_bom_items', 'temporary_bom_items.panel_id', '=', 'temporary_panels.id')->
-            leftJoin('so_det', 'so_det.id', '=', 'temporary_bom_items.so_det_id')->
-            leftJoin('so', 'so.id', '=', 'so_det.id_so')->
-            leftJoin('act_costing', 'act_costing.id', '=', 'so.id_cost')->
-            where('act_costing.id', $request->act_costing_id)->
-            where('so_det.color', $request->color)->
-            groupBy('temporary_panels.id')->
-            get();
+            select("
+                select nama_panel panel from
+                    (select id_panel from bom_jo_item k
+                        inner join so_det sd on k.id_so_det = sd.id
+                        inner join so on sd.id_so = so.id
+                        inner join act_costing ac on so.id_cost = ac.id
+                        inner join masteritem mi on k.id_item = mi.id_gen
+                        where ac.id = '".$request->act_costing_id."' and sd.color = '".$request->color."' and k.status = 'M'
+                        and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and ac.status = 'confirm' and mi.mattype = 'F'
+                        group by id_panel
+                    )a
+                inner join masterpanel mp on a.id_panel = mp.id
+            ");
 
-        return json_encode($panels);
+        $html = "<option value=''>Pilih Panel</option>";
+
+        foreach ($panels as $panel) {
+            $html .= " <option value='".$panel->panel."'>".$panel->panel."</option> ";
+        }
+
+        return $html;
     }
 
-    public function getUrutanMarker(Request $request) {
-        $urutanMarker = Marker::where('act_costing_id', $request->act_costing_id)->
+    public function getNumber(Request $request) {
+        $number = DB::connection('mysql_sb')->
+            select("
+                select k.cons cons_ws,sum(sd.qty) order_qty from bom_jo_item k
+                inner join so_det sd on k.id_so_det = sd.id
+                inner join so on sd.id_so = so.id
+                inner join act_costing ac on so.id_cost = ac.id
+                inner join masteritem mi on k.id_item = mi.id_gen
+                inner join masterpanel mp on k.id_panel = mp.id
+                where ac.id = '".$request->act_costing_id."' and sd.color = '".$request->color."' and mp.nama_panel ='".$request->panel."' and k.status = 'M'
+                and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and ac.status = 'confirm' and mi.mattype = 'F'
+                group by sd.color, k.id_item, k.unit
+                limit 1
+            ");
+
+        return json_encode($number[0]);
+    }
+
+
+    public function getCount(Request $request) {
+        $countMarker = Marker::where('act_costing_id', $request->act_costing_id)->
             where('color', $request->color)->
             where('panel', $request->panel)->
             count() + 1;
 
-        return $urutanMarker ? $urutanMarker : 1;
+        return $countMarker ? $countMarker : 1;
     }
+
 
     /**
      * Store a newly created resource in storage.
@@ -133,6 +161,8 @@ class MarkerController extends Controller
      */
     public function store(Request $request)
     {
+        dd($request);
+
         $validatedRequest = $request->validate([
             'tgl_cutting' => ['required'],
             'ws' => ['required'],
@@ -152,7 +182,7 @@ class MarkerController extends Controller
 
         $markers = Marker::all();
 
-        $markerCode = 'MRK/'.date('ym').'/'.sprintf('%08d', $markers->count()+1);$markers->count();
+        $markerCode = 'MRK/'.date('ym').'/'.sprintf('%05s', $validatedRequest['no_urut_marker']);
 
         $markerStore = Marker::create([
             'kode' => $markerCode,

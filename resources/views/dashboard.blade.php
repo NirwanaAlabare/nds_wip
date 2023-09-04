@@ -2325,27 +2325,12 @@
     <script src="/assets/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
     <script src="/assets/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
     <script src="/assets/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
-    <script src="/assets/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
-    <script src="/assets/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
-    <script src="/assets/plugins/jszip/jszip.min.js"></script>
-    <script src="/assets/plugins/pdfmake/pdfmake.min.js"></script>
-    <script src="/assets/plugins/pdfmake/vfs_fonts.js"></script>
-    <script src="/assets/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
-    <script src="/assets/plugins/datatables-buttons/js/buttons.print.min.js"></script>
-    <script src="/assets/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
     <!-- Page specific script -->
     <script>
         $(function () {
             $("#datatable").DataTable({
-                "responsive": true, "lengthChange": false, "autoWidth": false,
-                "buttons": [
-                    { extend: 'copy', className: 'btn-sb' },
-                    { extend: 'csv', className: 'btn-sb' },
-                    { extend: 'excel', className: 'btn-sb' },
-                    { extend: 'pdf', className: 'btn-sb' },
-                    { extend: 'print', className: 'btn-sb' },
-                    { extend: 'colvis', className: 'btn-sb' }]
-            }).buttons().container().appendTo('#datatable_wrapper .col-md-6:eq(0)');
+                "responsive": true, "autoWidth": false,
+            });
 
             $("#datatable-1").DataTable({
                 "responsive": true, "autoWidth": false,
