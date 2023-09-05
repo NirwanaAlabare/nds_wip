@@ -20,9 +20,17 @@ class MarkerController extends Controller
         // $markers = Marker::all();
 
         if ($request->ajax()) {
-            $markers = Marker::where('tgl_cutting');
+            $tglAwal = $request->tgl_awal ? $request->tgl_awal : date('Y-m-d');
+            $tglAkhir = $request->tgl_akhir ? $request->tgl_akhir : date('Y-m-d');
 
-            return $markers;
+            $markers = Marker::whereRaw("tgl_cutting BETWEEN '".$tglAwal."' AND '".$tglAkhir."'")->get();
+
+            return json_encode([
+                "draw" => intval($request->input('draw')),
+                "recordsTotal" => intval(count($markers)),
+                "recordsFiltered" => intval(count($markers)),
+                "data" => $markers
+            ]);
         }
 
         return view('marker.marker');

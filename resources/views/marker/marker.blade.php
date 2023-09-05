@@ -27,14 +27,13 @@
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir">
                 </div>
                 <div class="mb-3">
-                    <button class="btn btn-sb btn-sm">Tampilkan</button>
+                    <button class="btn btn-sb btn-sm" onclick="filterTable()">Tampilkan</button>
                 </div>
             </div>
             <div>
                 <table id="datatable" class="table table-bordered table-striped">
                     <thead>
                         <tr>
-                            <th>WS</th>
                             <th>Color</th>
                             <th>Panel</th>
                             <th>Panjang Marker</th>
@@ -69,14 +68,11 @@
                 dataType: 'json',
                 dataSrc: 'data',
                 data: function (d) {
-                    d.tgl_Awal = $('#tgl-awal').val();
-                    d.tgl_Akhir = $('#tgl-akhir').val();
+                    d.tgl_awal = $('#tgl-awal').val();
+                    d.tgl_akhir = $('#tgl-akhir').val();
                 },
             },
             columns: [
-                {
-                    data: 'no_ws'
-                },
                 {
                     data: 'color'
                 },
@@ -94,14 +90,18 @@
                 },
                 {
                     data: 'gelar_qty'
-                }
+                },
                 {
-                    data: 'po'
-                }
+                    data: 'po_marker'
+                },
                 {
-                    data: 'urutan'
+                    data: 'urut_marker'
                 }
             ],
         });
+
+        function filterTable() {
+            datatable.ajax.reload();
+        }
     </script>
 @endsection
