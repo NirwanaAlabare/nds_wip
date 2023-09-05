@@ -218,6 +218,7 @@
 
         $("#color").prop("disabled", true);
         $("#panel").prop("disabled", true);
+        $('#p_unit').val("yard").trigger('change');
 
         //Reset Form
         if (document.getElementById('store-marker')) {
@@ -240,7 +241,12 @@
         });
 
         $('#p_unit').on('change', async function(e) {
-            console.log(e);
+            let unit = $('#p_unit').val();
+            if (unit == 'yard') {
+                $('#comma_unit').val('INCH');
+            } else if (unit == 'meter') {
+                $('#comma_unit').val('CM');
+            }
         });
 
         function updateOrderInfo() {
@@ -473,6 +479,7 @@
                         await $("#ws_id").val(null).trigger("change");
                         await $("#panel").val(null).trigger("change");
                         await $("#color").val(null).trigger("change");
+                        await $('#p_unit').val("yard").trigger('change');
                         await $("#panel").prop("disabled", true);
                         await $("#color").prop("disabled", true);
                     } else {
