@@ -19,7 +19,7 @@
                             </div>
                         </a>
                     </div>
-                    <div class="col-md-2 col-3">
+                    {{-- <div class="col-md-2 col-3">
                         <a href="items" class="home-item">
                             <div class="card h-100">
                                 <div class="card-body">
@@ -30,7 +30,7 @@
                                 </div>
                             </div>
                         </a>
-                    </div>
+                    </div> --}}
                     <div class="col-md-2 col-3">
                         <a href="item-details" class="home-item">
                             <div class="card h-100">
@@ -44,7 +44,9 @@
                         </a>
                     </div>
                     <div class="col-md-2 col-3">
-                        <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="home-item" >
+                        <a href="{{ route('logout') }}"
+                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
+                            class="home-item">
                             <div class="card h-100">
                                 <div class="card-body">
                                     <div class="d-flex flex-column">
@@ -55,7 +57,8 @@
                             </div>
                         </a>
 
-                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none" onsubmit="logout(this, event)">
+                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none"
+                            onsubmit="logout(this, event)">
                             @csrf
                         </form>
                     </div>
