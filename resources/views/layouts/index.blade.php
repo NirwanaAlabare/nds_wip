@@ -30,7 +30,7 @@
             <!-- Content Header (Page header) -->
             @if (isset($title))
                 <div class="content-header">
-                    <div class="container-fluid">
+                    <div class="container">
                         <div class="row mb-2">
                             <div class="col-sm-6">
                                 <h1 class="m-0">{{ ucfirst($title) }}</h1>
@@ -47,7 +47,7 @@
 
             <!-- Main content -->
             <div class="content">
-                <div class="container-fluid">
+                <div class="container">
                     @yield('content')
                 </div>
             </div>
@@ -59,7 +59,7 @@
             @endif
 
             @if ($footer)
-                <footer class="main-footer">
+                <footer class="main-footer mt-3">
                     <strong>
                         <a href="https://nirwanagroup.co.id/en/service/nirwana-alabare-santosa/" class="text-dark" target="_blank">
                             Nirwana Digital Solution

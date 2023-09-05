@@ -14,19 +14,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        \App\Models\User::factory(10)->create();
-
-        for ($i=0; $i < 10; $i++) {
-            \App\Models\TemporaryPanel::create([
-                'nama_panel' => Str::random(5),
-            ]);
-        }
-
-        for ($i=0; $i < 100; $i++) {
-            \App\Models\TemporaryBomItem::create([
-                'so_det_id' => rand(60,76500),
-                'panel_id' => rand(1,10),
-            ]);
-        }
+        \App\Models\User::create([
+            'name' => 'user',
+            'username' => 'user',
+            'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
+            'remember_token' => Str::random(10),
+        ]);
     }
 }

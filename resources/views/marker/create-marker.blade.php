@@ -12,6 +12,7 @@
 
 @section('content')
 <form action="{{ route('store-marker') }}" method="post" id="store-marker" onsubmit="submitMarkerForm(this, event)">
+    @csrf
     <div class="card card-sb card-outline">
         <div class="card-header">
             <h5 class="card-title fw-bold">
@@ -23,7 +24,7 @@
                 <div class="col-md-3">
                     <div class="mb-1">
                         <label class="form-label"><small>Tgl Cutting</small></label>
-                        <input type="date" class="form-control" id="tgl-cutting" name="tgl_cutting">
+                        <input type="date" class="form-control" id="tgl_cutting" name="tgl_cutting">
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -67,26 +68,26 @@
             <div class="row">
                 <div class="col-md-6">
                     <div class="d-flex flex-column">
-                        <input type="hidden" class="form-control" id="ws" name="ws" disabled>
+                        <input type="hidden" class="form-control" id="ws" name="ws" readonly>
                         <div class="mb-1">
                             <label class="form-label"><small>Buyer</small></label>
-                            <input type="text" class="form-control" id="buyer" name="buyer" disabled>
+                            <input type="text" class="form-control" id="buyer" name="buyer" readonly>
                         </div>
                         <div class="mb-1">
                             <label class="form-label"><small>Style</small></label>
-                            <input type="text" class="form-control" id="style" name="style" disabled>
+                            <input type="text" class="form-control" id="style" name="style" readonly>
                         </div>
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <div class="mb-1">
                                     <label class="form-label"><small>Cons WS</small></label>
-                                    <input type="text" class="form-control" id="cons-ws" name="cons_ws" disabled>
+                                    <input type="text" class="form-control" id="cons_ws" name="cons_ws" readonly>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-1">
                                     <label class="form-label"><small>Qty Order</small></label>
-                                    <input type="text" class="form-control" id="order-qty" name="order_qty" disabled>
+                                    <input type="text" class="form-control" id="order_qty" name="order_qty" readonly>
                                 </div>
                             </div>
                         </div>
@@ -97,13 +98,13 @@
                         <div class="col-md-3">
                             <div class="mb-1">
                                 <label class="form-label"><small>P. Marker</small></label>
-                                <input type="number" class="form-control" id="p-marker" name="p_marker">
+                                <input type="number" class="form-control" id="p_marker" name="p_marker" step=".01">
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="mb-1">
                                 <label class="form-label"><small>Unit</small></label>
-                                <select class="form-control input-sm select2bs4" id="p-unit" name="p_unit"
+                                <select class="form-control input-sm select2bs4" id="p_unit" name="p_unit"
                                     style="width: 100%;">
                                     <option selected="selected" value="yard">YARD</option>
                                     <option value="meter">METER</option>
@@ -113,26 +114,26 @@
                         <div class="col-md-3">
                             <div class="mb-1">
                                 <label class="form-label"><small>Comma</small></label>
-                                <input type="number" class="form-control" id="comma" name="comma">
+                                <input type="number" class="form-control" id="comma_marker" name="comma_marker" step=".01">
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="mb-1">
                                 <label class="form-label"><small>Unit</small></label>
-                                <input type="text" class="form-control" id="comma-unit" name="comma_unit"
-                                    value="INCH" disabled>
+                                <input type="text" class="form-control" id="comma_unit" name="comma_unit"
+                                    value="INCH" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-1">
                                 <label class="form-label"><small>L. Marker</small></label>
-                                <input type="number" class="form-control" id="l-marker" name="l_marker">
+                                <input type="number" class="form-control" id="l_marker" name="l_marker" step=".01">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-1">
                                 <label class="form-label"><small>Unit</small></label>
-                                <select class="form-control input-sm select2bs4" id="l-unit" name="l_unit"
+                                <select class="form-control input-sm select2bs4" id="l_unit" name="l_unit"
                                     style="width: 100%;">
                                     <option selected="selected" value="inch">INCH</option>
                                     <option value="cm">CM</option>
@@ -142,13 +143,13 @@
                         <div class="col-md-6">
                             <div class="mb-1">
                                 <label class="form-label"><small>Cons Marker</small></label>
-                                <input type="number" class="form-control" id="cons-marker" name="cons_marker">
+                                <input type="number" class="form-control" id="cons_marker" name="cons_marker" step=".01">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-1">
                                 <label class="form-label"><small>Qty Gelar Marker</small></label>
-                                <input type="number" class="form-control" id="gelar-marker-qty"
+                                <input type="number" class="form-control" id="gelar_marker_qty"
                                     name="gelar_marker_qty" onchange="calculateAllRatio(this)" onkeyup="calculateAllRatio(this)">
                             </div>
                         </div>
@@ -163,18 +164,21 @@
                 <div class="col-md-6">
                     <div class="mb-1">
                         <label class="form-label"><small>No. Urut Marker</small></label>
-                        <input type="text" class="form-control" id="no-urut-marker" name="no_urut_marker"
-                            disabled>
+                        <input type="text" class="form-control" id="no_urut_marker" name="no_urut_marker"
+                            readonly>
                     </div>
                 </div>
+                <input type="hidden" class="form-control" id="jumlah_so_det" name="jumlah_so_det" readonly>
             </div>
         </div>
     </div>
     <div class="card card-sb card-outline">
-        <div class="card-body">
-            <h5 class="fw-bold mb-3">
+        <div class="card-header">
+            <h5 class="card-title fw-bold">
                 Data Ratio :
             </h5>
+        </div>
+        <div class="card-body">
             <table id="datatable" class="table table-bordered table-striped">
                 <thead>
                     <tr>
@@ -212,6 +216,9 @@
             theme: 'bootstrap4'
         })
 
+        $("#color").prop("disabled", true);
+        $("#panel").prop("disabled", true);
+
         //Reset Form
         if (document.getElementById('store-marker')) {
             document.getElementById('store-marker').reset();
@@ -232,6 +239,10 @@
             await getNumber();
         });
 
+        $('#p_unit').on('change', async function(e) {
+            console.log(e);
+        });
+
         function updateOrderInfo() {
             return $.ajax({
                 headers: {
@@ -245,8 +256,10 @@
                 },
                 dataType: 'json',
                 success: function (res) {
-                    document.getElementById('buyer').value = res.buyer;
-                    document.getElementById('style').value = res.styleno;
+                    if (res) {
+                        document.getElementById('buyer').value = res.buyer;
+                        document.getElementById('style').value = res.styleno;
+                    }
                 },
             });
         }
@@ -263,12 +276,19 @@
                     act_costing_id: $('#ws_id').val(),
                 },
                 success: function (res) {
-                    document.getElementById('color').innerHTML = res;
-                    document.getElementById('panel').innerHTML = null;
-                    document.getElementById('panel').value = null;
-                    document.getElementById('no-urut-marker').value = null;
-                    document.getElementById('cons-ws').value = null;
-                    document.getElementById('order-qty').value = null;
+                    if (res) {
+                        document.getElementById('color').innerHTML = res;
+                        document.getElementById('panel').innerHTML = null;
+                        document.getElementById('panel').value = null;
+
+                        $("#color").prop("disabled", false);
+                        $("#panel").prop("disabled", true);
+
+                        // input text
+                        document.getElementById('no_urut_marker').value = null;
+                        document.getElementById('cons_ws').value = null;
+                        document.getElementById('order_qty').value = null;
+                    }
                 },
             });
         }
@@ -286,15 +306,20 @@
                     color: $('#color').val(),
                 },
                 success: function (res) {
-                    document.getElementById('panel').innerHTML = res;
-                    document.getElementById('no-urut-marker').value = null;
-                    document.getElementById('cons-ws').value = null;
-                    document.getElementById('order-qty').value = null;
+                    if (res) {
+                        document.getElementById('panel').innerHTML = res;
+                        $("#panel").prop("disabled", false);
+
+                        // input text
+                        document.getElementById('no_urut_marker').value = null;
+                        document.getElementById('cons_ws').value = null;
+                        document.getElementById('order_qty').value = null;
+                    }
                 },
             });
         }
 
-        $("#datatable").DataTable({
+        let datatable = $("#datatable").DataTable({
             processing: true,
             serverSide: true,
             ajax: {
@@ -335,26 +360,28 @@
             columnDefs: [
                 {
                     targets: [4],
-                    visible: false,
-                    render: (data, type, row, meta) => '<input type="text" id="so-det-id-' + meta.row + '" name="so_det_id['+meta.row+']" value="' + data + '">'
+                    className: "d-none",
+                    render: (data, type, row, meta) => '<input type="hidden" id="so-det-id-' + meta.row + '" name="so_det_id['+meta.row+']" value="' + data + '" readonly />'
                 },
                 {
                     targets: [5],
-                    render: (data, type, row, meta) => '<input type="number" id="ratio-' + meta.row + '" name="ratio['+meta.row+']" onchange="calculateRatio(' + meta.row + ')" onkeyup="calculateRatio('+meta.row+')">'
+                    render: (data, type, row, meta) => '<input type="number" id="ratio-' + meta.row + '" name="ratio['+meta.row+']" onchange="calculateRatio(' + meta.row + ')" onkeyup="calculateRatio('+meta.row+')" />'
                 },
                 {
                     targets: [6],
-                    render: (data, type, row, meta) => '<input type="number" id="cut-qty-' + meta.row + '" name="cut_qty['+meta.row+']" disabled>'
+                    render: (data, type, row, meta) => '<input type="number" id="cut-qty-' + meta.row + '" name="cut_qty['+meta.row+']" readonly />'
                 }
             ]
         });
 
-        function updateSizeList() {
-            return $('#datatable').DataTable().ajax.reload();
+        async function updateSizeList() {
+            return datatable.ajax.reload(() => {
+                document.getElementById('jumlah_so_det').value = datatable.data().count();
+            });
         }
 
         function getMarkerCount() {
-            document.getElementById('no-urut-marker').value = "";
+            document.getElementById('no_urut_marker').value = "";
             return $.ajax({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -367,14 +394,16 @@
                     panel: $('#panel').val()
                 },
                 success: function (res) {
-                    document.getElementById('no-urut-marker').value = res;
+                    if (res) {
+                        document.getElementById('no_urut_marker').value = res;
+                    }
                 }
             });
         }
 
         function getNumber() {
-            document.getElementById('cons-ws').value = null;
-            document.getElementById('order-qty').value = null;
+            document.getElementById('cons_ws').value = null;
+            document.getElementById('order_qty').value = null;
             return $.ajax({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -388,25 +417,34 @@
                     panel: $('#panel').val()
                 },
                 success: function (res) {
-                    document.getElementById('cons-ws').value = res.cons_ws;
-                    document.getElementById('order-qty').value = res.order_qty;
+                    if (res) {
+                        document.getElementById('cons_ws').value = res.cons_ws;
+                        document.getElementById('order_qty').value = res.order_qty;
+                    }
                 }
             });
+
         }
 
         function calculateRatio(id) {
             let ratio = document.getElementById('ratio-'+id).value;
-            let gelarQty = document.getElementById('gelar-marker-qty').value;
+            let gelarQty = document.getElementById('gelar_marker_qty').value;
             document.getElementById('cut-qty-'+id).value = ratio * gelarQty;
         }
 
         function calculateAllRatio(element) {
             let gelarQty = element.value;
-            console.log(document.getElementsByName('ratio[]'));
+
+            for (let i = 0; i < datatable.data().count(); i++) {
+                let ratio = document.getElementById('ratio-'+i).value;
+                document.getElementById('cut-qty-'+i).value = ratio * gelarQty;
+            }
         }
 
-        function submitMarkerForm(e, event) {
+        function submitMarkerForm(e, evt) {
             evt.preventDefault();
+
+            clearModified();
 
             $.ajax({
                 url: e.getAttribute('action'),
@@ -414,37 +452,30 @@
                 data: new FormData(e),
                 processData: false,
                 contentType: false,
-                success: function(res) {
+                success: async function(res) {
                     if (res.status == 200) {
-                        console.log(res.message);
-
-                        if (res.redirect != '') {
-                            location.href = res.redirect;
-                        }
-
-                        iziToast.success({
-                            title: 'Success',
-                            message: res.message,
-                            position: 'topCenter'
-                        });
+                        console.log(res);
 
                         e.reset();
 
-                        if (document.getElementsByClassName('select2')) {
-                            $(".select2").val(null).trigger('change');
-                        }
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Data Marker berhasil disimpan',
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                            timer: 5000,
+                            timerProgressBar: true
+                        })
 
-                        if (document.getElementsByClassName('select2bs4')) {
-                            $(".select2bs4").val(null).trigger('change');
-                        }
+                        document.getElementById('panel').innerHtml = "";
+                        document.getElementById('color').innerHtml = "";
+                        await $("#ws_id").val(null).trigger("change");
+                        await $("#panel").val(null).trigger("change");
+                        await $("#color").val(null).trigger("change");
+                        await $("#panel").prop("disabled", true);
+                        await $("#color").prop("disabled", true);
                     } else {
-                        console.log(res.message);
-
-                        for(let i = 0;i < res.errors; i++) {
-                            document.getElementById(res.errors[i]).classList.add('is-invalid');
-                            modified.push([res.errors[i], 'classList', 'remove(', "'is-invalid')"])
-                        }
-
                         iziToast.error({
                             title: 'Error',
                             message: res.message,
@@ -452,9 +483,7 @@
                         });
                     }
 
-                    if (res.table != '') {
-                        $('#'+res.table).DataTable().ajax.reload();
-                    }
+                    $('#datatable').DataTable().ajax.reload();
 
                     if (Object.keys(res.additional).length > 0 ) {
                         for (let key in res.additional) {
@@ -481,25 +510,20 @@
                 }, error: function (jqXHR) {
                     let res = jqXHR.responseJSON;
                     let message = '';
+                    let i = 0;
 
                     for (let key in res.errors) {
                         message = res.errors[key];
                         document.getElementById(key).classList.add('is-invalid');
-                        document.getElementById(key+'_error').classList.remove('d-none');
-                        document.getElementById(key+'_error').innerHTML = res.errors[key];
-
                         modified.push(
                             [key, '.classList', '.remove(', "'is-invalid')"],
-                            [key+'_error', '.classList', '.add(', "'d-none')"],
-                            [key+'_error', '.innerHTML = ', "''"],
                         )
-                    };
 
-                    iziToast.error({
-                        title: 'Error',
-                        message: 'Terjadi kesalahan.',
-                        position: 'topCenter'
-                    });
+                        if (i == 0) {
+                            document.getElementById(key).focus();
+                            i++;
+                        }
+                    };
                 }
             });
         }

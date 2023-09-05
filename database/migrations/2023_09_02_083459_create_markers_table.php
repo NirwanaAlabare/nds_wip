@@ -15,6 +15,7 @@ class CreateMarkersTable extends Migration
     {
         Schema::create('markers', function (Blueprint $table) {
             $table->id();
+            $table->date('tgl_cutting');
             $table->string('kode');
             $table->bigInteger('act_costing_id');
             $table->string('color');

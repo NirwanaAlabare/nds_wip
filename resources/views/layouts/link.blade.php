@@ -6,11 +6,13 @@
 <link rel="stylesheet" href="/assets/plugins/fontawesome-free/css/all.min.css">
 <!-- Theme style -->
 <link rel="stylesheet" href="/assets/dist/css/adminlte.min.css">
-<!-- Custom style -->
-<link rel="stylesheet" href="/assets/dist/css/style.css">
 <!-- Ionicons -->
 <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
 <!-- Izi Toast CSS -->
 <link rel="stylesheet" href="/assets/plugins/izitoast/dist/css/iziToast.min.css">
+<!-- Sweet Alert CSS -->
+<link rel="stylesheet" href="/assets/plugins/sweetalert/dist/sweetalert2.min.css">
+<!-- Custom style -->
+<link rel="stylesheet" href="/assets/dist/css/style.css">
 
 @yield('custom-link')

@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Marker;
+use App\Models\MarkerDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class MarkerController extends Controller
 {
@@ -18,7 +20,7 @@ class MarkerController extends Controller
         // $markers = Marker::all();
 
         if ($request->ajax()) {
-            $markers = Marker::all();
+            $markers = Marker::where('tgl_cutting');
 
             return $markers;
         }
@@ -128,18 +130,18 @@ class MarkerController extends Controller
         $number = DB::connection('mysql_sb')->
             select("
                 select k.cons cons_ws,sum(sd.qty) order_qty from bom_jo_item k
-                inner join so_det sd on k.id_so_det = sd.id
-                inner join so on sd.id_so = so.id
-                inner join act_costing ac on so.id_cost = ac.id
-                inner join masteritem mi on k.id_item = mi.id_gen
-                inner join masterpanel mp on k.id_panel = mp.id
+                    inner join so_det sd on k.id_so_det = sd.id
+                    inner join so on sd.id_so = so.id
+                    inner join act_costing ac on so.id_cost = ac.id
+                    inner join masteritem mi on k.id_item = mi.id_gen
+                    inner join masterpanel mp on k.id_panel = mp.id
                 where ac.id = '".$request->act_costing_id."' and sd.color = '".$request->color."' and mp.nama_panel ='".$request->panel."' and k.status = 'M'
                 and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and ac.status = 'confirm' and mi.mattype = 'F'
                 group by sd.color, k.id_item, k.unit
                 limit 1
             ");
 
-        return json_encode($number[0]);
+        return json_encode($number ? $number[0] : null);
     }
 
 
@@ -161,32 +163,29 @@ class MarkerController extends Controller
      */
     public function store(Request $request)
     {
-        dd($request);
+        $countMarker = Marker::all()->count() + 1;
+        $markerCode = 'MRK/'.date('ym').'/'.sprintf('%05s', $countMarker);
 
         $validatedRequest = $request->validate([
-            'tgl_cutting' => ['required'],
-            'ws' => ['required'],
-            'color' => ['required'],
-            'panel' => ['required'],
-            'p_marker' => ['required', 'numeric'],
-            'p_unit' => ['required'],
-            'comma_marker ' => ['required', 'numeric'],
-            'comma_unit ' => ['required'],
-            'l_marker ' => ['required', 'numeric'],
-            'l_unit ' => ['required'],
-            'cons_marker ' => ['required', 'numeric'],
-            'gelar_marker_qty ' => ['required', 'numeric'],
-            'po ' => ['required'],
-            'no_urut_marker ' => ['required', 'numeric'],
+            "tgl_cutting" => "required",
+            "ws_id" => "required",
+            "color" => "required",
+            "panel" => "required",
+            "p_marker" => "required",
+            "p_unit" => "required",
+            "comma_marker" => "required",
+            "comma_unit" => "required",
+            "l_marker" => "required",
+            "l_unit" => "required",
+            "gelar_marker_qty" => "required",
+            "po" => "required",
+            "no_urut_marker" => "required"
         ]);
 
-        $markers = Marker::all();
-
-        $markerCode = 'MRK/'.date('ym').'/'.sprintf('%05s', $validatedRequest['no_urut_marker']);
-
         $markerStore = Marker::create([
+            'tgl_cutting' => $validatedRequest['tgl_cutting'],
             'kode' => $markerCode,
-            'act_costing_id' => $validatedRequest['ws'],
+            'act_costing_id' => $validatedRequest['ws_id'],
             'color' => $validatedRequest['color'],
             'panel' => $validatedRequest['panel'],
             'panjang_marker' => $validatedRequest['p_marker'],
@@ -194,15 +193,33 @@ class MarkerController extends Controller
             'comma_marker' => $validatedRequest['comma_marker'],
             'unit_comma_marker' => $validatedRequest['comma_unit'],
             'lebar_marker' => $validatedRequest['l_marker'],
-            'unit_lebar_marke ' => $validatedRequest['l_unit'],
+            'unit_lebar_marker' => $validatedRequest['l_unit'],
             'gelar_qty' => $validatedRequest['gelar_marker_qty'],
             'po_marker' => $validatedRequest['po'],
-            'urut_marker ' => $validatedRequest['no_urut_marker'],
+            'urut_marker' => $validatedRequest['no_urut_marker'],
         ]);
 
-        $markerDetailStore = Marker::create([
-            'marker_id' => $markerStore->id,
-        ]);
+        $timestamp = Carbon::now();
+        $markerId = $markerStore->id;
+        $markerDetailData = [];
+        for ($i = 0; $i < intval($request['jumlah_so_det']); $i++) {
+            array_push($markerDetailData, [
+                "marker_id" => $markerId,
+                "so_det_id" => $request["so_det_id"][$i],
+                "ratio" => $request["ratio"][$i],
+                "cut_qty" => $request["cut_qty"][$i],
+                "created_at" => $timestamp,
+                "updated_at" => $timestamp,
+            ]);
+        }
+
+        $markerDetailStore = MarkerDetail::insert($markerDetailData);
+
+        return array(
+            "status" => 200,
+            "message" => "Marker berhasil dibuat",
+            "additional" => []
+        );
     }
 
     /**
