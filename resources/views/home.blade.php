@@ -19,18 +19,18 @@
                             </div>
                         </a>
                     </div>
-                    {{-- <div class="col-md-2 col-3">
+                    <div class="col-md-2 col-3">
                         <a href="items" class="home-item">
                             <div class="card h-100">
                                 <div class="card-body">
                                     <div class="d-flex flex-column">
                                         <img src="/assets/dist/img/qr-generate.png" class="img-fluid p-3" alt="qr code image">
-                                        <p class="text-center">Generate QR</p>
+                                        <p class="text-center">Generate QR345</p>
                                     </div>
                                 </div>
                             </div>
                         </a>
-                    </div> --}}
+                    </div>
                     <div class="col-md-2 col-3">
                         <a href="item-details" class="home-item">
                             <div class="card h-100">
