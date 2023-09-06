@@ -30,10 +30,11 @@
                     <button class="btn btn-sb btn-sm" onclick="filterTable()">Tampilkan</button>
                 </div>
             </div>
-            <div>
-                <table id="datatable" class="table table-bordered table-striped">
+            <div class="table-responsive">
+                <table id="datatable" class="table table-bordered table-striped w-100">
                     <thead>
                         <tr>
+                            <th>No. WS</th>
                             <th>Color</th>
                             <th>Panel</th>
                             <th>Panjang Marker</th>
@@ -74,6 +75,9 @@
             },
             columns: [
                 {
+                    data: 'act_costing_ws'
+                },
+                {
                     data: 'color'
                 },
                 {
@@ -95,7 +99,7 @@
                     data: 'po_marker'
                 },
                 {
-                    data: 'urut_marker'
+                    data: 'urutan_marker'
                 }
             ],
         });

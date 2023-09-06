@@ -24,7 +24,7 @@
                 <div class="col-md-3">
                     <div class="mb-1">
                         <label class="form-label"><small>Tgl Cutting</small></label>
-                        <input type="date" class="form-control" id="tgl_cutting" name="tgl_cutting">
+                        <input type="date" class="form-control" id="tgl_cutting" name="tgl_cutting" value="{{ date('Y-m-d') }}">
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -178,8 +178,8 @@
                 Data Ratio :
             </h5>
         </div>
-        <div class="card-body">
-            <table id="datatable" class="table table-bordered table-striped">
+        <div class="card-body table-responsive">
+            <table id="datatable" class="table table-bordered table-striped w-100">
                 <thead>
                     <tr>
                         <th>WS</th>
@@ -263,6 +263,7 @@
                 dataType: 'json',
                 success: function (res) {
                     if (res) {
+                        document.getElementById('ws').value = res.kpno;
                         document.getElementById('buyer').value = res.buyer;
                         document.getElementById('style').value = res.styleno;
                     }
@@ -451,6 +452,8 @@
             evt.preventDefault();
 
             clearModified();
+
+            console.log(new FormData(e));
 
             $.ajax({
                 url: e.getAttribute('action'),

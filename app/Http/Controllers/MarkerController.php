@@ -20,10 +20,30 @@ class MarkerController extends Controller
         // $markers = Marker::all();
 
         if ($request->ajax()) {
-            $tglAwal = $request->tgl_awal ? $request->tgl_awal : date('Y-m-d');
-            $tglAkhir = $request->tgl_akhir ? $request->tgl_akhir : date('Y-m-d');
+            $tglAwal = $request->tgl_awal;
+            $tglAkhir = $request->tgl_akhir;
 
-            $markers = Marker::whereRaw("tgl_cutting BETWEEN '".$tglAwal."' AND '".$tglAkhir."'")->get();
+            $markersQuery = Marker::selectRaw("
+                    act_costing_ws,
+                    color,
+                    panel,
+                    CONCAT(panjang_marker, ' ', UPPER(unit_panjang_marker)) panjang_marker,
+                    CONCAT(comma_marker, ' ', UPPER(unit_comma_marker)) comma_marker,
+                    CONCAT(lebar_marker, ' ', UPPER(unit_lebar_marker)) lebar_marker,
+                    gelar_qty,
+                    po_marker,
+                    urutan_marker
+                ");
+
+            if ($tglAwal) {
+                $markersQuery->whereRaw("tgl_cutting >= '".$tglAwal."'");
+            }
+
+            if ($tglAkhir) {
+                $markersQuery->whereRaw("tgl_cutting <= '".$tglAkhir."'");
+            }
+
+            $markers = $markersQuery->get();
 
             return json_encode([
                 "draw" => intval($request->input('draw')),
@@ -152,7 +172,6 @@ class MarkerController extends Controller
         return json_encode($number ? $number[0] : null);
     }
 
-
     public function getCount(Request $request) {
         $countMarker = Marker::where('act_costing_id', $request->act_costing_id)->
             where('color', $request->color)->
@@ -161,7 +180,6 @@ class MarkerController extends Controller
 
         return $countMarker ? $countMarker : 1;
     }
-
 
     /**
      * Store a newly created resource in storage.
@@ -177,6 +195,7 @@ class MarkerController extends Controller
         $validatedRequest = $request->validate([
             "tgl_cutting" => "required",
             "ws_id" => "required",
+            "ws" => "required",
             "color" => "required",
             "panel" => "required",
             "p_marker" => "required",
@@ -194,6 +213,7 @@ class MarkerController extends Controller
             'tgl_cutting' => $validatedRequest['tgl_cutting'],
             'kode' => $markerCode,
             'act_costing_id' => $validatedRequest['ws_id'],
+            'act_costing_ws' => $validatedRequest['ws'],
             'color' => $validatedRequest['color'],
             'panel' => $validatedRequest['panel'],
             'panjang_marker' => $validatedRequest['p_marker'],
@@ -204,7 +224,7 @@ class MarkerController extends Controller
             'unit_lebar_marker' => $validatedRequest['l_unit'],
             'gelar_qty' => $validatedRequest['gelar_marker_qty'],
             'po_marker' => $validatedRequest['po'],
-            'urut_marker' => $validatedRequest['no_urut_marker'],
+            'urutan_marker' => $validatedRequest['no_urut_marker'],
         ]);
 
         $timestamp = Carbon::now();

@@ -18,6 +18,7 @@ class CreateMarkersTable extends Migration
             $table->date('tgl_cutting');
             $table->string('kode');
             $table->bigInteger('act_costing_id');
+            $table->string('act_costing_ws');
             $table->string('color');
             $table->string('panel');
             $table->double('panjang_marker');
@@ -28,7 +29,7 @@ class CreateMarkersTable extends Migration
             $table->string('unit_lebar_marker');
             $table->integer('gelar_qty');
             $table->string('po_marker');
-            $table->string('urut_marker');
+            $table->string('urutan_marker');
             $table->timestamps();
         });
     }
