@@ -184,8 +184,9 @@
                     <tr>
                         <th>WS</th>
                         <th>Color</th>
-                        <th>QTY Order</th>
                         <th>Size</th>
+                        <th>QTY Order</th>
+                        <th>Sisa</th>
                         <th>So Det Id</th>
                         <th>Ratio</th>
                         <th>Cut Qty</th>
@@ -254,6 +255,7 @@
         $('#panel').on('change', async function(e) {
             await getMarkerCount();
             await getNumber();
+            await updateSizeList();
         });
 
         $('#p_unit').on('change', async function(e) {
@@ -366,10 +368,13 @@
                     data: 'color'
                 },
                 {
+                    data: 'size'
+                },
+                {
                     data: 'order_qty'
                 },
                 {
-                    data: 'size'
+                    data: null
                 },
                 {
                     data: 'id'
@@ -384,14 +389,22 @@
             columnDefs: [
                 {
                     targets: [4],
+                    render: (data, type, row, meta) => {
+                        let sumCutQtyData = sumCutQty.find(o => o.so_det_id == row.id && o.panel == $('#panel').val())  ;
+                        let left = row.order_qty - (sumCutQtyData ? sumCutQtyData.total_cut_qty : 0);
+
+                        return left < 0 ? 0 : left;
+                    }
+                },
+                {
+                    targets: [5],
                     className: "d-none",
                     render: (data, type, row, meta) => '<input type="hidden" id="so-det-id-' + meta.row + '" name="so_det_id['+meta.row+']" value="' + data + '" readonly />'
                 },
                 {
-                    targets: [5],
+                    targets: [6],
                     render: (data, type, row, meta) => {
-                        console.log(row.id);
-                        let sumCutQtyData = sumCutQty.find(o => o.so_det_id == row.id)  ;
+                        let sumCutQtyData = sumCutQty.find(o => o.so_det_id == row.id &&  o.panel == $('#panel').val())  ;
                         let left = row.order_qty - (sumCutQtyData ? sumCutQtyData.total_cut_qty : 0);
                         let readonly = left < 1 ? "readonly" : "";
 
@@ -399,7 +412,7 @@
                     }
                 },
                 {
-                    targets: [6],
+                    targets: [7],
                     render: (data, type, row, meta) => '<input type="number" id="cut-qty-' + meta.row + '" name="cut_qty['+meta.row+']" readonly />'
                 }
             ]

@@ -66,7 +66,10 @@ class MarkerController extends Controller
     public function create(Request $request)
     {
         if ($request->ajax()) {
-            $markerDetail = MarkerDetail::selectRaw("so_det_id, SUM(cut_qty) total_cut_qty")->groupBy("so_det_id")->get();
+            $markerDetail = MarkerDetail::selectRaw("marker_details.so_det_id, markers.panel, SUM(marker_details.cut_qty) total_cut_qty")->
+                leftJoin('markers', 'markers.id', '=', 'marker_details.marker_id')->
+                groupBy("marker_details.so_det_id", "markers.panel")->
+                get();
 
             return $markerDetail;
         }
