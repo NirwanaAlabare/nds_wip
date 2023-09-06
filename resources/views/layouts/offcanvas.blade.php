@@ -13,6 +13,7 @@
                     <form action="/user/update/{{ auth()->user()->id }}" method="post"
                         onsubmit="submitForm(this, event);">
                         @csrf
+                        <input type="hidden" name="_method" value="PUT">
                         <div class="mb-3">
                             <label><small>Name</small></label>
                             <input type="text" class="form-control form-control-sm" name="name"

@@ -1,9 +1,9 @@
 // CSRF token for ajax
-// $.ajaxSetup({
-//     headers: {
-//         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-//     }
-// });
+$.ajaxSetup({
+    headers: {
+        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+    }
+});
 
 document.addEventListener('DOMContentLoaded', () => {
     // Bootstrap modal configuration
@@ -70,7 +70,11 @@ function submitForm(e, evt) {
                 console.log(res.message);
 
                 if (res.redirect != '') {
-                    location.href = res.redirect;
+                    if (res.redirect != 'reload') {
+                        location.href = res.redirect;
+                    } else {
+                        location.reload();
+                    }
                 }
 
                 iziToast.success({

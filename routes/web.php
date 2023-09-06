@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\MarkerController;
 
 /*
@@ -17,6 +18,12 @@ use App\Http\Controllers\MarkerController;
 Auth::routes(['register' => false]);
 
 Route::middleware('auth')->group(function () {
+    // User
+    Route::controller(UserController::class)->prefix("user")->group(function () {
+        Route::put('/update/{id}', 'update')->name('update-user');
+    });
+
+    // Marker
     Route::controller(MarkerController::class)->prefix("marker")->group(function () {
         Route::get('/', 'index')->name('marker');
         Route::get('/create', 'create')->name('create-marker');
