@@ -179,7 +179,7 @@
             </h5>
         </div>
         <div class="card-body table-responsive">
-            <table id="datatable" class="table table-bordered table-striped w-100">
+            <table id="datatable" class="table table-bordered table-striped table-sm w-100">
                 <thead>
                     <tr>
                         <th>WS</th>
@@ -208,6 +208,22 @@
     <script src="/assets/plugins/select2/js/select2.full.min.js"></script>
     <!-- Page specific script -->
     <script>
+        var sumCutQty = null;
+        $(document).ready(async function () {
+            sumCutQty = await $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '/marker/create',
+                type: 'get',
+                data: {
+                    act_costing_id: $('#ws_id').val(),
+                    color: $('#color').val(),
+                },
+                dataType: 'json',
+            });
+        });
+
         //Initialize Select2 Elements
         $('.select2').select2()
 
@@ -327,6 +343,7 @@
         }
 
         let datatable = $("#datatable").DataTable({
+            ordering: false,
             processing: true,
             serverSide: true,
             ajax: {
@@ -372,7 +389,14 @@
                 },
                 {
                     targets: [5],
-                    render: (data, type, row, meta) => '<input type="number" id="ratio-' + meta.row + '" name="ratio['+meta.row+']" onchange="calculateRatio(' + meta.row + ')" onkeyup="calculateRatio('+meta.row+')" />'
+                    render: (data, type, row, meta) => {
+                        console.log(row.id);
+                        let sumCutQtyData = sumCutQty.find(o => o.so_det_id == row.id)  ;
+                        let left = row.order_qty - (sumCutQtyData ? sumCutQtyData.total_cut_qty : 0);
+                        let readonly = left < 1 ? "readonly" : "";
+
+                        return '<input type="number" id="ratio-' + meta.row + '" name="ratio[' + meta.row + ']" onchange="calculateRatio(' + meta.row + ')" onkeyup="calculateRatio(' + meta.row + ')" '+readonly+' />';
+                    }
                 },
                 {
                     targets: [6],
@@ -453,8 +477,6 @@
 
             clearModified();
 
-            console.log(new FormData(e));
-
             $.ajax({
                 url: e.getAttribute('action'),
                 type: e.getAttribute('method'),
@@ -470,6 +492,7 @@
                         Swal.fire({
                             icon: 'success',
                             title: 'Data Marker berhasil disimpan',
+                            text: res.message,
                             showCancelButton: false,
                             showConfirmButton: true,
                             confirmButtonText: 'Oke',
@@ -477,8 +500,6 @@
                             timerProgressBar: true
                         })
 
-                        document.getElementById('panel').innerHtml = "";
-                        document.getElementById('color').innerHtml = "";
                         await $("#ws_id").val(null).trigger("change");
                         await $("#panel").val(null).trigger("change");
                         await $("#color").val(null).trigger("change");

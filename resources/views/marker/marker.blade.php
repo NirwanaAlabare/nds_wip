@@ -20,20 +20,22 @@
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal">
+                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir">
+                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
                     <button class="btn btn-sb btn-sm" onclick="filterTable()">Tampilkan</button>
                 </div>
             </div>
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped w-100">
+                <table id="datatable" class="table table-bordered table-striped table-sm w-100">
                     <thead>
                         <tr>
+                            <th>Tanggal</th>
+                            <th>No. Marker</th>
                             <th>No. WS</th>
                             <th>Color</th>
                             <th>Panel</th>
@@ -43,6 +45,7 @@
                             <th>Gelar QTYs</th>
                             <th>PO</th>
                             <th>Urutan</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                 </table>
@@ -59,6 +62,7 @@
     <script src="/assets/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
     <script>
         let datatable = $("#datatable").DataTable({
+            ordering: false,
             processing: true,
             serverSide: true,
             ajax: {
@@ -74,6 +78,12 @@
                 },
             },
             columns: [
+                {
+                    data: 'tgl_cutting'
+                },
+                {
+                    data: 'kode'
+                },
                 {
                     data: 'act_costing_ws'
                 },
@@ -100,8 +110,17 @@
                 },
                 {
                     data: 'urutan_marker'
+                },
+                {
+                    data: 'id'
                 }
             ],
+            columnDefs: [
+                {
+                    targets: [11],
+                    render: (data, type, row, meta) => "<button class='btn btn-sm btn-primary' onclick=''>Edit</button>"
+                },
+            ]
         });
 
         function filterTable() {

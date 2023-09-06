@@ -24,6 +24,8 @@ class MarkerController extends Controller
             $tglAkhir = $request->tgl_akhir;
 
             $markersQuery = Marker::selectRaw("
+                    tgl_cutting,
+                    kode,
                     act_costing_ws,
                     color,
                     panel,
@@ -63,6 +65,12 @@ class MarkerController extends Controller
      */
     public function create(Request $request)
     {
+        if ($request->ajax()) {
+            $markerDetail = MarkerDetail::selectRaw("so_det_id, SUM(cut_qty) total_cut_qty")->groupBy("so_det_id")->get();
+
+            return $markerDetail;
+        }
+
         $orders = DB::connection('mysql_sb')->
             table('act_costing')->
             select('id', 'kpno')->
@@ -189,7 +197,7 @@ class MarkerController extends Controller
      */
     public function store(Request $request)
     {
-        $countMarker = Marker::all()->count() + 1;
+        $countMarker = Marker::whereRaw("kode LIKE 'MRK/".date('ym')."/%'")->count() + 1;
         $markerCode = 'MRK/'.date('ym').'/'.sprintf('%05s', $countMarker);
 
         $validatedRequest = $request->validate([
@@ -231,6 +239,17 @@ class MarkerController extends Controller
         $markerId = $markerStore->id;
         $markerDetailData = [];
         for ($i = 0; $i < intval($request['jumlah_so_det']); $i++) {
+            // $total = MarkerDetail::selectRaw('SUM("cut_qty")')->
+            //     where('so_det_id', $request["so_det_id"][$i])->
+            //     groupBy('so_det_id')->
+            //     first();
+            // $soDet = DB::connection('mysql_sb')->
+            //     table('so_det')->
+            //     selectRaw('order_qty, size')->
+            //     where('id', $request["so_det_id"][$i])->
+            //     first();
+            // $left = $soDet->order_qty-$total->ratio;
+
             array_push($markerDetailData, [
                 "marker_id" => $markerId,
                 "so_det_id" => $request["so_det_id"][$i],
@@ -245,8 +264,8 @@ class MarkerController extends Controller
 
         return array(
             "status" => 200,
-            "message" => "Marker berhasil dibuat",
-            "additional" => []
+            "message" => $markerCode,
+            "additional" => [],
         );
     }
 
