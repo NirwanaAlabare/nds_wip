@@ -15,21 +15,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (document.getElementById('parent-produksi')) {
         let parentProduksi = document.getElementById('parent-produksi');
-        if(parentProduksi.classList.contains('dropdown')) {
+        if (parentProduksi.classList.contains('dropdown')) {
             $('#produksi-dropdown').collapse('show');
         }
     };
 
     if (document.getElementById('parent-master')) {
         let parentMaster = document.getElementById('parent-master');
-        if(parentMaster.classList.contains('dropdown')) {
+        if (parentMaster.classList.contains('dropdown')) {
             $('#master-dropdown').collapse('show');
         }
     };
 
     if (document.getElementById('parent-report')) {
         let parentReport = document.getElementById('parent-report');
-        if(parentReport.classList.contains('dropdown')) {
+        if (parentReport.classList.contains('dropdown')) {
             $('#report-dropdown').collapse('show');
         }
     };
