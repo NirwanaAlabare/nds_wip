@@ -519,6 +519,19 @@
                         await $('#p_unit').val("yard").trigger('change');
                         await $("#panel").prop("disabled", true);
                         await $("#color").prop("disabled", true);
+
+                        sumCutQty = await $.ajax({
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            },
+                            url: '/marker/create',
+                            type: 'get',
+                            data: {
+                                act_costing_id: $('#ws_id').val(),
+                                color: $('#color').val(),
+                            },
+                            dataType: 'json',
+                        });
                     } else {
                         iziToast.error({
                             title: 'Error',
