@@ -29,7 +29,11 @@
                                 Marker
                             </a>
                         </li>
-                        <li><a href="#" class="dropdown-item">Some other action</a></li>
+                        <li>
+                            <a href="#" class="dropdown-item">
+                                Spreading
+                            </a>
+                        </li>
 
                         <li class="dropdown-divider"></li>
 
