@@ -54,6 +54,10 @@ Route::get('/dashboard', function () {
     return view('dashboard', ['page' => 'dashboard']);
 })->middleware('auth');
 
+Route::get('/timer', function () {
+    return view('example.timeout');
+})->middleware('auth');
+
 Route::get('/widgets', function () {
     return view('component.widgets');
 })->middleware('auth');
