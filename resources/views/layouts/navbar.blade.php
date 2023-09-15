@@ -30,7 +30,7 @@
                             </a>
                         </li>
                         <li>
-                            <a href="#" class="dropdown-item">
+                            <a href="/form-cut-input" class="dropdown-item">
                                 Spreading
                             </a>
                         </li>

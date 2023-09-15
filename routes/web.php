@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MarkerController;
+use App\Http\Controllers\FormCutInputController;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,6 +31,35 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-marker');
         Route::get('/edit', 'edit')->name('edit-marker');
         Route::put('/update', 'update')->name('update-marker');
+
+        // get order
+        Route::get('/get-order', 'getOrderInfo')->name('get-marker-order');
+        // get colors
+        Route::get('/get-colors', 'getColorList')->name('get-marker-colors');
+        // get panels
+        Route::get('/get-panels', 'getPanelList')->name('get-marker-panels');
+        // get sizes
+        Route::get('/get-sizes', 'getSizeList')->name('get-marker-sizes');
+        // get count
+        Route::get('/get-count', 'getCount')->name('get-marker-count');
+        // get number
+        Route::get('/get-number', 'getNumber')->name('get-marker-number');
+    });
+
+    // Form Cut Input
+    Route::controller(FormCutInputController::class)->prefix("form-cut-input")->group(function () {
+        Route::get('/', 'index')->name('form-cut-input');
+        // Route::get('/create', 'create')->name('create-form-cut-input');
+        // Route::post('/store', 'store')->name('store-form-cut-input');
+        // Route::get('/edit', 'edit')->name('edit-form-cut-input');
+        // Route::put('/update', 'update')->name('update-form-cut-input');
+        Route::get('/process/{id}', 'process')->name('process-form-cut-input');
+        Route::get('/get-number-data', 'getNumberData')->name('get-number-form-cut-input');
+        Route::get('/get-scanned-item/{id}', 'getScannedItem')->name('get-scanned-form-cut-input');
+        Route::put('/start-process/{id}', 'startProcess')->name('start-process-form-cut-input');
+        Route::put('/next-process-one/{id}', 'nextProcessOne')->name('next-process-one-form-cut-input');
+        Route::put('/next-process-two/{id}', 'nextProcessTwo')->name('next-process-two-form-cut-input');
+        Route::post('/store-time-record', 'storeTimeRecord')->name('store-time-form-cut-input');
 
         // get order
         Route::get('/get-order', 'getOrderInfo')->name('get-marker-order');

@@ -152,6 +152,16 @@
     transition: 0.3s;
 }
 
+.card .card-header {
+    border-radius: 1px;
+}
+
+.card.card-sb .card-header {
+    border-radius: 1px;
+    background: var(--sb-color) !important;
+    color: var(--light-color) !important;
+}
+
 .card-sb.card-outline {
     border-top: 3px solid var(--sb-color);
 }

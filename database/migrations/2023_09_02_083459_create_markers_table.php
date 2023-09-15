@@ -30,6 +30,7 @@ class CreateMarkersTable extends Migration
             $table->integer('gelar_qty');
             $table->string('po_marker');
             $table->string('urutan_marker');
+            $table->string('cons_marker');
             $table->timestamps();
         });
     }

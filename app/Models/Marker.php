@@ -12,4 +12,12 @@ class Marker extends Model
     protected $table = 'markers';
 
     protected $guarded = [];
+
+    /**
+     * Get the marker details for the marker.
+     */
+    public function markerDetails()
+    {
+        return $this->hasMany(MarkerDetail::class, 'marker_id', 'id');
+    }
 }
