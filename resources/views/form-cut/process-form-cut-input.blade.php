@@ -22,18 +22,22 @@
                     @endphp
                     <div class="row">
                         <input type="hidden" name="id" id="id" value="{{ $id }}" readonly>
-                        <input type="hidden" name="act_costing_id" id="act_costing_id" value="{{ $formCutInputData->act_costing_id }}" readonly>
-                        <input type="hidden" name="status" id="status" value="{{ $formCutInputData->status }}" readonly>
+                        <input type="hidden" name="act_costing_id" id="act_costing_id"
+                            value="{{ $formCutInputData->act_costing_id }}" readonly>
+                        <input type="hidden" name="status" id="status" value="{{ $formCutInputData->status }}"
+                            readonly>
                         <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Start</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="start" id="start-time" value="{{ $formCutInputData->waktu_mulai }}" readonly>
+                                <input type="text" class="form-control form-control-sm" name="start" id="start-time"
+                                    value="{{ $formCutInputData->waktu_mulai }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Finish</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="finish" id="finish-time" readonly>
+                                <input type="text" class="form-control form-control-sm" name="finish" id="finish-time"
+                                    readonly>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -47,61 +51,71 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>No. Form</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="no_form" id="no_form" value="{{ $formCutInputData->no_form }}" readonly>
+                                <input type="text" class="form-control form-control-sm" name="no_form" id="no_form"
+                                    value="{{ $formCutInputData->no_form }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Tanggal</b></small></label>
-                                <input type="date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" readonly>
+                                <input type="date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}"
+                                    readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Kode Marker</b></small></label>
-                                <input type="text" class="form-control form-control-sm" value="{{ $formCutInputData->id_marker }}" readonly>
+                                <input type="text" class="form-control form-control-sm"
+                                    value="{{ $formCutInputData->id_marker }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>No. WS</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="no_ws" value="{{ $formCutInputData->act_costing_ws }}" readonly>
+                                <input type="text" class="form-control form-control-sm" name="no_ws"
+                                    value="{{ $formCutInputData->act_costing_ws }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Buyer</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="buyer" value="{{ $thisActCosting->buyer }}" readonly>
+                                <input type="text" class="form-control form-control-sm" name="buyer"
+                                    value="{{ $thisActCosting->buyer }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Style</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="style" value="{{ $thisActCosting->style }}" readonly>
+                                <input type="text" class="form-control form-control-sm" name="style"
+                                    value="{{ $thisActCosting->style }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Color</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="color" id="color" value="{{ $formCutInputData->color }}" readonly>
+                                <input type="text" class="form-control form-control-sm" name="color" id="color"
+                                    value="{{ $formCutInputData->color }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Panel</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="panel" id="panel" value="{{ $formCutInputData->panel }}" readonly>
+                                <input type="text" class="form-control form-control-sm" name="panel" id="panel"
+                                    value="{{ $formCutInputData->panel }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>PO</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="po" value="{{ $formCutInputData->po_marker }}" readonly>
+                                <input type="text" class="form-control form-control-sm" name="po"
+                                    value="{{ $formCutInputData->po_marker }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>QTY Gelar Marker</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="gelar_qty" value="{{ $formCutInputData->gelar_qty }}" readonly>
+                                <input type="text" class="form-control form-control-sm" name="gelar_qty"
+                                    value="{{ $formCutInputData->gelar_qty }}" readonly>
                             </div>
                         </div>
                     </div>
@@ -147,7 +161,8 @@
                 <div class="card-header">
                     <h3 class="card-title">Detail Data</h3>
                     <div class="card-tools">
-                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i
+                                class="fas fa-minus"></i>
                         </button>
                     </div>
                 </div>
@@ -156,103 +171,123 @@
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>P. Marker</b></small></label>
-                                <input type="number" class="form-control form-control-sm" value="{{ $formCutInputData->panjang_marker }}" readonly>
+                                <input type="number" class="form-control form-control-sm"
+                                    value="{{ $formCutInputData->panjang_marker }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Unit</b></small></label>
-                                <input type="text" class="form-control form-control-sm" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
+                                <input type="text" class="form-control form-control-sm"
+                                    value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Comma</b></small></label>
-                                <input type="number" class="form-control form-control-sm" value="{{ $formCutInputData->comma_marker }}" readonly>
+                                <input type="number" class="form-control form-control-sm"
+                                    value="{{ $formCutInputData->comma_marker }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Unit</b></small></label>
-                                <input type="text" class="form-control form-control-sm" value="{{ strtoupper($formCutInputData->unit_comma_marker) }}" readonly>
+                                <input type="text" class="form-control form-control-sm"
+                                    value="{{ strtoupper($formCutInputData->unit_comma_marker) }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>P. Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm" name="p_actual" id="p_actual" value="{{ $formCutInputData->p_act }}">
+                                <input type="number" class="form-control form-control-sm" name="p_actual"
+                                    id="p_actual" value="{{ $formCutInputData->p_act }}">
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Unit Act</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="unit_p_actual" id="unit_p_actual" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
+                                <input type="text" class="form-control form-control-sm" name="unit_p_actual"
+                                    id="unit_p_actual" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}"
+                                    readonly>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Comma Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm" name="comma_actual" id="comma_actual" value="{{ $formCutInputData->p_act }}">
+                                <input type="number" class="form-control form-control-sm" name="comma_actual"
+                                    id="comma_actual" value="{{ $formCutInputData->p_act }}">
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Unit Act</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="unit_comma_actual" id="unit_comma_actual" value="{{ strtoupper($formCutInputData->unit_comma_marker) }}" readonly>
+                                <input type="text" class="form-control form-control-sm" name="unit_comma_actual"
+                                    id="unit_comma_actual" value="{{ strtoupper($formCutInputData->unit_comma_marker) }}"
+                                    readonly>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>L. Marker</b></small></label>
-                                <input type="number" class="form-control form-control-sm" value="{{ strtoupper($formCutInputData->lebar_marker) }}" readonly>
+                                <input type="number" class="form-control form-control-sm"
+                                    value="{{ strtoupper($formCutInputData->lebar_marker) }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Unit</b></small></label>
-                                <input type="text" class="form-control form-control-sm" value="{{ strtoupper($formCutInputData->unit_lebar_marker) }}" readonly>
+                                <input type="text" class="form-control form-control-sm"
+                                    value="{{ strtoupper($formCutInputData->unit_lebar_marker) }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>L. Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm" name="l_actual" id="l_actual" value="{{ $formCutInputData->l_act }}">
+                                <input type="number" class="form-control form-control-sm" name="l_actual"
+                                    id="l_actual" value="{{ $formCutInputData->l_act }}">
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Unit Act</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="unit_l_actual" id="unit_l_actual" value="{{ strtoupper($formCutInputData->unit_lebar_marker) }}" readonly>
+                                <input type="text" class="form-control form-control-sm" name="unit_l_actual"
+                                    id="unit_l_actual" value="{{ strtoupper($formCutInputData->unit_lebar_marker) }}"
+                                    readonly>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Cons WS</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="cons_ws" id="cons_ws" readonly>
+                                <input type="text" class="form-control form-control-sm" name="cons_ws" id="cons_ws"
+                                    readonly>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Cons Marker</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="cons_marker" id="cons_marker" value="{{ $formCutInputData->cons_marker }}" readonly>
+                                <input type="text" class="form-control form-control-sm" name="cons_marker"
+                                    id="cons_marker" value="{{ $formCutInputData->cons_marker }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Cons Actual</b></small></label>
-                                <input type="number" class="form-control form-control-sm" name="cons_actual" id="cons_actual" value="{{ $formCutInputData->cons_act }}" step=".01">
+                                <input type="number" class="form-control form-control-sm" name="cons_actual"
+                                    id="cons_actual" value="{{ $formCutInputData->cons_act }}" step=".01">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Cons Pipping</b></small></label>
-                                <input type="number" class="form-control form-control-sm" step=".01" name="cons_pipping" id="cons_pipping">
+                                <input type="number" class="form-control form-control-sm" step=".01"
+                                    name="cons_pipping" id="cons_pipping">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Cons 1 Ampar</b></small></label>
-                                <input type="number" class="form-control form-control-sm" step=".01" name="cons_ampar" id="cons_ampar">
+                                <input type="number" class="form-control form-control-sm" step=".01"
+                                    name="cons_ampar" id="cons_ampar">
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -260,10 +295,12 @@
                                 <label class="form-label"><small><b>Est. Kebutuhan Kain Pipping</b></small></label>
                                 <div class="row g-1">
                                     <div class="col-6">
-                                        <input type="number" class="form-control form-control-sm" step=".01" name="est_pipping" id="est_pipping">
+                                        <input type="number" class="form-control form-control-sm" step=".01"
+                                            name="est_pipping" id="est_pipping">
                                     </div>
                                     <div class="col-6">
-                                        <select class="form-select form-select-sm" name="est_pipping_unit" id="est_pipping_unit">
+                                        <select class="form-select form-select-sm" name="est_pipping_unit"
+                                            id="est_pipping_unit">
                                             <option value="meter">METER</option>
                                             <option value="yard">YARD</option>
                                         </select>
@@ -276,10 +313,12 @@
                                 <label class="form-label"><small><b>Est. Kebutuhan Kain</b></small></label>
                                 <div class="row g-1">
                                     <div class="col-6">
-                                        <input type="number" class="form-control form-control-sm" step=".01" name="est_kain" id="est_kain">
+                                        <input type="number" class="form-control form-control-sm" step=".01"
+                                            name="est_kain" id="est_kain">
                                     </div>
                                     <div class="col-6">
-                                        <select class="form-select form-select-sm" name="est_kain_unit" id="est_kain_unit">
+                                        <select class="form-select form-select-sm" name="est_kain_unit"
+                                            id="est_kain_unit">
                                             <option value="meter">METER</option>
                                             <option value="yard">YARD</option>
                                         </select>
@@ -297,7 +336,8 @@
                 <div class="card-header">
                     <h3 class="card-title">Scan QR</h3>
                     <div class="card-tools">
-                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i
+                                class="fas fa-minus"></i>
                         </button>
                     </div>
                 </div>
@@ -312,32 +352,38 @@
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Kode Barang</b></small></label>
                                 <div class="input-group">
-                                    <input type="text" class="form-control form-control-sm" name="kode_barang" id="kode_barang">
-                                    <button class="btn btn-sm btn-primary" type="button" id="scan-button" onclick="initScan()">Scan</button>
+                                    <input type="text" class="form-control form-control-sm" name="kode_barang"
+                                        id="kode_barang">
+                                    <button class="btn btn-sm btn-primary" type="button" id="scan-button"
+                                        onclick="initScan()">Scan</button>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>ID Item</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="id_item" id="id_item" readonly>
+                                <input type="text" class="form-control form-control-sm" name="id_item" id="id_item"
+                                    readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Detail Item</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="detail_item" id="detail_item" readonly>
+                                <input type="text" class="form-control form-control-sm" name="detail_item"
+                                    id="detail_item" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Color Actual</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="color_act" id="color_act">
+                                <input type="text" class="form-control form-control-sm" name="color_act"
+                                    id="color_act">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mt-auto mb-3">
-                                <button class="btn btn-sb btn-sm btn-block d-none" id="next-process-3" onclick="nextProcessThree()">START</button>
+                                <button class="btn btn-sb btn-sm btn-block d-none" id="next-process-3"
+                                    onclick="nextProcessThree()">START</button>
                             </div>
                         </div>
                     </div>
@@ -345,11 +391,12 @@
             </div>
         </div>
         <div class="col-md-12">
-            <div class="card card-sb d-none" id="time-record-card">
+            <div class="card card-sb" id="time-record-card">
                 <div class="card-header">
                     <h3 class="card-title">Time Record</h3>
                     <div class="card-tools">
-                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i
+                                class="fas fa-minus"></i>
                         </button>
                     </div>
                 </div>
@@ -358,19 +405,25 @@
                         <div class="col-md-12">
                             <div class="d-flex gap-3 mb-3">
                                 <div class="d-flex gap-1">
-                                    <input type="text" class="form-control form-control-sm" id="minutes" value="00" readonly class="mx-1">
+                                    <input type="text" class="form-control form-control-sm" id="minutes"
+                                        value="00" readonly class="mx-1">
                                     :
-                                    <input type="text" class="form-control form-control-sm" id="seconds" value="00" readonly class="mx-1">
+                                    <input type="text" class="form-control form-control-sm" id="seconds"
+                                        value="00" readonly class="mx-1">
                                 </div>
-                                <button type="button" class="btn btn-success btn-sm" id="startLapButton" onclick="startTimeRecord()">Start</button>
-                                <button type="button" class="btn btn-primary btn-sm" id="nextLapButton" onclick="addNewTimeRecord()">Next Lap</button>
-                                <button type="button" class="btn btn-warning btn-sm" id="pauseLapButton" onclick="pauseTimeRecord()">Pause</button>
-                                <button type="button" class="btn btn-danger btn-sm" id="stopLapButton" onclick="stopTimeRecord()">Stop</button>
+                                <button type="button" class="btn btn-success btn-sm" id="startLapButton"
+                                    onclick="startTimeRecord()">Start</button>
+                                <button type="button" class="btn btn-primary btn-sm" id="nextLapButton"
+                                    onclick="addNewTimeRecord()">Next Lap</button>
+                                <button type="button" class="btn btn-warning btn-sm" id="pauseLapButton"
+                                    onclick="pauseTimeRecord()">Pause</button>
+                                <button type="button" class="btn btn-danger btn-sm" id="stopLapButton"
+                                    onclick="stopTimeRecord()">Stop</button>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="w-100 table-responsive">
-                                <form id="time-record-lap-form">
+                                <form action="#" method="post" id="time-record-form">
                                     <table class="table table-bordered table-sm" id="timeRecordTable">
                                         <thead>
                                             <tr>
@@ -382,6 +435,7 @@
                                         <tbody>
                                         </tbody>
                                     </table>
+                                </form>
                                 </form>
                             </div>
                         </div>
@@ -497,7 +551,8 @@
 
         function startProcess() {
             let now = new Date();
-            startTime.value = now.getFullYear().toString() + "-" + pad2(now.getMonth() + 1) + "-" + pad2( now.getDate()) + "-" + pad2( now.getHours() ) + ":" + pad2( now.getMinutes() ) + ":" + pad2( now.getSeconds() );
+            startTime.value = now.getFullYear().toString() + "-" + pad2(now.getMonth() + 1) + "-" + pad2(now.getDate()) +
+                "-" + pad2(now.getHours()) + ":" + pad2(now.getMinutes()) + ":" + pad2(now.getSeconds());
 
             updateToStartProcess();
 
@@ -535,7 +590,7 @@
                     panel: $("#panel").val(),
                 },
                 dataType: 'json',
-                success: function (res) {
+                success: function(res) {
                     if (res) {
                         document.getElementById('cons_ws').value = res.cons_ws
                     }
@@ -548,13 +603,13 @@
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                url: '/form-cut-input/start-process/'+id,
+                url: '/form-cut-input/start-process/' + id,
                 type: 'put',
                 dataType: 'json',
                 data: {
                     startTime: startTime.value,
                 },
-                success: function (res) {
+                success: function(res) {
                     if (res) {
                         console.log(res);
                     }
@@ -567,10 +622,10 @@
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                url: '/form-cut-input/next-process-one/'+id,
+                url: '/form-cut-input/next-process-one/' + id,
                 type: 'put',
                 dataType: 'json',
-                success: function (res) {
+                success: function(res) {
                     if (res) {
                         console.log(res);
                     }
@@ -599,7 +654,7 @@
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                url: '/form-cut-input/next-process-two/'+id,
+                url: '/form-cut-input/next-process-two/' + id,
                 type: 'put',
                 dataType: 'json',
                 data: {
@@ -617,7 +672,7 @@
                     est_kain: estKain,
                     est_kain_unit: estKainUnit,
                 },
-                success: function (res) {
+                success: function(res) {
                     if (res) {
                         console.log(res.message);
 
@@ -631,7 +686,8 @@
                             initScan();
                         }
                     }
-                }, error: function (jqXHR) {
+                },
+                error: function(jqXHR) {
                     let res = jqXHR.responseJSON;
                     let message = '';
                     let i = 0;
@@ -653,7 +709,8 @@
         }
 
         function updateToNextProcessThree() {
-            if (checkIfNull(document.getElementById("id_item").value) && checkIfNull(document.getElementById("detail_item").value) && checkIfNull(document.getElementById("color_act").value) && currentScannedItem) {
+            if (checkIfNull(document.getElementById("id_item").value) && checkIfNull(document.getElementById("detail_item")
+                    .value) && checkIfNull(document.getElementById("color_act").value) && currentScannedItem) {
                 nextProcessThreeButton.classList.add("d-none");
                 $('#time-record-card').removeClass('d-none');
 
@@ -702,9 +759,15 @@
                 }
 
                 let html5QrcodeScanner = new Html5QrcodeScanner(
-                    "reader",
-                    { fps: 10, qrbox: {width: 250, height: 250} },
-                    /* verbose= */ false);
+                    "reader", {
+                        fps: 10,
+                        qrbox: {
+                            width: 250,
+                            height: 250
+                        }
+                    },
+                    /* verbose= */
+                    false);
                 html5QrcodeScanner.render(onScanSuccess, onScanFailure);
             }
         }
@@ -714,10 +777,10 @@
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                url: '/form-cut-input/get-scanned-item/'+id,
+                url: '/form-cut-input/get-scanned-item/' + id,
                 type: 'get',
                 dataType: 'json',
-                success: function (res) {
+                success: function(res) {
                     if (res) {
                         currentScannedItem = res;
 
@@ -742,12 +805,14 @@
             let td6 = document.createElement('td');
             let td7 = document.createElement('td');
             td1.innerHTML = totalScannedItem + 1;
-            td2.innerHTML = `<input type='text' class="form-control form-control-sm w-auto" name='group[`+totalScannedItem+`]' id='group-`+totalScannedItem+`'>`;
+            td2.innerHTML = `<input type='text' class="form-control form-control-sm w-auto" name='group[` +
+                totalScannedItem + `]' id='group-` + totalScannedItem + `'>`;
             td3.innerHTML = data.lot_no;
             td4.innerHTML = data.roll_no;
             td5.innerHTML = data.roll_qty;
             td6.innerHTML = data.unit;
-            td7.innerHTML = `<input type='number' class="form-control form-control-sm w-auto" name='lap[`+totalScannedItem+`]' id='lap-`+totalScannedItem+`'>`;
+            td7.innerHTML = `<input type='number' class="form-control form-control-sm w-auto" name='lap[` +
+                totalScannedItem + `]' id='lap-` + totalScannedItem + `'>`;
             tr.appendChild(td1);
             tr.appendChild(td2);
             tr.appendChild(td3);
@@ -778,31 +843,39 @@
             nextProcessThreeButton.classList.remove("d-none");
         }
 
-        // function storeTimeRecord() {
-        //     return $.ajax({
-        //         headers: {
-        //             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        //         },
-        //         url: '/form-cut-input/store-time-record/',
-        //         type: 'post',
-        //         dataType: 'json',
-        //         data: {
-        //             no_form_cut_input: $("#no_form").val(),
-        //             id_item: $("#id_item").val(),
-        //             group: $("#group-"+(totalScannedItem-1)).val(),
-        //             lot: currentScannedItem.lot_no,
-        //             roll: currentScannedItem.roll_no,
-        //             qty: currentScannedItem.roll_qty,
-        //             unit: currentScannedItem.unit,
-        //             lap: $("#lap-"+(totalScannedItem-1)).val(),
-        //         },
-        //         success: function (res) {
-        //             if (res) {
-        //                 console.log(res);
-        //             }
-        //         }
-        //     });
-        // }
+        function storeTimeRecord() {
+            let timeRecordForm = new FormData(document.getElementById("time-record-form"));
+
+
+            let dataObj = {
+                no_form_cut_input: $("#no_form").val(),
+                id_item: $("#id_item").val(),
+                group: $("#group-" + (totalScannedItem - 1)).val(),
+                lot: currentScannedItem.lot_no,
+                roll: currentScannedItem.roll_no,
+                qty: currentScannedItem.roll_qty,
+                unit: currentScannedItem.unit,
+                lap: $("#lap-" + (totalScannedItem - 1)).val()
+            }
+            timeRecordForm.forEach((value, key) => dataObj[key] = value);
+
+            console.log(dataObj);
+
+            return $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '/form-cut-input/store-time-record/',
+                type: 'post',
+                dataType: 'json',
+                data: dataObj,
+                success: function(res) {
+                    if (res) {
+                        console.log(res);
+                    }
+                }
+            });
+        }
 
         var startLapButton = document.getElementById("startLapButton");
         var pauseLapButton = document.getElementById("pauseLapButton");
@@ -882,17 +955,18 @@
             let td2 = document.createElement('td');
             let td3 = document.createElement('td');
             td1.innerHTML = lap;
-            td2.innerHTML = minutes.value+' : '+seconds.value;
+            td2.innerHTML = minutes.value + ' : ' + seconds.value;
             td3.classList.add('d-none');
-            td3.innerHTML = `<input type='hidden' name="time_record[`+lap+`]" value="`+minutes.value+':'+seconds.value+`" />`;
+            td3.innerHTML = `<input type='hidden' name="time_record[` + lap + `]" value="` + minutes.value + ':' + seconds
+                .value + `" />`;
             tr.appendChild(td1);
             tr.appendChild(td2);
             tr.appendChild(td3);
 
             timeRecordTableTbody.appendChild(tr);
 
-            if (document.getElementById("lap-"+(totalScannedItem-1))) {
-                document.getElementById("lap-"+(totalScannedItem-1)).value = lap;
+            if (document.getElementById("lap-" + (totalScannedItem - 1))) {
+                document.getElementById("lap-" + (totalScannedItem - 1)).value = lap;
             }
 
             stopLapButton.disabled = false;
