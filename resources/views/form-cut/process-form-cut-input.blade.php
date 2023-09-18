@@ -36,7 +36,7 @@
                         <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Finish</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="finish" id="finish-time"
+                                <input type="text" class="form-control form-control-sm" name="finish" id="finish-time" value="{{ $formCutInputData->waktu_selesai }}"
                                     readonly>
                             </div>
                         </div>
@@ -459,6 +459,9 @@
                 </div>
             </div>
         </div>
+        <div class="col-md-12">
+            <button class="btn btn-block btn-sb d-none" id="finish-process" onclick="finishProcess()">SELESAI PENGERJAAN</button>
+        </div>
     </div>
 @endsection
 
@@ -470,6 +473,7 @@
         var nextProcessOneButton = document.getElementById("next-process-1");
         var nextProcessTwoButton = document.getElementById("next-process-2");
         var nextProcessThreeButton = document.getElementById("next-process-3");
+        var finishProcessButton = document.getElementById("finish-process");
         var startTime = document.getElementById("start-time");
         var finishTime = document.getElementById("finish-time");
         var timeRecordSummary = null;
@@ -504,7 +508,7 @@
             return true;
         }
 
-        function checkStatus() {
+        async function checkStatus() {
             if (status == "PENGERJAAN FORM CUTTING") {
                 startProcessButton.classList.add("d-none");
                 nextProcessOneButton.classList.remove("d-none");
@@ -520,8 +524,6 @@
             }
 
             if (status == "PENGERJAAN FORM CUTTING SPREAD") {
-                getTimeRecord();
-
                 startProcessButton.classList.add("d-none");
                 nextProcessOneButton.classList.add("d-none");
                 nextProcessTwoButton.classList.add("d-none");
@@ -534,18 +536,51 @@
                 $('#scan-qr-card').removeClass('d-none');
 
                 initScan();
+
+                await getTimeRecord()
+
+                if (timeRecordSummary != null && timeRecordSummary.length > 0) {
+                    setTimeRecord()
+
+                    startLapButton.disabled = false;
+                    nextLapButton.disabled = false;
+                    pauseLapButton.disabled = false;
+                    stopLapButton.disabled = false;
+                    $('#time-record-card').removeClass("d-none");
+                    finishProcessButton.classList.remove("d-none");
+                }
             }
 
-            if (status == "PENGERJAAN FORM CUTTING SPREAD TIME") {
+            if (status == "SELESAI PENGERJAAN") {
                 startProcessButton.classList.add("d-none");
                 nextProcessOneButton.classList.add("d-none");
                 nextProcessTwoButton.classList.add("d-none");
-                nextProcessThreeButton.classList.add("d-none");
+                nextProcessThreeButton.classList.remove("d-none");
 
                 $('#header-data-card').CardWidget('collapse');
                 $('#detail-data-card').removeClass('d-none');
                 $('#detail-data-card').CardWidget('collapse');
+                $('#detail-data-card').removeClass('d-none');
                 $('#scan-qr-card').removeClass('d-none');
+                $('#scan-qr-card').CardWidget('collapse');
+
+                document.getElementById("next-process-3").setAttribute("disabled", true);
+
+                await getTimeRecord()
+
+                if (timeRecordSummary != null && timeRecordSummary.length > 0) {
+                    setTimeRecord();
+
+                    startLapButton.disabled = false;
+                    nextLapButton.disabled = false;
+                    pauseLapButton.disabled = false;
+                    stopLapButton.disabled = false;
+                    nextProcessThreeButton.classList.add("d-none");
+                    $('#time-record-card').removeClass("d-none");
+                    finishProcessButton.classList.remove("d-none");
+                }
+
+                lockForm();
             }
         }
 
@@ -575,6 +610,10 @@
 
         function nextProcessThree() {
             updateToNextProcessThree();
+        }
+
+        function finishProcess() {
+            updateToFinishProcess();
         }
 
         function getNumberData() {
@@ -711,6 +750,7 @@
         function updateToNextProcessThree() {
             if (checkIfNull(document.getElementById("id_item").value) && checkIfNull(document.getElementById("detail_item").value) && checkIfNull(document.getElementById("color_act").value) && currentScannedItem) {
                 getTimeRecord();
+                setTimeRecord();
 
                 nextProcessThreeButton.classList.add("d-none");
                 $('#time-record-card').removeClass('d-none');
@@ -719,10 +759,13 @@
                 nextLapButton.disabled = false;
                 pauseLapButton.disabled = false;
                 stopLapButton.disabled = true;
+                finishProcessButton.disabled = true;
 
                 startLapButton.focus();
 
                 appendScannedItem(currentScannedItem);
+
+                finishProcessButton.classList.remove("d-none");
             } else {
                 Swal.fire({
                     icon: 'error',
@@ -735,7 +778,60 @@
             }
         }
 
+        function updateToFinishProcess() {
+            Swal.fire({
+                icon: 'info',
+                title: 'Selesai Pengerjaan?',
+                text: 'Yakin akan menyelesaikan proses pengerjaan?',
+                showCancelButton: true,
+                showConfirmButton: true,
+                confirmButtonText: 'Selesaikan',
+                confirmButtonColor: "#6531a0",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        url: '/form-cut-input/finish-process/' + id,
+                        type: 'put',
+                        dataType: 'json',
+                        data: {
+                            finishTime: finishTime.value
+                        },
+                        success: function(res) {
+                            if (res) {
+                                console.log(res);
+
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil',
+                                    text: 'Proses telah berhasil diselesaikan',
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                });
+
+                                lockForm();
+                            }
+                        },
+                        error: function(jqXHR) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: 'Terjadi kesalahan',
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                            });
+                        }
+                    });
+                }
+            });
+        }
+
         var currentScannedItem = null;
+        var html5QrcodeScanner = null;
         // Scan QR
         function initScan() {
             if (document.getElementById("reader")) {
@@ -759,7 +855,7 @@
                     console.warn(`Code scan error = ${error}`);
                 }
 
-                let html5QrcodeScanner = new Html5QrcodeScanner(
+                html5QrcodeScanner = new Html5QrcodeScanner(
                     "reader", {
                         fps: 10,
                         qrbox: {
@@ -773,7 +869,7 @@
         }
 
         function getScannedItem(id) {
-            $.ajax({
+            return $.ajax({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
@@ -833,6 +929,7 @@
             $("#kode_barang").val("");
             $("#id_item").val("");
             $("#detail_item").val("");
+            $("#color_act").val("");
 
             initScan();
 
@@ -840,6 +937,7 @@
             nextLapButton.disabled = true;
             pauseLapButton.disabled = true;
             stopLapButton.disabled = true;
+            finishProcessButton.disabled = false;
 
             nextProcessThreeButton.classList.remove("d-none");
         }
@@ -890,14 +988,16 @@
                     success: function(res) {
                         if (res) {
                             timeRecordSummary = res;
-
-                            console.log(res);
-
-                            timeRecordSummary.forEach((item) => {
-                                appendScannedItem(item)
-                            });
                         }
                     }
+                });
+            }
+        }
+
+        function setTimeRecord() {
+            if (totalScannedItem < 1) {
+                timeRecordSummary.forEach((item) => {
+                    appendScannedItem(item)
                 });
             }
         }
@@ -1006,5 +1106,46 @@
                 stopTimeRecord()
             }
         });
+
+        function lockForm() {
+            startProcessButton.disabled = true;
+            nextProcessOneButton.disabled = true;
+            nextProcessTwoButton.disabled = true;
+            nextProcessThreeButton.disabled = true;
+            finishProcessButton.disabled = true;
+
+            finishProcessButton.innerHTML = "PENGERJAAN TELAH DISELESAIKAN";
+
+            document.getElementById("shell").setAttribute("disabled", true);
+            document.getElementById("p_actual").setAttribute("readonly", true);
+            document.getElementById("comma_actual").setAttribute("readonly", true);
+            document.getElementById("l_actual").setAttribute("readonly", true);
+            document.getElementById("cons_actual").setAttribute("readonly", true);
+            document.getElementById("cons_pipping").setAttribute("readonly", true);
+            document.getElementById("cons_ampar").setAttribute("readonly", true);
+            document.getElementById("est_pipping").setAttribute("readonly", true);
+            document.getElementById("est_pipping_unit").setAttribute("disabled", true);
+            document.getElementById("est_kain").setAttribute("readonly", true);
+            document.getElementById("est_kain_unit").setAttribute("disabled", true);
+            document.getElementById("kode_barang").setAttribute("readonly", true);
+            document.getElementById("scan-button").setAttribute("disabled", true);
+            document.getElementById("color_act").setAttribute("disabled", true);
+            document.getElementById("reader").classList.add("d-none");
+
+            startLapButton.disabled = true;
+            nextLapButton.disabled = true;
+            pauseLapButton.disabled = true;
+            stopLapButton.disabled = true;
+
+            for (let i = 0; i < timeRecordSummary.length; i++) {
+                console.log("group-"+(i), document.getElementById("group-"+(i)));
+                document.getElementById("group-"+(i)).setAttribute("readonly", true);
+                document.getElementById("lap-"+(i)).setAttribute("readonly", true);
+            }
+
+            if (html5QrcodeScanner != null) {
+                html5QrcodeScanner.clear();
+            }
+        }
     </script>
 @endsection

@@ -350,4 +350,14 @@ class FormCutInputController extends Controller
             "additional" => [],
         );
     }
+
+    public function finishProcess($id, Request $request) {
+        $updateFormCutInput = FormCutInput::where("id", $id)->
+            update([
+                "status" => "SELESAI PENGERJAAN",
+                "waktu_selesai" => $request->finishTime
+            ]);
+
+        return $updateFormCutInput;
+    }
 }
