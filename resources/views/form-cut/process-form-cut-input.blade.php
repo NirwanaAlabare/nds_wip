@@ -44,7 +44,9 @@
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Shell</b></small></label>
                                 <select class="form-select form-select-sm" name="shell" id="shell">
-                                    <option value="">-</option>
+                                    <option value="a">A</option>
+                                    <option value="b">B</option>
+                                    <option value="c">C</option>
                                 </select>
                             </div>
                         </div>
@@ -184,20 +186,6 @@
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
-                                <label class="form-label"><small><b>Comma</b></small></label>
-                                <input type="number" class="form-control form-control-sm"
-                                    value="{{ $formCutInputData->comma_marker }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label"><small><b>Unit</b></small></label>
-                                <input type="text" class="form-control form-control-sm"
-                                    value="{{ strtoupper($formCutInputData->unit_comma_marker) }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="mb-3">
                                 <label class="form-label"><small><b>P. Act</b></small></label>
                                 <input type="number" class="form-control form-control-sm" name="p_actual"
                                     id="p_actual" value="{{ $formCutInputData->p_act }}">
@@ -209,6 +197,20 @@
                                 <input type="text" class="form-control form-control-sm" name="unit_p_actual"
                                     id="unit_p_actual" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}"
                                     readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label"><small><b>Comma</b></small></label>
+                                <input type="number" class="form-control form-control-sm"
+                                    value="{{ $formCutInputData->comma_marker }}" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label"><small><b>Unit</b></small></label>
+                                <input type="text" class="form-control form-control-sm"
+                                    value="{{ strtoupper($formCutInputData->unit_comma_marker) }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-3">
@@ -333,9 +335,7 @@
                 <div class="card-header">
                     <h3 class="card-title">Scan QR</h3>
                     <div class="card-tools">
-                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i
-                                class="fas fa-minus"></i>
-                        </button>
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
                     </div>
                 </div>
                 <div class="card-body" style="display: block;">
@@ -349,38 +349,32 @@
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Kode Barang</b></small></label>
                                 <div class="input-group">
-                                    <input type="text" class="form-control form-control-sm" name="kode_barang"
-                                        id="kode_barang">
-                                    <button class="btn btn-sm btn-primary" type="button" id="scan-button"
-                                        onclick="initScan()">Scan</button>
+                                    <input type="text" class="form-control form-control-sm" name="kode_barang" id="kode_barang">
+                                    <button class="btn btn-sm btn-primary" type="button" id="scan-button" onclick="initScan()">Scan</button>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>ID Item</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="id_item" id="id_item"
-                                    readonly>
+                                <input type="text" class="form-control form-control-sm" name="id_item" id="id_item" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Detail Item</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="detail_item"
-                                    id="detail_item" readonly>
+                                <input type="text" class="form-control form-control-sm" name="detail_item" id="detail_item" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Color Actual</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="color_act"
-                                    id="color_act">
+                                <input type="text" class="form-control form-control-sm" name="color_act" id="color_act">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mt-auto mb-3">
-                                <button class="btn btn-sb btn-sm btn-block d-none" id="next-process-3"
-                                    onclick="nextProcessThree()">START</button>
+                                <button class="btn btn-sb btn-sm btn-block d-none" id="next-process-3" onclick="nextProcessThree()">START</button>
                             </div>
                         </div>
                     </div>
@@ -392,9 +386,7 @@
                 <div class="card-header">
                     <h3 class="card-title">Time Record</h3>
                     <div class="card-tools">
-                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i
-                                class="fas fa-minus"></i>
-                        </button>
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
                     </div>
                 </div>
                 <div class="card-body" style="display: block;">
@@ -402,11 +394,9 @@
                         <div class="col-md-12">
                             <div class="d-flex gap-3 mb-3">
                                 <div class="d-flex gap-1">
-                                    <input type="text" class="form-control form-control-sm" id="minutes"
-                                        value="00" readonly class="mx-1">
+                                    <input type="text" class="form-control form-control-sm" id="minutes" value="00" readonly class="mx-1">
                                     :
-                                    <input type="text" class="form-control form-control-sm" id="seconds"
-                                        value="00" readonly class="mx-1">
+                                    <input type="text" class="form-control form-control-sm" id="seconds" value="00" readonly class="mx-1">
                                 </div>
                                 <button type="button" class="btn btn-success btn-sm" id="startLapButton"
                                     onclick="startTimeRecord()">Start</button>
@@ -583,6 +573,14 @@
                 lockForm();
             }
         }
+
+        document.getElementById('kode_barang').addEventListener("keyup", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+
+                getScannedItem(this.value);
+            }
+        });
 
         function startProcess() {
             let now = new Date();
@@ -869,21 +867,38 @@
         }
 
         function getScannedItem(id) {
-            return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: '/form-cut-input/get-scanned-item/' + id,
-                type: 'get',
-                dataType: 'json',
-                success: function(res) {
-                    if (res) {
-                        currentScannedItem = res;
+            document.getElementById("id_item").value = "";
+            document.getElementById("detail_item").value = "";
+            document.getElementById("color_act").value = "";
 
-                        document.getElementById("id_item").value = res.id_item;
-                        document.getElementById("detail_item").value = res.itemdesc;
+            // document.getElementById('scan-button').innerHTML += '<div class="loading-container"><div class="loading-container"><div class="loading-small"></div></div></div>';
+
+            if (checkIfNull(id)) {
+                return $.ajax({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    url: '/form-cut-input/get-scanned-item/' + id,
+                    type: 'get',
+                    dataType: 'json',
+                    success: function(res) {
+                        if (res) {
+                            currentScannedItem = res;
+
+                            document.getElementById("id_item").value = res.id_item;
+                            document.getElementById("detail_item").value = res.itemdesc;
+                        }
                     }
-                }
+                });
+            }
+
+            return Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: 'Item tidak ditemukan',
+                showCancelButton: false,
+                showConfirmButton: true,
+                confirmButtonText: 'Oke',
             });
         }
 
@@ -1128,7 +1143,7 @@
             document.getElementById("est_kain").setAttribute("readonly", true);
             document.getElementById("est_kain_unit").setAttribute("disabled", true);
             document.getElementById("kode_barang").setAttribute("readonly", true);
-            document.getElementById("scan-button").setAttribute("disabled", true);
+            document.getElementById("`").setAttribute("disabled", true);
             document.getElementById("color_act").setAttribute("disabled", true);
             document.getElementById("reader").classList.add("d-none");
 

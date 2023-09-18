@@ -58,8 +58,7 @@
                             </div>
                         </a>
 
-                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none"
-                            onsubmit="logout(this, event)">
+                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none" onsubmit="logout(this, event)">
                             @csrf
                         </form>
                     </div>
