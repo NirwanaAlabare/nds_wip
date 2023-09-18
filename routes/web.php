@@ -59,6 +59,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/start-process/{id}', 'startProcess')->name('start-process-form-cut-input');
         Route::put('/next-process-one/{id}', 'nextProcessOne')->name('next-process-one-form-cut-input');
         Route::put('/next-process-two/{id}', 'nextProcessTwo')->name('next-process-two-form-cut-input');
+        Route::get('/get-time-record/{noForm}', 'getTimeRecord')->name('get-time-form-cut-input');
         Route::post('/store-time-record', 'storeTimeRecord')->name('store-time-form-cut-input');
 
         // get order

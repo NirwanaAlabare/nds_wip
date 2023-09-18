@@ -8,6 +8,7 @@ use App\Models\FormCutInput;
 use App\Models\FormCutInputDetail;
 use App\Models\FormCutInputDetailLap;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 use DB;
 
 class FormCutInputController extends Controller
@@ -290,7 +291,25 @@ class FormCutInputController extends Controller
         );
     }
 
+    public function getTimeRecord($noForm) {
+        $timeRecordSummary = FormCutInputDetail::selectRaw("
+                `no_form_cut_input`,
+                `id_item`,
+                `group`,
+                `lot` as `lot_no`,
+                `roll` as `roll_no`,
+                `qty` as `roll_qty`,
+                `unit`,
+                `lap`
+            ")->
+            where("no_form_cut_input", $noForm)->get();
+
+        return json_encode($timeRecordSummary);
+    }
+
     public function storeTimeRecord(Request $request) {
+        $now = Carbon::now();
+
         $storeTimeRecordSummary = FormCutInputDetail::create([
             "no_form_cut_input" => $request->no_form_cut_input,
             "id_item" => $request->id_item,
@@ -303,9 +322,32 @@ class FormCutInputController extends Controller
         ]);
 
         if ($storeTimeRecordSummary) {
-            $storeTimeRecordDetail = FormCutInputDetailLap::create([
+            $timeRecordLap = [];
+            for ($i = 1; $i <= $request->lap; $i++) {
+                array_push($timeRecordLap, [
+                    "form_cut_input_detail_id" => $storeTimeRecordSummary->id,
+                    "lap" => $i,
+                    "waktu" => $request["time_record"][$i],
+                    "created_at" => $now,
+                    "updated_at" => $now,
+                ]);
+            }
 
-            ]);
+            $storeTimeRecordLap = FormCutInputDetailLap::insert($timeRecordLap);
+
+            if (count($timeRecordLap) > 0) {
+                return array(
+                    "status" => 200,
+                    "message" => "alright",
+                    "additional" => [],
+                );
+            }
         }
+
+        return array(
+            "status" => 400,
+            "message" => "nothing really matter anymore",
+            "additional" => [],
+        );
     }
 }

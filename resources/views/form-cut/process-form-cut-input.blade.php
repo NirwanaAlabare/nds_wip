@@ -295,12 +295,10 @@
                                 <label class="form-label"><small><b>Est. Kebutuhan Kain Pipping</b></small></label>
                                 <div class="row g-1">
                                     <div class="col-6">
-                                        <input type="number" class="form-control form-control-sm" step=".01"
-                                            name="est_pipping" id="est_pipping">
+                                        <input type="number" class="form-control form-control-sm" step=".01" name="est_pipping" id="est_pipping">
                                     </div>
                                     <div class="col-6">
-                                        <select class="form-select form-select-sm" name="est_pipping_unit"
-                                            id="est_pipping_unit">
+                                        <select class="form-select form-select-sm" name="est_pipping_unit" id="est_pipping_unit">
                                             <option value="meter">METER</option>
                                             <option value="yard">YARD</option>
                                         </select>
@@ -313,8 +311,7 @@
                                 <label class="form-label"><small><b>Est. Kebutuhan Kain</b></small></label>
                                 <div class="row g-1">
                                     <div class="col-6">
-                                        <input type="number" class="form-control form-control-sm" step=".01"
-                                            name="est_kain" id="est_kain">
+                                        <input type="number" class="form-control form-control-sm" step=".01" name="est_kain" id="est_kain">
                                     </div>
                                     <div class="col-6">
                                         <select class="form-select form-select-sm" name="est_kain_unit"
@@ -342,10 +339,10 @@
                     </div>
                 </div>
                 <div class="card-body" style="display: block;">
-                    <div class="row align-items-end">
+                    <div class="row justify-content-center align-items-end">
                         <div class="col-md-12">
                             <div class="mb-3">
-                                <div id="reader" width="600px"></div>
+                                <div id="reader" style="width: 576px !important; margin: auto;"></div>
                             </div>
                         </div>
                         <div class="col-md-12">
@@ -391,7 +388,7 @@
             </div>
         </div>
         <div class="col-md-12">
-            <div class="card card-sb" id="time-record-card">
+            <div class="card card-sb d-none" id="time-record-card">
                 <div class="card-header">
                     <h3 class="card-title">Time Record</h3>
                     <div class="card-tools">
@@ -475,6 +472,7 @@
         var nextProcessThreeButton = document.getElementById("next-process-3");
         var startTime = document.getElementById("start-time");
         var finishTime = document.getElementById("finish-time");
+        var timeRecordSummary = null;
 
         $(document).ready(() => {
             checkStatus();
@@ -522,6 +520,8 @@
             }
 
             if (status == "PENGERJAAN FORM CUTTING SPREAD") {
+                getTimeRecord();
+
                 startProcessButton.classList.add("d-none");
                 nextProcessOneButton.classList.add("d-none");
                 nextProcessTwoButton.classList.add("d-none");
@@ -709,8 +709,9 @@
         }
 
         function updateToNextProcessThree() {
-            if (checkIfNull(document.getElementById("id_item").value) && checkIfNull(document.getElementById("detail_item")
-                    .value) && checkIfNull(document.getElementById("color_act").value) && currentScannedItem) {
+            if (checkIfNull(document.getElementById("id_item").value) && checkIfNull(document.getElementById("detail_item").value) && checkIfNull(document.getElementById("color_act").value) && currentScannedItem) {
+                getTimeRecord();
+
                 nextProcessThreeButton.classList.add("d-none");
                 $('#time-record-card').removeClass('d-none');
 
@@ -766,8 +767,7 @@
                             height: 250
                         }
                     },
-                    /* verbose= */
-                    false);
+                    /* verbose= */ false);
                 html5QrcodeScanner.render(onScanSuccess, onScanFailure);
             }
         }
@@ -796,6 +796,9 @@
         var totalScannedItem = 0;
 
         function appendScannedItem(data) {
+            let groupValue = data.group ? data.group : '';
+            let lapValue = data.lap ? data.lap : '';
+
             let tr = document.createElement('tr');
             let td1 = document.createElement('td');
             let td2 = document.createElement('td');
@@ -805,14 +808,12 @@
             let td6 = document.createElement('td');
             let td7 = document.createElement('td');
             td1.innerHTML = totalScannedItem + 1;
-            td2.innerHTML = `<input type='text' class="form-control form-control-sm w-auto" name='group[` +
-                totalScannedItem + `]' id='group-` + totalScannedItem + `'>`;
+            td2.innerHTML = `<input type='text' class="form-control form-control-sm w-auto" name='group[` +totalScannedItem + `]' id='group-` + totalScannedItem + `' value='`+groupValue+`'>`;
             td3.innerHTML = data.lot_no;
             td4.innerHTML = data.roll_no;
             td5.innerHTML = data.roll_qty;
             td6.innerHTML = data.unit;
-            td7.innerHTML = `<input type='number' class="form-control form-control-sm w-auto" name='lap[` +
-                totalScannedItem + `]' id='lap-` + totalScannedItem + `'>`;
+            td7.innerHTML = `<input type='number' class="form-control form-control-sm w-auto" name='lap[` +totalScannedItem + `]' id='lap-` + totalScannedItem + `' value='`+lapValue+`'>`;
             tr.appendChild(td1);
             tr.appendChild(td2);
             tr.appendChild(td3);
@@ -846,20 +847,18 @@
         function storeTimeRecord() {
             let timeRecordForm = new FormData(document.getElementById("time-record-form"));
 
-
             let dataObj = {
-                no_form_cut_input: $("#no_form").val(),
-                id_item: $("#id_item").val(),
-                group: $("#group-" + (totalScannedItem - 1)).val(),
-                lot: currentScannedItem.lot_no,
-                roll: currentScannedItem.roll_no,
-                qty: currentScannedItem.roll_qty,
-                unit: currentScannedItem.unit,
-                lap: $("#lap-" + (totalScannedItem - 1)).val()
+                "no_form_cut_input": $("#no_form").val(),
+                "id_item": $("#id_item").val(),
+                "group": $("#group-" + (totalScannedItem - 1)).val(),
+                "lot": currentScannedItem.lot_no,
+                "roll": currentScannedItem.roll_no,
+                "qty": currentScannedItem.roll_qty,
+                "unit": currentScannedItem.unit,
+                "lap": $("#lap-" + (totalScannedItem - 1)).val()
             }
-            timeRecordForm.forEach((value, key) => dataObj[key] = value);
 
-            console.log(dataObj);
+            timeRecordForm.forEach((value, key) => dataObj[key] = value);
 
             return $.ajax({
                 headers: {
@@ -875,6 +874,32 @@
                     }
                 }
             });
+        }
+
+        function getTimeRecord() {
+            if (timeRecordSummary == null) {
+                let noForm = document.getElementById("no_form").value;
+
+                return $.ajax({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    url: '/form-cut-input/get-time-record/'+noForm,
+                    type: 'get',
+                    dataType: 'json',
+                    success: function(res) {
+                        if (res) {
+                            timeRecordSummary = res;
+
+                            console.log(res);
+
+                            timeRecordSummary.forEach((item) => {
+                                appendScannedItem(item)
+                            });
+                        }
+                    }
+                });
+            }
         }
 
         var startLapButton = document.getElementById("startLapButton");
