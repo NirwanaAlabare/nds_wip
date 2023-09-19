@@ -8,8 +8,9 @@
 @endsection
 
 @section('content')
-    <div class="row">
-        {{-- row 1 card --}}
+    <div style="height: 75vh"></div>
+
+    {{-- <div class="row">
         <div class="col-lg-12">
             <div class="card card-sb card-outline">
                 <div class="card-header">
@@ -85,7 +86,6 @@
             </div>
         </div>
 
-        {{-- row 2 card --}}
         <div class="col-md-12">
             <div class="card card-sb card-outline">
                 <div class="card-header">
@@ -966,10 +966,10 @@
                         </tfoot>
                     </table>
                 </div>
-                {{-- <div class="modal-footer justify-content-between">
+                <div class="modal-footer justify-content-between">
                     <button type="button" class="btn btn-default" data-bs-dismiss="modal">Close</button>
                     <button type="button" class="btn btn-primary">Save changes</button>
-                </div> --}}
+                </div>
             </div>
         </div>
     </div>
@@ -1414,10 +1414,10 @@
                         </tfoot>
                     </table>
                 </div>
-                {{-- <div class="modal-footer justify-content-between">
+                <div class="modal-footer justify-content-between">
                     <button type="button" class="btn btn-default" data-bs-dismiss="modal">Close</button>
                     <button type="button" class="btn btn-primary">Save changes</button>
-                </div> --}}
+                </div>
             </div>
         </div>
     </div>
@@ -1862,10 +1862,10 @@
                         </tfoot>
                     </table>
                 </div>
-                {{-- <div class="modal-footer justify-content-between">
+                <div class="modal-footer justify-content-between">
                     <button type="button" class="btn btn-default" data-bs-dismiss="modal">Close</button>
                     <button type="button" class="btn btn-primary">Save changes</button>
-                </div> --}}
+                </div>
             </div>
         </div>
     </div>
@@ -2310,13 +2310,13 @@
                         </tfoot>
                     </table>
                 </div>
-                {{-- <div class="modal-footer justify-content-between">
+                <div class="modal-footer justify-content-between">
                     <button type="button" class="btn btn-default" data-bs-dismiss="modal">Close</button>
                     <button type="button" class="btn btn-primary">Save changes</button>
-                </div> --}}
+                </div>
             </div>
         </div>
-    </div>
+    </div> --}}
 @endsection
 
 @section('custom-script')
