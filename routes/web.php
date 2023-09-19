@@ -3,7 +3,12 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MarkerController;
+<<<<<<< HEAD
 use App\Http\Controllers\SpreadingController;
+=======
+use App\Http\Controllers\FormCutInputController;
+
+>>>>>>> b00de9bf4019f45696331cb82332076853935d8d
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -53,6 +58,36 @@ Route::middleware('auth')->group(function () {
         Route::get('/getdata_marker', 'getdata_marker')->name('getdata_marker');
         Route::get('/getdata_ratio', 'getdata_ratio')->name('getdata_ratio');
         Route::post('/store', 'store')->name('store-spreading');
+    });
+    // Form Cut Input
+    Route::controller(FormCutInputController::class)->prefix("form-cut-input")->group(function () {
+        Route::get('/', 'index')->name('form-cut-input');
+        // Route::get('/create', 'create')->name('create-form-cut-input');
+        // Route::post('/store', 'store')->name('store-form-cut-input');
+        // Route::get('/edit', 'edit')->name('edit-form-cut-input');
+        // Route::put('/update', 'update')->name('update-form-cut-input');
+        Route::get('/process/{id}', 'process')->name('process-form-cut-input');
+        Route::get('/get-number-data', 'getNumberData')->name('get-number-form-cut-input');
+        Route::get('/get-scanned-item/{id}', 'getScannedItem')->name('get-scanned-form-cut-input');
+        Route::put('/start-process/{id}', 'startProcess')->name('start-process-form-cut-input');
+        Route::put('/next-process-one/{id}', 'nextProcessOne')->name('next-process-one-form-cut-input');
+        Route::put('/next-process-two/{id}', 'nextProcessTwo')->name('next-process-two-form-cut-input');
+        Route::get('/get-time-record/{noForm}', 'getTimeRecord')->name('get-time-form-cut-input');
+        Route::post('/store-time-record', 'storeTimeRecord')->name('store-time-form-cut-input');
+        Route::put('/finish-process/{id}', 'finishProcess')->name('finish-process-form-cut-input');
+
+        // get order
+        Route::get('/get-order', 'getOrderInfo')->name('get-marker-order');
+        // get colors
+        Route::get('/get-colors', 'getColorList')->name('get-marker-colors');
+        // get panels
+        Route::get('/get-panels', 'getPanelList')->name('get-marker-panels');
+        // get sizes
+        Route::get('/get-sizes', 'getSizeList')->name('get-marker-sizes');
+        // get count
+        Route::get('/get-count', 'getCount')->name('get-marker-count');
+        // get number
+        Route::get('/get-number', 'getNumber')->name('get-marker-number');
     });
 });
 

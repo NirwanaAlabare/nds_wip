@@ -14,5 +14,7 @@
 <script src="/assets/dist/js/adminlte.min.js"></script>
 <!-- AdminLTE App -->
 <script src="/assets/dist/js/script.js"></script>
+<!-- HTML5 QR Code -->
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
 @yield('custom-script')

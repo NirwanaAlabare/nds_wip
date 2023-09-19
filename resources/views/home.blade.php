@@ -26,7 +26,7 @@
                                     <div class="d-flex flex-column">
                                         <img src="/assets/dist/img/qr-generate.png" class="img-fluid p-3"
                                             alt="qr code image">
-                                        <p class="text-center">Generate QR 123</p>
+                                        <p class="text-center">Generate QR</p>
                                     </div>
                                 </div>
                             </div>
@@ -58,8 +58,7 @@
                             </div>
                         </a>
 
-                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none"
-                            onsubmit="logout(this, event)">
+                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none" onsubmit="logout(this, event)">
                             @csrf
                         </form>
                     </div>

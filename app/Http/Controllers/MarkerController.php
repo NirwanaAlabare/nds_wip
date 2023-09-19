@@ -217,7 +217,8 @@ class MarkerController extends Controller
             "l_unit" => "required",
             "gelar_marker_qty" => "required",
             "po" => "required",
-            "no_urut_marker" => "required"
+            "no_urut_marker" => "required",
+            "cons_marker" => "required"
         ]);
 
         $markerStore = Marker::create([
@@ -236,6 +237,7 @@ class MarkerController extends Controller
             'gelar_qty' => $validatedRequest['gelar_marker_qty'],
             'po_marker' => $validatedRequest['po'],
             'urutan_marker' => $validatedRequest['no_urut_marker'],
+            'cons_marker' => $validatedRequest['cons_marker'],
         ]);
 
         $timestamp = Carbon::now();
