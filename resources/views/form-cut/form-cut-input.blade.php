@@ -13,7 +13,7 @@
             <h5 class="card-title fw-bold mb-0">Data Spreading</h5>
         </div>
         <div class="card-body">
-            <a href="/form-cut-input/create" class="btn btn-sb btn-sm mb-3">
+            <a href="/spreading/create" class="btn btn-sb btn-sm mb-3">
                 <i class="fas fa-plus"></i>
                 Baru
             </a>

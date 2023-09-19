@@ -9,7 +9,7 @@ class Marker extends Model
 {
     use HasFactory;
 
-    protected $table = 'markers';
+    protected $table = 'marker_input';
 
     protected $guarded = [];
 

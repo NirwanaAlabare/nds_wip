@@ -14,7 +14,7 @@
     <form action="{{ route('store-spreading') }}" method="post" id="store-spreading" name='form'
         onsubmit="submitSpreadingForm(this, event)">
         @csrf
-        <div class="card card-sb card-outline">
+        <div class="card card-outline">
             <div class="card-header">
                 <h5 class="card-title fw-bold">
                     Create Spreading
@@ -408,7 +408,7 @@
                         Swal.fire({
                             icon: 'success',
                             title: 'Data Spreading berhasil disimpan',
-                            text: res.message,
+                            html: "No. Form Cut : <br>"+res.message,
                             showCancelButton: false,
                             showConfirmButton: true,
                             confirmButtonText: 'Oke',

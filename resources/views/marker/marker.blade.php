@@ -45,7 +45,6 @@
                             <th>Gelar QTYs</th>
                             <th>PO</th>
                             <th>Urutan</th>
-                            <th>Action</th>
                         </tr>
                     </thead>
                 </table>
@@ -111,15 +110,15 @@
                 {
                     data: 'urutan_marker'
                 },
-                {
-                    data: 'id'
-                }
+                // {
+                //     data: 'id'
+                // }
             ],
             columnDefs: [
-                {
-                    targets: [11],
-                    render: (data, type, row, meta) => "<button class='btn btn-sm btn-primary' onclick=''>Edit</button>"
-                },
+                // {
+                //     targets: [11],
+                //     render: (data, type, row, meta) => "<button class='btn btn-sm btn-primary' onclick=''>Edit</button>"
+                // },
             ]
         });
 

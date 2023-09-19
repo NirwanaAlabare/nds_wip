@@ -3,12 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MarkerController;
-<<<<<<< HEAD
 use App\Http\Controllers\SpreadingController;
-=======
 use App\Http\Controllers\FormCutInputController;
 
->>>>>>> b00de9bf4019f45696331cb82332076853935d8d
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -59,6 +56,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/getdata_ratio', 'getdata_ratio')->name('getdata_ratio');
         Route::post('/store', 'store')->name('store-spreading');
     });
+
     // Form Cut Input
     Route::controller(FormCutInputController::class)->prefix("form-cut-input")->group(function () {
         Route::get('/', 'index')->name('form-cut-input');

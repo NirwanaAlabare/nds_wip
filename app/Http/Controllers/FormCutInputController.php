@@ -28,12 +28,12 @@ class FormCutInputController extends Controller
                     form_cut_input.id id,
                     form_cut_input.no_form no_form,
                     form_cut_input.tgl_form_cut tgl_form,
-                    markers.kode kode_marker,
-                    markers.act_costing_ws no_ws,
-                    markers.color,
-                    markers.panel,
+                    marker_input.kode kode_marker,
+                    marker_input.act_costing_ws no_ws,
+                    marker_input.color,
+                    marker_input.panel,
                     form_cut_input.status
-                ")->leftJoin("markers", "markers.kode", "=", "form_cut_input.id_marker");
+                ")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker");
 
             if ($tglAwal) {
                 $formCutInputQuery->whereRaw("tgl_form_cut >= '".$tglAwal."'");
@@ -138,19 +138,19 @@ class FormCutInputController extends Controller
             get();
 
         $markerDetailData = MarkerDetail::selectRaw("
-                markers.kode kode_marker,
-                marker_details.so_det_id,
-                marker_details.ratio,
-                marker_details.cut_qty
+                marker_input.kode kode_marker,
+                marker_input_detail.so_det_id,
+                marker_input_detail.ratio,
+                marker_input_detail.cut_qty
             ")->
-            leftJoin("markers", "markers.id", "=", "marker_details.marker_id")->get();
+            leftJoin("marker_input", "marker_input.id", "=", "marker_input_detail.marker_id")->get();
 
         $soDetData = DB::connection("mysql_sb")->
             table('so_det')->
             selectRaw('id, size')->
             get();
 
-        $formCutInputData = FormCutInput::leftJoin("markers", "markers.kode", "=", "form_cut_input.id_marker")->
+        $formCutInputData = FormCutInput::leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
             where('form_cut_input.id', $id)->
             first();
 
@@ -236,6 +236,7 @@ class FormCutInputController extends Controller
         $updateFormCutInput = FormCutInput::where("id", $id)->
             update([
                 "status" => "PENGERJAAN FORM CUTTING DETAIL",
+                "shell" => $request->shell
             ]);
 
         return $updateFormCutInput;
@@ -243,13 +244,13 @@ class FormCutInputController extends Controller
 
     public function nextProcessTwo($id, Request $request) {
         $validatedRequest = $request->validate([
-            "p_actual" => "required",
-            "unit_p_actual" => "required",
-            "comma_actual" => "required",
-            "unit_comma_actual" => "required",
-            "l_actual" => "required",
-            "unit_l_actual" => "required",
-            "cons_actual" => "required",
+            "p_act" => "required",
+            "unit_p_act" => "required",
+            "comma_act" => "required",
+            "unit_comma_act" => "required",
+            "l_act" => "required",
+            "unit_l_act" => "required",
+            "cons_act" => "required",
             "cons_pipping" => "required",
             "cons_ampar" => "required",
             "est_pipping" => "required",
@@ -261,19 +262,19 @@ class FormCutInputController extends Controller
         $updateFormCutInput = FormCutInput::where("id", $id)->
             update([
                 "status" => "PENGERJAAN FORM CUTTING SPREAD",
-                "p_act" => $validatedRequest['p_actual'],
-                "unit_p_act" => $validatedRequest['unit_p_actual'],
-                "comma_p_act" => $validatedRequest['comma_actual'],
-                "unit_comma_p_act" => $validatedRequest['unit_comma_actual'],
-                "l_act" => $validatedRequest['l_actual'],
-                "unit_l_act" => $validatedRequest['unit_l_actual'],
-                "cons_act" => $validatedRequest['cons_actual'],
-                // "cons_pipping" => $validatedRequest['cons_pipping'],
-                // "cons_ampar" => $validatedRequest['cons_ampar'],
-                // "est_pipping" => $validatedRequest['est_pipping'],
-                // "est_pipping_unit" => $validatedRequest['est_pipping_unit'],
-                // "est_kain" => $validatedRequest['est_kain'],
-                // "est_kain_unit" => $validatedRequest['est_kain_unit']
+                "p_act" => $validatedRequest['p_act'],
+                "unit_p_act" => $validatedRequest['unit_p_act'],
+                "comma_p_act" => $validatedRequest['comma_act'],
+                "unit_comma_p_act" => $validatedRequest['unit_comma_act'],
+                "l_act" => $validatedRequest['l_act'],
+                "unit_l_act" => $validatedRequest['unit_l_act'],
+                "cons_act" => $validatedRequest['cons_act'],
+                "cons_pipping" => $validatedRequest['cons_pipping'],
+                "cons_ampar" => $validatedRequest['cons_ampar'],
+                "est_pipping" => $validatedRequest['est_pipping'],
+                "est_pipping_unit" => $validatedRequest['est_pipping_unit'],
+                "est_kain" => $validatedRequest['est_kain'],
+                "est_kain_unit" => $validatedRequest['est_kain_unit']
             ]);
 
         if ($updateFormCutInput) {

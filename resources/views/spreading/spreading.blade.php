@@ -54,7 +54,7 @@
                                 <td>{{ $item->color }}</td>
                                 <td>{{ $item->panel }}</td>
                                 <td>{{ $item->status }}</td>
-                                <td> <a style='color: green' href='?mod=form_cut_input&no_form=$data[no_form]'
+                                <td> <a style='color: green' href="/form-cut-input/process/{{ $item->id }}"
                                         data-toggle='tooltip' target='_blank'><i class='fa fa-plus'></i>
                                     </a></td>
                             </tr>

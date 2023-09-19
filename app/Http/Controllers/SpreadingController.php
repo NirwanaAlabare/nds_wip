@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\FormCutting;
+use App\Models\FormCutInput;
 use App\Models\Spreading;
 use Illuminate\Http\Request;
 use DB;
@@ -17,7 +17,7 @@ class SpreadingController extends Controller
      */
     public function index()
     {
-        $data_spreading = DB::select("SELECT a.id_marker, a.no_form, a.tgl_form_cut, b.act_costing_ws ws,panel, b.color, a.status  FROM `form_cut_input` a
+        $data_spreading = DB::select("SELECT a.id, a.id_marker, a.no_form, a.tgl_form_cut, b.act_costing_ws ws,panel, b.color, a.status  FROM `form_cut_input` a
         left join marker_input b on a.id_marker = b.kode");
         return view('spreading.spreading', ['data_s' => $data_spreading]);
     }
@@ -81,10 +81,6 @@ class SpreadingController extends Controller
         ]);
     }
 
-
-
-
-
     public function store(Request $request)
     {
         $txttglcut             = date('Y-m-d');
@@ -110,7 +106,8 @@ class SpreadingController extends Controller
 
         $timestamp = Carbon::now();
         $formcutDetailData = [];
-        for ($i = 0; $i < intval($request['hitungform']); $i++) {
+        $message = "";
+        for ($i = 1; $i <= intval($request['hitungform']); $i++) {
 
             $queryno_form     = DB::select("select count(id_marker) urutan from form_cut_input where tgl_form_cut = '$txttglcut'");
             $datano_form     = $queryno_form[0];
@@ -130,13 +127,15 @@ class SpreadingController extends Controller
                 "cancel" => "N",
                 "tgl_input" => $timestamp
             ]);
+
+            $message .= "$no_form <br>";
         }
 
-        $markerDetailStore = FormCutting::insert($formcutDetailData);
+        $markerDetailStore = FormCutInput::insert($formcutDetailData);
 
         return array(
             "status" => 200,
-            "message" => $txttglcut,
+            "message" => $message,
             "additional" => [],
         );
     }

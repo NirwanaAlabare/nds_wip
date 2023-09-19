@@ -44,9 +44,9 @@
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Shell</b></small></label>
                                 <select class="form-select form-select-sm" name="shell" id="shell">
-                                    <option value="a">A</option>
-                                    <option value="b">B</option>
-                                    <option value="c">C</option>
+                                    <option value="a" {{ $formCutInputData->shell == "a" ? "selected" : "" }}>A</option>
+                                    <option value="b" {{ $formCutInputData->shell == "b" ? "selected" : "" }}>B</option>
+                                    <option value="c" {{ $formCutInputData->shell == "c" ? "selected" : "" }}>C</option>
                                 </select>
                             </div>
                         </div>
@@ -154,6 +154,8 @@
                             </tr>
                         </tfoot>
                     </table>
+                    <input type="hidden" name="total_ratio" id="total_ratio" value="{{ $totalRatio }}">
+                    <input type="hidden" name="total_qty_cut" id="total_qty_cut" value="{{ $totalCutQty }}">
                 </div>
             </div>
         </div>
@@ -173,30 +175,25 @@
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>P. Marker</b></small></label>
-                                <input type="number" class="form-control form-control-sm"
-                                    value="{{ $formCutInputData->panjang_marker }}" readonly>
+                                <input type="number" class="form-control form-control-sm" value="{{ $formCutInputData->panjang_marker }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Unit</b></small></label>
-                                <input type="text" class="form-control form-control-sm"
-                                    value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
+                                <input type="text" class="form-control form-control-sm" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>P. Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm" name="p_actual"
-                                    id="p_actual" value="{{ $formCutInputData->p_act }}">
+                                <input type="number" class="form-control form-control-sm" name="p_act" id="p_act" value="{{ $formCutInputData->p_act }}" onkeyup="calculateConsAmpar(this, {{ $totalRatio }})" onchange="calculateConsAmpar(this, {{ $totalRatio }})">
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Unit Act</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="unit_p_actual"
-                                    id="unit_p_actual" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}"
-                                    readonly>
+                                <input type="text" class="form-control form-control-sm" name="unit_p_act" id="unit_p_act" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-3">
@@ -216,15 +213,15 @@
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Comma Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm" name="comma_actual"
-                                    id="comma_actual" value="{{ $formCutInputData->p_act }}">
+                                <input type="number" class="form-control form-control-sm" name="comma_act"
+                                    id="comma_act" value="{{ $formCutInputData->p_act }}">
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Unit Act</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="unit_comma_actual"
-                                    id="unit_comma_actual" value="{{ strtoupper($formCutInputData->unit_comma_marker) }}"
+                                <input type="text" class="form-control form-control-sm" name="unit_comma_act"
+                                    id="unit_comma_act" value="{{ strtoupper($formCutInputData->unit_comma_marker) }}"
                                     readonly>
                             </div>
                         </div>
@@ -245,15 +242,15 @@
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>L. Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm" name="l_actual"
-                                    id="l_actual" value="{{ $formCutInputData->l_act }}">
+                                <input type="number" class="form-control form-control-sm" name="l_act"
+                                    id="l_act" value="{{ $formCutInputData->l_act }}">
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Unit Act</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="unit_l_actual"
-                                    id="unit_l_actual" value="{{ strtoupper($formCutInputData->unit_lebar_marker) }}"
+                                <input type="text" class="form-control form-control-sm" name="unit_l_act"
+                                    id="unit_l_act" value="{{ strtoupper($formCutInputData->unit_lebar_marker) }}"
                                     readonly>
                             </div>
                         </div>
@@ -273,16 +270,16 @@
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label class="form-label"><small><b>Cons Actual</b></small></label>
-                                <input type="number" class="form-control form-control-sm" name="cons_actual"
-                                    id="cons_actual" value="{{ $formCutInputData->cons_act }}" step=".01">
+                                <label class="form-label"><small><b>Cons Act</b></small></label>
+                                <input type="number" class="form-control form-control-sm" name="cons_act"
+                                    id="cons_act" value="{{ $formCutInputData->cons_act }}" step=".01">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Cons Pipping</b></small></label>
-                                <input type="number" class="form-control form-control-sm" step=".01"
-                                    name="cons_pipping" id="cons_pipping">
+                                <input type="number" class="form-control form-control-sm" step=".01" name="cons_pipping"
+                                    id="cons_pipping" onkeyup="calculateEstPipping(this, {{ $totalCutQty }})" onchange="calculateEstPipping(this, {{ $totalCutQty }})">
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -300,10 +297,7 @@
                                         <input type="number" class="form-control form-control-sm" step=".01" name="est_pipping" id="est_pipping">
                                     </div>
                                     <div class="col-6">
-                                        <select class="form-select form-select-sm" name="est_pipping_unit" id="est_pipping_unit">
-                                            <option value="meter">METER</option>
-                                            <option value="yard">YARD</option>
-                                        </select>
+                                        <input type="text" class="form-control form-control-sm" name="est_pipping_unit" id="est_pipping_unit" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -316,11 +310,7 @@
                                         <input type="number" class="form-control form-control-sm" step=".01" name="est_kain" id="est_kain">
                                     </div>
                                     <div class="col-6">
-                                        <select class="form-select form-select-sm" name="est_kain_unit"
-                                            id="est_kain_unit">
-                                            <option value="meter">METER</option>
-                                            <option value="yard">YARD</option>
-                                        </select>
+                                        <input type="text" class="form-control form-control-sm" name="est_kain_unit" id="est_kain_unit" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -368,7 +358,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label"><small><b>Color Actual</b></small></label>
+                                <label class="form-label"><small><b>Color Act</b></small></label>
                                 <input type="text" class="form-control form-control-sm" name="color_act" id="color_act">
                             </div>
                         </div>
@@ -433,6 +423,7 @@
                                         <tr>
                                             <th>No.</th>
                                             <th>Group</th>
+                                            <th>Id Item</th>
                                             <th>Lot</th>
                                             <th>Roll</th>
                                             <th>Qty</th>
@@ -478,24 +469,30 @@
             }
 
             if (finishTime.value == "" || finishTime.value == null) {
-                finishTime.value = ""
+                finishTime.value = "";
             }
 
             document.getElementById('kode_barang').value = "";
             document.getElementById("id_item").value = "";
             document.getElementById("detail_item").value = "";
-        })
+        });
 
-        function pad2(n) {
-            return n < 10 ? '0' + n : n
+        function calculateConsAmpar(element, totalRatio) {
+            let pActual = Number(element.value);
+            let consAmpar = totalRatio > 0 ? pActual/totalRatio : 0;
+
+            if (element.value) {
+                document.getElementById('cons_ampar').value = consAmpar.toFixed(2);
+            }
         }
 
-        function checkIfNull(value) {
-            if (value == "" || value == null) {
-                return false
-            }
+        function calculateEstPipping(element, totalQtyCut) {
+            let consPipping = Number(element.value);
+            let estPipping = consPipping * totalQtyCut;
 
-            return true;
+            if (element.value) {
+                document.getElementById('est_pipping').value = estPipping.toFixed(2);
+            }
         }
 
         async function checkStatus() {
@@ -611,6 +608,10 @@
         }
 
         function finishProcess() {
+            let now = new Date();
+            finishTime.value = now.getFullYear().toString() + "-" + pad2(now.getMonth() + 1) + "-" + pad2(now.getDate()) +
+                "-" + pad2(now.getHours()) + ":" + pad2(now.getMinutes()) + ":" + pad2(now.getSeconds());
+
             updateToFinishProcess();
         }
 
@@ -629,7 +630,11 @@
                 dataType: 'json',
                 success: function(res) {
                     if (res) {
-                        document.getElementById('cons_ws').value = res.cons_ws
+                        let consWs = res.cons_ws;
+                        let totalQtyCut = document.getElementById('total_qty_cut').value;
+
+                        document.getElementById('cons_ws').value = consWs;
+                        document.getElementById('est_kain').value = consWs * totalQtyCut;
                     }
                 }
             });
@@ -662,6 +667,9 @@
                 url: '/form-cut-input/next-process-one/' + id,
                 type: 'put',
                 dataType: 'json',
+                data: {
+                    shell: $("#shell").val()
+                },
                 success: function(res) {
                     if (res) {
                         console.log(res);
@@ -671,13 +679,13 @@
         }
 
         function updateToNextProcessTwo() {
-            let pActual = document.getElementById('p_actual').value;
-            let pUnitActual = document.getElementById('unit_p_actual').value;
-            let commaActual = document.getElementById('comma_actual').value;
-            let commaUnitActual = document.getElementById('unit_comma_actual').value;
-            let lActual = document.getElementById('l_actual').value;
-            let lUnitActual = document.getElementById('unit_l_actual').value;
-            let consActual = document.getElementById('cons_actual').value;
+            let pActual = document.getElementById('p_act').value;
+            let pUnitActual = document.getElementById('unit_p_act').value;
+            let commaActual = document.getElementById('comma_act').value;
+            let commaUnitActual = document.getElementById('unit_comma_act').value;
+            let lActual = document.getElementById('l_act').value;
+            let lUnitActual = document.getElementById('unit_l_act').value;
+            let consActual = document.getElementById('cons_act').value;
             let consPipping = document.getElementById('cons_pipping').value;
             let consAmpar = document.getElementById('cons_ampar').value;
             let estPipping = document.getElementById('est_pipping').value;
@@ -695,13 +703,13 @@
                 type: 'put',
                 dataType: 'json',
                 data: {
-                    p_actual: pActual,
-                    unit_p_actual: pUnitActual,
-                    comma_actual: commaActual,
-                    unit_comma_actual: commaUnitActual,
-                    l_actual: lActual,
-                    unit_l_actual: lUnitActual,
-                    cons_actual: consActual,
+                    p_act: pActual,
+                    unit_p_act: pUnitActual,
+                    comma_act: commaActual,
+                    unit_comma_act: commaUnitActual,
+                    l_act: lActual,
+                    unit_l_act: lUnitActual,
+                    cons_act: consActual,
                     cons_pipping: consPipping,
                     cons_ampar: consAmpar,
                     est_pipping: estPipping,
@@ -745,11 +753,8 @@
             });
         }
 
-        function updateToNextProcessThree() {
+        async function updateToNextProcessThree() {
             if (checkIfNull(document.getElementById("id_item").value) && checkIfNull(document.getElementById("detail_item").value) && checkIfNull(document.getElementById("color_act").value) && currentScannedItem) {
-                getTimeRecord();
-                setTimeRecord();
-
                 nextProcessThreeButton.classList.add("d-none");
                 $('#time-record-card').removeClass('d-none');
 
@@ -764,6 +769,9 @@
                 appendScannedItem(currentScannedItem);
 
                 finishProcessButton.classList.remove("d-none");
+
+                await getTimeRecord();
+                setTimeRecord();
             } else {
                 Swal.fire({
                     icon: 'error',
@@ -787,6 +795,9 @@
                 confirmButtonColor: "#6531a0",
             }).then((result) => {
                 if (result.isConfirmed) {
+                    updateToNextProcessOne();
+                    updateToNextProcessTwo();
+
                     $.ajax({
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -918,13 +929,15 @@
             let td5 = document.createElement('td');
             let td6 = document.createElement('td');
             let td7 = document.createElement('td');
+            let td8 = document.createElement('td');
             td1.innerHTML = totalScannedItem + 1;
             td2.innerHTML = `<input type='text' class="form-control form-control-sm w-auto" name='group[` +totalScannedItem + `]' id='group-` + totalScannedItem + `' value='`+groupValue+`'>`;
-            td3.innerHTML = data.lot_no;
-            td4.innerHTML = data.roll_no;
-            td5.innerHTML = data.roll_qty;
-            td6.innerHTML = data.unit;
-            td7.innerHTML = `<input type='number' class="form-control form-control-sm w-auto" name='lap[` +totalScannedItem + `]' id='lap-` + totalScannedItem + `' value='`+lapValue+`'>`;
+            td3.innerHTML = data.id_item;
+            td4.innerHTML = data.lot_no;
+            td5.innerHTML = data.roll_no;
+            td6.innerHTML = data.roll_qty;
+            td7.innerHTML = data.unit;
+            td8.innerHTML = `<input type='number' class="form-control form-control-sm w-auto" name='lap[` +totalScannedItem + `]' id='lap-` + totalScannedItem + `' value='`+lapValue+`'>`;
             tr.appendChild(td1);
             tr.appendChild(td2);
             tr.appendChild(td3);
@@ -932,6 +945,7 @@
             tr.appendChild(td5);
             tr.appendChild(td6);
             tr.appendChild(td7);
+            tr.appendChild(td8);
 
             scannedItemTableTbody.appendChild(tr);
 
@@ -1132,10 +1146,10 @@
             finishProcessButton.innerHTML = "PENGERJAAN TELAH DISELESAIKAN";
 
             document.getElementById("shell").setAttribute("disabled", true);
-            document.getElementById("p_actual").setAttribute("readonly", true);
-            document.getElementById("comma_actual").setAttribute("readonly", true);
-            document.getElementById("l_actual").setAttribute("readonly", true);
-            document.getElementById("cons_actual").setAttribute("readonly", true);
+            document.getElementById("p_act").setAttribute("readonly", true);
+            document.getElementById("comma_act").setAttribute("readonly", true);
+            document.getElementById("l_act").setAttribute("readonly", true);
+            document.getElementById("cons_act").setAttribute("readonly", true);
             document.getElementById("cons_pipping").setAttribute("readonly", true);
             document.getElementById("cons_ampar").setAttribute("readonly", true);
             document.getElementById("est_pipping").setAttribute("readonly", true);
@@ -1143,8 +1157,8 @@
             document.getElementById("est_kain").setAttribute("readonly", true);
             document.getElementById("est_kain_unit").setAttribute("disabled", true);
             document.getElementById("kode_barang").setAttribute("readonly", true);
-            document.getElementById("`").setAttribute("disabled", true);
             document.getElementById("color_act").setAttribute("disabled", true);
+            document.getElementById("scan-button").setAttribute("disabled", true);
             document.getElementById("reader").classList.add("d-none");
 
             startLapButton.disabled = true;

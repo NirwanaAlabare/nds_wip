@@ -35,6 +35,20 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 });
 
+// Pad 2 Digits
+function pad2(n) {
+    return n < 10 ? '0' + n : n
+}
+
+// Check if value is null
+function checkIfNull(value) {
+    if (value == "" || value == null) {
+        return false
+    }
+
+    return true;
+}
+
 // Clear modified
 var modified = [];
 function clearModified() {

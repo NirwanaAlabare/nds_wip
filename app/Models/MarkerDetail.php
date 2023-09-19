@@ -9,7 +9,7 @@ class MarkerDetail extends Model
 {
     use HasFactory;
 
-    protected $table = 'marker_details';
+    protected $table = 'marker_input_detail';
 
     protected $guarded = [];
 
