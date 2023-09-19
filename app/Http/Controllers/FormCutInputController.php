@@ -145,14 +145,18 @@ class FormCutInputController extends Controller
             ")->
             leftJoin("marker_input", "marker_input.id", "=", "marker_input_detail.marker_id")->get();
 
-        $soDetData = DB::connection("mysql_sb")->
-            table('so_det')->
-            selectRaw('id, size')->
-            get();
-
         $formCutInputData = FormCutInput::leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
             where('form_cut_input.id', $id)->
             first();
+
+
+        $soDetData = DB::connection("mysql_sb")->
+            table('so_det')->
+            selectRaw('so_det.id id, so_det.size size')->
+            leftJoin('so', 'so.id', '=', 'so_det.id_so')->
+            leftJoin('act_costing', 'act_costing.id', '=', 'so.id_cost')->
+            where("act_costing.id", $formCutInputData->act_costing_id)->
+            get();
 
         return view("form-cut.process-form-cut-input", [
             'id' => $id,

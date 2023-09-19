@@ -277,21 +277,19 @@
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label"><small><b>Cons Pipping</b></small></label>
-                                <input type="number" class="form-control form-control-sm" step=".01" name="cons_pipping"
-                                    id="cons_pipping" onkeyup="calculateEstPipping(this, {{ $totalCutQty }})" onchange="calculateEstPipping(this, {{ $totalCutQty }})">
+                                <label class="form-label"><small><b>Cons Piping</b></small></label>
+                                <input type="number" class="form-control form-control-sm" step=".01" name="cons_pipping" id="cons_pipping" onkeyup="calculateEstPipping(this, {{ $totalCutQty }})" onchange="calculateEstPipping(this, {{ $totalCutQty }})" value="{{ $formCutInputData->cons_pipping }}">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Cons 1 Ampar</b></small></label>
-                                <input type="number" class="form-control form-control-sm" step=".01"
-                                    name="cons_ampar" id="cons_ampar">
+                                <input type="number" class="form-control form-control-sm" step=".01" name="cons_ampar" id="cons_ampar" value="{{ $formCutInputData->cons_ampar }}">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label"><small><b>Est. Kebutuhan Kain Pipping</b></small></label>
+                                <label class="form-label"><small><b>Est. Kebutuhan Kain Piping</b></small></label>
                                 <div class="row g-1">
                                     <div class="col-6">
                                         <input type="number" class="form-control form-control-sm" step=".01" name="est_pipping" id="est_pipping">
