@@ -1,4 +1,4 @@
-@if (!(isset($page)))
+@if (!isset($page))
     @php
         $page = '';
     @endphp
@@ -11,7 +11,8 @@
             <img src="/assets/dist/img/logo-icon.png" alt="nds Logo" class="brand-image">
         </a>
 
-        <button class="navbar-toggler order-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler order-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
+            aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
@@ -22,7 +23,8 @@
                     <a href="/marker" class="nav-link {{ $page == 'marker' ? 'active' : '' }}">Marker</a>
                 </li> --}}
                 <li class="nav-item dropdown">
-                    <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
+                    <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                        aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
                     <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                         <li>
                             <a href="/marker" class="dropdown-item">
@@ -30,7 +32,7 @@
                             </a>
                         </li>
                         <li>
-                            <a href="#" class="dropdown-item">
+                            <a href="/spreading" class="dropdown-item">
                                 Spreading
                             </a>
                         </li>
@@ -39,7 +41,9 @@
 
                         <!-- Level two dropdown-->
                         <li class="dropdown-submenu dropdown-hover">
-                            <a id="dropdownSubMenu2" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="dropdown-item dropdown-toggle">Hover for action</a>
+                            <a id="dropdownSubMenu2" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-haspopup="true" aria-expanded="false" class="dropdown-item dropdown-toggle">Hover
+                                for action</a>
                             <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
                                 <li>
                                     <a tabindex="-1" href="#" class="dropdown-item">level 2</a>
@@ -47,7 +51,9 @@
 
                                 <!-- Level three dropdown-->
                                 <li class="dropdown-submenu">
-                                    <a id="dropdownSubMenu3" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="dropdown-item dropdown-toggle">level 2</a>
+                                    <a id="dropdownSubMenu3" href="#" role="button" data-bs-toggle="dropdown"
+                                        aria-haspopup="true" aria-expanded="false"
+                                        class="dropdown-item dropdown-toggle">level 2</a>
                                     <ul aria-labelledby="dropdownSubMenu3" class="dropdown-menu border-0 shadow">
                                         <li><a href="#" class="dropdown-item">3rd level</a></li>
                                         <li><a href="#" class="dropdown-item">3rd level</a></li>
@@ -59,7 +65,7 @@
                                 <li><a href="#" class="dropdown-item">level 2</a></li>
                             </ul>
                         </li>
-                    <!-- End Level two -->
+                        <!-- End Level two -->
                     </ul>
                 </li>
                 <li class="nav-item">
@@ -170,7 +176,8 @@
                 </div>
             </li> --}}
             <li class="nav-item">
-                <a class="nav-link"  data-bs-toggle="offcanvas" href="#user-offcanvas" role="button" aria-controls="user-offcanvas">
+                <a class="nav-link" data-bs-toggle="offcanvas" href="#user-offcanvas" role="button"
+                    aria-controls="user-offcanvas">
                     {{ auth()->user()->name }}
                     <i class="fas fa-user ps-1"></i>
                 </a>

@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateMarkerDetailsTable extends Migration
+class CreateTableMarkerInputDetail extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,13 @@ class CreateMarkerDetailsTable extends Migration
      */
     public function up()
     {
-        Schema::create('marker_details', function (Blueprint $table) {
+        Schema::create('marker_input_detail', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('marker_id');
             $table->bigInteger('so_det_id');
             $table->double('ratio');
             $table->double('cut_qty');
+            $table->char('cancel');
             $table->timestamps();
         });
     }
@@ -30,6 +31,6 @@ class CreateMarkerDetailsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('marker_details');
+        Schema::dropIfExists('marker_input_detail');
     }
 }

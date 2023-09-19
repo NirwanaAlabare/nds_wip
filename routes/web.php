@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MarkerController;
-
+use App\Http\Controllers\SpreadingController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -43,6 +43,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-count', 'getCount')->name('get-marker-count');
         // get number
         Route::get('/get-number', 'getNumber')->name('get-marker-number');
+    });
+
+    // Spreading
+    Route::controller(SpreadingController::class)->prefix("spreading")->group(function () {
+        Route::get('/', 'index')->name('spreading');
+        Route::get('/create', 'create')->name('create-spreading');
+        Route::post('/getno_marker', 'getno_marker')->name('getno_marker');
+        Route::get('/getdata_marker', 'getdata_marker')->name('getdata_marker');
+        Route::get('/getdata_ratio', 'getdata_ratio')->name('getdata_ratio');
+        Route::post('/store', 'store')->name('store-spreading');
     });
 });
 

@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateMarkersTable extends Migration
+class CreateTableMarkerInput extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,7 @@ class CreateMarkersTable extends Migration
      */
     public function up()
     {
-        Schema::create('markers', function (Blueprint $table) {
+        Schema::create('marker_input', function (Blueprint $table) {
             $table->id();
             $table->date('tgl_cutting');
             $table->string('kode');
@@ -30,6 +30,7 @@ class CreateMarkersTable extends Migration
             $table->integer('gelar_qty');
             $table->string('po_marker');
             $table->string('urutan_marker');
+            $table->char('cancel');
             $table->timestamps();
         });
     }
@@ -41,6 +42,6 @@ class CreateMarkersTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('marker');
+        Schema::dropIfExists('marker_input');
     }
 }
