@@ -348,6 +348,8 @@
             ordering: false,
             processing: true,
             serverSide: true,
+            paging: false,
+            searching: false,
             ajax: {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

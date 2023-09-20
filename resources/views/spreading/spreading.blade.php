@@ -5,6 +5,10 @@
     <link rel="stylesheet" href="/assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
     <link rel="stylesheet" href="/assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
     <link rel="stylesheet" href="/assets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+
+    <!-- Select2 -->
+    <link rel="stylesheet" href="/assets/plugins/select2/css/select2.min.css">
+    <link rel="stylesheet" href="/assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">
 @endsection
 
 @section('content')
@@ -29,7 +33,7 @@
                         value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
-                    <button class="btn btn-primary btn-sm" onclick="filterTable()">Tampilkan</button>
+                    <button class="btn btn-primary btn-sm" onclick="dataTableReload()">Tampilkan</button>
                 </div>
             </div>
             <div class="table-responsive">
@@ -38,6 +42,7 @@
                         <tr>
                             <th>No Form</th>
                             <th>Tgl Form</th>
+                            <th>No. Meja</th>
                             <th>WS</th>
                             <th>Color</th>
                             <th>Nama Panel</th>
@@ -46,22 +51,72 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($data_s as $item)
-                            <tr>
-                                <td>{{ $item->no_form }}</td>
-                                <td>{{ date('d-M-Y', strtotime($item->tgl_form_cut)) }} </td>
-                                <td>{{ $item->ws }}</td>
-                                <td>{{ $item->color }}</td>
-                                <td>{{ $item->panel }}</td>
-                                <td>{{ $item->status }}</td>
-                                <td> <a style='color: green' href="/form-cut-input/process/{{ $item->id }}"
-                                        data-toggle='tooltip' target='_blank'><i class='fa fa-plus'></i>
-                                    </a></td>
-                            </tr>
-                        @endforeach
                     </tbody>
                 </table>
             </div>
+        </div>
+        <!-- Modal -->
+        <div class="modal fade" id="editMejaModal" tabindex="-1" aria-labelledby="editMejaModalLabel" aria-hidden="true">
+            <form action="{{ route('update-spreading') }}" method="post" onsubmit="submitForm(this, event)">
+                @method('PUT')
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header bg-sb text-light">
+                            <h1 class="modal-title fs-5" id="editMejaModalLabel">Edit Meja</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <input type="hidden" id="edit_id" name="edit_id">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label"><small>No. Form</small></label>
+                                        <input type="text" class="form-control" id="edit_no_form" name="edit_no_form" value="" readonly />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label"><small>Tgl Form</small></label>
+                                        <input type="text" class="form-control" id="edit_tgl_form_cut" name="edit_tgl_form_cut" value="" readonly />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label"><small>WS</small></label>
+                                        <input type="text" class="form-control" id="edit_ws" name="edit_ws" value="" readonly />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label"><small>Color</small></label>
+                                        <input type="text" class="form-control" id="edit_color" name="edit_color" value="" readonly />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label"><small>Nama Panel</small></label>
+                                        <input type="text" class="form-control" id="edit_panel" name="edit_panel" value="" readonly />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label"><small>No. Meja</small></label>
+                                        <select class="form-select form-select-sm select2bs4" aria-label="Default select example" id="edit_no_meja" name="edit_no_meja">
+                                            @foreach ($meja as $m)
+                                                <option value="{{ $m->id }}">{{ strtoupper($m->name) }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                            <button type="submit" class="btn btn-sb">Simpan</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 @endsection
@@ -72,4 +127,78 @@
     <script src="/assets/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
     <script src="/assets/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
     <script src="/assets/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+
+    <!-- Select2 -->
+    <script src="/assets/plugins/select2/js/select2.full.min.js"></script>
+    <script>
+        $('.select2').select2()
+        $('.select2bs4').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $("#editMejaModal")
+        })
+    </script>
+
+    <script>
+        let datatable = $("#datatable").DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            paging: false,
+            ajax: {
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '/spreading',
+                dataType: 'json',
+                dataSrc: 'data',
+                data: function (d) {
+                    d.dateFrom = $('#tgl-awal').val();
+                    d.dateTo = $('#tgl-akhir').val();
+                },
+            },
+            columns: [
+                {
+                    data: 'no_form'
+                },
+                {
+                    data: 'tgl_form_cut'
+                },
+                {
+                    data: 'nama_meja'
+                },
+                {
+                    data: 'ws'
+                },
+                {
+                    data: 'color'
+                },
+                {
+                    data: 'panel'
+                },
+                {
+                    data: 'status'
+                },
+                {
+                    data: 'id'
+                },
+            ],
+            columnDefs: [
+                {
+                    targets: [2],
+                    render: (data, type, row, meta) => { return capitalizeFirstLetter(data) }
+                },
+                {
+                    targets: [7],
+                    render: (data, type, row, meta) => {
+                        let btnEdit = row.status == 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData("+JSON.stringify(row)+", \"editMejaModal\", [])'><i class='fa fa-pen'></i></a>" : "";
+                        return "<div class='d-flex gap-1 justify-content-center'><a class='btn btn-success btn-sm' href='/form-cut-input/process/"+row.id+"' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-plus'></i></a>"+btnEdit+"</div>";
+                    }
+                }
+            ]
+        });
+
+        function dataTableReload() {
+            datatable.ajax.reload();
+        }
+    </script>
 @endsection

@@ -292,7 +292,7 @@
                                 <label class="form-label"><small><b>Est. Kebutuhan Kain Piping</b></small></label>
                                 <div class="row g-1">
                                     <div class="col-6">
-                                        <input type="number" class="form-control form-control-sm" step=".01" name="est_pipping" id="est_pipping">
+                                        <input type="number" class="form-control form-control-sm" step=".01" name="est_pipping" id="est_pipping" value="{{ $formCutInputData->est_pipping }}">
                                     </div>
                                     <div class="col-6">
                                         <input type="text" class="form-control form-control-sm" name="est_pipping_unit" id="est_pipping_unit" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
@@ -305,7 +305,7 @@
                                 <label class="form-label"><small><b>Est. Kebutuhan Kain</b></small></label>
                                 <div class="row g-1">
                                     <div class="col-6">
-                                        <input type="number" class="form-control form-control-sm" step=".01" name="est_kain" id="est_kain">
+                                        <input type="number" class="form-control form-control-sm" step=".01" name="est_kain" id="est_kain" value="{{ $formCutInputData->est_kain }}">
                                     </div>
                                     <div class="col-6">
                                         <input type="text" class="form-control form-control-sm" name="est_kain_unit" id="est_kain_unit" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
@@ -791,10 +791,10 @@
                 showConfirmButton: true,
                 confirmButtonText: 'Selesaikan',
                 confirmButtonColor: "#6531a0",
-            }).then((result) => {
+            }).then(async (result) => {
                 if (result.isConfirmed) {
-                    updateToNextProcessOne();
-                    updateToNextProcessTwo();
+                    await updateToNextProcessOne();
+                    await updateToNextProcessTwo();
 
                     $.ajax({
                         headers: {
@@ -1125,9 +1125,9 @@
         }
 
         $(document).keyup(function(e) {
-            if (e.key === "Backspace") {
-                pauseTimeRecord()
-            }
+            // if (e.key === "Backspace") {
+            //     pauseTimeRecord()
+            // }
 
             if (e.key === "Escape") {
                 stopTimeRecord()

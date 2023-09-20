@@ -64,6 +64,7 @@
             ordering: false,
             processing: true,
             serverSide: true,
+            paging: false,
             ajax: {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

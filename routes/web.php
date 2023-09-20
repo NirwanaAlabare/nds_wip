@@ -55,6 +55,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/getdata_marker', 'getdata_marker')->name('getdata_marker');
         Route::get('/getdata_ratio', 'getdata_ratio')->name('getdata_ratio');
         Route::post('/store', 'store')->name('store-spreading');
+        Route::put('/update', 'update')->name('update-spreading');
     });
 
     // Form Cut Input

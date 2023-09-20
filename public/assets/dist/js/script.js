@@ -35,6 +35,15 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 });
 
+// Capitalize
+function capitalizeFirstLetter(string) {
+    if (string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+
+    return "-";
+}
+
 // Pad 2 Digits
 function pad2(n) {
     return n < 10 ? '0' + n : n
@@ -81,7 +90,7 @@ function submitForm(e, evt) {
         contentType: false,
         success: function(res) {
             if (res.status == 200) {
-                console.log(res.message);
+                $('.modal').modal('hide');
 
                 if (res.redirect != '') {
                     if (res.redirect != 'reload') {
@@ -91,19 +100,22 @@ function submitForm(e, evt) {
                     }
                 }
 
-                iziToast.success({
-                    title: 'Success',
-                    message: res.message,
-                    position: 'topCenter'
-                });
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Data Spreading berhasil diubah',
+                    text: res.message,
+                    showCancelButton: false,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Oke',
+                    timer: 5000,
+                    timerProgressBar: true
+                })
 
                 e.reset();
 
                 if (document.getElementsByClassName('select2')) {
                     $(".select2").val('').trigger('change');
                 }
-
-                $('.modal').modal('hide');
             } else {
                 console.log(res.message);
 
@@ -173,15 +185,14 @@ function submitForm(e, evt) {
 
 // Edit data modal
 function editData(e, modal, addons = []) {
-    let data = JSON.parse(e.getAttribute('data'));
+    let data = e;
 
     for (let key in data) {
-        console.log(data);
         if (document.getElementById('edit_'+key)) {
             document.getElementById('edit_'+key).value = data[key];
             document.getElementById('edit_'+key).setAttribute('value', data[key]);
 
-            if (document.getElementById('edit_'+key).classList.contains('select2')) {
+            if (document.getElementById('edit_'+key).classList.contains('select2bs4') || document.getElementById('edit_'+key).classList.contains('select2')) {
                 $('#edit_'+key).val(data[key]).trigger('change.select2');
             }
         } else {

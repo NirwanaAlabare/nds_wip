@@ -10,13 +10,13 @@
 @section('content')
     <div class="card card-sb card-outline">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0">Data Spreading</h5>
+            <h5 class="card-title fw-bold mb-0">Form Cutting</h5>
         </div>
         <div class="card-body">
-            <a href="/spreading/create" class="btn btn-sb btn-sm mb-3">
+            {{-- <a href="/spreading/create" class="btn btn-sb btn-sm mb-3">
                 <i class="fas fa-plus"></i>
                 Baru
-            </a>
+            </a> --}}
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Awal</small></label>
@@ -61,6 +61,7 @@
             ordering: false,
             processing: true,
             serverSide: true,
+            paging: false,
             ajax: {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

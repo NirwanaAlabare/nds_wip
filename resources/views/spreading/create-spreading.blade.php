@@ -240,12 +240,9 @@
                                     </div>
                                 </div>
                             </div>
-
-
                         </div>
                     </div>
                 </div>
-
                 <div class="col-md-6">
                     <div class="card card-warning">
                         <div class="card-header">
@@ -268,9 +265,6 @@
                         </div>
                     </div>
                 </div>
-
-
-
             </div>
     </form>
 @endsection
@@ -350,6 +344,7 @@
                 processing: true,
                 serverSide: true,
                 searching: false,
+                paging: false
                 info: false,
                 ajax: {
                     headers: {

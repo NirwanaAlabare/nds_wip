@@ -23,6 +23,7 @@ class FormCutInputController extends Controller
         if ($request->ajax()) {
             $tglAwal = $request->tgl_awal;
             $tglAkhir = $request->tgl_akhir;
+            $keyword = $request->search["value"];
 
             $formCutInputQuery = FormCutInput::selectRaw("
                     form_cut_input.id id,
@@ -41,6 +42,18 @@ class FormCutInputController extends Controller
 
             if ($tglAkhir) {
                 $formCutInputQuery->whereRaw("tgl_form_cut <= '".$tglAkhir."'");
+            }
+
+            if ($keyword) {
+                $formCutInputQuery->whereRaw("(
+                    marker_input.no_form like '%".$keyword."%' OR
+                    form_cut_input.tgl_form_cut like '%".$keyword."%' OR
+                    marker_input.kode like '%".$keyword."%' OR
+                    marker_input.act_costing_ws like '%".$keyword."%' OR
+                    marker_input.color like '%".$keyword."%' OR
+                    marker_input.panel like '%".$keyword."%' OR
+                    form_cut_input.status like '%".$keyword."%'
+                )");
             }
 
             $formCutInput = $formCutInputQuery->get();
