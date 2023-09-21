@@ -19,6 +19,10 @@ use App\Http\Controllers\FormCutInputController;
 
 Auth::routes(['register' => false]);
 
+Route::get('/', [App\Http\Controllers\HomeController::class, 'index']);
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
 Route::middleware('auth')->group(function () {
     // User
     Route::controller(UserController::class)->prefix("user")->group(function () {
@@ -89,12 +93,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-number', 'getNumber')->name('form-cut-get-marker-number');
     });
 });
-
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-
-Route::get('/', function () {
-    return view('home', ['page' => 'home']);
-})->middleware('auth');
 
 Route::get('/dashboard', function () {
     return view('dashboard', ['page' => 'dashboard']);
