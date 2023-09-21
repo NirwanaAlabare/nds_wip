@@ -8,6 +8,8 @@ use App\Models\FormCutInput;
 use App\Models\FormCutInputDetail;
 use App\Models\FormCutInputDetailLap;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Redirect;
 use Carbon\Carbon;
 use DB;
 
@@ -56,7 +58,7 @@ class FormCutInputController extends Controller
                 )");
             }
 
-            $formCutInput = $formCutInputQuery->get();
+            $formCutInput = $formCutInputQuery->where("form_cut_input.no_meja", Auth::user()->id)->get();
 
             return json_encode([
                 "draw" => intval($request->input('draw')),
@@ -143,11 +145,16 @@ class FormCutInputController extends Controller
      */
     public function process($id)
     {
+        $formCutInputData = FormCutInput::leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+            where('form_cut_input.id', $id)->
+            first();
+
         $actCostingData = DB::connection("mysql_sb")->
             table('act_costing')->
             selectRaw('act_costing.id id, act_costing.styleno style, mastersupplier.Supplier buyer')->
             leftJoin('mastersupplier', 'mastersupplier.Id_Supplier', 'act_costing.id_buyer')->
             groupBy('act_costing.id')->
+            where('act_costing.id', $formCutInputData->act_costing_id)->
             get();
 
         $markerDetailData = MarkerDetail::selectRaw("
@@ -156,12 +163,9 @@ class FormCutInputController extends Controller
                 marker_input_detail.ratio,
                 marker_input_detail.cut_qty
             ")->
-            leftJoin("marker_input", "marker_input.id", "=", "marker_input_detail.marker_id")->get();
-
-        $formCutInputData = FormCutInput::leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
-            where('form_cut_input.id', $id)->
-            first();
-
+            leftJoin("marker_input", "marker_input.id", "=", "marker_input_detail.marker_id")->
+            where("marker_input.kode", $formCutInputData->kode)->
+            get();
 
         $soDetData = DB::connection("mysql_sb")->
             table('so_det')->
@@ -171,13 +175,17 @@ class FormCutInputController extends Controller
             where("act_costing.id", $formCutInputData->act_costing_id)->
             get();
 
-        return view("form-cut.process-form-cut-input", [
-            'id' => $id,
-            'formCutInputData' => $formCutInputData,
-            'actCostingData' => $actCostingData,
-            'markerDetailData' => $markerDetailData,
-            'soDetData' => $soDetData
-        ]);
+        if (Auth::user()->id == $formCutInputData->no_meja) {
+            return view("form-cut.process-form-cut-input", [
+                'id' => $id,
+                'formCutInputData' => $formCutInputData,
+                'actCostingData' => $actCostingData,
+                'markerDetailData' => $markerDetailData,
+                'soDetData' => $soDetData
+            ]);
+        }
+
+        return Redirect::to('/home');
     }
 
     public function getNumberData(Request $request) {

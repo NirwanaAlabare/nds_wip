@@ -26,7 +26,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Marker
-    Route::controller(MarkerController::class)->prefix("marker")->group(function () {
+    Route::controller(MarkerController::class)->prefix("marker")->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('marker');
         Route::get('/create', 'create')->name('create-marker');
         Route::post('/store', 'store')->name('store-marker');
@@ -48,7 +48,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Spreading
-    Route::controller(SpreadingController::class)->prefix("spreading")->group(function () {
+    Route::controller(SpreadingController::class)->prefix("spreading")->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('spreading');
         Route::get('/create', 'create')->name('create-spreading');
         Route::post('/getno_marker', 'getno_marker')->name('getno_marker');
