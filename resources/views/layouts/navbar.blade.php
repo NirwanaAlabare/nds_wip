@@ -68,6 +68,20 @@
                         <!-- End Level two -->
                     </ul>
                 </li>
+
+
+                <li class="nav-item dropdown">
+                    <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                        aria-expanded="false" class="nav-link dropdown-toggle">Laporan</a>
+                    <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
+                        <li>
+                            <a href="/marker" class="dropdown-item">
+                                Laporan Pemakakaian
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
                 <li class="nav-item">
                     <a href="/" class="nav-link">
                         <i class="fas fa-home"></i>
