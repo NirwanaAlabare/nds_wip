@@ -2,7 +2,7 @@
     <div class="offcanvas-header">
         <h5 class="offcanvas-title" id="offcanvasExampleLabel">
             <i class="fa-solid fa-circle-user mt-1"></i>
-            {{ auth()->user()->name; }}
+            {{ strtoupper(auth()->user()->name); }}
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
@@ -17,18 +17,18 @@
                         <div class="mb-3">
                             <label><small>Name</small></label>
                             <input type="text" class="form-control form-control-sm" name="name"
-                                value="{{ auth()->user()->name }}">
+                                value="{{ auth()->user()->name }}" {{ auth()->user()->type == "meja" ? "readonly" : "" }}>
                         </div>
                         <div class="mb-3">
                             <label><small>Username</small></label>
                             <input type="text" class="form-control form-control-sm" name="username"
-                                value="{{ auth()->user()->username }}">
+                                value="{{ auth()->user()->username }}" {{ auth()->user()->type == "meja" ? "readonly" : "" }}>
                         </div>
                         <div class="mb-3">
                             <label><small>New Password</small></label>
-                            <input type="password" class="form-control form-control-sm" name="password">
+                            <input type="password" class="form-control form-control-sm" name="password" {{ auth()->user()->type == "meja" ? "readonly" : "" }}>
                         </div>
-                        <button class="btn btn-sm btn-sb" type="submit">Update</button>
+                        <button class="btn btn-sm btn-sb" type="submit" {{ auth()->user()->type == "meja" ? "disabled" : "" }}>Update</button>
                     </form>
                 </div>
             </div>

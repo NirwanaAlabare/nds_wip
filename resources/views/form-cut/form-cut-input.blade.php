@@ -36,7 +36,6 @@
                         <tr>
                             <th>No. Form</th>
                             <th>Tanggal Form</th>
-                            <th>Kode Marker</th>
                             <th>No. WS</th>
                             <th>Color</th>
                             <th>Panel</th>
@@ -82,9 +81,6 @@
                     data: 'tgl_form'
                 },
                 {
-                    data: 'kode_marker'
-                },
-                {
                     data: 'no_ws'
                 },
                 {
@@ -102,7 +98,7 @@
             ],
             columnDefs: [
                 {
-                    targets: [7],
+                    targets: [6],
                     render: (data, type, row, meta) => "<a href='/form-cut-input/process/"+data+"' class='btn btn-sm btn-primary' onclick='' target='_blank'><i class='fa fa-plus'><i/></a>"
                 },
             ]

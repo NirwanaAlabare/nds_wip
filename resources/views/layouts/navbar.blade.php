@@ -38,13 +38,15 @@
                                 </a>
                             </li>
                         @endif
-                        <li>
-                            <a href="/form-cut-input" class="dropdown-item">
-                                Form Cutting
-                            </a>
-                        </li>
-                        <li class="dropdown-divider"></li>
 
+                        @if (auth()->user()->type == "meja")
+                            <li>
+                                <a href="/form-cut-input" class="dropdown-item">
+                                    Form Cutting
+                                </a>
+                            </li>
+                        @endif
+                        {{-- <li class="dropdown-divider"></li> --}}
                         <!-- Level two dropdown-->
                         {{-- <li class="dropdown-submenu dropdown-hover">
                             <a id="dropdownSubMenu2" href="#" role="button" data-bs-toggle="dropdown"
@@ -75,18 +77,19 @@
                     </ul>
                 </li>
 
-
-                <li class="nav-item dropdown">
-                    <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
-                        aria-expanded="false" class="nav-link dropdown-toggle">Laporan</a>
-                    <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
-                        <li>
-                            <a href="/marker" class="dropdown-item">
-                                Laporan Pemakaian
-                            </a>
-                        </li>
-                    </ul>
-                </li>
+                @if (auth()->user()->type == "admin")
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false" class="nav-link dropdown-toggle">Laporan</a>
+                        <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="/marker" class="dropdown-item">
+                                    Laporan Pemakaian
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endif
 
                 <li class="nav-item">
                     <a href="/" class="nav-link">
@@ -198,7 +201,7 @@
             <li class="nav-item">
                 <a class="nav-link" data-bs-toggle="offcanvas" href="#user-offcanvas" role="button"
                     aria-controls="user-offcanvas">
-                    {{ auth()->user()->name }}
+                    {{ strtoupper(auth()->user()->name); }}
                     <i class="fas fa-user ps-1"></i>
                 </a>
             </li>

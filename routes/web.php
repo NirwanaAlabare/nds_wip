@@ -59,7 +59,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Form Cut Input
-    Route::controller(FormCutInputController::class)->prefix("form-cut-input")->group(function () {
+    Route::controller(FormCutInputController::class)->prefix("form-cut-input")->middleware('meja')->group(function () {
         Route::get('/', 'index')->name('form-cut-input');
         // Route::get('/create', 'create')->name('create-form-cut-input');
         // Route::post('/store', 'store')->name('store-form-cut-input');
@@ -76,17 +76,17 @@ Route::middleware('auth')->group(function () {
         Route::put('/finish-process/{id}', 'finishProcess')->name('finish-process-form-cut-input');
 
         // get order
-        Route::get('/get-order', 'getOrderInfo')->name('get-marker-order');
+        Route::get('/get-order', 'getOrderInfo')->name('form-cut-get-marker-order');
         // get colors
-        Route::get('/get-colors', 'getColorList')->name('get-marker-colors');
+        Route::get('/get-colors', 'getColorList')->name('form-cut-get-marker-colors');
         // get panels
-        Route::get('/get-panels', 'getPanelList')->name('get-marker-panels');
+        Route::get('/get-panels', 'getPanelList')->name('form-cut-get-marker-panels');
         // get sizes
-        Route::get('/get-sizes', 'getSizeList')->name('get-marker-sizes');
+        Route::get('/get-sizes', 'getSizeList')->name('form-cut-get-marker-sizes');
         // get count
-        Route::get('/get-count', 'getCount')->name('get-marker-count');
+        Route::get('/get-count', 'getCount')->name('form-cut-get-marker-count');
         // get number
-        Route::get('/get-number', 'getNumber')->name('get-marker-number');
+        Route::get('/get-number', 'getNumber')->name('form-cut-get-marker-number');
     });
 });
 

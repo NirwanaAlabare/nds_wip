@@ -4,7 +4,7 @@
     <div class="container mt-5">
         <div class="card h-100">
             <div class="card-body">
-                <h3 class="card-title">Halo, {{ auth()->user()->name }}</h3>
+                <h3 class="card-title">Halo, {{ strtoupper(auth()->user()->name) }}</h3>
                 <br>
                 <div class="row g-3 mt-3">
                     <div class="col-md-2 col-3">

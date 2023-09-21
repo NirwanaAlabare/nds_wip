@@ -58,7 +58,11 @@ class FormCutInputController extends Controller
                 )");
             }
 
-            $formCutInput = $formCutInputQuery->where("form_cut_input.no_meja", Auth::user()->id)->get();
+            if (Auth::user()->type == "meja") {
+                $formCutInputQuery->where("form_cut_input.no_meja", Auth::user()->id);
+            }
+
+            $formCutInput = $formCutInputQuery->get();
 
             return json_encode([
                 "draw" => intval($request->input('draw')),

@@ -45,7 +45,7 @@
                             <th>No. Meja</th>
                             <th>WS</th>
                             <th>Color</th>
-                            <th>Nama Panel</th>
+                            <th>Panel</th>
                             <th>Status</th>
                             <th>Act</th>
                         </tr>
@@ -94,7 +94,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label class="form-label"><small>Nama Panel</small></label>
+                                        <label class="form-label"><small>Panel</small></label>
                                         <input type="text" class="form-control" id="edit_panel" name="edit_panel" value="" readonly />
                                     </div>
                                 </div>
@@ -185,7 +185,7 @@
             columnDefs: [
                 {
                     targets: [2],
-                    render: (data, type, row, meta) => { return capitalizeFirstLetter(data) }
+                    render: (data, type, row, meta) => data.toUpperCase()
                 },
                 {
                     targets: [7],
