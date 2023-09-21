@@ -21,25 +21,25 @@ class SpreadingController extends Controller
             $additionalQuery = "";
 
             if ($request->dateFrom) {
-                $additionalQuery .= " where a.tgl_form_cut >= '".$request->dateFrom."' ";
+                $additionalQuery .= " where a.tgl_form_cut >= '" . $request->dateFrom . "' ";
             }
 
             if ($request->dateTo) {
-                $additionalQuery .= " and a.tgl_form_cut <= '".$request->dateTo."' ";
+                $additionalQuery .= " and a.tgl_form_cut <= '" . $request->dateTo . "' ";
             }
 
             $keywordQuery = "";
             if ($request->search["value"]) {
                 $keywordQuery = "
                     and (
-                        a.no_meja like '%".$request->search["value"]."%' OR
-                        a.no_form like '%".$request->search["value"]."%' OR
-                        a.tgl_form_cut like '%".$request->search["value"]."%' OR
-                        b.act_costing_ws like '%".$request->search["value"]."%' OR
-                        panel like '%".$request->search["value"]."%' OR
-                        b.color like '%".$request->search["value"]."%' OR
-                        a.status like '%".$request->search["value"]."%' OR
-                        users.name like '%".$request->search["value"]."%'
+                        a.no_meja like '%" . $request->search["value"] . "%' OR
+                        a.no_form like '%" . $request->search["value"] . "%' OR
+                        a.tgl_form_cut like '%" . $request->search["value"] . "%' OR
+                        b.act_costing_ws like '%" . $request->search["value"] . "%' OR
+                        panel like '%" . $request->search["value"] . "%' OR
+                        b.color like '%" . $request->search["value"] . "%' OR
+                        a.status like '%" . $request->search["value"] . "%' OR
+                        users.name like '%" . $request->search["value"] . "%'
                     )
                 ";
             }
@@ -47,8 +47,8 @@ class SpreadingController extends Controller
             $data_spreading = DB::select("SELECT a.id, a.no_meja, a.id_marker, a.no_form, a.tgl_form_cut, b.act_costing_ws ws, panel, b.color, a.status, users.name nama_meja  FROM `form_cut_input` a
                 left join marker_input b on a.id_marker = b.kode
                 left join users on users.id = a.no_meja
-                ".$additionalQuery."
-                ".$keywordQuery."
+                " . $additionalQuery . "
+                " . $keywordQuery . "
             ");
 
             return json_encode([
@@ -91,8 +91,9 @@ class SpreadingController extends Controller
 
     public function getno_marker(Request $request)
     {
+        $tgl_f = Carbon::today()->toDateString();
         $datano_marker = DB::select("select *,  concat(kode,' - ',color, ' - (',panel, ' - ',urutan_marker, ' )') tampil
-        from marker_input where act_costing_id = '" . $request->cbows . "' order by urutan_marker asc");
+        from marker_input where act_costing_id = '" . $request->cbows . "' and tgl_cutting = '$tgl_f' order by urutan_marker asc");
         $html = "<option value=''>Pilih No Marker</option>";
 
         foreach ($datano_marker as $datanomarker) {
@@ -218,17 +219,16 @@ class SpreadingController extends Controller
             "edit_no_meja" => "required",
         ]);
 
-        $updateNoMeja = FormCutInput::where('id', $validatedRequest['edit_id'])->
-        update([
+        $updateNoMeja = FormCutInput::where('id', $validatedRequest['edit_id'])->update([
             'no_meja' => $validatedRequest['edit_no_meja']
         ]);
 
-        if($updateNoMeja) {
+        if ($updateNoMeja) {
             $updatedData = FormCutInput::where('id', $validatedRequest['edit_id'])->first();
             $meja = User::where('id', $validatedRequest['edit_no_meja'])->first();
             return array(
                 'status' => 200,
-                'message' => 'Alokasi Meja "'.ucfirst($meja->name).'" ke form "'.$updatedData->no_form.'" berhasil',
+                'message' => 'Alokasi Meja "' . ucfirst($meja->name) . '" ke form "' . $updatedData->no_form . '" berhasil',
                 'redirect' => '',
                 'table' => 'datatable',
                 'additional' => [],
