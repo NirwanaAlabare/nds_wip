@@ -22,6 +22,7 @@ class MarkerController extends Controller
         if ($request->ajax()) {
             $tglAwal = $request->tgl_awal;
             $tglAkhir = $request->tgl_akhir;
+            $keyword = $request->search["value"];
 
             $markersQuery = Marker::selectRaw("
                     tgl_cutting,
@@ -43,6 +44,18 @@ class MarkerController extends Controller
 
             if ($tglAkhir) {
                 $markersQuery->whereRaw("tgl_cutting <= '".$tglAkhir."'");
+            }
+
+            if ($keyword) {
+                $markersQuery->whereRaw("(
+                    tgl_cutting like '%".$keyword."%' OR
+                    kode like '%".$keyword."%' OR
+                    act_costing_ws like '%".$keyword."%' OR
+                    color like '%".$keyword."%' OR
+                    panel like '%".$keyword."%' OR
+                    po_marker like '%".$keyword."%' OR
+                    urutan_marker like '%".$keyword."%'
+                )");
             }
 
             $markers = $markersQuery->get();
