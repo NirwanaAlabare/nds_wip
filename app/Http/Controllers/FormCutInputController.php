@@ -179,17 +179,17 @@ class FormCutInputController extends Controller
             where("act_costing.id", $formCutInputData->act_costing_id)->
             get();
 
-        if (Auth::user()->id == $formCutInputData->no_meja) {
-            return view("form-cut.process-form-cut-input", [
-                'id' => $id,
-                'formCutInputData' => $formCutInputData,
-                'actCostingData' => $actCostingData,
-                'markerDetailData' => $markerDetailData,
-                'soDetData' => $soDetData
-            ]);
+        if (Auth::user()->type == "meja" && Auth::user()->id != $formCutInputData->no_meja) {
+            return Redirect::to('/home');
         }
 
-        return Redirect::to('/home');
+        return view("form-cut.process-form-cut-input", [
+            'id' => $id,
+            'formCutInputData' => $formCutInputData,
+            'actCostingData' => $actCostingData,
+            'markerDetailData' => $markerDetailData,
+            'soDetData' => $soDetData
+        ]);
     }
 
     public function getNumberData(Request $request) {

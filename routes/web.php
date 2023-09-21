@@ -59,7 +59,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Form Cut Input
-    Route::controller(FormCutInputController::class)->prefix("form-cut-input")->middleware('meja')->group(function () {
+    Route::controller(FormCutInputController::class)->prefix("form-cut-input")->group(function () {
         Route::get('/', 'index')->name('form-cut-input');
         // Route::get('/create', 'create')->name('create-form-cut-input');
         // Route::post('/store', 'store')->name('store-form-cut-input');
@@ -89,6 +89,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-number', 'getNumber')->name('form-cut-get-marker-number');
     });
 });
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 Route::get('/', function () {
     return view('home', ['page' => 'home']);
@@ -161,7 +163,3 @@ Route::get('/general-form', function () {
 Route::get('/validation-form', function () {
     return view('component.forms.validation');
 })->middleware('auth');
-
-Auth::routes();
-
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

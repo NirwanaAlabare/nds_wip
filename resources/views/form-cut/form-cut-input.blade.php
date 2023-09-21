@@ -99,7 +99,7 @@
             columnDefs: [
                 {
                     targets: [6],
-                    render: (data, type, row, meta) => "<a href='/form-cut-input/process/"+data+"' class='btn btn-sm btn-primary' onclick='' target='_blank'><i class='fa fa-plus'><i/></a>"
+                    render: (data, type, row, meta) => "<a href='/form-cut-input/process/"+data+"' class='btn btn-sm btn-success' onclick='' target='_blank'><i class='fa fa-plus'><i/></a>"
                 },
             ]
         });
