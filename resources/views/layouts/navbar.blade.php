@@ -82,7 +82,7 @@
                     <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
                         <li>
                             <a href="/marker" class="dropdown-item">
-                                Laporan Pemakakaian
+                                Laporan Pemakaian
                             </a>
                         </li>
                     </ul>

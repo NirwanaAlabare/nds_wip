@@ -13,7 +13,7 @@
             <h5 class="card-title fw-bold mb-0">Data Marker</h5>
         </div>
         <div class="card-body">
-            <a href="/marker/create" class="btn btn-sb btn-sm mb-3">
+            <a href="/marker/create" class="btn btn-primary btn-sm mb-3">
                 <i class="fas fa-plus"></i>
                 Baru
             </a>
@@ -27,7 +27,7 @@
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
-                    <button class="btn btn-sb btn-sm" onclick="filterTable()">Tampilkan</button>
+                    <button class="btn btn-primary btn-sm" onclick="filterTable()">Tampilkan</button>
                 </div>
             </div>
             <div class="table-responsive">

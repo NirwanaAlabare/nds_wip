@@ -27,7 +27,7 @@
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
-                    <button class="btn btn-sb btn-sm" onclick="filterTable()">Tampilkan</button>
+                    <button class="btn btn-primary btn-sm" onclick="filterTable()">Tampilkan</button>
                 </div>
             </div>
             <div class="table-responsive">
