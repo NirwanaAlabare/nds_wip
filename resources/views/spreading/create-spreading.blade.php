@@ -36,7 +36,7 @@
                                     <div class="form-group">
                                         <label>No. WS</label>
                                         <select class="form-control select2bs4" id="cbows" name="cbows"
-                                            onchange='getno_marker();' style="width: 100%;">
+                                            onchange='getno_marker()' style="width: 100%;">
                                             <option selected="selected" value="">Pilih WS</option>
                                             @foreach ($data_ws as $dataws)
                                                 <option value="{{ $dataws->act_costing_id }}">
@@ -45,7 +45,7 @@
                                             @endforeach
                                         </select>
                                     </div>
-                                    <input type='text' class='form-control' id='txtid_marker' name='txtid_marker'>
+                                    <input type='hidden' class='form-control' id='txtid_marker' name='txtid_marker'>
                                 </div>
                                 <div class="col-sm-5">
                                     <div class="form-group">
@@ -99,6 +99,7 @@
                                 </div>
                                 <div class="col-sm-3">
                                     <div class="form-group">
+                                        <label>&emsp;&emsp;&emsp;</label>
                                         <button type='submit' name='submit' class='btn btn-primary'>Simpan</button>
                                     </div>
                                 </div>
@@ -344,7 +345,7 @@
                 processing: true,
                 serverSide: true,
                 searching: false,
-                paging: false
+                paging: false,
                 info: false,
                 ajax: {
                     headers: {
@@ -403,7 +404,7 @@
                         Swal.fire({
                             icon: 'success',
                             title: 'Data Spreading berhasil disimpan',
-                            html: "No. Form Cut : <br>"+res.message,
+                            html: "No. Form Cut : <br>" + res.message,
                             showCancelButton: false,
                             showConfirmButton: true,
                             confirmButtonText: 'Oke',
