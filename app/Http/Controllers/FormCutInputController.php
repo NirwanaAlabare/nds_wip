@@ -36,7 +36,8 @@ class FormCutInputController extends Controller
                     marker_input.color,
                     marker_input.panel,
                     form_cut_input.status
-                ")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker");
+                ")->
+                leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker");
 
             if ($tglAwal) {
                 $formCutInputQuery->whereRaw("tgl_form_cut >= '".$tglAwal."'");
@@ -150,6 +151,7 @@ class FormCutInputController extends Controller
     public function process($id)
     {
         $formCutInputData = FormCutInput::leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+            leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
             where('form_cut_input.id', $id)->
             first();
 
@@ -258,7 +260,19 @@ class FormCutInputController extends Controller
                 "waktu_mulai" => $request->startTime
             ]);
 
-        return $updateFormCutInput;
+        if ($updateFormCutInput) {
+            return array(
+                "status" => 200,
+                "message" => "alright",
+                "additional" => [],
+            );
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "nothing really matter anymore",
+            "additional" => [],
+        );
     }
 
     public function nextProcessOne($id, Request $request) {
@@ -268,7 +282,19 @@ class FormCutInputController extends Controller
                 "shell" => $request->shell
             ]);
 
-        return $updateFormCutInput;
+        if ($updateFormCutInput) {
+            return array(
+                "status" => 200,
+                "message" => "alright",
+                "additional" => [],
+            );
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "nothing really matter anymore",
+            "additional" => [],
+        );
     }
 
     public function nextProcessTwo($id, Request $request) {
@@ -322,41 +348,64 @@ class FormCutInputController extends Controller
     }
 
     public function getTimeRecord($noForm) {
-        $timeRecordSummary = FormCutInputDetail::selectRaw("
-                `no_form_cut_input`,
-                `id_item`,
-                `group`,
-                `lot` as `lot_no`,
-                `roll` as `roll_no`,
-                `qty` as `roll_qty`,
-                `unit`,
-                `lap`
-            ")->
-            where("no_form_cut_input", $noForm)->get();
+        $timeRecordSummary = FormCutInputDetail::where("no_form_cut_input", $noForm)->get();
 
         return json_encode($timeRecordSummary);
     }
 
     public function storeTimeRecord(Request $request) {
-        $now = Carbon::now();
+        $validatedRequest = $request->validate([
+            "no_form_cut_input" => "required",
+            "current_id_item" => "required",
+            "current_group" => "required",
+            "current_lot" => "required",
+            "current_roll" => "required",
+            "current_qty" => "required",
+            "current_unit" => "required",
+            "current_sisa_gelaran" => "required",
+            "current_est_amparan" => "required",
+            "current_lembar_gelaran" => "required",
+            "current_average_time" => "required",
+            "current_kepala_kain" => "required",
+            "current_sisa_tidak_bisa" => "required",
+            "current_reject" => "required",
+            "current_sisa_kain" => "required",
+            "current_total_pemakaian_roll" => "required",
+            "current_short_roll" => "required",
+            "current_piping" => "required",
+            "current_remark" => "required"
+        ]);
 
         $storeTimeRecordSummary = FormCutInputDetail::create([
-            "no_form_cut_input" => $request->no_form_cut_input,
-            "id_item" => $request->id_item,
-            "group" => $request->group,
-            "lot" => $request->lot,
-            "roll" => $request->roll,
-            "qty" => $request->qty,
-            "unit" => $request->unit,
-            "lap" => $request->lap
+            "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
+            "id_item" => $validatedRequest['current_id_item'],
+            "group" => $validatedRequest['current_group'],
+            "lot" => $validatedRequest['current_lot'],
+            "roll" => $validatedRequest['current_roll'],
+            "qty" => $validatedRequest['current_qty'],
+            "unit" => $validatedRequest['current_unit'],
+            "sisa_gelaran" => $validatedRequest['current_sisa_gelaran'],
+            "est_amparan" => $validatedRequest['current_est_amparan'],
+            "lembar_gelaran" => $validatedRequest['current_lembar_gelaran'],
+            "average_time" => $validatedRequest['current_average_time'],
+            "kepala_kain" => $validatedRequest['current_kepala_kain'],
+            "sisa_tidak_bisa" => $validatedRequest['current_sisa_tidak_bisa'],
+            "reject" => $validatedRequest['current_reject'],
+            "sisa_kain" => $validatedRequest['current_sisa_kain'],
+            "total_pemakaian_roll" => $validatedRequest['current_total_pemakaian_roll'],
+            "short_roll" => $validatedRequest['current_short_roll'],
+            "piping" => $validatedRequest['current_piping'],
+            "remark" => $validatedRequest['current_remark'],
         ]);
+
+        $now = Carbon::now();
 
         if ($storeTimeRecordSummary) {
             $timeRecordLap = [];
-            for ($i = 1; $i <= $request->lap; $i++) {
+            for ($i = 1; $i <= $validatedRequest['current_lembar_gelaran']; $i++) {
                 array_push($timeRecordLap, [
                     "form_cut_input_detail_id" => $storeTimeRecordSummary->id,
-                    "lap" => $i,
+                    "lembar_gelaran_ke" => $i,
                     "waktu" => $request["time_record"][$i],
                     "created_at" => $now,
                     "updated_at" => $now,
@@ -369,7 +418,7 @@ class FormCutInputController extends Controller
                 return array(
                     "status" => 200,
                     "message" => "alright",
-                    "additional" => [],
+                    "additional" => [FormCutInputDetail::where('id', $storeTimeRecordSummary->id)->first()],
                 );
             }
         }

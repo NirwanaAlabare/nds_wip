@@ -339,12 +339,13 @@
                     alert(request.responseText);
                 },
             });
+
             let datatable = $("#datatable").DataTable({
                 ordering: false,
                 processing: true,
                 serverSide: true,
                 searching: false,
-                paging: false
+                paging: false,
                 info: false,
                 ajax: {
                     headers: {
@@ -357,7 +358,8 @@
                         d.cbomarker = $('#cbomarker').val();
                     },
                 },
-                columns: [{
+                columns: [
+                    {
                         data: 'id'
                     },
                     {
@@ -367,7 +369,6 @@
                         data: 'cut_qty'
                     }
                 ]
-
             });
         };
 

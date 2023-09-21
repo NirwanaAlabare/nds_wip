@@ -185,7 +185,7 @@
             columnDefs: [
                 {
                     targets: [2],
-                    render: (data, type, row, meta) => data.toUpperCase()
+                    render: (data, type, row, meta) => data ? data.toUpperCase() : "-"
                 },
                 {
                     targets: [7],
