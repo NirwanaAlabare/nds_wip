@@ -49,7 +49,7 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>No. Form</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="no_form" id="no_form" value="{{ $formCutInputData->no_form }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="no_form" id="no_form" value="{{ $formCutInputData->no_form }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -61,49 +61,49 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Kode Marker</b></small></label>
-                                <input type="text" class="form-control form-control-sm" value="{{ $formCutInputData->id_marker }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" value="{{ $formCutInputData->id_marker }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>No. WS</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="no_ws" value="{{ $formCutInputData->act_costing_ws }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="no_ws" value="{{ $formCutInputData->act_costing_ws }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Buyer</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="buyer" value="{{ $thisActCosting->buyer }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="buyer" value="{{ $thisActCosting->buyer }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Style</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="style" value="{{ $thisActCosting->style }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="style" value="{{ $thisActCosting->style }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Color</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="color" id="color" value="{{ $formCutInputData->color }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="color" id="color" value="{{ $formCutInputData->color }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Panel</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="panel" id="panel" value="{{ $formCutInputData->panel }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="panel" id="panel" value="{{ $formCutInputData->panel }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>PO</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="po" value="{{ $formCutInputData->po_marker }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="po" value="{{ $formCutInputData->po_marker }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>QTY Gelar Marker</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="gelar_qty" value="{{ $formCutInputData->gelar_qty }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="gelar_qty" value="{{ $formCutInputData->gelar_qty }}" readonly>
                             </div>
                         </div>
                     </div>
@@ -161,104 +161,105 @@
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>P. Marker</b></small></label>
-                                <input type="number" class="form-control form-control-sm" value="{{ $formCutInputData->panjang_marker }}" readonly>
+                                <input type="number" class="form-control form-control-sm border-fetch" value="{{ $formCutInputData->panjang_marker }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Unit</b></small></label>
-                                <input type="text" class="form-control form-control-sm" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>P. Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm" name="p_act" id="p_act" value="{{ $formCutInputData->p_act }}" onkeyup="calculateConsAmpar(this.value, {{ $totalRatio }}); calculateEstAmpar(undefined, this.value);" onchange="calculateConsAmpar(this.value, {{ $totalRatio }}); calculateEstAmpar(undefined, this.value);">
+                                <input type="number" class="form-control form-control-sm border-input" name="p_act" id="p_act" value="{{ $formCutInputData->p_act }}" onkeyup="calculateConsAmpar(this.value, {{ $totalRatio }}); calculateEstAmpar(undefined, this.value);" onchange="calculateConsAmpar(this.value, {{ $totalRatio }}); calculateEstAmpar(undefined, this.value);">
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Unit Act</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="unit_p_act" id="unit_p_act" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="unit_p_act" id="unit_p_act" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Comma</b></small></label>
-                                <input type="number" class="form-control form-control-sm" value="{{ $formCutInputData->comma_marker }}" readonly>
+                                <input type="number" class="form-control form-control-sm border-fetch" value="{{ $formCutInputData->comma_marker }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Unit</b></small></label>
-                                <input type="text" class="form-control form-control-sm" value="{{ strtoupper($formCutInputData->unit_comma_marker) }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" value="{{ strtoupper($formCutInputData->unit_comma_marker) }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Comma Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm" name="comma_act" id="comma_act" value="{{ $formCutInputData->p_act }}">
+                                <input type="number" class="form-control form-control-sm border-input" name="comma_act" id="comma_act" value="{{ $formCutInputData->p_act }}">
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Unit Act</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="unit_comma_act" id="unit_comma_act" value="{{ strtoupper($formCutInputData->unit_comma_marker) }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="unit_comma_act" id="unit_comma_act" value="{{ strtoupper($formCutInputData->unit_comma_marker) }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>L. Marker</b></small></label>
-                                <input type="number" class="form-control form-control-sm" value="{{ strtoupper($formCutInputData->lebar_marker) }}" readonly>
+                                <input type="number" class="form-control form-control-sm border-fetch" value="{{ strtoupper($formCutInputData->lebar_marker) }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Unit</b></small></label>
-                                <input type="text" class="form-control form-control-sm" svalue="{{ strtoupper($formCutInputData->unit_lebar_marker) }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" value="{{ strtoupper($formCutInputData->unit_lebar_marker) }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>L. Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm" name="l_act" sid="l_act" value="{{ $formCutInputData->l_act }}">
+                                <input type="number" class="form-control form-control-sm border-input" name="l_act" id="l_act" value="{{ $formCutInputData->l_act }}">
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Unit Act</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="unit_l_act"
-                                    id="unit_l_act" value="{{ strtoupper($formCutInputData->unit_lebar_marker) }}" sreadonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="unit_l_act"
+                                    id="unit_l_act" value="{{ strtoupper($formCutInputData->unit_lebar_marker) }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Cons WS</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="cons_ws" id="cons_ws" sreadonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="cons_ws" id="cons_ws"
+                                onkeyup="calculateEstKain(this.value, {{ $totalCutQty }})" onchange="calculateEstKain(this.value, {{ $totalCutQty }})" readonly>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Cons Marker</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="cons_marker" sid="cons_marker" value="{{ $formCutInputData->cons_marker }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="cons_marker" id="cons_marker" value="{{ $formCutInputData->cons_marker }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Cons Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm" name="cons_act" sid="cons_act" value="{{ $formCutInputData->cons_act }}" step=".01">
+                                <input type="number" class="form-control form-control-sm border-input" name="cons_act" id="cons_act" value="{{ $formCutInputData->cons_act }}" step=".01">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Cons Piping</b></small></label>
-                                <input type="number" class="form-control form-control-sm" step=".01" name="cons_pipping" id="cons_pipping" onkeyup="calculateEstPipping(this.value, {{ $totalCutQty }})" onchange="calculateEstPipping(this.value, {{ $totalCutQty }})" value="{{ $formCutInputData->cons_pipping }}">
+                                <input type="number" class="form-control form-control-sm border-fetch" step=".01" name="cons_pipping" id="cons_pipping" onkeyup="calculateEstPipping(this.value, {{ $totalCutQty }})" onchange="calculateEstPipping(this.value, {{ $totalCutQty }})" value="{{ $formCutInputData->cons_pipping }}">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Cons 1 Ampar</b></small></label>
-                                <input type="number" class="form-control form-control-sm" step=".01" name="cons_ampar" id="cons_ampar" value="{{ $formCutInputData->cons_ampar }}">
+                                <input type="number" class="form-control form-control-sm border-calc" step=".01" name="cons_ampar" id="cons_ampar" value="{{ $formCutInputData->cons_ampar }}">
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -266,10 +267,10 @@
                                 <label class="form-label"><small><b>Est. Kebutuhan Kain Piping</b></small></label>
                                 <div class="row g-1">
                                     <div class="col-6">
-                                        <input type="number" class="form-control form-control-sm" step=".01" name="est_pipping" id="est_pipping" value="{{ $formCutInputData->est_pipping }}">
+                                        <input type="number" class="form-control form-control-sm border-calc" step=".01" name="est_pipping" id="est_pipping" value="{{ $formCutInputData->est_pipping }}">
                                     </div>
                                     <div class="col-6">
-                                        <input type="text" class="form-control form-control-sm" name="est_pipping_unit" id="est_pipping_unit" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
+                                        <input type="text" class="form-control form-control-sm border-calc" name="est_pipping_unit" id="est_pipping_unit" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -279,10 +280,10 @@
                                 <label class="form-label"><small><b>Est. Kebutuhan Kain</b></small></label>
                                 <div class="row g-1">
                                     <div class="col-6">
-                                        <input type="number" class="form-control form-control-sm" step=".01" name="est_kain" id="est_kain" value="{{ $formCutInputData->est_kain }}">
+                                        <input type="number" class="form-control form-control-sm border-calc" step=".01" name="est_kain" id="est_kain" value="{{ $formCutInputData->est_kain }}">
                                     </div>
                                     <div class="col-6">
-                                        <input type="text" class="form-control form-control-sm" name="est_kain_unit" id="est_kain_unit" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
+                                        <input type="text" class="form-control form-control-sm border-calc" name="est_kain_unit" id="est_kain_unit" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -311,7 +312,7 @@
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Kode Barang</b></small></label>
                                 <div class="input-group">
-                                    <input type="text" class="form-control form-control-sm" name="kode_barang" id="kode_barang">
+                                    <input type="text" class="form-control form-control-sm border-input" name="kode_barang" id="kode_barang">
                                     <button class="btn btn-sm btn-primary" type="button" id="scan-button" onclick="initScan()">Scan</button>
                                 </div>
                             </div>
@@ -319,19 +320,19 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>ID Item</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="id_item" id="id_item" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="id_item" id="id_item" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Detail Item</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="detail_item" id="detail_item" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="detail_item" id="detail_item" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Color Act</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="color_act" id="color_act">
+                                <input type="text" class="form-control form-control-sm border-input" name="color_act" id="color_act">
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -357,49 +358,49 @@
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Group</b></small></label>
-                                    <input type="text" class="form-control form-control-sm" id="current_group" name="current_group">
+                                    <input type="text" class="form-control form-control-sm border-input" id="current_group" name="current_group">
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Id Item</b></small></label>
-                                    <input type="text" class="form-control form-control-sm" id="current_id_item" name="current_id_item" {{--readonly--}}>
+                                    <input type="text" class="form-control form-control-sm border-fetch" id="current_id_item" name="current_id_item" readonly>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Lot</b></small></label>
-                                    <input type="text" class="form-control form-control-sm" id="current_lot" name="current_lot" {{--readonly--}}>
+                                    <input type="text" class="form-control form-control-sm border-fetch" id="current_lot" name="current_lot" readonly>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Roll</b></small></label>
-                                    <input type="text" class="form-control form-control-sm" id="current_roll" name="current_roll" {{--readonly--}}>
+                                    <input type="text" class="form-control form-control-sm border-fetch" id="current_roll" name="current_roll" readonly>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Qty</b></small></label>
-                                    <input type="number" class="form-control form-control-sm" id="current_qty" name="current_qty" {{--readonly--}}>
+                                    <input type="number" class="form-control form-control-sm border-fetch" id="current_qty" name="current_qty" readonly>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Unit</b></small></label>
-                                    <input type="text" class="form-control form-control-sm" id="current_unit" name="current_unit" {{--readonly--}}>
+                                    <input type="text" class="form-control form-control-sm border-fetch" id="current_unit" name="current_unit" readonly>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Sisa Gelaran</b></small></label>
-                                    <input type="number" class="form-control form-control-sm" id="current_sisa_gelaran" name="current_sisa_gelaran" step=".01">
+                                    <input type="number" class="form-control form-control-sm border-input" id="current_sisa_gelaran" name="current_sisa_gelaran" step=".01">
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Sambungan</b></small></label>
-                                    <input type="number" class="form-control form-control-sm" id="current_sambungan" name="current_sambungan" step=".01"
+                                    <input type="number" class="form-control form-control-sm border-input" id="current_sambungan" name="current_sambungan" step=".01"
                                         onkeyup="calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = this.value, qty = undefined)"
                                         onchange="calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = this.value, qty = undefined)">
                                 </div>
@@ -407,13 +408,13 @@
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Estimasi Amparan</b></small></label>
-                                    <input type="number" class="form-control form-control-sm" id="current_est_amparan" name="current_est_amparan" step=".01" readonly>
+                                    <input type="number" class="form-control form-control-sm border-calc" id="current_est_amparan" name="current_est_amparan" step=".01" readonly>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Lembar Gelaran</b></small></label>
-                                    <input type="number" class="form-control form-control-sm" id="current_lembar_gelaran" name="current_lembar_gelaran"
+                                    <input type="number" class="form-control form-control-sm border-input" id="current_lembar_gelaran" name="current_lembar_gelaran"
                                         onkeyup="calculateTotalPemakaian(lembarGelaran = this.value, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = undefined, reject = undefined);calculateShortRoll(lembarGelaran = this.value, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = undefined, qty = undefined);"
                                         onchange="calculateTotalPemakaian(lembarGelaran = this.value, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = undefined, reject = undefined);calculateShortRoll(lembarGelaran = this.value, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = undefined, qty = undefined);" readonly>
                                 </div>
@@ -421,13 +422,13 @@
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Average Time</b></small></label>
-                                    <input type="text" class="form-control form-control-sm" id="current_average_time" name="current_average_time" readonly>
+                                    <input type="text" class="form-control form-control-sm border-input" id="current_average_time" name="current_average_time" readonly>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Kepala Kain</b></small></label>
-                                    <input type="number" class="form-control form-control-sm" id="current_kepala_kain" name="current_kepala_kain"
+                                    <input type="number" class="form-control form-control-sm border-input" id="current_kepala_kain" name="current_kepala_kain"
                                         onkeyup="calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = this.value, sisaTidakBisa = undefined, reject = undefined)"
                                         onchange="calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = this.value, sisaTidakBisa = undefined, reject = undefined)" step=".01">
                                 </div>
@@ -435,13 +436,13 @@
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Sisa Tidak Bisa</b></small></label>
-                                    <input type="number" class="form-control form-control-sm" id="current_sisa_tidak_bisa" name="current_sisa_tidak_bisa" step=".01" onkeyup="calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = this.value, reject = undefined);" onchange="calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = this.value, reject = undefined);">
+                                    <input type="number" class="form-control form-control-sm border-input" id="current_sisa_tidak_bisa" name="current_sisa_tidak_bisa" step=".01" onkeyup="calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = this.value, reject = undefined);" onchange="calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = this.value, reject = undefined);">
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Reject</b></small></label>
-                                    <input type="number" class="form-control form-control-sm" id="current_reject" name="current_reject" step=".01"
+                                    <input type="number" class="form-control form-control-sm border-input" id="current_reject" name="current_reject" step=".01"
                                         onkeyup="calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = undefined, reject = this.value); calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = this.value, sambungan = undefined, qty = undefined);"
                                         onchange="calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = undefined, reject = this.value); calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = this.value, sambungan = undefined, qty = undefined);">
                                 </div>
@@ -449,7 +450,7 @@
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Sisa Kain</b></small></label>
-                                    <input type="number" class="form-control form-control-sm" id="current_sisa_kain" name="current_sisa_kain" step=".01"
+                                    <input type="number" class="form-control form-control-sm border-input" id="current_sisa_kain" name="current_sisa_kain" step=".01"
                                         onkeyup="calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = this.value, reject = undefined, sambungan = undefined, qty = undefined)"
                                         onchange="calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = this.value, reject = undefined, sambungan = undefined, qty = undefined)">
                                 </div>
@@ -457,19 +458,19 @@
                             <div class="col-md-3">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Total Pemakaian Per Roll</b></small></label>
-                                    <input type="number" class="form-control form-control-sm" id="current_total_pemakaian_roll" name="current_total_pemakaian_roll" step=".01" readonly>
+                                    <input type="number" class="form-control form-control-sm border-calc" id="current_total_pemakaian_roll" name="current_total_pemakaian_roll" step=".01" readonly>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Short Roll +/-</b></small></label>
-                                    <input type="number" class="form-control form-control-sm" id="current_short_roll" name="current_short_roll" step=".01" readonly>
+                                    <input type="number" class="form-control form-control-sm border-calc" id="current_short_roll" name="current_short_roll" step=".01" readonly>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Piping</b></small></label>
-                                    <input type="number" class="form-control form-control-sm" id="current_piping" name="current_piping" step=".01"
+                                    <input type="number" class="form-control form-control-sm border-input" id="current_piping" name="current_piping" step=".01"
                                         onkeyup="calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = this.value, sisaKain = undefined, reject = undefined, sambungan = undefined, qty = undefined)"
                                         onchange="calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = this.value, sisaKain = undefined, reject = undefined, sambungan = undefined, qty = undefined)">
                                 </div>
@@ -477,7 +478,7 @@
                             <div class="col-md-3">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Remark</b></small></label>
-                                    <input type="number" class="form-control form-control-sm" id="current_remark" name="current_remark" step=".01">
+                                    <input type="number" class="form-control form-control-sm border-input" id="current_remark" name="current_remark" step=".01">
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -569,19 +570,19 @@
                                 <div class="col-md-4">
                                     <div class="mb-3">
                                         <label class="form-label"><small><b>Operator</b></small></label>
-                                        <input type="text" class="form-control form-control-sm" name="operator" id="operator">
+                                        <input type="text" class="form-control form-control-sm border-input" name="operator" id="operator" value="{{ $formCutInputData->operator }}">
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="mb-3">
                                         <label class="form-label"><small><b>Cons. Actual 1 Gelaran</b></small></label>
-                                        <input type="text" class="form-control form-control-sm" name="cons_actual_gelaran" id="cons_actual_gelaran">
+                                        <input type="text" class="form-control form-control-sm border-calc" name="cons_actual_gelaran" id="cons_actual_gelaran" readonly>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="mb-3">
                                         <label class="form-label"><small><b>Unit</b></small></label>
-                                        <select class="form-select form-select-sm" name="unit_cons_actual_gelaran" id="unit_cons_actual_gelaran">
+                                        <select class="form-select form-select-sm border-calc" name="unit_cons_actual_gelaran" id="unit_cons_actual_gelaran" disabled>
                                             <option value="meter">METER</option>
                                             <option value="yard">YARD</option>
                                         </select>
@@ -657,7 +658,7 @@
                 // -Start Process-
                 function startProcess() {
                     let now = new Date();
-                    startTime.value = now.getFullYear().toString() + "-" + pad2(now.getMonth() + 1) + "-" + pad2(now.getDate()) + "-" + pad2(now.getHours()) + ":" + pad2(now.getMinutes()) + ":" + pad2(now.getSeconds());
+                    startTime.value = now.getFullYear().toString() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate()) + " " + pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds());
 
                     updateToStartProcess();
 
@@ -873,8 +874,18 @@
                 // -Finish Process-
                 function finishProcess() {
                     let now = new Date();
-                    finishTime.value = now.getFullYear().toString() + "-" + pad2(now.getMonth() + 1) + "-" + pad2(now.getDate()) + "-" + pad2(now.getHours()) + ":" + pad2(now.getMinutes()) + ":" + pad2(now.getSeconds());
+                    finishTime.value = now.getFullYear().toString() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate()) + " " + pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds());
 
+                    if ($("#operator").val() == "" || $("#cons_actual_gelaran").val() == "") {
+                        return Swal.fire({
+                            icon: 'error',
+                            title: 'Tidak Dapat Menyelesaikan Proses',
+                            text: 'Harap pastikan data "Operator" dan "Cons. Actual 1 Gelaran" telah terisi',
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                            confirmButtonColor: "#6531a0",
+                        });
+                    }
 
                     updateToFinishProcess();
                 }
@@ -899,7 +910,10 @@
                                 type: 'put',
                                 dataType: 'json',
                                 data: {
-                                    finishTime: finishTime.value
+                                    finishTime: finishTime.value,
+                                    operator: $('#operator').val(),
+                                    consAct: $('#cons_actual_gelaran').val(),
+                                    unitConsAct: $('#unit_cons_actual_gelaran').val()
                                 },
                                 success: function(res) {
                                     if (res) {
@@ -1020,10 +1034,10 @@
 
             // -Calculate Cons. Actual 1 Gelaran
             function calculateConsActualGelaran(unit = 0, piping = 0, lembar = 0, pActual = 0, totalQtyFabric = 0, totalQtyCut = 0) {
-                let unitVar = Number(unit);
+                let unitVar = unit;
                 let pipingVar = Number(piping);
                 let lembarVar = Number(lembar);
-                let pActualVar = pActual > 0 ? Number(pActual) : document.getElementById('p_act');
+                let pActualVar = pActual > 0 ? Number(pActual) : Number(document.getElementById('p_act').value);
                 let totalQtyFabricVar = Number(totalQtyFabric);
                 let totalQtyCutVar = Number(totalQtyCut);
 
@@ -1036,7 +1050,7 @@
                         consActualGelaran = totalQtyCutVar > 0 ? lembarVar * pActualVar / totalQtyCutVar : 0
                     }
 
-                    document.getElementById("cons_actual_gelaran").value = consActualGelaran;
+                    document.getElementById("cons_actual_gelaran").value = consActualGelaran.toFixed(2);
                 }
             }
 
@@ -1140,6 +1154,21 @@
                 if (finishTime.value == "" || finishTime.value == null) {
                     finishTime.value = "";
                 }
+            }
+
+            function lockGeneralForm() {
+                document.getElementById('shell').setAttribute('readonly', true);
+                document.getElementById('p_act').setAttribute('readonly', true);
+                document.getElementById('comma_act').setAttribute('readonly', true);
+                document.getElementById('l_act').setAttribute('readonly', true);
+                document.getElementById('cons_ws').setAttribute('readonly', true);
+                document.getElementById('cons_act').setAttribute('readonly', true);
+                document.getElementById('cons_pipping').setAttribute('readonly', true);
+                document.getElementById('cons_ampar').setAttribute('readonly', true);
+                document.getElementById('est_pipping').setAttribute('readonly', true);
+                document.getElementById('est_kain').setAttribute('readonly', true);
+                document.getElementById('operator').setAttribute('readonly', true);
+                document.getElementById('unit_cons_actual_gelaran').setAttribute('readonly', true);
             }
 
             // -Set Spreading Form-
@@ -1359,13 +1388,10 @@
 
                 // -Append Scanned Item to Summary Table-
                 function appendScannedItem(data) {
-                    totalLembar += data.lembarGelaran;
-                    totalPiping += data.piping;
-                    totalQtyFabric += data.qty;
+                    totalLembar += Number(data.lembar_gelaran);
+                    totalPiping += Number(data.piping);
+                    totalQtyFabric += Number(data.qty);
                     latestUnit = data.unit;
-
-                    let groupValue = data.group ? data.group : '';
-                    let lembarValue = data.lembar_gelaran ? data.lembar_gelaran : '';
 
                     let tr = document.createElement('tr');
                     let td1 = document.createElement('td');
@@ -1389,7 +1415,7 @@
                     let td19 = document.createElement('td');
                     let td20 = document.createElement('td');
                     td1.innerHTML = totalScannedItem + 1;
-                    td2.innerHTML = `<input type='text' class="form-control form-control-sm w-auto" name='group[` +totalScannedItem + `]' id='group-` + totalScannedItem + `' value='`+groupValue+`'>`;
+                    td2.innerHTML = data.group ? data.group : '-' ;
                     td3.innerHTML = data.id_item ? data.id_item : '-' ;
                     td4.innerHTML = data.lot ? data.lot : '-' ;
                     td5.innerHTML = data.roll ? data.roll : '-' ;
@@ -1398,7 +1424,7 @@
                     td8.innerHTML = data.sisa_gelaran ? data.sisa_gelaran : '-' ;
                     td9.innerHTML = data.sambungan ? data.sambungan : '-' ;
                     td10.innerHTML = data.est_amparan ? data.est_amparan : '-' ;
-                    td11.innerHTML = `<input type='number' class="form-control form-control-sm w-auto" name='lembar[` +totalScannedItem + `]' id='lembar-` + totalScannedItem + `' value='`+lembarValue+`'>`;
+                    td11.innerHTML = data.lembar_gelaran ? data.lembar_gelaran : '';
                     td12.innerHTML = data.average_time ? data.average_time : '-' ;
                     td13.innerHTML = data.kepala_kain ? data.kepala_kain : '-' ;
                     td14.innerHTML = data.sisa_tidak_bisa ? data.sisa_tidak_bisa : '-' ;
@@ -1559,11 +1585,11 @@
                     }
 
                     function lockTimeRecord() {
-                        for (let i = 0; i < summaryData.length; i++) {
-                            document.getElementById("group-"+(i)).setAttribute("readonly", true);
-                            document.getElementById("lembar-"+(i)).setAttribute("readonly", true);
-                        }
-
+                        // for (let i = 0; i < summaryData.length; i++) {
+                        //     document.getElementById("group-"+(i)).setAttribute("readonly", true);
+                        //     document.getElementById("lembar-"+(i)).setAttribute("readonly", true);
+                        // }
+                        finishProcessButton.disabled = true;
                         finishProcessButton.innerHTML = "PENGERJAAN TELAH DISELESAIKAN";
                     }
     </script>

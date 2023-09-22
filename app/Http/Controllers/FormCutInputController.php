@@ -438,7 +438,10 @@ class FormCutInputController extends Controller
         $updateFormCutInput = FormCutInput::where("id", $id)->
             update([
                 "status" => "SELESAI PENGERJAAN",
-                "waktu_selesai" => $request->finishTime
+                "waktu_selesai" => $request->finishTime,
+                "cons_act" => $request->consAct,
+                "unit_cons_act" => $request->unitConsAct,
+                "operator" => $request->operator,
             ]);
 
         return $updateFormCutInput;

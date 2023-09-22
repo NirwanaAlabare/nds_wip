@@ -236,3 +236,15 @@
 .form-control {
     border-radius: 1px !important;
 }
+
+.border-fetch {
+    border-color: #3169e4 !important;
+}
+
+/* .border-input {
+    border-color: #000 !important;
+} */
+
+.border-calc {
+    border-color: #fa4456 !important;
+}
