@@ -110,9 +110,9 @@
                     <table id="ratio-datatable" class="table table-striped table-sm w-100 text-center mt-3">
                         <thead>
                             <tr>
-                                <th>Size</th>
-                                <th>Ratio</th>
-                                <th>Qty Cut Marker</th>
+                                <th class="label-fetch">Size</th>
+                                <th class="label-fetch">Ratio</th>
+                                <th class="label-fetch">Qty Cut Marker</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -320,14 +320,14 @@
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>ID Item</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="id_item" id="id_item" readonly>
+                                <label class="form-label label-scan"><small><b>ID Item</b></small></label>
+                                <input type="text" class="form-control form-control-sm border-scan" name="id_item" id="id_item" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Detail Item</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="detail_item" id="detail_item" readonly>
+                                <label class="form-label label-scan"><small><b>Detail Item</b></small></label>
+                                <input type="text" class="form-control form-control-sm border-scan" name="detail_item" id="detail_item" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -364,32 +364,32 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label class="form-label label-fetch"><small><b>Id Item</b></small></label>
-                                    <input type="text" class="form-control form-control-sm border-fetch" id="current_id_item" name="current_id_item" readonly>
+                                    <label class="form-label label-scan"><small><b>Id Item</b></small></label>
+                                    <input type="text" class="form-control form-control-sm border-scan" id="current_id_item" name="current_id_item" readonly>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label class="form-label label-fetch"><small><b>Lot</b></small></label>
-                                    <input type="text" class="form-control form-control-sm border-fetch" id="current_lot" name="current_lot" readonly>
+                                    <label class="form-label label-scan"><small><b>Lot</b></small></label>
+                                    <input type="text" class="form-control form-control-sm border-scan" id="current_lot" name="current_lot" readonly>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label class="form-label label-fetch"><small><b>Roll</b></small></label>
-                                    <input type="text" class="form-control form-control-sm border-fetch" id="current_roll" name="current_roll" readonly>
+                                    <label class="form-label label-scan"><small><b>Roll</b></small></label>
+                                    <input type="text" class="form-control form-control-sm border-scan" id="current_roll" name="current_roll" readonly>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label class="form-label label-fetch"><small><b>Qty</b></small></label>
-                                    <input type="number" class="form-control form-control-sm border-fetch" id="current_qty" name="current_qty" readonly>
+                                    <label class="form-label label-scan"><small><b>Qty</b></small></label>
+                                    <input type="number" class="form-control form-control-sm border-scan" id="current_qty" name="current_qty" readonly>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label class="form-label label-fetch"><small><b>Unit</b></small></label>
-                                    <input type="text" class="form-control form-control-sm border-fetch" id="current_unit" name="current_unit" readonly>
+                                    <label class="form-label label-scan"><small><b>Unit</b></small></label>
+                                    <input type="text" class="form-control form-control-sm border-scan" id="current_unit" name="current_unit" readonly>
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -482,25 +482,23 @@
                                     <input type="number" class="form-control form-control-sm border-input" id="current_remark" name="current_remark" step=".01">
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="row my-3">
-                                    <div class="col-md-5">
+                            <div class="col-md-6 my-3">
+                                <button type="button" class="btn btn-success btn-sm w-100 h-100" style="min-height: 90px !important;" id="startLapButton" onclick="startTimeRecord()">Start</button>
+                                <button type="button" class="btn btn-primary btn-sm d-none w-100 h-100" style="min-height: 90px !important;" id="nextLapButton" onclick="addNewTimeRecord()">Next Lap</button>
+                            </div>
+                            <div class="col-md-6 my-3">
+                                <div class="row">
+                                    <div class="col-5">
                                         <input type="text" class="form-control form-control-sm" id="minutes" value="00" readonly class="mx-1">
                                     </div>
-                                    <div class="col-md-2">
+                                    <div class="col-2">
                                         <center>:</center>
                                     </div>
-                                    <div class="col-md-5">
+                                    <div class="col-5">
                                         <input type="text" class="form-control form-control-sm" id="seconds" value="00" readonly class="mx-1">
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <button type="button" class="btn btn-success btn-sm btn-block my-3" id="startLapButton" onclick="startTimeRecord()">Start</button>
-                                <button type="button" class="btn btn-primary btn-sm btn-block d-none my-3" id="nextLapButton" onclick="addNewTimeRecord()">Next Lap</button>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="w-100 table-responsive my-3">
+                                <div class="w-100 h-100 table-responsive mt-3">
                                     {{-- <form action="#" method="post" id="time-record-form"> --}}
                                         <table class="table table-bordered table-sm" id="timeRecordTable">
                                             <thead>
@@ -541,11 +539,11 @@
                                         <tr>
                                             <th>No.</th>
                                             <th>Group</th>
-                                            <th class="label-fetch">Id Item</th>
-                                            <th class="label-fetch">Lot</th>
-                                            <th class="label-fetch">Roll</th>
-                                            <th class="label-fetch">Qty</th>
-                                            <th class="label-fetch">Unit</th>
+                                            <th class="label-scan">ID Item</th>
+                                            <th class="label-scan">Lot</th>
+                                            <th class="label-scan">Roll</th>
+                                            <th class="label-scan">Qty</th>
+                                            <th class="label-scan">Unit</th>
                                             <th>Sisa Gelaran</th>
                                             <th>Sambungan</th>
                                             <th class="label-calc">Estimasi Amparan</th>
@@ -960,32 +958,26 @@
             function calculateConsAmpar(pActual = 0, totalRatio = 0) {
                 let pActualVar = Number(pActual);
 
-                if (pActualVar && totalRatio) {
-                    let consAmpar = totalRatio > 0 ? pActualVar/totalRatio : 0;
+                let consAmpar = totalRatio > 0 ? pActualVar/totalRatio : 0;
 
-                    document.getElementById('cons_ampar').value = consAmpar.toFixed(2);
-                }
+                document.getElementById('cons_ampar').value = consAmpar.toFixed(2);
             }
 
             // -Calculate Est. Piping-
             function calculateEstPipping(consPipping = 0, totalQtyCut = 0) {
                 let consPippingVar = Number(consPipping);
 
-                if (consPippingVar && totalQtyCut) {
-                    let estPipping = consPippingVar * totalQtyCut;
+                let estPipping = consPippingVar * totalQtyCut;
 
-                    document.getElementById('est_pipping').value = estPipping.toFixed(2);
-                }
+                document.getElementById('est_pipping').value = estPipping.toFixed(2);
             }
 
             // -Calculate Est. Kain-
             function calculateEstKain(consWs = 0, totalQtyCut = 0) {
                 let consWsVar = Number(consWs);
 
-                if (consWsVar && totalQtyCut) {
-                    let estKain = consWsVar * totalQtyCut
-                    document.getElementById('est_kain').value = estKain.toFixed(2);
-                }
+                let estKain = consWsVar * totalQtyCut
+                document.getElementById('est_kain').value = estKain.toFixed(2);
             }
 
             // -Calculate Est. Ampar-
@@ -993,11 +985,9 @@
                 let qtyVar = qty > 0 ? Number(qty) : Number(document.getElementById("current_qty").value);
                 let pActualVar = qty > 0 ? Number(pActual) : Number(document.getElementById("p_act").value);
 
-                if (qtyVar && pActualVar) {
-                    let estAmpar = pActualVar > 0 ? qtyVar/pActualVar : 0;
+                let estAmpar = pActualVar > 0 ? qtyVar/pActualVar : 0;
 
-                    document.getElementById("current_est_amparan").value = estAmpar.toFixed(2);
-                }
+                document.getElementById("current_est_amparan").value = estAmpar.toFixed(2);
             }
 
             // -Calculate Total Pemakaian Roll-
@@ -1008,11 +998,9 @@
                 let sisaTidakBisaVar = sisaTidakBisa > 0 ? Number(sisaTidakBisa) : Number(document.getElementById("current_sisa_tidak_bisa").value);
                 let rejectVar = reject > 0 ? Number(reject) : Number(document.getElementById("current_reject").value);
 
-                if (lembarGelaranVar && pActualVar && kepalaKainVar && sisaTidakBisaVar && rejectVar ) {
-                    let totalPemakaian = lembarGelaranVar * pActualVar + kepalaKainVar + sisaTidakBisaVar + rejectVar;
+                let totalPemakaian = lembarGelaranVar * pActualVar + kepalaKainVar + sisaTidakBisaVar + rejectVar;
 
-                    document.getElementById("current_total_pemakaian_roll").value = totalPemakaian.toFixed(2);
-                }
+                document.getElementById("current_total_pemakaian_roll").value = totalPemakaian.toFixed(2);
             }
 
             // -Calculate Short Roll-
@@ -1026,11 +1014,9 @@
                 let sambunganVar = sambungan > 0 ? Number(sambungan) : Number(document.getElementById("current_sambungan").value);
                 let qtyVar = qty > 0 ? Number(qty) : Number(document.getElementById("current_qty").value);
 
-                if (lembarGelaranVar && pActualVar && kepalaKainVar && pipingVar && sisaKainVar && rejectVar && sambunganVar && qtyVar) {
-                    let shortRoll = pActualVar * lembarGelaranVar + kepalaKainVar + pipingVar + sisaKainVar + rejectVar + sambunganVar - sisaKainVar - qtyVar;
+                let shortRoll = pActualVar * lembarGelaranVar + kepalaKainVar + pipingVar + sisaKainVar + rejectVar + sambunganVar - sisaKainVar - qtyVar;
 
-                    document.getElementById("current_short_roll").value = shortRoll.toFixed(2);
-                }
+                document.getElementById("current_short_roll").value = shortRoll.toFixed(2);
             }
 
             // -Calculate Cons. Actual 1 Gelaran

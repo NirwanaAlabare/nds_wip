@@ -245,6 +245,14 @@
     border-color: #3169e4 !important;
 }
 
+.label-scan {
+    color: #0e8845 !important;
+}
+
+.border-scan {
+    border-color: #0e8845 !important;
+}
+
 /* .border-input {
     border-color: #000 !important;
 } */
