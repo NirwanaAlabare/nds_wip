@@ -356,6 +356,7 @@ class FormCutInputController extends Controller
     public function storeTimeRecord(Request $request) {
         $validatedRequest = $request->validate([
             "no_form_cut_input" => "required",
+            "color_act" => "required",
             "current_id_item" => "required",
             "current_group" => "required",
             "current_lot" => "required",
@@ -373,11 +374,13 @@ class FormCutInputController extends Controller
             "current_total_pemakaian_roll" => "required",
             "current_short_roll" => "required",
             "current_piping" => "required",
-            "current_remark" => "required"
+            "current_remark" => "required",
+            "current_sambungan" => "required"
         ]);
 
         $storeTimeRecordSummary = FormCutInputDetail::create([
             "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
+            "color_act" => $validatedRequest['color_act'],
             "id_item" => $validatedRequest['current_id_item'],
             "group" => $validatedRequest['current_group'],
             "lot" => $validatedRequest['current_lot'],
@@ -385,6 +388,7 @@ class FormCutInputController extends Controller
             "qty" => $validatedRequest['current_qty'],
             "unit" => $validatedRequest['current_unit'],
             "sisa_gelaran" => $validatedRequest['current_sisa_gelaran'],
+            "sambungan" => $validatedRequest['current_sambungan'],
             "est_amparan" => $validatedRequest['current_est_amparan'],
             "lembar_gelaran" => $validatedRequest['current_lembar_gelaran'],
             "average_time" => $validatedRequest['current_average_time'],

@@ -173,7 +173,7 @@
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>P. Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm" name="p_act" id="p_act" value="{{ $formCutInputData->p_act }}" onkeyup="calculateConsAmpar(this.value, {{ $totalRatio }})" onchange="calculateConsAmpar(this.value, {{ $totalRatio }})">
+                                <input type="number" class="form-control form-control-sm" name="p_act" id="p_act" value="{{ $formCutInputData->p_act }}" onkeyup="calculateConsAmpar(this.value, {{ $totalRatio }}); calculateEstAmpar(undefined, this.value);" onchange="calculateConsAmpar(this.value, {{ $totalRatio }}); calculateEstAmpar(undefined, this.value);">
                             </div>
                         </div>
                         <div class="col-md-3">
@@ -399,67 +399,79 @@
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Sambungan</b></small></label>
-                                    <input type="number" class="form-control form-control-sm" id="current_sambungan" name="current_sambungan" step=".01">
+                                    <input type="number" class="form-control form-control-sm" id="current_sambungan" name="current_sambungan" step=".01"
+                                        onkeyup="calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = this.value, qty = undefined)"
+                                        onchange="calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = this.value, qty = undefined)">
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Estimasi Amparan</b></small></label>
-                                    <input type="number" class="form-control form-control-sm" id="current_est_amparan" name="current_est_amparan" step=".01" {{--readonly--}}>
+                                    <input type="number" class="form-control form-control-sm" id="current_est_amparan" name="current_est_amparan" step=".01" readonly>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Lembar Gelaran</b></small></label>
-                                    <input type="number" class="form-control form-control-sm" id="current_lembar_gelaran" name="current_lembar_gelaran" step=".01">
+                                    <input type="number" class="form-control form-control-sm" id="current_lembar_gelaran" name="current_lembar_gelaran"
+                                        onkeyup="calculateTotalPemakaian(lembarGelaran = this.value, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = undefined, reject = undefined);calculateShortRoll(lembarGelaran = this.value, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = undefined, qty = undefined);"
+                                        onchange="calculateTotalPemakaian(lembarGelaran = this.value, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = undefined, reject = undefined);calculateShortRoll(lembarGelaran = this.value, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = undefined, qty = undefined);" readonly>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Average Time</b></small></label>
-                                    <input type="text" class="form-control form-control-sm" id="current_average_time" name="current_average_time" step=".01" {{--readonly--}}>
+                                    <input type="text" class="form-control form-control-sm" id="current_average_time" name="current_average_time" readonly>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Kepala Kain</b></small></label>
-                                    <input type="number" class="form-control form-control-sm" id="current_kepala_kain" name="current_kepala_kain" step=".01">
+                                    <input type="number" class="form-control form-control-sm" id="current_kepala_kain" name="current_kepala_kain"
+                                        onkeyup="calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = this.value, sisaTidakBisa = undefined, reject = undefined)"
+                                        onchange="calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = this.value, sisaTidakBisa = undefined, reject = undefined)" step=".01">
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Sisa Tidak Bisa</b></small></label>
-                                    <input type="number" class="form-control form-control-sm" id="current_sisa_tidak_bisa" name="current_sisa_tidak_bisa" step=".01">
+                                    <input type="number" class="form-control form-control-sm" id="current_sisa_tidak_bisa" name="current_sisa_tidak_bisa" step=".01" onkeyup="calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = this.value, reject = undefined);" onchange="calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = this.value, reject = undefined);">
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Reject</b></small></label>
-                                    <input type="number" class="form-control form-control-sm" id="current_reject" name="current_reject" step=".01">
+                                    <input type="number" class="form-control form-control-sm" id="current_reject" name="current_reject" step=".01"
+                                        onkeyup="calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = undefined, reject = this.value); calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = this.value, sambungan = undefined, qty = undefined);"
+                                        onchange="calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = undefined, reject = this.value); calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = this.value, sambungan = undefined, qty = undefined);">
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Sisa Kain</b></small></label>
-                                    <input type="number" class="form-control form-control-sm" id="current_sisa_kain" name="current_sisa_kain" step=".01">
+                                    <input type="number" class="form-control form-control-sm" id="current_sisa_kain" name="current_sisa_kain" step=".01"
+                                        onkeyup="calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = this.value, reject = undefined, sambungan = undefined, qty = undefined)"
+                                        onchange="calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = this.value, reject = undefined, sambungan = undefined, qty = undefined)">
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Total Pemakaian Per Roll</b></small></label>
-                                    <input type="number" class="form-control form-control-sm" id="current_total_pemakaian_roll" name="current_total_pemakaian_roll" step=".01" {{--readonly--}}>
+                                    <input type="number" class="form-control form-control-sm" id="current_total_pemakaian_roll" name="current_total_pemakaian_roll" step=".01" readonly>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Short Roll +/-</b></small></label>
-                                    <input type="number" class="form-control form-control-sm" id="current_short_roll" name="current_short_roll" step=".01" {{--readonly--}}>
+                                    <input type="number" class="form-control form-control-sm" id="current_short_roll" name="current_short_roll" step=".01" readonly>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Piping</b></small></label>
-                                    <input type="number" class="form-control form-control-sm" id="current_piping" name="current_piping" step=".01">
+                                    <input type="number" class="form-control form-control-sm" id="current_piping" name="current_piping" step=".01"
+                                        onkeyup="calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = this.value, sisaKain = undefined, reject = undefined, sambungan = undefined, qty = undefined)"
+                                        onchange="calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = this.value, sisaKain = undefined, reject = undefined, sambungan = undefined, qty = undefined)">
                                 </div>
                             </div>
                             <div class="col-md-3">
@@ -484,7 +496,6 @@
                             <div class="col-md-6">
                                 <button type="button" class="btn btn-success btn-sm btn-block my-3" id="startLapButton" onclick="startTimeRecord()">Start</button>
                                 <button type="button" class="btn btn-primary btn-sm btn-block d-none my-3" id="nextLapButton" onclick="addNewTimeRecord()">Next Lap</button>
-                                <button type="button" class="btn btn-warning btn-sm btn-block d-none my-3" id="pauseLapButton" onclick="pauseTimeRecord()">Pause</button>
                             </div>
                             <div class="col-md-12">
                                 <div class="w-100 table-responsive my-3">
@@ -534,6 +545,7 @@
                                             <th>Qty</th>
                                             <th>Unit</th>
                                             <th>Sisa Gelaran</th>
+                                            <th>Sambungan</th>
                                             <th>Estimasi Amparan</th>
                                             <th>Lembar Gelaran</th>
                                             <th>Average Time</th>
@@ -552,6 +564,31 @@
                                 </table>
                             </div>
                         </div>
+                        <div class="col-md-12">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label"><small><b>Operator</b></small></label>
+                                        <input type="text" class="form-control form-control-sm" name="operator" id="operator">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label"><small><b>Cons. Actual 1 Gelaran</b></small></label>
+                                        <input type="text" class="form-control form-control-sm" name="cons_actual_gelaran" id="cons_actual_gelaran">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label"><small><b>Unit</b></small></label>
+                                        <select class="form-select form-select-sm" name="unit_cons_actual_gelaran" id="unit_cons_actual_gelaran">
+                                            <option value="meter">METER</option>
+                                            <option value="yard">YARD</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -565,7 +602,7 @@
 @section('custom-script')
     <script>
         // Variable List :
-            // -Form Cut Input Data-
+            // -Form Cut Input Header Data-
             var id = document.getElementById("id").value;
             var status = document.getElementById("status").value;
             var startTime = document.getElementById("start-time");
@@ -680,19 +717,19 @@
 
                 // -Process Two Transaction-
                 function updateToNextProcessTwo() {
-                    let pActual = document.getElementById('p_act').value;
-                    let pUnitActual = document.getElementById('unit_p_act').value;
-                    let commaActual = document.getElementById('comma_act').value;
-                    let commaUnitActual = document.getElementById('unit_comma_act').value;
-                    let lActual = document.getElementById('l_act').value;
-                    let lUnitActual = document.getElementById('unit_l_act').value;
-                    let consActual = document.getElementById('cons_act').value;
-                    let consPipping = document.getElementById('cons_pipping').value;
-                    let consAmpar = document.getElementById('cons_ampar').value;
-                    let estPipping = document.getElementById('est_pipping').value;
-                    let estPippingUnit = document.getElementById('est_pipping_unit').value;
-                    let estKain = document.getElementById('est_kain').value;
-                    let estKainUnit = document.getElementById('est_kain_unit').value;
+                    var pActual = document.getElementById('p_act').value;
+                    var pUnitActual = document.getElementById('unit_p_act').value;
+                    var commaActual = document.getElementById('comma_act').value;
+                    var commaUnitActual = document.getElementById('unit_comma_act').value;
+                    var lActual = document.getElementById('l_act').value;
+                    var lUnitActual = document.getElementById('unit_l_act').value;
+                    var consActual = document.getElementById('cons_act').value;
+                    var consPipping = document.getElementById('cons_pipping').value;
+                    var consAmpar = document.getElementById('cons_ampar').value;
+                    var estPipping = document.getElementById('est_pipping').value;
+                    var estPippingUnit = document.getElementById('est_pipping_unit').value;
+                    var estKain = document.getElementById('est_kain').value;
+                    var estKainUnit = document.getElementById('est_kain_unit').value;
 
                     clearModified();
 
@@ -761,9 +798,8 @@
                     if (checkIfNull(document.getElementById("id_item").value) && checkIfNull(document.getElementById("detail_item").value) && checkIfNull(document.getElementById("color_act").value) && currentScannedItem) {
                         nextProcessThreeButton.classList.add("d-none");
 
-                        firstTimeRecordCondition()
-
                         setSpreadingForm(currentScannedItem);
+                        openTimeRecordCondition();
                         getSummary();
 
                         $('#spreading-form-card').removeClass('d-none');
@@ -791,6 +827,7 @@
 
                     let dataObj = {
                         "no_form_cut_input": $("#no_form").val(),
+                        "color_act": $("#color_act").val(),
                     }
 
                     spreadingForm.forEach((value, key) => dataObj[key] = value);
@@ -837,6 +874,7 @@
                 function finishProcess() {
                     let now = new Date();
                     finishTime.value = now.getFullYear().toString() + "-" + pad2(now.getMonth() + 1) + "-" + pad2(now.getDate()) + "-" + pad2(now.getHours()) + ":" + pad2(now.getMinutes()) + ":" + pad2(now.getSeconds());
+
 
                     updateToFinishProcess();
                 }
@@ -904,30 +942,102 @@
                 }
 
             // -Calculate Cons Ampar-
-            function calculateConsAmpar(value, totalRatio) {
-                let pActual = Number(value);
-                let consAmpar = totalRatio > 0 ? pActual/totalRatio : 0;
+            function calculateConsAmpar(pActual = 0, totalRatio = 0) {
+                let pActualVar = Number(pActual);
 
-                if (value) {
+                if (pActualVar && totalRatio) {
+                    let consAmpar = totalRatio > 0 ? pActualVar/totalRatio : 0;
+
                     document.getElementById('cons_ampar').value = consAmpar.toFixed(2);
                 }
             }
 
             // -Calculate Est. Piping-
-            function calculateEstPipping(value, totalQtyCut) {
-                let consPipping = Number(value);
-                let estPipping = consPipping * totalQtyCut;
+            function calculateEstPipping(consPipping = 0, totalQtyCut = 0) {
+                let consPippingVar = Number(consPipping);
 
-                if (value) {
+                if (consPippingVar && totalQtyCut) {
+                    let estPipping = consPippingVar * totalQtyCut;
+
                     document.getElementById('est_pipping').value = estPipping.toFixed(2);
                 }
             }
 
             // -Calculate Est. Kain-
-            function calculateEstKain(value, totalQtyCut) {
-                let consWs = Number(value);
+            function calculateEstKain(consWs = 0, totalQtyCut = 0) {
+                let consWsVar = Number(consWs);
 
-                document.getElementById('est_kain').value = consWs * totalQtyCut;
+                if (consWsVar && totalQtyCut) {
+                    let estKain = consWsVar * totalQtyCut
+                    document.getElementById('est_kain').value = estKain.toFixed(2);
+                }
+            }
+
+            // -Calculate Est. Ampar-
+            function calculateEstAmpar(qty = 0, pActual = 0) {
+                let qtyVar = qty > 0 ? Number(qty) : Number(document.getElementById("current_qty").value);
+                let pActualVar = qty > 0 ? Number(pActual) : Number(document.getElementById("p_act").value);
+
+                if (qtyVar && pActualVar) {
+                    let estAmpar = pActualVar > 0 ? qtyVar/pActualVar : 0;
+
+                    document.getElementById("current_est_amparan").value = estAmpar.toFixed(2);
+                }
+            }
+
+            // -Calculate Total Pemakaian Roll-
+            function calculateTotalPemakaian(lembarGelaran = 0, pActual = 0, kepalaKain = 0, sisaTidakBisa = 0, reject = 0) {
+                let lembarGelaranVar = lembarGelaran > 0 ? Number(lembarGelaran) : Number(document.getElementById("current_lembar_gelaran").value);
+                let pActualVar = pActual > 0 ? Number(pActual) : Number(document.getElementById("p_act").value);
+                let kepalaKainVar = kepalaKain > 0 ? Number(kepalaKain) : Number(document.getElementById("current_kepala_kain").value);
+                let sisaTidakBisaVar = sisaTidakBisa > 0 ? Number(sisaTidakBisa) : Number(document.getElementById("current_sisa_tidak_bisa").value);
+                let rejectVar = reject > 0 ? Number(reject) : Number(document.getElementById("current_reject").value);
+
+                if (lembarGelaranVar && pActualVar && kepalaKainVar && sisaTidakBisaVar && rejectVar ) {
+                    let totalPemakaian = lembarGelaranVar * pActualVar + kepalaKainVar + sisaTidakBisaVar + rejectVar;
+
+                    document.getElementById("current_total_pemakaian_roll").value = totalPemakaian.toFixed(2);
+                }
+            }
+
+            // -Calculate Short Roll-
+            function calculateShortRoll(lembarGelaran = 0, pActual = 0, kepalaKain = 0, piping = 0, sisaKain = 0, reject = 0, sambungan = 0, qty = 0) {
+                let lembarGelaranVar = lembarGelaran > 0 ? Number(lembarGelaran) : Number(document.getElementById("current_lembar_gelaran").value);
+                let pActualVar = pActual > 0 ? Number(pActual) : Number(document.getElementById("p_act").value);
+                let kepalaKainVar = kepalaKain > 0 ? Number(kepalaKain) : Number(document.getElementById("current_kepala_kain").value);
+                let pipingVar = piping > 0 ? Number(piping) : Number(document.getElementById("current_piping").value);
+                let sisaKainVar = sisaKain > 0 ? Number(sisaKain) : Number(document.getElementById("current_sisa_kain").value);
+                let rejectVar = reject > 0 ? Number(reject) : Number(document.getElementById("current_reject").value);
+                let sambunganVar = sambungan > 0 ? Number(sambungan) : Number(document.getElementById("current_sambungan").value);
+                let qtyVar = qty > 0 ? Number(qty) : Number(document.getElementById("current_qty").value);
+
+                if (lembarGelaranVar && pActualVar && kepalaKainVar && pipingVar && sisaKainVar && rejectVar && sambunganVar && qtyVar) {
+                    let shortRoll = pActualVar * lembarGelaranVar + kepalaKainVar + pipingVar + sisaKainVar + rejectVar + sambunganVar - sisaKainVar - qtyVar;
+
+                    document.getElementById("current_short_roll").value = shortRoll.toFixed(2);
+                }
+            }
+
+            // -Calculate Cons. Actual 1 Gelaran
+            function calculateConsActualGelaran(unit = 0, piping = 0, lembar = 0, pActual = 0, totalQtyFabric = 0, totalQtyCut = 0) {
+                let unitVar = Number(unit);
+                let pipingVar = Number(piping);
+                let lembarVar = Number(lembar);
+                let pActualVar = pActual > 0 ? Number(pActual) : document.getElementById('p_act');
+                let totalQtyFabricVar = Number(totalQtyFabric);
+                let totalQtyCutVar = Number(totalQtyCut);
+
+                if (unitVar && pipingVar && lembarVar && pActualVar && totalQtyCutVar) {
+                    let consActualGelaran = "";
+
+                    if (unitVar == "KGM") {
+                        consActualGelaran = totalQtyCutVar > 0 ? totalQtyFabricVar - pipingVar / totalQtyCutVar : 0;
+                    } else {
+                        consActualGelaran = totalQtyCutVar > 0 ? lembarVar * pActualVar / totalQtyCutVar : 0
+                    }
+
+                    document.getElementById("cons_actual_gelaran").value = consActualGelaran;
+                }
             }
 
             // -Get Cons. WS Data-
@@ -1041,6 +1151,8 @@
                 document.getElementById("current_roll").value = data.roll_no;
                 document.getElementById("current_qty").value = data.roll_qty;
                 document.getElementById("current_unit").value = data.unit;
+
+                calculateEstAmpar(data.roll_qty, document.getElementById("p_act").value);
 
                 $('#spreading-form-card').CardWidget('expand');
             }
@@ -1207,6 +1319,10 @@
                 var scannedItemTable = document.getElementById("scannedItemTable");
                 var scannedItemTableTbody = scannedItemTable.getElementsByTagName("tbody")[0];
                 var totalScannedItem = 0;
+                var totalLembar = 0;
+                var totalPiping = 0;
+                var totalQtyFabric = 0;
+                var latestUnit = "";
 
             // Function List :
                 // -Get Scanned Item Data-
@@ -1217,9 +1333,6 @@
 
                     if (checkIfNull(id)) {
                         return $.ajax({
-                            headers: {
-                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                            },
                             url: '/form-cut-input/get-scanned-item/' + id,
                             type: 'get',
                             dataType: 'json',
@@ -1246,7 +1359,10 @@
 
                 // -Append Scanned Item to Summary Table-
                 function appendScannedItem(data) {
-                    console.log(data);
+                    totalLembar += data.lembarGelaran;
+                    totalPiping += data.piping;
+                    totalQtyFabric += data.qty;
+                    latestUnit = data.unit;
 
                     let groupValue = data.group ? data.group : '';
                     let lembarValue = data.lembar_gelaran ? data.lembar_gelaran : '';
@@ -1271,6 +1387,7 @@
                     let td17 = document.createElement('td');
                     let td18 = document.createElement('td');
                     let td19 = document.createElement('td');
+                    let td20 = document.createElement('td');
                     td1.innerHTML = totalScannedItem + 1;
                     td2.innerHTML = `<input type='text' class="form-control form-control-sm w-auto" name='group[` +totalScannedItem + `]' id='group-` + totalScannedItem + `' value='`+groupValue+`'>`;
                     td3.innerHTML = data.id_item ? data.id_item : '-' ;
@@ -1279,17 +1396,18 @@
                     td6.innerHTML = data.qty ? data.qty : '-' ;
                     td7.innerHTML = data.unit ? data.unit : '-' ;
                     td8.innerHTML = data.sisa_gelaran ? data.sisa_gelaran : '-' ;
-                    td9.innerHTML = data.est_amparan ? data.est_amparan : '-' ;
-                    td10.innerHTML = `<input type='number' class="form-control form-control-sm w-auto" name='lembar[` +totalScannedItem + `]' id='lembar-` + totalScannedItem + `' value='`+lembarValue+`'>`;
-                    td11.innerHTML = data.average_time ? data.average_time : '-' ;
-                    td12.innerHTML = data.kepala_kain ? data.kepala_kain : '-' ;
-                    td13.innerHTML = data.sisa_tidak_bisa ? data.sisa_tidak_bisa : '-' ;
-                    td14.innerHTML = data.reject ? data.reject : '-' ;
-                    td15.innerHTML = data.sisa_kain ? data.sisa_kain : '-' ;
-                    td16.innerHTML = data.total_pemakaian_roll ? data.total_pemakaian_roll : '-' ;
-                    td17.innerHTML = data.short_roll ? data.short_roll : '-' ;
-                    td18.innerHTML = data.piping ? data.piping : '-' ;
-                    td19.innerHTML = data.remark ? data.remark : '-' ;
+                    td9.innerHTML = data.sambungan ? data.sambungan : '-' ;
+                    td10.innerHTML = data.est_amparan ? data.est_amparan : '-' ;
+                    td11.innerHTML = `<input type='number' class="form-control form-control-sm w-auto" name='lembar[` +totalScannedItem + `]' id='lembar-` + totalScannedItem + `' value='`+lembarValue+`'>`;
+                    td12.innerHTML = data.average_time ? data.average_time : '-' ;
+                    td13.innerHTML = data.kepala_kain ? data.kepala_kain : '-' ;
+                    td14.innerHTML = data.sisa_tidak_bisa ? data.sisa_tidak_bisa : '-' ;
+                    td15.innerHTML = data.reject ? data.reject : '-' ;
+                    td16.innerHTML = data.sisa_kain ? data.sisa_kain : '-' ;
+                    td17.innerHTML = data.total_pemakaian_roll ? data.total_pemakaian_roll : '-' ;
+                    td18.innerHTML = data.short_roll ? data.short_roll : '-' ;
+                    td19.innerHTML = data.piping ? data.piping : '-' ;
+                    td20.innerHTML = data.remark ? data.remark : '-' ;
                     tr.appendChild(td1);
                     tr.appendChild(td2);
                     tr.appendChild(td3);
@@ -1309,10 +1427,13 @@
                     tr.appendChild(td17);
                     tr.appendChild(td18);
                     tr.appendChild(td19);
+                    tr.appendChild(td20);
 
                     scannedItemTableTbody.appendChild(tr);
 
                     totalScannedItem++;
+
+                    calculateConsActualGelaran(unit = latestUnit, piping = totalPiping, lembar = totalLembar, pActual = undefined, totalQtyFabric, totalQtyCut);
                 }
 
         // Time Record Module :
@@ -1353,8 +1474,9 @@
                 function startTimeRecord() {
                     timeRecordInterval = setInterval(setTime, 999);
 
-                    startLapButton.classList.add("d-none")
+                    openLapTimeRecordCondition();
 
+                    startLapButton.classList.add("d-none")
                     nextLapButton.classList.remove('d-none');
                     nextLapButton.focus();
                 }
@@ -1367,7 +1489,7 @@
 
                     averageSeconds = (parseFloat(summarySeconds)/parseFloat(lap)).toFixed(0);
 
-                    $("#current_lembar_gelaran").val(lap);
+                    $("#current_lembar_gelaran").val(lap).trigger('change');
                     $("#current_average_time").val((pad(parseInt(averageSeconds / 60)))+':'+(pad(averageSeconds % 60)))
 
                     let tr = document.createElement('tr');
