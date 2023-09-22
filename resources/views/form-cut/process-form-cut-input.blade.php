@@ -315,6 +315,7 @@
                                 <div class="input-group">
                                     <input type="text" class="form-control form-control-sm border-input" name="kode_barang" id="kode_barang">
                                     <button class="btn btn-sm btn-primary" type="button" id="scan-button" onclick="initScan()">Scan</button>
+                                    <button class="btn btn-sm btn-success" type="button" id="scan-button" onclick="fetchScan()">Get</button>
                                 </div>
                             </div>
                         </div>
@@ -356,49 +357,49 @@
                 <div class="card-body" style="display: block;">
                     <form action="#" method="post" id="spreading-form">
                         <div class="row">
-                            <div class="col-md-4">
+                            <div class="col-4">
                                 <div class="mb-3">
                                     <label class="form-label label-input"><small><b>Group</b></small></label>
                                     <input type="text" class="form-control form-control-sm border-input" id="current_group" name="current_group">
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-4">
                                 <div class="mb-3">
                                     <label class="form-label label-scan"><small><b>Id Item</b></small></label>
                                     <input type="text" class="form-control form-control-sm border-scan" id="current_id_item" name="current_id_item" readonly>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-4">
                                 <div class="mb-3">
                                     <label class="form-label label-scan"><small><b>Lot</b></small></label>
                                     <input type="text" class="form-control form-control-sm border-scan" id="current_lot" name="current_lot" readonly>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-4">
                                 <div class="mb-3">
                                     <label class="form-label label-scan"><small><b>Roll</b></small></label>
                                     <input type="text" class="form-control form-control-sm border-scan" id="current_roll" name="current_roll" readonly>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-4">
                                 <div class="mb-3">
                                     <label class="form-label label-scan"><small><b>Qty</b></small></label>
                                     <input type="number" class="form-control form-control-sm border-scan" id="current_qty" name="current_qty" readonly>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-4">
                                 <div class="mb-3">
                                     <label class="form-label label-scan"><small><b>Unit</b></small></label>
                                     <input type="text" class="form-control form-control-sm border-scan" id="current_unit" name="current_unit" readonly>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-4">
                                 <div class="mb-3">
                                     <label class="form-label label-input"><small><b>Sisa Gelaran</b></small></label>
                                     <input type="number" class="form-control form-control-sm border-input" id="current_sisa_gelaran" name="current_sisa_gelaran" step=".01">
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-4">
                                 <div class="mb-3">
                                     <label class="form-label label-input"><small><b>Sambungan</b></small></label>
                                     <input type="number" class="form-control form-control-sm border-input" id="current_sambungan" name="current_sambungan" step=".01"
@@ -406,13 +407,13 @@
                                         onchange="calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = this.value, qty = undefined)">
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-4">
                                 <div class="mb-3">
                                     <label class="form-label label-calc"><small><b>Estimasi Amparan</b></small></label>
                                     <input type="number" class="form-control form-control-sm border-calc" id="current_est_amparan" name="current_est_amparan" step=".01" readonly>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-4">
                                 <div class="mb-3">
                                     <label class="form-label label-input"><small><b>Lembar Gelaran</b></small></label>
                                     <input type="number" class="form-control form-control-sm border-input" id="current_lembar_gelaran" name="current_lembar_gelaran"
@@ -420,13 +421,13 @@
                                         onchange="calculateTotalPemakaian(lembarGelaran = this.value, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = undefined, reject = undefined);calculateShortRoll(lembarGelaran = this.value, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = undefined, qty = undefined);" readonly>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-4">
                                 <div class="mb-3">
                                     <label class="form-label label-input"><small><b>Average Time</b></small></label>
                                     <input type="text" class="form-control form-control-sm border-input" id="current_average_time" name="current_average_time" readonly>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-4">
                                 <div class="mb-3">
                                     <label class="form-label label-input"><small><b>Kepala Kain</b></small></label>
                                     <input type="number" class="form-control form-control-sm border-input" id="current_kepala_kain" name="current_kepala_kain"
@@ -434,13 +435,13 @@
                                         onchange="calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = this.value, sisaTidakBisa = undefined, reject = undefined)" step=".01">
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-4">
                                 <div class="mb-3">
                                     <label class="form-label label-input"><small><b>Sisa Tidak Bisa</b></small></label>
                                     <input type="number" class="form-control form-control-sm border-input" id="current_sisa_tidak_bisa" name="current_sisa_tidak_bisa" step=".01" onkeyup="calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = this.value, reject = undefined);" onchange="calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = this.value, reject = undefined);">
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-4">
                                 <div class="mb-3">
                                     <label class="form-label label-input"><small><b>Reject</b></small></label>
                                     <input type="number" class="form-control form-control-sm border-input" id="current_reject" name="current_reject" step=".01"
@@ -448,7 +449,7 @@
                                         onchange="calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = undefined, reject = this.value); calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = this.value, sambungan = undefined, qty = undefined);">
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-4">
                                 <div class="mb-3">
                                     <label class="form-label label-input"><small><b>Sisa Kain</b></small></label>
                                     <input type="number" class="form-control form-control-sm border-input" id="current_sisa_kain" name="current_sisa_kain" step=".01"
@@ -456,19 +457,19 @@
                                         onchange="calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = this.value, reject = undefined, sambungan = undefined, qty = undefined)">
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-3">
                                 <div class="mb-3">
-                                    <label class="form-label label-calc"><small><b>Total Pemakaian Per Roll</b></small></label>
+                                    <label class="form-label label-calc"><small><b>Tot. Pakai /Roll</b></small></label>
                                     <input type="number" class="form-control form-control-sm border-calc" id="current_total_pemakaian_roll" name="current_total_pemakaian_roll" step=".01" readonly>
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-3">
                                 <div class="mb-3">
                                     <label class="form-label label-calc"><small><b>Short Roll +/-</b></small></label>
                                     <input type="number" class="form-control form-control-sm border-calc" id="current_short_roll" name="current_short_roll" step=".01" readonly>
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-3">
                                 <div class="mb-3">
                                     <label class="form-label label-input"><small><b>Piping</b></small></label>
                                     <input type="number" class="form-control form-control-sm border-input" id="current_piping" name="current_piping" step=".01"
@@ -476,7 +477,7 @@
                                         onchange="calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = this.value, sisaKain = undefined, reject = undefined, sambungan = undefined, qty = undefined)">
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-3">
                                 <div class="mb-3">
                                     <label class="form-label label-input"><small><b>Remark</b></small></label>
                                     <input type="number" class="form-control form-control-sm border-input" id="current_remark" name="current_remark" step=".01">
@@ -651,6 +652,14 @@
                         getScannedItem(this.value);
                     }
                 });
+
+                document.getElementById('kode_barang').addEventListener("blur", (e) => {
+                    let kodeBarang = document.getElementById('kode_barang').value;
+
+                    e.preventDefault();
+
+                    getScannedItem(kodeBarang);
+                });
             });
 
             // Process :
@@ -798,6 +807,8 @@
                     if (checkIfNull(document.getElementById("id_item").value) && checkIfNull(document.getElementById("detail_item").value) && checkIfNull(document.getElementById("color_act").value) && currentScannedItem) {
                         nextProcessThreeButton.classList.add("d-none");
 
+                        $('#scan-qr-card').CardWidget('collapse');
+
                         setSpreadingForm(currentScannedItem);
                         openTimeRecordCondition();
                         getSummary();
@@ -866,6 +877,31 @@
                                     i++;
                                 }
                             };
+                        }
+                    });
+                }
+
+                // -Store This Time Record Transaction-
+                function storeThisTimeRecord() {
+                    let spreadingForm = new FormData(document.getElementById("spreading-form"));
+
+                    let dataObj = {
+                        "no_form_cut_input": $("#no_form").val(),
+                        "color_act": $("#color_act").val(),
+                        "lap": lap
+                    }
+
+                    spreadingForm.forEach((value, key) => dataObj[key] = value);
+
+                    return $.ajax({
+                        url: '/form-cut-input/store-this-time-record/',
+                        type: 'post',
+                        dataType: 'json',
+                        data: dataObj,
+                        success: function(res) {
+                            if (res) {
+                                console.log(res);
+                            }
                         }
                     });
                 }
@@ -1093,6 +1129,8 @@
 
                     initScan();
 
+                    checkSpreadingForm();
+
                     await getSummary()
                     if (summaryData != null && summaryData.length > 0) {
                         firstTimeRecordCondition();
@@ -1143,6 +1181,7 @@
                 }
             }
 
+            // -Lock General Form-
             function lockGeneralForm() {
                 document.getElementById('shell').setAttribute('disabled', true);
                 document.getElementById('p_act').setAttribute('readonly', true);
@@ -1158,17 +1197,57 @@
                 document.getElementById('unit_cons_actual_gelaran').setAttribute('readonly', true);
             }
 
+            var spreadingFormData = null;
+
+            // -Check Spreading Form-
+            function checkSpreadingForm() {
+                let noForm = document.getElementById("no_form").value;
+
+                $.ajax({
+                    url: '/form-cut-input/check-spreading-form/'+noForm,
+                    type: 'get',
+                    dataType: 'json',
+                    success: function(res) {
+                        if (res) {
+                            if (res.count > 0) {
+                                spreadingFormData = res;
+                                setSpreadingForm(spreadingFormData);
+
+                                checkTimeRecordData();
+                            }
+                        }
+                    }
+                });
+            }
+
             // -Set Spreading Form-
             function setSpreadingForm(data) {
                 clearSpreadingForm();
 
+                document.getElementById("current_group").value = data.group;
                 document.getElementById("current_id_item").value = data.id_item;
-                document.getElementById("current_lot").value = data.lot_no;
-                document.getElementById("current_roll").value = data.roll_no;
-                document.getElementById("current_qty").value = data.roll_qty;
+                document.getElementById("current_lot").value = data.lot;
+                document.getElementById("current_roll").value = data.roll;
+                document.getElementById("current_qty").value = data.qty;
                 document.getElementById("current_unit").value = data.unit;
+                document.getElementById("current_sisa_gelaran").value = data.sisa_gelaran;
+                document.getElementById("current_sambungan").value = data.sambungan;
+                document.getElementById("current_est_amparan").value = data.est_amparan;
+                document.getElementById("current_lembar_gelaran").value = data.lembar_gelaran;
+                document.getElementById("current_average_time").value = data.average_time;
+                document.getElementById("current_kepala_kain").value = data.kepala_kain;
+                document.getElementById("current_sisa_tidak_bisa").value = data.sisa_tidak_bisa;
+                document.getElementById("current_reject").value = data.reject;
+                document.getElementById("current_sisa_kain").value = data.sisa_kain;
+                document.getElementById("current_total_pemakaian_roll").value = data.total_pemakaian_roll;
+                document.getElementById("current_short_roll").value = data.short_roll;
+                document.getElementById("current_piping").value = data.piping;
+                document.getElementById("current_remark").value = data.remark;
 
                 calculateEstAmpar(data.roll_qty, document.getElementById("p_act").value);
+
+                nextProcessThreeButton.classList.add("d-none");
+                $('#scan-qr-card').CardWidget('collapse');
 
                 $('#spreading-form-card').CardWidget('expand');
             }
@@ -1227,9 +1306,6 @@
                     let noForm = document.getElementById("no_form").value;
 
                     return $.ajax({
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
                         url: '/form-cut-input/get-time-record/'+noForm,
                         type: 'get',
                         dataType: 'json',
@@ -1341,6 +1417,13 @@
                 var latestUnit = "";
 
             // Function List :
+                // -Fetch Scanned Item Data-
+                function fetchScan() {
+                    let kodeBarang = document.getElementById('kode_barang').value;
+
+                    getScannedItem(kodeBarang);
+                }
+
                 // -Get Scanned Item Data-
                 function getScannedItem(id) {
                     document.getElementById("id_item").value = "";
@@ -1476,6 +1559,23 @@
                 minutes.value = pad(parseInt(totalSeconds / 60));
 
             // Function List :
+                // -Time Record-
+                function checkTimeRecordLap(detailId) {
+                    $.ajax({
+                        url: '/form-cut-input/check-time-record-lap/' + detailId,
+                        type: 'get',
+                        dataType: 'json',
+                        data: {
+                            startTime: startTime.value,
+                        },
+                        success: function(res) {
+                            if (res) {
+                                console.log(res);
+                            }
+                        }
+                    });
+                }
+
                 // -Set Time-
                 function setTime() {
                     ++totalSeconds;
@@ -1492,6 +1592,8 @@
                     startLapButton.classList.add("d-none")
                     nextLapButton.classList.remove('d-none');
                     nextLapButton.focus();
+
+                    storeThisTimeRecord();
                 }
 
                 // -Next Lap Time Record-
@@ -1520,6 +1622,8 @@
                     timeRecordTableTbody.appendChild(tr);
 
                     stopLapButton.disabled = false;
+
+                    storeThisTimeRecord();
                 }
 
                 // -Stop Time Record-
