@@ -541,22 +541,22 @@
                                         <tr>
                                             <th>No.</th>
                                             <th>Group</th>
-                                            <th>Id Item</th>
-                                            <th>Lot</th>
-                                            <th>Roll</th>
-                                            <th>Qty</th>
-                                            <th>Unit</th>
+                                            <th class="label-fetch">Id Item</th>
+                                            <th class="label-fetch">Lot</th>
+                                            <th class="label-fetch">Roll</th>
+                                            <th class="label-fetch">Qty</th>
+                                            <th class="label-fetch">Unit</th>
                                             <th>Sisa Gelaran</th>
                                             <th>Sambungan</th>
-                                            <th>Estimasi Amparan</th>
+                                            <th class="label-calc">Estimasi Amparan</th>
                                             <th>Lembar Gelaran</th>
                                             <th>Average Time</th>
                                             <th>Kepala Kain</th>
                                             <th>Sisa Tidak Bisa</th>
                                             <th>Reject</th>
                                             <th>Sisa Kain</th>
-                                            <th>Total Pemakaian Per Roll</th>
-                                            <th>Short Roll +/-</th>
+                                            <th class="label-calc">Total Pemakaian Per Roll</th>
+                                            <th class="label-calc">Short Roll +/-</th>
                                             <th>Piping</th>
                                             <th>Remark</th>
                                         </tr>
