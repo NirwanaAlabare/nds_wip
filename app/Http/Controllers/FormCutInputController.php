@@ -348,7 +348,7 @@ class FormCutInputController extends Controller
     }
 
     public function getTimeRecord($noForm) {
-        $timeRecordSummary = FormCutInputDetail::where("no_form_cut_input", $noForm)->get();
+        $timeRecordSummary = FormCutInputDetail::where("no_form_cut_input", $noForm)->where('status', 'complete')->get();
 
         return json_encode($timeRecordSummary);
     }
@@ -358,6 +358,7 @@ class FormCutInputController extends Controller
             "no_form_cut_input" => "required",
             "color_act" => "required",
             "current_id_item" => "required",
+            "detail_item" => "required",
             "current_group" => "required",
             "current_lot" => "required",
             "current_roll" => "required",
@@ -378,11 +379,11 @@ class FormCutInputController extends Controller
             "current_sambungan" => "required"
         ]);
 
-        $storeTimeRecordSummary = FormCutInputDetail::updateOrInsert(
-            ["no_form_cut_input" => $validatedRequest['no_form_cut_input']],
+        $storeTimeRecordSummary = FormCutInputDetail::updateOrCreate(
+            ["no_form_cut_input" => $validatedRequest['no_form_cut_input'], "id_item" => $request->current_id_item],
             [
                 "color_act" => $validatedRequest['color_act'],
-                "id_item" => $validatedRequest['current_id_item'],
+                "detail_item" => $validatedRequest['detail_item'],
                 "group" => $validatedRequest['current_group'],
                 "lot" => $validatedRequest['current_lot'],
                 "roll" => $validatedRequest['current_roll'],
@@ -446,11 +447,11 @@ class FormCutInputController extends Controller
     public function storeThisTimeRecord(Request $request) {
         $lap = $request->lap;
 
-        $storeTimeRecordSummary = FormCutInputDetail::updateOrInsert(
-            ["no_form_cut_input" => $request->no_form_cut_input],
+        $storeTimeRecordSummary = FormCutInputDetail::updateOrCreate(
+            ["no_form_cut_input" => $request->no_form_cut_input, "id_item" => $request->current_id_item],
             [
                 "color_act" => $request->color_act,
-                "id_item" => $request->current_id_item,
+                "detail_item" => $request->detail_item,
                 "group" => $request->current_group,
                 "lot" => $request->current_lot,
                 "roll" => $request->current_roll,
@@ -509,10 +510,12 @@ class FormCutInputController extends Controller
     }
 
     public function checkSpreadingForm($noForm, Request $request) {
-        $formCutInputDetailData = FormCutInputDetail::where('no_form_cut_input', $noForm)->get();
+        $formCutInputDetailData = FormCutInputDetail::where('no_form_cut_input', $noForm)->
+            where('status', 'not complete')->
+            first() ;
 
         return array(
-            "count" => count($formCutInputDetailData),
+            "count" => $formCutInputDetailData ? $formCutInputDetailData->count() : 0,
             "data" => $formCutInputDetailData,
         );
     }
@@ -521,8 +524,8 @@ class FormCutInputController extends Controller
         $formCutInputDetailLapData = FormCutInputDetailLap::where('form_cut_input_detail_id', $detailId)->get();
 
         return array(
-            "count" => count($formCutInputDetailData),
-            "data" => $formCutInputDetailData,
+            "count" => $formCutInputDetailLapData->count(),
+            "data" => $formCutInputDetailLapData,
         );
     }
 

@@ -652,14 +652,6 @@
                         getScannedItem(this.value);
                     }
                 });
-
-                document.getElementById('kode_barang').addEventListener("blur", (e) => {
-                    let kodeBarang = document.getElementById('kode_barang').value;
-
-                    e.preventDefault();
-
-                    getScannedItem(kodeBarang);
-                });
             });
 
             // Process :
@@ -839,6 +831,7 @@
                     let dataObj = {
                         "no_form_cut_input": $("#no_form").val(),
                         "color_act": $("#color_act").val(),
+                        "detail_item": $("#detail_item").val(),
                     }
 
                     spreadingForm.forEach((value, key) => dataObj[key] = value);
@@ -856,6 +849,8 @@
                                 firstTimeRecordCondition();
 
                                 if (res.additional.length > 0) {
+                                    $('#summary-card').removeClass('d-none');
+
                                     appendScannedItem(res.additional[0]);
                                 }
                             }
@@ -888,6 +883,7 @@
                     let dataObj = {
                         "no_form_cut_input": $("#no_form").val(),
                         "color_act": $("#color_act").val(),
+                        "detail_item": $("#detail_item").val(),
                         "lap": lap
                     }
 
@@ -1135,7 +1131,6 @@
                     if (summaryData != null && summaryData.length > 0) {
                         firstTimeRecordCondition();
 
-                        $('#spreading-form-card').CardWidget('collapse');
                         $('#spreading-form-card').removeClass("d-none");
                         $('#summary-card').removeClass("d-none");
 
@@ -1155,7 +1150,7 @@
                     $('#scan-qr-card').removeClass('d-none');
                     $('#scan-qr-card').CardWidget('collapse');
 
-                    document.getElementById("next-process-3").setAttribute("disabled", true);
+                    nextProcessThreeButton.setAttribute("disabled", true);
 
                     await getSummary();
                     if (summaryData != null && summaryData.length > 0) {
@@ -1209,11 +1204,23 @@
                     dataType: 'json',
                     success: function(res) {
                         if (res) {
+                            nextProcessThreeButton.classList.remove('d-none');
+
                             if (res.count > 0) {
-                                spreadingFormData = res;
+                                spreadingFormData = res.data;
+
                                 setSpreadingForm(spreadingFormData);
 
-                                checkTimeRecordData();
+                                checkTimeRecordLap(res.data.id, res.data.id_item);
+
+                                document.getElementById("id_item").value = res.data.id_item;
+                                document.getElementById("color_act").value = res.data.color_act;
+                                document.getElementById("detail_item").value = res.data.detail_item;
+
+                                $('#spreading-form-card').CardWidget('expand');
+                                $('#spreading-form-card').removeClass("d-none");
+                            } else {
+                                $('#spreading-form-card').CardWidget('collapse');
                             }
                         }
                     }
@@ -1224,25 +1231,25 @@
             function setSpreadingForm(data) {
                 clearSpreadingForm();
 
-                document.getElementById("current_group").value = data.group;
-                document.getElementById("current_id_item").value = data.id_item;
-                document.getElementById("current_lot").value = data.lot;
-                document.getElementById("current_roll").value = data.roll;
-                document.getElementById("current_qty").value = data.qty;
-                document.getElementById("current_unit").value = data.unit;
-                document.getElementById("current_sisa_gelaran").value = data.sisa_gelaran;
-                document.getElementById("current_sambungan").value = data.sambungan;
-                document.getElementById("current_est_amparan").value = data.est_amparan;
-                document.getElementById("current_lembar_gelaran").value = data.lembar_gelaran;
-                document.getElementById("current_average_time").value = data.average_time;
-                document.getElementById("current_kepala_kain").value = data.kepala_kain;
-                document.getElementById("current_sisa_tidak_bisa").value = data.sisa_tidak_bisa;
-                document.getElementById("current_reject").value = data.reject;
-                document.getElementById("current_sisa_kain").value = data.sisa_kain;
-                document.getElementById("current_total_pemakaian_roll").value = data.total_pemakaian_roll;
-                document.getElementById("current_short_roll").value = data.short_roll;
-                document.getElementById("current_piping").value = data.piping;
-                document.getElementById("current_remark").value = data.remark;
+                document.getElementById("current_group").value = data.group ? data.group : '';
+                document.getElementById("current_id_item").value = data.id_item ? data.id_item : '';
+                document.getElementById("current_lot").value = data.lot ? data.lot : '';
+                document.getElementById("current_roll").value = data.roll ? data.roll : '';
+                document.getElementById("current_qty").value = data.qty ? data.qty : '';
+                document.getElementById("current_unit").value = data.unit ? data.unit : '';
+                document.getElementById("current_sisa_gelaran").value = data.sisa_gelaran ? data.sisa_gelaran : '';
+                document.getElementById("current_sambungan").value = data.sambungan ? data.sambungan : '';
+                document.getElementById("current_est_amparan").value = data.est_amparan ? data.est_amparan : '';
+                document.getElementById("current_lembar_gelaran").value = data.lembar_gelaran ? data.lembar_gelaran : '';
+                document.getElementById("current_average_time").value = data.average_time ? data.average_time : '';
+                document.getElementById("current_kepala_kain").value = data.kepala_kain ? data.kepala_kain : '';
+                document.getElementById("current_sisa_tidak_bisa").value = data.sisa_tidak_bisa ? data.sisa_tidak_bisa : '';
+                document.getElementById("current_reject").value = data.reject ? data.reject : '';
+                document.getElementById("current_sisa_kain").value = data.sisa_kain ? data.sisa_kain : '';
+                document.getElementById("current_total_pemakaian_roll").value = data.total_pemakaian_roll ? data.total_pemakaian_roll : '';
+                document.getElementById("current_short_roll").value = data.short_roll ? data.short_roll : '';
+                document.getElementById("current_piping").value = data.piping ? data.piping : '';
+                document.getElementById("current_remark").value = data.remark ? data.remark : '';
 
                 calculateEstAmpar(data.roll_qty, document.getElementById("p_act").value);
 
@@ -1562,18 +1569,53 @@
                 // -Time Record-
                 function checkTimeRecordLap(detailId) {
                     $.ajax({
-                        url: '/form-cut-input/check-time-record-lap/' + detailId,
+                        url: '/form-cut-input/check-time-record/' + detailId,
                         type: 'get',
                         dataType: 'json',
-                        data: {
-                            startTime: startTime.value,
-                        },
                         success: function(res) {
-                            if (res) {
-                                console.log(res);
+                            openTimeRecordCondition();
+
+                            if (res.count > 0) {
+                                setTimeRecordLap(res.data);
                             }
                         }
                     });
+                }
+
+                function setTimeRecordLap(data) {
+                    data.forEach((element, index, array) => {
+                        let time = element.waktu.split(":");
+                        let minutesData = Number(time[0]) * 60;
+                        let secondsData = Number(time[1]);
+
+                        summarySeconds += (minutesData + secondsData);
+                        lap++;
+
+                        if (index == (array.length - 1)) {
+                            averageSeconds = (parseFloat(summarySeconds)/parseFloat(lap)).toFixed(0);
+
+                            $("#current_lembar_gelaran").val(lap).trigger('change');
+                            $("#current_average_time").val((pad(parseInt(averageSeconds / 60)))+':'+(pad(averageSeconds % 60)))
+                        }
+
+                        let tr = document.createElement('tr');
+                        let td1 = document.createElement('td');
+                        let td2 = document.createElement('td');
+                        let td3 = document.createElement('td');
+                        td1.innerHTML = lap;
+                        td2.innerHTML = element.waktu;
+                        td3.classList.add('d-none');
+                        td3.innerHTML = `<input type='hidden' name="time_record[` + lap + `]" value="` + element.waktu + `" />`;
+                        tr.appendChild(td1);
+                        tr.appendChild(td2);
+                        tr.appendChild(td3);
+
+                        timeRecordTableTbody.appendChild(tr);
+                    });
+
+                    if (data.length > 0) {
+                        stopLapButton.disabled = false;
+                    }
                 }
 
                 // -Set Time-
@@ -1587,17 +1629,17 @@
                 function startTimeRecord() {
                     timeRecordInterval = setInterval(setTime, 999);
 
-                    openLapTimeRecordCondition();
-
                     startLapButton.classList.add("d-none")
                     nextLapButton.classList.remove('d-none');
                     nextLapButton.focus();
+
+                    openLapTimeRecordCondition();
 
                     storeThisTimeRecord();
                 }
 
                 // -Next Lap Time Record-
-                function addNewTimeRecord() {
+                function addNewTimeRecord(data = null) {
                     summarySeconds += totalSeconds;
                     totalSeconds = 0;
                     lap++;
@@ -1665,7 +1707,7 @@
                     function openLapTimeRecordCondition() {
                         startLapButton.disabled = true;
                         nextLapButton.disabled = false;
-                        stopLapButton.disabled = false;
+                        stopLapButton.disabled = true;
                     }
 
                     function nextTimeRecordCondition() {
