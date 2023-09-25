@@ -253,6 +253,14 @@
     border-color: #12be60 !important;
 }
 
+.label-sb {
+    color: var(--sb-color) !important;
+}
+
+.border-sb {
+    border-color: var(--sb-color) !important;
+}
+
 /* .border-input {
     border-color: #000 !important;
 } */

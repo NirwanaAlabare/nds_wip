@@ -415,16 +415,16 @@
                             </div>
                             <div class="col-4">
                                 <div class="mb-3">
-                                    <label class="form-label label-input"><small><b>Lembar Gelaran</b></small></label>
-                                    <input type="number" class="form-control form-control-sm border-input" id="current_lembar_gelaran" name="current_lembar_gelaran"
+                                    <label class="form-label label-sb"><small><b>Lembar Gelaran</b></small></label>
+                                    <input type="number" class="form-control form-control-sm border-sb" id="current_lembar_gelaran" name="current_lembar_gelaran"
                                         onkeyup="calculateTotalPemakaian(lembarGelaran = this.value, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = undefined, reject = undefined);calculateShortRoll(lembarGelaran = this.value, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = undefined, qty = undefined);"
                                         onchange="calculateTotalPemakaian(lembarGelaran = this.value, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = undefined, reject = undefined);calculateShortRoll(lembarGelaran = this.value, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = undefined, qty = undefined);" readonly>
                                 </div>
                             </div>
                             <div class="col-4">
                                 <div class="mb-3">
-                                    <label class="form-label label-input"><small><b>Average Time</b></small></label>
-                                    <input type="text" class="form-control form-control-sm border-input" id="current_average_time" name="current_average_time" readonly>
+                                    <label class="form-label label-sb"><small><b>Average Time</b></small></label>
+                                    <input type="text" class="form-control form-control-sm border-sb" id="current_average_time" name="current_average_time" readonly>
                                 </div>
                             </div>
                             <div class="col-4">
@@ -669,7 +669,7 @@
                 // -Start Process Transaction-
                 function updateToStartProcess() {
                     return $.ajax({
-                        url: '/form-cut-input/start-process/' + id,
+                        url: '{{ route("start-process-form-cut-input") }}/'+id,
                         type: 'put',
                         dataType: 'json',
                         data: {
@@ -697,7 +697,7 @@
                 // -Process One Transaction-
                 function updateToNextProcessOne() {
                     return $.ajax({
-                        url: '/form-cut-input/next-process-one/' + id,
+                        url: '{{ route("next-process-one-form-cut-input") }}/'+id,
                         type: 'put',
                         dataType: 'json',
                         data: {
@@ -735,7 +735,7 @@
                     clearModified();
 
                     return $.ajax({
-                        url: '/form-cut-input/next-process-two/' + id,
+                        url: '{{ route("next-process-two-form-cut-input") }}/'+id,
                         type: 'put',
                         dataType: 'json',
                         data: {
@@ -837,7 +837,7 @@
                     spreadingForm.forEach((value, key) => dataObj[key] = value);
 
                     return $.ajax({
-                        url: '/form-cut-input/store-time-record/',
+                        url: '{{ route("store-time-form-cut-input") }}',
                         type: 'post',
                         dataType: 'json',
                         data: dataObj,
@@ -890,7 +890,7 @@
                     spreadingForm.forEach((value, key) => dataObj[key] = value);
 
                     return $.ajax({
-                        url: '/form-cut-input/store-this-time-record/',
+                        url: '{{ route("store-this-time-form-cut-input") }}',
                         type: 'post',
                         dataType: 'json',
                         data: dataObj,
@@ -937,7 +937,7 @@
                             await updateToNextProcessTwo();
 
                             $.ajax({
-                                url: '/form-cut-input/finish-process/' + id,
+                                url: '{{ route("finish-process-form-cut-input") }}/'+id,
                                 type: 'put',
                                 dataType: 'json',
                                 data: {
@@ -1076,7 +1076,7 @@
             // -Get Cons. WS Data-
             function getNumberData() {
                 return $.ajax({
-                    url: '/form-cut-input/get-number-data/',
+                    url: '{{ route("get-number-form-cut-input") }}',
                     type: 'get',
                     data: {
                         act_costing_id: $("#act_costing_id").val(),
@@ -1199,7 +1199,7 @@
                 let noForm = document.getElementById("no_form").value;
 
                 $.ajax({
-                    url: '/form-cut-input/check-spreading-form/'+noForm,
+                    url: '{{ route("check-spreading-form-cut-input") }}/'+noForm,
                     type: 'get',
                     dataType: 'json',
                     success: function(res) {
@@ -1313,7 +1313,7 @@
                     let noForm = document.getElementById("no_form").value;
 
                     return $.ajax({
-                        url: '/form-cut-input/get-time-record/'+noForm,
+                        url: '{{ route("get-time-form-cut-input") }}/'+noForm,
                         type: 'get',
                         dataType: 'json',
                         success: function(res) {
@@ -1439,7 +1439,7 @@
 
                     if (checkIfNull(id)) {
                         return $.ajax({
-                            url: '/form-cut-input/get-scanned-item/' + id,
+                            url: '{{ route("get-scanned-form-cut-input") }}/'+id,
                             type: 'get',
                             dataType: 'json',
                             success: function(res) {
@@ -1569,7 +1569,7 @@
                 // -Time Record-
                 function checkTimeRecordLap(detailId) {
                     $.ajax({
-                        url: '/form-cut-input/check-time-record/' + detailId,
+                        url: 'route("check-time-record-form-cut-input")/'+detailId,
                         type: 'get',
                         dataType: 'json',
                         success: function(res) {
@@ -1654,7 +1654,7 @@
                     let td2 = document.createElement('td');
                     let td3 = document.createElement('td');
                     td1.innerHTML = lap;
-                    td2.innerHTML = minutes.value + ' : ' + seconds.value;
+                    td2.innerHTML = minutes.value + ':' + seconds.value;
                     td3.classList.add('d-none');
                     td3.innerHTML = `<input type='hidden' name="time_record[` + lap + `]" value="` + minutes.value + ':' + seconds.value + `" />`;
                     tr.appendChild(td1);

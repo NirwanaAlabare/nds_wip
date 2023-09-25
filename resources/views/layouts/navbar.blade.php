@@ -7,8 +7,8 @@
 <!-- Navbar -->
 <nav class="main-header navbar navbar-expand-md navbar-light navbar-white">
     <div class="container">
-        <a href="/dashboard" class="navbar-brand">
-            <img src="/assets/dist/img/logo-icon.png" alt="nds Logo" class="brand-image">
+        <a href="{{ route('dashboard') }}" class="navbar-brand">
+            <img src="{{ asset('dist/img/logo-icon.png') }}" alt="nds Logo" class="brand-image">
         </a>
 
         <button class="navbar-toggler order-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
@@ -28,12 +28,12 @@
                     <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                         @if (auth()->user()->type == "admin")
                             <li>
-                                <a href="/marker" class="dropdown-item">
+                                <a href="{{ route('marker') }}" class="dropdown-item">
                                     Marker
                                 </a>
                             </li>
                             <li>
-                                <a href="/spreading" class="dropdown-item">
+                                <a href="{{ route('spreading') }}" class="dropdown-item">
                                     Spreading
                                 </a>
                             </li>
@@ -41,7 +41,7 @@
 
                         @if (auth()->user()->type == "meja")
                             <li>
-                                <a href="/form-cut-input" class="dropdown-item">
+                                <a href="{{ route('form-cut-input') }}" class="dropdown-item">
                                     Form Cutting
                                 </a>
                             </li>
@@ -83,7 +83,7 @@
                             aria-expanded="false" class="nav-link dropdown-toggle">Laporan</a>
                         <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
                             <li>
-                                <a href="/marker" class="dropdown-item">
+                                <a href="{{ route('marker') }}" class="dropdown-item">
                                     Laporan Pemakaian
                                 </a>
                             </li>
@@ -92,7 +92,7 @@
                 @endif
 
                 <li class="nav-item">
-                    <a href="/" class="nav-link">
+                    <a href="{{ route('home') }}/" class="nav-link">
                         <i class="fas fa-home"></i>
                     </a>
                 </li>
@@ -123,7 +123,7 @@
                     <a href="#" class="dropdown-item">
                         <!-- Message Start -->
                         <div class="media">
-                            <img src="/assets/dist/img/user1-128x128.jpg" alt="User Avatar" class="img-size-50 mr-3 img-circle">
+                            <img src="{{ asset('dist/img/user1-128x128.jpg') }}" alt="User Avatar" class="img-size-50 mr-3 img-circle">
                             <div class="media-body">
                                 <h3 class="dropdown-item-title">
                                     Brad Diesel
@@ -139,7 +139,7 @@
                     <a href="#" class="dropdown-item">
                         <!-- Message Start -->
                         <div class="media">
-                            <img src="/assets/dist/img/user8-128x128.jpg" alt="User Avatar" class="img-size-50 img-circle mr-3">
+                            <img src="{{ asset('dist/img/user8-128x128.jpg') }}" alt="User Avatar" class="img-size-50 img-circle mr-3">
                             <div class="media-body">
                                 <h3 class="dropdown-item-title">
                                     John Pierce
@@ -155,7 +155,7 @@
                     <a href="#" class="dropdown-item">
                         <!-- Message Start -->
                         <div class="media">
-                            <img src="/assets/dist/img/user3-128x128.jpg" alt="User Avatar" class="img-size-50 img-circle mr-3">
+                            <img src="{{ asset('dist/img/user3-128x128.jpg') }}" alt="User Avatar" class="img-size-50 img-circle mr-3">
                             <div class="media-body">
                                 <h3 class="dropdown-item-title">
                                     Nora Silvester

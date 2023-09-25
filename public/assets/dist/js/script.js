@@ -102,7 +102,7 @@ function submitForm(e, evt) {
 
                 Swal.fire({
                     icon: 'success',
-                    title: 'Data Spreading berhasil diubah',
+                    title: res.message,
                     text: res.message,
                     showCancelButton: false,
                     showConfirmButton: true,

@@ -148,7 +148,7 @@ class FormCutInputController extends Controller
      * @param  \App\Models\FormCut  $formCut
      * @return \Illuminate\Http\Response
      */
-    public function process($id)
+    public function process($id = 0)
     {
         $formCutInputData = FormCutInput::leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
             leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
@@ -221,7 +221,7 @@ class FormCutInputController extends Controller
         return json_encode($numberData);
     }
 
-    public function getScannedItem($id) {
+    public function getScannedItem($id = 0) {
         $item = DB::connection("mysql_sb")->select("
             select br.id,
             mi.itemdesc,
@@ -253,7 +253,7 @@ class FormCutInputController extends Controller
         return json_encode($item ? $item[0] : null);
     }
 
-    public function startProcess($id, Request $request) {
+    public function startProcess($id = 0, Request $request) {
         $updateFormCutInput = FormCutInput::where("id", $id)->
             update([
                 "status" => "PENGERJAAN FORM CUTTING",
@@ -275,7 +275,7 @@ class FormCutInputController extends Controller
         );
     }
 
-    public function nextProcessOne($id, Request $request) {
+    public function nextProcessOne($id = 0, Request $request) {
         $updateFormCutInput = FormCutInput::where("id", $id)->
             update([
                 "status" => "PENGERJAAN FORM CUTTING DETAIL",
@@ -297,7 +297,7 @@ class FormCutInputController extends Controller
         );
     }
 
-    public function nextProcessTwo($id, Request $request) {
+    public function nextProcessTwo($id = 0, Request $request) {
         $validatedRequest = $request->validate([
             "p_act" => "required",
             "unit_p_act" => "required",
@@ -347,7 +347,7 @@ class FormCutInputController extends Controller
         );
     }
 
-    public function getTimeRecord($noForm) {
+    public function getTimeRecord($noForm = 0) {
         $timeRecordSummary = FormCutInputDetail::where("no_form_cut_input", $noForm)->where('status', 'complete')->get();
 
         return json_encode($timeRecordSummary);
@@ -509,7 +509,7 @@ class FormCutInputController extends Controller
         );
     }
 
-    public function checkSpreadingForm($noForm, Request $request) {
+    public function checkSpreadingForm($noForm = 0, Request $request) {
         $formCutInputDetailData = FormCutInputDetail::where('no_form_cut_input', $noForm)->
             where('status', 'not complete')->
             first() ;
@@ -520,7 +520,7 @@ class FormCutInputController extends Controller
         );
     }
 
-    public function checkTimeRecordLap($detailId) {
+    public function checkTimeRecordLap($detailId = 0) {
         $formCutInputDetailLapData = FormCutInputDetailLap::where('form_cut_input_detail_id', $detailId)->get();
 
         return array(
@@ -529,7 +529,7 @@ class FormCutInputController extends Controller
         );
     }
 
-    public function finishProcess($id, Request $request) {
+    public function finishProcess($id = 0, Request $request) {
         $updateFormCutInput = FormCutInput::where("id", $id)->
             update([
                 "status" => "SELESAI PENGERJAAN",
