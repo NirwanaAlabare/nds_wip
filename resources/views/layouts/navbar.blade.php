@@ -83,7 +83,7 @@
                             aria-expanded="false" class="nav-link dropdown-toggle">Laporan</a>
                         <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
                             <li>
-                                <a href="/lap_pemakaian" class="dropdown-item">
+                                <a href="{{ route('lap_pemakaian') }}" class="dropdown-item">
                                     Laporan Pemakaian
                                 </a>
                             </li>

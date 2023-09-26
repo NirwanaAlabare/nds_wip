@@ -284,32 +284,40 @@
         $('.select2bs4').select2({
             theme: 'bootstrap4'
         })
+        $('#cbows').val("").trigger("change");
         $("#cbomarker").prop("disabled", true);
-        $("#txtqtyply").prop("disabled", true);
-    </script>
+        $("#txtqtyply").prop("readonly", true);
 
-    <script type='text/javascript'>
-        function getOrderInfo() {
-            return $.ajax({
+        let datatable = $("#datatable").DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            searching: false,
+            paging: false,
+            info: false,
+            ajax: {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                url: '{{ route("get-spreading-data") }}',
-                type: 'get',
-                data: {
-                    ws: $('#txt_ws').val(),
-                    color: $('#txtcolor').val(),
-                },
+                url: '{{ route('getdata_ratio') }}',
                 dataType: 'json',
-                success: function (res) {
-                    console.log(res);
-                    if (res) {
-                        document.getElementById('txtbuyer').value = res.buyer;
-                        document.getElementById('txtstyle').value = res.styleno;
-                    }
+                dataSrc: 'data',
+                data: function(d) {
+                    d.cbomarker = $('#cbomarker').val();
                 },
-            });
-        }
+            },
+            columns: [
+                {
+                    data: 'id'
+                },
+                {
+                    data: 'ratio'
+                },
+                {
+                    data: 'cut_qty'
+                }
+            ]
+        });
 
         function getno_marker() {
             let cbows = document.form.cbows.value;
@@ -324,11 +332,15 @@
                 },
                 async: false
             }).responseText;
-            if (html) {
+
+            console.log(html != "");
+
+            if (html != "") {
                 $("#cbomarker").html(html);
+
+                $("#cbomarker").prop("disabled", false);
+                $("#txtqtyply").prop("readonly", false);
             }
-            $("#cbomarker").prop("disabled", false);
-            $("#txtqtyply").prop("disabled", false);
         };
 
         function getdata_marker() {
@@ -343,8 +355,8 @@
                 success: function(response) {
                     document.getElementById('txtpanel').value = response.panel;
                     document.getElementById('txtcolor').value = response.color;
-                    // document.getElementById('txtbuyer').value = response.buyer;
-                    // document.getElementById('txtstyle').value = response.style;
+                    document.getElementById('txtbuyer').value = response.buyer;
+                    document.getElementById('txtstyle').value = response.style;
                     document.getElementById('txt_p_marker').value = response.panjang_marker;
                     document.getElementById('txt_unit_p_marker').value = response.unit_panjang_marker;
                     document.getElementById('txt_comma_p_marker').value = response.comma_marker;
@@ -358,44 +370,13 @@
                     document.getElementById('txt_cons_marker').value = response.cons_marker;
                     document.getElementById('hitungmarker').value = response.gelar_qty;
                     document.getElementById('txtid_marker').value = response.kode;
-
-                    getOrderInfo();
                 },
                 error: function(request, status, error) {
                     alert(request.responseText);
                 },
             });
 
-            let datatable = $("#datatable").DataTable({
-                ordering: false,
-                processing: true,
-                serverSide: true,
-                searching: false,
-                paging: false,
-                info: false,
-                ajax: {
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    url: '{{ route('getdata_ratio') }}',
-                    dataType: 'json',
-                    dataSrc: 'data',
-                    data: function(d) {
-                        d.cbomarker = $('#cbomarker').val();
-                    },
-                },
-                columns: [
-                    {
-                        data: 'id'
-                    },
-                    {
-                        data: 'ratio'
-                    },
-                    {
-                        data: 'cut_qty'
-                    }
-                ]
-            });
+            datatable.ajax.reload();
         };
 
         function sum() {
