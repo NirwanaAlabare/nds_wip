@@ -79,7 +79,17 @@ class SpreadingController extends Controller
         return view('spreading.create-spreading', ['data_ws' => $data_ws]);
     }
 
+    public function getOrderInfo(Request $request)
+    {
+        $order = DB::connection('mysql_sb')->
+            table('act_costing')->
+            selectRaw('act_costing.id, act_costing.kpno, act_costing.styleno, act_costing.qty order_qty, mastersupplier.supplier buyer')->
+            leftJoin('mastersupplier', 'mastersupplier.Id_Supplier', '=', 'act_costing.id_buyer')->
+            where('act_costing.kpno', $request->ws)->
+            first();
 
+        return json_encode($order);
+    }
 
     /**
      * Store a newly created resource in storage.
