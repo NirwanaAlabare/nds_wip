@@ -5,6 +5,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\MarkerController;
 use App\Http\Controllers\SpreadingController;
 use App\Http\Controllers\FormCutInputController;
+use App\Http\Controllers\LapPemakaianController;
 
 /*
 |--------------------------------------------------------------------------
@@ -60,6 +61,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/getdata_ratio', 'getdata_ratio')->name('getdata_ratio');
         Route::post('/store', 'store')->name('store-spreading');
         Route::put('/update', 'update')->name('update-spreading');
+        // export excel
+        Route::get('/export_excel', 'export_excel')->name('export_excel');
+        Route::get('/export', 'export')->name('export');
     });
 
     // Form Cut Input
@@ -91,6 +95,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-count', 'getCount')->name('form-cut-get-marker-count');
         // get number
         Route::get('/get-number', 'getNumber')->name('form-cut-get-marker-number');
+    });
+
+
+    // Laporan
+    Route::controller(LapPemakaianController::class)->prefix("lap_pemakaian")->middleware('admin')->group(function () {
+        Route::get('/', 'index')->name('lap_pemakaian');
+        // export excel
+        Route::get('/export_excel', 'export_excel')->name('export_excel');
+        Route::get('/export', 'export')->name('export');
     });
 });
 

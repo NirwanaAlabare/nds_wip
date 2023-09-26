@@ -26,7 +26,7 @@
                     <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
                         aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
                     <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-                        @if (auth()->user()->type == "admin")
+                        @if (auth()->user()->type == 'admin')
                             <li>
                                 <a href="/marker" class="dropdown-item">
                                     Marker
@@ -39,7 +39,7 @@
                             </li>
                         @endif
 
-                        @if (auth()->user()->type == "meja")
+                        @if (auth()->user()->type == 'meja')
                             <li>
                                 <a href="/form-cut-input" class="dropdown-item">
                                     Form Cutting
@@ -77,13 +77,13 @@
                     </ul>
                 </li>
 
-                @if (auth()->user()->type == "admin")
+                @if (auth()->user()->type == 'admin')
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
                             aria-expanded="false" class="nav-link dropdown-toggle">Laporan</a>
                         <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
                             <li>
-                                <a href="/marker" class="dropdown-item">
+                                <a href="/lap_pemakaian" class="dropdown-item">
                                     Laporan Pemakaian
                                 </a>
                             </li>
@@ -201,7 +201,7 @@
             <li class="nav-item">
                 <a class="nav-link" data-bs-toggle="offcanvas" href="#user-offcanvas" role="button"
                     aria-controls="user-offcanvas">
-                    {{ strtoupper(auth()->user()->name); }}
+                    {{ strtoupper(auth()->user()->name) }}
                     <i class="fas fa-user ps-1"></i>
                 </a>
             </li>
