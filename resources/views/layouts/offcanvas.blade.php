@@ -10,7 +10,7 @@
         <div>
             <div class="card bg-light">
                 <div class="card-body">
-                    <form action="/user/update/{{ auth()->user()->id }}" method="post"
+                    <form action="{{ route('update-user', ["id" => auth()->user()->id]) }}" method="post"
                         onsubmit="submitForm(this, event);">
                         @csrf
                         <input type="hidden" name="_method" value="PUT">

@@ -236,3 +236,50 @@
 .form-control {
     border-radius: 1px !important;
 }
+
+.label-fetch {
+    color: #3169e4 !important;
+}
+
+.border-fetch {
+    border-color: #3169e4 !important;
+}
+
+.label-scan {
+    color: #0e8845 !important;
+}
+
+.border-scan {
+    border-color: #12be60 !important;
+}
+
+.label-sb {
+    color: var(--sb-color) !important;
+}
+
+.border-sb {
+    border-color: var(--sb-color) !important;
+}
+
+/* .border-input {
+    border-color: #000 !important;
+} */
+
+.label-calc {
+    color: #fa4456 !important;
+}
+
+.border-calc {
+    border-color: #fa4456 !important;
+}
+
+#reader {
+    min-width: 576px !important;
+    margin: auto;
+}
+
+@media only screen and (max-width: 768px) {
+    #reader {
+        min-width: 100% !important;
+    }
+}

@@ -51,8 +51,10 @@ function pad(n) {
 
 // Check if value is null
 function checkIfNull(value) {
-    if (value == "" || value == null) {
-        return false
+    if (typeof value != "number") {
+        if (value == "" || value == null) {
+            return false
+        }
     }
 
     return true;
@@ -102,7 +104,7 @@ function submitForm(e, evt) {
 
                 Swal.fire({
                     icon: 'success',
-                    title: 'Data Spreading berhasil diubah',
+                    title: res.message,
                     text: res.message,
                     showCancelButton: false,
                     showConfirmButton: true,

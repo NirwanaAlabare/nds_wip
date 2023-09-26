@@ -8,11 +8,11 @@
                 <br>
                 <div class="row g-3 mt-3">
                     <div class="col-md-2 col-3">
-                        <a href="/dashboard" class="home-item">
+                        <a href="{{ route('dashboard') }}" class="home-item">
                             <div class="card h-100">
                                 <div class="card-body">
                                     <div class="d-flex flex-column">
-                                        <img src="/assets/dist/img/cutting.png" class="img-fluid p-3" alt="cutting image">
+                                        <img src="{{ asset('dist/img/cutting.png') }}" class="img-fluid p-3" alt="cutting image">
                                         <p class="text-center">Cutting</p>
                                     </div>
                                 </div>
@@ -24,7 +24,7 @@
                             <div class="card h-100">
                                 <div class="card-body">
                                     <div class="d-flex flex-column">
-                                        <img src="/assets/dist/img/qr-generate.png" class="img-fluid p-3"
+                                        <img src="{{ asset('dist/img/qr-generate.png') }}" class="img-fluid p-3"
                                             alt="qr code image">
                                         <p class="text-center">Generate QR</p>
                                     </div>
@@ -37,7 +37,7 @@
                             <div class="card h-100">
                                 <div class="card-body">
                                     <div class="d-flex flex-column">
-                                        <img src="/assets/dist/img/scan-qr.png" class="img-fluid p-3" alt="qr code image">
+                                        <img src="{{ asset('dist/img/scan-qr.png') }}" class="img-fluid p-3" alt="qr code image">
                                         <p class="text-center">Scan QR</p>
                                     </div>
                                 </div>
@@ -51,7 +51,7 @@
                             <div class="card h-100">
                                 <div class="card-body">
                                     <div class="d-flex flex-column">
-                                        <img src="/assets/dist/img/signout.png" class="img-fluid p-3" alt="other">
+                                        <img src="{{ asset('dist/img/signout.png') }}" class="img-fluid p-3" alt="other">
                                         <p class="text-center">Logout</p>
                                     </div>
                                 </div>

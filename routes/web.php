@@ -27,7 +27,7 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 Route::middleware('auth')->group(function () {
     // User
     Route::controller(UserController::class)->prefix("user")->group(function () {
-        Route::put('/update/{id}', 'update')->name('update-user');
+        Route::put('/update/{id?}', 'update')->name('update-user');
     });
 
     // Marker
@@ -69,19 +69,18 @@ Route::middleware('auth')->group(function () {
     // Form Cut Input
     Route::controller(FormCutInputController::class)->prefix("form-cut-input")->group(function () {
         Route::get('/', 'index')->name('form-cut-input');
-        // Route::get('/create', 'create')->name('create-form-cut-input');
-        // Route::post('/store', 'store')->name('store-form-cut-input');
-        // Route::get('/edit', 'edit')->name('edit-form-cut-input');
-        // Route::put('/update', 'update')->name('update-form-cut-input');
-        Route::get('/process/{id}', 'process')->name('process-form-cut-input');
+        Route::get('/process/{id?}', 'process')->name('process-form-cut-input');
         Route::get('/get-number-data', 'getNumberData')->name('get-number-form-cut-input');
-        Route::get('/get-scanned-item/{id}', 'getScannedItem')->name('get-scanned-form-cut-input');
-        Route::put('/start-process/{id}', 'startProcess')->name('start-process-form-cut-input');
-        Route::put('/next-process-one/{id}', 'nextProcessOne')->name('next-process-one-form-cut-input');
-        Route::put('/next-process-two/{id}', 'nextProcessTwo')->name('next-process-two-form-cut-input');
-        Route::get('/get-time-record/{noForm}', 'getTimeRecord')->name('get-time-form-cut-input');
+        Route::get('/get-scanned-item/{id?}', 'getScannedItem')->name('get-scanned-form-cut-input');
+        Route::put('/start-process/{id?}', 'startProcess')->name('start-process-form-cut-input');
+        Route::put('/next-process-one/{id?}', 'nextProcessOne')->name('next-process-one-form-cut-input');
+        Route::put('/next-process-two/{id?}', 'nextProcessTwo')->name('next-process-two-form-cut-input');
+        Route::get('/get-time-record/{noForm?}', 'getTimeRecord')->name('get-time-form-cut-input');
         Route::post('/store-time-record', 'storeTimeRecord')->name('store-time-form-cut-input');
-        Route::put('/finish-process/{id}', 'finishProcess')->name('finish-process-form-cut-input');
+        Route::post('/store-this-time-record', 'storeThisTimeRecord')->name('store-this-time-form-cut-input');
+        Route::put('/finish-process/{id?}', 'finishProcess')->name('finish-process-form-cut-input');
+        Route::get('/check-spreading-form/{noForm?}/{noMeja?}', 'checkSpreadingForm')->name('check-spreading-form-cut-input');
+        Route::get('/check-time-record/{detailId?}', 'checkTimeRecordLap')->name('check-time-record-form-cut-input');
 
         // get order
         Route::get('/get-order', 'getOrderInfo')->name('form-cut-get-marker-order');
@@ -109,7 +108,7 @@ Route::middleware('auth')->group(function () {
 
 Route::get('/dashboard', function () {
     return view('dashboard', ['page' => 'dashboard']);
-})->middleware('auth');
+})->middleware('auth')->name('dashboard');
 
 Route::get('/timer', function () {
     return view('example.timeout');

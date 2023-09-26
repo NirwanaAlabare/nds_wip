@@ -148,7 +148,7 @@ class FormCutInputController extends Controller
      * @param  \App\Models\FormCut  $formCut
      * @return \Illuminate\Http\Response
      */
-    public function process($id)
+    public function process($id = 0)
     {
         $formCutInputData = FormCutInput::leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
             leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
@@ -221,7 +221,7 @@ class FormCutInputController extends Controller
         return json_encode($numberData);
     }
 
-    public function getScannedItem($id) {
+    public function getScannedItem($id = 0) {
         $item = DB::connection("mysql_sb")->select("
             select br.id,
             mi.itemdesc,
@@ -232,9 +232,9 @@ class FormCutInputController extends Controller
             pono,
             invno,
             ac.kpno,
-            roll_no,
-            roll_qty,
-            lot_no,
+            roll_no roll,
+            roll_qty qty,
+            lot_no lot,
             bpb.unit,
             kode_rak
             from bpb_roll br
@@ -253,7 +253,7 @@ class FormCutInputController extends Controller
         return json_encode($item ? $item[0] : null);
     }
 
-    public function startProcess($id, Request $request) {
+    public function startProcess($id = 0, Request $request) {
         $updateFormCutInput = FormCutInput::where("id", $id)->
             update([
                 "status" => "PENGERJAAN FORM CUTTING",
@@ -275,7 +275,7 @@ class FormCutInputController extends Controller
         );
     }
 
-    public function nextProcessOne($id, Request $request) {
+    public function nextProcessOne($id = 0, Request $request) {
         $updateFormCutInput = FormCutInput::where("id", $id)->
             update([
                 "status" => "PENGERJAAN FORM CUTTING DETAIL",
@@ -297,7 +297,7 @@ class FormCutInputController extends Controller
         );
     }
 
-    public function nextProcessTwo($id, Request $request) {
+    public function nextProcessTwo($id = 0, Request $request) {
         $validatedRequest = $request->validate([
             "p_act" => "required",
             "unit_p_act" => "required",
@@ -347,8 +347,8 @@ class FormCutInputController extends Controller
         );
     }
 
-    public function getTimeRecord($noForm) {
-        $timeRecordSummary = FormCutInputDetail::where("no_form_cut_input", $noForm)->get();
+    public function getTimeRecord($noForm = 0) {
+        $timeRecordSummary = FormCutInputDetail::where("no_form_cut_input", $noForm)->where('status', 'complete')->get();
 
         return json_encode($timeRecordSummary);
     }
@@ -356,7 +356,10 @@ class FormCutInputController extends Controller
     public function storeTimeRecord(Request $request) {
         $validatedRequest = $request->validate([
             "no_form_cut_input" => "required",
+            "no_meja" => "required",
+            "color_act" => "required",
             "current_id_item" => "required",
+            "detail_item" => "required",
             "current_group" => "required",
             "current_lot" => "required",
             "current_roll" => "required",
@@ -373,54 +376,70 @@ class FormCutInputController extends Controller
             "current_total_pemakaian_roll" => "required",
             "current_short_roll" => "required",
             "current_piping" => "required",
-            "current_remark" => "required"
+            "current_remark" => "required",
+            "current_sambungan" => "required"
         ]);
 
-        $storeTimeRecordSummary = FormCutInputDetail::create([
-            "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
-            "id_item" => $validatedRequest['current_id_item'],
-            "group" => $validatedRequest['current_group'],
-            "lot" => $validatedRequest['current_lot'],
-            "roll" => $validatedRequest['current_roll'],
-            "qty" => $validatedRequest['current_qty'],
-            "unit" => $validatedRequest['current_unit'],
-            "sisa_gelaran" => $validatedRequest['current_sisa_gelaran'],
-            "est_amparan" => $validatedRequest['current_est_amparan'],
-            "lembar_gelaran" => $validatedRequest['current_lembar_gelaran'],
-            "average_time" => $validatedRequest['current_average_time'],
-            "kepala_kain" => $validatedRequest['current_kepala_kain'],
-            "sisa_tidak_bisa" => $validatedRequest['current_sisa_tidak_bisa'],
-            "reject" => $validatedRequest['current_reject'],
-            "sisa_kain" => $validatedRequest['current_sisa_kain'],
-            "total_pemakaian_roll" => $validatedRequest['current_total_pemakaian_roll'],
-            "short_roll" => $validatedRequest['current_short_roll'],
-            "piping" => $validatedRequest['current_piping'],
-            "remark" => $validatedRequest['current_remark'],
-        ]);
+        $storeTimeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->leftJoin('form_cut_input','form_cut_input.no_form','=','form_cut_input_detail.no_form_cut_input')->
+            where('form_cut_input.no_meja', $validatedRequest['no_meja'])->
+            where('form_cut_input_detail.status', 'not complete')->
+            updateOrCreate(
+                ["no_form_cut_input" => $validatedRequest['no_form_cut_input']],
+                [
+                    "id_item" => $validatedRequest['current_id_item'],
+                    "color_act" => $validatedRequest['color_act'],
+                    "detail_item" => $validatedRequest['detail_item'],
+                    "group" => $validatedRequest['current_group'],
+                    "lot" => $validatedRequest['current_lot'],
+                    "roll" => $validatedRequest['current_roll'],
+                    "qty" => $validatedRequest['current_qty'],
+                    "unit" => $validatedRequest['current_unit'],
+                    "sisa_gelaran" => $validatedRequest['current_sisa_gelaran'],
+                    "sambungan" => $validatedRequest['current_sambungan'],
+                    "est_amparan" => $validatedRequest['current_est_amparan'],
+                    "lembar_gelaran" => $validatedRequest['current_lembar_gelaran'],
+                    "average_time" => $validatedRequest['current_average_time'],
+                    "kepala_kain" => $validatedRequest['current_kepala_kain'],
+                    "sisa_tidak_bisa" => $validatedRequest['current_sisa_tidak_bisa'],
+                    "reject" => $validatedRequest['current_reject'],
+                    "sisa_kain" => $validatedRequest['current_sisa_kain'],
+                    "total_pemakaian_roll" => $validatedRequest['current_total_pemakaian_roll'],
+                    "short_roll" => $validatedRequest['current_short_roll'],
+                    "piping" => $validatedRequest['current_piping'],
+                    "remark" => $validatedRequest['current_remark'],
+                    "status" => "complete",
+                ]
+            );
 
         $now = Carbon::now();
 
         if ($storeTimeRecordSummary) {
-            $timeRecordLap = [];
-            for ($i = 1; $i <= $validatedRequest['current_lembar_gelaran']; $i++) {
-                array_push($timeRecordLap, [
-                    "form_cut_input_detail_id" => $storeTimeRecordSummary->id,
-                    "lembar_gelaran_ke" => $i,
-                    "waktu" => $request["time_record"][$i],
-                    "created_at" => $now,
-                    "updated_at" => $now,
-                ]);
-            }
+            return array(
+                "status" => 200,
+                "message" => "alright",
+                "additional" => [FormCutInputDetail::where('id', $storeTimeRecordSummary->id)->first()],
+            );
 
-            $storeTimeRecordLap = FormCutInputDetailLap::insert($timeRecordLap);
+            // $timeRecordLap = [];
+            // for ($i = 1; $i <= $validatedRequest['current_lembar_gelaran']; $i++) {
+            //     array_push($timeRecordLap, [
+            //         "form_cut_input_detail_id" => $storeTimeRecordSummary->id,
+            //         "lembar_gelaran_ke" => $i,
+            //         "waktu" => $request["time_record"][$i],
+            //         "created_at" => $now,
+            //         "updated_at" => $now,
+            //     ]);
+            // }
 
-            if (count($timeRecordLap) > 0) {
-                return array(
-                    "status" => 200,
-                    "message" => "alright",
-                    "additional" => [FormCutInputDetail::where('id', $storeTimeRecordSummary->id)->first()],
-                );
-            }
+            // $storeTimeRecordLap = FormCutInputDetailLap::insert($timeRecordLap);
+
+            // if (count($timeRecordLap) > 0) {
+            //     return array(
+            //         "status" => 200,
+            //         "message" => "alright",
+            //         "additional" => [FormCutInputDetail::where('id', $storeTimeRecordSummary->id)->first()],
+            //     );
+            // }
         }
 
         return array(
@@ -430,11 +449,107 @@ class FormCutInputController extends Controller
         );
     }
 
-    public function finishProcess($id, Request $request) {
+    public function storeThisTimeRecord(Request $request) {
+        $lap = $request->lap;
+
+        $storeTimeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->leftJoin('form_cut_input','form_cut_input.no_form','=','form_cut_input_detail.no_form_cut_input')->
+            where('form_cut_input.no_meja', $request->no_meja)->
+            where('form_cut_input_detail.status', 'not complete')->
+            updateOrCreate(
+                ["no_form_cut_input" => $request->no_form_cut_input],
+                [
+                    "id_item" => $request->current_id_item,
+                    "color_act" => $request->color_act,
+                    "detail_item" => $request->detail_item,
+                    "group" => $request->current_group,
+                    "lot" => $request->current_lot,
+                    "roll" => $request->current_roll,
+                    "qty" => $request->current_qty,
+                    "unit" => $request->current_unit,
+                    "sisa_gelaran" => $request->current_sisa_gelaran,
+                    "sambungan" => $request->current_sambungan,
+                    "est_amparan" => $request->current_est_amparan,
+                    "lembar_gelaran" => $request->current_lembar_gelaran,
+                    "average_time" => $request->current_average_time,
+                    "kepala_kain" => $request->current_kepala_kain,
+                    "sisa_tidak_bisa" => $request->current_sisa_tidak_bisa,
+                    "reject" => $request->current_reject,
+                    "sisa_kain" => $request->current_sisa_kain,
+                    "total_pemakaian_roll" => $request->current_total_pemakaian_roll,
+                    "short_roll" => $request->current_short_roll,
+                    "piping" => $request->current_piping,
+                    "remark" => $request->current_remark,
+                    "status" => "not complete",
+                ]
+            );
+
+        if ($storeTimeRecordSummary) {
+            $now = Carbon::now();
+
+            if ($lap > 0) {
+                $storeTimeRecordLap = FormCutInputDetailLap::updateOrCreate(
+                    ["form_cut_input_detail_id" => $storeTimeRecordSummary->id, "lembar_gelaran_ke" => $lap],
+                    [
+                        "waktu" => $request["time_record"][$lap]
+                    ]
+                );
+
+                if ($storeTimeRecordLap) {
+                    return array(
+                        "status" => 200,
+                        "message" => "alright",
+                        "additional" => [],
+                    );
+                }
+            }
+
+            return array(
+                "status" => 200,
+                "message" => "alright",
+                "additional" => [],
+            );
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "nothing really matter anymore",
+            "additional" => [],
+        );
+    }
+
+    public function checkSpreadingForm($noForm = 0, $noMeja = 0, Request $request) {
+        $formCutInputDetailData = FormCutInputDetail::selectRaw('
+                form_cut_input_detail.*
+            ')->
+            leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->
+            where('no_form_cut_input', $noForm)->
+            where('no_meja', $noMeja)->
+            where('form_cut_input_detail.status', 'not complete')->
+            first() ;
+
+        return array(
+            "count" => $formCutInputDetailData ? $formCutInputDetailData->count() : 0,
+            "data" => $formCutInputDetailData,
+        );
+    }
+
+    public function checkTimeRecordLap($detailId = 0) {
+        $formCutInputDetailLapData = FormCutInputDetailLap::where('form_cut_input_detail_id', $detailId)->get();
+
+        return array(
+            "count" => $formCutInputDetailLapData->count(),
+            "data" => $formCutInputDetailLapData,
+        );
+    }
+
+    public function finishProcess($id = 0, Request $request) {
         $updateFormCutInput = FormCutInput::where("id", $id)->
             update([
                 "status" => "SELESAI PENGERJAAN",
-                "waktu_selesai" => $request->finishTime
+                "waktu_selesai" => $request->finishTime,
+                "cons_act" => $request->consAct,
+                "unit_cons_act" => $request->unitConsAct,
+                "operator" => $request->operator,
             ]);
 
         return $updateFormCutInput;
