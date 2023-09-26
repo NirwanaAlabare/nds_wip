@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<table border="1" class="table table-bordered table-striped">
+<table class="table">
     <tr>
         <td colspan='32'>Laporan Pemakaian Cutting</td>
     </tr>

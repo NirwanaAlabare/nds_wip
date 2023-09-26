@@ -21,11 +21,11 @@ class LapPemakaianController extends Controller
             $additionalQuery = "";
 
             if ($request->dateFrom) {
-                $additionalQuery .= " where b.created_at >= '" . $request->dateFrom . "' ";
+                $additionalQuery .= " where b.created_at >= '" . $request->dateFrom . " 00:00:00' ";
             }
 
             if ($request->dateTo) {
-                $additionalQuery .= " and b.created_at <= '" . $request->dateTo . "' ";
+                $additionalQuery .= " and b.created_at <= '" . $request->dateTo . " 23:59:59' ";
             }
 
             $keywordQuery = "";

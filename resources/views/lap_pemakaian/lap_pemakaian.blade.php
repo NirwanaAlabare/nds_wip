@@ -41,7 +41,7 @@
         <table id="datatable" class="table table-bordered table-striped table-sm w-100">
             <thead>
                 <tr>
-                    <th>Tgl. Form Cutting</th>
+                    <th style="width:15%"">Tgl. Form Cutting</th>
                     <th>WS</th>
                     <th>Nama Barang</th>
                     <th>Qty</th>

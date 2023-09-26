@@ -2,12 +2,19 @@
 
 namespace App\Exports;
 
-use App\Models\Marker;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Events\AfterSheet;
+use Maatwebsite\Excel\Sheet;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use DB;
+
+Sheet::macro('styleCells', function (Sheet $sheet, string $cellRange, array $style) {
+    $sheet->getDelegate()->getStyle($cellRange)->applyFromArray($style);
+});
 
 // class ExportLaporanPemakaian implements FromCollection
 // {
@@ -20,7 +27,7 @@ use DB;
 //     }
 // }
 
-class ExportLaporanPemakaian implements FromView, ShouldAutoSize
+class ExportLaporanPemakaian implements FromView, WithEvents, ShouldAutoSize
 {
     use Exportable;
 
@@ -32,6 +39,7 @@ class ExportLaporanPemakaian implements FromView, ShouldAutoSize
 
         $this->from = $from;
         $this->to = $to;
+        $this->rowCount = 0;
     }
 
 
@@ -77,14 +85,42 @@ class ExportLaporanPemakaian implements FromView, ShouldAutoSize
         inner join form_cut_input_detail b on a.no_form = b.no_form_cut_input
         inner join marker_input mrk on a.id_marker = mrk.kode
         inner join (select marker_id, sum(ratio) tot_ratio from marker_input_detail group by marker_id) mr on mrk.id = mr.marker_id
-        where b.created_at >='$this->from'
-        and b.created_at <= '$this->to'");
+        where b.created_at >='$this->from 00:00:00'
+        and b.created_at <= '$this->to 23:59:59'");
 
         // $data = Marker::orderBy('tgl_cutting', 'asc')->get();
+        $this->rowCount = count($data) + 3;
+
+
         return view('lap_pemakaian.export', [
             'data' => $data,
             'from' => $this->from,
             'to' => $this->to
         ]);
+    }
+
+    public function registerEvents(): array
+    {
+        return [
+            AfterSheet::class => [self::class, 'afterSheet']
+        ];
+    }
+
+
+
+    public static function afterSheet(AfterSheet $event)
+    {
+
+        $event->sheet->styleCells(
+            'A3:AG' . $event->getConcernable()->rowCount,
+            [
+                'borders' => [
+                    'allBorders' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['argb' => '000000'],
+                    ],
+                ],
+            ]
+        );
     }
 }
