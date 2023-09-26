@@ -76,8 +76,8 @@ class ExportLaporanPemakaian implements FromView, ShouldAutoSize
         inner join form_cut_input_detail b on a.no_form = b.no_form_cut_input
         inner join marker_input mrk on a.id_marker = mrk.kode
         inner join (select marker_id, sum(ratio) tot_ratio from marker_input_detail group by marker_id) mr on mrk.id = mr.marker_id
-        where b.created_at >='$this->from'
-        and b.created_at <= '$this->to'");
+        where DATE(b.created_at) >='$this->from'
+        and DATE(b.created_at) <= '$this->to'");
 
         // $data = Marker::orderBy('tgl_cutting', 'asc')->get();
         return view('lap_pemakaian.export', [

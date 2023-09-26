@@ -289,28 +289,6 @@
     </script>
 
     <script type='text/javascript'>
-        function getOrderInfo() {
-            return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: '{{ route("get-spreading-data") }}',
-                type: 'get',
-                data: {
-                    ws: $('#txt_ws').val(),
-                    color: $('#txtcolor').val(),
-                },
-                dataType: 'json',
-                success: function (res) {
-                    console.log(res);
-                    if (res) {
-                        document.getElementById('txtbuyer').value = res.buyer;
-                        document.getElementById('txtstyle').value = res.styleno;
-                    }
-                },
-            });
-        }
-
         function getno_marker() {
             let cbows = document.form.cbows.value;
             let html = $.ajax({
@@ -343,8 +321,8 @@
                 success: function(response) {
                     document.getElementById('txtpanel').value = response.panel;
                     document.getElementById('txtcolor').value = response.color;
-                    // document.getElementById('txtbuyer').value = response.buyer;
-                    // document.getElementById('txtstyle').value = response.style;
+                    document.getElementById('txtbuyer').value = response.buyer;
+                    document.getElementById('txtstyle').value = response.style;
                     document.getElementById('txt_p_marker').value = response.panjang_marker;
                     document.getElementById('txt_unit_p_marker').value = response.unit_panjang_marker;
                     document.getElementById('txt_comma_p_marker').value = response.comma_marker;
@@ -358,8 +336,6 @@
                     document.getElementById('txt_cons_marker').value = response.cons_marker;
                     document.getElementById('hitungmarker').value = response.gelar_qty;
                     document.getElementById('txtid_marker').value = response.kode;
-
-                    getOrderInfo();
                 },
                 error: function(request, status, error) {
                     alert(request.responseText);
