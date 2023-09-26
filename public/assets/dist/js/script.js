@@ -51,8 +51,10 @@ function pad(n) {
 
 // Check if value is null
 function checkIfNull(value) {
-    if (value == "" || value == null) {
-        return false
+    if (typeof value != "number") {
+        if (value == "" || value == null) {
+            return false
+        }
     }
 
     return true;

@@ -272,3 +272,14 @@
 .border-calc {
     border-color: #fa4456 !important;
 }
+
+#reader {
+    min-width: 576px !important;
+    margin: auto;
+}
+
+@media only screen and (max-width: 768px) {
+    #reader {
+        min-width: 100% !important;
+    }
+}
