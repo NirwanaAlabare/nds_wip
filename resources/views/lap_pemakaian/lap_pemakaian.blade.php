@@ -43,6 +43,9 @@
                 <tr>
                     <th>Tgl. Form Cutting</th>
                     <th>WS</th>
+                    <th>Nama Barang</th>
+                    <th>Qty</th>
+                    <th>Unit</th>
                     <th>Lembar Gelaran</th>
                 </tr>
             </thead>
@@ -86,6 +89,15 @@
                 },
                 {
                     data: 'act_costing_ws'
+                },
+                {
+                    data: 'detail_item'
+                },
+                {
+                    data: 'qty_item'
+                },
+                {
+                    data: 'unit_item'
                 },
                 {
                     data: 'lembar_gelaran'

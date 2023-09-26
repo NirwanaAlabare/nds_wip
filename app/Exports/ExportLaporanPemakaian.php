@@ -40,6 +40,7 @@ class ExportLaporanPemakaian implements FromView, ShouldAutoSize
     {
         $data = DB::select("select a.tgl_form_cut,
         act_costing_ws,
+        b.detail_item,
         mrk.color,
         month(a.tgl_form_cut),
         b.roll,

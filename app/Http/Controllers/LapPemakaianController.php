@@ -39,6 +39,9 @@ class LapPemakaianController extends Controller
             }
 
             $data_pemakaian = DB::select("select a.tgl_form_cut,
+            b.detail_item,
+            b.qty qty_item,
+            b.unit unit_item,
             act_costing_ws,
             mrk.color,
             month(a.tgl_form_cut),
