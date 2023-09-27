@@ -41,9 +41,9 @@
         <table id="datatable" class="table table-bordered table-striped table-sm w-100">
             <thead>
                 <tr>
-                    <th style="width:15%"">Tgl. Form Cutting</th>
+                    <th style="width:15%">Tgl. Form Cutting</th>
                     <th>WS</th>
-                    <th>Nama Barang</th>
+                    <th style="width:55%">Nama Barang</th>
                     <th>Qty</th>
                     <th>Unit</th>
                     <th>Lembar Gelaran</th>
@@ -76,7 +76,7 @@
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                url: '{{ route("lap_pemakaian") }}',
+                url: '{{ route('lap_pemakaian') }}',
                 dataType: 'json',
                 dataSrc: 'data',
                 data: function(d) {
@@ -85,7 +85,7 @@
                 },
             },
             columns: [{
-                    data: 'tgl_form_cut'
+                    data: 'tgl_form_cut_fix'
                 },
                 {
                     data: 'act_costing_ws'
