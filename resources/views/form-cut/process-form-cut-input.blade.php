@@ -315,8 +315,8 @@
                                 <label class="form-label label-input"><small><b>Kode Barang</b></small></label>
                                 <div class="input-group">
                                     <input type="text" class="form-control form-control-sm border-input" name="kode_barang" id="kode_barang">
+                                    <button class="btn btn-sm btn-success" type="button" id="get-button" onclick="fetchScan()">Get</button>
                                     <button class="btn btn-sm btn-primary" type="button" id="scan-button" onclick="initScan()">Scan</button>
-                                    <button class="btn btn-sm btn-success" type="button" id="scan-button" onclick="fetchScan()">Get</button>
                                 </div>
                             </div>
                         </div>
@@ -357,7 +357,9 @@
                 </div>
                 <div class="card-body" style="display: block;">
                     <form action="#" method="post" id="spreading-form">
-                        <input type="hidden" name="spreading-id" id="spreading-id">
+                        <input type="text" id="id_sambungan" name="id_sambungan" readonly>
+                        <input type="text" id="status_sambungan" name="status_sambungan" readonly>
+                        <input type="text" id="current_id_roll" name="current_id_roll" readonly>
                         <div class="row">
                             <div class="col-4">
                                 <div class="mb-3">
@@ -620,6 +622,7 @@
 
             // -Current Scanned Item-
             var currentScannedItem = null;
+            var currentSisaGelaran = null;
 
             // -Summary Data-
             var summaryData = null;
@@ -813,7 +816,7 @@
 
                         $('#scan-qr-card').CardWidget('collapse');
 
-                        setSpreadingForm(currentScannedItem);
+                        setSpreadingForm(currentScannedItem, sisaGelaran);
                         openTimeRecordCondition();
                         getSummary();
 
@@ -849,8 +852,57 @@
 
                     spreadingForm.forEach((value, key) => dataObj[key] = value);
 
+                    console.log($("#status_sambungan").val())
+
+                    if ($("#status_sambungan").val() != "extension") {
+                        return $.ajax({
+                            url: '{{ route("store-time-form-cut-input") }}',
+                            type: 'post',
+                            dataType: 'json',
+                            data: dataObj,
+                            success: function(res) {
+                                if (res) {
+                                    initScan();
+                                    clearScanItemForm();
+                                    clearSpreadingForm();
+                                    firstTimeRecordCondition();
+
+                                    nextProcessThreeButton.classList.remove('d-none');
+
+                                    if (res.additional.length > 0) {
+                                        $('#summary-card').removeClass('d-none');
+
+                                        appendScannedItem(res.additional[0]);
+
+                                        if (res.additional.length > 1) {
+                                            setSpreadingForm(res.additional[1], res.additional[0].sisa_gelaran);
+                                        }
+                                    }
+                                }
+                            },
+                            error: function(jqXHR) {
+                                let res = jqXHR.responseJSON;
+                                let message = '';
+                                let i = 0;
+
+                                for (let key in res.errors) {
+                                    message = res.errors[key];
+                                    document.getElementById(key).classList.add('is-invalid');
+                                    modified.push(
+                                        [key, '.classList', '.remove(', "'is-invalid')"],
+                                    )
+
+                                    if (i == 0) {
+                                        document.getElementById(key).focus();
+                                        i++;
+                                    }
+                                };
+                            }
+                        });
+                    }
+
                     return $.ajax({
-                        url: '{{ route("store-time-form-cut-input") }}',
+                        url: '{{ route("store-time-ext-form-cut-input") }}',
                         type: 'post',
                         dataType: 'json',
                         data: dataObj,
@@ -867,6 +919,10 @@
                                     $('#summary-card').removeClass('d-none');
 
                                     appendScannedItem(res.additional[0]);
+
+                                    if (res.additional.length > 1) {
+                                        setSpreadingForm(res.additional[1], res.additional[0].sisa_gelaran);
+                                    }
                                 }
                             }
                         },
@@ -1217,164 +1273,177 @@
                 document.getElementById('unit_cons_actual_gelaran').setAttribute('readonly', true);
             }
 
-            var spreadingFormData = null;
+        // Spreading Form Module :
+            // Variable :
+                var spreadingFormData = null;
+                var sisaGelaran = null;
 
-            // -Check Spreading Form-
-            function checkSpreadingForm() {
-                let noForm = document.getElementById("no_form").value;
-                let noMeja = document.getElementById("no_meja").value;
-
-                $.ajax({
-                    url: '{{ route("check-spreading-form-cut-input") }}/'+noForm+'/'+noMeja,
-                    type: 'get',
-                    dataType: 'json',
-                    success: function(res) {
-                        if (res) {
-                            nextProcessThreeButton.classList.remove('d-none');
-
-                            if (res.count > 0) {
-                                spreadingFormData = res.data;
-
-                                setSpreadingForm(spreadingFormData);
-
-                                checkTimeRecordLap(res.data.id);
-
-                                document.getElementById("id_item").value = res.data.id_item;
-                                document.getElementById("color_act").value = res.data.color_act;
-                                document.getElementById("detail_item").value = res.data.detail_item;
-
-                                $('#spreading-form-card').CardWidget('expand');
-                                $('#spreading-form-card').removeClass("d-none");
-                            } else {
-                                $('#spreading-form-card').CardWidget('collapse');
-                            }
-                        }
-                    }
-                });
-            }
-
-            // -Set Spreading Form-
-            function setSpreadingForm(data) {
-                clearSpreadingForm();
-
-                data.group ? document.getElementById("current_group").value = data.group : '';
-                data.id_item ? document.getElementById("current_id_item").value = data.id_item : '';
-                data.lot ? document.getElementById("current_lot").value = data.lot : '';
-                data.roll ? document.getElementById("current_roll").value = data.roll : '';
-                data.qty ? document.getElementById("current_qty").value = data.qty : '';
-                data.unit ? document.getElementById("current_unit").value = data.unit : '';
-                data.sisa_gelaran ? document.getElementById("current_sisa_gelaran").value = data.sisa_gelaran : '';
-                data.sambungan ? document.getElementById("current_sambungan").value = data.sambungan : '';
-                data.est_amparan ? document.getElementById("current_est_amparan").value = data.est_amparan : '';
-                data.lembar_gelaran ? document.getElementById("current_lembar_gelaran").value = data.lembar_gelaran : '';
-                data.average_time ? document.getElementById("current_average_time").value = data.average_time : '';
-                data.kepala_kain ? document.getElementById("current_kepala_kain").value = data.kepala_kain : '';
-                data.sisa_tidak_bisa ? document.getElementById("current_sisa_tidak_bisa").value = data.sisa_tidak_bisa : '';
-                data.reject ? document.getElementById("current_reject").value = data.reject : '';
-                data.sisa_kain ? document.getElementById("current_sisa_kain").value = data.sisa_kain : '';
-                data.total_pemakaian_roll ? document.getElementById("current_total_pemakaian_roll").value = data.total_pemakaian_roll : '';
-                data.short_roll ? document.getElementById("current_short_roll").value = data.short_roll : '';
-                data.piping ? document.getElementById("current_piping").value = data.piping : '';
-                data.remark ? document.getElementById("current_remark").value = data.remark : '';
-
-                calculateEstAmpar(data.roll_qty, document.getElementById("p_act").value);
-
-                nextProcessThreeButton.classList.add("d-none");
-                $('#scan-qr-card').CardWidget('collapse');
-
-                $('#spreading-form-card').CardWidget('expand');
-            }
-
-            // -Clear Spreading Form-
-            function clearSpreadingForm() {
-                $('#spreading-form-card').CardWidget('collapse');
-
-                document.getElementById("current_group").value = "";
-                document.getElementById("current_id_item").value = "";
-                document.getElementById("current_lot").value = "";
-                document.getElementById("current_roll").value = "";
-                document.getElementById("current_qty").value = "";
-                document.getElementById("current_unit").value = "";
-                document.getElementById("current_sisa_gelaran").value = 0;
-                document.getElementById("current_sambungan").value = 0;
-                document.getElementById("current_est_amparan").value = 0;
-                document.getElementById("current_lembar_gelaran").value = 0;
-                document.getElementById("current_average_time").value = "00:00";
-                document.getElementById("current_kepala_kain").value = 0;
-                document.getElementById("current_sisa_tidak_bisa").value = 0;
-                document.getElementById("current_reject").value = 0;
-                document.getElementById("current_sisa_kain").value = 0;
-                document.getElementById("current_total_pemakaian_roll").value = 0;
-                document.getElementById("current_short_roll").value = 0;
-                document.getElementById("current_piping").value = 0;
-                document.getElementById("current_remark").value = 0;
-            }
-
-            // -Lock Spreading Form-
-            function lockSpreadingForm() {
-                document.getElementById("current_group").setAttribute("readonly", true);
-                document.getElementById("current_id_item").setAttribute("readonly", true);
-                document.getElementById("current_lot").setAttribute("readonly", true);
-                document.getElementById("current_roll").setAttribute("readonly", true);
-                document.getElementById("current_qty").setAttribute("readonly", true);
-                document.getElementById("current_unit").setAttribute("readonly", true);
-                document.getElementById("current_sisa_gelaran").setAttribute("readonly", true);
-                document.getElementById("current_sambungan").setAttribute("readonly", true);
-                document.getElementById("current_est_amparan").setAttribute("readonly", true);
-                document.getElementById("current_lembar_gelaran").setAttribute("readonly", true);
-                document.getElementById("current_average_time").setAttribute("readonly", true);
-                document.getElementById("current_kepala_kain").setAttribute("readonly", true);
-                document.getElementById("current_sisa_tidak_bisa").setAttribute("readonly", true);
-                document.getElementById("current_reject").setAttribute("readonly", true);
-                document.getElementById("current_sisa_kain").setAttribute("readonly", true);
-                document.getElementById("current_total_pemakaian_roll").setAttribute("readonly", true);
-                document.getElementById("current_short_roll").setAttribute("readonly", true);
-                document.getElementById("current_piping").setAttribute("readonly", true);
-                document.getElementById("current_remark").setAttribute("readonly", true);
-            }
-
-            // -Get Summary Data-
-            function getSummary() {
-                if (summaryData == null) {
+            // Function :
+                // -Check Spreading Form-
+                function checkSpreadingForm() {
                     let noForm = document.getElementById("no_form").value;
+                    let noMeja = document.getElementById("no_meja").value;
 
-                    return $.ajax({
-                        url: '{{ route("get-time-form-cut-input") }}/'+noForm,
+                    $.ajax({
+                        url: '{{ route("check-spreading-form-cut-input") }}/'+noForm+'/'+noMeja,
                         type: 'get',
                         dataType: 'json',
                         success: function(res) {
                             if (res) {
-                                summaryData = res;
-                                setSummary(summaryData);
+                                nextProcessThreeButton.classList.remove('d-none');
+
+                                if (res.count > 0) {
+                                    spreadingFormData = res.data;
+                                    sisaGelaran = res.sisaGelaran;
+
+                                    setSpreadingForm(spreadingFormData, sisaGelaran);
+
+                                    checkTimeRecordLap(res.data.id);
+
+                                    document.getElementById("kode_barang").value = res.data.id_roll;
+                                    document.getElementById("id_item").value = res.data.id_item;
+                                    document.getElementById("color_act").value = res.data.color_act;
+                                    document.getElementById("detail_item").value = res.data.detail_item;
+
+                                    $('#spreading-form-card').CardWidget('expand');
+                                    $('#spreading-form-card').removeClass("d-none");
+                                } else {
+                                    $('#spreading-form-card').CardWidget('collapse');
+                                }
                             }
                         }
                     });
                 }
-            }
 
-            // -Set Summary Data-
-            function setSummary(data) {
-                if (totalScannedItem < 1) {
-                    summaryData.forEach((data) => {
-                        appendScannedItem(data)
-                    });
+                // -Set Spreading Form-
+                function setSpreadingForm(data, sisaGelaran) {
+                    if (sisaGelaran > 0) {
+                        data.id_sambungan ? document.getElementById("id_sambungan").value = data.id_sambungan : '';
+                        document.getElementById("status_sambungan").value = "extension";
+                        document.getElementById("current_sambungan").value = Number($("#p_act").val()) - Number(sisaGelaran);
+                    } else {
+                        clearSpreadingForm();
+
+                        nextProcessThreeButton.classList.add("d-none");
+
+                        $('#scan-qr-card').CardWidget('collapse');
+                        $('#spreading-form-card').CardWidget('expand');
+                    }
+
+                    data.id_roll ? document.getElementById("current_id_roll").value = data.id_roll : '';
+                    data.group ? document.getElementById("current_group").value = data.group : '';
+                    data.id_item ? document.getElementById("current_id_item").value = data.id_item : '';
+                    data.lot ? document.getElementById("current_lot").value = data.lot : '';
+                    data.roll ? document.getElementById("current_roll").value = data.roll : '';
+                    data.qty ? document.getElementById("current_qty").value = data.qty : '';
+                    data.unit ? document.getElementById("current_unit").value = data.unit : '';
+                    data.sisa_gelaran ? document.getElementById("current_sisa_gelaran").value = data.sisa_gelaran : '';
+                    data.sambungan ? document.getElementById("current_sambungan").value = data.sambungan : '';
+                    data.est_amparan ? document.getElementById("current_est_amparan").value = data.est_amparan : '';
+                    data.lembar_gelaran ? document.getElementById("current_lembar_gelaran").value = data.lembar_gelaran : '';
+                    data.average_time ? document.getElementById("current_average_time").value = data.average_time : '';
+                    data.kepala_kain ? document.getElementById("current_kepala_kain").value = data.kepala_kain : '';
+                    data.sisa_tidak_bisa ? document.getElementById("current_sisa_tidak_bisa").value = data.sisa_tidak_bisa : '';
+                    data.reject ? document.getElementById("current_reject").value = data.reject : '';
+                    data.sisa_kain ? document.getElementById("current_sisa_kain").value = data.sisa_kain : '';
+                    data.total_pemakaian_roll ? document.getElementById("current_total_pemakaian_roll").value = data.total_pemakaian_roll : '';
+                    data.short_roll ? document.getElementById("current_short_roll").value = data.short_roll : '';
+                    data.piping ? document.getElementById("current_piping").value = data.piping : '';
+                    data.remark ? document.getElementById("current_remark").value = data.remark : '';
+
+                    calculateEstAmpar(data.roll_qty, document.getElementById("p_act").value);
                 }
-            }
 
-            // -Lock Form Cut Input-
-            function lockFormCutInput() {
-                lockProcessCondition();
+                // -Clear Spreading Form-
+                function clearSpreadingForm() {
+                    $('#spreading-form-card').CardWidget('collapse');
 
-                lockGeneralForm();
+                    document.getElementById("current_group").value = "";
+                    document.getElementById("current_id_item").value = "";
+                    document.getElementById("current_lot").value = "";
+                    document.getElementById("current_roll").value = "";
+                    document.getElementById("current_qty").value = "";
+                    document.getElementById("current_unit").value = "";
+                    document.getElementById("current_sisa_gelaran").value = 0;
+                    document.getElementById("current_sambungan").value = 0;
+                    document.getElementById("current_est_amparan").value = 0;
+                    document.getElementById("current_lembar_gelaran").value = 0;
+                    document.getElementById("current_average_time").value = "00:00";
+                    document.getElementById("current_kepala_kain").value = 0;
+                    document.getElementById("current_sisa_tidak_bisa").value = 0;
+                    document.getElementById("current_reject").value = 0;
+                    document.getElementById("current_sisa_kain").value = 0;
+                    document.getElementById("current_total_pemakaian_roll").value = 0;
+                    document.getElementById("current_short_roll").value = 0;
+                    document.getElementById("current_piping").value = 0;
+                    document.getElementById("current_remark").value = 0;
+                }
 
-                lockScanItemForm();
+                // -Lock Spreading Form-
+                function lockSpreadingForm() {
+                    document.getElementById("current_group").setAttribute("readonly", true);
+                    document.getElementById("current_id_item").setAttribute("readonly", true);
+                    document.getElementById("current_lot").setAttribute("readonly", true);
+                    document.getElementById("current_roll").setAttribute("readonly", true);
+                    document.getElementById("current_qty").setAttribute("readonly", true);
+                    document.getElementById("current_unit").setAttribute("readonly", true);
+                    document.getElementById("current_sisa_gelaran").setAttribute("readonly", true);
+                    document.getElementById("current_sambungan").setAttribute("readonly", true);
+                    document.getElementById("current_est_amparan").setAttribute("readonly", true);
+                    document.getElementById("current_lembar_gelaran").setAttribute("readonly", true);
+                    document.getElementById("current_average_time").setAttribute("readonly", true);
+                    document.getElementById("current_kepala_kain").setAttribute("readonly", true);
+                    document.getElementById("current_sisa_tidak_bisa").setAttribute("readonly", true);
+                    document.getElementById("current_reject").setAttribute("readonly", true);
+                    document.getElementById("current_sisa_kain").setAttribute("readonly", true);
+                    document.getElementById("current_total_pemakaian_roll").setAttribute("readonly", true);
+                    document.getElementById("current_short_roll").setAttribute("readonly", true);
+                    document.getElementById("current_piping").setAttribute("readonly", true);
+                    document.getElementById("current_remark").setAttribute("readonly", true);
+                }
 
-                lockSpreadingForm();
+                // -Get Summary Data-
+                function getSummary() {
+                    if (summaryData == null) {
+                        let noForm = document.getElementById("no_form").value;
 
-                firstTimeRecordCondition();
+                        return $.ajax({
+                            url: '{{ route("get-time-form-cut-input") }}/'+noForm,
+                            type: 'get',
+                            dataType: 'json',
+                            success: function(res) {
+                                if (res) {
+                                    summaryData = res;
+                                    setSummary(summaryData);
+                                }
+                            }
+                        });
+                    }
+                }
 
-                lockTimeRecord();
-            }
+                // -Set Summary Data-
+                function setSummary(data) {
+                    if (totalScannedItem < 1) {
+                        summaryData.forEach((data) => {
+                            appendScannedItem(data)
+                        });
+                    }
+                }
+
+                // -Lock Form Cut Input-
+                function lockFormCutInput() {
+                    lockProcessCondition();
+
+                    lockGeneralForm();
+
+                    lockScanItemForm();
+
+                    lockSpreadingForm();
+
+                    firstTimeRecordCondition();
+
+                    lockTimeRecord();
+                }
 
         // Scan QR Module :
             // Variable List :
@@ -1425,7 +1494,7 @@
                     $("#color_act").val("");
                 }
 
-                // --Lock Scan Item Form then Clear Scanner
+                // --Lock Scan Item Form then Clear Scanner--
                 function lockScanItemForm() {
                     document.getElementById("kode_barang").setAttribute("readonly", true);
                     document.getElementById("id_item").setAttribute("readonly", true);
@@ -1469,11 +1538,13 @@
                             type: 'get',
                             dataType: 'json',
                             success: function(res) {
+                                console.log(res);
+
                                 if (res) {
                                     currentScannedItem = res;
 
                                     document.getElementById("id_item").value = res.id_item;
-                                    document.getElementById("detail_item").value = res.itemdesc;
+                                    document.getElementById("detail_item").value = res.detail_item;
                                 }
                             }
                         });
@@ -1693,7 +1764,13 @@
 
                     stopLapButton.disabled = false;
 
-                    storeThisTimeRecord();
+                    console.log($("#status_sambungan").val());
+
+                    if ($("#status_sambungan").val() == "extension") {
+                        storeTimeRecord();
+                    } else {
+                        storeThisTimeRecord();
+                    }
                 }
 
                 // -Stop Time Record-
@@ -1735,7 +1812,6 @@
                     function openLapTimeRecordCondition() {
                         startLapButton.disabled = true;
                         nextLapButton.disabled = false;
-                        stopLapButton.disabled = true;
                     }
 
                     function nextTimeRecordCondition() {
@@ -1746,10 +1822,6 @@
                     }
 
                     function lockTimeRecord() {
-                        // for (let i = 0; i < summaryData.length; i++) {
-                        //     document.getElementById("group-"+(i)).setAttribute("readonly", true);
-                        //     document.getElementById("lembar-"+(i)).setAttribute("readonly", true);
-                        // }
                         finishProcessButton.disabled = true;
                         finishProcessButton.innerHTML = "PENGERJAAN TELAH DISELESAIKAN";
                     }
