@@ -39,6 +39,7 @@ class LapPemakaianController extends Controller
             }
 
             $data_pemakaian = DB::select("select a.tgl_form_cut,
+            DATE_FORMAT(tgl_form_cut, '%d-%m-%Y') tgl_form_cut_fix,
             b.detail_item,
             b.qty qty_item,
             b.unit unit_item,
