@@ -420,9 +420,9 @@
                 </div>
                 <div class="card-body" style="display: block;">
                     <form action="#" method="post" id="spreading-form">
-                        <input type="text" id="id_sambungan" name="id_sambungan" readonly>
-                        <input type="text" id="status_sambungan" name="status_sambungan" readonly>
-                        <input type="text" id="current_id_roll" name="current_id_roll" readonly>
+                        <input type="hidden" id="id_sambungan" name="id_sambungan" readonly>
+                        <input type="hidden" id="status_sambungan" name="status_sambungan" readonly>
+                        <input type="hidden" id="current_id_roll" name="current_id_roll" readonly>
                         <div class="row">
                             <div class="col-4">
                                 <div class="mb-3">
@@ -956,9 +956,9 @@
 
             spreadingForm.forEach((value, key) => dataObj[key] = value);
 
-            console.log($("#status_sambungan").val())
-
             if ($("#status_sambungan").val() != "extension") {
+                console.log("im here");
+
                 return $.ajax({
                     url: '{{ route('store-time-form-cut-input') }}',
                     type: 'post',
@@ -983,6 +983,61 @@
                                         sisaGelaran = res.additional[0].sisa_gelaran;
                                         setSpreadingForm(res.additional[1], res.additional[0].sisa_gelaran);
                                         $("#scan-qr-card").CardWidget('expand');
+                                        document.getElementById('kode_barang').focus();
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    error: function(jqXHR) {
+                        let res = jqXHR.responseJSON;
+                        let message = '';
+                        let i = 0;
+
+                        for (let key in res.errors) {
+                            message = res.errors[key];
+                            document.getElementById(key).classList.add('is-invalid');
+                            modified.push(
+                                [key, '.classList', '.remove(', "'is-invalid')"],
+                            )
+
+                            if (i == 0) {
+                                document.getElementById(key).focus();
+                                i++;
+                            }
+                        };
+                    }
+                });
+            } else {
+                console.log("but also here");
+
+                return $.ajax({
+                    url: '{{ route('store-time-ext-form-cut-input') }}',
+                    type: 'post',
+                    dataType: 'json',
+                    data: dataObj,
+                    success: function(res) {
+                        if (res) {
+                            console.log(res.additional);
+
+                            initScan();
+                            clearScanItemForm();
+                            clearSpreadingForm();
+                            firstTimeRecordCondition();
+
+                            nextProcessThreeButton.classList.remove('d-none');
+
+                            if (res.additional.length > 0) {
+                                $('#summary-card').removeClass('d-none');
+
+                                appendScannedItem(res.additional[0]);
+
+                                if (res.additional.length > 1) {
+                                    if (res.additional[1]) {
+                                        sisaGelaran = res.additional[0].sisa_gelaran;
+                                        setSpreadingForm(res.additional[1], res.additional[0].sisa_gelaran);
+                                        $("#scan-qr-card").CardWidget('expand');
+                                        document.getElementById('kode_barang').focus();
                                     }
                                 }
                             }
@@ -1008,55 +1063,6 @@
                     }
                 });
             }
-
-            return $.ajax({
-                url: '{{ route('store-time-ext-form-cut-input') }}',
-                type: 'post',
-                dataType: 'json',
-                data: dataObj,
-                success: function(res) {
-                    if (res) {
-                        initScan();
-                        clearScanItemForm();
-                        clearSpreadingForm();
-                        firstTimeRecordCondition();
-
-                        nextProcessThreeButton.classList.remove('d-none');
-
-                        if (res.additional.length > 0) {
-                            $('#summary-card').removeClass('d-none');
-
-                            appendScannedItem(res.additional[0]);
-
-                            if (res.additional.length > 1) {
-                                if (res.additional[1]) {
-                                    sisaGelaran = res.additional[0].sisa_gelaran;
-                                    setSpreadingForm(res.additional[1], res.additional[0].sisa_gelaran);
-                                    $("#scan-qr-card").CardWidget('expand');
-                                }
-                            }
-                        }
-                    }
-                },
-                error: function(jqXHR) {
-                    let res = jqXHR.responseJSON;
-                    let message = '';
-                    let i = 0;
-
-                    for (let key in res.errors) {
-                        message = res.errors[key];
-                        document.getElementById(key).classList.add('is-invalid');
-                        modified.push(
-                            [key, '.classList', '.remove(', "'is-invalid')"],
-                        )
-
-                        if (i == 0) {
-                            document.getElementById(key).focus();
-                            i++;
-                        }
-                    };
-                }
-            });
         }
 
         // -Store This Time Record Transaction-

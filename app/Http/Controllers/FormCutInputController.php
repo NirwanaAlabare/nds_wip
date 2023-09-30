@@ -650,7 +650,9 @@ class FormCutInputController extends Controller
                         return array(
                             "status" => 200,
                             "message" => "alright",
-                            "additional" => FormCutInputDetail::where('id', $storeTimeRecordSummary->id)->first(),
+                            "additional" => [
+                                FormCutInputDetail::where('id', $storeTimeRecordSummary->id)->first()
+                            ],
                         );
                     }
                 }
