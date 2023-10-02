@@ -104,7 +104,7 @@ class LapPemakaianController extends Controller
     public function export_excel(Request $request)
     {
 
-        return Excel::download(new ExportLaporanPemakaian($request->from, $request->to), 'Laporan.xlsx');
+        return Excel::download(new ExportLaporanPemakaian($request->from, $request->to), 'Laporan_pemakaian_cutting.xlsx');
     }
 
 

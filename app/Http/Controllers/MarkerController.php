@@ -24,37 +24,41 @@ class MarkerController extends Controller
             $tglAkhir = $request->tgl_akhir;
             $keyword = $request->search["value"];
 
+
             $markersQuery = Marker::selectRaw("
-                    tgl_cutting,
-                    kode,
-                    act_costing_ws,
-                    color,
-                    panel,
-                    CONCAT(panjang_marker, ' ', UPPER(unit_panjang_marker)) panjang_marker,
-                    CONCAT(comma_marker, ' ', UPPER(unit_comma_marker)) comma_marker,
-                    CONCAT(lebar_marker, ' ', UPPER(unit_lebar_marker)) lebar_marker,
-                    gelar_qty,
-                    po_marker,
-                    urutan_marker
-                ");
+                id,
+                tgl_cutting,
+                kode,
+                act_costing_ws,
+                color,
+                panel,
+                CONCAT(panjang_marker, ' ', UPPER(unit_panjang_marker)) panjang_marker,
+                CONCAT(comma_marker, ' ', UPPER(unit_comma_marker)) comma_marker,
+                CONCAT(panjang_marker, ' ', UPPER(unit_panjang_marker), ' ',comma_marker, ' ', UPPER(unit_comma_marker)) panjang_marker_fix,
+                CONCAT(lebar_marker, ' ', UPPER(unit_lebar_marker)) lebar_marker,
+                gelar_qty,
+                po_marker,
+                urutan_marker
+            ");
+
 
             if ($tglAwal) {
-                $markersQuery->whereRaw("tgl_cutting >= '".$tglAwal."'");
+                $markersQuery->whereRaw("tgl_cutting >= '" . $tglAwal . "'");
             }
 
             if ($tglAkhir) {
-                $markersQuery->whereRaw("tgl_cutting <= '".$tglAkhir."'");
+                $markersQuery->whereRaw("tgl_cutting <= '" . $tglAkhir . "'");
             }
 
             if ($keyword) {
                 $markersQuery->whereRaw("(
-                    tgl_cutting like '%".$keyword."%' OR
-                    kode like '%".$keyword."%' OR
-                    act_costing_ws like '%".$keyword."%' OR
-                    color like '%".$keyword."%' OR
-                    panel like '%".$keyword."%' OR
-                    po_marker like '%".$keyword."%' OR
-                    urutan_marker like '%".$keyword."%'
+                    tgl_cutting like '%" . $keyword . "%' OR
+                    kode like '%" . $keyword . "%' OR
+                    act_costing_ws like '%" . $keyword . "%' OR
+                    color like '%" . $keyword . "%' OR
+                    panel like '%" . $keyword . "%' OR
+                    po_marker like '%" . $keyword . "%' OR
+                    urutan_marker like '%" . $keyword . "%'
                 )");
             }
 
@@ -79,53 +83,35 @@ class MarkerController extends Controller
     public function create(Request $request)
     {
         if ($request->ajax()) {
-            $markerDetail = MarkerDetail::selectRaw("marker_input_detail.so_det_id, marker_input.panel, SUM(marker_input_detail.cut_qty) total_cut_qty")->
-                leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->
-                groupBy("marker_input_detail.so_det_id", "marker_input.panel")->
-                get();
+            $markerDetail = MarkerDetail::selectRaw("marker_input_detail.so_det_id, marker_input.panel, SUM(marker_input_detail.cut_qty) total_cut_qty")->leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->groupBy("marker_input_detail.so_det_id", "marker_input.panel")->get();
 
             return $markerDetail;
         }
 
-        $orders = DB::connection('mysql_sb')->
-            table('act_costing')->
-            select('id', 'kpno')->
-            where('status', '!=', 'CANCEL')->
-            where('cost_date', '>=', '2023-01-01')->
-            where('type_ws', 'STD')->
-            orderBy('cost_date', 'desc')->
-            orderBy('kpno', 'asc')->
-            groupBy('kpno')->
-            get();
+        $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
         return view('marker.create-marker', ['orders' => $orders]);
     }
 
     public function getOrderInfo(Request $request)
     {
-        $order = DB::connection('mysql_sb')->
-            table('act_costing')->
-            selectRaw('act_costing.id, act_costing.kpno, act_costing.styleno, act_costing.qty order_qty, mastersupplier.supplier buyer')->
-            leftJoin('mastersupplier', 'mastersupplier.Id_Supplier', '=', 'act_costing.id_buyer')->
-            where('id', $request->act_costing_id)->
-            first();
+        $order = DB::connection('mysql_sb')->table('act_costing')->selectRaw('act_costing.id, act_costing.kpno, act_costing.styleno, act_costing.qty order_qty, mastersupplier.supplier buyer')->leftJoin('mastersupplier', 'mastersupplier.Id_Supplier', '=', 'act_costing.id_buyer')->where('id', $request->act_costing_id)->first();
 
         return json_encode($order);
     }
 
     public function getColorList(Request $request)
     {
-        $colors = DB::connection('mysql_sb')->
-            select("select sd.color from so_det sd
+        $colors = DB::connection('mysql_sb')->select("select sd.color from so_det sd
             inner join so on sd.id_so = so.id
             inner join act_costing ac on so.id_cost = ac.id
-            where ac.id = '".$request->act_costing_id."' and sd.cancel = 'N'
+            where ac.id = '" . $request->act_costing_id . "' and sd.cancel = 'N'
             group by sd.color");
 
         $html = "<option value=''>Pilih Color</option>";
 
         foreach ($colors as $color) {
-            $html .= " <option value='".$color->color."'>".$color->color."</option> ";
+            $html .= " <option value='" . $color->color . "'>" . $color->color . "</option> ";
         }
 
         return $html;
@@ -133,13 +119,12 @@ class MarkerController extends Controller
 
     public function getSizeList(Request $request)
     {
-        $sizes = DB::connection('mysql_sb')->
-            select("
+        $sizes = DB::connection('mysql_sb')->select("
                 select sd.id, ac.kpno no_ws, sd.color, sd.qty order_qty, sd.size from so_det sd
                     inner join so on sd.id_so = so.id
                     inner join act_costing ac on so.id_cost = ac.id
                     inner join master_size_new msn on sd.size = msn.size
-                where ac.id = '".$request->act_costing_id."' and sd.color = '".$request->color."' and sd.cancel = 'N'
+                where ac.id = '" . $request->act_costing_id . "' and sd.color = '" . $request->color . "' and sd.cancel = 'N'
                 group by sd.size
                 order by msn.urutan asc
             ");
@@ -154,15 +139,14 @@ class MarkerController extends Controller
 
     public function getPanelList(Request $request)
     {
-        $panels = DB::connection('mysql_sb')->
-            select("
+        $panels = DB::connection('mysql_sb')->select("
                 select nama_panel panel from
                     (select id_panel from bom_jo_item k
                         inner join so_det sd on k.id_so_det = sd.id
                         inner join so on sd.id_so = so.id
                         inner join act_costing ac on so.id_cost = ac.id
                         inner join masteritem mi on k.id_item = mi.id_gen
-                        where ac.id = '".$request->act_costing_id."' and sd.color = '".$request->color."' and k.status = 'M'
+                        where ac.id = '" . $request->act_costing_id . "' and sd.color = '" . $request->color . "' and k.status = 'M'
                         and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and ac.status = 'confirm' and mi.mattype = 'F'
                         group by id_panel
                     )a
@@ -172,22 +156,22 @@ class MarkerController extends Controller
         $html = "<option value=''>Pilih Panel</option>";
 
         foreach ($panels as $panel) {
-            $html .= " <option value='".$panel->panel."'>".$panel->panel."</option> ";
+            $html .= " <option value='" . $panel->panel . "'>" . $panel->panel . "</option> ";
         }
 
         return $html;
     }
 
-    public function getNumber(Request $request) {
-        $number = DB::connection('mysql_sb')->
-            select("
+    public function getNumber(Request $request)
+    {
+        $number = DB::connection('mysql_sb')->select("
                 select k.cons cons_ws,sum(sd.qty) order_qty from bom_jo_item k
                     inner join so_det sd on k.id_so_det = sd.id
                     inner join so on sd.id_so = so.id
                     inner join act_costing ac on so.id_cost = ac.id
                     inner join masteritem mi on k.id_item = mi.id_gen
                     inner join masterpanel mp on k.id_panel = mp.id
-                where ac.id = '".$request->act_costing_id."' and sd.color = '".$request->color."' and mp.nama_panel ='".$request->panel."' and k.status = 'M'
+                where ac.id = '" . $request->act_costing_id . "' and sd.color = '" . $request->color . "' and mp.nama_panel ='" . $request->panel . "' and k.status = 'M'
                 and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and ac.status = 'confirm' and mi.mattype = 'F'
                 group by sd.color, k.id_item, k.unit
                 limit 1
@@ -196,11 +180,9 @@ class MarkerController extends Controller
         return json_encode($number ? $number[0] : null);
     }
 
-    public function getCount(Request $request) {
-        $countMarker = Marker::where('act_costing_id', $request->act_costing_id)->
-            where('color', $request->color)->
-            where('panel', $request->panel)->
-            count() + 1;
+    public function getCount(Request $request)
+    {
+        $countMarker = Marker::where('act_costing_id', $request->act_costing_id)->where('color', $request->color)->where('panel', $request->panel)->count() + 1;
 
         return $countMarker ? $countMarker : 1;
     }
@@ -213,8 +195,8 @@ class MarkerController extends Controller
      */
     public function store(Request $request)
     {
-        $countMarker = Marker::whereRaw("kode LIKE 'MRK/".date('ym')."/%'")->count() + 1;
-        $markerCode = 'MRK/'.date('ym').'/'.sprintf('%05s', $countMarker);
+        $countMarker = Marker::whereRaw("kode LIKE 'MRK/" . date('ym') . "/%'")->count() + 1;
+        $markerCode = 'MRK/' . date('ym') . '/' . sprintf('%05s', $countMarker);
 
         $validatedRequest = $request->validate([
             "tgl_cutting" => "required",
