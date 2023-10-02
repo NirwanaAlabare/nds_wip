@@ -8,6 +8,69 @@
 @endsection
 
 @section('content')
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-light">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel"></h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <input type="hidden" id="edit_id" name="edit_id">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label"><small>Tgl. Cutting</small></label>
+                                <input type="text" class="form-control" id="edit_no_form" name="edit_no_form"
+                                    value="" readonly />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label"><small>Tgl Form</small></label>
+                                <input type="text" class="form-control" id="edit_tgl_form_cut" name="edit_tgl_form_cut"
+                                    value="" readonly />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label"><small>WS</small></label>
+                                <input type="text" class="form-control" id="edit_ws" name="edit_ws" value=""
+                                    readonly />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label"><small>Color</small></label>
+                                <input type="text" class="form-control" id="edit_color" name="edit_color" value=""
+                                    readonly />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label"><small>Panel</small></label>
+                                <input type="text" class="form-control" id="edit_panel" name="edit_panel" value=""
+                                    readonly />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label"><small>No. Meja</small></label>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-sb">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <div class="card card-sb card-outline">
         <div class="card-header">
             <h5 class="card-title fw-bold mb-0">Data Marker</h5>
@@ -128,11 +191,11 @@
                 {
                     targets: [10],
                     render: (data, type, row, meta) => {
-                        return `<div class='d-flex gap-1 justify-content-center'><a class='btn btn-primary btn-sm' href='{{ route('show-marker') }}&` +
-                            row.id +
-                            `' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-search'></i></a></div>`;
-                        // return `<div class='d-flex gap-1 justify-content-center'><a class='btn btn-primary btn-sm'
-                    //     href="javascript:void(0);" data-bs-toggle="modal"><i class='fa fa-search'></i></a></div>`;
+                        // return `<div class='d-flex gap-1 justify-content-center'><a class='btn btn-primary btn-sm' href='{{ route('show-marker') }}&` +
+                        //     row.id +
+                        //     `' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-search'></i></a></div>`;
+                        return `<div class='d-flex gap-1 justify-content-center'><a class='btn btn-primary btn-sm'
+                        data-bs-toggle="modal" data-bs-target="#exampleModal" onclick='getdetail();'><i class='fa fa-search'></i></a></div>`;
                         // "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" +
                         // JSON.stringify(row) +
                         //     ", \"ExampleModal\", [])'><i class='fa fa-pen'></i></a>": "";
@@ -144,5 +207,11 @@
         function filterTable() {
             datatable.ajax.reload();
         }
+
+        function getdetail() {
+
+            $("#exampleModalLabel").html('Marker Detail');
+
+        };
     </script>
 @endsection
