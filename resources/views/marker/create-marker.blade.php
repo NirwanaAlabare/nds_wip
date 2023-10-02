@@ -487,6 +487,14 @@
             }
         }
 
+        document.getElementById("store-marker").onkeypress = function(e) {
+            var key = e.charCode || e.keyCode || 0;
+            if (key == 13) {
+                e.preventDefault();
+                console.log('enter key prevented');
+            }
+        }
+
         function submitMarkerForm(e, evt) {
             evt.preventDefault();
 
