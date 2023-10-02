@@ -185,6 +185,7 @@
                         <th>WS</th>
                         <th>Color</th>
                         <th>Size</th>
+                        <th>Size Input</th>
                         <th>QTY Order</th>
                         <th>Sisa</th>
                         <th>So Det Id</th>
@@ -373,6 +374,9 @@
                     data: 'size'
                 },
                 {
+                    data: 'size'
+                },
+                {
                     data: 'order_qty'
                 },
                 {
@@ -390,7 +394,11 @@
             ],
             columnDefs: [
                 {
-                    targets: [4],
+                    targets: [3],
+                    render: (data, type, row, meta) => '<input type="hidden" id="size-' + meta.row + '" name="size['+meta.row+']" value="' + data + '" readonly />'
+                },
+                {
+                    targets: [5],
                     render: (data, type, row, meta) => {
                         let sumCutQtyData = sumCutQty.find(o => o.so_det_id == row.id && o.panel == $('#panel').val())  ;
                         let left = row.order_qty - (sumCutQtyData ? sumCutQtyData.total_cut_qty : 0);
@@ -399,12 +407,12 @@
                     }
                 },
                 {
-                    targets: [5],
+                    targets: [6],
                     className: "d-none",
                     render: (data, type, row, meta) => '<input type="hidden" id="so-det-id-' + meta.row + '" name="so_det_id['+meta.row+']" value="' + data + '" readonly />'
                 },
                 {
-                    targets: [6],
+                    targets: [7],
                     render: (data, type, row, meta) => {
                         let sumCutQtyData = sumCutQty.find(o => o.so_det_id == row.id &&  o.panel == $('#panel').val())  ;
                         let left = row.order_qty - (sumCutQtyData ? sumCutQtyData.total_cut_qty : 0);
@@ -414,7 +422,7 @@
                     }
                 },
                 {
-                    targets: [7],
+                    targets: [8],
                     render: (data, type, row, meta) => '<input type="number" id="cut-qty-' + meta.row + '" name="cut_qty['+meta.row+']" readonly />'
                 }
             ]
@@ -487,10 +495,18 @@
             }
         }
 
+        document.getElementById("store-marker").onkeypress = function(e) {
+            var key = e.charCode || e.keyCode || 0;
+            if (key == 13) {
+                e.preventDefault();
+            }
+        }
+
         function submitMarkerForm(e, evt) {
             evt.preventDefault();
 
             clearModified();
+
 
             $.ajax({
                 url: e.getAttribute('action'),
@@ -500,8 +516,6 @@
                 contentType: false,
                 success: async function(res) {
                     if (res.status == 200) {
-                        console.log(res);
-
                         e.reset();
 
                         Swal.fire({

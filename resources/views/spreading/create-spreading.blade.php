@@ -391,6 +391,14 @@
 
         }
 
+        document.getElementById("store-spreading").onkeypress = function(e) {
+            var key = e.charCode || e.keyCode || 0;
+            if (key == 13) {
+                e.preventDefault();
+                console.log('enter key prevented');
+            }
+        }
+
         function submitSpreadingForm(e, evt) {
             evt.preventDefault();
 
