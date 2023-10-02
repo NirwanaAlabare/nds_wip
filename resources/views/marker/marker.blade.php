@@ -20,11 +20,13 @@
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-d') }}">
+                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
+                        value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}">
+                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
+                        value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
                     <button class="btn btn-primary btn-sm" onclick="filterTable()">Tampilkan</button>
@@ -40,11 +42,12 @@
                             <th>Color</th>
                             <th>Panel</th>
                             <th>Panjang Marker</th>
-                            <th>Comma Marker</th>
+                            {{-- <th>Comma Marker</th> --}}
                             <th>Lebar Marker</th>
                             <th>Gelar QTYs</th>
                             <th>PO</th>
                             <th>Urutan</th>
+                            <th>Act</th>
                         </tr>
                     </thead>
                 </table>
@@ -69,16 +72,15 @@
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                url: '{{ route("marker") }}',
+                url: '{{ route('marker') }}',
                 dataType: 'json',
                 dataSrc: 'data',
-                data: function (d) {
+                data: function(d) {
                     d.tgl_awal = $('#tgl-awal').val();
                     d.tgl_akhir = $('#tgl-akhir').val();
                 },
             },
-            columns: [
-                {
+            columns: [{
                     data: 'tgl_cutting'
                 },
                 {
@@ -94,11 +96,11 @@
                     data: 'panel'
                 },
                 {
-                    data: 'panjang_marker'
+                    data: 'panjang_marker_fix'
                 },
-                {
-                    data: 'comma_marker'
-                },
+                // {
+                //     data: 'comma_marker'
+                // },
                 {
                     data: 'lebar_marker'
                 },
@@ -111,6 +113,9 @@
                 {
                     data: 'urutan_marker'
                 },
+                {
+                    data: 'id'
+                },
                 // {
                 //     data: 'id'
                 // }
@@ -120,6 +125,19 @@
                 //     targets: [11],
                 //     render: (data, type, row, meta) => "<button class='btn btn-sm btn-primary' onclick=''>Edit</button>"
                 // },
+                {
+                    targets: [10],
+                    render: (data, type, row, meta) => {
+                        return `<div class='d-flex gap-1 justify-content-center'><a class='btn btn-primary btn-sm' href='{{ route('show-marker') }}&` +
+                            row.id +
+                            `' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-search'></i></a></div>`;
+                        // return `<div class='d-flex gap-1 justify-content-center'><a class='btn btn-primary btn-sm'
+                    //     href="javascript:void(0);" data-bs-toggle="modal"><i class='fa fa-search'></i></a></div>`;
+                        // "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" +
+                        // JSON.stringify(row) +
+                        //     ", \"ExampleModal\", [])'><i class='fa fa-pen'></i></a>": "";
+                    }
+                }
             ]
         });
 
