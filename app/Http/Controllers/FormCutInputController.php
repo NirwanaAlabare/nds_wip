@@ -223,10 +223,15 @@ class FormCutInputController extends Controller
     }
 
     public function getScannedItem($id = 0) {
-        $scannedItem = ScannedItem::where('id_roll', $id)->first();
+        $scannedItem = ScannedItem::where('id_roll', $id)->
+            first();
 
         if ($scannedItem) {
-            return json_encode($scannedItem);
+            if (floatval($scannedItem->qty) > 0) {
+                return json_encode($scannedItem);
+            }
+
+            return json_encode(null);
         }
 
         $item = DB::connection("mysql_sb")->select("
@@ -254,6 +259,7 @@ class FormCutInputController extends Controller
             inner join act_costing ac on so.id_cost = ac.id
             inner join master_rak mr on br.id_rak_loc = mr.id
             where br.id = '".$id."'
+            and cast(roll_qty as decimal(11,3)) > 0.000
             limit 1
         ");
 
@@ -616,7 +622,13 @@ class FormCutInputController extends Controller
             ScannedItem::updateOrCreate(
                 ["id_roll" => $validatedRequest['current_id_roll']],
                 [
+                    "id_item" => $validatedRequest['current_id_item'],
+                    "color" => $validatedRequest['color_act'],
+                    "detail_item" => $validatedRequest['detail_item'],
+                    "lot" => $validatedRequest['current_lot'],
+                    "roll" => $validatedRequest['current_roll'],
                     "qty" => (floatval($validatedRequest['current_qty']) - floatval($validatedRequest['current_sambungan'])),
+                    "unit" => $validatedRequest['current_unit'],
                 ]
             );
 
@@ -651,7 +663,8 @@ class FormCutInputController extends Controller
                             "status" => 200,
                             "message" => "alright",
                             "additional" => [
-                                FormCutInputDetail::where('id', $storeTimeRecordSummary->id)->first()
+                                FormCutInputDetail::where('id', $storeTimeRecordSummary->id)->first(),
+                                FormCutInputDetail::where('id', $storeTimeRecordSummaryNext->id)->first(),
                             ],
                         );
                     }
