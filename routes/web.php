@@ -78,7 +78,9 @@ Route::middleware('auth')->group(function () {
         Route::put('/next-process-one/{id?}', 'nextProcessOne')->name('next-process-one-form-cut-input');
         Route::put('/next-process-two/{id?}', 'nextProcessTwo')->name('next-process-two-form-cut-input');
         Route::get('/get-time-record/{noForm?}', 'getTimeRecord')->name('get-time-form-cut-input');
+        Route::post('/store-scanned-item', 'storeScannedItem')->name('store-scanned-form-cut-input');
         Route::post('/store-time-record', 'storeTimeRecord')->name('store-time-form-cut-input');
+        Route::post('/store-time-record-extension', 'storeTimeRecordExtension')->name('store-time-ext-form-cut-input');
         Route::post('/store-this-time-record', 'storeThisTimeRecord')->name('store-this-time-form-cut-input');
         Route::put('/finish-process/{id?}', 'finishProcess')->name('finish-process-form-cut-input');
         Route::get('/check-spreading-form/{noForm?}/{noMeja?}', 'checkSpreadingForm')->name('check-spreading-form-cut-input');
