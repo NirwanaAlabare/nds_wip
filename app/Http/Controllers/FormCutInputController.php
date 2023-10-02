@@ -622,7 +622,13 @@ class FormCutInputController extends Controller
             ScannedItem::updateOrCreate(
                 ["id_roll" => $validatedRequest['current_id_roll']],
                 [
+                    "id_item" => $validatedRequest['current_id_item'],
+                    "color" => $validatedRequest['color_act'],
+                    "detail_item" => $validatedRequest['detail_item'],
+                    "lot" => $validatedRequest['current_lot'],
+                    "roll" => $validatedRequest['current_roll'],
                     "qty" => (floatval($validatedRequest['current_qty']) - floatval($validatedRequest['current_sambungan'])),
+                    "unit" => $validatedRequest['current_unit'],
                 ]
             );
 
@@ -657,8 +663,8 @@ class FormCutInputController extends Controller
                             "status" => 200,
                             "message" => "alright",
                             "additional" => [
-                                FormCutInputDetail::where('id', $storeTimeRecordSummaryNext->id)->first(),
                                 FormCutInputDetail::where('id', $storeTimeRecordSummary->id)->first(),
+                                FormCutInputDetail::where('id', $storeTimeRecordSummaryNext->id)->first(),
                             ],
                         );
                     }

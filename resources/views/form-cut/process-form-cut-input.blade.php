@@ -984,6 +984,7 @@
                                         setSpreadingForm(res.additional[1], res.additional[0].sisa_gelaran);
                                         $("#scan-qr-card").CardWidget('expand');
                                         document.getElementById('kode_barang').focus();
+                                        openTimeRecordCondition();
                                     } else {
                                         checkStatus();
                                     }
@@ -1040,6 +1041,7 @@
                                         setSpreadingForm(res.additional[1], res.additional[0].sisa_gelaran);
                                         $("#scan-qr-card").CardWidget('expand');
                                         document.getElementById('kode_barang').focus();
+                                        openTimeRecordCondition();
                                     } else {
                                         checkStatus();
                                     }
@@ -1465,6 +1467,10 @@
 
             console.log(data);
 
+            data.id_roll ? document.getElementById("kode_barang").value = data.id_roll : '';
+            data.id_item ? document.getElementById("id_item").value = data.id_item : '';
+            data.detail_item ? document.getElementById("detail_item").value = data.detail_item : '';
+            data.color_act ? document.getElementById("color_act").value = data.color_act : '';
             data.id_roll ? document.getElementById("current_id_roll").value = data.id_roll : '';
             data.group ? document.getElementById("current_group").value = data.group : '';
             data.id_item ? document.getElementById("current_id_item").value = data.id_item : '';
@@ -1481,8 +1487,7 @@
             data.sisa_tidak_bisa ? document.getElementById("current_sisa_tidak_bisa").value = data.sisa_tidak_bisa : '';
             data.reject ? document.getElementById("current_reject").value = data.reject : '';
             data.sisa_kain ? document.getElementById("current_sisa_kain").value = data.sisa_kain : '';
-            data.total_pemakaian_roll ? document.getElementById("current_total_pemakaian_roll").value = data
-                .total_pemakaian_roll : '';
+            data.total_pemakaian_roll ? document.getElementById("current_total_pemakaian_roll").value = data.total_pemakaian_roll : '';
             data.short_roll ? document.getElementById("current_short_roll").value = data.short_roll : '';
             data.piping ? document.getElementById("current_piping").value = data.piping : '';
             data.remark ? document.getElementById("current_remark").value = data.remark : '';
