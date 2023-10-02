@@ -1872,7 +1872,9 @@
 
             openLapTimeRecordCondition();
 
-            storeThisTimeRecord();
+            if ($("#status_sambungan").val() != "extension") {
+                storeThisTimeRecord();
+            }
         }
 
         // -Next Lap Time Record-
