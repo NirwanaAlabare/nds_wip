@@ -98,7 +98,7 @@
                         <div class="col-md-3">
                             <div class="mb-1">
                                 <label class="form-label"><small>P. Marker</small></label>
-                                <input type="number" class="form-control" id="p_marker" name="p_marker" step=".01">
+                                <input type="number" class="form-control" id="p_marker" name="p_marker" step=".001">
                             </div>
                         </div>
                         <div class="col-md-3">
@@ -114,7 +114,7 @@
                         <div class="col-md-3">
                             <div class="mb-1">
                                 <label class="form-label"><small>Comma</small></label>
-                                <input type="number" class="form-control" id="comma_marker" name="comma_marker" step=".01">
+                                <input type="number" class="form-control" id="comma_marker" name="comma_marker" step=".001">
                             </div>
                         </div>
                         <div class="col-md-3">
@@ -127,7 +127,7 @@
                         <div class="col-md-6">
                             <div class="mb-1">
                                 <label class="form-label"><small>L. Marker</small></label>
-                                <input type="number" class="form-control" id="l_marker" name="l_marker" step=".01">
+                                <input type="number" class="form-control" id="l_marker" name="l_marker" step=".001">
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -143,7 +143,7 @@
                         <div class="col-md-6">
                             <div class="mb-1">
                                 <label class="form-label"><small>Cons Marker</small></label>
-                                <input type="number" class="form-control" id="cons_marker" name="cons_marker" step=".01">
+                                <input type="number" class="form-control" id="cons_marker" name="cons_marker" step=".001">
                             </div>
                         </div>
                         <div class="col-md-6">
