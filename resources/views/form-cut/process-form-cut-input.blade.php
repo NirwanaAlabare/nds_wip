@@ -984,6 +984,8 @@
                                         setSpreadingForm(res.additional[1], res.additional[0].sisa_gelaran);
                                         $("#scan-qr-card").CardWidget('expand');
                                         document.getElementById('kode_barang').focus();
+                                    } else {
+                                        checkStatus();
                                     }
                                 }
                             }
@@ -1038,6 +1040,8 @@
                                         setSpreadingForm(res.additional[1], res.additional[0].sisa_gelaran);
                                         $("#scan-qr-card").CardWidget('expand');
                                         document.getElementById('kode_barang').focus();
+                                    } else {
+                                        checkStatus();
                                     }
                                 }
                             }
@@ -1910,7 +1914,7 @@
 
             if ($("#status_sambungan").val() == "extension") {
                 await stopTimeRecord();
-                checkStatus();
+                // checkStatus();
             } else {
                 storeThisTimeRecord();
             }
