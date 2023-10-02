@@ -71,37 +71,43 @@
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label"><small>No. Form</small></label>
-                                        <input type="text" class="form-control" id="edit_no_form" name="edit_no_form" value="" readonly />
+                                        <input type="text" class="form-control" id="edit_no_form" name="edit_no_form"
+                                            value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label"><small>Tgl Form</small></label>
-                                        <input type="text" class="form-control" id="edit_tgl_form_cut" name="edit_tgl_form_cut" value="" readonly />
+                                        <input type="text" class="form-control" id="edit_tgl_form_cut"
+                                            name="edit_tgl_form_cut" value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label"><small>WS</small></label>
-                                        <input type="text" class="form-control" id="edit_ws" name="edit_ws" value="" readonly />
+                                        <input type="text" class="form-control" id="edit_ws" name="edit_ws"
+                                            value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label"><small>Color</small></label>
-                                        <input type="text" class="form-control" id="edit_color" name="edit_color" value="" readonly />
+                                        <input type="text" class="form-control" id="edit_color" name="edit_color"
+                                            value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label"><small>Panel</small></label>
-                                        <input type="text" class="form-control" id="edit_panel" name="edit_panel" value="" readonly />
+                                        <input type="text" class="form-control" id="edit_panel" name="edit_panel"
+                                            value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label"><small>No. Meja</small></label>
-                                        <select class="form-select form-select-sm select2bs4" aria-label="Default select example" id="edit_no_meja" name="edit_no_meja">
+                                        <select class="form-select form-select-sm select2bs4"
+                                            aria-label="Default select example" id="edit_no_meja" name="edit_no_meja">
                                             @foreach ($meja as $m)
                                                 <option value="{{ $m->id }}">{{ strtoupper($m->name) }}</option>
                                             @endforeach
@@ -148,16 +154,15 @@
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                url: '{{ route("spreading") }}',
+                url: '{{ route('spreading') }}',
                 dataType: 'json',
                 dataSrc: 'data',
-                data: function (d) {
+                data: function(d) {
                     d.dateFrom = $('#tgl-awal').val();
                     d.dateTo = $('#tgl-akhir').val();
                 },
             },
-            columns: [
-                {
+            columns: [{
                     data: 'no_form'
                 },
                 {
@@ -182,16 +187,21 @@
                     data: 'id'
                 },
             ],
-            columnDefs: [
-                {
+            columnDefs: [{
                     targets: [2],
                     render: (data, type, row, meta) => data ? data.toUpperCase() : "-"
                 },
                 {
                     targets: [7],
                     render: (data, type, row, meta) => {
-                        let btnEdit = row.status == 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData("+JSON.stringify(row)+", \"editMejaModal\", [])'><i class='fa fa-pen'></i></a>" : "";
-                        return `<div class='d-flex gap-1 justify-content-center'><a class='btn btn-success btn-sm' href='{{ route("process-form-cut-input") }}/`+row.id+`' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-plus'></i></a>`+btnEdit+`</div>`;
+                        let btnEdit = row.status == 'SPREADING' ?
+                            "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" +
+                            JSON.stringify(row) +
+                            ", \"editMejaModal\", [])'><i class='fa fa-pen'></i></a>" : "";
+                        return `<div class='d-flex gap-1 justify-content-center'><a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` +
+                            row.id +
+                            `' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-plus'></i></a>` +
+                            btnEdit + `</div>`;
                     }
                 }
             ]
