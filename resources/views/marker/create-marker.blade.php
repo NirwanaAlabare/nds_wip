@@ -21,13 +21,13 @@
         </div>
         <div class="card-body">
             <div class="row">
-                <div class="col-md-3">
+                <div class="col-6 col-md-3">
                     <div class="mb-1">
                         <label class="form-label"><small>Tgl Cutting</small></label>
                         <input type="date" class="form-control" id="tgl_cutting" name="tgl_cutting" value="{{ date('Y-m-d') }}">
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-6 col-md-3">
                     <div class="mb-1">
                         <div class="form-group">
                             <label><small>No. WS</small></label>
@@ -42,7 +42,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-6 col-md-3">
                     <div class="mb-1">
                         <div class="form-group">
                             <label><small>Color</small></label>
@@ -53,7 +53,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-6 col-md-3">
                     <div class="mb-1">
                         <div class="form-group">
                             <label><small>Panel</small></label>
@@ -66,7 +66,7 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-col-md-6">
                     <div class="d-flex flex-column">
                         <input type="hidden" class="form-control" id="ws" name="ws" readonly>
                         <div class="mb-1">
@@ -95,13 +95,13 @@
                 </div>
                 <div class="col-md-6">
                     <div class="row">
-                        <div class="col-md-3">
+                        <div class="col-6 col-md-3">
                             <div class="mb-1">
                                 <label class="form-label"><small>P. Marker</small></label>
                                 <input type="number" class="form-control" id="p_marker" name="p_marker" step=".001">
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-6 col-md-3">
                             <div class="mb-1">
                                 <label class="form-label"><small>Unit</small></label>
                                 <select class="form-control input-sm select2bs4" id="p_unit" name="p_unit"
@@ -111,26 +111,26 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-6 col-md-3">
                             <div class="mb-1">
                                 <label class="form-label"><small>Comma</small></label>
                                 <input type="number" class="form-control" id="comma_marker" name="comma_marker" step=".001">
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-6 col-md-3">
                             <div class="mb-1">
                                 <label class="form-label"><small>Unit</small></label>
                                 <input type="text" class="form-control" id="comma_unit" name="comma_unit"
                                     value="INCH" readonly>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <div class="mb-1">
                                 <label class="form-label"><small>L. Marker</small></label>
                                 <input type="number" class="form-control" id="l_marker" name="l_marker" step=".001">
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <div class="mb-1">
                                 <label class="form-label"><small>Unit</small></label>
                                 <select class="form-control input-sm select2bs4" id="l_unit" name="l_unit"
@@ -140,13 +140,13 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <div class="mb-1">
                                 <label class="form-label"><small>Cons Marker</small></label>
                                 <input type="number" class="form-control" id="cons_marker" name="cons_marker" step=".001">
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <div class="mb-1">
                                 <label class="form-label"><small>Qty Gelar Marker</small></label>
                                 <input type="number" class="form-control" id="gelar_marker_qty"
