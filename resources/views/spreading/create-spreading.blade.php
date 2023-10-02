@@ -308,7 +308,7 @@
             },
             columns: [
                 {
-                    data: 'id'
+                    data: 'size'
                 },
                 {
                     data: 'ratio'
