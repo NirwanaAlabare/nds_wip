@@ -74,7 +74,12 @@ class SpreadingController extends Controller
         $tgl_f = Carbon::today()->toDateString();
         // dd($tgl_f);
 
-        $data_ws = DB::select("select act_costing_id, act_costing_ws ws from marker_input where tgl_cutting = '$tgl_f' group by act_costing_id");
+        // $data_ws = DB::select("select act_costing_id, act_costing_ws ws from marker_input where tgl_cutting = '$tgl_f' group by act_costing_id");
+
+        $data_ws = DB::select("select act_costing_id, act_costing_ws ws from marker_input a
+        left join (select id_marker from form_cut_input group by id_marker ) b on a.kode = b.id_marker
+        where tgl_cutting = '$tgl_f' and b.id_marker is null");
+
 
         return view('spreading.create-spreading', ['data_ws' => $data_ws]);
     }
@@ -97,8 +102,11 @@ class SpreadingController extends Controller
     public function getno_marker(Request $request)
     {
         $tgl_f = Carbon::today()->toDateString();
-        $datano_marker = DB::select("select *,  concat(kode,' - ',color, ' - (',panel, ' - ',urutan_marker, ' )') tampil
-        from marker_input where act_costing_id = '" . $request->cbows . "' and tgl_cutting = '$tgl_f' order by urutan_marker asc");
+        // $datano_marker = DB::select("select *,  concat(kode,' - ',color, ' - (',panel, ' - ',urutan_marker, ' )') tampil
+        // from marker_input where act_costing_id = '" . $request->cbows . "' and tgl_cutting = '$tgl_f' order by urutan_marker asc");
+        $datano_marker = DB::select("select *,  concat(kode,' - ',color, ' - (',panel, ' - ',urutan_marker, ' )') tampil  from marker_input a
+        left join (select id_marker from form_cut_input group by id_marker ) b on a.kode = b.id_marker
+        where act_costing_id = '" . $request->cbows . "' and tgl_cutting = '$tgl_f' and b.id_marker is null order by urutan_marker asc");
         $html = "<option value=''>Pilih No Marker</option>";
 
         foreach ($datano_marker as $datanomarker) {

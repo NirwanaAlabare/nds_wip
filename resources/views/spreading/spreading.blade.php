@@ -199,10 +199,13 @@
                             JSON.stringify(row) +
                             ", \"editMejaModal\", [])'><i class='fa fa-pen'></i></a>" : "";
 
-                        let btnProcess = row.no_meja != '' && row.no_meja != null ? `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` +
+                        let btnProcess = row.no_meja != '' && row.no_meja != null ?
+                            `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` +
                             row.id +
-                            `' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-plus'></i></a>` : "";
-                        return `<div class='d-flex gap-1 justify-content-center'>` + btnProcess + btnEdit + `</div>`;
+                            `' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-plus'></i></a>` :
+                            "";
+                        return `<div class='d-flex gap-1 justify-content-center'>` + btnProcess + btnEdit +
+                            `</div>`;
                     }
                 }
             ]
