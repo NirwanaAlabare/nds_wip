@@ -74,19 +74,14 @@ class SpreadingController extends Controller
         $tgl_f = Carbon::today()->toDateString();
         // dd($tgl_f);
 
-        $data_ws = DB::select("select act_costing_id, act_costing_ws ws from marker_input where tgl_cutting = '$tgl_f'");
+        $data_ws = DB::select("select act_costing_id, act_costing_ws ws from marker_input where tgl_cutting = '$tgl_f' group by act_costing_id");
 
         return view('spreading.create-spreading', ['data_ws' => $data_ws]);
     }
 
     public function getOrderInfo(Request $request)
     {
-        $order = DB::connection('mysql_sb')->
-            table('act_costing')->
-            selectRaw('act_costing.id, act_costing.kpno, act_costing.styleno, act_costing.qty order_qty, mastersupplier.supplier buyer')->
-            leftJoin('mastersupplier', 'mastersupplier.Id_Supplier', '=', 'act_costing.id_buyer')->
-            where('act_costing.kpno', $request->ws)->
-            first();
+        $order = DB::connection('mysql_sb')->table('act_costing')->selectRaw('act_costing.id, act_costing.kpno, act_costing.styleno, act_costing.qty order_qty, mastersupplier.supplier buyer')->leftJoin('mastersupplier', 'mastersupplier.Id_Supplier', '=', 'act_costing.id_buyer')->where('act_costing.kpno', $request->ws)->first();
 
         return json_encode($order);
     }
