@@ -78,7 +78,8 @@ class SpreadingController extends Controller
 
         $data_ws = DB::select("select act_costing_id, act_costing_ws ws from marker_input a
         left join (select id_marker from form_cut_input group by id_marker ) b on a.kode = b.id_marker
-        where b.id_marker is null");
+        where b.id_marker is null
+        group by act_costing_id");
 
 
         return view('spreading.create-spreading', ['data_ws' => $data_ws]);
