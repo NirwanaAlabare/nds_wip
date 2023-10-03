@@ -395,6 +395,7 @@
             columnDefs: [
                 {
                     targets: [3],
+                    className: "d-none",
                     render: (data, type, row, meta) => '<input type="hidden" id="size-' + meta.row + '" name="size['+meta.row+']" value="' + data + '" readonly />'
                 },
                 {
