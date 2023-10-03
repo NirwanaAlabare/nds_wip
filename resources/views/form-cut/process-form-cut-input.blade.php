@@ -28,21 +28,21 @@
                             readonly>
                         <input type="hidden" name="no_meja" id="no_meja" value="{{ $formCutInputData->no_meja }}"
                             readonly>
-                        <div class="col-md-4">
+                        <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Start</b></small></label>
                                 <input type="text" class="form-control form-control-sm" name="start" id="start-time"
                                     value="{{ $formCutInputData->waktu_mulai }}" readonly>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Finish</b></small></label>
                                 <input type="text" class="form-control form-control-sm" name="finish" id="finish-time"
                                     value="{{ $formCutInputData->waktu_selesai }}" readonly>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Shell</b></small></label>
                                 <select class="form-select form-select-sm" name="shell" id="shell">
@@ -55,74 +55,74 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>No. Form</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-fetch" name="no_form"
                                     id="no_form" value="{{ $formCutInputData->no_form }}" readonly>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Tanggal</b></small></label>
                                 <input type="date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}"
                                     readonly>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Kode Marker</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-fetch"
                                     value="{{ $formCutInputData->id_marker }}" readonly>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>No. WS</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-fetch" name="no_ws"
                                     value="{{ $formCutInputData->act_costing_ws }}" readonly>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Buyer</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-fetch" name="buyer"
                                     value="{{ $thisActCosting->buyer }}" readonly>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Style</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-fetch" name="style"
                                     value="{{ $thisActCosting->style }}" readonly>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Color</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-fetch" name="color"
                                     id="color" value="{{ $formCutInputData->color }}" readonly>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Panel</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-fetch" name="panel"
                                     id="panel" value="{{ $formCutInputData->panel }}" readonly>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>PO</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-fetch" name="po"
                                     value="{{ $formCutInputData->po_marker }}" readonly>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>QTY Gelar Marker</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-fetch" name="gelar_qty"
-                                    value="{{ $formCutInputData->gelar_qty }}" readonly>
+                                    value="{{ $formCutInputData->qty_ply }}" readonly>
                             </div>
                         </div>
                     </div>
@@ -266,7 +266,7 @@
                                     readonly>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Cons WS</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-fetch" name="cons_ws"
@@ -274,7 +274,7 @@
                                     onchange="calculateEstKain(this.value, {{ $totalCutQty }})" readonly>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Cons Marker</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-fetch"
@@ -282,7 +282,7 @@
                                     readonly>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-calc"><small><b>Cons Act</b></small></label>
                                 <input type="number" class="form-control form-control-sm border-calc" name="cons_act"
@@ -291,7 +291,7 @@
                                     step=".01" readonly>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-input"><small><b>Cons Piping</b></small></label>
                                 <input type="number" class="form-control form-control-sm border-input" step=".01"
@@ -378,14 +378,14 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-scan"><small><b>ID Item</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-scan" name="id_item"
                                     id="id_item" readonly>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-scan"><small><b>Detail Item</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-scan" name="detail_item"
@@ -574,7 +574,7 @@
                                         id="current_remark" name="current_remark" step=".01">
                                 </div>
                             </div>
-                            <div class="col-md-6 my-3">
+                            <div class="col-6 col-md-6 my-3">
                                 <button type="button" class="btn btn-success btn-sm w-100 h-100"
                                     style="min-height: 90px !important;" id="startLapButton"
                                     onclick="startTimeRecord()">Start</button>
@@ -582,7 +582,7 @@
                                     style="min-height: 90px !important;" id="nextLapButton"
                                     onclick="addNewTimeRecord()">Next Lap</button>
                             </div>
-                            <div class="col-md-6 my-3">
+                            <div class="col-6 col-md-6 my-3">
                                 <div class="row">
                                     <div class="col-5">
                                         <input type="text" class="form-control form-control-sm" id="minutes"
@@ -1911,7 +1911,7 @@
             tr.appendChild(td2);
             tr.appendChild(td3);
 
-            timeRecordTableTbody.appendChild(tr);
+            timeRecordTableTbody.prepend(tr);
 
             stopLapButton.disabled = false;
 

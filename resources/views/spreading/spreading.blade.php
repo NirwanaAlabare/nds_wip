@@ -43,6 +43,7 @@
                             <th>No Form</th>
                             <th>Tgl Form</th>
                             <th>No. Meja</th>
+                            <th>Marker</th>
                             <th>WS</th>
                             <th>Color</th>
                             <th>Panel</th>
@@ -59,7 +60,7 @@
         <div class="modal fade" id="editMejaModal" tabindex="-1" aria-labelledby="editMejaModalLabel" aria-hidden="true">
             <form action="{{ route('update-spreading') }}" method="post" onsubmit="submitForm(this, event)">
                 @method('PUT')
-                <div class="modal-dialog">
+                <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header bg-sb text-light">
                             <h1 class="modal-title fs-5" id="editMejaModalLabel">Edit Meja</h1>
@@ -68,42 +69,119 @@
                         <div class="modal-body">
                             <div class="row">
                                 <input type="hidden" id="edit_id" name="edit_id">
-                                <div class="col-md-6">
+                                <input type="hidden" id="edit_marker_id" name="edit_marker_id">
+                                <div class="col-6 col-md-4">
                                     <div class="mb-3">
                                         <label class="form-label"><small>No. Form</small></label>
-                                        <input type="text" class="form-control" id="edit_no_form" name="edit_no_form"
-                                            value="" readonly />
+                                        <input type="text" class="form-control" id="edit_no_form" name="edit_no_form" value="" readonly />
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-6 col-md-4">
                                     <div class="mb-3">
                                         <label class="form-label"><small>Tgl Form</small></label>
                                         <input type="text" class="form-control" id="edit_tgl_form_cut"
                                             name="edit_tgl_form_cut" value="" readonly />
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-6 col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label"><small>Marker</small></label>
+                                        <input type="text" class="form-control" id="edit_id_marker"
+                                            name="edit_id_marker" value="" readonly />
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-4">
                                     <div class="mb-3">
                                         <label class="form-label"><small>WS</small></label>
                                         <input type="text" class="form-control" id="edit_ws" name="edit_ws"
                                             value="" readonly />
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-6 col-md-4">
                                     <div class="mb-3">
                                         <label class="form-label"><small>Color</small></label>
                                         <input type="text" class="form-control" id="edit_color" name="edit_color"
                                             value="" readonly />
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-6 col-md-4">
                                     <div class="mb-3">
                                         <label class="form-label"><small>Panel</small></label>
                                         <input type="text" class="form-control" id="edit_panel" name="edit_panel"
                                             value="" readonly />
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-4 col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label"><small>P. Marker</small></label>
+                                        <input type="text" class="form-control" id="edit_panjang_marker" name="edit_panjang_marker"
+                                            value="" readonly />
+                                    </div>
+                                </div>
+                                <div class="col-4 col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label"><small>Unit P. Marker</small></label>
+                                        <input type="text" class="form-control" id="edit_unit_panjang_marker" name="edit_unit_panjang_marker"
+                                            value="" readonly />
+                                    </div>
+                                </div>
+                                <div class="col-4 col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label"><small>Comma Marker</small></label>
+                                        <input type="text" class="form-control" id="edit_comma_marker" name="edit_comma_marker"
+                                            value="" readonly />
+                                    </div>
+                                </div>
+                                <div class="col-4 col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label"><small>Unit Comma Marker</small></label>
+                                        <input type="text" class="form-control" id="edit_unit_comma_marker" name="edit_unit_comma_marker"
+                                            value="" readonly />
+                                    </div>
+                                </div>
+                                <div class="col-4 col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label"><small>Lebar Marker</small></label>
+                                        <input type="text" class="form-control" id="edit_lebar_marker" name="edit_lebar_marker"
+                                            value="" readonly />
+                                    </div>
+                                </div>
+                                <div class="col-4 col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label"><small>Unit Lebar Marker</small></label>
+                                        <input type="text" class="form-control" id="edit_unit_lebar_marker" name="edit_unit_lebar_marker"
+                                            value="" readonly />
+                                    </div>
+                                </div>
+                                <div class="col-4 col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label"><small>Gelar QTY</small></label>
+                                        <input type="text" class="form-control" id="edit_gelar_qty" name="edit_gelar_qty"
+                                            value="" readonly />
+                                    </div>
+                                </div>
+                                <div class="col-4 col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label"><small>PO Marker</small></label>
+                                        <input type="text" class="form-control" id="edit_po_marker" name="edit_po_marker"
+                                            value="" readonly />
+                                    </div>
+                                </div>
+                                <div class="col-4 col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label"><small>Urutan Marker</small></label>
+                                        <input type="text" class="form-control" id="edit_urutan_marker" name="edit_urutan_marker"
+                                            value="" readonly />
+                                    </div>
+                                </div>
+                                <div class="col-4 col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label"><small>Cons. Marker</small></label>
+                                        <input type="text" class="form-control" id="edit_cons_marker" name="edit_cons_marker"
+                                            value="" readonly />
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label"><small>No. Meja</small></label>
                                         <select class="form-select form-select-sm select2bs4"
@@ -113,6 +191,17 @@
                                             @endforeach
                                         </select>
                                     </div>
+                                </div>
+                                <div class="col-md-12 table-responsive">
+                                    <table id="datatable-ratio" class="table table-bordered table-striped table-sm w-100">
+                                        <thead>
+                                            <tr>
+                                                <th>Size</th>
+                                                <th>Ratio</th>
+                                                <th>Cut Qty</th>
+                                            </tr>
+                                        </thead>
+                                    </table>
                                 </div>
                             </div>
                         </div>
@@ -162,7 +251,8 @@
                     d.dateTo = $('#tgl-akhir').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'no_form'
                 },
                 {
@@ -170,6 +260,9 @@
                 },
                 {
                     data: 'nama_meja'
+                },
+                {
+                    data: 'id_marker'
                 },
                 {
                     data: 'ws'
@@ -192,18 +285,16 @@
                     render: (data, type, row, meta) => data ? data.toUpperCase() : "-"
                 },
                 {
-                    targets: [7],
+                    targets: [8],
                     render: (data, type, row, meta) => {
-                        let btnEdit = row.status == 'SPREADING' ?
-                            "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" +
-                            JSON.stringify(row) +
-                            ", \"editMejaModal\", [])'><i class='fa fa-pen'></i></a>" : "";
+                        let btnEdit = row.status == 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData("+ JSON.stringify(row) +", \"editMejaModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-pen'></i></a>" : "";
 
                         let btnProcess = row.no_meja != '' && row.no_meja != null ?
                             `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` +
                             row.id +
                             `' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-plus'></i></a>` :
                             "";
+
                         return `<div class='d-flex gap-1 justify-content-center'>` + btnProcess + btnEdit +
                             `</div>`;
                     }
@@ -211,8 +302,42 @@
             ]
         });
 
+        let datatableRatio = $("#datatable-ratio").DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            paging: false,
+            searching: false,
+            ajax: {
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '{{ route("getdata_ratio") }}',
+                dataType: 'json',
+                dataSrc: 'data',
+                data: function (d) {
+                    d.cbomarker = $('#edit_marker_id').val();
+                },
+            },
+            columns: [
+                {
+                    data: 'size'
+                },
+                {
+                    data: 'ratio'
+                },
+                {
+                    data: 'cut_qty'
+                },
+            ],
+        });
+
         function dataTableReload() {
             datatable.ajax.reload();
+        }
+
+        function dataTableRatioReload() {
+            datatableRatio.ajax.reload();
         }
     </script>
 @endsection

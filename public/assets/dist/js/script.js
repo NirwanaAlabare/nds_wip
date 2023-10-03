@@ -200,32 +200,11 @@ function editData(e, modal, addons = []) {
         } else {
             if (addons.length > 0) {
                 for (let i=0; i < addons.length; i++) {
-                    for (let addonsKey in data[addons[i]]) {
-                        if (!data.hasOwnProperty(addonsKey)) {
-                            if (document.getElementById('edit_'+addonsKey)) {
-                                document.getElementById('edit_'+addonsKey).value = data[addons[i]][addonsKey];
-                                document.getElementById('edit_'+addonsKey).setAttribute('value', data[addons[i]][addonsKey]);
-
-                                console.log(document.getElementById('edit_'+addonsKey));
-
-                                if (document.getElementById('edit_'+addonsKey).classList.contains('select2')) {
-                                    $('#edit_'+addonsKey).val(data[addons[i]][addonsKey]).trigger('change.select2');
-                                }
-                            } else {
-                                if (typeof data[addons[i]][addonsKey] === 'object' && data[addons[i]][addonsKey] !== null) {
-                                    for (let subAddonsKey in data[addons[i]][addonsKey]) {
-                                        if (!data.hasOwnProperty(subAddonsKey) && !data[addons[i]].hasOwnProperty(subAddonsKey)) {
-                                            if (document.getElementById('edit_'+subAddonsKey)) {
-                                                document.getElementById('edit_'+subAddonsKey).value = data[addons[i]][addonsKey][subAddonsKey];
-                                                document.getElementById('edit_'+subAddonsKey).setAttribute('value', data[addons[i]][addonsKey][subAddonsKey]);
-
-                                                if (document.getElementById('edit_'+subAddonsKey).classList.contains('select2')) {
-                                                    $('#edit_'+subAddonsKey).val(data[addons[i]][addonsKey][subAddonsKey]).trigger('change.select2');
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
+                    if (typeof addons == "object") {
+                        for (let addonsKey in addons[i]) {
+                            if (addonsKey == "function") {
+                                console.log(addons[i][addonsKey]);
+                                eval(addons[i][addonsKey]);
                             }
                         }
                     }

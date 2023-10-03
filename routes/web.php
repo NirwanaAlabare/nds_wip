@@ -63,6 +63,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-spreading');
         Route::put('/update', 'update')->name('update-spreading');
         Route::get('/get-order-info', 'getOrderInfo')->name('get-spreading-data');
+        Route::get('/get-cut-qty', 'getCutQty')->name('get-cut-qty-data');
         // export excel
         // Route::get('/export_excel', 'export_excel')->name('export_excel');
         // Route::get('/export', 'export')->name('export');

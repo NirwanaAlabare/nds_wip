@@ -416,6 +416,9 @@
 
                         e.reset();
 
+                        $('#cbows').val("").trigger("change");
+                        $("#cbomarker").prop("disabled", true);
+
                         Swal.fire({
                             icon: 'success',
                             title: 'Data Spreading berhasil disimpan',
@@ -426,6 +429,8 @@
                             timer: 5000,
                             timerProgressBar: true
                         })
+
+                        datatable.ajax.reload();
                     }
                 },
 

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\FormCutInput;
+use App\Models\MarkerDetail;
+use App\Models\Marker;
 use App\Models\User;
 use Illuminate\Http\Request;
 use DB;
@@ -44,7 +46,30 @@ class SpreadingController extends Controller
                 ";
             }
 
-            $data_spreading = DB::select("SELECT a.id, a.no_meja, a.id_marker, a.no_form, a.tgl_form_cut, b.act_costing_ws ws, panel, b.color, a.status, users.name nama_meja  FROM `form_cut_input` a
+            $data_spreading = DB::select("
+                SELECT
+                    a.id,
+                    a.no_meja,
+                    a.id_marker,
+                    a.no_form,
+                    a.tgl_form_cut,
+                    b.id marker_id,
+                    b.act_costing_ws ws,
+                    panel,
+                    b.color,
+                    a.status,
+                    users.name nama_meja,
+                    b.panjang_marker,
+                    UPPER(b.unit_panjang_marker) unit_panjang_marker,
+                    b.comma_marker,
+                    UPPER(b.unit_comma_marker) unit_comma_marker,
+                    b.lebar_marker,
+                    UPPER(b.unit_lebar_marker) unit_lebar_marker,
+                    a.qty_ply gelar_qty,
+                    b.po_marker,
+                    b.urutan_marker,
+                    b.cons_marker
+                FROM `form_cut_input` a
                 left join marker_input b on a.id_marker = b.kode
                 left join users on users.id = a.no_meja
                 " . $additionalQuery . "
@@ -127,7 +152,15 @@ class SpreadingController extends Controller
 
     public function getdata_ratio(Request $request)
     {
-        $data_ratio = DB::select("select * from marker_input_detail where marker_id = '" . $request->cbomarker . "'");
+        $markerId = $request->cbomarker ? $request->cbomarker : 0;
+
+        $data_ratio = DB::select("
+            select
+                *
+            from
+                marker_input_detail
+            where marker_id = '" . $markerId . "'
+        ");
 
         // return json_encode($data_marker[0]);
         return json_encode([
@@ -161,15 +194,20 @@ class SpreadingController extends Controller
             "txtid_marker" => "required"
         ]);
 
+        $qtyPlyMarkerModulus = intval($request['hitungmarker'])%intval($request['txtqty_ply_cut']);
         $timestamp = Carbon::now();
         $formcutDetailData = [];
         $message = "";
         for ($i = 1; $i <= intval($request['hitungform']); $i++) {
-
             $queryno_form     = DB::select("select count(id_marker) urutan from form_cut_input where tgl_form_cut = '$txttglcut'");
             $datano_form     = $queryno_form[0];
             $urutan          = $datano_form->urutan;
             $urutan_fix      = $urutan + $i;
+            $qtyPly = $request['txtqty_ply_cut'];
+
+            if ($i == intval($request['hitungform'])) {
+                $qtyPly = $qtyPlyMarkerModulus;
+            }
 
             $hari          = substr($txttglcut, 8, 2);
             $bulan         = substr($txttglcut, 5, 2);
@@ -182,6 +220,7 @@ class SpreadingController extends Controller
                 "status" => "SPREADING",
                 "user" => "user",
                 "cancel" => "N",
+                "qty_ply" => $qtyPly,
                 "tgl_input" => $timestamp
             ]);
 
