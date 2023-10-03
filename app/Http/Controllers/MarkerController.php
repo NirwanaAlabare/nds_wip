@@ -52,7 +52,7 @@ class MarkerController extends Controller
 
             if ($keyword) {
                 $markersQuery->whereRaw("(
-                    tgl_cut_fix like '%" . $keyword . "%' OR
+                    DATE_FORMAT(tgl_cutting, '%d-%m-%Y') like '%" . $keyword . "%' OR
                     kode like '%" . $keyword . "%' OR
                     act_costing_ws like '%" . $keyword . "%' OR
                     color like '%" . $keyword . "%' OR
@@ -220,7 +220,7 @@ class MarkerController extends Controller
             "cons_marker" => "required"
         ]);
 
-        foreach($request["cut_qty"] as $qty) {
+        foreach ($request["cut_qty"] as $qty) {
             $totalQty += $qty;
         }
 
