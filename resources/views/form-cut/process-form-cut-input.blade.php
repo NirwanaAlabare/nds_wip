@@ -20,7 +20,7 @@
                         $thisActCosting = $actCostingData->where('id', $formCutInputData->act_costing_id)->first();
                         $thisMarkerDetails = $markerDetailData->where('kode_marker', $formCutInputData->id_marker);
                     @endphp
-                    <div class="row">
+                    <div class="row align-items-end">
                         <input type="hidden" name="id" id="id" value="{{ $id }}" readonly>
                         <input type="hidden" name="act_costing_id" id="act_costing_id"
                             value="{{ $formCutInputData->act_costing_id }}" readonly>
@@ -111,43 +111,55 @@
                                     id="panel" value="{{ $formCutInputData->panel }}" readonly>
                             </div>
                         </div>
-                        <div class="col-6 col-md-6">
+                        <div class="col-4 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>PO</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-fetch" name="po"
                                     value="{{ $formCutInputData->po_marker }}" readonly>
                             </div>
                         </div>
-                        <div class="col-6 col-md-6">
+                        <div class="col-4 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>QTY Gelar Marker</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-fetch" name="gelar_qty"
+                                    value="{{ $formCutInputData->gelar_qty }}" readonly>
+                            </div>
+                        </div>
+                        <div class="col-4 col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label label-fetch"><small><b>QTY Cut Ply</b></small></label>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="qty_ply"
                                     value="{{ $formCutInputData->qty_ply }}" readonly>
                             </div>
                         </div>
                     </div>
-                    <table id="ratio-datatable" class="table table-striped table-sm w-100 text-center mt-3">
+                    <table id="ratio-datatable" class="table table-striped table-bordered table-sm w-100 text-center mt-3">
                         <thead>
                             <tr>
                                 <th class="label-fetch">Size</th>
                                 <th class="label-fetch">Ratio</th>
                                 <th class="label-fetch">Qty Cut Marker</th>
+                                <th class="label-fetch">Qty Cut Ply</th>
                             </tr>
                         </thead>
                         <tbody>
                             @php
                                 $totalRatio = 0;
                                 $totalCutQty = 0;
+                                $totalCutQtyPly = 0;
                             @endphp
                             @foreach ($thisMarkerDetails as $item)
                                 <tr>
                                     @php
                                         $totalRatio += $item->ratio;
                                         $totalCutQty += $item->cut_qty;
+                                        $qtyPly = $item->ratio*$formCutInputData->qty_ply;
+                                        $totalCutQtyPly += $qtyPly;
                                     @endphp
                                     <td>{{ $soDetData->where('id', $item->so_det_id)->first()->size }}</td>
                                     <td>{{ $item->ratio }}</td>
                                     <td>{{ $item->cut_qty }}</td>
+                                    <td>{{ $qtyPly }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -156,11 +168,13 @@
                                 <th>Total</th>
                                 <th id="totalRatio">{{ $totalRatio }}</th>
                                 <th id="totalQtyCutMarker">{{ $totalCutQty }}</th>
+                                <th id="totalQtyCutPly">{{ $totalCutQtyPly }}</th>
                             </tr>
                         </tfoot>
                     </table>
                     <input type="hidden" name="total_ratio" id="total_ratio" value="{{ $totalRatio }}">
                     <input type="hidden" name="total_qty_cut" id="total_qty_cut" value="{{ $totalCutQty }}">
+                    <input type="hidden" name="total_qty_cut_ply" id="total_qty_cut_ply" value="{{ $totalCutQtyPly }}">
                 </div>
             </div>
         </div>
@@ -871,8 +885,6 @@
                 },
                 success: function(res) {
                     if (res) {
-                        console.log(res.message);
-
                         if (res.status == 200) {
                             $('#header-data-card').CardWidget('collapse');
                             $('#detail-data-card').CardWidget('collapse');
@@ -957,8 +969,6 @@
             spreadingForm.forEach((value, key) => dataObj[key] = value);
 
             if ($("#status_sambungan").val() != "extension") {
-                console.log("im here");
-
                 return $.ajax({
                     url: '{{ route('store-time-form-cut-input') }}',
                     type: 'post',
@@ -1012,8 +1022,6 @@
                     }
                 });
             } else {
-                console.log("but also here");
-
                 return $.ajax({
                     url: '{{ route('store-time-ext-form-cut-input') }}',
                     type: 'post',
@@ -1021,8 +1029,6 @@
                     data: dataObj,
                     success: function(res) {
                         if (res) {
-                            console.log(res.additional);
-
                             initScan();
                             clearScanItemForm();
                             clearSpreadingForm();
@@ -1145,8 +1151,6 @@
                         },
                         success: function(res) {
                             if (res) {
-                                console.log(res);
-
                                 Swal.fire({
                                     icon: 'success',
                                     title: 'Berhasil',
@@ -1465,8 +1469,6 @@
                 $('#spreading-form-card').CardWidget('expand');
             }
 
-            console.log(data);
-
             data.id_roll ? document.getElementById("kode_barang").value = data.id_roll : '';
             data.id_item ? document.getElementById("id_item").value = data.id_item : '';
             data.detail_item ? document.getElementById("detail_item").value = data.detail_item : '';
@@ -1682,8 +1684,6 @@
                     type: 'get',
                     dataType: 'json',
                     success: function(res) {
-                        console.log(res);
-
                         if (res) {
                             currentScannedItem = res;
 
@@ -1914,8 +1914,6 @@
             timeRecordTableTbody.prepend(tr);
 
             stopLapButton.disabled = false;
-
-            console.log($("#status_sambungan").val());
 
             if ($("#status_sambungan").val() == "extension") {
                 await stopTimeRecord();

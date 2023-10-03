@@ -65,7 +65,8 @@ class SpreadingController extends Controller
                     UPPER(b.unit_comma_marker) unit_comma_marker,
                     b.lebar_marker,
                     UPPER(b.unit_lebar_marker) unit_lebar_marker,
-                    a.qty_ply gelar_qty,
+                    a.qty_ply,
+                    b.gelar_qty,
                     b.po_marker,
                     b.urutan_marker,
                     b.cons_marker

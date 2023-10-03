@@ -153,6 +153,13 @@
                                             value="" readonly />
                                     </div>
                                 </div>
+                                <div class="col-4 col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label"><small>PO Marker</small></label>
+                                        <input type="text" class="form-control" id="edit_po_marker" name="edit_po_marker"
+                                            value="" readonly />
+                                    </div>
+                                </div>
                                 <div class="col-4 col-md-3">
                                     <div class="mb-3">
                                         <label class="form-label"><small>Gelar QTY</small></label>
@@ -162,8 +169,8 @@
                                 </div>
                                 <div class="col-4 col-md-3">
                                     <div class="mb-3">
-                                        <label class="form-label"><small>PO Marker</small></label>
-                                        <input type="text" class="form-control" id="edit_po_marker" name="edit_po_marker"
+                                        <label class="form-label"><small>Ply QTY</small></label>
+                                        <input type="text" class="form-control" id="edit_qty_ply" name="edit_qty_ply"
                                             value="" readonly />
                                     </div>
                                 </div>
@@ -181,7 +188,7 @@
                                             value="" readonly />
                                     </div>
                                 </div>
-                                <div class="col-6 col-md-6">
+                                <div class="col-12 col-md-12">
                                     <div class="mb-3">
                                         <label class="form-label"><small>No. Meja</small></label>
                                         <select class="form-select form-select-sm select2bs4"
@@ -329,7 +336,7 @@
                 {
                     data: 'cut_qty'
                 },
-            ],
+            ]
         });
 
         function dataTableReload() {
