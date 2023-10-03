@@ -21,13 +21,13 @@
         </div>
         <div class="card-body">
             <div class="row">
-                <div class="col-md-3">
+                <div class="col-6 col-md-3">
                     <div class="mb-1">
                         <label class="form-label"><small>Tgl Cutting</small></label>
                         <input type="date" class="form-control" id="tgl_cutting" name="tgl_cutting" value="{{ date('Y-m-d') }}">
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-6 col-md-3">
                     <div class="mb-1">
                         <div class="form-group">
                             <label><small>No. WS</small></label>
@@ -42,7 +42,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-6 col-md-3">
                     <div class="mb-1">
                         <div class="form-group">
                             <label><small>Color</small></label>
@@ -53,7 +53,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-6 col-md-3">
                     <div class="mb-1">
                         <div class="form-group">
                             <label><small>Panel</small></label>
@@ -66,7 +66,7 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-12 col-md-6">
                     <div class="d-flex flex-column">
                         <input type="hidden" class="form-control" id="ws" name="ws" readonly>
                         <div class="mb-1">
@@ -93,15 +93,15 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-12 col-md-6">
                     <div class="row">
-                        <div class="col-md-3">
+                        <div class="col-6 col-md-3">
                             <div class="mb-1">
                                 <label class="form-label"><small>P. Marker</small></label>
                                 <input type="number" class="form-control" id="p_marker" name="p_marker" step=".001">
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-6 col-md-3">
                             <div class="mb-1">
                                 <label class="form-label"><small>Unit</small></label>
                                 <select class="form-control input-sm select2bs4" id="p_unit" name="p_unit"
@@ -111,26 +111,26 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-6 col-md-3">
                             <div class="mb-1">
                                 <label class="form-label"><small>Comma</small></label>
                                 <input type="number" class="form-control" id="comma_marker" name="comma_marker" step=".001">
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-6 col-md-3">
                             <div class="mb-1">
                                 <label class="form-label"><small>Unit</small></label>
                                 <input type="text" class="form-control" id="comma_unit" name="comma_unit"
                                     value="INCH" readonly>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <div class="mb-1">
                                 <label class="form-label"><small>L. Marker</small></label>
                                 <input type="number" class="form-control" id="l_marker" name="l_marker" step=".001">
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <div class="mb-1">
                                 <label class="form-label"><small>Unit</small></label>
                                 <select class="form-control input-sm select2bs4" id="l_unit" name="l_unit"
@@ -140,13 +140,13 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <div class="mb-1">
                                 <label class="form-label"><small>Cons Marker</small></label>
                                 <input type="number" class="form-control" id="cons_marker" name="cons_marker" step=".001">
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <div class="mb-1">
                                 <label class="form-label"><small>Qty Gelar Marker</small></label>
                                 <input type="number" class="form-control" id="gelar_marker_qty"
@@ -185,6 +185,7 @@
                         <th>WS</th>
                         <th>Color</th>
                         <th>Size</th>
+                        <th>Size Input</th>
                         <th>QTY Order</th>
                         <th>Sisa</th>
                         <th>So Det Id</th>
@@ -373,6 +374,9 @@
                     data: 'size'
                 },
                 {
+                    data: 'size'
+                },
+                {
                     data: 'order_qty'
                 },
                 {
@@ -390,7 +394,11 @@
             ],
             columnDefs: [
                 {
-                    targets: [4],
+                    targets: [3],
+                    render: (data, type, row, meta) => '<input type="hidden" id="size-' + meta.row + '" name="size['+meta.row+']" value="' + data + '" readonly />'
+                },
+                {
+                    targets: [5],
                     render: (data, type, row, meta) => {
                         let sumCutQtyData = sumCutQty.find(o => o.so_det_id == row.id && o.panel == $('#panel').val())  ;
                         let left = row.order_qty - (sumCutQtyData ? sumCutQtyData.total_cut_qty : 0);
@@ -399,12 +407,12 @@
                     }
                 },
                 {
-                    targets: [5],
+                    targets: [6],
                     className: "d-none",
                     render: (data, type, row, meta) => '<input type="hidden" id="so-det-id-' + meta.row + '" name="so_det_id['+meta.row+']" value="' + data + '" readonly />'
                 },
                 {
-                    targets: [6],
+                    targets: [7],
                     render: (data, type, row, meta) => {
                         let sumCutQtyData = sumCutQty.find(o => o.so_det_id == row.id &&  o.panel == $('#panel').val())  ;
                         let left = row.order_qty - (sumCutQtyData ? sumCutQtyData.total_cut_qty : 0);
@@ -414,7 +422,7 @@
                     }
                 },
                 {
-                    targets: [7],
+                    targets: [8],
                     render: (data, type, row, meta) => '<input type="number" id="cut-qty-' + meta.row + '" name="cut_qty['+meta.row+']" readonly />'
                 }
             ]
@@ -487,10 +495,18 @@
             }
         }
 
+        document.getElementById("store-marker").onkeypress = function(e) {
+            var key = e.charCode || e.keyCode || 0;
+            if (key == 13) {
+                e.preventDefault();
+            }
+        }
+
         function submitMarkerForm(e, evt) {
             evt.preventDefault();
 
             clearModified();
+
 
             $.ajax({
                 url: e.getAttribute('action'),
@@ -500,8 +516,6 @@
                 contentType: false,
                 success: async function(res) {
                     if (res.status == 200) {
-                        console.log(res);
-
                         e.reset();
 
                         Swal.fire({
