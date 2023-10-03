@@ -28,6 +28,7 @@ class MarkerController extends Controller
             $markersQuery = Marker::selectRaw("
                 id,
                 tgl_cutting,
+                DATE_FORMAT(tgl_cutting, '%d-%m-%Y') tgl_cut_fix,
                 kode,
                 act_costing_ws,
                 color,
@@ -52,7 +53,7 @@ class MarkerController extends Controller
 
             if ($keyword) {
                 $markersQuery->whereRaw("(
-                    tgl_cutting like '%" . $keyword . "%' OR
+                    tgl_cut_fix like '%" . $keyword . "%' OR
                     kode like '%" . $keyword . "%' OR
                     act_costing_ws like '%" . $keyword . "%' OR
                     color like '%" . $keyword . "%' OR

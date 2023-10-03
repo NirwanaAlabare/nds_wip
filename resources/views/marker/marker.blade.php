@@ -18,46 +18,48 @@
                 </div>
                 <div class="modal-body">
                     <div class="row">
-                        <input type="hidden" id="edit_id" name="edit_id">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label"><small>Tgl. Cutting</small></label>
-                                <input type="text" class="form-control" id="edit_no_form" name="edit_no_form"
-                                    value="" readonly />
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label class="form-label"><small>No. Form</small></label>
+                                <input type='text' class='form-control' id='txt_cons_ws' name='txt_cons_ws' readonly>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label"><small>Tgl Form</small></label>
-                                <input type="text" class="form-control" id="edit_tgl_form_cut" name="edit_tgl_form_cut"
-                                    value="" readonly />
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label>No. WS</label>
+                                <input type='text' class='form-control' id='txt_cons_ws' name='txt_cons_ws' readonly>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label"><small>WS</small></label>
-                                <input type="text" class="form-control" id="edit_ws" name="edit_ws" value=""
-                                    readonly />
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label>Color</label>
+                                <input type='text' class='form-control' id='txt_cons_ws' name='txt_cons_ws' readonly>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label"><small>Color</small></label>
-                                <input type="text" class="form-control" id="edit_color" name="edit_color" value=""
-                                    readonly />
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label>Panel</label>
+                                <input type='text' class='form-control' id='txt_cons_ws' name='txt_cons_ws' readonly>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label"><small>Panel</small></label>
-                                <input type="text" class="form-control" id="edit_panel" name="edit_panel" value=""
-                                    readonly />
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label>Buyer</label>
+                                <input type='text' class='form-control' id='txt_cons_ws' name='txt_cons_ws' readonly>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label"><small>No. Meja</small></label>
-
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label>Color</label>
+                                <input type='text' class='form-control' id='txt_cons_ws' name='txt_cons_ws' readonly>
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label>Panel</label>
+                                <input type='text' class='form-control' id='txt_cons_ws' name='txt_cons_ws' readonly>
                             </div>
                         </div>
                     </div>
@@ -144,7 +146,7 @@
                 },
             },
             columns: [{
-                    data: 'tgl_cutting'
+                    data: 'tgl_cut_fix'
                 },
                 {
                     data: 'kode'
