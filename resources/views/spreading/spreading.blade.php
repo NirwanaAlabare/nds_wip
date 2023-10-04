@@ -60,7 +60,7 @@
         <div class="modal fade" id="editMejaModal" tabindex="-1" aria-labelledby="editMejaModalLabel" aria-hidden="true">
             <form action="{{ route('update-spreading') }}" method="post" onsubmit="submitForm(this, event)">
                 @method('PUT')
-                <div class="modal-dialog modal-lg">
+                <div class="modal-dialog modal-lg modal-dialog-scrollable">
                     <div class="modal-content">
                         <div class="modal-header bg-sb text-light">
                             <h1 class="modal-title fs-5" id="editMejaModalLabel">Edit Meja</h1>
