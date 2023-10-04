@@ -156,7 +156,7 @@
                                         $qtyPly = $item->ratio*$formCutInputData->qty_ply;
                                         $totalCutQtyPly += $qtyPly;
                                     @endphp
-                                    <td>{{ $soDetData->where('id', $item->so_det_id)->first()->size }}</td>
+                                    <td>{{ $soDetData->where('id', $item->so_det_id)->first() ? $soDetData->where('id', $item->so_det_id)->first()->size : '' }}</td>
                                     <td>{{ $item->ratio }}</td>
                                     <td>{{ $item->cut_qty }}</td>
                                     <td>{{ $qtyPly }}</td>
@@ -210,8 +210,8 @@
                                 <label class="form-label label-input"><small><b>P. Act</b></small></label>
                                 <input type="number" class="form-control form-control-sm border-input" name="p_act"
                                     id="p_act" value="{{ $formCutInputData->p_act }}"
-                                    onkeyup="calculateConsAct(this.value, {{ $totalCutQty }}); calculateConsAmpar(this.value, {{ $totalRatio }}); calculateEstAmpar(undefined, this.value);"
-                                    onchange="calculateConsAct(this.value, {{ $totalCutQty }}); calculateConsAmpar(this.value, {{ $totalRatio }}); calculateEstAmpar(undefined, this.value);">
+                                    onkeyup="calculateConsAct(this.value, {{ $totalCutQtyPly }}); calculateConsAmpar(this.value, {{ $totalRatio }}); calculateEstAmpar(undefined, this.value);"
+                                    onchange="calculateConsAct(this.value, {{ $totalCutQtyPly }}); calculateConsAmpar(this.value, {{ $totalRatio }}); calculateEstAmpar(undefined, this.value);">
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
@@ -284,8 +284,8 @@
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Cons WS</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-fetch" name="cons_ws"
-                                    id="cons_ws" onkeyup="calculateEstKain(this.value, {{ $totalCutQty }})"
-                                    onchange="calculateEstKain(this.value, {{ $totalCutQty }})" readonly>
+                                    id="cons_ws" onkeyup="calculateEstKain(this.value, {{ $totalCutQtyPly }})"
+                                    onchange="calculateEstKain(this.value, {{ $totalCutQtyPly }})" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
@@ -301,7 +301,7 @@
                                 <label class="form-label label-calc"><small><b>Cons Act</b></small></label>
                                 <input type="number" class="form-control form-control-sm border-calc" name="cons_act"
                                     id="cons_act"
-                                    value="{{ round($formCutInputData->cons_act, 2) > 0 ? $formCutInputData->cons_act : ($totalCutQty > 0 ? round($formCutInputData->p_act / $totalCutQty, 2) : '0') }}"
+                                    value="{{ round($formCutInputData->cons_act, 2) > 0 ? $formCutInputData->cons_act : ($totalCutQtyPly > 0 ? round($formCutInputData->p_act / $totalCutQtyPly, 2) : '0') }}"
                                     step=".01" readonly>
                             </div>
                         </div>
@@ -310,8 +310,8 @@
                                 <label class="form-label label-input"><small><b>Cons Piping</b></small></label>
                                 <input type="number" class="form-control form-control-sm border-input" step=".01"
                                     name="cons_pipping" id="cons_pipping"
-                                    onkeyup="calculateEstPipping(this.value, {{ $totalCutQty }})"
-                                    onchange="calculateEstPipping(this.value, {{ $totalCutQty }})"
+                                    onkeyup="calculateEstPipping(this.value, {{ $totalCutQtyPly }})"
+                                    onchange="calculateEstPipping(this.value, {{ $totalCutQtyPly }})"
                                     value="{{ $formCutInputData->cons_pipping }}">
                             </div>
                         </div>
@@ -743,7 +743,7 @@
 
         // -Ratio & Qty Cuy-
         var totalRatio = document.getElementById('total_ratio').value;
-        var totalQtyCut = document.getElementById('total_qty_cut').value;
+        var totalQtyCut = document.getElementById('total_qty_cut_ply').value;
 
         // Function List :
         // -On Load-
@@ -976,6 +976,8 @@
                     data: dataObj,
                     success: function(res) {
                         if (res) {
+                            timeRecordTableTbody.innerHTML = "";
+
                             initScan();
                             clearScanItemForm();
                             clearSpreadingForm();
@@ -1029,6 +1031,8 @@
                     data: dataObj,
                     success: function(res) {
                         if (res) {
+                            timeRecordTableTbody.innerHTML = "";
+
                             initScan();
                             clearScanItemForm();
                             clearSpreadingForm();
@@ -1596,8 +1600,12 @@
 
         // Function List :
         // -Initialize Scanner-
-        function initScan() {
+        async function initScan() {
             if (document.getElementById("reader")) {
+                if (html5QrcodeScanner) {
+                    await html5QrcodeScanner.clear();
+                }
+
                 function onScanSuccess(decodedText, decodedResult) {
                     // handle the scanned code as you like, for example:
                     console.log(`Code matched = ${decodedText}`, decodedResult);
@@ -1939,8 +1947,6 @@
             nextLapButton.classList.add('d-none');
 
             await backToProcessThree();
-
-            timeRecordTableTbody.innerHTML = "";
         }
 
         // Conditions :
