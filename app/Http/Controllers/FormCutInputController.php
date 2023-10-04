@@ -813,6 +813,10 @@ class FormCutInputController extends Controller
                 "operator" => $request->operator,
             ]);
 
+        $notCompleted = FormCutInputDetail::where("status","not complete")->first();
+        FormCutInputDetail::where("status","not complete")->delete();
+        FormCutInputDetailLap::where("form_cut_input_detail_id", $notCompleted->id)->delete();
+
         return $updateFormCutInput;
     }
 }

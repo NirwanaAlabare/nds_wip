@@ -7,8 +7,8 @@ use App\Models\MarkerDetail;
 use App\Models\Marker;
 use App\Models\User;
 use Illuminate\Http\Request;
-use DB;
 use Carbon\Carbon;
+use DB;
 
 class SpreadingController extends Controller
 {
@@ -79,6 +79,7 @@ class SpreadingController extends Controller
                 " . $additionalQuery . "
                 " . $keywordQuery . "
                 GROUP BY a.id
+                ORDER BY a.updated_at desc
             ");
 
             return json_encode([
