@@ -48,6 +48,8 @@
                             <th>Color</th>
                             <th>Panel</th>
                             <th>Status</th>
+                            <th>Size Ratio</th>
+                            <th>Qty Ply</th>
                             <th>Act</th>
                         </tr>
                     </thead>
@@ -66,7 +68,7 @@
                             <h1 class="modal-title fs-5" id="editMejaModalLabel">Edit Meja</h1>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <div class="modal-body" style="max-height: 65vh;">
+                        <div class="modal-body" style="max-height: 65vh !important;">
                             <div class="row">
                                 <input type="hidden" id="edit_id" name="edit_id">
                                 <input type="hidden" id="edit_marker_id" name="edit_marker_id">
@@ -174,14 +176,14 @@
                                             value="" readonly />
                                     </div>
                                 </div>
-                                <div class="col-4 col-md-3">
+                                <div class="col-6 col-md-3">
                                     <div class="mb-3">
                                         <label class="form-label"><small>Urutan Marker</small></label>
                                         <input type="text" class="form-control" id="edit_urutan_marker" name="edit_urutan_marker"
                                             value="" readonly />
                                     </div>
                                 </div>
-                                <div class="col-4 col-md-3">
+                                <div class="col-6 col-md-3">
                                     <div class="mb-3">
                                         <label class="form-label"><small>Cons. Marker</small></label>
                                         <input type="text" class="form-control" id="edit_cons_marker" name="edit_cons_marker"
@@ -284,6 +286,12 @@
                     data: 'status'
                 },
                 {
+                    data: 'marker_details'
+                },
+                {
+                    data: 'qty_ply'
+                },
+                {
                     data: 'id'
                 },
             ],
@@ -292,7 +300,7 @@
                     render: (data, type, row, meta) => data ? data.toUpperCase() : "-"
                 },
                 {
-                    targets: [8],
+                    targets: [10],
                     render: (data, type, row, meta) => {
                         let btnEdit = row.status == 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData("+ JSON.stringify(row) +", \"editMejaModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-pen'></i></a>" : "";
 

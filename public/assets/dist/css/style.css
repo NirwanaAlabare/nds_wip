@@ -282,4 +282,8 @@
     #reader {
         min-width: 100% !important;
     }
+
+    .modal-dialog-scrollable .modal-body {
+        max-height: 65vh !important;
+    }
 }
