@@ -804,6 +804,7 @@ class FormCutInputController extends Controller
     }
 
     public function finishProcess($id = 0, Request $request) {
+        $formCutInputData = FormCutInput::where("id", $id)->first();
         $updateFormCutInput = FormCutInput::where("id", $id)->
             update([
                 "status" => "SELESAI PENGERJAAN",
@@ -813,9 +814,11 @@ class FormCutInputController extends Controller
                 "operator" => $request->operator,
             ]);
 
-        $notCompleted = FormCutInputDetail::where("status","not complete")->first();
-        FormCutInputDetail::where("status","not complete")->delete();
-        FormCutInputDetailLap::where("form_cut_input_detail_id", $notCompleted->id)->delete();
+        $notCompleted = FormCutInputDetail::where("no_form_cut_input", $formCutInputData->no_form)->where("status","not complete")->first();
+        if ($notCompleted) {
+            FormCutInputDetailLap::where("form_cut_input_detail_id", $notCompleted->id)->delete();
+            FormCutInputDetail::where("no_form_cut_input", $formCutInputData->no_form)->where("status","not complete")->delete();
+        }
 
         return $updateFormCutInput;
     }
