@@ -66,7 +66,7 @@
                             <h1 class="modal-title fs-5" id="editMejaModalLabel">Edit Meja</h1>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <div class="modal-body">
+                        <div class="modal-body" style="max-height: 65vh;">
                             <div class="row">
                                 <input type="hidden" id="edit_id" name="edit_id">
                                 <input type="hidden" id="edit_marker_id" name="edit_marker_id">
