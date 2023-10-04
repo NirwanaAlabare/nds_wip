@@ -34,6 +34,7 @@ class SpreadingController extends Controller
             if ($request->search["value"]) {
                 $keywordQuery = "
                     and (
+                        a.id_marker like '%" . $request->search["value"] . "%' OR
                         a.no_meja like '%" . $request->search["value"] . "%' OR
                         a.no_form like '%" . $request->search["value"] . "%' OR
                         a.tgl_form_cut like '%" . $request->search["value"] . "%' OR
@@ -69,12 +70,15 @@ class SpreadingController extends Controller
                     b.gelar_qty,
                     b.po_marker,
                     b.urutan_marker,
-                    b.cons_marker
+                    b.cons_marker,
+                    GROUP_CONCAT(CONCAT(' ', marker_input_detail.size, '(', marker_input_detail.cut_qty, ')') ORDER BY marker_input_detail.size ASC) marker_details
                 FROM `form_cut_input` a
                 left join marker_input b on a.id_marker = b.kode
+                left join marker_input_detail on b.id = marker_input_detail.marker_id
                 left join users on users.id = a.no_meja
                 " . $additionalQuery . "
                 " . $keywordQuery . "
+                GROUP BY a.id
             ");
 
             return json_encode([

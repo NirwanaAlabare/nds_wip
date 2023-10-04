@@ -62,7 +62,7 @@ class MarkerController extends Controller
                 )");
             }
 
-            $markers = $markersQuery->get();
+            $markers = $markersQuery->orderBy("id", "desc")->get();
 
             return json_encode([
                 "draw" => intval($request->input('draw')),
@@ -195,8 +195,9 @@ class MarkerController extends Controller
      */
     public function store(Request $request)
     {
-        $countMarker = Marker::whereRaw("kode LIKE 'MRK/" . date('ym') . "/%'")->count() + 1;
-        $markerCode = 'MRK/' . date('ym') . '/' . sprintf('%05s', $countMarker);
+        $markerCount = Marker::selectRaw("MAX(kode) latest_kode")->whereRaw("kode LIKE 'MRK/" . date('ym') . "/%'")->first();
+        $markerNumber = intval(substr($markerCount->latest_kode, -5)) + 1;
+        $markerCode = 'MRK/' . date('ym') . '/' . sprintf('%05s', $markerNumber);
         $totalQty = 0;
 
         $validatedRequest = $request->validate([

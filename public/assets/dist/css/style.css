@@ -17,6 +17,10 @@
     --dark-color: #2b2f3a;
 }
 
+td, th {
+    font-size: 15px !important;
+}
+
 .fa-solid {
     transform: translateY(0.5px) !important;
 }
@@ -281,5 +285,9 @@
 @media only screen and (max-width: 768px) {
     #reader {
         min-width: 100% !important;
+    }
+
+    .modal-dialog-scrollable .modal-body {
+        max-height: 65vh !important;
     }
 }
