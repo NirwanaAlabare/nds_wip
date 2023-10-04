@@ -71,10 +71,11 @@ class SpreadingController extends Controller
                     b.po_marker,
                     b.urutan_marker,
                     b.cons_marker,
-                    GROUP_CONCAT(CONCAT(' ', marker_input_detail.size, '(', marker_input_detail.ratio, ')') ORDER BY marker_input_detail.size ASC) marker_details
+                    GROUP_CONCAT(CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC) marker_details
                 FROM `form_cut_input` a
                 left join marker_input b on a.id_marker = b.kode
                 left join marker_input_detail on b.id = marker_input_detail.marker_id
+                left join master_size_new on marker_input_detail.size = master_size_new.size
                 left join users on users.id = a.no_meja
                 " . $additionalQuery . "
                 " . $keywordQuery . "

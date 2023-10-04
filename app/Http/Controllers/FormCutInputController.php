@@ -64,7 +64,7 @@ class FormCutInputController extends Controller
                 $formCutInputQuery->where("form_cut_input.no_meja", Auth::user()->id);
             }
 
-            $formCutInput = $formCutInputQuery->get();
+            $formCutInput = $formCutInputQuery->orderBy("form_cut_input.updated_at", "desc")->get();
 
             return json_encode([
                 "draw" => intval($request->input('draw')),
