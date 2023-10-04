@@ -17,6 +17,10 @@
     --dark-color: #2b2f3a;
 }
 
+td, th {
+    font-size: 15px !important;
+}
+
 .fa-solid {
     transform: translateY(0.5px) !important;
 }

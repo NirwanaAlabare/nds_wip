@@ -34,6 +34,7 @@ class SpreadingController extends Controller
             if ($request->search["value"]) {
                 $keywordQuery = "
                     and (
+                        a.id_marker like '%" . $request->search["value"] . "%' OR
                         a.no_meja like '%" . $request->search["value"] . "%' OR
                         a.no_form like '%" . $request->search["value"] . "%' OR
                         a.tgl_form_cut like '%" . $request->search["value"] . "%' OR
