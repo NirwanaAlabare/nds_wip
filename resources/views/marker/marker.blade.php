@@ -16,57 +16,12 @@
                     <h1 class="modal-title fs-5" id="exampleModalLabel"></h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-sm-3">
-                            <div class="form-group">
-                                <label class="form-label"><small>No. Form</small></label>
-                                <input type='text' class='form-control' id='txt_cons_ws' name='txt_cons_ws' readonly>
-                            </div>
-                        </div>
-                        <div class="col-sm-3">
-                            <div class="form-group">
-                                <label>No. WS</label>
-                                <input type='text' class='form-control' id='txt_cons_ws' name='txt_cons_ws' readonly>
-                            </div>
-                        </div>
-                        <div class="col-sm-3">
-                            <div class="form-group">
-                                <label>Color</label>
-                                <input type='text' class='form-control' id='txt_cons_ws' name='txt_cons_ws' readonly>
-                            </div>
-                        </div>
-                        <div class="col-sm-3">
-                            <div class="form-group">
-                                <label>Panel</label>
-                                <input type='text' class='form-control' id='txt_cons_ws' name='txt_cons_ws' readonly>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-sm-6">
-                            <div class="form-group">
-                                <label>Buyer</label>
-                                <input type='text' class='form-control' id='txt_cons_ws' name='txt_cons_ws' readonly>
-                            </div>
-                        </div>
-                        <div class="col-sm-3">
-                            <div class="form-group">
-                                <label>Color</label>
-                                <input type='text' class='form-control' id='txt_cons_ws' name='txt_cons_ws' readonly>
-                            </div>
-                        </div>
-                        <div class="col-sm-3">
-                            <div class="form-group">
-                                <label>Panel</label>
-                                <input type='text' class='form-control' id='txt_cons_ws' name='txt_cons_ws' readonly>
-                            </div>
-                        </div>
-                    </div>
+                <div class="modal-body" id="detail">
+
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    <button type="submit" class="btn btn-sb">Simpan</button>
+                    {{-- <button type="submit" class="btn btn-sb">Simpan</button> --}}
                 </div>
             </div>
         </div>
@@ -197,7 +152,8 @@
                         //     row.id +
                         //     `' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-search'></i></a></div>`;
                         return `<div class='d-flex gap-1 justify-content-center'><a class='btn btn-primary btn-sm'
-                        data-bs-toggle="modal" data-bs-target="#exampleModal" onclick='getdetail();'><i class='fa fa-search'></i></a></div>`;
+                        data-bs-toggle="modal" data-bs-target="#exampleModal" onclick='getdetail(` + row.id +
+                            `);'><i class='fa fa-search'></i></a></div>`;
                         // "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" +
                         // JSON.stringify(row) +
                         //     ", \"ExampleModal\", [])'><i class='fa fa-pen'></i></a>": "";
@@ -210,9 +166,17 @@
             datatable.ajax.reload();
         }
 
-        function getdetail() {
-
+        function getdetail(id_c) {
             $("#exampleModalLabel").html('Marker Detail');
+            var html = $.ajax({
+                type: "POST",
+                url: '{{ route('show-marker') }}',
+                data: {
+                    id_c: id_c
+                },
+                async: false
+            }).responseText;
+            $("#detail").html(html);
 
         };
     </script>

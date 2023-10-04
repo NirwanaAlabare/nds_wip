@@ -37,7 +37,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-marker');
         Route::get('/edit', 'edit')->name('edit-marker');
         Route::put('/update', 'update')->name('update-marker');
-        Route::get('/show', 'show')->name('show-marker');
+        Route::post('/show', 'show')->name('show-marker');
 
         // get order
         Route::get('/get-order', 'getOrderInfo')->name('get-marker-order');
