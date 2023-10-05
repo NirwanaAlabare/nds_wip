@@ -448,6 +448,7 @@ class FormCutInputController extends Controller
 
             if ($status == 'need extension') {
                 $storeTimeRecordSummaryExt = FormCutInputDetail::create([
+                        "group" => $validatedRequest['current_group'],
                         "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
                         "id_sambungan" => $storeTimeRecordSummary->id,
                         "status" => "extension",

@@ -484,7 +484,9 @@
                                 <div class="mb-3">
                                     <label class="form-label label-input"><small><b>Sisa Gelaran</b></small></label>
                                     <input type="number" class="form-control form-control-sm border-input"
-                                        id="current_sisa_gelaran" name="current_sisa_gelaran" step=".01">
+                                        id="current_sisa_gelaran" name="current_sisa_gelaran" step=".01"
+                                        onkeyup="restrictCurrentPly()"
+                                        onchange="restrictCurrentPly()">
                                 </div>
                             </div>
                             <div class="col-4">
@@ -1189,6 +1191,21 @@
             nextProcessTwoButton.disabled = true;
             nextProcessThreeButton.disabled = true;
             finishProcessButton.disabled = true;
+        }
+
+        // -Restrict Sisa Gelaran-
+        function restrictCurrentPly() {
+            let sisaGelar = Number(document.getElementById('current_sisa_gelaran').value);
+            let pAct = Number(document.getElementById('p_act').value);
+            if (sisaGelar >= pAct) {
+                document.getElementById('current_sisa_gelaran').value = 0;
+
+                iziToast.warning({
+                    title: 'Warning',
+                    message: 'Sisa gelaran melebihi Panjang actual',
+                    position: 'topCenter'
+                });
+            }
         }
 
         // -Calculate Cons Ampar-
