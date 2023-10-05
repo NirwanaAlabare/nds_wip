@@ -526,7 +526,7 @@
                                     <label class="form-label label-sb"><small><b>Ply Progress</b></small></label>
                                     <div class="progress border border-sb" style="height: 31px">
                                         <p class="position-absolute" style="top: 59%;left: 50%;transform: translate(-50%, -50%);" id="current_ply_progress_txt"></p>
-                                        <div class="progress-bar bg-sb" role="progressbar" id="current_ply_progress"></div>
+                                        <div class="progress-bar bg-primary" role="progressbar" id="current_ply_progress"></div>
                                     </div>
                                 </div>
                             </div>
@@ -1714,6 +1714,8 @@
             firstTimeRecordCondition();
 
             lockTimeRecord();
+
+            firstLostTimeCondition();
         }
 
         // Scan QR Module :
