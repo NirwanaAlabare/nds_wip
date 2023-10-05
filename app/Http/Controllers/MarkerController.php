@@ -289,13 +289,31 @@ class MarkerController extends Controller
     public function show(Request $request)
     {
         $data_marker = DB::select("
-        SELECT *,
+        SELECT a.*,
         DATE_FORMAT(tgl_cutting, '%d-%m-%Y') tgl_cut_fix,
         CONCAT(panjang_marker, ' ', UPPER(unit_panjang_marker), ' ',comma_marker, ' ', UPPER(unit_comma_marker)) panjang_marker_fix,
-        CONCAT(lebar_marker, ' ', UPPER(unit_lebar_marker)) lebar_marker_fix
-        from marker_input a where id = '$request->id_c'");
+        CONCAT(lebar_marker, ' ', UPPER(unit_lebar_marker)) lebar_marker_fix,
+        b.qty_order
+        from marker_input a
+        left join (select id_act_cost,sum(qty) qty_order from master_sb_ws group by id_act_cost) b on a.act_costing_id = b.id_act_cost
+        where id = '$request->id_c'");
+
+        $data_marker_det = DB::select("
+        SELECT size, ratio from marker_input_detail where marker_id = '$request->id_c'");
 
         foreach ($data_marker as $datanomarker) {
+
+            $html_table = "";
+
+            foreach ($data_marker_det as $item) :
+                $html_table .= "
+            <tr>
+            <td align='center' valign='center'>$item->size</td>
+            <td align='center' valign='center'>$item->ratio</td>
+            </tr>
+ ";
+            endforeach;
+
             $html = "
         <div class='row'>
             <div class='col-sm-3'>
@@ -364,7 +382,7 @@ class MarkerController extends Controller
             <div class='col-sm-3'>
                 <div class='form-group'>
                     <label class='form-label'><small>Qty Order</small></label>
-                    <input type='text' class='form-control' id='txtqty_order' name='txtqty_order' value = '' readonly>
+                    <input type='text' class='form-control' id='txtqty_order' name='txtqty_order' value = '" . $datanomarker->qty_order . "' readonly>
                 </div>
             </div>
             <div class='col-sm-3'>
@@ -395,6 +413,24 @@ class MarkerController extends Controller
                 </div>
             </div>
         </div>
+        </div>
+
+        <div class='row'>
+        <div class='col-sm-12'>
+        <div class='table-responsive'>
+        <table class='table table-bordered table-striped table-sm w-100'>
+            <thead>
+                <tr>
+                    <th class='text-center'>Size</th>
+                    <th class='text-center'>Ratio</th>
+                </tr>
+            </thead>
+            <tbody>
+$html_table
+            </tbody>
+        </table>
+        </div>
+    </div>
 
 
         ";

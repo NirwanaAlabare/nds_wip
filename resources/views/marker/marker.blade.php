@@ -10,14 +10,13 @@
 @section('content')
     <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
-        <div class="modal-dialog modal-xl">
+        <div class="modal-dialog" style="max-width: 50%;">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-light">
                     <h1 class="modal-title fs-5" id="exampleModalLabel"></h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="detail">
-
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
@@ -152,8 +151,13 @@
                         //     row.id +
                         //     `' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-search'></i></a></div>`;
                         return `<div class='d-flex gap-1 justify-content-center'><a class='btn btn-primary btn-sm'
+                        data-bs-toggle="modal" data-bs-target="#exampleModal"
+                        onclick='getdetail(` + row.id + `);'>
+                        <i class='fa fa-search'></i></a>
+                            <a class='btn btn-danger btn-sm'
                         data-bs-toggle="modal" data-bs-target="#exampleModal" onclick='getdetail(` + row.id +
-                            `);'><i class='fa fa-search'></i></a></div>`;
+                            `);'><i class='fa fa-ban'></i></a>
+                            </div>`;
                         // "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" +
                         // JSON.stringify(row) +
                         //     ", \"ExampleModal\", [])'><i class='fa fa-pen'></i></a>": "";
@@ -168,7 +172,7 @@
 
         function getdetail(id_c) {
             $("#exampleModalLabel").html('Marker Detail');
-            var html = $.ajax({
+            let html = $.ajax({
                 type: "POST",
                 url: '{{ route('show-marker') }}',
                 data: {
@@ -177,7 +181,6 @@
                 async: false
             }).responseText;
             $("#detail").html(html);
-
         };
     </script>
 @endsection
