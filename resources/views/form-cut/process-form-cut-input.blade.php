@@ -518,11 +518,19 @@
                             <div class="col-4">
                                 <div class="mb-3">
                                     <label class="form-label label-sb"><small><b>Average Time</b></small></label>
-                                    <input type="text" class="form-control form-control-sm border-sb"
-                                        id="current_average_time" name="current_average_time" readonly>
+                                    <input type="text" class="form-control form-control-sm border-sb" id="current_average_time" name="current_average_time" readonly>
                                 </div>
                             </div>
                             <div class="col-4">
+                                <div class="mb-3">
+                                    <label class="form-label label-sb"><small><b>Ply Progress</b></small></label>
+                                    <div class="progress border border-sb" style="height: 31px">
+                                        <p class="position-absolute" style="top: 59%;left: 50%;transform: translate(-50%, -50%);" id="current_ply_progress_txt"></p>
+                                        <div class="progress-bar bg-sb" role="progressbar" id="current_ply_progress"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-3">
                                 <div class="mb-3">
                                     <label class="form-label label-input"><small><b>Kepala Kain</b></small></label>
                                     <input type="number" class="form-control form-control-sm border-input"
@@ -532,7 +540,7 @@
                                         step=".01">
                                 </div>
                             </div>
-                            <div class="col-4">
+                            <div class="col-3">
                                 <div class="mb-3">
                                     <label class="form-label label-input"><small><b>Sisa Tidak Bisa</b></small></label>
                                     <input type="number" class="form-control form-control-sm border-input"
@@ -541,7 +549,7 @@
                                         onchange="calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = this.value, reject = undefined);">
                                 </div>
                             </div>
-                            <div class="col-4">
+                            <div class="col-3">
                                 <div class="mb-3">
                                     <label class="form-label label-input"><small><b>Reject</b></small></label>
                                     <input type="number" class="form-control form-control-sm border-input"
@@ -550,7 +558,7 @@
                                         onchange="calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = undefined, reject = this.value); calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = this.value, sambungan = undefined, qty = undefined);">
                                 </div>
                             </div>
-                            <div class="col-4">
+                            <div class="col-3">
                                 <div class="mb-3">
                                     <label class="form-label label-input"><small><b>Sisa Kain</b></small></label>
                                     <input type="number" class="form-control form-control-sm border-input"
@@ -591,12 +599,12 @@
                                 </div>
                             </div>
                             <div class="col-6 col-md-6 my-3">
-                                <button type="button" class="btn btn-success btn-sm w-100 h-100"
+                                <button type="button" class="fs-5 fw-bold btn btn-success btn-sm w-100 h-100"
                                     style="min-height: 90px !important;" id="startLapButton"
-                                    onclick="startTimeRecord()">Start</button>
-                                <button type="button" class="btn btn-primary btn-sm d-none w-100 h-100"
+                                    onclick="startTimeRecord()">START</button>
+                                <button type="button" class="fs-5 fw-bold btn btn-primary btn-sm d-none w-100 h-100"
                                     style="min-height: 90px !important;" id="nextLapButton"
-                                    onclick="addNewTimeRecord()">Next Lap</button>
+                                    onclick="addNewTimeRecord()">NEXT LAP</button>
                             </div>
                             <div class="col-6 col-md-6 my-3">
                                 <div class="row">
@@ -634,6 +642,59 @@
                             </div>
                         </div>
                     </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-12">
+            <div class="card card-sb collapsed-card d-none" id="lost-time-card">
+                <div class="card-header">
+                    <h3 class="card-title">Lost Time</h3>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
+                    </div>
+                </div>
+                <div class="card-body" style="display: block;">
+                    <div class="row">
+                        <div class="col-6 col-md-6 my-3">
+                            <button type="button" class="fs-5 fw-bold btn btn-danger btn-sm w-100 h-100"
+                                    style="min-height: 90px !important;" id="startLostButton"
+                                    onclick="startLostTime()">START</button>
+                            <button type="button" class="fs-5 fw-bold btn btn-warning btn-sm d-none w-100 h-100"
+                                    style="min-height: 90px !important;" id="nextLostButton"
+                                    onclick="addNewLostTime()">STOP</button>
+                        </div>
+                        <div class="col-6 col-md-6 my-3">
+                            <div class="row">
+                                <div class="col-5">
+                                    <input type="text" class="form-control form-control-sm" id="lostMinutes"
+                                        value="00" readonly class="mx-1">
+                                </div>
+                                <div class="col-2">
+                                    <center>:</center>
+                                </div>
+                                <div class="col-5">
+                                    <input type="text" class="form-control form-control-sm" id="lostSeconds"
+                                        value="00" readonly class="mx-1">
+                                </div>
+                            </div>
+                            <div class="w-100 h-100 table-responsive mt-3">
+                                <form action="#" method="post" id="lost-time-form">
+                                    <input type="hidden" id="current_lost_time" name="current_lost_time">
+                                    <table class="table table-bordered table-sm" id="lostTimeTable">
+                                        <thead>
+                                            <tr>
+                                                <th>No.</th>
+                                                <th>Waktu</th>
+                                                <th class="d-none"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                    </table>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -796,6 +857,7 @@
 
             startProcessButton.classList.add("d-none");
             nextProcessOneButton.classList.remove("d-none");
+            document.getElementById("lost-time-card").classList.remove("d-none");
         }
 
         // -Start Process Transaction-
@@ -1339,12 +1401,22 @@
 
         // -Check Form Cut Input Status-
         async function checkStatus() {
+            $('#lost-time-card').CardWidget('collapse');
+
             if (status == "PENGERJAAN FORM CUTTING") {
+                checkLostTime(id);
+
                 startProcessButton.classList.add("d-none");
                 nextProcessOneButton.classList.remove("d-none");
+
+                document.getElementById("lost-time-card").classList.remove("d-none");
             }
 
             if (status == "PENGERJAAN FORM CUTTING DETAIL") {
+                document.getElementById("lost-time-card").classList.remove("d-none");
+
+                checkLostTime(id);
+
                 startProcessButton.classList.add("d-none");
                 nextProcessOneButton.classList.add("d-none");
 
@@ -1354,6 +1426,10 @@
             }
 
             if (status == "PENGERJAAN FORM CUTTING SPREAD") {
+                document.getElementById("lost-time-card").classList.remove("d-none");
+
+                checkLostTime(id);
+
                 if ($("status_sambungan").val() != "extension") {
                     document.getElementById("current_sambungan").setAttribute('readonly', true);
                     document.getElementById("current_sisa_gelaran").removeAttribute('readonly');
@@ -1375,8 +1451,6 @@
 
                 await getSummary()
                 if (summaryData != null && summaryData.length > 0) {
-                    firstTimeRecordCondition();
-
                     $('#spreading-form-card').removeClass("d-none");
                     $('#summary-card').removeClass("d-none");
 
@@ -1385,6 +1459,8 @@
             }
 
             if (status == "SELESAI PENGERJAAN") {
+                document.getElementById("lost-time-card").classList.remove("d-none");
+
                 startProcessButton.classList.add("d-none");
                 nextProcessOneButton.classList.add("d-none");
                 nextProcessTwoButton.classList.add("d-none");
@@ -1457,6 +1533,8 @@
                     if (res) {
                         nextProcessThreeButton.classList.remove('d-none');
 
+                        firstTimeRecordCondition();
+
                         if (res.count > 0) {
                             spreadingFormData = res.data;
                             sisaGelaran = res.sisaGelaran;
@@ -1501,6 +1579,8 @@
                     document.getElementById("current_sambungan").setAttribute('readonly', true);
                     document.getElementById("current_sisa_gelaran").removeAttribute('readonly');
                 }
+
+                openTimeRecordCondition();
             }
 
             data.id_roll ? document.getElementById("kode_barang").value = data.id_roll : '';
@@ -1529,6 +1609,8 @@
             data.remark ? document.getElementById("current_remark").value = data.remark : '';
 
             calculateEstAmpar(data.roll_qty, document.getElementById("p_act").value);
+
+            updatePlyProgress();
         }
 
         // -Clear Spreading Form-
@@ -1606,7 +1688,17 @@
                 summaryData.forEach((data) => {
                     appendScannedItem(data)
                 });
+
+                updatePlyProgress();
             }
+        }
+
+        // -Update Ply Progress-
+        function updatePlyProgress() {
+            let currentLembar = Number($("#current_lembar_gelaran").val());
+
+            document.getElementById("current_ply_progress_txt").innerText = (totalLembar+currentLembar)+"/"+totalQtyCut;
+            document.getElementById("current_ply_progress").style.width = Number(totalQtyCut) > 0 ? (Number(totalLembar)/Number(totalQtyCut) * 100) +"%" : "0%";
         }
 
         // -Lock Form Cut Input-
@@ -1822,210 +1914,430 @@
         }
 
         // Time Record Module :
-        // Variable List :
-        // Button Elements
-        var startLapButton = document.getElementById("startLapButton");
-        var nextLapButton = document.getElementById("nextLapButton");
-        var stopLapButton = document.getElementById("stopLapButton");
+            // Variable List :
+                // Button Elements
+                var startLapButton = document.getElementById("startLapButton");
+                var nextLapButton = document.getElementById("nextLapButton");
+                var stopLapButton = document.getElementById("stopLapButton");
 
-        // Time Elements
-        var minutes = document.getElementById("minutes");
-        var seconds = document.getElementById("seconds");
+                // Time Elements
+                var minutes = document.getElementById("minutes");
+                var seconds = document.getElementById("seconds");
 
-        // Table Elements
-        var timeRecordTable = document.getElementById('timeRecordTable');
-        var timeRecordTableTbody = timeRecordTable.getElementsByTagName("tbody")[0];
+                // Table Elements
+                var timeRecordTable = document.getElementById('timeRecordTable');
+                var timeRecordTableTbody = timeRecordTable.getElementsByTagName("tbody")[0];
 
-        // Calculate Things
-        var lap = 0;
-        var totalSeconds = 0;
-        var summarySeconds = 0;
-        var averageSeconds = 0;
-        var timeRecordInterval = 0;
+                // Calculate Things
+                var lap = 0;
+                var totalSeconds = 0;
+                var summarySeconds = 0;
+                var averageSeconds = 0;
+                var timeRecordInterval = 0;
 
-        // Initialize Time Elements
-        seconds.value = pad(totalSeconds % 60);
-        minutes.value = pad(parseInt(totalSeconds / 60));
+                // Initialize Time Elements
+                seconds.value = pad(totalSeconds % 60);
+                minutes.value = pad(parseInt(totalSeconds / 60));
 
         // Function List :
-        // -Time Record-
-        function checkTimeRecordLap(detailId) {
-            $.ajax({
-                url: '{{ route('check-time-record-form-cut-input') }}/' + detailId,
-                type: 'get',
-                dataType: 'json',
-                success: function(res) {
-                    openTimeRecordCondition();
-
-                    if (res.count > 0) {
-                        setTimeRecordLap(res.data);
+            // -Time Record-
+            function checkTimeRecordLap(detailId) {
+                $.ajax({
+                    url: '{{ route('check-time-record-form-cut-input') }}/' + detailId,
+                    type: 'get',
+                    dataType: 'json',
+                    success: function(res) {
+                        if (res.count > 0) {
+                            setTimeRecordLap(res.data);
+                        }
                     }
+                });
+            }
+
+            function setTimeRecordLap(data) {
+                data.forEach((element, index, array) => {
+                    let time = element.waktu.split(":");
+                    let minutesData = Number(time[0]) * 60;
+                    let secondsData = Number(time[1]);
+
+                    summarySeconds += (minutesData + secondsData);
+                    lap++;
+
+                    if (index == (array.length - 1)) {
+                        averageSeconds = (parseFloat(summarySeconds) / parseFloat(lap)).toFixed(0);
+
+                        $("#current_lembar_gelaran").val(lap).trigger('change');
+                        $("#current_average_time").val((pad(parseInt(averageSeconds / 60))) + ':' + (pad(
+                            averageSeconds % 60)))
+                    }
+
+                    let tr = document.createElement('tr');
+                    let td1 = document.createElement('td');
+                    let td2 = document.createElement('td');
+                    let td3 = document.createElement('td');
+                    td1.innerHTML = lap;
+                    td2.innerHTML = element.waktu;
+                    td3.classList.add('d-none');
+                    td3.innerHTML = `<input type='hidden' name="time_record[` + lap + `]" value="` + element.waktu +
+                        `" />`;
+                    tr.appendChild(td1);
+                    tr.appendChild(td2);
+                    tr.appendChild(td3);
+
+                    timeRecordTableTbody.prepend(tr);
+                });
+
+                if (data.length > 0) {
+                    stopLapButton.disabled = false;
                 }
-            });
-        }
+            }
 
-        function setTimeRecordLap(data) {
-            data.forEach((element, index, array) => {
-                let time = element.waktu.split(":");
-                let minutesData = Number(time[0]) * 60;
-                let secondsData = Number(time[1]);
+            // -Set Time-
+            function setTime() {
+                ++totalSeconds;
+                seconds.value = pad(totalSeconds % 60);
+                minutes.value = pad(parseInt(totalSeconds / 60));
+            }
 
-                summarySeconds += (minutesData + secondsData);
+            // -Start Time Record-
+            function startTimeRecord() {
+                if (lostInterval) {
+                    addNewLostTime();
+                }
+
+                pauseTimeRecordButtons();
+
+                timeRecordInterval = setInterval(setTime, 999);
+
+                startLapButton.classList.add("d-none")
+                nextLapButton.classList.remove('d-none');
+                nextLapButton.focus();
+
+                openLapTimeRecordCondition();
+
+                if ($("#status_sambungan").val() != "extension") {
+                    storeThisTimeRecord();
+                }
+            }
+
+            // -Next Lap Time Record-
+            async function addNewTimeRecord(data = null) {
+                pauseTimeRecordButtons();
+
+                summarySeconds += totalSeconds;
+                totalSeconds = 0;
                 lap++;
 
-                if (index == (array.length - 1)) {
-                    averageSeconds = (parseFloat(summarySeconds) / parseFloat(lap)).toFixed(0);
+                averageSeconds = (parseFloat(summarySeconds) / parseFloat(lap)).toFixed(0);
 
-                    $("#current_lembar_gelaran").val(lap).trigger('change');
-                    $("#current_average_time").val((pad(parseInt(averageSeconds / 60))) + ':' + (pad(
-                        averageSeconds % 60)))
-                }
+                $("#current_lembar_gelaran").val(lap).trigger('change');
+                $("#current_average_time").val((pad(parseInt(averageSeconds / 60))) + ':' + (pad(averageSeconds % 60)))
 
                 let tr = document.createElement('tr');
                 let td1 = document.createElement('td');
                 let td2 = document.createElement('td');
                 let td3 = document.createElement('td');
                 td1.innerHTML = lap;
-                td2.innerHTML = element.waktu;
+                td2.innerHTML = minutes.value + ':' + seconds.value;
                 td3.classList.add('d-none');
-                td3.innerHTML = `<input type='hidden' name="time_record[` + lap + `]" value="` + element.waktu +
-                    `" />`;
+                td3.innerHTML = `<input type='hidden' name="time_record[` + lap + `]" value="` + minutes.value + ':' +
+                    seconds
+                    .value + `" />`;
                 tr.appendChild(td1);
                 tr.appendChild(td2);
                 tr.appendChild(td3);
 
-                timeRecordTableTbody.appendChild(tr);
-            });
+                timeRecordTableTbody.prepend(tr);
 
-            if (data.length > 0) {
                 stopLapButton.disabled = false;
+
+                if ($("#status_sambungan").val() == "extension") {
+                    await stopTimeRecord();
+                    // checkStatus();
+                } else {
+                    storeThisTimeRecord();
+                }
+
+                updatePlyProgress();
             }
-        }
 
-        // -Set Time-
-        function setTime() {
-            ++totalSeconds;
-            seconds.value = pad(totalSeconds % 60);
-            minutes.value = pad(parseInt(totalSeconds / 60));
-        }
+            // -Stop Time Record-
+            async function stopTimeRecord() {
+                pauseTimeRecordButtons();
 
-        // -Start Time Record-
-        function startTimeRecord() {
-            pauseTimeRecordButtons();
+                clearTimeout(timeRecordInterval);
 
-            timeRecordInterval = setInterval(setTime, 999);
+                summarySeconds = 0;
+                totalSeconds = 0;
+                timeRecordInterval = 0;
 
-            startLapButton.classList.add("d-none")
-            nextLapButton.classList.remove('d-none');
-            nextLapButton.focus();
+                seconds.value = 00;
+                minutes.value = 00;
+                lap = 0;
 
-            openLapTimeRecordCondition();
+                startLapButton.classList.remove('d-none');
+                nextLapButton.classList.add('d-none');
 
-            if ($("#status_sambungan").val() != "extension") {
-                storeThisTimeRecord();
+                await backToProcessThree();
             }
-        }
 
-        // -Next Lap Time Record-
-        async function addNewTimeRecord(data = null) {
-            pauseTimeRecordButtons();
-
-            summarySeconds += totalSeconds;
-            totalSeconds = 0;
-            lap++;
-
-            averageSeconds = (parseFloat(summarySeconds) / parseFloat(lap)).toFixed(0);
-
-            $("#current_lembar_gelaran").val(lap).trigger('change');
-            $("#current_average_time").val((pad(parseInt(averageSeconds / 60))) + ':' + (pad(averageSeconds % 60)))
-
-            let tr = document.createElement('tr');
-            let td1 = document.createElement('td');
-            let td2 = document.createElement('td');
-            let td3 = document.createElement('td');
-            td1.innerHTML = lap;
-            td2.innerHTML = minutes.value + ':' + seconds.value;
-            td3.classList.add('d-none');
-            td3.innerHTML = `<input type='hidden' name="time_record[` + lap + `]" value="` + minutes.value + ':' +
-                seconds
-                .value + `" />`;
-            tr.appendChild(td1);
-            tr.appendChild(td2);
-            tr.appendChild(td3);
-
-            timeRecordTableTbody.prepend(tr);
-
-            stopLapButton.disabled = false;
-
-            if ($("#status_sambungan").val() == "extension") {
-                await stopTimeRecord();
-                // checkStatus();
-            } else {
-                storeThisTimeRecord();
+            // Pause Buttons
+            function pauseTimeRecordButtons() {
+                startLapButton.disabled = true;
+                nextLapButton.disabled = true;
+                setTimeout(function(){
+                    startLapButton.disabled = false;
+                    nextLapButton.disabled = false;
+                },1500);
             }
-        }
 
-        // -Stop Time Record-
-        async function stopTimeRecord() {
-            pauseTimeRecordButtons();
+            // Conditions :
+            function firstTimeRecordCondition() {
+                startLapButton.disabled = true;
+                nextLapButton.disabled = true;
+                stopLapButton.disabled = true;
+                finishProcessButton.disabled = false;
 
-            clearTimeout(timeRecordInterval);
+                finishProcessButton.classList.remove("d-none");
+            }
 
-            summarySeconds = 0;
-            totalSeconds = 0;
-            timeRecordInterval = 0;
+            function openTimeRecordCondition() {
+                startLapButton.disabled = false;
+                nextLapButton.disabled = true;
+                stopLapButton.disabled = true;
+            }
 
-            seconds.value = 00;
-            minutes.value = 00;
-            lap = 0;
+            function openLapTimeRecordCondition() {
+                startLapButton.disabled = true;
+                nextLapButton.disabled = false;
+            }
 
-            startLapButton.classList.remove('d-none');
-            nextLapButton.classList.add('d-none');
+            function nextTimeRecordCondition() {
+                startLapButton.disabled = true;
+                nextLapButton.disabled = true;
+                stopLapButton.disabled = true;
+                finishProcessButton.disabled = false;
+            }
 
-            await backToProcessThree();
-        }
+            function lockTimeRecord() {
+                finishProcessButton.disabled = true;
+                finishProcessButton.innerHTML = "PENGERJAAN TELAH DISELESAIKAN";
+            }
 
-        // Pause Buttons
-        function pauseTimeRecordButtons(disables = []) {
-            startLapButton.disabled = true;
-            nextLapButton.disabled = true;
-            setTimeout(function(){
+            // -Disable Time Record-
+            function disableTimeRecord() {
+                startLapButton.disabled = true;
+                nextLapButton.disabled = true;
+
+                clearTimeout(timeRecordInterval);
+            }
+
+            // -Enable Time Record-
+            function enableTimeRecord() {
                 startLapButton.disabled = false;
                 nextLapButton.disabled = false;
-            },1500);
-        }
 
-        // Conditions :
-        function firstTimeRecordCondition() {
-            startLapButton.disabled = true;
-            nextLapButton.disabled = true;
-            stopLapButton.disabled = true;
-            finishProcessButton.disabled = false;
+                timeRecordInterval = setInterval(setTime, 999);
+            }
 
-            finishProcessButton.classList.remove("d-none");
-        }
+        // Lost Time Module :
+            // Variable List :
+                // Button Elements
+                var startLostButton = document.getElementById("startLostButton");
+                var nextLostButton = document.getElementById("nextLostButton");
 
-        function openTimeRecordCondition() {
-            startLapButton.disabled = false;
-            nextLapButton.disabled = true;
-            stopLapButton.disabled = true;
-        }
+                // Time Elements
+                var lostMinutes = document.getElementById("lostMinutes");
+                var lostSeconds = document.getElementById("lostSeconds");
 
-        function openLapTimeRecordCondition() {
-            startLapButton.disabled = true;
-            nextLapButton.disabled = false;
-        }
+                // Table Elements
+                var lostTimeTable = document.getElementById('lostTimeTable');
+                var lostTimeTableTbody = lostTimeTable.getElementsByTagName("tbody")[0];
 
-        function nextTimeRecordCondition() {
-            startLapButton.disabled = true;
-            nextLapButton.disabled = true;
-            stopLapButton.disabled = true;
-            finishProcessButton.disabled = false;
-        }
+                // Calculate Things
+                var lostTime = 0;
+                var totalLostSeconds = 0;
+                var summaryLostSeconds = 0;
+                var averageLostSeconds = 0;
+                var lostInterval = 0;
 
-        function lockTimeRecord() {
-            finishProcessButton.disabled = true;
-            finishProcessButton.innerHTML = "PENGERJAAN TELAH DISELESAIKAN";
-        }
+                // Status
+                var pausedTimeRecord = false;
+
+                // Initialize Time Elements
+                lostSeconds.value = pad(totalLostSeconds % 60);
+                lostMinutes.value = pad(parseInt(totalLostSeconds / 60));
+
+        // Function List :
+            // -Time Record-
+            function checkLostTime(id) {
+                $.ajax({
+                    url: '{{ route('check-lost-form-cut-input') }}/' + id,
+                    type: 'get',
+                    dataType: 'json',
+                    success: function(res) {
+                        openLostTimeCondition();
+
+                        if (res.count > 0) {
+                            setLostTime(res.data);
+                        }
+                    }
+                });
+            }
+
+            async function setLostTime(data) {
+                await data.forEach((element, index, array) => {
+                    let time = element.waktu.split(":");
+                    let minutesData = Number(time[0]) * 60;
+                    let secondsData = Number(time[1]);
+
+                    lostTime++;
+
+                    let tr = document.createElement('tr');
+                    let td1 = document.createElement('td');
+                    let td2 = document.createElement('td');
+                    let td3 = document.createElement('td');
+                    td1.innerHTML = lostTime;
+                    td2.innerHTML = element.waktu;
+                    td3.classList.add('d-none');
+                    td3.innerHTML = `<input type='hidden' name="lost_time[` + lostTime + `]" value="` + element.waktu + `" />`;
+                    tr.appendChild(td1);
+                    tr.appendChild(td2);
+                    tr.appendChild(td3);
+
+                    lostTimeTableTbody.prepend(tr);
+                });
+
+                document.getElementById("current_lost_time").value = lostTime;
+            }
+
+            // -Set Time-
+            function setTimeLost() {
+                ++totalLostSeconds;
+                lostSeconds.value = pad(totalLostSeconds % 60);
+                lostMinutes.value = pad(parseInt(totalLostSeconds / 60));
+            }
+
+            // -Start Time Record-
+            function startLostTime() {
+                pausedTimeRecord = false;
+
+                if (timeRecordInterval) {
+                    disableTimeRecord();
+
+                    pausedTimeRecord = true;
+                }
+
+                pauseLostTimeButtons();
+
+                lostInterval = setInterval(setTimeLost, 999);
+
+                startLostButton.classList.add("d-none")
+                nextLostButton.classList.remove('d-none');
+                nextLostButton.focus();
+
+                openLostTimeCondition();
+            }
+
+            // -Next Lap Time Record-
+            async function addNewLostTime() {
+                pauseLostTimeButtons();
+
+                totalLostSeconds = 0;
+                lostTime++;
+
+                document.getElementById("current_lost_time").value = lostTime;
+
+                let tr = document.createElement('tr');
+                let td1 = document.createElement('td');
+                let td2 = document.createElement('td');
+                let td3 = document.createElement('td');
+                td1.innerHTML = lostTime;
+                td2.innerHTML = lostMinutes.value + ':' + lostSeconds.value;
+                td3.classList.add('d-none');
+                td3.innerHTML = `<input type='hidden' name="lost_time[` + lostTime + `]" value="` + lostMinutes.value + ':' + lostSeconds.value + `" />`;
+                tr.appendChild(td1);
+                tr.appendChild(td2);
+                tr.appendChild(td3);
+
+                lostTimeTableTbody.prepend(tr);
+
+                console.log(lostTime);
+
+                stopLostTime();
+
+                $('#lost-time-card').CardWidget('collapse');
+            }
+
+            // -Stop Time Record-
+            async function stopLostTime() {
+                if (pausedTimeRecord) {
+                    enableTimeRecord();
+                }
+
+                pauseLostTimeButtons();
+
+                clearTimeout(lostInterval);
+
+                totalLostSeconds = 0;
+                lostInterval = 0;
+
+                lostSeconds.value = "00";
+                lostMinutes.value = "00";
+
+                startLostButton.classList.remove('d-none');
+                nextLostButton.classList.add('d-none');
+
+                storeLostTime(id);
+            }
+
+            // Pause Buttons
+            function pauseLostTimeButtons(disables = []) {
+                startLostButton.disabled = true;
+                nextLostButton.disabled = true;
+                setTimeout(function(){
+                    startLostButton.disabled = false;
+                    nextLostButton.disabled = false;
+                },1500);
+            }
+
+            // Store Lost Time
+            function storeLostTime(id) {
+                let lostTimeForm = new FormData(document.getElementById('lost-time-form'));
+
+                $.ajax({
+                    url: '{{ route('store-lost-form-cut-input') }}/' + id,
+                    type: 'post',
+                    processData: false,
+                    contentType: false,
+                    data: lostTimeForm,
+                    success: function(res) {
+                        if (res) {
+                            console.log(res);
+                        }
+                    }
+                });
+            }
+
+            // Conditions :
+            function firstLostTimeCondition() {
+                startLostButton.disabled = true;
+                nextLostButton.disabled = true;
+            }
+
+            function openLostTimeCondition() {
+                startLostButton.disabled = false;
+                nextLostButton.disabled = true;
+            }
+
+            function openLapLostTimeCondition() {
+                startLostButton.disabled = true;
+                nextLostButton.disabled = false;
+            }
+
+            function nextLostTimeCondition() {
+                startLostButton.disabled = true;
+                nextLostButton.disabled = true;
+            }
     </script>
 @endsection

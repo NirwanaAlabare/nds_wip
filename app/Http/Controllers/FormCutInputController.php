@@ -7,6 +7,7 @@ use App\Models\MarkerDetail;
 use App\Models\FormCutInput;
 use App\Models\FormCutInputDetail;
 use App\Models\FormCutInputDetailLap;
+use App\Models\FormCutInputLostTime;
 use App\Models\ScannedItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -798,6 +799,29 @@ class FormCutInputController extends Controller
         return array(
             "count" => $formCutInputDetailLapData->count(),
             "data" => $formCutInputDetailLapData,
+        );
+    }
+
+    public function storeLostTime(Request $request, $id = 0) {
+        $now = Carbon::now();
+
+        $current = $request["current_lost_time"];
+
+        $storeTimeRecordLap = FormCutInputLostTime::updateOrCreate(
+            ["form_cut_input_id" => $id, "lost_time_ke" => $request["current_lost_time"]],
+            [
+                "lost_time_ke" => $request["current_lost_time"],
+                "waktu" => $request["lost_time"][$current],
+            ]
+        );
+    }
+
+    public function checkLostTime($id = 0) {
+        $formCutInputLostTimeData = FormCutInputLostTime::where('form_cut_input_id', $id)->get();
+
+        return array(
+            "count" => $formCutInputLostTimeData->count(),
+            "data" => $formCutInputLostTimeData,
         );
     }
 

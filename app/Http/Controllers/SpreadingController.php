@@ -230,7 +230,9 @@ class SpreadingController extends Controller
                 "user" => "user",
                 "cancel" => "N",
                 "qty_ply" => $qtyPly,
-                "tgl_input" => $timestamp
+                "tgl_input" => $timestamp,
+                "created_at" => $timestamp,
+                "updated_at" => $timestamp,
             ]);
 
             $message .= "$no_form <br>";
