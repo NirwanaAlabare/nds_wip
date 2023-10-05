@@ -119,8 +119,6 @@ function submitForm(e, evt) {
                     $(".select2").val('').trigger('change');
                 }
             } else {
-                console.log(res.message);
-
                 for(let i = 0;i < res.errors; i++) {
                     document.getElementById(res.errors[i]).classList.add('is-invalid');
                     modified.push([res.errors[i], 'classList', 'remove(', "'is-invalid')"])

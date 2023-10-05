@@ -312,7 +312,7 @@
                                     name="cons_pipping" id="cons_pipping"
                                     onkeyup="calculateEstPipping(this.value, {{ $totalCutQtyPly }})"
                                     onchange="calculateEstPipping(this.value, {{ $totalCutQtyPly }})"
-                                    value="{{ $formCutInputData->cons_pipping }}">
+                                    value="{{ $formCutInputData->cons_pipping ? $formCutInputData->cons_pipping : 0 }}">
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -331,7 +331,7 @@
                                     <div class="col-6">
                                         <input type="number" class="form-control form-control-sm border-calc"
                                             step=".01" name="est_pipping" id="est_pipping"
-                                            value="{{ $formCutInputData->est_pipping }}" readonly>
+                                            value="{{ $formCutInputData->est_pipping ? $formCutInputData->est_pipping : "0.00" }}" readonly>
                                     </div>
                                     <div class="col-6">
                                         <input type="text" class="form-control form-control-sm border-calc"
@@ -485,8 +485,8 @@
                                     <label class="form-label label-input"><small><b>Sisa Gelaran</b></small></label>
                                     <input type="number" class="form-control form-control-sm border-input"
                                         id="current_sisa_gelaran" name="current_sisa_gelaran" step=".01"
-                                        onkeyup="restrictCurrentPly()"
-                                        onchange="restrictCurrentPly()">
+                                        onkeyup="restrictRemainPly()"
+                                        onchange="restrictRemainPly()">
                                 </div>
                             </div>
                             <div class="col-4">
@@ -1194,7 +1194,7 @@
         }
 
         // -Restrict Sisa Gelaran-
-        function restrictCurrentPly() {
+        function restrictRemainPly() {
             let sisaGelar = Number(document.getElementById('current_sisa_gelaran').value);
             let pAct = Number(document.getElementById('p_act').value);
             if (sisaGelar >= pAct) {
@@ -1354,6 +1354,11 @@
             }
 
             if (status == "PENGERJAAN FORM CUTTING SPREAD") {
+                if ($("status_sambungan").val() != "extension") {
+                    document.getElementById("current_sambungan").setAttribute('readonly', true);
+                    document.getElementById("current_sisa_gelaran").removeAttribute('readonly');
+                }
+
                 startProcessButton.classList.add("d-none");
                 nextProcessOneButton.classList.add("d-none");
                 nextProcessTwoButton.classList.add("d-none");
@@ -1481,6 +1486,9 @@
                 data.id_sambungan ? document.getElementById("id_sambungan").value = data.id_sambungan : '';
                 document.getElementById("status_sambungan").value = "extension";
                 document.getElementById("current_sambungan").value = Number($("#p_act").val()) - Number(sisaGelaran);
+
+                document.getElementById("current_sambungan").removeAttribute('readonly');
+                document.getElementById("current_sisa_gelaran").setAttribute('readonly', true);
             } else {
                 clearSpreadingForm();
 
@@ -1488,6 +1496,11 @@
 
                 $('#scan-qr-card').CardWidget('collapse');
                 $('#spreading-form-card').CardWidget('expand');
+
+                if ($("status_sambungan").val() != "extension") {
+                    document.getElementById("current_sambungan").setAttribute('readonly', true);
+                    document.getElementById("current_sisa_gelaran").removeAttribute('readonly');
+                }
             }
 
             data.id_roll ? document.getElementById("kode_barang").value = data.id_roll : '';
@@ -1898,6 +1911,8 @@
 
         // -Start Time Record-
         function startTimeRecord() {
+            pauseTimeRecordButtons();
+
             timeRecordInterval = setInterval(setTime, 999);
 
             startLapButton.classList.add("d-none")
@@ -1913,6 +1928,8 @@
 
         // -Next Lap Time Record-
         async function addNewTimeRecord(data = null) {
+            pauseTimeRecordButtons();
+
             summarySeconds += totalSeconds;
             totalSeconds = 0;
             lap++;
@@ -1950,6 +1967,8 @@
 
         // -Stop Time Record-
         async function stopTimeRecord() {
+            pauseTimeRecordButtons();
+
             clearTimeout(timeRecordInterval);
 
             summarySeconds = 0;
@@ -1964,6 +1983,16 @@
             nextLapButton.classList.add('d-none');
 
             await backToProcessThree();
+        }
+
+        // Pause Buttons
+        function pauseTimeRecordButtons(disables = []) {
+            startLapButton.disabled = true;
+            nextLapButton.disabled = true;
+            setTimeout(function(){
+                startLapButton.disabled = false;
+                nextLapButton.disabled = false;
+            },1500);
         }
 
         // Conditions :
