@@ -174,12 +174,9 @@ class FormCutInputController extends Controller
             where("marker_input.kode", $formCutInputData->kode)->
             get();
 
-        $soDetData = DB::connection("mysql_sb")->
-            table('so_det')->
-            selectRaw('so_det.id id, so_det.size size')->
-            leftJoin('so', 'so.id', '=', 'so_det.id_so')->
-            leftJoin('act_costing', 'act_costing.id', '=', 'so.id_cost')->
-            where("act_costing.id", $formCutInputData->act_costing_id)->
+        $soDetData = DB::table('master_sb_ws')->
+            selectRaw('id, size')->
+            where("id_act_cost", $formCutInputData->act_costing_id)->
             get();
 
         if (Auth::user()->type == "meja" && Auth::user()->id != $formCutInputData->no_meja) {

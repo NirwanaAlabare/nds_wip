@@ -212,8 +212,10 @@ class SpreadingController extends Controller
             $urutan_fix      = $urutan + $i;
             $qtyPly = $request['txtqty_ply_cut'];
 
-            if ($i == intval($request['hitungform'])) {
-                $qtyPly = $qtyPlyMarkerModulus;
+            if (intval($request['hitungform'] > 1)) {
+                if ($i == intval($request['hitungform'])) {
+                    $qtyPly = $qtyPlyMarkerModulus;
+                }
             }
 
             $hari          = substr($txttglcut, 8, 2);
