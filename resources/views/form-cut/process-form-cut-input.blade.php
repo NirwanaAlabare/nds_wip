@@ -128,7 +128,9 @@
                         <div class="col-4 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>QTY Cut Ply</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="qty_ply"
+                                <input type="text" class="form-control form-control-sm border-fetch" id="qty_ply" name="qty_ply"
+                                    value="" readonly>
+                                <input type="hidden" class="form-control form-control-sm border-fetch" id="qty_ply_before" name="qty_ply_before"
                                     value="{{ $formCutInputData->qty_ply }}" readonly>
                             </div>
                         </div>
@@ -139,7 +141,7 @@
                                 <th class="label-fetch">Size</th>
                                 <th class="label-fetch">Ratio</th>
                                 <th class="label-fetch">Qty Cut Marker</th>
-                                <th class="label-fetch">Qty Cut Ply</th>
+                                <th class="label-fetch">Qty Output</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -156,7 +158,7 @@
                                         $qtyPly = $item->ratio*$formCutInputData->qty_ply;
                                         $totalCutQtyPly += $qtyPly;
                                     @endphp
-                                    <td>{{ $soDetData->where('id', $item->so_det_id)->first() ? $soDetData->where('id', $item->so_det_id)->first()->size : '' }}</td>
+                                    <td>{{ $soDetData->where('id', $item->so_det_id)->first() ? $soDetData->where('id', $item->so_det_id)->first()->size : $item->so_det_id }}</td>
                                     <td>{{ $item->ratio }}</td>
                                     <td>{{ $item->cut_qty }}</td>
                                     <td>{{ $qtyPly }}</td>
@@ -648,7 +650,7 @@
         <div class="col-md-12">
             <div class="card card-sb collapsed-card d-none" id="lost-time-card">
                 <div class="card-header">
-                    <h3 class="card-title">Lost Time</h3>
+                    <h3 class="card-title">Loss Time</h3>
                     <div class="card-tools">
                         <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
                     </div>
@@ -807,6 +809,7 @@
         // -Ratio & Qty Cuy-
         var totalRatio = document.getElementById('total_ratio').value;
         var totalQtyCut = document.getElementById('total_qty_cut_ply').value;
+        document.getElementById('qty_ply').value = totalQtyCut;
 
         // Function List :
         // -On Load-
@@ -1696,9 +1699,10 @@
         // -Update Ply Progress-
         function updatePlyProgress() {
             let currentLembar = Number($("#current_lembar_gelaran").val());
+            let qtyPly = Number($("#qty_ply_before").val());
 
-            document.getElementById("current_ply_progress_txt").innerText = (totalLembar+currentLembar)+"/"+totalQtyCut;
-            document.getElementById("current_ply_progress").style.width = Number(totalQtyCut) > 0 ? (Number(totalLembar)/Number(totalQtyCut) * 100) +"%" : "0%";
+            document.getElementById("current_ply_progress_txt").innerText = (totalLembar+currentLembar)+"/"+qtyPly;
+            document.getElementById("current_ply_progress").style.width = Number(qtyPly) > 0 ? (Number(totalLembar+currentLembar)/Number(qtyPly) * 100) +"%" : "0%";
         }
 
         // -Lock Form Cut Input-
