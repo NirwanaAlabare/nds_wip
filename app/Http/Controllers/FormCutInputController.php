@@ -354,7 +354,8 @@ class FormCutInputController extends Controller
             "current_short_roll" => "required",
             "current_piping" => "required",
             "current_remark" => "required",
-            "current_sambungan" => "required"
+            "current_sambungan" => "required",
+            "p_act" => "required"
         ]);
 
         $status = 'complete';
@@ -393,20 +394,23 @@ class FormCutInputController extends Controller
         );
 
         if ($storeTimeRecordSummary) {
-            ScannedItem::updateOrCreate(
-                ["id_roll" => $validatedRequest['current_id_roll']],
-                [
-                    "id_item" => $validatedRequest['current_id_item'],
-                    "color" => $validatedRequest['color_act'],
-                    "detail_item" => $validatedRequest['detail_item'],
-                    "lot" => $request['current_lot'],
-                    "roll" => $validatedRequest['current_roll'],
-                    "qty" => $validatedRequest['current_qty'],
-                    "unit" => $validatedRequest['current_unit'],
-                ]
-            );
+            $itemConsumption = floatval($validatedRequest['current_lembar_gelaran']) * floatval($request['p_act']);
+            $itemRemain = floatval($validatedRequest['current_qty']) - $itemConsumption;
 
             if ($status == 'need extension') {
+                ScannedItem::updateOrCreate(
+                    ["id_roll" => $validatedRequest['current_id_roll']],
+                    [
+                        "id_item" => $validatedRequest['current_id_item'],
+                        "color" => $validatedRequest['color_act'],
+                        "detail_item" => $validatedRequest['detail_item'],
+                        "lot" => $request['current_lot'],
+                        "roll" => $validatedRequest['current_roll'],
+                        "qty" => $itemRemain > 0 ? 0 : $itemRemain,
+                        "unit" => $validatedRequest['current_unit'],
+                    ]
+                );
+
                 $storeTimeRecordSummaryExt = FormCutInputDetail::create([
                     "group" => $validatedRequest['current_group'],
                     "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
@@ -424,6 +428,19 @@ class FormCutInputController extends Controller
                         ],
                     );
                 }
+            } else {
+                ScannedItem::updateOrCreate(
+                    ["id_roll" => $validatedRequest['current_id_roll']],
+                    [
+                        "id_item" => $validatedRequest['current_id_item'],
+                        "color" => $validatedRequest['color_act'],
+                        "detail_item" => $validatedRequest['detail_item'],
+                        "lot" => $request['current_lot'],
+                        "roll" => $validatedRequest['current_roll'],
+                        "qty" => $itemRemain,
+                        "unit" => $validatedRequest['current_unit'],
+                    ]
+                );
             }
 
             return array(
@@ -786,6 +803,7 @@ class FormCutInputController extends Controller
             "waktu_selesai" => $request->finishTime,
             "cons_act" => $request->consAct,
             "unit_cons_act" => $request->unitConsAct,
+            "total_lembar" => $request->totalLembar,
             "operator" => $request->operator,
         ]);
 

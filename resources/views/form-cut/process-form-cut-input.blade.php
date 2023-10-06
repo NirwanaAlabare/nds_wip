@@ -1027,6 +1027,7 @@
             let spreadingForm = new FormData(document.getElementById("spreading-form"));
 
             let dataObj = {
+                "p_act": $("#p_act").val(),
                 "no_form_cut_input": $("#no_form").val(),
                 "no_meja": $("#no_meja").val(),
                 "color_act": $("#color_act").val(),
@@ -1218,7 +1219,8 @@
                             finishTime: finishTime.value,
                             operator: $('#operator').val(),
                             consAct: $('#cons_actual_gelaran').val(),
-                            unitConsAct: $('#unit_cons_actual_gelaran').val()
+                            unitConsAct: $('#unit_cons_actual_gelaran').val(),
+                            totalLembar: totalLembar
                         },
                         success: function(res) {
                             if (res) {
