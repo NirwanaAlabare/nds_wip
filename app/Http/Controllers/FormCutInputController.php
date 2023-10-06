@@ -394,8 +394,7 @@ class FormCutInputController extends Controller
         );
 
         if ($storeTimeRecordSummary) {
-            $itemConsumption = floatval($validatedRequest['current_lembar_gelaran']) * floatval($request['p_act']);
-            $itemRemain = floatval($validatedRequest['current_qty']) - $itemConsumption;
+            $itemRemain = floatval($validatedRequest['current_qty']) - floatval($validatedRequest['current_total_pemakaian_roll']);
 
             if ($status == 'need extension') {
                 ScannedItem::updateOrCreate(

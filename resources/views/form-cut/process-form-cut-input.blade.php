@@ -718,6 +718,7 @@
                                         <tr>
                                             <th>No.</th>
                                             <th>Group</th>
+                                            <th class="label-scan">ID Roll</th>
                                             <th class="label-scan">ID Item</th>
                                             <th class="label-scan">Lot</th>
                                             <th class="label-scan">Roll</th>
@@ -1872,26 +1873,28 @@
             let td18 = document.createElement('td');
             let td19 = document.createElement('td');
             let td20 = document.createElement('td');
+            let td21 = document.createElement('td');
             td1.innerHTML = totalScannedItem + 1;
             td2.innerHTML = data.group ? data.group : '-';
-            td3.innerHTML = data.id_item ? data.id_item : '-';
-            td4.innerHTML = data.lot ? data.lot : '-';
-            td5.innerHTML = data.roll ? data.roll : '-';
-            td6.innerHTML = data.qty ? data.qty : '-';
-            td7.innerHTML = data.unit ? data.unit : '-';
-            td8.innerHTML = data.sisa_gelaran ? data.sisa_gelaran : '-';
-            td9.innerHTML = data.sambungan ? data.sambungan : '-';
-            td10.innerHTML = data.est_amparan ? data.est_amparan : '-';
-            td11.innerHTML = data.lembar_gelaran ? data.lembar_gelaran : '';
-            td12.innerHTML = data.average_time ? data.average_time : '-';
-            td13.innerHTML = data.kepala_kain ? data.kepala_kain : '-';
-            td14.innerHTML = data.sisa_tidak_bisa ? data.sisa_tidak_bisa : '-';
-            td15.innerHTML = data.reject ? data.reject : '-';
-            td16.innerHTML = data.sisa_kain ? data.sisa_kain : '-';
-            td17.innerHTML = data.total_pemakaian_roll ? data.total_pemakaian_roll : '-';
-            td18.innerHTML = data.short_roll ? data.short_roll : '-';
-            td19.innerHTML = data.piping ? data.piping : '-';
-            td20.innerHTML = data.remark ? data.remark : '-';
+            td3.innerHTML = data.id_roll ? data.id_roll : '-';
+            td4.innerHTML = data.id_item ? data.id_item : '-';
+            td5.innerHTML = data.lot ? data.lot : '-';
+            td6.innerHTML = data.roll ? data.roll : '-';
+            td7.innerHTML = data.qty ? data.qty : '-';
+            td8.innerHTML = data.unit ? data.unit : '-';
+            td9.innerHTML = data.sisa_gelaran ? data.sisa_gelaran : '-';
+            td10.innerHTML = data.sambungan ? data.sambungan : '-';
+            td11.innerHTML = data.est_amparan ? data.est_amparan : '-';
+            td12.innerHTML = data.lembar_gelaran ? data.lembar_gelaran : '';
+            td13.innerHTML = data.average_time ? data.average_time : '-';
+            td14.innerHTML = data.kepala_kain ? data.kepala_kain : '-';
+            td15.innerHTML = data.sisa_tidak_bisa ? data.sisa_tidak_bisa : '-';
+            td16.innerHTML = data.reject ? data.reject : '-';
+            td17.innerHTML = data.sisa_kain ? data.sisa_kain : '-';
+            td18.innerHTML = data.total_pemakaian_roll ? data.total_pemakaian_roll : '-';
+            td19.innerHTML = data.short_roll ? data.short_roll : '-';
+            td20.innerHTML = data.piping ? data.piping : '-';
+            td21.innerHTML = data.remark ? data.remark : '-';
             tr.appendChild(td1);
             tr.appendChild(td2);
             tr.appendChild(td3);
@@ -1912,6 +1915,7 @@
             tr.appendChild(td18);
             tr.appendChild(td19);
             tr.appendChild(td20);
+            tr.appendChild(td21);
 
             scannedItemTableTbody.appendChild(tr);
 
