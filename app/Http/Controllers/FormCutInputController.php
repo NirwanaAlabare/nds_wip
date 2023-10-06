@@ -365,8 +365,6 @@ class FormCutInputController extends Controller
             $status = 'need extension';
         }
 
-        dd($request);
-
         $storeTimeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->where('form_cut_input.no_meja', $validatedRequest['no_meja'])->where('form_cut_input_detail.status', 'not complete')->updateOrCreate(
             ["no_form_cut_input" => $validatedRequest['no_form_cut_input']],
             [
