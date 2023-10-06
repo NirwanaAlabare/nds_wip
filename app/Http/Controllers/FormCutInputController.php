@@ -157,12 +157,11 @@ class FormCutInputController extends Controller
 
         $markerDetailData = MarkerDetail::selectRaw("
                 marker_input.kode kode_marker,
+                marker_input_detail.size,
                 marker_input_detail.so_det_id,
                 marker_input_detail.ratio,
                 marker_input_detail.cut_qty
             ")->leftJoin("marker_input", "marker_input.id", "=", "marker_input_detail.marker_id")->where("marker_input.kode", $formCutInputData->kode)->get();
-
-        $soDetData = DB::connection('mysql_sb')->table('so_det')->selectRaw('so_det.id, so_det.size')->leftJoin("so", "so.id", "=", "so_det.id_so")->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->where("act_costing.id", $formCutInputData->act_costing_id)->get();
 
         if (Auth::user()->type == "meja" && Auth::user()->id != $formCutInputData->no_meja) {
             return Redirect::to('/home');
@@ -172,8 +171,7 @@ class FormCutInputController extends Controller
             'id' => $id,
             'formCutInputData' => $formCutInputData,
             'actCostingData' => $actCostingData,
-            'markerDetailData' => $markerDetailData,
-            'soDetData' => $soDetData
+            'markerDetailData' => $markerDetailData
         ]);
     }
 
