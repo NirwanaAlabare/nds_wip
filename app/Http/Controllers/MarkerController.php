@@ -39,10 +39,9 @@ class MarkerController extends Controller
                 gelar_qty,
                 po_marker,
                 urutan_marker,
-                cancel,
-                mid.size sizes
-            ")->
-            leftJoin(DB::raw("(select marker_id, size from marker_input_detail) mid"), "mid.marker_id", "=", "marker_input.id");
+                ifnull(b.tot_form,0) tot_form,
+                cancel
+            ")->leftJoin(DB::raw("(select id_marker,coalesce(count(id_marker),0) tot_form from form_cut_input group by id_marker)b"), "marker_input.kode", "=", "b.id_marker");
 
             if ($tglAwal) {
                 $markersQuery->whereRaw("tgl_cutting >= '" . $tglAwal . "'");
@@ -248,6 +247,7 @@ class MarkerController extends Controller
                 'po_marker' => $validatedRequest['po'],
                 'urutan_marker' => $validatedRequest['no_urut_marker'],
                 'cons_marker' => $validatedRequest['cons_marker'],
+                'cancel' => 'N',
             ]);
 
             $timestamp = Carbon::now();
@@ -260,6 +260,7 @@ class MarkerController extends Controller
                     "size" => $request["size"][$i],
                     "ratio" => $request["ratio"][$i],
                     "cut_qty" => $request["cut_qty"][$i],
+                    "cancel" => 'N',
                     "created_at" => $timestamp,
                     "updated_at" => $timestamp,
                 ]);
