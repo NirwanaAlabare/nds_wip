@@ -165,6 +165,9 @@
                             //     ", \"ExampleModal\", [])'><i class='fa fa-pen'></i></a>": "";
                         } else {
                             return `<div class='d-flex gap-1 justify-content-center'>
+                                <a class='btn btn-danger btn-sm'
+                        onclick='cancel(` + row.id +
+                                `);'><i class='fa fa-ban'></i></a>
                             </div>`;
                         }
                     }
@@ -214,8 +217,8 @@
             }).responseText;
             swal.fire({
                 position: 'mid-end',
-                icon: 'warning',
-                title: 'Data Sudah Di Cancel',
+                icon: 'info',
+                title: 'Data Sudah Di Rubah',
                 showConfirmButton: false,
                 timer: 1000
             })

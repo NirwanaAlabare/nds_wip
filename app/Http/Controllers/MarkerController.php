@@ -320,6 +320,7 @@ class MarkerController extends Controller
             endforeach;
 
             $html = "
+
         <div class='row'>
             <div class='col-sm-3'>
                 <div class='form-group'>
@@ -346,6 +347,7 @@ class MarkerController extends Controller
                 </div>
             </div>
         </div>
+
 
         <div class='row'>
             <div class='col-sm-6'>
@@ -420,8 +422,19 @@ class MarkerController extends Controller
         </div>
         </div>
 
+
         <div class='row'>
         <div class='col-sm-12'>
+        <div class='card card-primary'>
+        <div class='card-header'>
+            <h3 class='card-title'>Detail Data :</h3>
+            <div class='card-tools'>
+                <button type='button' class='btn btn-tool' data-card-widget='collapse'><i
+                        class='fas fa-minus'></i></button>
+            </div>
+        </div>
+
+
         <div class='table-responsive'>
         <table class='table table-bordered table-striped table-sm w-100'>
             <thead>
@@ -435,6 +448,8 @@ class MarkerController extends Controller
             </tbody>
         </table>
         </div>
+        </div>
+    </div>
     </div>
         ";
         }
@@ -462,7 +477,7 @@ class MarkerController extends Controller
     public function update_status(Request $request, Marker $marker)
     {
         $update_data = DB::update("
-        update marker_input set cancel = 'Y'
+        update marker_input set cancel = case when cancel = 'Y' then'N' else 'Y' end
         where id = '$request->id_c'");
     }
 

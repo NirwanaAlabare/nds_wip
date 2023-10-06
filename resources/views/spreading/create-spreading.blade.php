@@ -306,8 +306,7 @@
                     d.cbomarker = $('#cbomarker').val();
                 },
             },
-            columns: [
-                {
+            columns: [{
                     data: 'size'
                 },
                 {
