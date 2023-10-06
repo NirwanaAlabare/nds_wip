@@ -6,6 +6,7 @@ use App\Http\Controllers\MarkerController;
 use App\Http\Controllers\SpreadingController;
 use App\Http\Controllers\FormCutInputController;
 use App\Http\Controllers\LapPemakaianController;
+use App\Http\Controllers\StockerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -112,6 +113,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/export_excel', 'export_excel')->name('export_excel');
         Route::get('/export', 'export')->name('export');
     });
+
+    // Stocker
+    Route::controller(StockerController::class)->prefix("stocker")->middleware('admin')->group(function () {
+        Route::get('/', 'index')->name('stocker');
+        Route::get('/show/{id?}', 'show')->name('show-stocker');
+        Route::post('/print-stocker/{index?}', 'printStocker')->name('print-stocker');
+    });
+
 });
 
 Route::get('/dashboard', function () {

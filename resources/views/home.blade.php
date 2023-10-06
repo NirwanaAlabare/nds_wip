@@ -11,9 +11,22 @@
                         <a href="{{ route('dashboard') }}" class="home-item">
                             <div class="card h-100">
                                 <div class="card-body">
-                                    <div class="d-flex flex-column">
+                                    <div class="d-flex h-100 flex-column justify-content-between">
                                         <img src="{{ asset('dist/img/cutting.png') }}" class="img-fluid p-3" alt="cutting image">
                                         <p class="text-center">Cutting</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-2 col-3">
+                        <a href="{{ route('stocker') }}" class="home-item">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex h-100 flex-column justify-content-between">
+                                        <img src="{{ asset('dist/img/stocker.png') }}" class="img-fluid p-3"
+                                            alt="qr code image">
+                                        <p class="text-center">Stocker</p>
                                     </div>
                                 </div>
                             </div>
@@ -23,7 +36,7 @@
                         <a href="items" class="home-item">
                             <div class="card h-100">
                                 <div class="card-body">
-                                    <div class="d-flex flex-column">
+                                    <div class="d-flex h-100 flex-column justify-content-between">
                                         <img src="{{ asset('dist/img/qr-generate.png') }}" class="img-fluid p-3"
                                             alt="qr code image">
                                         <p class="text-center">Generate QR</p>
@@ -36,7 +49,7 @@
                         <a href="item-details" class="home-item">
                             <div class="card h-100">
                                 <div class="card-body">
-                                    <div class="d-flex flex-column">
+                                    <div class="d-flex h-100 flex-column justify-content-between">
                                         <img src="{{ asset('dist/img/scan-qr.png') }}" class="img-fluid p-3" alt="qr code image">
                                         <p class="text-center">Scan QR</p>
                                     </div>
@@ -50,7 +63,7 @@
                             class="home-item">
                             <div class="card h-100">
                                 <div class="card-body">
-                                    <div class="d-flex flex-column">
+                                    <div class="d-flex h-100 flex-column justify-content-between">
                                         <img src="{{ asset('dist/img/signout.png') }}" class="img-fluid p-3" alt="other">
                                         <p class="text-center">Logout</p>
                                     </div>
