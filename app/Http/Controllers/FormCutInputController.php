@@ -7,6 +7,7 @@ use App\Models\MarkerDetail;
 use App\Models\FormCutInput;
 use App\Models\FormCutInputDetail;
 use App\Models\FormCutInputDetailLap;
+use App\Models\FormCutInputLostTime;
 use App\Models\ScannedItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -64,7 +65,7 @@ class FormCutInputController extends Controller
                 $formCutInputQuery->where("form_cut_input.no_meja", Auth::user()->id);
             }
 
-            $formCutInput = $formCutInputQuery->get();
+            $formCutInput = $formCutInputQuery->orderBy("form_cut_input.updated_at", "desc")->get();
 
             return json_encode([
                 "draw" => intval($request->input('draw')),
@@ -174,12 +175,9 @@ class FormCutInputController extends Controller
             where("marker_input.kode", $formCutInputData->kode)->
             get();
 
-        $soDetData = DB::connection("mysql_sb")->
-            table('so_det')->
-            selectRaw('so_det.id id, so_det.size size')->
-            leftJoin('so', 'so.id', '=', 'so_det.id_so')->
-            leftJoin('act_costing', 'act_costing.id', '=', 'so.id_cost')->
-            where("act_costing.id", $formCutInputData->act_costing_id)->
+        $soDetData = DB::table('master_sb_ws')->
+            selectRaw('id, size')->
+            where("id_act_cost", $formCutInputData->act_costing_id)->
             get();
 
         if (Auth::user()->type == "meja" && Auth::user()->id != $formCutInputData->no_meja) {
@@ -451,6 +449,7 @@ class FormCutInputController extends Controller
 
             if ($status == 'need extension') {
                 $storeTimeRecordSummaryExt = FormCutInputDetail::create([
+                        "group" => $validatedRequest['current_group'],
                         "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
                         "id_sambungan" => $storeTimeRecordSummary->id,
                         "status" => "extension",
@@ -803,7 +802,31 @@ class FormCutInputController extends Controller
         );
     }
 
+    public function storeLostTime(Request $request, $id = 0) {
+        $now = Carbon::now();
+
+        $current = $request["current_lost_time"];
+
+        $storeTimeRecordLap = FormCutInputLostTime::updateOrCreate(
+            ["form_cut_input_id" => $id, "lost_time_ke" => $request["current_lost_time"]],
+            [
+                "lost_time_ke" => $request["current_lost_time"],
+                "waktu" => $request["lost_time"][$current],
+            ]
+        );
+    }
+
+    public function checkLostTime($id = 0) {
+        $formCutInputLostTimeData = FormCutInputLostTime::where('form_cut_input_id', $id)->get();
+
+        return array(
+            "count" => $formCutInputLostTimeData->count(),
+            "data" => $formCutInputLostTimeData,
+        );
+    }
+
     public function finishProcess($id = 0, Request $request) {
+        $formCutInputData = FormCutInput::where("id", $id)->first();
         $updateFormCutInput = FormCutInput::where("id", $id)->
             update([
                 "status" => "SELESAI PENGERJAAN",
@@ -812,6 +835,12 @@ class FormCutInputController extends Controller
                 "unit_cons_act" => $request->unitConsAct,
                 "operator" => $request->operator,
             ]);
+
+        $notCompleted = FormCutInputDetail::where("no_form_cut_input", $formCutInputData->no_form)->where("status","not complete")->first();
+        if ($notCompleted) {
+            FormCutInputDetailLap::where("form_cut_input_detail_id", $notCompleted->id)->delete();
+            FormCutInputDetail::where("no_form_cut_input", $formCutInputData->no_form)->where("status","not complete")->delete();
+        }
 
         return $updateFormCutInput;
     }

@@ -303,12 +303,7 @@
                     targets: [10],
                     render: (data, type, row, meta) => {
                         let btnEdit = row.status == 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData("+ JSON.stringify(row) +", \"editMejaModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-pen'></i></a>" : "";
-
-                        let btnProcess = row.no_meja != '' && row.no_meja != null ?
-                            `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` +
-                            row.id +
-                            `' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-plus'></i></a>` :
-                            "";
+                        let btnProcess = row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null ? `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-plus'></i></a>` : "";
 
                         return `<div class='d-flex gap-1 justify-content-center'>` + btnProcess + btnEdit +
                             `</div>`;

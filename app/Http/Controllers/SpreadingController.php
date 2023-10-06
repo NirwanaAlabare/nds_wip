@@ -7,8 +7,8 @@ use App\Models\MarkerDetail;
 use App\Models\Marker;
 use App\Models\User;
 use Illuminate\Http\Request;
-use DB;
 use Carbon\Carbon;
+use DB;
 
 class SpreadingController extends Controller
 {
@@ -71,14 +71,16 @@ class SpreadingController extends Controller
                     b.po_marker,
                     b.urutan_marker,
                     b.cons_marker,
-                    GROUP_CONCAT(CONCAT(' ', marker_input_detail.size, '(', marker_input_detail.cut_qty, ')') ORDER BY marker_input_detail.size ASC) marker_details
+                    GROUP_CONCAT(CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC) marker_details
                 FROM `form_cut_input` a
                 left join marker_input b on a.id_marker = b.kode
                 left join marker_input_detail on b.id = marker_input_detail.marker_id
+                left join master_size_new on marker_input_detail.size = master_size_new.size
                 left join users on users.id = a.no_meja
                 " . $additionalQuery . "
                 " . $keywordQuery . "
                 GROUP BY a.id
+                ORDER BY a.updated_at desc
             ");
 
             return json_encode([
@@ -210,8 +212,10 @@ class SpreadingController extends Controller
             $urutan_fix      = $urutan + $i;
             $qtyPly = $request['txtqty_ply_cut'];
 
-            if ($i == intval($request['hitungform'])) {
-                $qtyPly = $qtyPlyMarkerModulus;
+            if (intval($request['hitungform'] > 1)) {
+                if ($i == intval($request['hitungform'])) {
+                    $qtyPly = $qtyPlyMarkerModulus;
+                }
             }
 
             $hari          = substr($txttglcut, 8, 2);
@@ -226,7 +230,9 @@ class SpreadingController extends Controller
                 "user" => "user",
                 "cancel" => "N",
                 "qty_ply" => $qtyPly,
-                "tgl_input" => $timestamp
+                "tgl_input" => $timestamp,
+                "created_at" => $timestamp,
+                "updated_at" => $timestamp,
             ]);
 
             $message .= "$no_form <br>";

@@ -87,6 +87,8 @@ Route::middleware('auth')->group(function () {
         Route::put('/finish-process/{id?}', 'finishProcess')->name('finish-process-form-cut-input');
         Route::get('/check-spreading-form/{noForm?}/{noMeja?}', 'checkSpreadingForm')->name('check-spreading-form-cut-input');
         Route::get('/check-time-record/{detailId?}', 'checkTimeRecordLap')->name('check-time-record-form-cut-input');
+        Route::post('/store-lost-time/{id?}', 'storeLostTime')->name('store-lost-form-cut-input');
+        Route::get('/check-lost-time/{id?}', 'checkLostTime')->name('check-lost-form-cut-input');
 
         // get order
         Route::get('/get-order', 'getOrderInfo')->name('form-cut-get-marker-order');
