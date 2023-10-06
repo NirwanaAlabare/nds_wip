@@ -157,12 +157,11 @@ class FormCutInputController extends Controller
 
         $markerDetailData = MarkerDetail::selectRaw("
                 marker_input.kode kode_marker,
+                marker_input_detail.size,
                 marker_input_detail.so_det_id,
                 marker_input_detail.ratio,
                 marker_input_detail.cut_qty
             ")->leftJoin("marker_input", "marker_input.id", "=", "marker_input_detail.marker_id")->where("marker_input.kode", $formCutInputData->kode)->get();
-
-        $soDetData = DB::table('master_sb_ws')->selectRaw('id, size')->where("id_act_cost", $formCutInputData->act_costing_id)->get();
 
         if (Auth::user()->type == "meja" && Auth::user()->id != $formCutInputData->no_meja) {
             return Redirect::to('/home');
@@ -172,8 +171,7 @@ class FormCutInputController extends Controller
             'id' => $id,
             'formCutInputData' => $formCutInputData,
             'actCostingData' => $actCostingData,
-            'markerDetailData' => $markerDetailData,
-            'soDetData' => $soDetData
+            'markerDetailData' => $markerDetailData
         ]);
     }
 
@@ -341,7 +339,6 @@ class FormCutInputController extends Controller
             "current_id_item" => "required",
             "detail_item" => "required",
             "current_group" => "required",
-            // "current_lot" => "required",
             "current_roll" => "required",
             "current_qty" => "required",
             "current_unit" => "required",
@@ -357,7 +354,8 @@ class FormCutInputController extends Controller
             "current_short_roll" => "required",
             "current_piping" => "required",
             "current_remark" => "required",
-            "current_sambungan" => "required"
+            "current_sambungan" => "required",
+            "p_act" => "required"
         ]);
 
         $status = 'complete';
@@ -374,7 +372,7 @@ class FormCutInputController extends Controller
                 "color_act" => $validatedRequest['color_act'],
                 "detail_item" => $validatedRequest['detail_item'],
                 "group" => $validatedRequest['current_group'],
-                "lot" => $request['current_lot'],
+                "lot" => $request["current_lot"],
                 "roll" => $validatedRequest['current_roll'],
                 "qty" => $validatedRequest['current_qty'],
                 "unit" => $validatedRequest['current_unit'],
@@ -396,20 +394,22 @@ class FormCutInputController extends Controller
         );
 
         if ($storeTimeRecordSummary) {
-            ScannedItem::updateOrCreate(
-                ["id_roll" => $validatedRequest['current_id_roll']],
-                [
-                    "id_item" => $validatedRequest['current_id_item'],
-                    "color" => $validatedRequest['color_act'],
-                    "detail_item" => $validatedRequest['detail_item'],
-                    "lot" => $validatedRequest['current_lot'],
-                    "roll" => $validatedRequest['current_roll'],
-                    "qty" => $validatedRequest['current_qty'],
-                    "unit" => $validatedRequest['current_unit'],
-                ]
-            );
+            $itemRemain = floatval($validatedRequest['current_qty']) - floatval($validatedRequest['current_total_pemakaian_roll']);
 
             if ($status == 'need extension') {
+                ScannedItem::updateOrCreate(
+                    ["id_roll" => $validatedRequest['current_id_roll']],
+                    [
+                        "id_item" => $validatedRequest['current_id_item'],
+                        "color" => $validatedRequest['color_act'],
+                        "detail_item" => $validatedRequest['detail_item'],
+                        "lot" => $request['current_lot'],
+                        "roll" => $validatedRequest['current_roll'],
+                        "qty" => $itemRemain > 0 ? 0 : $itemRemain,
+                        "unit" => $validatedRequest['current_unit'],
+                    ]
+                );
+
                 $storeTimeRecordSummaryExt = FormCutInputDetail::create([
                     "group" => $validatedRequest['current_group'],
                     "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
@@ -427,6 +427,19 @@ class FormCutInputController extends Controller
                         ],
                     );
                 }
+            } else {
+                ScannedItem::updateOrCreate(
+                    ["id_roll" => $validatedRequest['current_id_roll']],
+                    [
+                        "id_item" => $validatedRequest['current_id_item'],
+                        "color" => $validatedRequest['color_act'],
+                        "detail_item" => $validatedRequest['detail_item'],
+                        "lot" => $request['current_lot'],
+                        "roll" => $validatedRequest['current_roll'],
+                        "qty" => $itemRemain,
+                        "unit" => $validatedRequest['current_unit'],
+                    ]
+                );
             }
 
             return array(
@@ -527,7 +540,6 @@ class FormCutInputController extends Controller
             "current_id_item" => "required",
             "detail_item" => "required",
             "current_group" => "required",
-            "current_lot" => "required",
             "current_roll" => "required",
             "current_qty" => "required",
             "current_unit" => "required",
@@ -554,7 +566,7 @@ class FormCutInputController extends Controller
                 "color_act" => $validatedRequest['color_act'],
                 "detail_item" => $validatedRequest['detail_item'],
                 "group" => $validatedRequest['current_group'],
-                "lot" => $validatedRequest['current_lot'],
+                "lot" => $request['current_lot'],
                 "roll" => $validatedRequest['current_roll'],
                 "qty" => $validatedRequest['current_qty'],
                 "unit" => $validatedRequest['current_unit'],
@@ -582,7 +594,7 @@ class FormCutInputController extends Controller
                     "id_item" => $validatedRequest['current_id_item'],
                     "color" => $validatedRequest['color_act'],
                     "detail_item" => $validatedRequest['detail_item'],
-                    "lot" => $validatedRequest['current_lot'],
+                    "lot" => $request['current_lot'],
                     "roll" => $validatedRequest['current_roll'],
                     "qty" => (floatval($validatedRequest['current_qty']) - floatval($validatedRequest['current_sambungan'])),
                     "unit" => $validatedRequest['current_unit'],
@@ -607,7 +619,7 @@ class FormCutInputController extends Controller
                         "color_act" => $validatedRequest['color_act'],
                         "detail_item" => $validatedRequest['detail_item'],
                         "group" => $validatedRequest['current_group'],
-                        "lot" => $validatedRequest['current_lot'],
+                        "lot" => $request['current_lot'],
                         "roll" => $validatedRequest['current_roll'],
                         "qty" => (floatval($validatedRequest['current_qty']) - floatval($validatedRequest['current_sambungan'])),
                         "unit" => $validatedRequest['current_unit'],
@@ -790,6 +802,7 @@ class FormCutInputController extends Controller
             "waktu_selesai" => $request->finishTime,
             "cons_act" => $request->consAct,
             "unit_cons_act" => $request->unitConsAct,
+            "total_lembar" => $request->totalLembar,
             "operator" => $request->operator,
         ]);
 

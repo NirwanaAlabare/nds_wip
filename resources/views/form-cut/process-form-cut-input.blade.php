@@ -128,8 +128,7 @@
                         <div class="col-4 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>QTY Cut Ply</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="qty_ply"
-                                    value="{{ $formCutInputData->qty_ply }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" id="qty_ply" name="qty_ply" value="{{ $formCutInputData->qty_ply }}" readonly>
                             </div>
                         </div>
                     </div>
@@ -139,7 +138,7 @@
                                 <th class="label-fetch">Size</th>
                                 <th class="label-fetch">Ratio</th>
                                 <th class="label-fetch">Qty Cut Marker</th>
-                                <th class="label-fetch">Qty Cut Ply</th>
+                                <th class="label-fetch">Qty Output</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -156,7 +155,7 @@
                                         $qtyPly = $item->ratio*$formCutInputData->qty_ply;
                                         $totalCutQtyPly += $qtyPly;
                                     @endphp
-                                    <td>{{ $soDetData->where('id', $item->so_det_id)->first() ? $soDetData->where('id', $item->so_det_id)->first()->size : '' }}</td>
+                                    <td>{{ $item->size }}</td>
                                     <td>{{ $item->ratio }}</td>
                                     <td>{{ $item->cut_qty }}</td>
                                     <td>{{ $qtyPly }}</td>
@@ -648,7 +647,7 @@
         <div class="col-md-12">
             <div class="card card-sb collapsed-card d-none" id="lost-time-card">
                 <div class="card-header">
-                    <h3 class="card-title">Lost Time</h3>
+                    <h3 class="card-title">Loss Time</h3>
                     <div class="card-tools">
                         <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
                     </div>
@@ -716,6 +715,7 @@
                                         <tr>
                                             <th>No.</th>
                                             <th>Group</th>
+                                            <th class="label-scan">ID Roll</th>
                                             <th class="label-scan">ID Item</th>
                                             <th class="label-scan">Lot</th>
                                             <th class="label-scan">Roll</th>
@@ -1024,6 +1024,7 @@
             let spreadingForm = new FormData(document.getElementById("spreading-form"));
 
             let dataObj = {
+                "p_act": $("#p_act").val(),
                 "no_form_cut_input": $("#no_form").val(),
                 "no_meja": $("#no_meja").val(),
                 "color_act": $("#color_act").val(),
@@ -1215,7 +1216,8 @@
                             finishTime: finishTime.value,
                             operator: $('#operator').val(),
                             consAct: $('#cons_actual_gelaran').val(),
-                            unitConsAct: $('#unit_cons_actual_gelaran').val()
+                            unitConsAct: $('#unit_cons_actual_gelaran').val(),
+                            totalLembar: totalLembar
                         },
                         success: function(res) {
                             if (res) {
@@ -1696,9 +1698,10 @@
         // -Update Ply Progress-
         function updatePlyProgress() {
             let currentLembar = Number($("#current_lembar_gelaran").val());
+            let qtyPly = Number($("#qty_ply").val());
 
-            document.getElementById("current_ply_progress_txt").innerText = (totalLembar+currentLembar)+"/"+totalQtyCut;
-            document.getElementById("current_ply_progress").style.width = Number(totalQtyCut) > 0 ? (Number(totalLembar)/Number(totalQtyCut) * 100) +"%" : "0%";
+            document.getElementById("current_ply_progress_txt").innerText = (totalLembar+currentLembar)+"/"+qtyPly;
+            document.getElementById("current_ply_progress").style.width = Number(qtyPly) > 0 ? (Number(totalLembar+currentLembar)/Number(qtyPly) * 100) +"%" : "0%";
         }
 
         // -Lock Form Cut Input-
@@ -1866,26 +1869,28 @@
             let td18 = document.createElement('td');
             let td19 = document.createElement('td');
             let td20 = document.createElement('td');
+            let td21 = document.createElement('td');
             td1.innerHTML = totalScannedItem + 1;
             td2.innerHTML = data.group ? data.group : '-';
-            td3.innerHTML = data.id_item ? data.id_item : '-';
-            td4.innerHTML = data.lot ? data.lot : '-';
-            td5.innerHTML = data.roll ? data.roll : '-';
-            td6.innerHTML = data.qty ? data.qty : '-';
-            td7.innerHTML = data.unit ? data.unit : '-';
-            td8.innerHTML = data.sisa_gelaran ? data.sisa_gelaran : '-';
-            td9.innerHTML = data.sambungan ? data.sambungan : '-';
-            td10.innerHTML = data.est_amparan ? data.est_amparan : '-';
-            td11.innerHTML = data.lembar_gelaran ? data.lembar_gelaran : '';
-            td12.innerHTML = data.average_time ? data.average_time : '-';
-            td13.innerHTML = data.kepala_kain ? data.kepala_kain : '-';
-            td14.innerHTML = data.sisa_tidak_bisa ? data.sisa_tidak_bisa : '-';
-            td15.innerHTML = data.reject ? data.reject : '-';
-            td16.innerHTML = data.sisa_kain ? data.sisa_kain : '-';
-            td17.innerHTML = data.total_pemakaian_roll ? data.total_pemakaian_roll : '-';
-            td18.innerHTML = data.short_roll ? data.short_roll : '-';
-            td19.innerHTML = data.piping ? data.piping : '-';
-            td20.innerHTML = data.remark ? data.remark : '-';
+            td3.innerHTML = data.id_roll ? data.id_roll : '-';
+            td4.innerHTML = data.id_item ? data.id_item : '-';
+            td5.innerHTML = data.lot ? data.lot : '-';
+            td6.innerHTML = data.roll ? data.roll : '-';
+            td7.innerHTML = data.qty ? data.qty : '-';
+            td8.innerHTML = data.unit ? data.unit : '-';
+            td9.innerHTML = data.sisa_gelaran ? data.sisa_gelaran : '-';
+            td10.innerHTML = data.sambungan ? data.sambungan : '-';
+            td11.innerHTML = data.est_amparan ? data.est_amparan : '-';
+            td12.innerHTML = data.lembar_gelaran ? data.lembar_gelaran : '';
+            td13.innerHTML = data.average_time ? data.average_time : '-';
+            td14.innerHTML = data.kepala_kain ? data.kepala_kain : '-';
+            td15.innerHTML = data.sisa_tidak_bisa ? data.sisa_tidak_bisa : '-';
+            td16.innerHTML = data.reject ? data.reject : '-';
+            td17.innerHTML = data.sisa_kain ? data.sisa_kain : '-';
+            td18.innerHTML = data.total_pemakaian_roll ? data.total_pemakaian_roll : '-';
+            td19.innerHTML = data.short_roll ? data.short_roll : '-';
+            td20.innerHTML = data.piping ? data.piping : '-';
+            td21.innerHTML = data.remark ? data.remark : '-';
             tr.appendChild(td1);
             tr.appendChild(td2);
             tr.appendChild(td3);
@@ -1906,6 +1911,7 @@
             tr.appendChild(td18);
             tr.appendChild(td19);
             tr.appendChild(td20);
+            tr.appendChild(td21);
 
             scannedItemTableTbody.appendChild(tr);
 
