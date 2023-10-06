@@ -158,7 +158,7 @@
                                         $qtyPly = $item->ratio*$formCutInputData->qty_ply;
                                         $totalCutQtyPly += $qtyPly;
                                     @endphp
-                                    <td>{{ $soDetData->where('id', $item->so_det_id)->first() ? $soDetData->where('id', $item->so_det_id)->first()->size : $item->so_det_id }}</td>
+                                    <td>{{ $item->size }}</td>
                                     <td>{{ $item->ratio }}</td>
                                     <td>{{ $item->cut_qty }}</td>
                                     <td>{{ $qtyPly }}</td>
