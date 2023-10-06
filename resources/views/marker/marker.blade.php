@@ -66,6 +66,7 @@
                             <th>Gelar QTYs</th>
                             <th>PO</th>
                             <th>Urutan</th>
+                            <th>Tot Form</th>
                             <th>Act</th>
                         </tr>
                     </thead>
@@ -133,6 +134,9 @@
                     data: 'urutan_marker'
                 },
                 {
+                    data: 'tot_form'
+                },
+                {
                     data: 'id'
                 },
                 // {
@@ -145,7 +149,7 @@
                 //     render: (data, type, row, meta) => "<button class='btn btn-sm btn-primary' onclick=''>Edit</button>"
                 // },
                 {
-                    targets: [10],
+                    targets: [11],
                     render: (data, type, row, meta) => {
                         // return `<div class='d-flex gap-1 justify-content-center'><a class='btn btn-primary btn-sm' href='{{ route('show-marker') }}&` +
                         //     row.id +
@@ -176,7 +180,11 @@
                     targets: '_all',
                     render: (data, type, row, meta) => {
                         var color = 'black';
-                        if (row.cancel == 'Y') {
+                        if (row.tot_form != '0' && row.cancel == 'N') {
+                            color = 'green';
+                        } else if (row.tot_form == '0' && row.cancel == 'N') {
+                            color = 'blue';
+                        } else if (row.cancel == 'Y') {
                             color = 'red';
                         }
                         return '<span style="color:' + color + '">' + data + '</span>';
