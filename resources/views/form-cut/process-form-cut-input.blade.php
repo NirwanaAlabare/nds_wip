@@ -239,7 +239,7 @@
                             <div class="mb-3">
                                 <label class="form-label label-input"><small><b>Comma Act</b></small></label>
                                 <input type="number" class="form-control form-control-sm border-input" name="comma_act"
-                                    id="comma_act" value="{{ $formCutInputData->p_act }}">
+                                    id="comma_act" value="{{ $formCutInputData->comma_p_act }}">
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
