@@ -128,10 +128,7 @@
                         <div class="col-4 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>QTY Cut Ply</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" id="qty_ply" name="qty_ply"
-                                    value="" readonly>
-                                <input type="hidden" class="form-control form-control-sm border-fetch" id="qty_ply_before" name="qty_ply_before"
-                                    value="{{ $formCutInputData->qty_ply }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" id="qty_ply" name="qty_ply" value="{{ $formCutInputData->qty_ply }}" readonly>
                             </div>
                         </div>
                     </div>
@@ -810,7 +807,6 @@
         // -Ratio & Qty Cuy-
         var totalRatio = document.getElementById('total_ratio').value;
         var totalQtyCut = document.getElementById('total_qty_cut_ply').value;
-        document.getElementById('qty_ply').value = totalQtyCut;
 
         // Function List :
         // -On Load-
@@ -1702,7 +1698,7 @@
         // -Update Ply Progress-
         function updatePlyProgress() {
             let currentLembar = Number($("#current_lembar_gelaran").val());
-            let qtyPly = Number($("#qty_ply_before").val());
+            let qtyPly = Number($("#qty_ply").val());
 
             document.getElementById("current_ply_progress_txt").innerText = (totalLembar+currentLembar)+"/"+qtyPly;
             document.getElementById("current_ply_progress").style.width = Number(qtyPly) > 0 ? (Number(totalLembar+currentLembar)/Number(qtyPly) * 100) +"%" : "0%";
