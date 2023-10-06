@@ -341,7 +341,6 @@ class FormCutInputController extends Controller
             "current_id_item" => "required",
             "detail_item" => "required",
             "current_group" => "required",
-            // "current_lot" => "required",
             "current_roll" => "required",
             "current_qty" => "required",
             "current_unit" => "required",
@@ -366,6 +365,8 @@ class FormCutInputController extends Controller
             $status = 'need extension';
         }
 
+        dd($request);
+
         $storeTimeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->where('form_cut_input.no_meja', $validatedRequest['no_meja'])->where('form_cut_input_detail.status', 'not complete')->updateOrCreate(
             ["no_form_cut_input" => $validatedRequest['no_form_cut_input']],
             [
@@ -374,7 +375,7 @@ class FormCutInputController extends Controller
                 "color_act" => $validatedRequest['color_act'],
                 "detail_item" => $validatedRequest['detail_item'],
                 "group" => $validatedRequest['current_group'],
-                "lot" => $request['current_lot'],
+                "lot" => $request["current_lot"],
                 "roll" => $validatedRequest['current_roll'],
                 "qty" => $validatedRequest['current_qty'],
                 "unit" => $validatedRequest['current_unit'],
@@ -402,7 +403,7 @@ class FormCutInputController extends Controller
                     "id_item" => $validatedRequest['current_id_item'],
                     "color" => $validatedRequest['color_act'],
                     "detail_item" => $validatedRequest['detail_item'],
-                    "lot" => $validatedRequest['current_lot'],
+                    "lot" => $request['current_lot'],
                     "roll" => $validatedRequest['current_roll'],
                     "qty" => $validatedRequest['current_qty'],
                     "unit" => $validatedRequest['current_unit'],
@@ -527,7 +528,6 @@ class FormCutInputController extends Controller
             "current_id_item" => "required",
             "detail_item" => "required",
             "current_group" => "required",
-            "current_lot" => "required",
             "current_roll" => "required",
             "current_qty" => "required",
             "current_unit" => "required",
@@ -554,7 +554,7 @@ class FormCutInputController extends Controller
                 "color_act" => $validatedRequest['color_act'],
                 "detail_item" => $validatedRequest['detail_item'],
                 "group" => $validatedRequest['current_group'],
-                "lot" => $validatedRequest['current_lot'],
+                "lot" => $request['current_lot'],
                 "roll" => $validatedRequest['current_roll'],
                 "qty" => $validatedRequest['current_qty'],
                 "unit" => $validatedRequest['current_unit'],
@@ -582,7 +582,7 @@ class FormCutInputController extends Controller
                     "id_item" => $validatedRequest['current_id_item'],
                     "color" => $validatedRequest['color_act'],
                     "detail_item" => $validatedRequest['detail_item'],
-                    "lot" => $validatedRequest['current_lot'],
+                    "lot" => $request['current_lot'],
                     "roll" => $validatedRequest['current_roll'],
                     "qty" => (floatval($validatedRequest['current_qty']) - floatval($validatedRequest['current_sambungan'])),
                     "unit" => $validatedRequest['current_unit'],
@@ -607,7 +607,7 @@ class FormCutInputController extends Controller
                         "color_act" => $validatedRequest['color_act'],
                         "detail_item" => $validatedRequest['detail_item'],
                         "group" => $validatedRequest['current_group'],
-                        "lot" => $validatedRequest['current_lot'],
+                        "lot" => $request['current_lot'],
                         "roll" => $validatedRequest['current_roll'],
                         "qty" => (floatval($validatedRequest['current_qty']) - floatval($validatedRequest['current_sambungan'])),
                         "unit" => $validatedRequest['current_unit'],
