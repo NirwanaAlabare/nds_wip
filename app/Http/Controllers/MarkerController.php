@@ -39,9 +39,10 @@ class MarkerController extends Controller
                 gelar_qty,
                 po_marker,
                 urutan_marker,
-                cancel
-            ");
-
+                cancel,
+                mid.size sizes
+            ")->
+            leftJoin(DB::raw("(select marker_id, size from marker_input_detail) mid"), "mid.marker_id", "=", "marker_input.id");
 
             if ($tglAwal) {
                 $markersQuery->whereRaw("tgl_cutting >= '" . $tglAwal . "'");
