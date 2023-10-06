@@ -239,7 +239,7 @@
                             <div class="mb-3">
                                 <label class="form-label label-input"><small><b>Comma Act</b></small></label>
                                 <input type="number" class="form-control form-control-sm border-input" name="comma_act"
-                                    id="comma_act" value="{{ $formCutInputData->p_act }}">
+                                    id="comma_act" value="{{ $formCutInputData->comma_p_act }}">
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
@@ -1405,9 +1405,9 @@
         async function checkStatus() {
             $('#lost-time-card').CardWidget('collapse');
 
-            if (status == "PENGERJAAN FORM CUTTING") {
-                checkLostTime(id);
+            checkLostTime(id);
 
+            if (status == "PENGERJAAN FORM CUTTING") {
                 startProcessButton.classList.add("d-none");
                 nextProcessOneButton.classList.remove("d-none");
 
@@ -1416,8 +1416,6 @@
 
             if (status == "PENGERJAAN FORM CUTTING DETAIL") {
                 document.getElementById("lost-time-card").classList.remove("d-none");
-
-                checkLostTime(id);
 
                 startProcessButton.classList.add("d-none");
                 nextProcessOneButton.classList.add("d-none");
@@ -1429,8 +1427,6 @@
 
             if (status == "PENGERJAAN FORM CUTTING SPREAD") {
                 document.getElementById("lost-time-card").classList.remove("d-none");
-
-                checkLostTime(id);
 
                 if ($("status_sambungan").val() != "extension") {
                     document.getElementById("current_sambungan").setAttribute('readonly', true);
