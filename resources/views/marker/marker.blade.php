@@ -150,19 +150,39 @@
                         // return `<div class='d-flex gap-1 justify-content-center'><a class='btn btn-primary btn-sm' href='{{ route('show-marker') }}&` +
                         //     row.id +
                         //     `' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-search'></i></a></div>`;
-                        return `<div class='d-flex gap-1 justify-content-center'><a class='btn btn-primary btn-sm'
+
+                        if (row.cancel != 'Y') {
+                            return `<div class='d-flex gap-1 justify-content-center'><a class='btn btn-primary btn-sm'
                         data-bs-toggle="modal" data-bs-target="#exampleModal"
                         onclick='getdetail(` + row.id + `);'>
                         <i class='fa fa-search'></i></a>
                             <a class='btn btn-danger btn-sm'
-                        data-bs-toggle="modal" data-bs-target="#exampleModal" onclick='getdetail(` + row.id +
-                            `);'><i class='fa fa-ban'></i></a>
+                        onclick='cancel(` + row.id +
+                                `);'><i class='fa fa-ban'></i></a>
                             </div>`;
-                        // "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" +
-                        // JSON.stringify(row) +
-                        //     ", \"ExampleModal\", [])'><i class='fa fa-pen'></i></a>": "";
+                            // "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" +
+                            // JSON.stringify(row) +
+                            //     ", \"ExampleModal\", [])'><i class='fa fa-pen'></i></a>": "";
+                        } else {
+                            return `<div class='d-flex gap-1 justify-content-center'>
+                            </div>`;
+                        }
+                    }
+                },
+                {
+                    targets: '_all',
+                    render: (data, type, row, meta) => {
+                        var color = 'black';
+                        if (row.cancel == 'Y') {
+                            color = 'red';
+                        }
+                        return '<span style="color:' + color + '">' + data + '</span>';
                     }
                 }
+
+
+
+
             ]
         });
 
@@ -181,6 +201,25 @@
                 async: false
             }).responseText;
             $("#detail").html(html);
+        };
+
+        function cancel(id_c) {
+            let html = $.ajax({
+                type: "POST",
+                url: '{{ route('update_status') }}',
+                data: {
+                    id_c: id_c
+                },
+                async: false
+            }).responseText;
+            swal.fire({
+                position: 'mid-end',
+                icon: 'warning',
+                title: 'Data Sudah Di Cancel',
+                showConfirmButton: false,
+                timer: 1000
+            })
+            datatable.ajax.reload();
         };
     </script>
 @endsection

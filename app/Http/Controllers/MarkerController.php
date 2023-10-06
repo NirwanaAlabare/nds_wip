@@ -38,7 +38,8 @@ class MarkerController extends Controller
                 CONCAT(lebar_marker, ' ', UPPER(unit_lebar_marker)) lebar_marker,
                 gelar_qty,
                 po_marker,
-                urutan_marker
+                urutan_marker,
+                cancel
             ");
 
 
@@ -299,7 +300,11 @@ class MarkerController extends Controller
         where id = '$request->id_c'");
 
         $data_marker_det = DB::select("
-        SELECT size, ratio from marker_input_detail where marker_id = '$request->id_c'");
+        SELECT a.size, ratio
+        from marker_input_detail a
+        inner join master_size_new b on a.size = b.size
+        where marker_id = '$request->id_c'
+        order by urutan asc");
 
         foreach ($data_marker as $datanomarker) {
 
@@ -426,13 +431,11 @@ class MarkerController extends Controller
                 </tr>
             </thead>
             <tbody>
-$html_table
+                $html_table
             </tbody>
         </table>
         </div>
     </div>
-
-
         ";
         }
         return $html;
@@ -456,9 +459,11 @@ $html_table
      * @param  \App\Models\Marker  $marker
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Marker $marker)
+    public function update_status(Request $request, Marker $marker)
     {
-        //
+        $update_data = DB::update("
+        update marker_input set cancel = 'Y'
+        where id = '$request->id_c'");
     }
 
     /**
