@@ -306,6 +306,17 @@ class MarkerController extends Controller
         where marker_id = '$request->id_c'
         order by urutan asc");
 
+        $data_marker_tracking = DB::select("
+        select no_form,
+        DATE_FORMAT(tgl_form_cut, '%d-%m-%Y') tgl_form_cut,
+        no_meja,
+        DATE_FORMAT(waktu_mulai, '%d-%m-%Y %T') waktu_mulai,
+        DATE_FORMAT(waktu_selesai, '%d-%m-%Y %T') waktu_selesai,
+        status
+        from form_cut_input a
+        inner join marker_input b on  a.id_marker = b.kode
+        where b.id = '$request->id_c'");
+
         foreach ($data_marker as $datanomarker) {
 
             $html_table = "";
@@ -318,6 +329,23 @@ class MarkerController extends Controller
             </tr>
  ";
             endforeach;
+
+
+            $html_tracking = "";
+
+            foreach ($data_marker_tracking as $track) :
+                $html_tracking .= "
+            <tr>
+            <td>$track->no_form</td>
+            <td>$track->tgl_form_cut</td>
+            <td>$track->no_meja</td>
+            <td>$track->waktu_mulai</td>
+            <td>$track->waktu_selesai</td>
+            <td>$track->status</td>
+            </tr>
+ ";
+            endforeach;
+
 
             $html = "
 
@@ -425,16 +453,15 @@ class MarkerController extends Controller
 
         <div class='row'>
         <div class='col-sm-12'>
-        <div class='card card-primary'>
-        <div class='card-header'>
-            <h3 class='card-title'>Detail Data :</h3>
-            <div class='card-tools'>
+            <div class='card card-primary collapsed-card'>
+                <div class='card-header'>
+                <h1 class='card-title'>Detail Size</h1>
+                <div class='card-tools'>
                 <button type='button' class='btn btn-tool' data-card-widget='collapse'><i
-                        class='fas fa-minus'></i></button>
+                        class='fas fa-plus'></i></button>
             </div>
-        </div>
-
-
+                </div>
+                <div class='card-body' style='display: none;'>
         <div class='table-responsive'>
         <table class='table table-bordered table-striped table-sm w-100'>
             <thead>
@@ -448,9 +475,47 @@ class MarkerController extends Controller
             </tbody>
         </table>
         </div>
+            </div>
+    </div>
+    </div>
+    </div>
+
+
+    <div class='row'>
+        <div class='col-md-12'>
+            <div class='card card-warning collapsed-card'>
+                <div class='card-header'>
+                    <h1 class='card-title'>Status Form</h1>
+                    <div class='card-tools'>
+                        <button type='button' class='btn btn-tool' data-card-widget='collapse'>
+                            <i class='fas fa-plus'></i>
+                        </button>
+                    </div>
+                </div>
+                <div class='card-body' style='display: none;'>
+                    <div class='table-responsive'>
+                        <table class='table table-bordered table-striped'>
+                            <thead>
+                                <tr>
+                                    <th>No. Form</th>
+                                    <th>Tgl. Form</th>
+                                    <th>No. Meja</th>
+                                    <th>Waktu Mulai</th>
+                                    <th>Waktu Selesai</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                $html_tracking
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    </div>
+
+
         ";
         }
         return $html;
