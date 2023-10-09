@@ -1308,11 +1308,26 @@
         }
 
         // -Calculate Est. Ampar-
-        function calculateEstAmpar(qty = 0, pActual = 0) {
+        function calculateEstAmpar(qty = 0, pActual = 0, commaActual = 0, unitQty = 0, unitPActual = 0, unitCommaActual = 0) {
             let qtyVar = qty > 0 ? Number(qty) : Number(document.getElementById("current_qty").value);
-            let pActualVar = qty > 0 ? Number(pActual) : Number(document.getElementById("p_act").value);
+            let pActualVar = pActual > 0 ? Number(pActual) : Number(document.getElementById("p_act").value);
+            let commaActualVar = commaActual > 0 ? Number(commaActual) : Number(document.getElementById("comma_act").value);
+            let unitQtyVar = unitQty ? unitQty : document.getElementById("current_unit").value;
+            let unitPActualVar = unitPActual ? unitPActual : document.getElementById("unit_p_act").value;
+            let unitCommaActualVar = unitCommaActual ? unitCommaActual : document.getElementById("unit_comma_act").value;
 
-            let estAmpar = pActualVar > 0 ? qtyVar / pActualVar : 0;
+            let estAmpar = 0;
+
+            if (unitQtyVar == unitPActualVar) {
+                estAmpar = pActualVar > 0 ? qtyVar / pActualVar : 0;
+            } else {
+                if (unitQtyVar == "METER" && unitPActualVar == "YARD") {
+                    let pActualMeter = ((pActualVar * 36/1) + commaActualVar) * 0.0254;
+                    estAmpar = pActualMeter > 0 ? qtyVar / pActualMeter : 0;
+                } else {
+                    estAmpar = pActualVar > 0 ? qtyVar / pActualVar : 0;
+                }
+            }
 
             document.getElementById("current_est_amparan").value = estAmpar.toFixed(2);
         }

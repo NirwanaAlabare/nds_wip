@@ -17,7 +17,7 @@
             <h5 class="card-title fw-bold mb-0">Detail Stocker</h5>
         </div>
         <div class="card-body">
-            <form action="#" id="stocker-form">
+            <form action="#" method="post" id="stocker-form">
                 <div class="row mb-3">
                     <div class="col-4">
                         <div class="mb-1">
@@ -124,12 +124,12 @@
                                     <td>1</td>
                                     <td>{{ $qty }}</td>
                                     <td>
-                                        <button onclick="printStocker({{ $loop->index }});" class="btn btn-sm btn-danger">
+                                        <button type="button" class="btn btn-sm btn-danger" onclick="printStocker({{ $loop->index }});">
                                             <i class="fa fa-print fa-s"></i>
                                         </button>
                                     </td>
                                     <td>
-                                        <button class="btn btn-sm btn-danger">
+                                        <button type="button" class="btn btn-sm btn-danger">
                                             <i class="fa fa-print fa-s"></i>
                                         </button>
                                     </td>
@@ -189,6 +189,33 @@
                     }
                 }
             });
+        }
+
+        function printNumbering(index) {
+            let stockerForm = new FormData(document.getElementById("stocker-form"));
+
+            // $.ajax({
+            //     url: '{{ route('print-numbering') }}/'+index,
+            //     type: 'post',
+            //     processData: false,
+            //     contentType: false,
+            //     data: stockerForm,
+            //     xhrFields:
+            //     {
+            //         responseType: 'blob'
+            //     },
+            //     success: function(res) {
+            //         if (res) {
+            //             console.log(res);
+
+            //             var blob = new Blob([res], {type: 'application/pdf'});
+            //             var link = document.createElement('a');
+            //             link.href = window.URL.createObjectURL(blob);
+            //             link.download = index+".pdf";
+            //             link.click();
+            //         }
+            //     }
+            // });
         }
     </script>
 @endsection

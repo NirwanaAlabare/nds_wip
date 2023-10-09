@@ -211,18 +211,30 @@ class StockerController extends Controller
     {
         $stockerCount = Stocker::count() + 1;
 
-        $stockerId = "STK-".$stockerCount;
+        $checkStocker = Stocker::select("id_qr_stocker")->whereRaw("
+                no_form_cut_input = '".$request['no_form_cut']."' AND
+                tgl_form_cut_input = '".$request['tgl_form_cut']."' AND
+                so_det_id = '".$request['so_det_id'][$index]."' AND
+                panel = '".$request['panel']."' AND
+                shade = '".$request['shade']."' AND
+                ratio = '".$request['ratio'][$index]."'
+            ")->first();
+
+        $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-".$stockerCount;
 
         $storeItem = Stocker::updateOrCreate(
-            ['no_form_cut_input' => $request['no_form_cut'], 'id_qr_stocker' => $stockerId],
             [
+                'no_form_cut_input' => $request['no_form_cut'],
                 'tgl_form_cut_input' => $request['tgl_form_cut'],
                 'so_det_id' => $request['so_det_id'][$index],
-                'size' => $request["size"][$index],
                 'panel' => $request['panel'],
                 'shade' => $request['shade'],
-                'qty_ply' => $request['qty_ply'],
                 'ratio' => $request['ratio'][$index],
+                'id_qr_stocker' => $stockerId
+            ],
+            [
+                'size' => $request["size"][$index],
+                'qty_ply' => $request['qty_ply'],
                 'qty_cut' => $request['qty_cut'][$index],
                 'range_awal' => 1,
                 'range_akhir' => $request['qty_cut'][$index],
