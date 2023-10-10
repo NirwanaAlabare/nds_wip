@@ -279,7 +279,15 @@
                                     readonly>
                             </div>
                         </div>
-                        <div class="col-6 col-md-4">
+                        <div class="col-6 col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label label-fetch"><small><b>Gramasi</b></small></label>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="gramasi"
+                                    id="gramasi" value="{{ $formCutInputData->gramasi }}" onkeyup="calculateEstAmpar(undefined, undefined, undefined, this.value);"
+                                    onchange="calculateEstAmpar(undefined, undefined, undefined, this.value);" readonly>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Cons WS</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-fetch" name="cons_ws"
@@ -287,7 +295,7 @@
                                     onchange="calculateEstKain(this.value, {{ $totalCutQtyPly }})" readonly>
                             </div>
                         </div>
-                        <div class="col-6 col-md-4">
+                        <div class="col-6 col-md-3">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Cons Marker</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-fetch"
@@ -295,7 +303,7 @@
                                     readonly>
                             </div>
                         </div>
-                        <div class="col-6 col-md-4">
+                        <div class="col-6 col-md-3">
                             <div class="mb-3">
                                 <label class="form-label label-calc"><small><b>Cons Act</b></small></label>
                                 <input type="number" class="form-control form-control-sm border-calc" name="cons_act"
@@ -1308,24 +1316,33 @@
         }
 
         // -Calculate Est. Ampar-
-        function calculateEstAmpar(qty = 0, pActual = 0, commaActual = 0, unitQty = 0, unitPActual = 0, unitCommaActual = 0) {
+        function calculateEstAmpar(qty = 0, pActual = 0, commaActual = 0, gramasi = 0, lActual = 0, unitQty = 0, unitPActual = 0, unitCommaActual = 0) {
             let qtyVar = qty > 0 ? Number(qty) : Number(document.getElementById("current_qty").value);
             let pActualVar = pActual > 0 ? Number(pActual) : Number(document.getElementById("p_act").value);
+            let lActualVar = lActual > 0 ? Number(lActual) : Number(document.getElementById("l_act").value);
             let commaActualVar = commaActual > 0 ? Number(commaActual) : Number(document.getElementById("comma_act").value);
             let unitQtyVar = unitQty ? unitQty : document.getElementById("current_unit").value;
             let unitPActualVar = unitPActual ? unitPActual : document.getElementById("unit_p_act").value;
             let unitCommaActualVar = unitCommaActual ? unitCommaActual : document.getElementById("unit_comma_act").value;
+            let gramasiVar = gramasi ? Number(gramasi) : Number(document.getElementById("gramasi").value);
 
             let estAmpar = 0;
 
             if (unitQtyVar == unitPActualVar) {
                 estAmpar = pActualVar > 0 ? qtyVar / pActualVar : 0;
             } else {
-                if (unitQtyVar == "METER" && unitPActualVar == "YARD") {
-                    let pActualMeter = ((pActualVar * 36/1) + commaActualVar) * 0.0254;
-                    estAmpar = pActualMeter > 0 ? qtyVar / pActualMeter : 0;
-                } else {
-                    estAmpar = pActualVar > 0 ? qtyVar / pActualVar : 0;
+                if (unitPActualVar == "YARD") {
+                    let pActualInch = ((pActualVar * 36/1) + commaActualVar)
+
+                    if (unitQtyVar == "METER") {
+                        let pActualMeter = pActualInch * 0.0254;
+                        estAmpar = pActualMeter > 0 ? qtyVar / pActualMeter : 0;
+                    } else if (unitQtyVar == "KGM") {
+                        let gramasiInch = gramasiVar / 1550;
+                        estAmpar = ((gramasiInch * ( pActualInch * lActualVar ))/ 1000) > 0 ? qtyVar / ((gramasiInch * ( pActualInch * lActualVar ))/ 1000) : 0;
+                    } else {
+                        estAmpar = pActualVar > 0 ? qtyVar / pActualVar : 0;
+                    }
                 }
             }
 

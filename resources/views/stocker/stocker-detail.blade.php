@@ -195,7 +195,7 @@
             let stockerForm = new FormData(document.getElementById("stocker-form"));
 
             // $.ajax({
-            //     url: '{{ route('print-numbering') }}/'+index,
+            //
             //     type: 'post',
             //     processData: false,
             //     contentType: false,

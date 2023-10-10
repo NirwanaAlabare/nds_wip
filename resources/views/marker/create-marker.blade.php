@@ -140,13 +140,19 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-6 col-md-6">
+                        <div class="col-4 col-md-4">
+                            <div class="mb-1">
+                                <label class="form-label"><small>Gramasi</small></label>
+                                <input type="number" class="form-control" id="gramasi" name="gramasi" step=".001">
+                            </div>
+                        </div>
+                        <div class="col-4 col-md-4">
                             <div class="mb-1">
                                 <label class="form-label"><small>Cons Marker</small></label>
                                 <input type="number" class="form-control" id="cons_marker" name="cons_marker" step=".001">
                             </div>
                         </div>
-                        <div class="col-6 col-md-6">
+                        <div class="col-4 col-md-4">
                             <div class="mb-1">
                                 <label class="form-label"><small>Qty Gelar Marker</small></label>
                                 <input type="number" class="form-control" id="gelar_marker_qty"
