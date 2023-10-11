@@ -96,7 +96,7 @@
             },
             columns: [
                 {
-                    data: 'tgl_cut_fix'
+                    data: 'tgl_cut_fix', searchable: false
                 },
                 {
                     data: 'kode'
@@ -111,10 +111,10 @@
                     data: 'panel'
                 },
                 {
-                    data: 'panjang_marker_fix'
+                    data: 'panjang_marker_fix', searchable: false
                 },
                 {
-                    data: 'lebar_marker'
+                    data: 'lebar_marker',
                 },
                 {
                     data: 'gelar_qty'
@@ -126,7 +126,7 @@
                     data: 'urutan_marker'
                 },
                 {
-                    data: 'tot_form'
+                    data: 'tot_form', searchable: false
                 },
                 {
                     data: 'id'
