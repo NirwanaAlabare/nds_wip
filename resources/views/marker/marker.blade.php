@@ -120,14 +120,8 @@
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: false,
             ajax: {
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
                 url: '{{ route('marker') }}',
-                dataType: 'json',
-                dataSrc: 'data',
                 data: function(d) {
                     d.tgl_awal = $('#tgl-awal').val();
                     d.tgl_akhir = $('#tgl-akhir').val();
@@ -151,9 +145,6 @@
                 {
                     data: 'panjang_marker_fix'
                 },
-                // {
-                //     data: 'comma_marker'
-                // },
                 {
                     data: 'lebar_marker'
                 },
@@ -175,16 +166,8 @@
                 {
                     data: 'id'
                 },
-                // {
-                //     data: 'id'
-                // }
             ],
-            columnDefs: [
-                // {
-                //     targets: [11],
-                //     render: (data, type, row, meta) => "<button class='btn btn-sm btn-primary' onclick=''>Edit</button>"
-                // },
-                {
+            columnDefs: [{
                     targets: [12],
                     render: (data, type, row, meta) => {
                         if (row.cancel != 'Y' && row.tot_form != 0) {
@@ -224,10 +207,6 @@
                         return '<span style="color:' + color + '">' + data + '</span>';
                     }
                 }
-
-
-
-
             ]
         });
 

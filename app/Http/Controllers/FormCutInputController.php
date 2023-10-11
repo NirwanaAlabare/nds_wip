@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Carbon\Carbon;
+use Yajra\DataTables\Facades\DataTables;
 use DB;
 
 class FormCutInputController extends Controller
@@ -25,10 +26,6 @@ class FormCutInputController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $tglAwal = $request->tgl_awal;
-            $tglAkhir = $request->tgl_akhir;
-            $keyword = $request->search["value"];
-
             $formCutInputQuery = FormCutInput::selectRaw("
                     form_cut_input.id id,
                     form_cut_input.no_form no_form,
@@ -40,38 +37,44 @@ class FormCutInputController extends Controller
                     form_cut_input.status
                 ")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker");
 
-            if ($tglAwal) {
-                $formCutInputQuery->whereRaw("tgl_form_cut >= '" . $tglAwal . "'");
-            }
-
-            if ($tglAkhir) {
-                $formCutInputQuery->whereRaw("tgl_form_cut <= '" . $tglAkhir . "'");
-            }
-
-            if ($keyword) {
-                $formCutInputQuery->whereRaw("(
-                    marker_input.no_form like '%" . $keyword . "%' OR
-                    form_cut_input.tgl_form_cut like '%" . $keyword . "%' OR
-                    marker_input.kode like '%" . $keyword . "%' OR
-                    marker_input.act_costing_ws like '%" . $keyword . "%' OR
-                    marker_input.color like '%" . $keyword . "%' OR
-                    marker_input.panel like '%" . $keyword . "%' OR
-                    form_cut_input.status like '%" . $keyword . "%'
-                )");
-            }
-
             if (Auth::user()->type == "meja") {
                 $formCutInputQuery->where("form_cut_input.no_meja", Auth::user()->id);
             }
 
-            $formCutInput = $formCutInputQuery->orderBy("form_cut_input.updated_at", "desc")->get();
+            return DataTables::eloquent($formCutInputQuery)->
+                filter(function ($query) {
+                    $tglAwal = request('tgl_awal');
+                    $tglAkhir = request('tgl_akhir');
 
-            return json_encode([
-                "draw" => intval($request->input('draw')),
-                "recordsTotal" => intval(count($formCutInput)),
-                "recordsFiltered" => intval(count($formCutInput)),
-                "data" => $formCutInput
-            ]);
+                    if ($tglAwal) {
+                        $query->whereRaw("tgl_form_cut >= '" . $tglAwal . "'");
+                    }
+
+                    if ($tglAkhir) {
+                        $query->whereRaw("tgl_form_cut <= '" . $tglAkhir . "'");
+                    }
+                }, true)->
+                filterColumn('no_form', function($query, $keyword) {
+                    $query->whereRaw("LOWER(CAST(marker_input.no_form as TEXT)) LIKE LOWER('%".$keyword."%')");
+                })->
+                filterColumn('kode_marker', function($query, $keyword) {
+                    $query->whereRaw("LOWER(CAST(marker_input.kode as TEXT)) LIKE LOWER('%".$keyword."%')");
+                })->
+                filterColumn('no_ws', function($query, $keyword) {
+                    $query->whereRaw("LOWER(CAST(marker_input.act_costing_ws as TEXT)) LIKE LOWER('%".$keyword."%')");
+                })->
+                filterColumn('color', function($query, $keyword) {
+                    $query->whereRaw("LOWER(CAST(marker_input.color as TEXT)) LIKE LOWER('%".$keyword."%')");
+                })->
+                filterColumn('panel', function($query, $keyword) {
+                    $query->whereRaw("LOWER(CAST(marker_input.panel as TEXT)) LIKE LOWER('%".$keyword."%')");
+                })->
+                filterColumn('status', function($query, $keyword) {
+                    $query->whereRaw("LOWER(CAST(form_cut_input.status as TEXT)) LIKE LOWER('%".$keyword."%')");
+                })->
+                order(function ($query) {
+                    $query->orderBy('form_cut_input.updated_at', 'desc');
+                })->toJson();
         }
 
         return view('form-cut.form-cut-input');
@@ -655,77 +658,6 @@ class FormCutInputController extends Controller
             "additional" => [],
         );
     }
-
-    // public function storeThisTimeRecordExtension(Request $request) {
-    //     $lap = $request->lap;
-
-    //     $storeTimeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->leftJoin('form_cut_input','form_cut_input.no_form','=','form_cut_input_detail.no_form_cut_input')->
-    //         where('form_cut_input.no_meja', $validatedRequest['no_meja'])->
-    //         where('form_cut_input_detail.status', 'extension')->
-    //         updateOrCreate(
-    //             ["no_form_cut_input" => $validatedRequest['no_form_cut_input']],
-    //             [
-    //                 "id_roll" => $validatedRequest['current_id_roll'],
-    //                 "id_item" => $validatedRequest['current_id_item'],
-    //                 "color_act" => $validatedRequest['color_act'],
-    //                 "detail_item" => $validatedRequest['detail_item'],
-    //                 "group" => $validatedRequest['current_group'],
-    //                 "lot" => $validatedRequest['current_lot'],
-    //                 "roll" => $validatedRequest['current_roll'],
-    //                 "qty" => $validatedRequest['current_qty'],
-    //                 "unit" => $validatedRequest['current_unit'],
-    //                 "sisa_gelaran" => $validatedRequest['current_sisa_gelaran'],
-    //                 "sambungan" => $validatedRequest['current_sambungan'],
-    //                 "est_amparan" => $validatedRequest['current_est_amparan'],
-    //                 "lembar_gelaran" => $validatedRequest['current_lembar_gelaran'],
-    //                 "average_time" => $validatedRequest['current_average_time'],
-    //                 "kepala_kain" => $validatedRequest['current_kepala_kain'],
-    //                 "sisa_tidak_bisa" => $validatedRequest['current_sisa_tidak_bisa'],
-    //                 "reject" => $validatedRequest['current_reject'],
-    //                 "sisa_kain" => $validatedRequest['current_sisa_kain'],
-    //                 "total_pemakaian_roll" => $validatedRequest['current_total_pemakaian_roll'],
-    //                 "short_roll" => $validatedRequest['current_short_roll'],
-    //                 "piping" => $validatedRequest['current_piping'],
-    //                 "remark" => $validatedRequest['current_remark'],
-    //                 "status" => "extension",
-    //             ]
-    //         );
-
-    //     if ($storeTimeRecordSummary) {
-    //         $now = Carbon::now();
-
-    //         if ($lap > 0) {
-    //             $storeTimeRecordLap = FormCutInputDetailLap::updateOrCreate(
-    //                 ["form_cut_input_detail_id" => $storeTimeRecordSummary->id, "lembar_gelaran_ke" => $lap],
-    //                 [
-    //                     "waktu" => $request["time_record"][$lap]
-    //                 ]
-    //             );
-
-    //             if ($storeTimeRecordLap) {
-    //                 return array(
-    //                     "status" => 200,
-    //                     "message" => "alright",
-    //                     "additional" => [],
-    //                 );
-    //             }
-    //         }
-
-    //         return array(
-    //             "status" => 200,
-    //             "message" => "alright",
-    //             "additional" => [
-    //                 FormCutInputDetail::where('id', $storeTimeRecordSummary->id)->first()
-    //             ],
-    //         );
-    //     }
-
-    //     return array(
-    //         "status" => 400,
-    //         "message" => "nothing really matter anymore",
-    //         "additional" => [],
-    //     );
-    // }
 
     public function checkSpreadingForm($noForm = 0, $noMeja = 0, Request $request)
     {

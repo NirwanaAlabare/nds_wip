@@ -355,15 +355,8 @@
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: false,
-            searching: false,
             ajax: {
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
                 url: '{{ route("get-marker-sizes") }}',
-                dataType: 'json',
-                dataSrc: 'data',
                 data: function (d) {
                     d.act_costing_id = $('#ws_id').val();
                     d.color = $('#color').val();

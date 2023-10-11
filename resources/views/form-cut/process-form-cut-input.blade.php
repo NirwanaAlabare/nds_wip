@@ -267,8 +267,9 @@
                         <div class="col-6 col-md-3">
                             <div class="mb-3">
                                 <label class="form-label label-input"><small><b>L. Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-input" name="l_act"
-                                    id="l_act" value="{{ $formCutInputData->l_act }}">
+                                <input type="number" class="form-control form-control-sm border-input" name="l_act" id="l_act" value="{{ $formCutInputData->l_act }}"
+                                    onkeyup="calculateEstAmpar(undefined, undefined, undefined, undefined, this.value);"
+                                    onchange="calculateEstAmpar(undefined, undefined, undefined, undefined, this.value);">
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
@@ -773,6 +774,7 @@
                                             name="unit_cons_actual_gelaran" id="unit_cons_actual_gelaran" disabled>
                                             <option value="meter">METER</option>
                                             <option value="yard">YARD</option>
+                                            <option value="kgm">KGM</option>
                                         </select>
                                     </div>
                                 </div>
@@ -831,6 +833,18 @@
                     e.preventDefault();
 
                     stopTimeRecord()
+                }
+
+                if (e.key === 'AudioVolumeDown') {
+                    console.log(e.key);
+                    e.preventDefault();
+                    // process logic of volume-down
+                    alert("volume up");
+                } else if (e.key === 'AudioVolumeUp') {
+                    console.log(e.key);
+                    e.preventDefault();
+                    // process logic of volume-up
+                    alert("volume down");
                 }
             });
 
@@ -996,9 +1010,7 @@
 
         // -Process Three Transaction-
         async function updateToNextProcessThree() {
-            if (checkIfNull(document.getElementById("id_item").value) && checkIfNull(document.getElementById(
-                    "detail_item").value) && checkIfNull(document.getElementById("color_act").value) &&
-                currentScannedItem) {
+            if (checkIfNull(document.getElementById("id_item").value) && checkIfNull(document.getElementById("detail_item").value) && checkIfNull(document.getElementById("color_act").value) && currentScannedItem) {
                 nextProcessThreeButton.classList.add("d-none");
 
                 $('#scan-qr-card').CardWidget('collapse');
@@ -1350,15 +1362,13 @@
         }
 
         // -Calculate Total Pemakaian Roll-
-        function calculateTotalPemakaian(lembarGelaran = 0, pActual = 0, kepalaKain = 0, sisaTidakBisa = 0, reject = 0) {
-            let lembarGelaranVar = lembarGelaran > 0 ? Number(lembarGelaran) : Number(document.getElementById(
-                "current_lembar_gelaran").value);
+        function calculateTotalPemakaian(lembarGelaran = 0, pActual = 0, kepalaKain = 0, sisaTidakBisa = 0, reject = 0, unitPActual = 0) {
+            let lembarGelaranVar = lembarGelaran > 0 ? Number(lembarGelaran) : Number(document.getElementById("current_lembar_gelaran").value);
             let pActualVar = pActual > 0 ? Number(pActual) : Number(document.getElementById("p_act").value);
-            let kepalaKainVar = kepalaKain > 0 ? Number(kepalaKain) : Number(document.getElementById("current_kepala_kain")
-                .value);
-            let sisaTidakBisaVar = sisaTidakBisa > 0 ? Number(sisaTidakBisa) : Number(document.getElementById(
-                "current_sisa_tidak_bisa").value);
+            let kepalaKainVar = kepalaKain > 0 ? Number(kepalaKain) : Number(document.getElementById("current_kepala_kain").value);
+            let sisaTidakBisaVar = sisaTidakBisa > 0 ? Number(sisaTidakBisa) : Number(document.getElementById("current_sisa_tidak_bisa").value);
             let rejectVar = reject > 0 ? Number(reject) : Number(document.getElementById("current_reject").value);
+            let unitPActualVar = unitPActual > 0 ? Number(unitPActual) : Number(document.getElementById("unit_p_act").value);
 
             let totalPemakaian = lembarGelaranVar * pActualVar + kepalaKainVar + sisaTidakBisaVar + rejectVar;
 
@@ -1387,8 +1397,7 @@
         }
 
         // -Calculate Cons. Actual 1 Gelaran
-        function calculateConsActualGelaran(unit = 0, piping = 0, lembar = 0, pActual = 0, totalQtyFabric = 0, totalQtyCut =
-            0) {
+        function calculateConsActualGelaran(unit = 0, piping = 0, lembar = 0, pActual = 0, totalQtyFabric = 0, totalQtyCut = 0) {
             let unitVar = unit;
             let pipingVar = Number(piping);
             let lembarVar = Number(lembar);
@@ -1401,12 +1410,13 @@
                 let consActualGelaran = "";
 
                 if (unitVar == "KGM") {
-                    consActualGelaran = totalQtyCutVar > 0 ? totalQtyFabricVar - pipingVar / totalQtyCutVar : 0;
+                    consActualGelaran = totalQtyCutVar > 0 ? (totalQtyFabricVar - pipingVar) / totalQtyCutVar : 0;
                 } else {
-                    consActualGelaran = totalQtyCutVar > 0 ? lembarVar * pActualVar / totalQtyCutVar : 0
+                    consActualGelaran = totalQtyCutVar > 0 ? (lembarVar * pActualVar) / totalQtyCutVar : 0
                 }
 
                 document.getElementById("cons_actual_gelaran").value = consActualGelaran.toFixed(2);
+                document.getElementById("unit_cons_actual_gelaran").value = unitVar.toLowerCase();
             }
         }
 
@@ -1852,6 +1862,24 @@
 
                             document.getElementById("id_item").value = res.id_item;
                             document.getElementById("detail_item").value = res.detail_item;
+
+                            // if (totalScannedItem > 0) {
+                            //     if (res.unit.toLowerCase() != ($("#unit_cons_actual_gelaran").val()).toLowerCase()) {
+                            //         Swal.fire({
+                            //             icon: 'error',
+                            //             title: 'Gagal',
+                            //             text: 'Unit tidak sesuai',
+                            //             showCancelButton: false,
+                            //             showConfirmButton: true,
+                            //             confirmButtonText: 'Oke',
+                            //         });
+                            //     } else {
+                            //         currentScannedItem = res;
+
+                            //         document.getElementById("id_item").value = res.id_item;
+                            //         document.getElementById("detail_item").value = res.detail_item;
+                            //     }
+                            // }
                         }
                     }
                 });
@@ -1945,8 +1973,7 @@
 
             totalScannedItem++;
 
-            calculateConsActualGelaran(unit = latestUnit, piping = totalPiping, lembar = totalLembar, pActual = undefined,
-                totalQtyFabric, totalQtyCut);
+            calculateConsActualGelaran(unit = latestUnit, piping = totalPiping, lembar = totalLembar, pActual = undefined, totalQtyFabric, totalQtyCut);
         }
 
         // Time Record Module :

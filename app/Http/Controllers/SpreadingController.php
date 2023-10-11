@@ -8,6 +8,7 @@ use App\Models\Marker;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Yajra\DataTables\Facades\DataTables;
 use DB;
 
 class SpreadingController extends Controller
@@ -83,12 +84,7 @@ class SpreadingController extends Controller
                 ORDER BY a.updated_at desc
             ");
 
-            return json_encode([
-                "draw" => intval($request->input('draw')),
-                "recordsTotal" => intval(count($data_spreading)),
-                "recordsFiltered" => intval(count($data_spreading)),
-                "data" => $data_spreading
-            ]);
+            return DataTables::of($data_spreading)->toJson();
         }
 
         $meja = User::select("id", "name", "username")->where('type', 'meja')->get();
@@ -169,13 +165,7 @@ class SpreadingController extends Controller
             where marker_id = '" . $markerId . "'
         ");
 
-        // return json_encode($data_marker[0]);
-        return json_encode([
-            "draw" => intval($request->input('draw')),
-            "recordsTotal" => intval(count($data_ratio)),
-            "recordsFiltered" => intval(count($data_ratio)),
-            "data" => $data_ratio
-        ]);
+        return DataTables::of($data_ratio)->toJson();
     }
 
     public function store(Request $request)

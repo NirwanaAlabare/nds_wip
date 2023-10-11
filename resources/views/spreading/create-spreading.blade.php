@@ -292,21 +292,15 @@
             ordering: false,
             processing: true,
             serverSide: true,
-            searching: false,
-            paging: false,
             info: false,
             ajax: {
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
                 url: '{{ route('getdata_ratio') }}',
-                dataType: 'json',
-                dataSrc: 'data',
                 data: function(d) {
                     d.cbomarker = $('#cbomarker').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'size'
                 },
                 {
@@ -321,9 +315,6 @@
         function getno_marker() {
             let cbows = document.form.cbows.value;
             let html = $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
                 type: "POST",
                 url: '{{ route('getno_marker') }}',
                 data: {
