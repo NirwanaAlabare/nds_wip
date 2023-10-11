@@ -36,6 +36,7 @@ class MarkerController extends Controller
                 CONCAT(comma_marker, ' ', UPPER(unit_comma_marker)) comma_marker,
                 CONCAT(panjang_marker, ' ', UPPER(unit_panjang_marker), ' ',comma_marker, ' ', UPPER(unit_comma_marker)) panjang_marker_fix,
                 CONCAT(lebar_marker, ' ', UPPER(unit_lebar_marker)) lebar_marker,
+                gramasi,
                 gelar_qty,
                 po_marker,
                 urutan_marker,
@@ -445,7 +446,13 @@ class MarkerController extends Controller
                     <input type='text' class='form-control' id='txtpo' name='txtpo' value = '" . $datanomarker->po_marker . "' readonly>
                 </div>
             </div>
-            <div class='col-sm-6'>
+            <div class='col-sm-3'>
+                <div class='form-group'>
+                    <label class='form-label'><small>Gramasi</small></label>
+                    <input type='text' class='form-control' id='txturutan' name='txturutan'  value = '" . $datanomarker->gramasi . "' readonly>
+                </div>
+            </div>
+            <div class='col-sm-3'>
                 <div class='form-group'>
                     <label class='form-label'><small>Urutan</small></label>
                     <input type='text' class='form-control' id='txturutan' name='txturutan'  value = '" . $datanomarker->urutan_marker . "' readonly>
@@ -543,11 +550,44 @@ class MarkerController extends Controller
      * @param  \App\Models\Marker  $marker
      * @return \Illuminate\Http\Response
      */
+    public function show_gramasi(Request $request)
+    {
+        $data_gramasi = DB::select("
+        select id,gramasi from marker_input
+        where id = '$request->id_c'");
+        return json_encode($data_gramasi[0]);
+    }
+
     public function update_status(Request $request, Marker $marker)
     {
         $update_data = DB::update("
         update marker_input set cancel = case when cancel = 'Y' then'N' else 'Y' end
         where id = '$request->id_c'");
+    }
+
+    public function update_marker(Request $request)
+    {
+        $update_gramasi = DB::update("
+        update marker_input set gramasi = '$request->txt_gramasi'
+        where id = '$request->id_c'");
+
+        if ($update_gramasi) {
+            $kode = Marker::where('id', $request->id_c)->first();
+            return array(
+                'status' => 200,
+                'message' => 'Data form "' . $kode->kode . '" berhasil di rubah',
+                'redirect' => '',
+                'table' => 'datatable',
+                'additional' => [],
+            );
+        }
+        return array(
+            'status' => 400,
+            'message' => 'Data produksi gagal diubah',
+            'redirect' => '',
+            'table' => 'datatable',
+            'additional' => [],
+        );
     }
 
     /**
