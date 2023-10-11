@@ -87,20 +87,15 @@
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: false,
             ajax: {
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
                 url: '{{ route('marker') }}',
-                dataType: 'json',
-                dataSrc: 'data',
                 data: function(d) {
                     d.tgl_awal = $('#tgl-awal').val();
                     d.tgl_akhir = $('#tgl-akhir').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'tgl_cut_fix'
                 },
                 {
@@ -118,9 +113,6 @@
                 {
                     data: 'panjang_marker_fix'
                 },
-                // {
-                //     data: 'comma_marker'
-                // },
                 {
                     data: 'lebar_marker'
                 },
@@ -139,40 +131,24 @@
                 {
                     data: 'id'
                 },
-                // {
-                //     data: 'id'
-                // }
             ],
             columnDefs: [
-                // {
-                //     targets: [11],
-                //     render: (data, type, row, meta) => "<button class='btn btn-sm btn-primary' onclick=''>Edit</button>"
-                // },
                 {
                     targets: [11],
                     render: (data, type, row, meta) => {
-                        // return `<div class='d-flex gap-1 justify-content-center'><a class='btn btn-primary btn-sm' href='{{ route('show-marker') }}&` +
-                        //     row.id +
-                        //     `' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-search'></i></a></div>`;
-
                         if (row.cancel != 'Y') {
-                            return `<div class='d-flex gap-1 justify-content-center'><a class='btn btn-primary btn-sm'
-                        data-bs-toggle="modal" data-bs-target="#exampleModal"
-                        onclick='getdetail(` + row.id + `);'>
-                        <i class='fa fa-search'></i></a>
-                            <a class='btn btn-danger btn-sm'
-                        onclick='cancel(` + row.id +
-                                `);'><i class='fa fa-ban'></i></a>
-                            </div>`;
-                            // "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" +
-                            // JSON.stringify(row) +
-                            //     ", \"ExampleModal\", [])'><i class='fa fa-pen'></i></a>": "";
+                            return `
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModal" onclick='getdetail(` + row.id + `);'><i class='fa fa-search'></i></a>
+                                    <a class='btn btn-danger btn-sm' onclick='cancel(` + row.id +`);'><i class='fa fa-ban'></i></a>
+                                </div>
+                            `;
                         } else {
-                            return `<div class='d-flex gap-1 justify-content-center'>
-                                <a class='btn btn-danger btn-sm'
-                        onclick='cancel(` + row.id +
-                                `);'><i class='fa fa-ban'></i></a>
-                            </div>`;
+                            return `
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    <a class='btn btn-danger btn-sm' onclick='cancel(` + row.id +`);'><i class='fa fa-ban'></i></a>
+                                </div>
+                            `;
                         }
                     }
                 },
@@ -190,10 +166,6 @@
                         return '<span style="color:' + color + '">' + data + '</span>';
                     }
                 }
-
-
-
-
             ]
         });
 

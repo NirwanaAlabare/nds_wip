@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Stocker;
+use App\Models\StockerDetail;
 use App\Models\FormCutInput;
 use App\Models\FormCutInputDetail;
 use App\Models\FormCutInputDetailLap;
 use App\Models\Marker;
 use App\Models\MarkerDetail;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 use DB;
 use QrCode;
 use PDF;
@@ -215,6 +217,7 @@ class StockerController extends Controller
                 no_form_cut_input = '".$request['no_form_cut']."' AND
                 tgl_form_cut_input = '".$request['tgl_form_cut']."' AND
                 so_det_id = '".$request['so_det_id'][$index]."' AND
+                color = '".$request['color']."' AND
                 panel = '".$request['panel']."' AND
                 shade = '".$request['shade']."' AND
                 ratio = '".$request['ratio'][$index]."'
@@ -227,12 +230,14 @@ class StockerController extends Controller
                 'no_form_cut_input' => $request['no_form_cut'],
                 'tgl_form_cut_input' => $request['tgl_form_cut'],
                 'so_det_id' => $request['so_det_id'][$index],
+                'color' => $request['color'],
                 'panel' => $request['panel'],
                 'shade' => $request['shade'],
                 'ratio' => $request['ratio'][$index],
                 'id_qr_stocker' => $stockerId
             ],
             [
+                'act_costing_ws' => $request["no_ws"],
                 'size' => $request["size"][$index],
                 'qty_ply' => $request['qty_ply'],
                 'qty_cut' => $request['qty_cut'][$index],
@@ -279,5 +284,86 @@ class StockerController extends Controller
 
             return response()->download($generatedFilePath);
         }
+    }
+
+    public function printNumbering(Request $request, $index)
+    {
+        $checkStocker = Stocker::whereRaw("
+                no_form_cut_input = '".$request['no_form_cut']."' AND
+                tgl_form_cut_input = '".$request['tgl_form_cut']."' AND
+                so_det_id = '".$request['so_det_id'][$index]."' AND
+                panel = '".$request['panel']."' AND
+                shade = '".$request['shade']."' AND
+                ratio = '".$request['ratio'][$index]."'
+            ")->first();
+
+        $idStocker = "";
+        $wsStocker = "";
+        $colorStocker = "";
+        if ($checkStocker) {
+            $idStocker = $checkStocker->id;
+            $wsStocker = $checkStocker->act_costing_ws;
+            $colorStocker = $checkStocker->color;
+        } else {
+            $storeItem = Stocker::create([
+                'no_form_cut_input' => $request['no_form_cut'],
+                'tgl_form_cut_input' => $request['tgl_form_cut'],
+                'so_det_id' => $request['so_det_id'][$index],
+                'color' => $request['color'],
+                'panel' => $request['panel'],
+                'shade' => $request['shade'],
+                'ratio' => $request['ratio'][$index],
+                'id_qr_stocker' => $stockerId,
+                'act_costing_ws' => $request["no_ws"],
+                'size' => $request["size"][$index],
+                'qty_ply' => $request['qty_ply'],
+                'qty_cut' => $request['qty_cut'][$index],
+                'range_awal' => 1,
+                'range_akhir' => $request['qty_cut'][$index],
+            ]);
+
+            $idStocker = $storeItem->id;
+            $wsStocker = $storeItem->act_costing_ws;
+            $colorStocker = $storeItem->color;
+        }
+
+        $thisStockerCount = StockerDetail::where("id_stocker", $idStocker)->count();
+        if ($thisStockerCount > 0) {
+            $deleteDetailItem = StockerDetail::where("id_stocker", $idStocker)->delete();
+        }
+        $stockerCount = StockerDetail::count();
+
+        $now = Carbon::now();
+        $noCutSize = $request["size"][$index]."".sprintf('%02s', $idStocker);
+        $storeDetailItemArr = [];
+        $qrCodeDetailItemArr = [];
+        for ($i = 0; $i < intval($request['qty_cut'][$index]); $i++) {
+            array_push($storeDetailItemArr, [
+                'kode' => "WIP-".($stockerCount+1),
+                'no_cut_size' => $noCutSize.sprintf('%04s', $idStocker),
+                'id_stocker' => $checkStocker->id,
+                'size' => $request['size'][$index],
+                'id_so_det' => $request['so_det_id'][$index],
+                'created_at' => $now,
+                'updated_at' => $now
+            ]);
+
+            array_push($qrCodeDetailItemArr, base64_encode(QrCode::format('svg')->size(100)->generate("WIP-".($stockerCount+1)."-".$noCutSize.($i+1)."-".$checkStocker->id."-".$request['so_det_id'][$index])));
+        }
+
+        $storeDetailItem = StockerDetail::insert($storeDetailItemArr);
+
+        // decode qr code
+        // $qrCodeDecode = base64_encode(QrCode::format('svg')->size(100)->generate($storeDeItem->id."-".$storeItem->id_qr_stocker));
+
+        // generate pdf
+        $pdf = PDF::loadView('stocker.pdf.print-numbering', ["ws" => $wsStocker, "color" => $colorStocker, "dataNumbering" => $storeDetailItemArr, "qrCode" => $qrCodeDetailItemArr]);
+
+        $path = public_path('pdf/');
+        $fileName = 'stocker-'.$idStocker.'.pdf';
+        $pdf->save($path . '/' . $fileName);
+        $generatedFilePath = public_path('pdf/'.$fileName);
+
+        return response()->download($generatedFilePath);
     }
 }

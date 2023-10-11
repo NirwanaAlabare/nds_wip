@@ -119,8 +119,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('stocker');
         Route::get('/show/{id?}', 'show')->name('show-stocker');
         Route::post('/print-stocker/{index?}', 'printStocker')->name('print-stocker');
+        Route::post('/print-numbering/{index?}', 'printNumbering')->name('print-numbering');
     });
-
 });
 
 Route::get('/dashboard', function () {

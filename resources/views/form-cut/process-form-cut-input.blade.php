@@ -834,6 +834,18 @@
 
                     stopTimeRecord()
                 }
+
+                if (e.key === 'AudioVolumeDown') {
+                    console.log(e.key);
+                    e.preventDefault();
+                    // process logic of volume-down
+                    alert("volume up");
+                } else if (e.key === 'AudioVolumeUp') {
+                    console.log(e.key);
+                    e.preventDefault();
+                    // process logic of volume-up
+                    alert("volume down");
+                }
             });
 
             // -Kode Barang Manual Input Event-

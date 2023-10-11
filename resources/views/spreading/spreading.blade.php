@@ -247,14 +247,8 @@
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: false,
             ajax: {
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
                 url: '{{ route('spreading') }}',
-                dataType: 'json',
-                dataSrc: 'data',
                 data: function(d) {
                     d.dateFrom = $('#tgl-awal').val();
                     d.dateTo = $('#tgl-akhir').val();
@@ -305,8 +299,7 @@
                         let btnEdit = row.status == 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData("+ JSON.stringify(row) +", \"editMejaModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-pen'></i></a>" : "";
                         let btnProcess = row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null ? `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-plus'></i></a>` : "";
 
-                        return `<div class='d-flex gap-1 justify-content-center'>` + btnProcess + btnEdit +
-                            `</div>`;
+                        return `<div class='d-flex gap-1 justify-content-center'>` + btnProcess + btnEdit + `</div>`;
                     }
                 }
             ]
@@ -316,15 +309,8 @@
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: false,
-            searching: false,
             ajax: {
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
                 url: '{{ route("getdata_ratio") }}',
-                dataType: 'json',
-                dataSrc: 'data',
                 data: function (d) {
                     d.cbomarker = $('#edit_marker_id').val();
                 },
