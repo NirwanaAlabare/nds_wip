@@ -53,19 +53,19 @@ class MarkerController extends Controller
                     }
                 }, true)->
                 filterColumn('kode', function($query, $keyword) {
-                    $query->whereRaw("LOWER(CAST(kode as TEXT)) LIKE LOWER('%".$keyword."%')");
+                    $query->whereRaw("LOWER(kode) LIKE LOWER('%".$keyword."%')");
                 })->
                 filterColumn('act_costing_ws', function($query, $keyword) {
-                    $query->whereRaw("LOWER(CAST(act_costing_ws as TEXT)) LIKE LOWER('%".$keyword."%')");
+                    $query->whereRaw("LOWER(act_costing_ws) LIKE LOWER('%".$keyword."%')");
                 })->
                 filterColumn('color', function($query, $keyword) {
-                    $query->whereRaw("LOWER(CAST(color as TEXT)) LIKE LOWER('%".$keyword."%')");
+                    $query->whereRaw("LOWER(color) LIKE LOWER('%".$keyword."%')");
                 })->
                 filterColumn('panel', function($query, $keyword) {
-                    $query->whereRaw("LOWER(CAST(panel as TEXT)) LIKE LOWER('%".$keyword."%')");
+                    $query->whereRaw("LOWER(panel) LIKE LOWER('%".$keyword."%')");
                 })->
                 filterColumn('po_marker', function($query, $keyword) {
-                    $query->whereRaw("LOWER(CAST(po_marker as TEXT)) LIKE LOWER('%".$keyword."%')");
+                    $query->whereRaw("LOWER(po_marker) LIKE LOWER('%".$keyword."%')");
                 })->
                 order(function ($query) {
                     $query->orderBy('updated_at', 'desc');
