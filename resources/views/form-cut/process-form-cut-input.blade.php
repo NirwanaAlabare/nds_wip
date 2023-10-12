@@ -437,9 +437,9 @@
                 </div>
                 <div class="card-body" style="display: block;">
                     <form action="#" method="post" id="spreading-form">
-                        <input type="text" id="id_sambungan" name="id_sambungan" readonly>
-                        <input type="text" id="status_sambungan" name="status_sambungan" readonly>
-                        <input type="text" id="current_id_roll" name="current_id_roll" readonly>
+                        <input type="hidden" id="id_sambungan" name="id_sambungan" readonly>
+                        <input type="hidden" id="status_sambungan" name="status_sambungan" readonly>
+                        <input type="hidden" id="current_id_roll" name="current_id_roll" readonly>
                         <div class="row">
                             <div class="col-4">
                                 <div class="mb-3">
