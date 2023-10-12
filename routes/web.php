@@ -126,9 +126,13 @@ Route::middleware('auth')->group(function () {
     });
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard', ['page' => 'dashboard']);
-})->middleware('auth')->name('dashboard');
+Route::get('/dashboard-cutting', function () {
+    return view('dashboard', ['page' => 'dashboard-cutting']);
+})->middleware('auth')->name('dashboard-cutting');
+
+Route::get('/dashboard-stocker', function () {
+    return view('dashboard', ['page' => 'dashboard-stocker']);
+})->middleware('auth')->name('dashboard-stocker');
 
 Route::get('/timer', function () {
     return view('example.timeout');

@@ -1,3 +1,9 @@
+@if (!(isset($page)))
+    @php
+        $page = '';
+    @endphp
+@endif
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,7 +26,7 @@
         @endif
 
         @if ($navbar)
-            @include('layouts.navbar')
+            @include('layouts.navbar', ['page' => $page])
         @endif
 
         @include('layouts.offcanvas')

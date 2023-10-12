@@ -98,7 +98,7 @@ class StockerController extends Controller
             ]);
         }
 
-        return view("stocker.stocker");
+        return view("stocker.stocker", ["page" => "dashboard-stocker"]);
     }
 
     /**
@@ -172,7 +172,7 @@ class StockerController extends Controller
 
         $dataRatio = MarkerDetail::where("marker_id", $dataSpreading->marker_id)->where("ratio", ">", "0")->orderBy("id", "asc")->get();
 
-        return view("stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataRatio" => $dataRatio]);
+        return view("stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataRatio" => $dataRatio, "page" => "dashboard-stocker"]);
     }
 
     /**

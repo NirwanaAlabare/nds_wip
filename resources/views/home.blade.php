@@ -8,7 +8,7 @@
                 <br>
                 <div class="row g-3 mt-3">
                     <div class="col-md-2 col-3">
-                        <a href="{{ route('dashboard') }}" class="home-item">
+                        <a href="{{ route('dashboard-cutting') }}" class="home-item">
                             <div class="card h-100">
                                 <div class="card-body">
                                     <div class="d-flex h-100 flex-column justify-content-between">
@@ -19,9 +19,9 @@
                             </div>
                         </a>
                     </div>
-                    @if (Auth::user()->type == "stocker")
+                    @if (auth()->user()->type == "stocker")
                         <div class="col-md-2 col-3">
-                            <a href="{{ route('stocker') }}" class="home-item">
+                            <a href="{{ route('dashboard-stocker') }}" class="home-item">
                                 <div class="card h-100">
                                     <div class="card-body">
                                         <div class="d-flex h-100 flex-column justify-content-between">
