@@ -101,11 +101,13 @@
                     </li>
                 @endif
 
-                <li class="nav-item">
-                    <a href="{{ route('home') }}/" class="nav-link">
-                        <i class="fas fa-home"></i>
-                    </a>
-                </li>
+                @if (auth()->user()->type != 'admin')
+                    <li class="nav-item">
+                        <a href="{{ route('home') }}/" class="nav-link">
+                            <i class="fas fa-home"></i>
+                        </a>
+                    </li>
+                @endif
             </ul>
 
             <!-- SEARCH FORM -->
