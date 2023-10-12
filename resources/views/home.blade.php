@@ -8,7 +8,7 @@
                 <br>
                 <div class="row g-3 mt-3">
                     <div class="col-md-2 col-3">
-                        <a href="{{ route('dashboard') }}" class="home-item">
+                        <a href="{{ route('dashboard-cutting') }}" class="home-item">
                             <div class="card h-100">
                                 <div class="card-body">
                                     <div class="d-flex h-100 flex-column justify-content-between">
@@ -19,19 +19,21 @@
                             </div>
                         </a>
                     </div>
-                    <div class="col-md-2 col-3">
-                        <a href="{{ route('stocker') }}" class="home-item">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <div class="d-flex h-100 flex-column justify-content-between">
-                                        <img src="{{ asset('dist/img/stocker.png') }}" class="img-fluid p-3"
-                                            alt="qr code image">
-                                        <p class="text-center">Stocker</p>
+                    @if (auth()->user()->type == "stocker")
+                        <div class="col-md-2 col-3">
+                            <a href="{{ route('dashboard-stocker') }}" class="home-item">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex h-100 flex-column justify-content-between">
+                                            <img src="{{ asset('dist/img/stocker.png') }}" class="img-fluid p-3"
+                                                alt="qr code image">
+                                            <p class="text-center">Stocker</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </a>
-                    </div>
+                            </a>
+                        </div>
+                    @endif
                     <div class="col-md-2 col-3">
                         <a href="items" class="home-item">
                             <div class="card h-100">

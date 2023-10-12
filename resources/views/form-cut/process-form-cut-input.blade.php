@@ -22,24 +22,19 @@
                     @endphp
                     <div class="row align-items-end">
                         <input type="hidden" name="id" id="id" value="{{ $id }}" readonly>
-                        <input type="hidden" name="act_costing_id" id="act_costing_id"
-                            value="{{ $formCutInputData->act_costing_id }}" readonly>
-                        <input type="hidden" name="status" id="status" value="{{ $formCutInputData->status }}"
-                            readonly>
-                        <input type="hidden" name="no_meja" id="no_meja" value="{{ $formCutInputData->no_meja }}"
-                            readonly>
+                        <input type="hidden" name="act_costing_id" id="act_costing_id" value="{{ $formCutInputData->act_costing_id }}" readonly>
+                        <input type="hidden" name="status" id="status" value="{{ $formCutInputData->status }}" readonly>
+                        <input type="hidden" name="no_meja" id="no_meja" value="{{ $formCutInputData->no_meja }}" readonly>
                         <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Start</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="start" id="start-time"
-                                    value="{{ $formCutInputData->waktu_mulai }}" readonly>
+                                <input type="text" class="form-control form-control-sm" name="start" id="start-time" value="{{ $formCutInputData->waktu_mulai }}" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Finish</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="finish" id="finish-time"
-                                    value="{{ $formCutInputData->waktu_selesai }}" readonly>
+                                <input type="text" class="form-control form-control-sm" name="finish" id="finish-time" value="{{ $formCutInputData->waktu_selesai }}" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
@@ -1281,7 +1276,10 @@
         function restrictRemainPly() {
             let sisaGelar = Number(document.getElementById('current_sisa_gelaran').value);
             let pAct = Number(document.getElementById('p_act').value);
-            if (sisaGelar >= pAct) {
+
+            let estSambungan = calculateSambungan(sisaGelaran, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
+
+            if (estSambungan <= 0) {
                 document.getElementById('current_sisa_gelaran').value = 0;
 
                 iziToast.warning({
@@ -1394,6 +1392,40 @@
                 sambunganVar - qtyVar;
 
             document.getElementById("current_short_roll").value = shortRoll.toFixed(2);
+        }
+
+        // -Calculate Sambungan-
+        function calculateSambungan(sisaGelaran, qty, unitQty, pActual, unitPActual, commaActual, lActual, gramasi) {
+            let sisaGelaranVar = Number(sisaGelaran) > 0 ? Number(sisaGelaran) : document.getElementById("current_sisa_gelaran").value;
+            let qtyVar = Number(qty) > 0 ? Number(qty) : Number(document.getElementById("current_qty").value);
+            let unitQtyVar = unitQty > 0 ? unitQty : document.getElementById("current_unit").value;
+            let pActualVar = Number(pActual) > 0 ? Number(pActual) : Number(document.getElementById('p_act').value);
+            let unitPActualVar  = unitPActual > 0 ? unitPActual : document.getElementById('unit_p_act').value;
+            let commaActualVar  = Number(commaActual) > 0 ? Number(commaActual) : Number(document.getElementById('comma_act').value);
+            let lActualVar  = Number(lActual) > 0 ? Number(lActual) : Number(document.getElementById('l_act').value);
+            let gramasiVar  = Number(gramasi) > 0 ? Number(gramasi) : Number(document.getElementById('gramasi').value);
+
+            let estSambungan = 0;
+
+            if (unitQtyVar == unitPActualVar) {
+                estSambungan = pActualVar - sisaGelaranVar;
+            } else {
+                if (unitPActualVar == "YARD") {
+                    let pActualInch = (pActualVar * 36/1) + commaActualVar
+
+                    if (unitQtyVar == "METER") {
+                        let pActualMeter = pActualInch * 0.0254;
+                        estSambungan = pActualMeter - sisaGelaranVar;
+                    } else if (unitQtyVar == "KGM") {
+                        let gramasiInch = gramasiVar / 1550;
+                        estSambungan = ((gramasiInch * ( pActualInch * lActualVar ))/ 1000) - sisaGelaranVar;
+                    } else {
+                        estSambungan = pActualVar - sisaGelaranVar;
+                    }
+                }
+            }
+
+            return estSambungan;
         }
 
         // -Calculate Cons. Actual 1 Gelaran
@@ -1600,28 +1632,7 @@
 
         // -Set Spreading Form-
         function setSpreadingForm(data, sisaGelaran) {
-            if (sisaGelaran > 0) {
-                data.id_sambungan ? document.getElementById("id_sambungan").value = data.id_sambungan : '';
-                document.getElementById("status_sambungan").value = "extension";
-                document.getElementById("current_sambungan").value = Number($("#p_act").val()) - Number(sisaGelaran);
-
-                document.getElementById("current_sambungan").removeAttribute('readonly');
-                document.getElementById("current_sisa_gelaran").setAttribute('readonly', true);
-            } else {
-                clearSpreadingForm();
-
-                nextProcessThreeButton.classList.add("d-none");
-
-                $('#scan-qr-card').CardWidget('collapse');
-                $('#spreading-form-card').CardWidget('expand');
-
-                if ($("status_sambungan").val() != "extension") {
-                    document.getElementById("current_sambungan").setAttribute('readonly', true);
-                    document.getElementById("current_sisa_gelaran").removeAttribute('readonly');
-                }
-
-                openTimeRecordCondition();
-            }
+            clearSpreadingForm();
 
             data.id_roll ? document.getElementById("kode_barang").value = data.id_roll : '';
             data.id_item ? document.getElementById("id_item").value = data.id_item : '';
@@ -1651,6 +1662,29 @@
             calculateEstAmpar(data.roll_qty, document.getElementById("p_act").value);
 
             updatePlyProgress();
+
+            if (sisaGelaran > 0) {
+                let estSambungan = calculateSambungan(sisaGelaran, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
+
+                data.id_sambungan ? document.getElementById("id_sambungan").value = data.id_sambungan : '';
+                document.getElementById("status_sambungan").value = "extension";
+                document.getElementById("current_sambungan").value = estSambungan;
+
+                document.getElementById("current_sambungan").removeAttribute('readonly');
+                document.getElementById("current_sisa_gelaran").setAttribute('readonly', true);
+            } else {
+                nextProcessThreeButton.classList.add("d-none");
+
+                $('#scan-qr-card').CardWidget('collapse');
+                $('#spreading-form-card').CardWidget('expand');
+
+                if ($("status_sambungan").val() != "extension") {
+                    document.getElementById("current_sambungan").setAttribute('readonly', true);
+                    document.getElementById("current_sisa_gelaran").removeAttribute('readonly');
+                }
+
+                openTimeRecordCondition();
+            }
         }
 
         // -Clear Spreading Form-

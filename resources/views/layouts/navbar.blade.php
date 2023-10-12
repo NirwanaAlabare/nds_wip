@@ -7,12 +7,11 @@
 <!-- Navbar -->
 <nav class="main-header navbar navbar-expand-md navbar-light navbar-white">
     <div class="container">
-        <a href="{{ route('dashboard') }}" class="navbar-brand">
+        <a href="{{ $page != '' ? route($page) : "#" }}" class="navbar-brand">
             <img src="{{ asset('dist/img/logo-icon.png') }}" alt="nds Logo" class="brand-image">
         </a>
 
-        <button class="navbar-toggler order-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
-            aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler order-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
@@ -23,28 +22,39 @@
                     <a href="/marker" class="nav-link {{ $page == 'marker' ? 'active' : '' }}">Marker</a>
                 </li> --}}
                 <li class="nav-item dropdown">
-                    <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
-                        aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
+                    <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
                     <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-                        @if (auth()->user()->type == 'admin')
-                            <li>
-                                <a href="{{ route('marker') }}" class="dropdown-item">
-                                    Marker
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('spreading') }}" class="dropdown-item">
-                                    Spreading
-                                </a>
-                            </li>
+                        @if ($page == "dashboard-cutting")
+                            @if (auth()->user()->type == 'admin')
+                                <li>
+                                    <a href="{{ route('marker') }}" class="dropdown-item">
+                                        Marker
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('spreading') }}" class="dropdown-item">
+                                        Spreading
+                                    </a>
+                                </li>
+                            @endif
+
+                            @if (auth()->user()->type == 'meja')
+                                <li>
+                                    <a href="{{ route('form-cut-input') }}" class="dropdown-item">
+                                        Form Cutting
+                                    </a>
+                                </li>
+                            @endif
                         @endif
 
-                        @if (auth()->user()->type == 'meja')
-                            <li>
-                                <a href="{{ route('form-cut-input') }}" class="dropdown-item">
-                                    Form Cutting
-                                </a>
-                            </li>
+                        @if ($page == "dashboard-stocker")
+                            @if (auth()->user()->type == 'admin')
+                                <li>
+                                    <a href="{{ route('stocker') }}" class="dropdown-item">
+                                        Stocker
+                                    </a>
+                                </li>
+                            @endif
                         @endif
                         {{-- <li class="dropdown-divider"></li> --}}
                         <!-- Level two dropdown-->

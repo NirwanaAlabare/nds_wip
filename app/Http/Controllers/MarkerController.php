@@ -71,7 +71,7 @@ class MarkerController extends Controller
                 })->toJson();
         }
 
-        return view('marker.marker');
+        return view('marker.marker', ["page" => "dashboard-cutting"]);
     }
 
     /**
@@ -93,7 +93,7 @@ class MarkerController extends Controller
 
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
-        return view('marker.create-marker', ['orders' => $orders]);
+        return view('marker.create-marker', ['orders' => $orders, 'page' => 'dashboard-cutting']);
     }
 
     public function getOrderInfo(Request $request)

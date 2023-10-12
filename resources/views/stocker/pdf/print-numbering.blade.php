@@ -3,6 +3,18 @@
 <head>
     <title>Stocker</title>
     <style>
+        @page { margin: 0.5px; }
+
+        body { margin: 0.5px; }
+
+        * {
+            font-size: 4.5px;
+        }
+
+        img {
+            width: 30px;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -11,8 +23,7 @@
         table td, table th{
             text-align: left;
             vertical-align: top;
-            padding: 10px;
-            border: 1px solid;
+            padding: 0.3px;
             width: 100%;
         }
     </style>
@@ -36,7 +47,7 @@
                 <td>{{ $color }}</td>
             </tr>
             <tr>
-                <td>{{ $numbering['id_stocker'] }}</td>
+                <td>{{ $kode }}</td>
             </tr>
             <tr>
                 <td>{{ $numbering['size'] }}</td>
