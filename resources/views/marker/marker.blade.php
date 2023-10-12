@@ -10,7 +10,7 @@
 @section('content')
     <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
-        <div class="modal-dialog" style="max-width: 55%;">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable" style="max-width: 55%;">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-light">
                     <h1 class="modal-title fs-5" id="exampleModalLabel"></h1>
@@ -25,6 +25,38 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="exampleModalEdit" tabindex="-1" role="dialog" aria-labelledby="exampleModalEditLabel"
+        aria-hidden="true">
+        <form action="{{ route('update_marker') }}" method="post" onsubmit="submitForm(this, event)">
+            @method('PUT')
+            <div class="modal-dialog modal-lg modal-dialog-scrollable" style="max-width: 55%;">
+                <div class="modal-content">
+                    <div class="modal-header bg-sb text-light">
+                        <h1 class="modal-title fs-5" id="exampleModalEditLabel"></h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class='row'>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Gramasi</small></label>
+                                    <input type='text' class='form-control' id='txt_gramasi' name='txt_gramasi'
+                                        value = ''>
+                                    <input type='hidden' class='form-control' id='id_c' name='id_c' value = ''>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                        <button type="submit" class="btn btn-sb">Simpan</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
 
 
     <div class="card card-sb card-outline">
@@ -63,6 +95,7 @@
                             <th>Panjang Marker</th>
                             {{-- <th>Comma Marker</th> --}}
                             <th>Lebar Marker</th>
+                            <th>Gramasi</th>
                             <th>Gelar QTYs</th>
                             <th>PO</th>
                             <th>Urutan</th>
@@ -117,6 +150,9 @@
                     data: 'lebar_marker',
                 },
                 {
+                    data: 'gramasi'
+                },
+                {
                     data: 'gelar_qty'
                 },
                 {
@@ -132,24 +168,30 @@
                     data: 'id'
                 },
             ],
-            columnDefs: [
-                {
-                    targets: [11],
+            columnDefs: [{
+                    targets: [12],
                     render: (data, type, row, meta) => {
-                        if (row.cancel != 'Y') {
-                            return `
-                                <div class='d-flex gap-1 justify-content-center'>
-                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModal" onclick='getdetail(` + row.id + `);'><i class='fa fa-search'></i></a>
-                                    <a class='btn btn-danger btn-sm' onclick='cancel(` + row.id +`);'><i class='fa fa-ban'></i></a>
-                                </div>
-                            `;
-                        } else {
-                            return `
-                                <div class='d-flex gap-1 justify-content-center'>
-                                    <a class='btn btn-danger btn-sm' onclick='cancel(` + row.id +`);'><i class='fa fa-ban'></i></a>
-                                </div>
-                            `;
+                        if (row.cancel != 'Y' && row.tot_form != 0) {
+                            return `<div class='d-flex gap-1 justify-content-center'><a class='btn btn-primary btn-sm'
+                        data-bs-toggle="modal" data-bs-target="#exampleModal" onclick='getdetail(` + row.id + `);'>
+                        <i class='fa fa-search'></i></a>
+                            </div>`;
+                        } else if (row.cancel != 'Y' && row.tot_form == 0) {
+                            return `<div class='d-flex gap-1 justify-content-center'><a class='btn btn-primary btn-sm'
+                        data-bs-toggle="modal" data-bs-target="#exampleModal" onclick='getdetail(` + row.id + `);'>
+                        <i class='fa fa-search'></i></a>
+                        <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModalEdit"
+                            onclick='edit(` + row.id + `);'><i class='fa fa-edit'></i></a>
+                        <a class='btn btn-danger btn-sm' onclick='cancel(` + row.id + `);'><i class='fa fa-ban'></i></a>
+                            </div>`;
+                        } else if (row.cancel == 'Y') {
+                            return `<div class='d-flex gap-1 justify-content-center'>
+                                <a class='btn btn-danger btn-sm'
+                        onclick='cancel(` + row.id +
+                                `);'><i class='fa fa-ban'></i></a>
+                            </div>`;
                         }
+
                     }
                 },
                 {
@@ -185,6 +227,27 @@
             }).responseText;
             $("#detail").html(html);
         };
+
+        function edit(id_c) {
+            $("#exampleModalEditLabel").html('Marker Edit');
+            jQuery.ajax({
+                url: '{{ route('show_gramasi') }}',
+                method: 'POST',
+                data: {
+                    id_c: id_c
+                },
+                dataType: 'json',
+                success: function(response) {
+                    document.getElementById('txt_gramasi').value = response.gramasi;
+                    document.getElementById('id_c').value = response.id;
+                },
+                error: function(request, status, error) {
+                    alert(request.responseText);
+                },
+
+            });
+        };
+
 
         function cancel(id_c) {
             let html = $.ajax({
