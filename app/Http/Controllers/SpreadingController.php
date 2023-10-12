@@ -106,7 +106,7 @@ class SpreadingController extends Controller
 
         $data_ws = DB::select("select act_costing_id, act_costing_ws ws from marker_input a
         left join (select id_marker from form_cut_input group by id_marker ) b on a.kode = b.id_marker
-        where b.id_marker is null
+        where a.cancel = 'N' and b.id_marker is null
         group by act_costing_id");
 
 
@@ -148,7 +148,7 @@ class SpreadingController extends Controller
     public function getdata_marker(Request $request)
     {
         $data_marker = DB::select("select a.* from marker_input a
-        where a.id = '" . $request->cri_item . "'");
+        where a.id = '" . $request->cri_item . "' and a.cancel = 'N'");
 
         return json_encode($data_marker[0]);
     }
@@ -191,7 +191,7 @@ class SpreadingController extends Controller
             "txtid_marker" => "required"
         ]);
 
-        $qtyPlyMarkerModulus = intval($request['hitungmarker'])%intval($request['txtqty_ply_cut']);
+        $qtyPlyMarkerModulus = intval($request['hitungmarker']) % intval($request['txtqty_ply_cut']);
         $timestamp = Carbon::now();
         $formcutDetailData = [];
         $message = "";
