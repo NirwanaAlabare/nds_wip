@@ -202,8 +202,7 @@
                         <div class="col-6 col-md-3">
                             <div class="mb-3">
                                 <label class="form-label label-input"><small><b>P. Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-input" name="p_act"
-                                    id="p_act" value="{{ $formCutInputData->p_act }}"
+                                <input type="number" class="form-control form-control-sm border-input" name="p_act" id="p_act" value="{{ $formCutInputData->p_act }}"
                                     onkeyup="calculateConsAct(this.value, {{ $totalCutQtyPly }}); calculateConsAmpar(this.value, {{ $totalRatio }}); calculateEstAmpar(undefined, this.value);"
                                     onchange="calculateConsAct(this.value, {{ $totalCutQtyPly }}); calculateConsAmpar(this.value, {{ $totalRatio }}); calculateEstAmpar(undefined, this.value);">
                             </div>
@@ -233,8 +232,9 @@
                         <div class="col-6 col-md-3">
                             <div class="mb-3">
                                 <label class="form-label label-input"><small><b>Comma Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-input" name="comma_act"
-                                    id="comma_act" value="{{ $formCutInputData->comma_p_act }}">
+                                <input type="number" class="form-control form-control-sm border-input" name="comma_act" id="comma_act" value="{{ $formCutInputData->comma_p_act }}"
+                                    onkeyup="calculateConsAct(undefined, {{ $totalCutQtyPly }}); calculateConsAmpar(undefined, {{ $totalRatio }}); calculateEstAmpar(undefined, undefined);"
+                                    onchange="calculateConsAct(undefined, {{ $totalCutQtyPly }}); calculateConsAmpar(undefined, {{ $totalRatio }}); calculateEstAmpar(undefined, undefined);">
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
@@ -321,9 +321,14 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-calc"><small><b>Cons 1 Ampar</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-calc" step=".01"
-                                    name="cons_ampar" id="cons_ampar" value="{{ $formCutInputData->cons_ampar }}"
-                                    readonly>
+                                <div class="row">
+                                    <div class="col-8">
+                                        <input type="number" class="form-control form-control-sm border-calc" step=".01" name="cons_ampar" id="cons_ampar" value="{{ $formCutInputData->cons_ampar }}" readonly>
+                                    </div>
+                                    <div class="col-4">
+                                        <input type="text" class="form-control form-control-sm border-calc" name="unit_cons_ampar" id="unit_cons_ampar" value="{{ $formCutInputData->unit_panjang_marker }}" readonly>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -1293,19 +1298,45 @@
         }
 
         // -Calculate Cons Ampar-
-        function calculateConsAmpar(pActual = 0, totalRatio = 0) {
-            let pActualVar = Number(pActual);
+        function calculateConsAmpar(pActual = 0, totalRatio = 0, unitPActual = 0, commaActual = 0) {
+            let pActualVar = pActual > 0 ? Number(pActual) : Number(document.getElementById("p_act").value);
+            let unitPActualVar = unitPActual ? unitPActual : document.getElementById("unit_p_act").value;
+            let commaActualVar = commaActual > 0 ? Number(pActual) : Number(document.getElementById("comma_act").value);
 
-            let consAmpar = totalRatio > 0 ? pActualVar / totalRatio : 0;
+            if (unitPActualVar.toLowerCase() == "yard") {
+                let commaYard = commaActualVar / 36;
+
+                consAmpar = totalRatio > 0 ? (pActualVar + commaYard) / totalRatio : 0;
+            } else if (unitPActualVar.toLowerCase() == "meter") {
+                let commaMeter = commaActualVar / 100;
+
+                consAmpar = totalRatio > 0 ? (pActualVar + commaMeter) / totalRatio : 0;
+            } else {
+                consAmpar = totalRatio > 0 ? pActualVar / totalRatio : 0;
+            }
 
             document.getElementById('cons_ampar').value = consAmpar.toFixed(2);
         }
 
         // -Calculate Cons Act-
-        function calculateConsAct(pActual = 0, totalQtyCut = 0) {
-            let pActualVar = Number(pActual);
+        function calculateConsAct(pActual = 0, totalQtyCut = 0, unitPActual = 0, commaActual = 0) {
+            let pActualVar = pActual > 0 ? Number(pActual) : Number(document.getElementById("p_act").value);
+            let unitPActualVar = unitPActual ? unitPActual : document.getElementById("unit_p_act").value;
+            let commaActualVar = commaActual > 0 ? Number(pActual) : Number(document.getElementById("comma_act").value);
 
-            let consActual = totalRatio > 0 ? pActualVar / totalQtyCut : 0;
+            let consActual = 0;
+
+            if (unitPActualVar.toLowerCase() == "yard") {
+                let commaYard = commaActualVar / 36;
+
+                consActual = totalQtyCut > 0 ? (pActualVar + commaYard) / totalQtyCut : 0;
+            } else if (unitPActualVar.toLowerCase() == "meter") {
+                let commaMeter = commaActualVar / 100;
+
+                consActual = totalQtyCut > 0 ? (pActualVar + commaMeter) / totalQtyCut : 0;
+            } else {
+                consActual = totalQtyCut > 0 ? pActualVar / totalQtyCut : 0;
+            }
 
             document.getElementById('cons_act').value = consActual.toFixed(2);
         }
@@ -1409,7 +1440,7 @@
             let qtyVar = qty > 0 ? Number(qty) : Number(document.getElementById("current_qty").value);
             let unitQtyVar = unitQty > 0 ? Number(unitQty) : Number(document.getElementById("current_unit").value);
             let gramasiVar = gramasi > 0 ? Number(gramasi) : Number(document.getElementById("gramasi").value);
-            let unitPActualVar = unitPActual ? unitPActual : Number(document.getElementById("unit_p_act").value);
+            let unitPActualVar = unitPActual ? unitPActual : document.getElementById("unit_p_act").value;
             let lActualVar = lActual > 0 ? Number(lActual) : Number(document.getElementById("l_act").value);
             let commaActualVar = commaActual > 0 ? Number(commaActual) : Number(document.getElementById("comma_act").value);
 
@@ -1467,17 +1498,20 @@
                 }
             }
 
-            return estSambungan;
+            return estSambungan.toFixed(2);
         }
 
         // -Calculate Cons. Actual 1 Gelaran
-        function calculateConsActualGelaran(unit = 0, piping = 0, lembar = 0, pActual = 0, totalQtyFabric = 0, totalQtyCut = 0) {
+        function calculateConsActualGelaran(unit = 0, piping = 0, lembar = 0, pActual = 0, totalQtyFabric = 0, totalQtyCut = 0, unitPActual = 0, lActual = 0, commaActual = 0) {
             let unitVar = unit;
             let pipingVar = Number(piping);
             let lembarVar = Number(lembar);
             let pActualVar = pActual > 0 ? Number(pActual) : Number(document.getElementById('p_act').value);
             let totalQtyFabricVar = Number(totalQtyFabric);
             let totalQtyCutVar = Number(totalQtyCut);
+            let unitPActualVar = unitPActual ? unitPActual : document.getElementById("unit_p_act").value;
+            let lActualVar = lActual > 0 ? Number(lActual) : Number(document.getElementById("l_act").value);
+            let commaActualVar = commaActual > 0 ? Number(commaActual) : Number(document.getElementById("comma_act").value);
 
             if (checkIfNull(unitVar) && checkIfNull(pipingVar) && checkIfNull(lembarVar) && checkIfNull(pActualVar) &&
                 checkIfNull(totalQtyCutVar)) {
@@ -1486,7 +1520,18 @@
                 if (unitVar == "KGM") {
                     consActualGelaran = totalQtyCutVar > 0 ? (totalQtyFabricVar - pipingVar) / totalQtyCutVar : 0;
                 } else {
-                    consActualGelaran = totalQtyCutVar > 0 ? (lembarVar * pActualVar) / totalQtyCutVar : 0
+                    if (unitPActualVar.toLowerCase() == "yard") {
+                        let commaYard = commaActualVar / 36;
+
+                        consActualGelaran = totalQtyCutVar > 0 ? (lembarVar * (pActualVar + commaYard)) / totalQtyCutVar : 0
+                        console.log(consActualGelaran, pActualVar, commaYard);
+                    } else if (unitPActualVar.toLowerCase() == "meter") {
+                        let commaMeter = commaActualVar / 100;
+
+                        consActualGelaran = totalQtyCut > 0 ? (lembarVar * (pActualVar + commaMeter)) / totalQtyCut : 0;
+                    } else {
+                        consActualGelaran = totalQtyCut > 0 ? pActualVar / totalQtyCut : 0;
+                    }
                 }
 
                 document.getElementById("cons_actual_gelaran").value = consActualGelaran.toFixed(2);
