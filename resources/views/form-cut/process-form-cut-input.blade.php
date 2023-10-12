@@ -302,10 +302,7 @@
                         <div class="col-6 col-md-3">
                             <div class="mb-3">
                                 <label class="form-label label-calc"><small><b>Cons Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-calc" name="cons_act"
-                                    id="cons_act"
-                                    value="{{ round($formCutInputData->cons_act, 2) > 0 ? $formCutInputData->cons_act : ($totalCutQtyPly > 0 ? round($formCutInputData->p_act / $totalCutQtyPly, 2) : '0') }}"
-                                    step=".01" readonly>
+                                <input type="number" class="form-control form-control-sm border-calc" name="cons_act" id="cons_act" value="{{ round($formCutInputData->cons_act, 2) > 0 ? $formCutInputData->cons_act : ($totalCutQtyPly > 0 ? round($formCutInputData->p_act / $totalCutQtyPly, 2) : '0') }}" step=".01" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
@@ -326,7 +323,7 @@
                                         <input type="number" class="form-control form-control-sm border-calc" step=".01" name="cons_ampar" id="cons_ampar" value="{{ $formCutInputData->cons_ampar }}" readonly>
                                     </div>
                                     <div class="col-4">
-                                        <input type="text" class="form-control form-control-sm border-calc" name="unit_cons_ampar" id="unit_cons_ampar" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
+                                        <input type="text" class="form-control form-control-sm border-calc" name="unit_cons_ampar" id="unit_cons_ampar" value="-" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -1372,7 +1369,15 @@
             let estAmpar = 0;
 
             if (unitQtyVar == unitPActualVar) {
-                estAmpar = pActualVar > 0 ? qtyVar / pActualVar : 0;
+                let pActualComma
+
+                if (unitPActualVar == "YARD") {
+                    pActualComma = pActualVar + (commaActualVar/36);
+                } else if (unitPActualVar == "METER") {
+                    pActualComma = pActualVar + (commaActualVar/100);
+                }
+
+                estAmpar = pActualComma > 0 ? qtyVar / pActualComma : 0;
             } else {
                 if (unitPActualVar == "YARD") {
                     let pActualInch = ((pActualVar * 36/1) + commaActualVar)
@@ -1406,7 +1411,15 @@
             let commaActualVar = commaActual > 0 ? Number(commaActual) : Number(document.getElementById("comma_act").value);
 
             if (unitQtyVar == unitPActualVar) {
-                pActualFinal = pActualVar;
+                let pActualComma
+
+                if (unitPActualVar == "YARD") {
+                    pActualComma = pActualVar + (commaActualVar/36);
+                } else if (unitPActualVar == "METER") {
+                    pActualComma = pActualVar + (commaActualVar/100);
+                }
+
+                pActualFinal = pActualComma;
             } else {
                 if (unitPActualVar == "YARD") {
                     let pActualInch = (pActualVar * 36/1) + commaActualVar
@@ -1445,7 +1458,15 @@
             let commaActualVar = commaActual > 0 ? Number(commaActual) : Number(document.getElementById("comma_act").value);
 
             if (unitQtyVar == unitPActualVar) {
-                pActualFinal = pActualVar;
+                let pActualComma
+
+                if (unitPActualVar == "YARD") {
+                    pActualComma = pActualVar + (commaActualVar/36);
+                } else if (unitPActualVar == "METER") {
+                    pActualComma = pActualVar + (commaActualVar/100);
+                }
+
+                pActualFinal = pActualComma;
             } else {
                 if (unitPActualVar == "YARD") {
                     let pActualInch = (pActualVar * 36/1) + commaActualVar
@@ -1481,7 +1502,15 @@
             let estSambungan = 0;
 
             if (unitQtyVar == unitPActualVar) {
-                estSambungan = pActualVar - sisaGelaranVar;
+                let pActualComma
+
+                if (unitPActualVar == "YARD") {
+                    pActualComma = pActualVar + (commaActualVar/36);
+                } else if (unitPActualVar == "METER") {
+                    pActualComma = pActualVar + (commaActualVar/100);
+                }
+
+                estSambungan = pActualComma - sisaGelaranVar;
             } else {
                 if (unitPActualVar == "YARD") {
                     let pActualInch = (pActualVar * 36/1) + commaActualVar
@@ -1517,7 +1546,7 @@
                 checkIfNull(totalQtyCutVar)) {
                 let consActualGelaran = "";
 
-                if (unitVar == "KGM") {
+                if (unitVar.toUpperCase == "KGM") {
                     consActualGelaran = totalQtyCutVar > 0 ? (totalQtyFabricVar - pipingVar) / totalQtyCutVar : 0;
                 } else {
                     if (unitPActualVar.toLowerCase() == "yard") {
@@ -1536,6 +1565,7 @@
 
                 document.getElementById("cons_actual_gelaran").value = consActualGelaran.toFixed(2);
                 document.getElementById("unit_cons_actual_gelaran").value = unitVar.toLowerCase();
+                document.getElementById("unit_cons_ampar").value = unitVar.toUpperCase();
             }
         }
 
