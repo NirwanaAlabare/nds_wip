@@ -437,9 +437,9 @@
                 </div>
                 <div class="card-body" style="display: block;">
                     <form action="#" method="post" id="spreading-form">
-                        <input type="hidden" id="id_sambungan" name="id_sambungan" readonly>
-                        <input type="hidden" id="status_sambungan" name="status_sambungan" readonly>
-                        <input type="hidden" id="current_id_roll" name="current_id_roll" readonly>
+                        <input type="text" id="id_sambungan" name="id_sambungan" readonly>
+                        <input type="text" id="status_sambungan" name="status_sambungan" readonly>
+                        <input type="text" id="current_id_roll" name="current_id_roll" readonly>
                         <div class="row">
                             <div class="col-4">
                                 <div class="mb-3">
@@ -1674,7 +1674,9 @@
 
         // -Set Spreading Form-
         function setSpreadingForm(data, sisaGelaran) {
-            clearSpreadingForm();
+            if (!(sisaGelaran)) {
+                clearSpreadingForm();
+            }
 
             data.id_roll ? document.getElementById("kode_barang").value = data.id_roll : '';
             data.id_item ? document.getElementById("id_item").value = data.id_item : '';
