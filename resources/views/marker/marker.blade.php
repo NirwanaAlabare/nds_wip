@@ -127,9 +127,9 @@
                     d.tgl_akhir = $('#tgl-akhir').val();
                 },
             },
-            columns: [
-                {
-                    data: 'tgl_cut_fix', searchable: false
+            columns: [{
+                    data: 'tgl_cut_fix',
+                    searchable: false
                 },
                 {
                     data: 'kode'
@@ -144,7 +144,8 @@
                     data: 'panel'
                 },
                 {
-                    data: 'panjang_marker_fix', searchable: false
+                    data: 'panjang_marker_fix',
+                    searchable: false
                 },
                 {
                     data: 'lebar_marker',
@@ -162,7 +163,8 @@
                     data: 'urutan_marker'
                 },
                 {
-                    data: 'tot_form', searchable: false
+                    data: 'tot_form',
+                    searchable: false
                 },
                 {
                     data: 'id'
@@ -186,9 +188,9 @@
                             </div>`;
                         } else if (row.cancel == 'Y') {
                             return `<div class='d-flex gap-1 justify-content-center'>
-                                <a class='btn btn-danger btn-sm'
-                        onclick='cancel(` + row.id +
-                                `);'><i class='fa fa-ban'></i></a>
+                                <a class='btn btn-primary btn-sm'
+                        data-bs-toggle="modal" data-bs-target="#exampleModal" onclick='getdetail(` + row.id + `);'>
+                        <i class='fa fa-search'></i></a>
                             </div>`;
                         }
 
