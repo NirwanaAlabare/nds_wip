@@ -1040,6 +1040,8 @@
 
             let dataObj = {
                 "p_act": $("#p_act").val(),
+                "unit_p_act": $("#unit_p_act").val(),
+                "comma_act": $("#comma_act").val(),
                 "no_form_cut_input": $("#no_form").val(),
                 "no_meja": $("#no_meja").val(),
                 "color_act": $("#color_act").val(),
@@ -1360,36 +1362,76 @@
         }
 
         // -Calculate Total Pemakaian Roll-
-        function calculateTotalPemakaian(lembarGelaran = 0, pActual = 0, kepalaKain = 0, sisaTidakBisa = 0, reject = 0, unitPActual = 0) {
+        function calculateTotalPemakaian(lembarGelaran = 0, pActual = 0, kepalaKain = 0, sisaTidakBisa = 0, reject = 0, lActual = 0, gramasi = 0, unitQty = 0, unitPActual = 0, commaActual = 0) {
             let lembarGelaranVar = lembarGelaran > 0 ? Number(lembarGelaran) : Number(document.getElementById("current_lembar_gelaran").value);
             let pActualVar = pActual > 0 ? Number(pActual) : Number(document.getElementById("p_act").value);
             let kepalaKainVar = kepalaKain > 0 ? Number(kepalaKain) : Number(document.getElementById("current_kepala_kain").value);
             let sisaTidakBisaVar = sisaTidakBisa > 0 ? Number(sisaTidakBisa) : Number(document.getElementById("current_sisa_tidak_bisa").value);
             let rejectVar = reject > 0 ? Number(reject) : Number(document.getElementById("current_reject").value);
-            let unitPActualVar = unitPActual > 0 ? Number(unitPActual) : Number(document.getElementById("unit_p_act").value);
+            let lActualVar = lActual > 0 ? Number(lActual) : Number(document.getElementById("l_act").value);
+            let gramasiVar = gramasi > 0 ? Number(gramasi) : Number(document.getElementById("gramasi").value);
+            let unitQtyVar = unitQty ? unitQty : document.getElementById("current_unit").value;
+            let unitPActualVar = unitPActual ? unitPActual : document.getElementById("unit_p_act").value;
+            let commaActualVar = commaActual > 0 ? Number(commaActual) : Number(document.getElementById("comma_act").value);
 
-            let totalPemakaian = lembarGelaranVar * pActualVar + kepalaKainVar + sisaTidakBisaVar + rejectVar;
+            if (unitQtyVar == unitPActualVar) {
+                pActualFinal = pActualVar;
+            } else {
+                if (unitPActualVar == "YARD") {
+                    let pActualInch = (pActualVar * 36/1) + commaActualVar
+
+                    if (unitQtyVar == "METER") {
+                        let pActualMeter = pActualInch * 0.0254;
+                        pActualFinal = pActualMeter;
+                    } else if (unitQtyVar == "KGM") {
+                        let gramasiInch = gramasiVar / 1550;
+                        pActualFinal = ((gramasiInch * ( pActualInch * lActualVar ))/ 1000);
+                    } else {
+                        pActualFinal = pActualVar;
+                    }
+                }
+            }
+
+            let totalPemakaian = lembarGelaranVar * pActualFinal + kepalaKainVar + sisaTidakBisaVar + rejectVar;
 
             document.getElementById("current_total_pemakaian_roll").value = totalPemakaian.toFixed(2);
         }
 
         // -Calculate Short Roll-
-        function calculateShortRoll(lembarGelaran = 0, pActual = 0, kepalaKain = 0, piping = 0, sisaKain = 0, reject = 0,
-            sambungan = 0, qty = 0) {
-            let lembarGelaranVar = lembarGelaran > 0 ? Number(lembarGelaran) : Number(document.getElementById(
-                "current_lembar_gelaran").value);
+        function calculateShortRoll(lembarGelaran = 0, pActual = 0, kepalaKain = 0, piping = 0, sisaKain = 0, reject = 0,sambungan = 0, qty = 0, unitQty = 0, gramasi = 0, unitPActual = 0, lActual = 0, commaActual = 0) {
+            let lembarGelaranVar = lembarGelaran > 0 ? Number(lembarGelaran) : Number(document.getElementById("current_lembar_gelaran").value);
             let pActualVar = pActual > 0 ? Number(pActual) : Number(document.getElementById("p_act").value);
-            let kepalaKainVar = kepalaKain > 0 ? Number(kepalaKain) : Number(document.getElementById("current_kepala_kain")
-                .value);
+            let kepalaKainVar = kepalaKain > 0 ? Number(kepalaKain) : Number(document.getElementById("current_kepala_kain").value);
             let pipingVar = piping > 0 ? Number(piping) : Number(document.getElementById("current_piping").value);
             let sisaKainVar = sisaKain > 0 ? Number(sisaKain) : Number(document.getElementById("current_sisa_kain").value);
             let rejectVar = reject > 0 ? Number(reject) : Number(document.getElementById("current_reject").value);
-            let sambunganVar = sambungan > 0 ? Number(sambungan) : Number(document.getElementById("current_sambungan")
-                .value);
+            let sambunganVar = sambungan > 0 ? Number(sambungan) : Number(document.getElementById("current_sambungan").value);
             let qtyVar = qty > 0 ? Number(qty) : Number(document.getElementById("current_qty").value);
+            let unitQtyVar = unitQty > 0 ? Number(unitQty) : Number(document.getElementById("current_unit").value);
+            let gramasiVar = gramasi > 0 ? Number(gramasi) : Number(document.getElementById("gramasi").value);
+            let unitPActualVar = unitPActual ? unitPActual : Number(document.getElementById("unit_p_act").value);
+            let lActualVar = lActual > 0 ? Number(lActual) : Number(document.getElementById("l_act").value);
+            let commaActualVar = commaActual > 0 ? Number(commaActual) : Number(document.getElementById("comma_act").value);
 
-            let shortRoll = pActualVar * lembarGelaranVar + kepalaKainVar + pipingVar + sisaKainVar + rejectVar +
-                sambunganVar - qtyVar;
+            if (unitQtyVar == unitPActualVar) {
+                pActualFinal = pActualVar;
+            } else {
+                if (unitPActualVar == "YARD") {
+                    let pActualInch = (pActualVar * 36/1) + commaActualVar
+
+                    if (unitQtyVar == "METER") {
+                        let pActualMeter = pActualInch * 0.0254;
+                        pActualFinal = pActualMeter;
+                    } else if (unitQtyVar == "KGM") {
+                        let gramasiInch = gramasiVar / 1550;
+                        pActualFinal = ((gramasiInch * ( pActualInch * lActualVar ))/ 1000);
+                    } else {
+                        pActualFinal = pActualVar;
+                    }
+                }
+            }
+
+            let shortRoll = pActualFinal * lembarGelaranVar + kepalaKainVar + pipingVar + sisaKainVar + rejectVar + sambunganVar - qtyVar;
 
             document.getElementById("current_short_roll").value = shortRoll.toFixed(2);
         }
