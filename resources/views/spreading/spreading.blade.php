@@ -75,7 +75,8 @@
                                 <div class="col-6 col-md-4">
                                     <div class="mb-3">
                                         <label class="form-label"><small>No. Form</small></label>
-                                        <input type="text" class="form-control" id="edit_no_form" name="edit_no_form" value="" readonly />
+                                        <input type="text" class="form-control" id="edit_no_form" name="edit_no_form"
+                                            value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-6 col-md-4">
@@ -88,8 +89,8 @@
                                 <div class="col-6 col-md-4">
                                     <div class="mb-3">
                                         <label class="form-label"><small>Marker</small></label>
-                                        <input type="text" class="form-control" id="edit_id_marker"
-                                            name="edit_id_marker" value="" readonly />
+                                        <input type="text" class="form-control" id="edit_id_marker" name="edit_id_marker"
+                                            value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-6 col-md-4">
@@ -116,57 +117,57 @@
                                 <div class="col-4 col-md-3">
                                     <div class="mb-3">
                                         <label class="form-label"><small>P. Marker</small></label>
-                                        <input type="text" class="form-control" id="edit_panjang_marker" name="edit_panjang_marker"
-                                            value="" readonly />
+                                        <input type="text" class="form-control" id="edit_panjang_marker"
+                                            name="edit_panjang_marker" value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-4 col-md-3">
                                     <div class="mb-3">
                                         <label class="form-label"><small>Unit P. Marker</small></label>
-                                        <input type="text" class="form-control" id="edit_unit_panjang_marker" name="edit_unit_panjang_marker"
-                                            value="" readonly />
+                                        <input type="text" class="form-control" id="edit_unit_panjang_marker"
+                                            name="edit_unit_panjang_marker" value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-4 col-md-3">
                                     <div class="mb-3">
                                         <label class="form-label"><small>Comma Marker</small></label>
-                                        <input type="text" class="form-control" id="edit_comma_marker" name="edit_comma_marker"
-                                            value="" readonly />
+                                        <input type="text" class="form-control" id="edit_comma_marker"
+                                            name="edit_comma_marker" value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-4 col-md-3">
                                     <div class="mb-3">
                                         <label class="form-label"><small>Unit Comma Marker</small></label>
-                                        <input type="text" class="form-control" id="edit_unit_comma_marker" name="edit_unit_comma_marker"
-                                            value="" readonly />
+                                        <input type="text" class="form-control" id="edit_unit_comma_marker"
+                                            name="edit_unit_comma_marker" value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-4 col-md-3">
                                     <div class="mb-3">
                                         <label class="form-label"><small>Lebar Marker</small></label>
-                                        <input type="text" class="form-control" id="edit_lebar_marker" name="edit_lebar_marker"
-                                            value="" readonly />
+                                        <input type="text" class="form-control" id="edit_lebar_marker"
+                                            name="edit_lebar_marker" value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-4 col-md-3">
                                     <div class="mb-3">
                                         <label class="form-label"><small>Unit Lebar Marker</small></label>
-                                        <input type="text" class="form-control" id="edit_unit_lebar_marker" name="edit_unit_lebar_marker"
-                                            value="" readonly />
+                                        <input type="text" class="form-control" id="edit_unit_lebar_marker"
+                                            name="edit_unit_lebar_marker" value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-4 col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label"><small>PO Marker</small></label>
-                                        <input type="text" class="form-control" id="edit_po_marker" name="edit_po_marker"
-                                            value="" readonly />
+                                        <input type="text" class="form-control" id="edit_po_marker"
+                                            name="edit_po_marker" value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-4 col-md-3">
                                     <div class="mb-3">
                                         <label class="form-label"><small>Gelar QTY</small></label>
-                                        <input type="text" class="form-control" id="edit_gelar_qty" name="edit_gelar_qty"
-                                            value="" readonly />
+                                        <input type="text" class="form-control" id="edit_gelar_qty"
+                                            name="edit_gelar_qty" value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-4 col-md-3">
@@ -179,15 +180,15 @@
                                 <div class="col-6 col-md-3">
                                     <div class="mb-3">
                                         <label class="form-label"><small>Urutan Marker</small></label>
-                                        <input type="text" class="form-control" id="edit_urutan_marker" name="edit_urutan_marker"
-                                            value="" readonly />
+                                        <input type="text" class="form-control" id="edit_urutan_marker"
+                                            name="edit_urutan_marker" value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-6 col-md-3">
                                     <div class="mb-3">
                                         <label class="form-label"><small>Cons. Marker</small></label>
-                                        <input type="text" class="form-control" id="edit_cons_marker" name="edit_cons_marker"
-                                            value="" readonly />
+                                        <input type="text" class="form-control" id="edit_cons_marker"
+                                            name="edit_cons_marker" value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-12">
@@ -254,8 +255,7 @@
                     d.dateTo = $('#tgl-akhir').val();
                 },
             },
-            columns: [
-                {
+            columns: [{
                     data: 'no_form'
                 },
                 {
@@ -296,10 +296,33 @@
                 {
                     targets: [10],
                     render: (data, type, row, meta) => {
-                        let btnEdit = row.status == 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData("+ JSON.stringify(row) +", \"editMejaModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-pen'></i></a>" : "";
-                        let btnProcess = row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null ? `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-plus'></i></a>` : "";
+                        let btnEdit = row.status == 'SPREADING' ?
+                            "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" +
+                            JSON.stringify(row) +
+                            ", \"editMejaModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-pen'></i></a>" :
+                            "";
+                        let btnProcess = row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null ?
+                            `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` +
+                            row.id +
+                            `' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-plus'></i></a>` :
+                            "";
 
-                        return `<div class='d-flex gap-1 justify-content-center'>` + btnProcess + btnEdit + `</div>`;
+                        return `<div class='d-flex gap-1 justify-content-center'>` + btnProcess + btnEdit +
+                            `</div>`;
+                    }
+                },
+                {
+                    targets: '_all',
+                    render: (data, type, row, meta) => {
+                        var color = 'black';
+                        if (row.status == 'SELESAI PENGERJAAN') {
+                            color = 'green';
+                        } else if (row.status == 'PENGERJAAN FORM CUTTING SPREAD') {
+                            color = 'blue';
+                        } else if (row.status == 'PENGERJAAN FORM CUTTING DETAIL') {
+                            color = 'blue';
+                        }
+                        return '<span style="color:' + color + '">' + data + '</span>';
                     }
                 }
             ]
@@ -310,13 +333,12 @@
             processing: true,
             serverSide: true,
             ajax: {
-                url: '{{ route("getdata_ratio") }}',
-                data: function (d) {
+                url: '{{ route('getdata_ratio') }}',
+                data: function(d) {
                     d.cbomarker = $('#edit_marker_id').val();
                 },
             },
-            columns: [
-                {
+            columns: [{
                     data: 'size'
                 },
                 {
