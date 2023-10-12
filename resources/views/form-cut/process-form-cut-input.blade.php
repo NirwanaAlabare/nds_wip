@@ -318,7 +318,7 @@
                                     value="{{ $formCutInputData->cons_pipping ? $formCutInputData->cons_pipping : 0 }}">
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-calc"><small><b>Cons 1 Ampar</b></small></label>
                                 <div class="row">
@@ -326,7 +326,7 @@
                                         <input type="number" class="form-control form-control-sm border-calc" step=".01" name="cons_ampar" id="cons_ampar" value="{{ $formCutInputData->cons_ampar }}" readonly>
                                     </div>
                                     <div class="col-4">
-                                        <input type="text" class="form-control form-control-sm border-calc" name="unit_cons_ampar" id="unit_cons_ampar" value="{{ $formCutInputData->unit_panjang_marker }}" readonly>
+                                        <input type="text" class="form-control form-control-sm border-calc" name="unit_cons_ampar" id="unit_cons_ampar" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
                                     </div>
                                 </div>
                             </div>
