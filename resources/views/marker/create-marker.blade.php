@@ -219,9 +219,6 @@
         var sumCutQty = null;
         $(document).ready(async function () {
             sumCutQty = await $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
                 url: '{{ route("create-marker") }}',
                 type: 'get',
                 data: {

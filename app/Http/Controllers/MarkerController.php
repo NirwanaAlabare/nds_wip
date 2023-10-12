@@ -86,7 +86,10 @@ class MarkerController extends Controller
                     marker_input_detail.so_det_id,
                     marker_input.panel,
                     SUM(marker_input_detail.cut_qty) total_cut_qty
-                ")->leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->groupBy("marker_input_detail.so_det_id", "marker_input.panel")->get();
+                ")->
+                leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->
+                where('marker_input.cancel', '=', 'N')->
+                groupBy("marker_input_detail.so_det_id", "marker_input.panel")->get();
 
             return $markerDetail;
         }
