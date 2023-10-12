@@ -275,7 +275,8 @@ class StockerController extends Controller
             $qrCodeDecode = base64_encode(QrCode::format('svg')->size(100)->generate($storeItem->id."-".$storeItem->id_qr_stocker));
 
             // generate pdf
-            $pdf = PDF::loadView('stocker.pdf.print-stocker', ["dataSpreading" => $dataSpreading, "qrCode" => $qrCodeDecode]);
+            PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
+            $pdf = PDF::loadView('stocker.pdf.print-stocker', ["dataSpreading" => $dataSpreading, "qrCode" => $qrCodeDecode])->setPaper('a7', 'landscape');
 
             $path = public_path('pdf/');
             $fileName = 'stocker-'.$storeItem->id.'.pdf';
@@ -298,10 +299,12 @@ class StockerController extends Controller
             ")->first();
 
         $idStocker = "";
+        $kodeStocker = "";
         $wsStocker = "";
         $colorStocker = "";
         if ($checkStocker) {
             $idStocker = $checkStocker->id;
+            $kodeStocker = $checkStocker->id_qr_stocker;
             $wsStocker = $checkStocker->act_costing_ws;
             $colorStocker = $checkStocker->color;
         } else {
@@ -323,6 +326,7 @@ class StockerController extends Controller
             ]);
 
             $idStocker = $storeItem->id;
+            $kodeStocker = $storeItem->id_qr_stocker;
             $wsStocker = $storeItem->act_costing_ws;
             $colorStocker = $storeItem->color;
         }
@@ -340,7 +344,7 @@ class StockerController extends Controller
         for ($i = 0; $i < intval($request['qty_cut'][$index]); $i++) {
             array_push($storeDetailItemArr, [
                 'kode' => "WIP-".($stockerCount+1),
-                'no_cut_size' => $noCutSize.sprintf('%04s', $idStocker),
+                'no_cut_size' => $noCutSize.sprintf('%04s', ($i+1)),
                 'id_stocker' => $checkStocker->id,
                 'size' => $request['size'][$index],
                 'id_so_det' => $request['so_det_id'][$index],
@@ -357,7 +361,8 @@ class StockerController extends Controller
         // $qrCodeDecode = base64_encode(QrCode::format('svg')->size(100)->generate($storeDeItem->id."-".$storeItem->id_qr_stocker));
 
         // generate pdf
-        $pdf = PDF::loadView('stocker.pdf.print-numbering', ["ws" => $wsStocker, "color" => $colorStocker, "dataNumbering" => $storeDetailItemArr, "qrCode" => $qrCodeDetailItemArr]);
+        $customPaper = array(0,0,56.70,28.38);
+        $pdf = PDF::loadView('stocker.pdf.print-numbering', ["kode" => $kodeStocker, "ws" => $wsStocker, "color" => $colorStocker, "dataNumbering" => $storeDetailItemArr, "qrCode" => $qrCodeDetailItemArr])->setPaper($customPaper);
 
         $path = public_path('pdf/');
         $fileName = 'stocker-'.$idStocker.'.pdf';

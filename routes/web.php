@@ -92,6 +92,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/check-time-record/{detailId?}', 'checkTimeRecordLap')->name('check-time-record-form-cut-input');
         Route::post('/store-lost-time/{id?}', 'storeLostTime')->name('store-lost-form-cut-input');
         Route::get('/check-lost-time/{id?}', 'checkLostTime')->name('check-lost-form-cut-input');
+        Route::get('/get-form-cut-ratio', 'getRatio')->name('get-form-cut-ratio');
 
         // get order
         Route::get('/get-order', 'getOrderInfo')->name('form-cut-get-marker-order');

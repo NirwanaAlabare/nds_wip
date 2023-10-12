@@ -26,58 +26,92 @@ class FormCutInputController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $formCutInputQuery = FormCutInput::selectRaw("
-                    form_cut_input.id id,
-                    form_cut_input.no_form no_form,
-                    form_cut_input.tgl_form_cut tgl_form,
-                    marker_input.kode kode_marker,
-                    marker_input.act_costing_ws no_ws,
-                    marker_input.color,
-                    marker_input.panel,
-                    form_cut_input.status
-                ")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker");
+            $additionalQuery = "";
 
-            if (Auth::user()->type == "meja") {
-                $formCutInputQuery->where("form_cut_input.no_meja", Auth::user()->id);
+            if ($request->dateFrom) {
+                $additionalQuery .= " where a.tgl_form_cut >= '" . $request->dateFrom . "' ";
             }
 
-            return DataTables::eloquent($formCutInputQuery)->
-                filter(function ($query) {
-                    $tglAwal = request('tgl_awal');
-                    $tglAkhir = request('tgl_akhir');
+            if ($request->dateTo) {
+                $additionalQuery .= " and a.tgl_form_cut <= '" . $request->dateTo . "' ";
+            }
 
-                    if ($tglAwal) {
-                        $query->whereRaw("tgl_form_cut >= '" . $tglAwal . "'");
-                    }
+            if (Auth::user()->type == "meja") {
+                $additionalQuery .= " and a.no_meja = '" . Auth::user()->id . "' ";
+            }
 
-                    if ($tglAkhir) {
-                        $query->whereRaw("tgl_form_cut <= '" . $tglAkhir . "'");
-                    }
-                }, true)->
-                filterColumn('no_form', function($query, $keyword) {
-                    $query->whereRaw("LOWER(CAST(marker_input.no_form as TEXT)) LIKE LOWER('%".$keyword."%')");
-                })->
-                filterColumn('kode_marker', function($query, $keyword) {
-                    $query->whereRaw("LOWER(CAST(marker_input.kode as TEXT)) LIKE LOWER('%".$keyword."%')");
-                })->
-                filterColumn('no_ws', function($query, $keyword) {
-                    $query->whereRaw("LOWER(CAST(marker_input.act_costing_ws as TEXT)) LIKE LOWER('%".$keyword."%')");
-                })->
-                filterColumn('color', function($query, $keyword) {
-                    $query->whereRaw("LOWER(CAST(marker_input.color as TEXT)) LIKE LOWER('%".$keyword."%')");
-                })->
-                filterColumn('panel', function($query, $keyword) {
-                    $query->whereRaw("LOWER(CAST(marker_input.panel as TEXT)) LIKE LOWER('%".$keyword."%')");
-                })->
-                filterColumn('status', function($query, $keyword) {
-                    $query->whereRaw("LOWER(CAST(form_cut_input.status as TEXT)) LIKE LOWER('%".$keyword."%')");
-                })->
-                order(function ($query) {
-                    $query->orderBy('form_cut_input.updated_at', 'desc');
-                })->toJson();
+            $keywordQuery = "";
+            if ($request->search["value"]) {
+                $keywordQuery = "
+                    and (
+                        a.id_marker like '%" . $request->search["value"] . "%' OR
+                        a.no_meja like '%" . $request->search["value"] . "%' OR
+                        a.no_form like '%" . $request->search["value"] . "%' OR
+                        a.tgl_form_cut like '%" . $request->search["value"] . "%' OR
+                        b.act_costing_ws like '%" . $request->search["value"] . "%' OR
+                        panel like '%" . $request->search["value"] . "%' OR
+                        b.color like '%" . $request->search["value"] . "%' OR
+                        a.status like '%" . $request->search["value"] . "%' OR
+                        users.name like '%" . $request->search["value"] . "%'
+                    )
+                ";
+            }
+
+            $data_spreading = DB::select("
+                SELECT
+                    a.id,
+                    a.no_meja,
+                    a.id_marker,
+                    a.no_form,
+                    a.tgl_form_cut,
+                    b.id marker_id,
+                    b.act_costing_ws ws,
+                    panel,
+                    b.color,
+                    a.status,
+                    users.name nama_meja,
+                    b.panjang_marker,
+                    UPPER(b.unit_panjang_marker) unit_panjang_marker,
+                    b.comma_marker,
+                    UPPER(b.unit_comma_marker) unit_comma_marker,
+                    b.lebar_marker,
+                    UPPER(b.unit_lebar_marker) unit_lebar_marker,
+                    a.qty_ply,
+                    b.gelar_qty,
+                    b.po_marker,
+                    b.urutan_marker,
+                    b.cons_marker,
+                    GROUP_CONCAT(CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC) marker_details
+                FROM `form_cut_input` a
+                left join marker_input b on a.id_marker = b.kode
+                left join marker_input_detail on b.id = marker_input_detail.marker_id
+                left join master_size_new on marker_input_detail.size = master_size_new.size
+                left join users on users.id = a.no_meja
+                " . $additionalQuery . "
+                " . $keywordQuery . "
+                GROUP BY a.id
+                ORDER BY a.updated_at desc
+            ");
+
+            return DataTables::of($data_spreading)->toJson();
         }
 
         return view('form-cut.form-cut-input');
+    }
+
+    public function getRatio(Request $request)
+    {
+        $markerId = $request->cbomarker ? $request->cbomarker : 0;
+
+        $data_ratio = DB::select("
+            select
+                *
+            from
+                marker_input_detail
+            where marker_id = '" . $markerId . "'
+        ");
+
+        return DataTables::of($data_ratio)->toJson();
     }
 
     /**
