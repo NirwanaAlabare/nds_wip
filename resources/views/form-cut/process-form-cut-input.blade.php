@@ -1276,6 +1276,69 @@
             finishProcessButton.disabled = true;
         }
 
+        // Calculate P. Actual + Comma Actual
+        function pActualCommaActual(pActualVar, unitPActualVar, commaActualVar) {
+            let pActualFinal = 0;
+
+            if (unitPActualVar.toLowerCase() == "yard") {
+                let commaYard = commaActualVar / 36;
+
+                pActualFinal = (pActualVar + commaYard);
+            } else if (unitPActualVar.toLowerCase() == "meter") {
+                let commaMeter = commaActualVar / 100;
+
+                pActualFinal = (pActualVar + commaMeter);
+            } else {
+                pActualFinal = pActual;
+            }
+
+            return pActualFinal;
+        }
+
+        function pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar) {
+            let pActualConverted = 0;
+
+            if (unitQtyVar == unitPActualVar) {
+                if (unitPActualVar == "YARD") {
+                    pActualConverted = pActualVar + (commaActualVar/36);
+                } else if (unitPActualVar == "METER") {
+                    pActualConverted = pActualVar + (commaActualVar/100);
+                }
+            } else {
+                // YARD
+                if (unitPActualVar == "YARD") {
+                    let pActualInch = ((pActualVar * 36/1) + commaActualVar)
+
+                    if (unitQtyVar == "METER") {
+                        pActualConverted = pActualInch * 0.0254;
+                    } else if (unitQtyVar == "KGM") {
+                        let gramasiInch = gramasiVar / 1550;
+
+                        pActualConverted = ((gramasiInch * ( pActualInch * lActualVar ))/ 1000);
+                    } else {
+                        pActualConverted = pActualVar + (commaActualVar/36);
+                    }
+
+                // METER
+                } else if (unitPActualVar == "METER") {
+                    let pActualInch = ((pActualVar * 39.3701) + (commaActualVar/2.54));
+                    let lActualInch = lActualVar / 2.54;
+
+                    if (unitQtyVar == "YARD") {
+                        pActualConverted = pActualInch / 36;
+                    } else if (unitQtyVar == "KGM") {
+                        let gramasiInch = gramasiVar / 1550;
+
+                        pActualConverted = ((gramasiInch * ( pActualInch * lActualInch ))/ 1000);
+                    } else {
+                        pActualConverted = pActualVar + (commaActualVar/100);
+                    }
+                }
+            }
+
+            return pActualConverted;
+        }
+
         // -Restrict Sisa Gelaran-
         function restrictRemainPly() {
             let sisaGelar = Number(document.getElementById('current_sisa_gelaran').value);
@@ -1300,17 +1363,9 @@
             let unitPActualVar = unitPActual ? unitPActual : document.getElementById("unit_p_act").value;
             let commaActualVar = commaActual > 0 ? Number(pActual) : Number(document.getElementById("comma_act").value);
 
-            if (unitPActualVar.toLowerCase() == "yard") {
-                let commaYard = commaActualVar / 36;
+            let pActualFinal = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
 
-                consAmpar = totalRatio > 0 ? (pActualVar + commaYard) / totalRatio : 0;
-            } else if (unitPActualVar.toLowerCase() == "meter") {
-                let commaMeter = commaActualVar / 100;
-
-                consAmpar = totalRatio > 0 ? (pActualVar + commaMeter) / totalRatio : 0;
-            } else {
-                consAmpar = totalRatio > 0 ? pActualVar / totalRatio : 0;
-            }
+            consAmpar = totalRatio > 0 ? pActualFinal / totalRatio : 0;
 
             document.getElementById('cons_ampar').value = consAmpar.toFixed(2);
         }
@@ -1323,17 +1378,9 @@
 
             let consActual = 0;
 
-            if (unitPActualVar.toLowerCase() == "yard") {
-                let commaYard = commaActualVar / 36;
+            let pActualFinal = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
 
-                consActual = totalQtyCut > 0 ? (pActualVar + commaYard) / totalQtyCut : 0;
-            } else if (unitPActualVar.toLowerCase() == "meter") {
-                let commaMeter = commaActualVar / 100;
-
-                consActual = totalQtyCut > 0 ? (pActualVar + commaMeter) / totalQtyCut : 0;
-            } else {
-                consActual = totalQtyCut > 0 ? pActualVar / totalQtyCut : 0;
-            }
+            consActual = totalQtyCut > 0 ? pActualFinal / totalQtyCut : 0;
 
             document.getElementById('cons_act').value = consActual.toFixed(2);
         }
@@ -1366,33 +1413,9 @@
             let unitCommaActualVar = unitCommaActual ? unitCommaActual : document.getElementById("unit_comma_act").value;
             let gramasiVar = gramasi ? Number(gramasi) : Number(document.getElementById("gramasi").value);
 
-            let estAmpar = 0;
+            let pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
 
-            if (unitQtyVar == unitPActualVar) {
-                let pActualComma
-
-                if (unitPActualVar == "YARD") {
-                    pActualComma = pActualVar + (commaActualVar/36);
-                } else if (unitPActualVar == "METER") {
-                    pActualComma = pActualVar + (commaActualVar/100);
-                }
-
-                estAmpar = pActualComma > 0 ? qtyVar / pActualComma : 0;
-            } else {
-                if (unitPActualVar == "YARD") {
-                    let pActualInch = ((pActualVar * 36/1) + commaActualVar)
-
-                    if (unitQtyVar == "METER") {
-                        let pActualMeter = pActualInch * 0.0254;
-                        estAmpar = pActualMeter > 0 ? qtyVar / pActualMeter : 0;
-                    } else if (unitQtyVar == "KGM") {
-                        let gramasiInch = gramasiVar / 1550;
-                        estAmpar = ((gramasiInch * ( pActualInch * lActualVar ))/ 1000) > 0 ? qtyVar / ((gramasiInch * ( pActualInch * lActualVar ))/ 1000) : 0;
-                    } else {
-                        estAmpar = pActualVar > 0 ? qtyVar / pActualVar : 0;
-                    }
-                }
-            }
+            let estAmpar = pActualVar > 0 ? qtyVar / pActualConverted : 0;
 
             document.getElementById("current_est_amparan").value = estAmpar.toFixed(2);
         }
@@ -1410,33 +1433,9 @@
             let unitPActualVar = unitPActual ? unitPActual : document.getElementById("unit_p_act").value;
             let commaActualVar = commaActual > 0 ? Number(commaActual) : Number(document.getElementById("comma_act").value);
 
-            if (unitQtyVar == unitPActualVar) {
-                let pActualComma
+            let pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
 
-                if (unitPActualVar == "YARD") {
-                    pActualComma = pActualVar + (commaActualVar/36);
-                } else if (unitPActualVar == "METER") {
-                    pActualComma = pActualVar + (commaActualVar/100);
-                }
-
-                pActualFinal = pActualComma;
-            } else {
-                if (unitPActualVar == "YARD") {
-                    let pActualInch = (pActualVar * 36/1) + commaActualVar
-
-                    if (unitQtyVar == "METER") {
-                        let pActualMeter = pActualInch * 0.0254;
-                        pActualFinal = pActualMeter;
-                    } else if (unitQtyVar == "KGM") {
-                        let gramasiInch = gramasiVar / 1550;
-                        pActualFinal = ((gramasiInch * ( pActualInch * lActualVar ))/ 1000);
-                    } else {
-                        pActualFinal = pActualVar;
-                    }
-                }
-            }
-
-            let totalPemakaian = lembarGelaranVar * pActualFinal + kepalaKainVar + sisaTidakBisaVar + rejectVar;
+            let totalPemakaian = lembarGelaranVar * pActualConverted + kepalaKainVar + sisaTidakBisaVar + rejectVar;
 
             document.getElementById("current_total_pemakaian_roll").value = totalPemakaian.toFixed(2);
         }
@@ -1457,33 +1456,9 @@
             let lActualVar = lActual > 0 ? Number(lActual) : Number(document.getElementById("l_act").value);
             let commaActualVar = commaActual > 0 ? Number(commaActual) : Number(document.getElementById("comma_act").value);
 
-            if (unitQtyVar == unitPActualVar) {
-                let pActualComma
+            let pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
 
-                if (unitPActualVar == "YARD") {
-                    pActualComma = pActualVar + (commaActualVar/36);
-                } else if (unitPActualVar == "METER") {
-                    pActualComma = pActualVar + (commaActualVar/100);
-                }
-
-                pActualFinal = pActualComma;
-            } else {
-                if (unitPActualVar == "YARD") {
-                    let pActualInch = (pActualVar * 36/1) + commaActualVar
-
-                    if (unitQtyVar == "METER") {
-                        let pActualMeter = pActualInch * 0.0254;
-                        pActualFinal = pActualMeter;
-                    } else if (unitQtyVar == "KGM") {
-                        let gramasiInch = gramasiVar / 1550;
-                        pActualFinal = ((gramasiInch * ( pActualInch * lActualVar ))/ 1000);
-                    } else {
-                        pActualFinal = pActualVar;
-                    }
-                }
-            }
-
-            let shortRoll = pActualFinal * lembarGelaranVar + kepalaKainVar + pipingVar + sisaKainVar + rejectVar + sambunganVar - qtyVar;
+            let shortRoll = pActualConverted * lembarGelaranVar + kepalaKainVar + pipingVar + sisaKainVar + rejectVar + sambunganVar - qtyVar;
 
             document.getElementById("current_short_roll").value = shortRoll.toFixed(2);
         }
@@ -1499,33 +1474,9 @@
             let lActualVar  = Number(lActual) > 0 ? Number(lActual) : Number(document.getElementById('l_act').value);
             let gramasiVar  = Number(gramasi) > 0 ? Number(gramasi) : Number(document.getElementById('gramasi').value);
 
-            let estSambungan = 0;
+            let pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
 
-            if (unitQtyVar == unitPActualVar) {
-                let pActualComma
-
-                if (unitPActualVar == "YARD") {
-                    pActualComma = pActualVar + (commaActualVar/36);
-                } else if (unitPActualVar == "METER") {
-                    pActualComma = pActualVar + (commaActualVar/100);
-                }
-
-                estSambungan = pActualComma - sisaGelaranVar;
-            } else {
-                if (unitPActualVar == "YARD") {
-                    let pActualInch = (pActualVar * 36/1) + commaActualVar
-
-                    if (unitQtyVar == "METER") {
-                        let pActualMeter = pActualInch * 0.0254;
-                        estSambungan = pActualMeter - sisaGelaranVar;
-                    } else if (unitQtyVar == "KGM") {
-                        let gramasiInch = gramasiVar / 1550;
-                        estSambungan = ((gramasiInch * ( pActualInch * lActualVar ))/ 1000) - sisaGelaranVar;
-                    } else {
-                        estSambungan = pActualVar - sisaGelaranVar;
-                    }
-                }
-            }
+            let estSambungan = pActualConverted - sisaGelaranVar;
 
             return estSambungan.toFixed(2);
         }
@@ -1546,14 +1497,13 @@
                 checkIfNull(totalQtyCutVar)) {
                 let consActualGelaran = "";
 
-                if (unitVar.toUpperCase == "KGM") {
+                if (unitVar.toUpperCase() == "KGM") {
                     consActualGelaran = totalQtyCutVar > 0 ? (totalQtyFabricVar - pipingVar) / totalQtyCutVar : 0;
                 } else {
                     if (unitPActualVar.toLowerCase() == "yard") {
                         let commaYard = commaActualVar / 36;
 
-                        consActualGelaran = totalQtyCutVar > 0 ? (lembarVar * (pActualVar + commaYard)) / totalQtyCutVar : 0
-                        console.log(consActualGelaran, pActualVar, commaYard);
+                        consActualGelaran = totalQtyCutVar > 0 ? (lembarVar * (pActualVar + commaYard)) / totalQtyCutVar : 0;
                     } else if (unitPActualVar.toLowerCase() == "meter") {
                         let commaMeter = commaActualVar / 100;
 
