@@ -7,33 +7,36 @@
                 <h3 class="card-title">Halo, {{ strtoupper(auth()->user()->name) }}</h3>
                 <br>
                 <div class="row g-3 mt-3">
-                    <div class="col-md-2 col-3">
-                        <a href="{{ route('dashboard-cutting') }}" class="home-item">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <div class="d-flex h-100 flex-column justify-content-between">
-                                        <img src="{{ asset('dist/img/cutting.png') }}" class="img-fluid p-3" alt="cutting image">
-                                        <p class="text-center">Cutting</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                    @if (auth()->user()->type == "stocker")
+                    @if (auth()->user()->type == "admin" || auth()->user()->type == "marker" || auth()->user()->type == "spreading")
                         <div class="col-md-2 col-3">
-                            <a href="{{ route('dashboard-stocker') }}" class="home-item">
+                            <a href="{{ route('dashboard-cutting') }}" class="home-item">
                                 <div class="card h-100">
                                     <div class="card-body">
                                         <div class="d-flex h-100 flex-column justify-content-between">
-                                            <img src="{{ asset('dist/img/stocker.png') }}" class="img-fluid p-3"
-                                                alt="qr code image">
-                                            <p class="text-center">Stocker</p>
+                                            <img src="{{ asset('dist/img/cutting.png') }}" class="img-fluid p-3" alt="cutting image">
+                                            <p class="text-center">Cutting</p>
                                         </div>
                                     </div>
                                 </div>
                             </a>
                         </div>
                     @endif
+
+                    @stocker
+                        <div class="col-md-2 col-3">
+                            <a href="{{ route('dashboard-stocker') }}" class="home-item">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex h-100 flex-column justify-content-between">
+                                            <img src="{{ asset('dist/img/stocker.png') }}" class="img-fluid p-3" alt="qr code image">
+                                            <p class="text-center">Stocker</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    @endstocker
+
                     <div class="col-md-2 col-3">
                         <a href="items" class="home-item">
                             <div class="card h-100">

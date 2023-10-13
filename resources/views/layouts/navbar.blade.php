@@ -25,36 +25,39 @@
                     <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
                     <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                         @if ($page == "dashboard-cutting")
-                            @if (auth()->user()->type == 'admin')
+                            @marker
                                 <li>
                                     <a href="{{ route('marker') }}" class="dropdown-item">
                                         Marker
                                     </a>
                                 </li>
+                            @endmarker
+
+                            @spreading
                                 <li>
                                     <a href="{{ route('spreading') }}" class="dropdown-item">
                                         Spreading
                                     </a>
                                 </li>
-                            @endif
+                            @endspreading
 
-                            @if (auth()->user()->type == 'meja')
+                            @meja
                                 <li>
                                     <a href="{{ route('form-cut-input') }}" class="dropdown-item">
                                         Form Cutting
                                     </a>
                                 </li>
-                            @endif
+                            @endmeja
                         @endif
 
                         @if ($page == "dashboard-stocker")
-                            @if (auth()->user()->type == 'admin')
+                            @stocker
                                 <li>
                                     <a href="{{ route('stocker') }}" class="dropdown-item">
                                         Stocker
                                     </a>
                                 </li>
-                            @endif
+                            @endstocker
                         @endif
                         {{-- <li class="dropdown-divider"></li> --}}
                         <!-- Level two dropdown-->
@@ -101,13 +104,11 @@
                     </li>
                 @endif
 
-                @if (auth()->user()->type != 'meja')
-                    <li class="nav-item">
-                        <a href="{{ route('home') }}/" class="nav-link">
-                            <i class="fas fa-home"></i>
-                        </a>
-                    </li>
-                @endif
+                <li class="nav-item">
+                    <a href="{{ route('home') }}/" class="nav-link">
+                        <i class="fas fa-home"></i>
+                    </a>
+                </li>
             </ul>
 
             <!-- SEARCH FORM -->

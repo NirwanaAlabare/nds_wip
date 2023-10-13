@@ -32,7 +32,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Marker
-    Route::controller(MarkerController::class)->prefix("marker")->middleware('admin')->group(function () {
+    Route::controller(MarkerController::class)->prefix("marker")->middleware('marker')->group(function () {
         Route::get('/', 'index')->name('marker');
         Route::get('/create', 'create')->name('create-marker');
         Route::post('/store', 'store')->name('store-marker');
@@ -58,7 +58,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Spreading
-    Route::controller(SpreadingController::class)->prefix("spreading")->middleware('admin')->group(function () {
+    Route::controller(SpreadingController::class)->prefix("spreading")->middleware('spreading')->group(function () {
         Route::get('/', 'index')->name('spreading');
         Route::get('/create', 'create')->name('create-spreading');
         Route::post('/getno_marker', 'getno_marker')->name('getno_marker');
@@ -74,7 +74,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Form Cut Input
-    Route::controller(FormCutInputController::class)->prefix("form-cut-input")->group(function () {
+    Route::controller(FormCutInputController::class)->prefix("form-cut-input")->middleware("meja")->group(function () {
         Route::get('/', 'index')->name('form-cut-input');
         Route::get('/process/{id?}', 'process')->name('process-form-cut-input');
         Route::get('/get-number-data', 'getNumberData')->name('get-number-form-cut-input');
@@ -118,7 +118,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Stocker
-    Route::controller(StockerController::class)->prefix("stocker")->middleware('admin')->group(function () {
+    Route::controller(StockerController::class)->prefix("stocker")->middleware('stocker')->group(function () {
         Route::get('/', 'index')->name('stocker');
         Route::get('/show/{id?}', 'show')->name('show-stocker');
         Route::post('/print-stocker/{index?}', 'printStocker')->name('print-stocker');

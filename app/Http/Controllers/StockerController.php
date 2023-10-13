@@ -289,6 +289,8 @@ class StockerController extends Controller
 
     public function printNumbering(Request $request, $index)
     {
+        $stockerCount = StockerDetail::count();
+
         $checkStocker = Stocker::whereRaw("
                 no_form_cut_input = '".$request['no_form_cut']."' AND
                 tgl_form_cut_input = '".$request['tgl_form_cut']."' AND
@@ -297,6 +299,8 @@ class StockerController extends Controller
                 shade = '".$request['shade']."' AND
                 ratio = '".$request['ratio'][$index]."'
             ")->first();
+
+        $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-".$stockerCount;
 
         $idStocker = "";
         $kodeStocker = "";
@@ -331,19 +335,29 @@ class StockerController extends Controller
             $colorStocker = $storeItem->color;
         }
 
-        $thisStockerCount = StockerDetail::where("id_stocker", $idStocker)->count();
-        if ($thisStockerCount > 0) {
-            $deleteDetailItem = StockerDetail::where("id_stocker", $idStocker)->delete();
-        }
-        $stockerCount = StockerDetail::count();
-
         $now = Carbon::now();
         $noCutSize = $request["size"][$index]."".sprintf('%02s', $idStocker);
         $storeDetailItemArr = [];
         $qrCodeDetailItemArr = [];
         for ($i = 0; $i < intval($request['qty_cut'][$index]); $i++) {
+            $checkStockerDetail = StockerDetail::where('no_cut_size', $noCutSize.sprintf('%04s', ($i+1)))->where('id_stocker', $idStocker)->first();
+
+            StockerDetail::updateOrCreate(
+                [
+                    'no_cut_size' => $noCutSize.sprintf('%04s', ($i+1)),
+                    'id_stocker' => $idStocker,
+                ],
+                [
+                    "kode" => $checkStockerDetail ? $checkStockerDetail->kode : "WIP-".(($stockerCount+1)+$i),
+                    'size' => $request['size'][$index],
+                    'id_so_det' => $request['so_det_id'][$index],
+                    'created_at' => $now,
+                    'updated_at' => $now
+                ]
+            );
+
             array_push($storeDetailItemArr, [
-                'kode' => "WIP-".($stockerCount+1),
+                'kode' => $checkStockerDetail ? $checkStockerDetail->kode : "WIP-".(($stockerCount+1)+$i),
                 'no_cut_size' => $noCutSize.sprintf('%04s', ($i+1)),
                 'id_stocker' => $checkStocker->id,
                 'size' => $request['size'][$index],
@@ -352,7 +366,7 @@ class StockerController extends Controller
                 'updated_at' => $now
             ]);
 
-            array_push($qrCodeDetailItemArr, base64_encode(QrCode::format('svg')->size(100)->generate("WIP-".($stockerCount+1)."-".$noCutSize.($i+1)."-".$checkStocker->id."-".$request['so_det_id'][$index])));
+            array_push($qrCodeDetailItemArr, base64_encode(QrCode::format('svg')->size(100)->generate("WIP-".($stockerCount+1)."-".$noCutSize.($i+1)."-".$idStocker."-".$request['so_det_id'][$index])));
         }
 
         $storeDetailItem = StockerDetail::insert($storeDetailItemArr);

@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
-class IsMeja
+class IsSpreading
 {
     /**
      * Handle an incoming request.
@@ -17,10 +17,10 @@ class IsMeja
      */
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::user() &&  (Auth::user()->type == 'admin' || Auth::user()->type == 'meja')) {
+        if (Auth::user() &&  (Auth::user()->type == 'admin' || Auth::user()->type == 'spreading')) {
             return $next($request);
         }
 
-        return redirect('home')->with('error', 'You have not meja access');
+        return redirect('home')->with('error', 'You have not spreading access');
     }
 }

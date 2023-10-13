@@ -37,7 +37,7 @@
                 </div>
             </div>
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped table-sm w-100">
+                <table id="datatable" class="table table-bordered table-sm w-100">
                     <thead>
                         <tr>
                             <th>No Form</th>
@@ -255,7 +255,8 @@
                     d.dateTo = $('#tgl-akhir').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'no_form'
                 },
                 {
@@ -289,39 +290,72 @@
                     data: 'id'
                 },
             ],
-            columnDefs: [{
+            columnDefs: [
+                {
                     targets: [2],
-                    render: (data, type, row, meta) => data ? data.toUpperCase() : "-"
+                    render: (data, type, row, meta) => {
+                        let color = "";
+
+                        if (row.status == 'SELESAI PENGERJAAN') {
+                            color = '#087521';
+                        } else if (row.status == 'PENGERJAAN FORM CUTTING') {
+                            color = '#2243d6';
+                        } else if (row.status == 'PENGERJAAN FORM CUTTING DETAIL') {
+                            color = '#2243d6';
+                        } else if (row.status == 'PENGERJAAN FORM CUTTING SPREAD') {
+                            color = '#2243d6';
+                        }
+
+                        return data ? "<span style='color: "+color+"'>"+data.toUpperCase()+"</span>" : "<span style='color: "+color+"'>-</span>"
+                    }
+                },
+                {
+                    targets: [7],
+                    className: "text-center align-middle",
+                    render: (data, type, row, meta) => {
+                        icon = "";
+
+                        switch (data) {
+                            case "SPREADING" :
+                                icon = `<i class="fas fa-blind fa-lg"></i>`;
+                                break;
+                            case "PENGERJAAN FORM CUTTING" :
+                            case "PENGERJAAN FORM CUTTING DETAIL" :
+                            case "PENGERJAAN FORM CUTTING SPREAD" :
+                                icon = `<i class="fas fa-running fa-lg text-primary"></i>`;
+                                break;
+                            case "SELESAI PENGERJAAN" :
+                                icon = `<i class="fas fa-check fa-lg text-success"></i>`;
+                                break;
+                        }
+
+                        return icon;
+                    }
                 },
                 {
                     targets: [10],
                     render: (data, type, row, meta) => {
-                        let btnEdit = row.status == 'SPREADING' ?
-                            "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" +
-                            JSON.stringify(row) +
-                            ", \"editMejaModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-pen'></i></a>" :
-                            "";
-                        let btnProcess = row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null ?
-                            `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` +
-                            row.id +
-                            `' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-plus'></i></a>` :
-                            "";
+                        let btnEdit = row.status == 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"editMejaModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-pen'></i></a>" : "";
+                        let btnProcess = row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null ? `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-plus'></i></a>` : "";
 
-                        return `<div class='d-flex gap-1 justify-content-center'>` + btnProcess + btnEdit +
-                            `</div>`;
+                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnProcess + `</div>`;
                     }
                 },
                 {
                     targets: '_all',
                     render: (data, type, row, meta) => {
                         var color = 'black';
+
                         if (row.status == 'SELESAI PENGERJAAN') {
-                            color = 'green';
-                        } else if (row.status == 'PENGERJAAN FORM CUTTING SPREAD') {
-                            color = 'blue';
+                            color = '#087521';
+                        } else if (row.status == 'PENGERJAAN FORM CUTTING') {
+                            color = '#2243d6';
                         } else if (row.status == 'PENGERJAAN FORM CUTTING DETAIL') {
-                            color = 'blue';
+                            color = '#2243d6';
+                        } else if (row.status == 'PENGERJAAN FORM CUTTING SPREAD') {
+                            color = '#2243d6';
                         }
+
                         return '<span style="color:' + color + '">' + data + '</span>';
                     }
                 }

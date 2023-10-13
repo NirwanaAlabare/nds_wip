@@ -1240,16 +1240,20 @@
                         },
                         success: function(res) {
                             if (res) {
+                                lockFormCutInput();
+
                                 Swal.fire({
                                     icon: 'success',
                                     title: 'Berhasil',
-                                    text: 'Proses telah berhasil diselesaikan',
+                                    text: 'Proses telah berhasil diselesaikan (Laman akan ditutup)',
                                     showCancelButton: false,
                                     showConfirmButton: true,
                                     confirmButtonText: 'Oke',
-                                });
-
-                                lockFormCutInput();
+                                    timer: 3000,
+                                    timerProgressBar: true
+                                }).then((result) => {
+                                    window.close();
+                                })
                             }
                         },
                         error: function(jqXHR) {
@@ -1904,6 +1908,7 @@
                     },
                     /* verbose= */
                     false);
+
                 html5QrcodeScanner.render(onScanSuccess, onScanFailure);
             }
         }
@@ -1996,8 +2001,6 @@
                     }
                 });
             }
-
-            html5QrcodeScanner.clear();
 
             return Swal.fire({
                 icon: 'error',
