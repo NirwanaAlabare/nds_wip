@@ -101,7 +101,7 @@
                     </li>
                 @endif
 
-                @if (auth()->user()->type != 'admin')
+                @if (auth()->user()->type != 'meja')
                     <li class="nav-item">
                         <a href="{{ route('home') }}/" class="nav-link">
                             <i class="fas fa-home"></i>
