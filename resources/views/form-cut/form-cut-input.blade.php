@@ -17,10 +17,6 @@
             <h5 class="card-title fw-bold mb-0">Data Spreading</h5>
         </div>
         <div class="card-body">
-            <a href="{{ route('create-spreading') }}" class="btn btn-primary btn-sm mb-3">
-                <i class="fas fa-plus"></i>
-                Baru
-            </a>
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Awal</small></label>
