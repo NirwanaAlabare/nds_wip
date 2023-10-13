@@ -386,7 +386,7 @@
                         </div>
                         <div class="col-md-12">
                             <div class="mb-3">
-                                <label class="form-label label-input"><small><b>Kode Barang</b></small></label>
+                                <label class="form-label label-input"><small><b>ID Roll</b></small></label>
                                 <div class="input-group">
                                     <input type="text" class="form-control form-control-sm border-input"
                                         name="kode_barang" id="kode_barang">
@@ -1983,6 +1983,15 @@
                             //         document.getElementById("detail_item").value = res.detail_item;
                             //     }
                             // }
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: 'Roll tidak tersedia atau sudah habis.',
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                            });
                         }
                     }
                 });

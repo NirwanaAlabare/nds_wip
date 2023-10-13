@@ -55,13 +55,13 @@
             </div>
         </div>
         <!-- Modal -->
-        <div class="modal fade" id="editMejaModal" tabindex="-1" aria-labelledby="editMejaModalLabel" aria-hidden="true">
+        <div class="modal fade" id="detailSpreadingModal" tabindex="-1" aria-labelledby="detailSpreadingModalLabel" aria-hidden="true">
             <form action="{{ route('update-spreading') }}" method="post" onsubmit="submitForm(this, event)">
                 @method('PUT')
                 <div class="modal-dialog modal-lg modal-dialog-scrollable">
                     <div class="modal-content">
                         <div class="modal-header bg-sb text-light">
-                            <h1 class="modal-title fs-5" id="editMejaModalLabel">Edit Meja</h1>
+                            <h1 class="modal-title fs-5" id="detailSpreadingModalLabel">Detail Form</h1>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body" style="max-height: 65vh !important;">
@@ -280,10 +280,10 @@
                 {
                     targets: [10],
                     render: (data, type, row, meta) => {
-                        let btnEdit = row.status == 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData("+ JSON.stringify(row) +", \"editMejaModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-pen'></i></a>" : "";
+                        let btnEdit = row.status == 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData("+ JSON.stringify(row) +", \"detailSpreadingModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-search'></i></a>" : "";
                         let btnProcess = row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null ? `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-plus'></i></a>` : "";
 
-                        return `<div class='d-flex gap-1 justify-content-center'>` + btnProcess + btnEdit + `</div>`;
+                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnProcess + `</div>`;
                     }
                 }
             ]
