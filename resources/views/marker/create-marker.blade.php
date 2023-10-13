@@ -104,8 +104,7 @@
                         <div class="col-6 col-md-3">
                             <div class="mb-1">
                                 <label class="form-label"><small>Unit</small></label>
-                                <select class="form-control input-sm select2bs4" id="p_unit" name="p_unit"
-                                    style="width: 100%;">
+                                <select class="form-control input-sm select2bs4" id="p_unit" name="p_unit" style="width: 100%;">
                                     <option selected="selected" value="yard">YARD</option>
                                     <option value="meter">METER</option>
                                 </select>
@@ -266,8 +265,10 @@
             let unit = $('#p_unit').val();
             if (unit == 'yard') {
                 $('#comma_unit').val('INCH');
+                $('#l_unit').val('inch').trigger("change");
             } else if (unit == 'meter') {
                 $('#comma_unit').val('CM');
+                $('#l_unit').val('cm').trigger("change");
             }
         });
 
