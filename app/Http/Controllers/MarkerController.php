@@ -67,7 +67,7 @@ class MarkerController extends Controller
                     $query->whereRaw("LOWER(po_marker) LIKE LOWER('%".$keyword."%')");
                 })->
                 order(function ($query) {
-                    $query->orderBy('updated_at', 'desc');
+                    $query->orderBy('cancel', 'asc')->orderBy('updated_at', 'desc');
                 })->toJson();
         }
 
@@ -88,7 +88,7 @@ class MarkerController extends Controller
                     SUM(marker_input_detail.cut_qty) total_cut_qty
                 ")->
                 leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->
-                where('marker_input.cancel', '=', 'N')->
+                where('marker_input.cancel', 'N')->
                 groupBy("marker_input_detail.so_det_id", "marker_input.panel")->get();
 
             return $markerDetail;
@@ -155,7 +155,7 @@ class MarkerController extends Controller
                         where ac.id = '" . $request->act_costing_id . "' and sd.color = '" . $request->color . "' and k.status = 'M'
                         and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and ac.status = 'confirm' and mi.mattype = 'F'
                         group by id_panel
-                    )a
+                    ) a
                 inner join masterpanel mp on a.id_panel = mp.id
             ");
 
@@ -579,7 +579,7 @@ class MarkerController extends Controller
             $kode = Marker::where('id', $request->id_c)->first();
             return array(
                 'status' => 200,
-                'message' => 'Data form "' . $kode->kode . '" berhasil di rubah',
+                'message' => 'Data form "' . $kode->kode . '" berhasil diubah',
                 'redirect' => '',
                 'table' => 'datatable',
                 'additional' => [],

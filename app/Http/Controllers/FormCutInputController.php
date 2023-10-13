@@ -29,7 +29,7 @@ class FormCutInputController extends Controller
             $additionalQuery = "";
 
             if ($request->dateFrom) {
-                $additionalQuery .= " where a.tgl_form_cut >= '" . $request->dateFrom . "' ";
+                $additionalQuery .= "and a.tgl_form_cut >= '" . $request->dateFrom . "' ";
             }
 
             if ($request->dateTo) {
@@ -87,10 +87,12 @@ class FormCutInputController extends Controller
                 left join marker_input_detail on b.id = marker_input_detail.marker_id
                 left join master_size_new on marker_input_detail.size = master_size_new.size
                 left join users on users.id = a.no_meja
-                " . $additionalQuery . "
-                " . $keywordQuery . "
+                where
+                    b.cancel = 'N'
+                    " . $additionalQuery . "
+                    " . $keywordQuery . "
                 GROUP BY a.id
-                ORDER BY a.updated_at desc
+                ORDER BY b.cancel asc, a.updated_at desc
             ");
 
             return DataTables::of($data_spreading)->toJson();
@@ -198,7 +200,11 @@ class FormCutInputController extends Controller
                 marker_input_detail.so_det_id,
                 marker_input_detail.ratio,
                 marker_input_detail.cut_qty
-            ")->leftJoin("marker_input", "marker_input.id", "=", "marker_input_detail.marker_id")->where("marker_input.kode", $formCutInputData->kode)->get();
+            ")->
+            leftJoin("marker_input", "marker_input.id", "=", "marker_input_detail.marker_id")->
+            where("marker_input.kode", $formCutInputData->kode)->
+            where("marker_input.cancel", "N")->
+            get();
 
         if (Auth::user()->type == "meja" && Auth::user()->id != $formCutInputData->no_meja) {
             return Redirect::to('/home');
@@ -217,7 +223,22 @@ class FormCutInputController extends Controller
     {
         $numberData = DB::connection('mysql_sb')->table("bom_jo_item")->selectRaw("
                 bom_jo_item.cons cons_ws
-            ")->leftJoin("so_det", "so_det.id", "=", "bom_jo_item.id_so_det")->leftJoin("so", "so.id", "=", "so_det.id_so")->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->leftJoin("masteritem", "masteritem.id_gen", "=", "bom_jo_item.id_item")->leftJoin("masterpanel", "masterpanel.id", "=", "bom_jo_item.id_panel")->where("act_costing.id", $request->act_costing_id)->where("so_det.color", $request->color)->where("masterpanel.nama_panel", $request->panel)->where("bom_jo_item.status", "M")->where("bom_jo_item.cancel", "N")->where("so_det.cancel", "N")->where("so.cancel_h", "N")->where("act_costing.status", "CONFIRM")->where("masteritem.mattype", "F")->where("masteritem.mattype", "F")->groupBy("so_det.color", "bom_jo_item.id_item", "bom_jo_item.unit")->first();
+            ")->
+            leftJoin("so_det", "so_det.id", "=", "bom_jo_item.id_so_det")->
+            leftJoin("so", "so.id", "=", "so_det.id_so")->
+            leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")->
+            leftJoin("masteritem", "masteritem.id_gen", "=", "bom_jo_item.id_item")->
+            leftJoin("masterpanel", "masterpanel.id", "=", "bom_jo_item.id_panel")->
+            where("act_costing.id", $request->act_costing_id)->where("so_det.color", $request->color)->
+            where("masterpanel.nama_panel", $request->panel)->
+            where("bom_jo_item.status", "M")->
+            where("bom_jo_item.cancel", "N")->
+            where("so_det.cancel", "N")->
+            where("so.cancel_h", "N")->
+            where("act_costing.status", "CONFIRM")->
+            where("masteritem.mattype", "F")->
+            where("masteritem.mattype", "F")->
+            groupBy("so_det.color", "bom_jo_item.id_item", "bom_jo_item.unit")->first();
 
         return json_encode($numberData);
     }

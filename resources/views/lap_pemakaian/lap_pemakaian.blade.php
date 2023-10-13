@@ -71,21 +71,17 @@
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: false,
             ajax: {
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
                 url: '{{ route('lap_pemakaian') }}',
-                dataType: 'json',
-                dataSrc: 'data',
                 data: function(d) {
                     d.dateFrom = $('#from').val();
                     d.dateTo = $('#to').val();
                 },
             },
-            columns: [{
-                    data: 'tgl_form_cut_fix'
+            columns: [
+                {
+                    data: 'tgl_form_cut_fix',
+                    searchable: false
                 },
                 {
                     data: 'act_costing_ws'

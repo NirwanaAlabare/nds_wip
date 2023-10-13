@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Exports\ExportLaporanPemakaian;
 use Maatwebsite\Excel\Facades\Excel;
-use DB;
 use Illuminate\Http\Request;
-
+use Yajra\DataTables\Facades\DataTables;
+use DB;
 
 class LapPemakaianController extends Controller
 {
@@ -21,7 +21,7 @@ class LapPemakaianController extends Controller
             $additionalQuery = "";
 
             if ($request->dateFrom) {
-                $additionalQuery .= " where b.created_at >= '" . $request->dateFrom . " 00:00:00' ";
+                $additionalQuery .= " and b.created_at >= '" . $request->dateFrom . " 00:00:00' ";
             }
 
             if ($request->dateTo) {
@@ -80,16 +80,13 @@ class LapPemakaianController extends Controller
                 inner join form_cut_input_detail b on a.no_form = b.no_form_cut_input
                 inner join marker_input mrk on a.id_marker = mrk.kode
                 inner join (select marker_id, sum(ratio) tot_ratio from marker_input_detail group by marker_id) mr on mrk.id = mr.marker_id
+                where
+                    mrk.cancel = 'N'
                     " . $additionalQuery . "
                     " . $keywordQuery . "
                 ");
 
-            return json_encode([
-                "draw" => intval($request->input('draw')),
-                "recordsTotal" => intval(count($data_pemakaian)),
-                "recordsFiltered" => intval(count($data_pemakaian)),
-                "data" => $data_pemakaian
-            ]);
+            return DataTables::of($data_pemakaian)->toJson();
         }
 
         return view('lap_pemakaian.lap_pemakaian', ['page' => 'dashboard-cutting']);
@@ -103,7 +100,6 @@ class LapPemakaianController extends Controller
 
     public function export_excel(Request $request)
     {
-
         return Excel::download(new ExportLaporanPemakaian($request->from, $request->to), 'Laporan_pemakaian_cutting.xlsx');
     }
 

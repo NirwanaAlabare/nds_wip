@@ -24,7 +24,7 @@ class SpreadingController extends Controller
             $additionalQuery = "";
 
             if ($request->dateFrom) {
-                $additionalQuery .= " where a.tgl_form_cut >= '" . $request->dateFrom . "' ";
+                $additionalQuery .= " and a.tgl_form_cut >= '" . $request->dateFrom . "' ";
             }
 
             if ($request->dateTo) {
@@ -78,8 +78,10 @@ class SpreadingController extends Controller
                 left join marker_input_detail on b.id = marker_input_detail.marker_id
                 left join master_size_new on marker_input_detail.size = master_size_new.size
                 left join users on users.id = a.no_meja
-                " . $additionalQuery . "
-                " . $keywordQuery . "
+                where
+                    b.cancel = 'N'
+                    " . $additionalQuery . "
+                    " . $keywordQuery . "
                 GROUP BY a.id
                 ORDER BY a.updated_at desc
             ");
