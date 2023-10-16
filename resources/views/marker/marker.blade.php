@@ -210,7 +210,7 @@
                         return '<span style="color:' + color + '">' + data + '</span>';
                     }
                 }
-            ]
+            ],
         });
 
         function filterTable() {
