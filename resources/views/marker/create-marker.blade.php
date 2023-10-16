@@ -198,6 +198,19 @@
                         <th>Cut Qty</th>
                     </tr>
                 </thead>
+                <tbody>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="3"></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th id="total_ratio"></th>
+                        <th id="total_cut_qty"></th>
+                    </tr>
+                </tfoot>
             </table>
             <button class="btn btn-sb float-end mt-3">Simpan</button>
         </div>
@@ -216,6 +229,7 @@
     <!-- Page specific script -->
     <script>
         var sumCutQty = null;
+        var totalRatio = null;
         $(document).ready(async function () {
             sumCutQty = await $.ajax({
                 url: '{{ route("create-marker") }}',
@@ -416,18 +430,62 @@
                         let left = row.order_qty - (sumCutQtyData ? sumCutQtyData.total_cut_qty : 0);
                         let readonly = left < 1 ? "readonly" : "";
 
-                        return '<input type="number" id="ratio-' + meta.row + '" name="ratio[' + meta.row + ']" onchange="calculateRatio(' + meta.row + ')" onkeyup="calculateRatio(' + meta.row + ')" '+readonly+' />';
+                        return '<input type="number" id="ratio-' + meta.row + '" name="ratio[' + meta.row + ']" onchange="calculateRatio(' + meta.row + ');" onkeyup="calculateRatio(' + meta.row + ');" '+readonly+' />';
                     }
                 },
                 {
                     targets: [8],
                     render: (data, type, row, meta) => '<input type="number" id="cut-qty-' + meta.row + '" name="cut_qty['+meta.row+']" readonly />'
                 }
-            ]
+            ],
+            footerCallback: function(row, data, start, end, display) {
+                let api = this.api();
+
+                // Remove the formatting to get integer data for summation
+                let intVal = function(i) {
+                    return typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
+                };
+
+                // Total over this page
+                let orderQtyTotal = api
+                    .column(4, {
+                        page: 'current'
+                    })
+                    .data()
+                    .reduce(function(a, b) {
+                        let result = intVal(a) + intVal(b);
+                        return result;
+                    }, 0);
+
+                let remainQtyTotal = datatable
+                    .cells( null, 5 )
+                    .render( 'display' )
+                    .reduce(function(a, b) {
+                        let result = intVal(a) + intVal(b);
+                        return result;
+                    }, 0);
+
+                // let remainQtyTotal = api
+                //     .column(4, {
+                //         page: 'current'
+                //     })
+                //     .render()
+                //     .reduce(function(a, b) {
+                //         let result = intVal(a) + intVal(b);
+                //         return result.toFixed(2);
+                //     }, 0);
+
+                // Update footer
+                $(api.column(1).footer()).html("Total");
+                $(api.column(4).footer()).html(Number(orderQtyTotal).toLocaleString('id-ID'));
+                $(api.column(5).footer()).html(Number(remainQtyTotal).toLocaleString('id-ID'));
+                $(api.column(7).footer()).html(0);
+                $(api.column(8).footer()).html(0);
+            },
         });
 
         async function updateSizeList() {
-            return datatable.ajax.reload(() => {
+            await datatable.ajax.reload(() => {
                 document.getElementById('jumlah_so_det').value = datatable.data().count();
             });
         }
@@ -482,6 +540,22 @@
             let ratio = document.getElementById('ratio-'+id).value;
             let gelarQty = document.getElementById('gelar_marker_qty').value;
             document.getElementById('cut-qty-'+id).value = ratio * gelarQty;
+
+            calculateTotalRatio();
+        }
+
+        function calculateTotalRatio() {
+            let totalSize = datatable.rows().count();
+            let totalRatio = 0;
+            let totalCutQty = 0;
+
+            for (let i = 0; i < totalSize; i++) {
+                totalRatio += Number(document.getElementById('ratio-'+i).value);
+                totalCutQty += Number(document.getElementById('cut-qty-'+i).value);
+            }
+
+            document.querySelector("table#datatable tfoot tr th:nth-child(6)").innerText = totalRatio;
+            document.querySelector("table#datatable tfoot tr th:nth-child(7)").innerText = totalCutQty;
         }
 
         function calculateAllRatio(element) {
@@ -491,6 +565,8 @@
                 let ratio = document.getElementById('ratio-'+i).value;
                 document.getElementById('cut-qty-'+i).value = ratio * gelarQty;
             }
+
+            calculateTotalRatio();
         }
 
         document.getElementById("store-marker").onkeypress = function(e) {
