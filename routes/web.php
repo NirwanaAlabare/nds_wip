@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CutPlanController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MarkerController;
@@ -106,6 +107,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-count', 'getCount')->name('form-cut-get-marker-count');
         // get number
         Route::get('/get-number', 'getNumber')->name('form-cut-get-marker-number');
+    });
+
+    // Cutting Plan
+    Route::controller(CutPlanController::class)->prefix("cut_plan")->middleware('admin')->group(function () {
+        Route::get('/', 'index')->name('cut_plan');
+        Route::get('/create', 'create')->name('create-cut_plan');
     });
 
 
