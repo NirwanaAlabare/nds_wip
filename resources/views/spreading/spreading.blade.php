@@ -194,8 +194,7 @@
                                 <div class="col-12 col-md-12">
                                     <div class="mb-3">
                                         <label class="form-label"><small>No. Meja</small></label>
-                                        <select class="form-select form-select-sm select2bs4"
-                                            aria-label="Default select example" id="edit_no_meja" name="edit_no_meja">
+                                        <select class="form-select form-select-sm select2bs4" aria-label="Default select example" id="edit_no_meja" name="edit_no_meja">
                                             @foreach ($meja as $m)
                                                 <option value="{{ $m->id }}">{{ strtoupper($m->name) }}</option>
                                             @endforeach
@@ -236,7 +235,12 @@
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
+        $(document).on('select2:open', () => {
+            document.querySelector('.select2-search__field').focus();
+        });
+
         $('.select2').select2()
+
         $('.select2bs4').select2({
             theme: 'bootstrap4',
             dropdownParent: $("#editMejaModal")
