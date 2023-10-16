@@ -259,8 +259,7 @@
                     d.dateTo = $('#tgl-akhir').val();
                 },
             },
-            columns: [
-                {
+            columns: [{
                     data: 'no_form'
                 },
                 {
@@ -294,8 +293,7 @@
                     data: 'id'
                 },
             ],
-            columnDefs: [
-                {
+            columnDefs: [{
                     targets: [2],
                     render: (data, type, row, meta) => {
                         let color = "";
@@ -310,7 +308,8 @@
                             color = '#2243d6';
                         }
 
-                        return data ? "<span style='color: "+color+"'>"+data.toUpperCase()+"</span>" : "<span style='color: "+color+"'>-</span>"
+                        return data ? "<span style='color: " + color + "'>" + data.toUpperCase() +
+                            "</span>" : "<span style='color: " + color + "'>-</span>"
                     }
                 },
                 {
@@ -320,15 +319,15 @@
                         icon = "";
 
                         switch (data) {
-                            case "SPREADING" :
-                                icon = `<i class="fas fa-blind fa-lg"></i>`;
+                            case "SPREADING":
+                                icon = `<i class="fas fa-file fa-lg"></i>`;
                                 break;
-                            case "PENGERJAAN FORM CUTTING" :
-                            case "PENGERJAAN FORM CUTTING DETAIL" :
-                            case "PENGERJAAN FORM CUTTING SPREAD" :
-                                icon = `<i class="fas fa-running fa-lg text-primary"></i>`;
+                            case "PENGERJAAN FORM CUTTING":
+                            case "PENGERJAAN FORM CUTTING DETAIL":
+                            case "PENGERJAAN FORM CUTTING SPREAD":
+                                icon = `<i class="fas fa-sync-alt fa-spin fa-lg text-primary"></i>`;
                                 break;
-                            case "SELESAI PENGERJAAN" :
+                            case "SELESAI PENGERJAAN":
                                 icon = `<i class="fas fa-check fa-lg text-success"></i>`;
                                 break;
                         }
@@ -339,10 +338,19 @@
                 {
                     targets: [10],
                     render: (data, type, row, meta) => {
-                        let btnEdit = row.status == 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"editMejaModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-pen'></i></a>" : "";
-                        let btnProcess = row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null ? `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-plus'></i></a>` : "";
+                        let btnEdit = row.status == 'SPREADING' ?
+                            "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" +
+                            JSON.stringify(row) +
+                            ", \"editMejaModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-pen'></i></a>" :
+                            "";
+                        let btnProcess = row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null ?
+                            `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` +
+                            row.id +
+                            `' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-plus'></i></a>` :
+                            "";
 
-                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnProcess + `</div>`;
+                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnProcess +
+                            `</div>`;
                     }
                 },
                 {

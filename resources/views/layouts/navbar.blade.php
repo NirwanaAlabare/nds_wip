@@ -50,13 +50,13 @@
                                     </a>
                                 </li>
                             @endmeja
-
-                            <li>
-                                <a href="{{ route('cut_plan') }}" class="dropdown-item">
-                                    Cutting Plan
-                                </a>
-                            </li>
-
+                            @admin
+                                <li>
+                                    <a href="{{ route('cut_plan') }}" class="dropdown-item">
+                                        Cutting Plan
+                                    </a>
+                                </li>
+                            @endadmin
                         @endif
 
                         @if ($page == 'dashboard-stocker')
