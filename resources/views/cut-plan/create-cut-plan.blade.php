@@ -29,7 +29,7 @@
             </div>
         </div>
         <div class="row mb-3">
-            <div class="col-12 col-md-6">
+            <div class="col-12 mb-3">
                 <div class="card card-danger h-100">
                     <div class="card-header">
                         <div class="row align-items-center">
@@ -39,7 +39,7 @@
                                 </h5>
                             </div>
                             <div class="col-6">
-                                <input type="date" class="form-control form-control-sm" id="tgl_form" name="tgl_form" value="{{ date('Y-m-d') }}">
+                                <input type="date" class="form-control form-control-sm w-auto float-end" id="tgl_form" name="tgl_form" value="{{ date('Y-m-d') }}">
                             </div>
                         </div>
                     </div>
@@ -74,7 +74,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-md-6">
+            <div class="col-12 mb-3">
                 <div class="card card-success h-100">
                     <div class="card-header">
                         <h5 class="card-title mb-2 fw-bold" style="padding-bottom: 2px">
@@ -164,7 +164,6 @@
         });
 
         let datatableSelect = $("#datatable-select").DataTable({
-            pageLength: 5,
             ordering: false,
             processing: true,
             serverSide: true,
@@ -325,7 +324,6 @@
         }
 
         let datatableSelected = $("#datatable-selected").DataTable({
-            pageLength: 5,
             ordering: false,
             processing: true,
             serverSide: true,

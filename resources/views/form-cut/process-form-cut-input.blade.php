@@ -506,8 +506,8 @@
                                     <label class="form-label label-input"><small><b>Sambungan</b></small></label>
                                     <input type="number" class="form-control form-control-sm border-input"
                                         id="current_sambungan" name="current_sambungan" step=".01"
-                                        onkeyup="calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = this.value, qty = undefined)"
-                                        onchange="calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = this.value, qty = undefined)">
+                                        onkeyup="calculateTotalPemakaian() ;calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = this.value, qty = undefined)"
+                                        onchange="calculateTotalPemakaian() ;calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = this.value, qty = undefined)">
                                 </div>
                             </div>
                             <div class="col-4">
@@ -1444,7 +1444,13 @@
             let unitPActualVar = unitPActual ? unitPActual : document.getElementById("unit_p_act").value;
             let commaActualVar = commaActual > 0 ? Number(commaActual) : Number(document.getElementById("comma_act").value);
 
-            let pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+            let pActualConverted = 0;
+
+            if (document.getElementById("status_sambungan").value == "extension") {
+                pActualConverted = document.getElementById("current_sambungan").value;
+            } else {
+                pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+            }
 
             let totalPemakaian = lembarGelaranVar * pActualConverted + kepalaKainVar + sisaTidakBisaVar + rejectVar;
 
@@ -1467,7 +1473,13 @@
             let lActualVar = lActual > 0 ? Number(lActual) : Number(document.getElementById("l_act").value);
             let commaActualVar = commaActual > 0 ? Number(commaActual) : Number(document.getElementById("comma_act").value);
 
-            let pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+            let pActualConverted = 0;
+
+            if (document.getElementById("status_sambungan").value == "extension") {
+                pActualConverted = document.getElementById("current_sambungan").value;
+            } else {
+                pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+            }
 
             let shortRoll = pActualConverted * lembarGelaranVar + kepalaKainVar + pipingVar + sisaKainVar + rejectVar + sambunganVar - qtyVar;
 
@@ -1752,6 +1764,8 @@
 
                 document.getElementById("current_sambungan").removeAttribute('readonly');
                 document.getElementById("current_sisa_gelaran").setAttribute('readonly', true);
+
+                document.getElementById("current_total_pemakaian_roll").value = document.getElementById("current_sambungan").value;
             } else {
                 nextProcessThreeButton.classList.add("d-none");
 

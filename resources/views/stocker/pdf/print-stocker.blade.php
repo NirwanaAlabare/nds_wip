@@ -12,7 +12,7 @@
         }
 
         img {
-            width: 69px;
+            width: 100px;
         }
 
         table {
@@ -47,28 +47,34 @@
             <td colspan="3" style="text-align: center;">Deskripsi Item</td>
         </tr>
         <tr>
-            <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;" colspan="2">Kode Stocker</td>
-            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;{{ $dataSpreading->id_qr_stocker }}</td>
+            <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;white-space: nowrap;">Kode Stocker</td>
+            <td style="border: none;border-left: none; border-top: 1px solid; border-bottom: 1px solid;text-align: center;"> : </td>
+            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataSpreading->id_qr_stocker }}</td>
         </tr>
         <tr>
-            <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;" colspan="2">Worksheet</td>
-            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;{{ $dataSpreading->act_costing_ws }}</td>
+            <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;white-space: nowrap;">Worksheet</td>
+            <td style="border: none;border-left: none; border-top: 1px solid; border-bottom: 1px solid;text-align: center;"> : </td>
+            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataSpreading->act_costing_ws }}</td>
         </tr>
         <tr>
-            <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;" colspan="2">Buyer</td>
-            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;{{ $dataSpreading->buyer }}</td>
+            <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;white-space: nowrap;">Buyer</td>
+            <td style="border: none;border-left: none; border-top: 1px solid; border-bottom: 1px solid;text-align: center;"> : </td>
+            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataSpreading->buyer }}</td>
         </tr>
         <tr>
-            <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;" colspan="2">Style</td>
-            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;{{ $dataSpreading->style }}</td>
+            <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;white-space: nowrap;">Style</td>
+            <td style="border: none;border-left: none; border-top: 1px solid; border-bottom: 1px solid;text-align: center;"> : </td>
+            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataSpreading->style }}</td>
         </tr>
         <tr>
-            <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;" colspan="2">Color</td>
-            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;{{ $dataSpreading->color }}</td>
+            <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;white-space: nowrap;">Color</td>
+            <td style="border: none;border-left: none; border-top: 1px solid; border-bottom: 1px solid;text-align: center;"> : </td>
+            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataSpreading->color }}</td>
         </tr>
         <tr>
-            <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;" colspan="2">Shade</td>
-            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;{{ $dataSpreading->shade }}</td>
+            <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;white-space: nowrap;">Shade</td>
+            <td style="border: none;border-left: none; border-top: 1px solid; border-bottom: 1px solid;text-align: center;"> : </td>
+            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataSpreading->shade }}</td>
         </tr>
     </table>
 </body>
