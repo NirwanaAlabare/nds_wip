@@ -280,6 +280,10 @@
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
+        $(document).on('select2:open', () => {
+            document.querySelector('.select2-search__field').focus();
+        });
+
         $('.select2').select2()
         $('.select2bs4').select2({
             theme: 'bootstrap4'

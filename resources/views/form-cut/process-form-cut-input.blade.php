@@ -92,18 +92,25 @@
                                     value="{{ $thisActCosting->style }}" readonly>
                             </div>
                         </div>
-                        <div class="col-6 col-md-6">
+                        <div class="col-4 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Color</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-fetch" name="color"
                                     id="color" value="{{ $formCutInputData->color }}" readonly>
                             </div>
                         </div>
-                        <div class="col-6 col-md-6">
+                        <div class="col-4 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Panel</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-fetch" name="panel"
                                     id="panel" value="{{ $formCutInputData->panel }}" readonly>
+                            </div>
+                        </div>
+                        <div class="col-4 col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label label-fetch"><small><b>Tipe Marker</b></small></label>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="tipe_marker"
+                                    id="tipe_marker" value="{{ $formCutInputData->tipe_marker ? strtoupper($formCutInputData->tipe_marker) : '-' }}" readonly>
                             </div>
                         </div>
                         <div class="col-4 col-md-4">

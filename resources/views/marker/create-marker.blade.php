@@ -160,13 +160,22 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="mb-1">
                         <label class="form-label"><small>PO</small></label>
                         <input type="text" class="form-control" id="po" name="po">
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
+                    <div class="mb-1">
+                        <label class="form-label"><small>Tipe Marker</small></label>
+                        <select class="form-select rounded-0" id="tipe_marker" name="tipe_marker" style="width: 100%;">
+                            <option selected="selected" value="regular marker">Regular Marker</option>
+                            <option value="special marker">Special Marker</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
                     <div class="mb-1">
                         <label class="form-label"><small>No. Urut Marker</small></label>
                         <input type="text" class="form-control" id="no_urut_marker" name="no_urut_marker"
@@ -240,6 +249,12 @@
                 },
                 dataType: 'json',
             });
+
+            $("#tipe_marker").val("regular marker");
+        });
+
+        $(document).on('select2:open', () => {
+            document.querySelector('.select2-search__field').focus();
         });
 
         //Initialize Select2 Elements
@@ -247,7 +262,7 @@
 
         //Initialize Select2 Elements
         $('.select2bs4').select2({
-            theme: 'bootstrap4'
+            theme: 'bootstrap4',
         })
 
         $("#color").prop("disabled", true);

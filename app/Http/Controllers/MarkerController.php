@@ -226,6 +226,7 @@ class MarkerController extends Controller
             "no_urut_marker" => "required",
             "cons_marker" => "required",
             "gramasi" => "required",
+            "tipe_marker" => "required",
         ]);
 
         foreach ($request["cut_qty"] as $qty) {
@@ -254,6 +255,7 @@ class MarkerController extends Controller
                 'urutan_marker' => $validatedRequest['no_urut_marker'],
                 'cons_marker' => $validatedRequest['cons_marker'],
                 'gramasi' => $validatedRequest['gramasi'],
+                'tipe_marker' => $validatedRequest['tipe_marker'],
                 'cancel' => 'N',
             ]);
 
