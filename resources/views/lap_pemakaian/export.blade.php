@@ -12,38 +12,50 @@
     <thead>
         <tr>
             <td>No</td>
+            <td>Tgl. Input</td>
+            <td>No. Form</td>
+            <td>No. Meja</td>
             <td>WS</td>
+            <td>Buyer</td>
+            <td>Style</td>
             <td>Color</td>
-            <td>roll</td>
-            <td>lot</td>
-            <td>cons_marker</td>
-            <td>cons_pipping</td>
-            <td>cons_ampar</td>
-            <td>cons_act</td>
-            <td>panel</td>
-            <td>unit</td>
-            <td>lembar_gelaran</td>
-            <td>tot_ratio</td>
-            <td>panjang_marker</td>
-            <td>unit_panjang_marker</td>
-            <td>panjang_act</td>
-            <td>unit_p_act</td>
-            <td>lebar_marker</td>
-            <td>unit_lebar_marker</td>
-            <td>l_act</td>
-            <td>unit_l_act</td>
-            <td>qty_potong</td>
-            <td>actual_gelar_kain</td>
-            <td>kain_terpakai</td>
-            <td>sisa_kain</td>
-            <td>sisa_tidak_bisa</td>
-            <td>sambungan</td>
-            <td>piping</td>
-            <td>kepala_kain</td>
-            <td>reject</td>
-            <td>total_aktual_kain</td>
-            <td>cons</td>
-            <td>created_at</td>
+            <td>Color Actual</td>
+            <td>Bulan</td>
+            <td>Qty Order</td>
+            <td>ID Roll</td>
+            <td>Nama Item</td>
+            <td>Roll Number</td>
+            <td>Lot</td>
+            <td>Cons WS</td>
+            <td>Cons Marker</td>
+            <td>Cons Piping</td>
+            <td>Cons Ampar</td>
+            <td>Cons Act</td>
+            <td>Panel</td>
+            <td>Qty</td>
+            <td>Unit</td>
+            <td>Sisa Kain</td>
+            <td>Lembar Gelaran</td>
+            <td>Total Ratio</td>
+            <td>Pjg Marker</td>
+            <td>Pjg Act</td>
+            <td>Unit Act</td>
+            <td>Lbr Marker</td>
+            <td>Lbr Act</td>
+            <td>Unit Lbr Act</td>
+            <td>Total Pemakaian</td>
+            <td>Sisa Kain</td>
+            <td>Sisa Gelar</td>
+            <td>Sambungan</td>
+            <td>Est Amparan</td>
+            <td>Average Time</td>
+            <td>Kepala Kain</td>
+            <td>Sisa Tidak Bisa</td>
+            <td>Reject</td>
+            <td>Piping</td>
+            <td>Short Roll</td>
+            <td>Ket</td>
+            <td>Operator</td>
         </tr>
     </thead>
     <tbody>
@@ -53,38 +65,50 @@
         @foreach ($data as $item)
             <tr>
                 <td>{{ $no++ }}.</td>
+                <td>{{ $item->tgl_input }}</td>
+                <td>{{ $item->no_form }}</td>
+                <td>{{ $item->no_meja }}</td>
                 <td>{{ $item->act_costing_ws }}</td>
+                <td>{{ $item->buyer }}</td>
+                <td>{{ $item->style }}</td>
                 <td>{{ $item->color }}</td>
-                <td>{{ $item->roll }}</td>
+                <td>{{ $item->color_act }}</td>
+                <td>{{ $item->bulan }}</td>
+                <td>{{ $item->qty_order }}</td>
+                <td>{{ $item->id_roll }}</td>
+                <td>{{ $item->detail_item }}</td>
+                <td>{{ $item->roll_number }}</td>
                 <td>{{ $item->lot }}</td>
+                <td>{{ $item->cons_ws }}</td>
                 <td>{{ $item->cons_marker }}</td>
                 <td>{{ $item->cons_pipping }}</td>
                 <td>{{ $item->cons_ampar }}</td>
                 <td>{{ $item->cons_act }}</td>
                 <td>{{ $item->panel }}</td>
+                <td>{{ $item->qty }}</td>
                 <td>{{ $item->unit }}</td>
+                <td>{{ $item->sisa_kain }}</td>
                 <td>{{ $item->lembar_gelaran }}</td>
                 <td>{{ $item->tot_ratio }}</td>
-                <td>{{ $item->panjang_marker }}</td>
-                <td>{{ $item->unit_panjang_marker }}</td>
-                <td>{{ $item->panjang_act }}</td>
+                <td>{{ $item->p_marker }}</td>
+                <td>{{ $item->p_act }}</td>
                 <td>{{ $item->unit_p_act }}</td>
                 <td>{{ $item->lebar_marker }}</td>
-                <td>{{ $item->unit_lebar_marker }}</td>
                 <td>{{ $item->l_act }}</td>
                 <td>{{ $item->unit_l_act }}</td>
-                <td>{{ $item->qty_potong }}</td>
-                <td>{{ $item->actual_gelar_kain }}</td>
-                <td>{{ $item->kain_terpakai }}</td>
+                <td>{{ $item->total_pemakaian_roll }}</td>
                 <td>{{ $item->sisa_kain }}</td>
-                <td>{{ $item->sisa_tidak_bisa }}</td>
+                <td>{{ $item->sisa_gelaran }}</td>
                 <td>{{ $item->sambungan }}</td>
-                <td>{{ $item->piping }}</td>
+                <td>{{ $item->est_amparan }}</td>
+                <td>{{ $item->average_time }}</td>
                 <td>{{ $item->kepala_kain }}</td>
+                <td>{{ $item->sisa_tidak_bisa }}</td>
                 <td>{{ $item->reject }}</td>
-                <td>{{ $item->total_aktual_kain }}</td>
-                <td>{{ $item->cons }}</td>
-                <td>{{ $item->created_at }}</td>
+                <td>{{ $item->piping }}</td>
+                <td>{{ $item->short_roll }}</td>
+                <td>{{ $item->remark }}</td>
+                <td>{{ $item->operator }}</td>
 
             </tr>
         @endforeach
