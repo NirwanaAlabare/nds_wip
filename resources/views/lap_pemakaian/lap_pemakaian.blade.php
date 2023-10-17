@@ -41,7 +41,8 @@
         <table id="datatable" class="table table-bordered table-striped table-sm w-100">
             <thead>
                 <tr>
-                    <th style="width:15%">Tgl. Form Cutting</th>
+                    <th style="width:15%">Tgl. Cutting</th>
+                    <th>ID Roll</th>
                     <th>WS</th>
                     <th style="width:55%">Nama Barang</th>
                     <th>Qty</th>
@@ -78,10 +79,11 @@
                     d.dateTo = $('#to').val();
                 },
             },
-            columns: [
+            columns: [{
+                    data: 'tgl_input'
+                },
                 {
-                    data: 'tgl_form_cut_fix',
-                    searchable: false
+                    data: 'id_roll'
                 },
                 {
                     data: 'act_costing_ws'
