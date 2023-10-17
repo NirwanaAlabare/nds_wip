@@ -110,11 +110,14 @@ Route::middleware('auth')->group(function () {
     });
 
     // Cutting Plan
-    Route::controller(CutPlanController::class)->prefix("cut_plan")->middleware('admin')->group(function () {
-        Route::get('/', 'index')->name('cut_plan');
-        Route::get('/create', 'create')->name('create-cut_plan');
+    Route::controller(CutPlanController::class)->prefix("cut-plan")->middleware('admin')->group(function () {
+        Route::get('/', 'index')->name('cut-plan');
+        Route::get('/create', 'create')->name('create-cut-plan');
+        Route::post('/store', 'store')->name('store-cut-plan');
+        Route::put('/update', 'update')->name('update-cut-plan');
+        Route::delete('/destroy', 'destroy')->name('destroy-cut-plan');
+        Route::get('/get-selected-form/{noCutPlan?}', 'getSelectedForm')->name('get-selected-form');
     });
-
 
     // Laporan
     Route::controller(LapPemakaianController::class)->prefix("lap_pemakaian")->middleware('admin')->group(function () {

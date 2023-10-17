@@ -17,8 +17,17 @@
     --dark-color: #2b2f3a;
 }
 
+th {
+    vertical-align: bottom !important;
+}
+
 td, th {
-    font-size: 15px !important;
+    font-size: 14px !important;
+}
+
+table tr.selected {
+    background-color: var(--sb-secondary-color);
+    color: var(--pale-color);
 }
 
 .fa-solid {

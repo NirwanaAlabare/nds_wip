@@ -50,9 +50,10 @@
                                     </a>
                                 </li>
                             @endmeja
+
                             @admin
                                 <li>
-                                    <a href="{{ route('cut_plan') }}" class="dropdown-item">
+                                    <a href="{{ route('cut-plan') }}" class="dropdown-item">
                                         Cutting Plan
                                     </a>
                                 </li>

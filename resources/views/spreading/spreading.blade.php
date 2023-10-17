@@ -308,8 +308,7 @@
                             color = '#2243d6';
                         }
 
-                        return data ? "<span style='color: " + color + "'>" + data.toUpperCase() +
-                            "</span>" : "<span style='color: " + color + "'>-</span>"
+                        return data ? "<span style='color: "+ color + "' >" + data.toUpperCase() + "</span>" : "<span style=' color: " + color + "'>-</span>"
                     }
                 },
                 {
@@ -325,10 +324,10 @@
                             case "PENGERJAAN FORM CUTTING":
                             case "PENGERJAAN FORM CUTTING DETAIL":
                             case "PENGERJAAN FORM CUTTING SPREAD":
-                                icon = `<i class="fas fa-sync-alt fa-spin fa-lg text-primary"></i>`;
+                                icon = `<i class="fas fa-sync-alt fa-spin fa-lg" style="color: #2243d6;"></i>`;
                                 break;
                             case "SELESAI PENGERJAAN":
-                                icon = `<i class="fas fa-check fa-lg text-success"></i>`;
+                                icon = `<i class="fas fa-check fa-lg" style="color: #087521;"></i>`;
                                 break;
                         }
 
@@ -356,7 +355,7 @@
                 {
                     targets: '_all',
                     render: (data, type, row, meta) => {
-                        var color = 'black';
+                        let color = "";
 
                         if (row.status == 'SELESAI PENGERJAAN') {
                             color = '#087521';
@@ -368,7 +367,7 @@
                             color = '#2243d6';
                         }
 
-                        return '<span style="color:' + color + '">' + data + '</span>';
+                        return data ? "<span style='color: "+ color + "' >" + data + "</span>" : "<span style=' color: " + color + "'>-</span>"
                     }
                 }
             ]

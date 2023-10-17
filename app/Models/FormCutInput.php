@@ -20,4 +20,12 @@ class FormCutInput extends Model
 
         static::addGlobalScope(new ThisYearScope);
     }
+
+    /**
+     * Get the cutting plan for the form cut.
+     */
+    public function cuttingPlans()
+    {
+        return $this->hasMany(CutPlan::class, 'no_form_cut_input', 'no_form');
+    }
 }
