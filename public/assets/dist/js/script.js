@@ -60,6 +60,14 @@ function checkIfNull(value) {
     return true;
 }
 
+function formatDate(date) {
+    return [
+        date.getFullYear(),
+        pad(date.getMonth() + 1),
+        pad(date.getDate()),
+    ].join('-');
+}
+
 // Clear modified
 var modified = [];
 function clearModified() {

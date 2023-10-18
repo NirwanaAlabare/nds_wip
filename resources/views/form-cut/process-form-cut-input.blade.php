@@ -1392,7 +1392,7 @@
             let sisaGelar = Number(document.getElementById('current_sisa_gelaran').value);
             let pAct = Number(document.getElementById('p_act').value);
 
-            let estSambungan = calculateSambungan(sisaGelaran, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
+            let estSambungan = calculateSambungan(sisaGelar, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
 
             if (estSambungan <= 0) {
                 document.getElementById('current_sisa_gelaran').value = 0;

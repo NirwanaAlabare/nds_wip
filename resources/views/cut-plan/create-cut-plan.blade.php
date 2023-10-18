@@ -142,6 +142,13 @@
         }
 
         document.getElementById("tgl_plan").addEventListener("change", function () {
+            let todayDate = new Date();
+            let selectedDate = new Date(this.value);
+
+            if (selectedDate < todayDate) {
+                $("#tgl_plan").val(formatDate(todayDate));
+            }
+
             datatableSelect.ajax.reload(() => {
                 $('#datatable-select').DataTable().ajax.reload(() => {
                     document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
