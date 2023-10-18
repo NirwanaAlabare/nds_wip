@@ -289,7 +289,7 @@ class StockerController extends Controller
 
     public function printNumbering(Request $request, $index)
     {
-        $stockerCount = StockerDetail::count();
+        $stockerCount = Stocker::count() + 1;
 
         $checkStocker = Stocker::whereRaw("
                 no_form_cut_input = '".$request['no_form_cut']."' AND
@@ -306,6 +306,7 @@ class StockerController extends Controller
         $kodeStocker = "";
         $wsStocker = "";
         $colorStocker = "";
+        $stockerDetailCount = StockerDetail::count();
         if ($checkStocker) {
             $idStocker = $checkStocker->id;
             $kodeStocker = $checkStocker->id_qr_stocker;
@@ -337,36 +338,37 @@ class StockerController extends Controller
 
         $now = Carbon::now();
         $noCutSize = $request["size"][$index]."".sprintf('%02s', $idStocker);
+        $detailItemArr = [];
         $storeDetailItemArr = [];
         $qrCodeDetailItemArr = [];
-        for ($i = 0; $i < intval($request['qty_cut'][$index]); $i++) {
-            $checkStockerDetail = StockerDetail::where('no_cut_size', $noCutSize.sprintf('%04s', ($i+1)))->where('id_stocker', $idStocker)->first();
 
-            StockerDetail::updateOrCreate(
-                [
+        $checkStockerDetail = StockerDetail::where('id_stocker', $idStocker);
+        for ($i = 0; $i < intval($request['qty_cut'][$index]); $i++) {
+            $checkStockerDetailData = $checkStockerDetail->where('no_cut_size', $noCutSize.sprintf('%04s', ($i+1)))->first();
+
+            if (!$checkStockerDetailData) {
+                array_push($storeDetailItemArr, [
+                    'kode' => "WIP-".(($stockerDetailCount+1)+$i),
                     'no_cut_size' => $noCutSize.sprintf('%04s', ($i+1)),
                     'id_stocker' => $idStocker,
-                ],
-                [
-                    "kode" => $checkStockerDetail ? $checkStockerDetail->kode : "WIP-".(($stockerCount+1)+$i),
                     'size' => $request['size'][$index],
                     'id_so_det' => $request['so_det_id'][$index],
                     'created_at' => $now,
                     'updated_at' => $now
-                ]
-            );
+                ]);
+            }
 
-            array_push($storeDetailItemArr, [
-                'kode' => $checkStockerDetail ? $checkStockerDetail->kode : "WIP-".(($stockerCount+1)+$i),
+            array_push($detailItemArr, [
+                'kode' => $checkStockerDetailData ? $checkStockerDetailData->kode : "WIP-".(($stockerDetailCount+1)+$i),
                 'no_cut_size' => $noCutSize.sprintf('%04s', ($i+1)),
-                'id_stocker' => $checkStocker->id,
+                'id_stocker' => $idStocker,
                 'size' => $request['size'][$index],
                 'id_so_det' => $request['so_det_id'][$index],
                 'created_at' => $now,
                 'updated_at' => $now
             ]);
 
-            array_push($qrCodeDetailItemArr, base64_encode(QrCode::format('svg')->size(100)->generate("WIP-".($stockerCount+1)."-".$noCutSize.($i+1)."-".$idStocker."-".$request['so_det_id'][$index])));
+            array_push($qrCodeDetailItemArr, base64_encode(QrCode::format('svg')->size(100)->generate("WIP-".($stockerDetailCount+1)."-".$noCutSize.($i+1)."-".$idStocker."-".$request['so_det_id'][$index])));
         }
 
         $storeDetailItem = StockerDetail::insert($storeDetailItemArr);
@@ -376,7 +378,7 @@ class StockerController extends Controller
 
         // generate pdf
         $customPaper = array(0,0,56.70,28.38);
-        $pdf = PDF::loadView('stocker.pdf.print-numbering', ["kode" => $kodeStocker, "ws" => $wsStocker, "color" => $colorStocker, "dataNumbering" => $storeDetailItemArr, "qrCode" => $qrCodeDetailItemArr])->setPaper($customPaper);
+        $pdf = PDF::loadView('stocker.pdf.print-numbering', ["kode" => $kodeStocker, "ws" => $wsStocker, "color" => $colorStocker, "dataNumbering" => $detailItemArr, "qrCode" => $qrCodeDetailItemArr])->setPaper($customPaper);
 
         $path = public_path('pdf/');
         $fileName = 'stocker-'.$idStocker.'.pdf';
