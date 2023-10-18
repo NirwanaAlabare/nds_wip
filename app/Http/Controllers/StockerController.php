@@ -342,9 +342,8 @@ class StockerController extends Controller
         $storeDetailItemArr = [];
         $qrCodeDetailItemArr = [];
 
-        $checkStockerDetail = StockerDetail::where('id_stocker', $idStocker);
         for ($i = 0; $i < intval($request['qty_cut'][$index]); $i++) {
-            $checkStockerDetailData = $checkStockerDetail->where('no_cut_size', $noCutSize.sprintf('%04s', ($i+1)))->first();
+            $checkStockerDetailData = StockerDetail::where('id_stocker', $idStocker)->where('no_cut_size', $noCutSize.sprintf('%04s', ($i+1)))->first();
 
             if (!$checkStockerDetailData) {
                 array_push($storeDetailItemArr, [

@@ -5,10 +5,21 @@
     <style>
         @page { margin: 0.5px; }
 
-        body { margin: 0.5px; }
+        @font-face {
+            font-family: 'Open Sans';
+            font-style: normal;
+            font-weight: bold;
+            src: url({{ storage_path("OpenSans-Bold.ttf") }}) format('truetype');
+        }
+
+        body {
+            margin: 0.5px;
+            font-family: 'Open Sans', sans-serif;
+            font-weight: bold;
+        }
 
         * {
-            font-size: 4.5px;
+            font-size: 4.3px;
         }
 
         img {
