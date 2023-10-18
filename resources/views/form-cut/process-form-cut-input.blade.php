@@ -210,8 +210,22 @@
                             <div class="mb-3">
                                 <label class="form-label label-input"><small><b>P. Act</b></small></label>
                                 <input type="number" class="form-control form-control-sm border-input" name="p_act" id="p_act" value="{{ $formCutInputData->p_act }}"
-                                    onkeyup="calculateConsAct(this.value, {{ $totalCutQtyPly }}); calculateConsAmpar(this.value, {{ $totalRatio }}); calculateEstAmpar(undefined, this.value);"
-                                    onchange="calculateConsAct(this.value, {{ $totalCutQtyPly }}); calculateConsAmpar(this.value, {{ $totalRatio }}); calculateEstAmpar(undefined, this.value);">
+                                    onkeyup="
+                                        calculateConsAct(this.value, {{ $totalCutQtyPly }});
+                                        calculateConsAmpar(this.value, {{ $totalRatio }});
+                                        calculateEstAmpar(undefined, this.value);
+                                        calculateTotalPemakaian(lembarGelaran = undefined, pActual = this.value, kepalaKain = undefined, sisaTidakBisa = undefined, reject = undefined, lActual = undefined, gramasi = undefined, unitQty = undefined, unitPActual = undefined, commaActual = undefined);
+                                        calculateShortRoll(lembarGelaran = undefined, pActual = this.value, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = undefined , qty = undefined, unitQty = undefined, gramasi = undefined, unitPActual = undefined, lActual = undefined, commaActual = undefined, sisaGelaran = undefined, sisaTidakBisa = undefined);
+                                        calculateRemark(lembarGelaran = undefined, pActual = this.value, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined,sambungan = undefined, qty = undefined, unitQty = undefined, gramasi = undefined, unitPActual = undefined, lActual = undefined, commaActual = undefined, sisaGelaran = undefined, sisaTidakBisa = undefined);
+                                    "
+                                    onchange="
+                                        calculateConsAct(this.value, {{ $totalCutQtyPly }});
+                                        calculateConsAmpar(this.value, {{ $totalRatio }});
+                                        calculateEstAmpar(undefined, this.value);
+                                        calculateTotalPemakaian(lembarGelaran = undefined, pActual = this.value, kepalaKain = undefined, sisaTidakBisa = undefined, reject = undefined, lActual = undefined, gramasi = undefined, unitQty = undefined, unitPActual = undefined, commaActual = undefined);
+                                        calculateShortRoll(lembarGelaran = undefined, pActual = this.value, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = undefined , qty = undefined, unitQty = undefined, gramasi = undefined, unitPActual = undefined, lActual = undefined, commaActual = undefined, sisaGelaran = undefined, sisaTidakBisa = undefined);
+                                        calculateRemark(lembarGelaran = undefined, pActual = this.value, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined,sambungan = undefined, qty = undefined, unitQty = undefined, gramasi = undefined, unitPActual = undefined, lActual = undefined, commaActual = undefined, sisaGelaran = undefined, sisaTidakBisa = undefined);
+                                    ">
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
@@ -240,8 +254,22 @@
                             <div class="mb-3">
                                 <label class="form-label label-input"><small><b>Comma Act</b></small></label>
                                 <input type="number" class="form-control form-control-sm border-input" name="comma_act" id="comma_act" value="{{ $formCutInputData->comma_p_act }}"
-                                    onkeyup="calculateConsAct(undefined, {{ $totalCutQtyPly }}); calculateConsAmpar(undefined, {{ $totalRatio }}); calculateEstAmpar(undefined, undefined);"
-                                    onchange="calculateConsAct(undefined, {{ $totalCutQtyPly }}); calculateConsAmpar(undefined, {{ $totalRatio }}); calculateEstAmpar(undefined, undefined);">
+                                    onkeyup="
+                                        calculateConsAct(undefined, {{ $totalCutQtyPly }});
+                                        calculateConsAmpar(undefined, {{ $totalRatio }});
+                                        calculateEstAmpar(undefined, undefined);
+                                        calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = undefined, reject = undefined, lActual = undefined, gramasi = undefined, unitQty = undefined, unitPActual = undefined, commaActual = this.value);
+                                        calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = undefined , qty = undefined, unitQty = undefined, gramasi = undefined, unitPActual = undefined, lActual = undefined, commaActual = this.value, sisaGelaran = undefined, sisaTidakBisa = undefined);
+                                        calculateRemark(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined,sambungan = undefined, qty = undefined, unitQty = undefined, gramasi = undefined, unitPActual = undefined, lActual = undefined, commaActual = this.value, sisaGelaran = undefined, sisaTidakBisa = undefined);
+                                    "
+                                    onchange="
+                                        calculateConsAct(undefined, {{ $totalCutQtyPly }});
+                                        calculateConsAmpar(undefined, {{ $totalRatio }});
+                                        calculateEstAmpar(undefined, undefined);
+                                        calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = undefined, reject = undefined, lActual = undefined, gramasi = undefined, unitQty = undefined, unitPActual = undefined, commaActual = this.value);
+                                        calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = undefined , qty = undefined, unitQty = undefined, gramasi = undefined, unitPActual = undefined, lActual = undefined, commaActual = this.value, sisaGelaran = undefined, sisaTidakBisa = undefined);
+                                        calculateRemark(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined,sambungan = undefined, qty = undefined, unitQty = undefined, gramasi = undefined, unitPActual = undefined, lActual = undefined, commaActual = this.value, sisaGelaran = undefined, sisaTidakBisa = undefined);
+                                    ">
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
@@ -270,8 +298,18 @@
                             <div class="mb-3">
                                 <label class="form-label label-input"><small><b>L. Act</b></small></label>
                                 <input type="number" class="form-control form-control-sm border-input" name="l_act" id="l_act" value="{{ $formCutInputData->l_act }}"
-                                    onkeyup="calculateEstAmpar(undefined, undefined, undefined, undefined, this.value);"
-                                    onchange="calculateEstAmpar(undefined, undefined, undefined, undefined, this.value);">
+                                    onkeyup="
+                                        calculateEstAmpar(undefined, undefined, undefined, undefined, this.value);
+                                        calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = undefined, reject = undefined, lActual = this.value, gramasi = undefined, unitQty = undefined, unitPActual = undefined, commaActual = undefined);
+                                        calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = undefined , qty = undefined, unitQty = undefined, gramasi = undefined, unitPActual = undefined, lActual = this.value, commaActual = undefined, sisaGelaran = undefined, sisaTidakBisa = undefined);
+                                        calculateRemark(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined,sambungan = undefined, qty = undefined, unitQty = undefined, gramasi = undefined, unitPActual = undefined, lActual = this.value, commaActual = undefined, sisaGelaran = undefined, sisaTidakBisa = undefined);
+                                    "
+                                    onchange="
+                                        calculateEstAmpar(undefined, undefined, undefined, undefined, this.value);
+                                        calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = undefined, reject = undefined, lActual = this.value, gramasi = undefined, unitQty = undefined, unitPActual = undefined, commaActual = undefined);
+                                        calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = undefined , qty = undefined, unitQty = undefined, gramasi = undefined, unitPActual = undefined, lActual = this.value, commaActual = undefined, sisaGelaran = undefined, sisaTidakBisa = undefined);
+                                        calculateRemark(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined,sambungan = undefined, qty = undefined, unitQty = undefined, gramasi = undefined, unitPActual = undefined, lActual = this.value, commaActual = undefined, sisaGelaran = undefined, sisaTidakBisa = undefined);
+                                    ">
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
@@ -497,8 +535,8 @@
                                     <label class="form-label label-input"><small><b>Sisa Gelaran</b></small></label>
                                     <input type="number" class="form-control form-control-sm border-input"
                                         id="current_sisa_gelaran" name="current_sisa_gelaran" step=".01"
-                                        onkeyup="restrictRemainPly()"
-                                        onchange="restrictRemainPly()">
+                                        onkeyup="restrictRemainPly();calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = undefined , qty = undefined, unitQty = undefined, gramasi = undefined, unitPActual = undefined, lActual = undefined, commaActual = undefined, sisaGelaran = this.value, sisaTidakBisa = undefined);calculateRemark(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined,sambungan = undefined, qty = undefined, unitQty = undefined, gramasi = undefined, unitPActual = undefined, lActual = undefined, commaActual = undefined, sisaGelaran = this.value, sisaTidakBisa = undefined);"
+                                        onchange="restrictRemainPly();calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = undefined , qty = undefined, unitQty = undefined, gramasi = undefined, unitPActual = undefined, lActual = undefined, commaActual = undefined, sisaGelaran = this.value, sisaTidakBisa = undefined);calculateRemark(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined,sambungan = undefined, qty = undefined, unitQty = undefined, gramasi = undefined, unitPActual = undefined, lActual = undefined, commaActual = undefined, sisaGelaran = this.value, sisaTidakBisa = undefined);">
                                 </div>
                             </div>
                             <div class="col-4">
@@ -506,8 +544,8 @@
                                     <label class="form-label label-input"><small><b>Sambungan</b></small></label>
                                     <input type="number" class="form-control form-control-sm border-input"
                                         id="current_sambungan" name="current_sambungan" step=".01"
-                                        onkeyup="calculateTotalPemakaian() ;calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = this.value, qty = undefined)"
-                                        onchange="calculateTotalPemakaian() ;calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = this.value, qty = undefined)">
+                                        onkeyup="calculateTotalPemakaian() ;calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = this.value, qty = undefined);"
+                                        onchange="calculateTotalPemakaian() ;calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = this.value, qty = undefined);">
                                 </div>
                             </div>
                             <div class="col-4">
@@ -522,8 +560,8 @@
                                     <label class="form-label label-sb"><small><b>Lembar Gelaran</b></small></label>
                                     <input type="number" class="form-control form-control-sm border-sb"
                                         id="current_lembar_gelaran" name="current_lembar_gelaran"
-                                        onkeyup="calculateTotalPemakaian(lembarGelaran = this.value, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = undefined, reject = undefined);calculateShortRoll(lembarGelaran = this.value, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = undefined, qty = undefined);"
-                                        onchange="calculateTotalPemakaian(lembarGelaran = this.value, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = undefined, reject = undefined);calculateShortRoll(lembarGelaran = this.value, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = undefined, qty = undefined);"
+                                        onkeyup="calculateTotalPemakaian(lembarGelaran = this.value, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = undefined, reject = undefined);calculateShortRoll(lembarGelaran = this.value, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = undefined, qty = undefined);calculateRemark(lembarGelaran = this.value, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined,sambungan = undefined, qty = undefined, unitQty = undefined, gramasi = undefined, unitPActual = undefined, lActual = undefined, commaActual = undefined, sisaGelaran = undefined, sisaTidakBisa = undefined);"
+                                        onchange="calculateTotalPemakaian(lembarGelaran = this.value, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = undefined, reject = undefined);calculateShortRoll(lembarGelaran = this.value, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = undefined, qty = undefined);calculateRemark(lembarGelaran = this.value, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined,sambungan = undefined, qty = undefined, unitQty = undefined, gramasi = undefined, unitPActual = undefined, lActual = undefined, commaActual = undefined, sisaGelaran = undefined, sisaTidakBisa = undefined);"
                                         readonly>
                                 </div>
                             </div>
@@ -538,7 +576,7 @@
                                     <label class="form-label label-sb"><small><b>Ply Progress</b></small></label>
                                     <div class="progress border border-sb" style="height: 31px">
                                         <p class="position-absolute" style="top: 59%;left: 50%;transform: translate(-50%, -50%);" id="current_ply_progress_txt"></p>
-                                        <div class="progress-bar bg-primary" role="progressbar" id="current_ply_progress"></div>
+                                        <div class="progress-bar" style="background-color: #75baeb;" role="progressbar" id="current_ply_progress"></div>
                                     </div>
                                 </div>
                             </div>
@@ -557,8 +595,8 @@
                                     <label class="form-label label-input"><small><b>Sisa Tidak Bisa</b></small></label>
                                     <input type="number" class="form-control form-control-sm border-input"
                                         id="current_sisa_tidak_bisa" name="current_sisa_tidak_bisa" step=".01"
-                                        onkeyup="calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = this.value, reject = undefined);"
-                                        onchange="calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = this.value, reject = undefined);">
+                                        onkeyup="calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = this.value, reject = undefined);calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = undefined , qty = undefined, unitQty = undefined, gramasi = undefined, unitPActual = undefined, lActual = undefined, commaActual = undefined, sisaGelaran = undefined, sisaTidakBisa = this.value);calculateRemark(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined,sambungan = undefined, qty = undefined, unitQty = undefined, gramasi = undefined, unitPActual = undefined, lActual = undefined, commaActual = undefined, sisaGelaran = undefined, sisaTidakBisa = this.value);"
+                                        onchange="calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = this.value, reject = undefined);calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined, sambungan = undefined , qty = undefined, unitQty = undefined, gramasi = undefined, unitPActual = undefined, lActual = undefined, commaActual = undefined, sisaGelaran = undefined, sisaTidakBisa = this.value);calculateRemark(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = undefined,sambungan = undefined, qty = undefined, unitQty = undefined, gramasi = undefined, unitPActual = undefined, lActual = undefined, commaActual = undefined, sisaGelaran = undefined, sisaTidakBisa = this.value);">
                                 </div>
                             </div>
                             <div class="col-3">
@@ -566,8 +604,8 @@
                                     <label class="form-label label-input"><small><b>Reject</b></small></label>
                                     <input type="number" class="form-control form-control-sm border-input"
                                         id="current_reject" name="current_reject" step=".01"
-                                        onkeyup="calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = undefined, reject = this.value); calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = this.value, sambungan = undefined, qty = undefined);"
-                                        onchange="calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = undefined, reject = this.value); calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = this.value, sambungan = undefined, qty = undefined);">
+                                        onkeyup="calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = undefined, reject = this.value); calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = this.value, sambungan = undefined, qty = undefined);calculateRemark(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = this.value,sambungan = undefined, qty = undefined, unitQty = undefined, gramasi = undefined, unitPActual = undefined, lActual = undefined, commaActual = undefined, sisaGelaran = undefined, sisaTidakBisa = undefined);"
+                                        onchange="calculateTotalPemakaian(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, sisaTidakBisa = undefined, reject = this.value); calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = this.value, sambungan = undefined, qty = undefined);calculateRemark(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = undefined, reject = this.value,sambungan = undefined, qty = undefined, unitQty = undefined, gramasi = undefined, unitPActual = undefined, lActual = undefined, commaActual = undefined, sisaGelaran = undefined, sisaTidakBisa = undefined);">
                                 </div>
                             </div>
                             <div class="col-3">
@@ -575,8 +613,8 @@
                                     <label class="form-label label-input"><small><b>Sisa Kain</b></small></label>
                                     <input type="number" class="form-control form-control-sm border-input"
                                         id="current_sisa_kain" name="current_sisa_kain" step=".01"
-                                        onkeyup="calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = this.value, reject = undefined, sambungan = undefined, qty = undefined)"
-                                        onchange="calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = this.value, reject = undefined, sambungan = undefined, qty = undefined)">
+                                        onkeyup="calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = this.value, reject = undefined, sambungan = undefined, qty = undefined);calculateRemark(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = this.value, reject = undefined,sambungan = undefined, qty = undefined, unitQty = undefined, gramasi = undefined, unitPActual = undefined, lActual = undefined, commaActual = undefined, sisaGelaran = undefined, sisaTidakBisa = undefined);"
+                                        onchange="calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = this.value, reject = undefined, sambungan = undefined, qty = undefined);calculateRemark(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = undefined, sisaKain = this.value, reject = undefined,sambungan = undefined, qty = undefined, unitQty = undefined, gramasi = undefined, unitPActual = undefined, lActual = undefined, commaActual = undefined, sisaGelaran = undefined, sisaTidakBisa = undefined);">
                                 </div>
                             </div>
                             <div class="col-3">
@@ -599,15 +637,14 @@
                                     <label class="form-label label-input"><small><b>Piping</b></small></label>
                                     <input type="number" class="form-control form-control-sm border-input"
                                         id="current_piping" name="current_piping" step=".01"
-                                        onkeyup="calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = this.value, sisaKain = undefined, reject = undefined, sambungan = undefined, qty = undefined)"
-                                        onchange="calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = this.value, sisaKain = undefined, reject = undefined, sambungan = undefined, qty = undefined)">
+                                        onkeyup="calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = this.value, sisaKain = undefined, reject = undefined, sambungan = undefined, qty = undefined);calculateRemark(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = this.value, sisaKain = undefined, reject = undefined,sambungan = undefined, qty = undefined, unitQty = undefined, gramasi = undefined, unitPActual = undefined, lActual = undefined, commaActual = undefined, sisaGelaran = undefined, sisaTidakBisa = undefined);"
+                                        onchange="calculateShortRoll(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = this.value, sisaKain = undefined, reject = undefined, sambungan = undefined, qty = undefined);calculateRemark(lembarGelaran = undefined, pActual = undefined, kepalaKain = undefined, piping = this.value, sisaKain = undefined, reject = undefined,sambungan = undefined, qty = undefined, unitQty = undefined, gramasi = undefined, unitPActual = undefined, lActual = undefined, commaActual = undefined, sisaGelaran = undefined, sisaTidakBisa = undefined);">
                                 </div>
                             </div>
                             <div class="col-3">
                                 <div class="mb-3">
                                     <label class="form-label label-input"><small><b>Remark</b></small></label>
-                                    <input type="number" class="form-control form-control-sm border-input"
-                                        id="current_remark" name="current_remark" step=".01">
+                                    <input type="number" class="form-control form-control-sm border-input" id="current_remark" name="current_remark" step=".01">
                                 </div>
                             </div>
                             <div class="col-6 col-md-6 my-3">
@@ -1369,12 +1406,21 @@
         }
 
         // -Calculate Cons Ampar-
-        function calculateConsAmpar(pActual = 0, totalRatio = 0, unitPActual = 0, commaActual = 0) {
+        function calculateConsAmpar(pActual = 0, totalRatio = 0, unitPActual = 0, commaActual = 0, lActual = 0, gramasi = 0, unitConsAmpar = 0) {
             let pActualVar = pActual > 0 ? Number(pActual) : Number(document.getElementById("p_act").value);
             let unitPActualVar = unitPActual ? unitPActual : document.getElementById("unit_p_act").value;
-            let commaActualVar = commaActual > 0 ? Number(pActual) : Number(document.getElementById("comma_act").value);
+            let commaActualVar = commaActual > 0 ? Number(commaActual) : Number(document.getElementById("comma_act").value);
+            let lActualVar = lActual > 0 ? Number(lActual) : Number(document.getElementById("l_act").value);
+            let gramasiVar = gramasi > 0 ? Number(gramasi) : Number(document.getElementById("gramasi").value);
+            let unitConsAmparVar = unitConsAmpar > 0 ? unitConsAmpar : document.getElementById("unit_cons_ampar").value;
 
             let pActualFinal = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
+
+            // if (unitConsAmparVar && unitConsAmparVar != '-') {
+            //     pActualFinal = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitConsAmparVar);
+            // } else {
+            //     pActualFinal = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
+            // }
 
             consAmpar = totalRatio > 0 ? pActualFinal / totalRatio : 0;
 
@@ -1452,13 +1498,14 @@
                 pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
             }
 
-            let totalPemakaian = lembarGelaranVar * pActualConverted + kepalaKainVar + sisaTidakBisaVar + rejectVar;
+            // let totalPemakaian = lembarGelaranVar * pActualConverted + kepalaKainVar + sisaTidakBisaVar + rejectVar;
+            let totalPemakaian = lembarGelaranVar * pActualConverted;
 
             document.getElementById("current_total_pemakaian_roll").value = totalPemakaian.toFixed(2);
         }
 
         // -Calculate Short Roll-
-        function calculateShortRoll(lembarGelaran = 0, pActual = 0, kepalaKain = 0, piping = 0, sisaKain = 0, reject = 0,sambungan = 0, qty = 0, unitQty = 0, gramasi = 0, unitPActual = 0, lActual = 0, commaActual = 0) {
+        function calculateShortRoll(lembarGelaran = 0, pActual = 0, kepalaKain = 0, piping = 0, sisaKain = 0, reject = 0,sambungan = 0, qty = 0, unitQty = 0, gramasi = 0, unitPActual = 0, lActual = 0, commaActual = 0, sisaGelaran = 0, sisaTidakBisa = 0) {
             let lembarGelaranVar = lembarGelaran > 0 ? Number(lembarGelaran) : Number(document.getElementById("current_lembar_gelaran").value);
             let pActualVar = pActual > 0 ? Number(pActual) : Number(document.getElementById("p_act").value);
             let kepalaKainVar = kepalaKain > 0 ? Number(kepalaKain) : Number(document.getElementById("current_kepala_kain").value);
@@ -1467,11 +1514,13 @@
             let rejectVar = reject > 0 ? Number(reject) : Number(document.getElementById("current_reject").value);
             let sambunganVar = sambungan > 0 ? Number(sambungan) : Number(document.getElementById("current_sambungan").value);
             let qtyVar = qty > 0 ? Number(qty) : Number(document.getElementById("current_qty").value);
-            let unitQtyVar = unitQty > 0 ? Number(unitQty) : Number(document.getElementById("current_unit").value);
+            let unitQtyVar = unitQty ? unitQty : document.getElementById("current_unit").value;
             let gramasiVar = gramasi > 0 ? Number(gramasi) : Number(document.getElementById("gramasi").value);
             let unitPActualVar = unitPActual ? unitPActual : document.getElementById("unit_p_act").value;
             let lActualVar = lActual > 0 ? Number(lActual) : Number(document.getElementById("l_act").value);
             let commaActualVar = commaActual > 0 ? Number(commaActual) : Number(document.getElementById("comma_act").value);
+            let sisaGelaranVar = sisaGelaran > 0 ? Number(sisaGelaran) : Number(document.getElementById("current_sisa_gelaran").value);
+            let sisaTidakBisaVar = sisaTidakBisa > 0 ? Number(sisaTidakBisa) : Number(document.getElementById("current_sisa_tidak_bisa").value);
 
             let pActualConverted = 0;
 
@@ -1481,16 +1530,48 @@
                 pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
             }
 
-            let shortRoll = pActualConverted * lembarGelaranVar + kepalaKainVar + pipingVar + sisaKainVar + rejectVar + sambunganVar - qtyVar;
+            // let shortRoll = pActualConverted * lembarGelaranVar + kepalaKainVar + pipingVar + sisaKainVar + rejectVar + sambunganVar - qtyVar;
+            let shortRoll = qtyVar - ((pActualConverted * lembarGelaranVar) +  sisaGelaranVar + sambunganVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar);
 
             document.getElementById("current_short_roll").value = shortRoll.toFixed(2);
+        }
+
+        // -Calculate Remark-
+        function calculateRemark(lembarGelaran = 0, pActual = 0, kepalaKain = 0, piping = 0, sisaKain = 0, reject = 0,sambungan = 0, qty = 0, unitQty = 0, gramasi = 0, unitPActual = 0, lActual = 0, commaActual = 0, sisaGelaran = 0, sisaTidakBisa = 0) {
+            let lembarGelaranVar = lembarGelaran > 0 ? Number(lembarGelaran) : Number(document.getElementById("current_lembar_gelaran").value);
+            let pActualVar = pActual > 0 ? Number(pActual) : Number(document.getElementById("p_act").value);
+            let kepalaKainVar = kepalaKain > 0 ? Number(kepalaKain) : Number(document.getElementById("current_kepala_kain").value);
+            let pipingVar = piping > 0 ? Number(piping) : Number(document.getElementById("current_piping").value);
+            let sisaKainVar = sisaKain > 0 ? Number(sisaKain) : Number(document.getElementById("current_sisa_kain").value);
+            let rejectVar = reject > 0 ? Number(reject) : Number(document.getElementById("current_reject").value);
+            let sambunganVar = sambungan > 0 ? Number(sambungan) : Number(document.getElementById("current_sambungan").value);
+            let qtyVar = qty > 0 ? Number(qty) : Number(document.getElementById("current_qty").value);
+            let unitQtyVar = unitQty ? unitQty : document.getElementById("current_unit").value;
+            let gramasiVar = gramasi > 0 ? Number(gramasi) : Number(document.getElementById("gramasi").value);
+            let unitPActualVar = unitPActual ? unitPActual : document.getElementById("unit_p_act").value;
+            let lActualVar = lActual > 0 ? Number(lActual) : Number(document.getElementById("l_act").value);
+            let commaActualVar = commaActual > 0 ? Number(commaActual) : Number(document.getElementById("comma_act").value);
+            let sisaGelaranVar = sisaGelaran > 0 ? Number(sisaGelaran) : Number(document.getElementById("current_sisa_gelaran").value);
+            let sisaTidakBisaVar = sisaTidakBisa > 0 ? Number(sisaTidakBisa) : Number(document.getElementById("current_sisa_tidak_bisa").value);
+
+            let pActualConverted = 0;
+
+            if (document.getElementById("status_sambungan").value == "extension") {
+                pActualConverted = document.getElementById("current_sambungan").value;
+            } else {
+                pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+            }
+
+            let remark = ((pActualConverted * lembarGelaranVar) +  sisaGelaranVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar);
+
+            document.getElementById("current_remark").value = remark.toFixed(2);
         }
 
         // -Calculate Sambungan-
         function calculateSambungan(sisaGelaran, qty, unitQty, pActual, unitPActual, commaActual, lActual, gramasi) {
             let sisaGelaranVar = Number(sisaGelaran) > 0 ? Number(sisaGelaran) : document.getElementById("current_sisa_gelaran").value;
             let qtyVar = Number(qty) > 0 ? Number(qty) : Number(document.getElementById("current_qty").value);
-            let unitQtyVar = unitQty > 0 ? unitQty : document.getElementById("current_unit").value;
+            let unitQtyVar = unitQty ? unitQty : document.getElementById("current_unit").value;
             let pActualVar = Number(pActual) > 0 ? Number(pActual) : Number(document.getElementById('p_act').value);
             let unitPActualVar  = unitPActual > 0 ? unitPActual : document.getElementById('unit_p_act').value;
             let commaActualVar  = Number(commaActual) > 0 ? Number(commaActual) : Number(document.getElementById('comma_act').value);
@@ -1523,22 +1604,44 @@
                 if (unitVar.toUpperCase() == "KGM") {
                     consActualGelaran = totalQtyCutVar > 0 ? (totalQtyFabricVar - pipingVar) / totalQtyCutVar : 0;
                 } else {
-                    if (unitPActualVar.toLowerCase() == "yard") {
-                        let commaYard = commaActualVar / 36;
+                    if (unitVar.toUpperCase() == "YARD") {
+                        if (unitPActualVar.toLowerCase() == "yard") {
+                            let commaYard = commaActualVar / 36;
+                            let pActualCommaYard = (pActualVar + commaYard);
 
-                        consActualGelaran = totalQtyCutVar > 0 ? (lembarVar * (pActualVar + commaYard)) / totalQtyCutVar : 0;
-                    } else if (unitPActualVar.toLowerCase() == "meter") {
-                        let commaMeter = commaActualVar / 100;
+                            consActualGelaran = totalQtyCutVar > 0 ? (lembarVar * pActualCommaYard) / totalQtyCutVar : 0;
+                        } else if (unitPActualVar.toLowerCase() == "meter") {
+                            let commaMeter = commaActualVar / 100;
+                            let pActualCommaYard = (pActualVar + commaMeter) * 1.094;
 
-                        consActualGelaran = totalQtyCut > 0 ? (lembarVar * (pActualVar + commaMeter)) / totalQtyCut : 0;
+                            consActualGelaran = totalQtyCutVar > 0 ? (lembarVar * pActualCommaYard) / totalQtyCutVar : 0;
+                        } else {
+                            consActualGelaran = totalQtyCutVar > 0 ? pActualVar / totalQtyCutVar : 0;
+                        }
+                    } else if (unitVar.toUpperCase() == "METER") {
+                        if (unitPActualVar.toLowerCase() == "yard") {
+                            let commaYard = commaActualVar / 36;
+                            let pActualCommaMeter = (pActualVar + commaYard) / 1.094;
+
+                            consActualGelaran = totalQtyCutVar > 0 ? (lembarVar * pActualCommaMeter) / totalQtyCutVar : 0;
+                        } else if (unitPActualVar.toLowerCase() == "meter") {
+                            let commaMeter = commaActualVar / 100;
+                            let pActualCommaMeter = pActualVar + commaMeter;
+
+                            consActualGelaran = totalQtyCutVar > 0 ? (lembarVar * pActualCommaMeter) / totalQtyCutVar : 0;
+                        } else {
+                            consActualGelaran = totalQtyCutVar > 0 ? pActualVar / totalQtyCutVar : 0;
+                        }
                     } else {
-                        consActualGelaran = totalQtyCut > 0 ? pActualVar / totalQtyCut : 0;
+                        consActualGelaran = totalQtyCutVar > 0 ? pActualVar / totalQtyCutVar : 0;
                     }
                 }
 
                 document.getElementById("cons_actual_gelaran").value = consActualGelaran.toFixed(2);
                 document.getElementById("unit_cons_actual_gelaran").value = unitVar.toLowerCase();
                 document.getElementById("unit_cons_ampar").value = unitVar.toUpperCase();
+
+                calculateConsAmpar(undefined, totalRatio);
             }
         }
 

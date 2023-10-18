@@ -345,7 +345,7 @@
                         let btnProcess = row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null ?
                             `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` +
                             row.id +
-                            `' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-plus'></i></a>` :
+                            `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) +`'></i></a>` :
                             "";
 
                         return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnProcess +

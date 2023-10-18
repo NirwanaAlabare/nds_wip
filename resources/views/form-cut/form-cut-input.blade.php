@@ -14,7 +14,7 @@
 @section('content')
     <div class="card card-sb card-outline">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0">Data Spreading</h5>
+            <h5 class="card-title fw-bold mb-0">Form Cutting</h5>
         </div>
         <div class="card-body">
             <div class="d-flex align-items-end gap-3 mb-3">
@@ -229,9 +229,13 @@
     </script>
 
     <script>
+        window.addEventListener("focus", () => {
+            $('#datatable').DataTable().ajax.reload(null, false);
+        });
+
         let datatable = $("#datatable").DataTable({
-            ordering: false,
             processing: true,
+            ordering: false,
             serverSide: true,
             ajax: {
                 url: '{{ route('form-cut-input') }}',
@@ -324,10 +328,10 @@
                             JSON.stringify(row) +
                             ", \"detailSpreadingModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-search'></i></a>" :
                             "";
-                        let btnProcess = row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null ?
+                            let btnProcess = row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null ?
                             `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` +
                             row.id +
-                            `' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-plus'></i></a>` :
+                            `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>` :
                             "";
 
                         return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnProcess +
