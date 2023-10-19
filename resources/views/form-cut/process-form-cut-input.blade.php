@@ -11,8 +11,7 @@
                 <div class="card-header">
                     <h3 class="card-title">Header Data</h3>
                     <div class="card-tools">
-                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
-                        </button>
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
                     </div>
                 </div>
                 <div class="card-body" style="display: block;">
@@ -41,12 +40,9 @@
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Shell</b></small></label>
                                 <select class="form-select form-select-sm" name="shell" id="shell">
-                                    <option value="a" {{ $formCutInputData->shell == 'a' ? 'selected' : '' }}>A
-                                    </option>
-                                    <option value="b" {{ $formCutInputData->shell == 'b' ? 'selected' : '' }}>B
-                                    </option>
-                                    <option value="c" {{ $formCutInputData->shell == 'c' ? 'selected' : '' }}>C
-                                    </option>
+                                    <option value="a" {{ $formCutInputData->shell == 'a' ? 'selected' : '' }}>A</option>
+                                    <option value="b" {{ $formCutInputData->shell == 'b' ? 'selected' : '' }}>B</option>
+                                    <option value="c" {{ $formCutInputData->shell == 'c' ? 'selected' : '' }}>C</option>
                                 </select>
                             </div>
                         </div>
@@ -2259,19 +2255,19 @@
             let averageTotalAverageTimeMinute = pad((averageTotalAverageTime/60).toFixed(0));
             let averageTotalAverageTimeSecond = pad((averageTotalAverageTime%60).toFixed(0));
 
-            document.getElementById("total-sisa-gelaran").innerText = Number(totalSisaGelaran);
-            document.getElementById("total-sambungan").innerText = Number(totalSambungan);
-            document.getElementById("total-est-amparan").innerText = Number(totalEstAmparan);
-            document.getElementById("total-lembar").innerText = Number(totalLembar);
+            document.getElementById("total-sisa-gelaran").innerText = Number(totalSisaGelaran).round(2);
+            document.getElementById("total-sambungan").innerText = Number(totalSambungan).round(2);
+            document.getElementById("total-est-amparan").innerText = Number(totalEstAmparan).round(2);
+            document.getElementById("total-lembar").innerText = Number(totalLembar).round(2);
             document.getElementById("total-average-time").innerText = averageTotalAverageTimeMinute+":"+averageTotalAverageTimeSecond;
-            document.getElementById("total-kepala-kain").innerText = Number(totalKepalaKain);
-            document.getElementById("total-sisa-tidak-bisa").innerText = Number(totalSisaTidakBisa);
-            document.getElementById("total-reject").innerText = Number(totalReject);
-            document.getElementById("total-sisa-kain").innerText = Number(totalSisaKain);
-            document.getElementById("total-total-pemakaian").innerText = Number(totalTotalPemakaian).toFixed(2);
-            document.getElementById("total-short-roll").innerText = Number(totalShortRoll).toFixed(2);
-            document.getElementById("total-piping").innerText = Number(totalPiping).toFixed(2);
-            document.getElementById("total-remark").innerText = Number(totalRemark).toFixed(2);
+            document.getElementById("total-kepala-kain").innerText = Number(totalKepalaKain).round(2);
+            document.getElementById("total-sisa-tidak-bisa").innerText = Number(totalSisaTidakBisa).round(2);
+            document.getElementById("total-reject").innerText = Number(totalReject).round(2);
+            document.getElementById("total-sisa-kain").innerText = Number(totalSisaKain).round(2);
+            document.getElementById("total-total-pemakaian").innerText = Number(totalTotalPemakaian).round(2);
+            document.getElementById("total-short-roll").innerText = Number(totalShortRoll).round(2);
+            document.getElementById("total-piping").innerText = Number(totalPiping).round(2);
+            document.getElementById("total-remark").innerText = Number(totalRemark).round(2);
         }
 
         // Time Record Module :
