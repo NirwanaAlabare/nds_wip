@@ -248,6 +248,10 @@
     </script>
 
     <script>
+        window.addEventListener("focus", () => {
+            dataTableReload();
+        });
+
         let datatable = $("#datatable").DataTable({
             ordering: false,
             processing: true,
