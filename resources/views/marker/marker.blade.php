@@ -8,8 +8,7 @@
 @endsection
 
 @section('content')
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable" style="max-width: 55%;">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-light">
@@ -20,14 +19,12 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    {{-- <button type="submit" class="btn btn-sb">Simpan</button> --}}
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="exampleModalEdit" tabindex="-1" role="dialog" aria-labelledby="exampleModalEditLabel"
-        aria-hidden="true">
+    <div class="modal fade" id="exampleModalEdit" tabindex="-1" role="dialog" aria-labelledby="exampleModalEditLabel" aria-hidden="true">
         <form action="{{ route('update_marker') }}" method="post" onsubmit="submitForm(this, event)">
             @method('PUT')
             <div class="modal-dialog modal-lg modal-dialog-scrollable" style="max-width: 55%;">
@@ -41,8 +38,7 @@
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Gramasi</small></label>
-                                    <input type='text' class='form-control' id='txt_gramasi' name='txt_gramasi'
-                                        value = ''>
+                                    <input type='text' class='form-control' id='txt_gramasi' name='txt_gramasi' value = ''>
                                     <input type='hidden' class='form-control' id='id_c' name='id_c' value = ''>
                                 </div>
                             </div>
@@ -57,8 +53,6 @@
         </form>
     </div>
 
-
-
     <div class="card card-sb card-outline">
         <div class="card-header">
             <h5 class="card-title fw-bold mb-0">Data Marker</h5>
@@ -71,13 +65,11 @@
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
-                        value="{{ date('Y-m-d') }}">
+                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                        value="{{ date('Y-m-d') }}">
+                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
                     <button class="btn btn-primary btn-sm" onclick="filterTable()">Tampilkan</button>
@@ -93,13 +85,13 @@
                             <th>Color</th>
                             <th>Panel</th>
                             <th>Panjang Marker</th>
-                            {{-- <th>Comma Marker</th> --}}
                             <th>Lebar Marker</th>
                             <th>Gramasi</th>
                             <th>Gelar QTYs</th>
                             <th>PO</th>
                             <th>Urutan</th>
                             <th>Tot Form</th>
+                            <th>Catatan</th>
                             <th>Act</th>
                         </tr>
                     </thead>
@@ -127,7 +119,8 @@
                     d.tgl_akhir = $('#tgl-akhir').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'tgl_cut_fix',
                     searchable: false
                 },
@@ -167,33 +160,56 @@
                     searchable: false
                 },
                 {
+                    data: 'notes',
+                },
+                {
                     data: 'id'
                 },
             ],
-            columnDefs: [{
-                    targets: [12],
+            columnDefs: [
+                {
+                    targets: [13],
                     render: (data, type, row, meta) => {
-                        if (row.cancel != 'Y' && row.tot_form != 0) {
-                            return `<div class='d-flex gap-1 justify-content-center'><a class='btn btn-primary btn-sm'
-                        data-bs-toggle="modal" data-bs-target="#exampleModal" onclick='getdetail(` + row.id + `);'>
-                        <i class='fa fa-search'></i></a>
-                            </div>`;
-                        } else if (row.cancel != 'Y' && row.tot_form == 0) {
-                            return `<div class='d-flex gap-1 justify-content-center'><a class='btn btn-primary btn-sm'
-                        data-bs-toggle="modal" data-bs-target="#exampleModal" onclick='getdetail(` + row.id + `);'>
-                        <i class='fa fa-search'></i></a>
-                        <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModalEdit"
-                            onclick='edit(` + row.id + `);'><i class='fa fa-edit'></i></a>
-                        <a class='btn btn-danger btn-sm' onclick='cancel(` + row.id + `);'><i class='fa fa-ban'></i></a>
-                            </div>`;
-                        } else if (row.cancel == 'Y') {
-                            return `<div class='d-flex gap-1 justify-content-center'>
-                                <a class='btn btn-primary btn-sm'
-                        data-bs-toggle="modal" data-bs-target="#exampleModal" onclick='getdetail(` + row.id + `);'>
-                        <i class='fa fa-search'></i></a>
-                            </div>`;
-                        }
+                        let exportBtn = `
+                            <button type="button" class="btn btn-sm btn-secondary" onclick="printMarker('`+row.kode+`');">
+                                <i class="fa fa-print"></i>
+                            </button>
+                        `;
 
+                        if (row.cancel != 'Y' && row.tot_form != 0) {
+                            return `
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModal" onclick='getdetail(` + row.id + `);'>
+                                        <i class='fa fa-search'></i>
+                                    </a>
+                                    `+exportBtn+`
+                                </div>
+                            `;
+                        } else if (row.cancel != 'Y' && row.tot_form == 0) {
+                            return `
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModal" onclick='getdetail(` + row.id + `);'>
+                                        <i class='fa fa-search'></i>
+                                    </a>
+                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModalEdit" onclick='edit(` + row.id + `);'>
+                                        <i class='fa fa-edit'></i>
+                                    </a>
+                                    <a class='btn btn-danger btn-sm' onclick='cancel(` + row.id + `);'>
+                                        <i class='fa fa-ban'></i>
+                                    </a>
+                                    `+exportBtn+`
+                                </div>
+                            `;
+                        } else if (row.cancel == 'Y') {
+                            return `
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModal" onclick='getdetail(` + row.id + `);'>
+                                        <i class='fa fa-search'></i>
+                                    </a>
+                                    `+exportBtn+`
+                                </div>
+                            `;
+                        }
                     }
                 },
                 {
@@ -246,10 +262,8 @@
                 error: function(request, status, error) {
                     alert(request.responseText);
                 },
-
             });
         };
-
 
         function cancel(id_c) {
             let html = $.ajax({
@@ -260,6 +274,7 @@
                 },
                 async: false
             }).responseText;
+
             swal.fire({
                 position: 'mid-end',
                 icon: 'info',
@@ -267,7 +282,37 @@
                 showConfirmButton: false,
                 timer: 1000
             })
+
             datatable.ajax.reload();
         };
+
+        function printMarker(kodeMarker) {
+            // window.location.href = '{{ route('print-marker') }}/'+ kodeMarker.replace(/\//g, '_');
+
+            let fileName = kodeMarker;
+
+            $.ajax({
+                url: '{{ route('print-marker') }}/'+kodeMarker.replace(/\//g, '_'),
+                type: 'post',
+                processData: false,
+                contentType: false,
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(res) {
+                    if (res) {
+                        console.log(res);
+
+                        var blob = new Blob([res], {type: 'application/pdf'});
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = fileName+".pdf";
+                        link.click();
+
+                        swal.close();
+                    }
+                }
+            });
+        }
     </script>
 @endsection

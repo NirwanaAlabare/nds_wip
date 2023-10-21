@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
+use PDF;
 
 class MarkerController extends Controller
 {
@@ -36,6 +37,7 @@ class MarkerController extends Controller
                 po_marker,
                 urutan_marker,
                 ifnull(b.tot_form,0) tot_form,
+                notes,
                 cancel
             ")->leftJoin(DB::raw("(select id_marker,coalesce(count(id_marker),0) tot_form from form_cut_input group by id_marker)b"), "marker_input.kode", "=", "b.id_marker");
 
@@ -125,15 +127,20 @@ class MarkerController extends Controller
 
     public function getSizeList(Request $request)
     {
-        $sizes = DB::connection('mysql_sb')->select("
-                select sd.id, ac.kpno no_ws, sd.color, sd.qty order_qty, sd.size from so_det sd
-                    inner join so on sd.id_so = so.id
-                    inner join act_costing ac on so.id_cost = ac.id
-                    inner join master_size_new msn on sd.size = msn.size
-                where ac.id = '" . $request->act_costing_id . "' and sd.color = '" . $request->color . "' and sd.cancel = 'N'
-                group by sd.size
-                order by msn.urutan asc
-            ");
+        $sizes = DB::table("master_sb_ws")->
+            selectRaw("
+                master_sb_ws.id_so_det so_det_id,
+                master_sb_ws.ws no_ws,
+                master_sb_ws.color,
+                master_sb_ws.size,
+                master_sb_ws.qty order_qty
+            ")->
+            where("id_act_cost", $request->act_costing_id)->
+            where("color", $request->color)->
+            join("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
+            groupBy("id_act_cost", "id_so_det")->
+            orderBy("master_size_new.urutan")->
+            get();
 
         return json_encode([
             "draw" => intval($request->input('draw')),
@@ -226,7 +233,7 @@ class MarkerController extends Controller
             "no_urut_marker" => "required",
             "cons_marker" => "required",
             "gramasi" => "required",
-            "tipe_marker" => "required",
+            "tipe_marker" => "required"
         ]);
 
         foreach ($request["cut_qty"] as $qty) {
@@ -256,6 +263,7 @@ class MarkerController extends Controller
                 'cons_marker' => $validatedRequest['cons_marker'],
                 'gramasi' => $validatedRequest['gramasi'],
                 'tipe_marker' => $validatedRequest['tipe_marker'],
+                'notes' => $request['notes'],
                 'cancel' => 'N',
             ]);
 
@@ -446,7 +454,7 @@ class MarkerController extends Controller
         </div>
 
         <div class='row'>
-            <div class='col-sm-6'>
+            <div class='col-sm-3'>
                 <div class='form-group'>
                     <label class='form-label'><small>PO</small></label>
                     <input type='text' class='form-control' id='txtpo' name='txtpo' value = '" . $datanomarker->po_marker . "' readonly>
@@ -462,6 +470,14 @@ class MarkerController extends Controller
                 <div class='form-group'>
                     <label class='form-label'><small>Urutan</small></label>
                     <input type='text' class='form-control' id='txturutan' name='txturutan'  value = '" . $datanomarker->urutan_marker . "' readonly>
+                </div>
+            </div>
+            <div class='col-sm-3'>
+                <div class='form-group'>
+                    <label class='form-label'><small>Catatan</small></label>
+                    <textarea class='form-control' id='txtarea' name='txtarea' readonly>"
+                        .($datanomarker->notes ? $datanomarker->notes : '-').
+                    "</textarea>
                 </div>
             </div>
         </div>
@@ -646,24 +662,17 @@ class MarkerController extends Controller
             group by sd.color, k.id_item, k.unit
             limit 1");
 
-        return view("marker.pdf.print-marker", ["markerData" => $markerData, "actCostingData" => $actCostingData, "soDetData" => $soDetData, "orderQty" => $orderQty]);
+        if ($markerData) {
+            // generate pdf
+            PDF::setOption(['dpi' => 150]);
+            $pdf = PDF::loadView('marker.pdf.print-marker', ["markerData" => $markerData, "actCostingData" => $actCostingData, "soDetData" => $soDetData, "orderQty" => $orderQty])->setPaper('a4', 'landscape');
 
-        // $markerData = Marker::where('kode', $kodeMarker)->first();
+            $path = public_path('pdf/');
+            $fileName = 'stocker-'.str_replace("/", "_", $kodeMarker).'.pdf';
+            $pdf->save($path . '/' . str_replace("/", "_", $kodeMarker));
+            $generatedFilePath = public_path('pdf/'.str_replace("/", "_", $kodeMarker));
 
-        // if ($markerData) {
-        //     // decode qr code
-        //     $qrCodeDecode = base64_encode(QrCode::format('svg')->size(100)->generate($markerData->id."-".$markerData->kode));
-
-        //     // generate pdf
-        //     PDF::setOption(['dpi' => 150]);
-        //     $pdf = PDF::loadView('marker.pdf.print-marker', ["markerData" => $markerData, "qrCode" => $qrCodeDecode])->setPaper('a4', 'landscape');
-
-        //     $path = public_path('pdf/');
-        //     $fileName = 'stocker-'.$storeItem->id.'.pdf';
-        //     $pdf->save($path . '/' . $fileName);
-        //     $generatedFilePath = public_path('pdf/'.$fileName);
-
-        //     return response()->download($generatedFilePath);
-        // }
+            return response()->download($generatedFilePath);
+        }
     }
 }
