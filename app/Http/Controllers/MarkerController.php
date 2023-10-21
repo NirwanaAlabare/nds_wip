@@ -40,33 +40,27 @@ class MarkerController extends Controller
             ")->leftJoin(DB::raw("(select id_marker,coalesce(count(id_marker),0) tot_form from form_cut_input group by id_marker)b"), "marker_input.kode", "=", "b.id_marker");
 
             return DataTables::eloquent($markersQuery)->filter(function ($query) {
-                    $tglAwal = request('tgl_awal');
-                    $tglAkhir = request('tgl_akhir');
+                $tglAwal = request('tgl_awal');
+                $tglAkhir = request('tgl_akhir');
 
-                    if ($tglAwal) {
-                        $query->whereRaw("tgl_cutting >= '" . $tglAwal . "'");
-                    }
+                if ($tglAwal) {
+                    $query->whereRaw("tgl_cutting >= '" . $tglAwal . "'");
+                }
 
-                    if ($tglAkhir) {
-                        $query->whereRaw("tgl_cutting <= '" . $tglAkhir . "'");
-                    }
-                }, true)->
-                filterColumn('kode', function($query, $keyword) {
-                    $query->whereRaw("LOWER(kode) LIKE LOWER('%".$keyword."%')");
-                })->
-                filterColumn('act_costing_ws', function($query, $keyword) {
-                    $query->whereRaw("LOWER(act_costing_ws) LIKE LOWER('%".$keyword."%')");
-                })->
-                filterColumn('color', function($query, $keyword) {
-                    $query->whereRaw("LOWER(color) LIKE LOWER('%".$keyword."%')");
-                })->
-                filterColumn('panel', function($query, $keyword) {
-                    $query->whereRaw("LOWER(panel) LIKE LOWER('%".$keyword."%')");
-                })->
-                filterColumn('po_marker', function($query, $keyword) {
-                    $query->whereRaw("LOWER(po_marker) LIKE LOWER('%".$keyword."%')");
-                })->
-                order(function ($query) {
+                if ($tglAkhir) {
+                    $query->whereRaw("tgl_cutting <= '" . $tglAkhir . "'");
+                }
+            }, true)->filterColumn('kode', function ($query, $keyword) {
+                    $query->whereRaw("LOWER(kode) LIKE LOWER('%" . $keyword . "%')");
+                })->filterColumn('act_costing_ws', function ($query, $keyword) {
+                    $query->whereRaw("LOWER(act_costing_ws) LIKE LOWER('%" . $keyword . "%')");
+                })->filterColumn('color', function ($query, $keyword) {
+                    $query->whereRaw("LOWER(color) LIKE LOWER('%" . $keyword . "%')");
+                })->filterColumn('panel', function ($query, $keyword) {
+                    $query->whereRaw("LOWER(panel) LIKE LOWER('%" . $keyword . "%')");
+                })->filterColumn('po_marker', function ($query, $keyword) {
+                    $query->whereRaw("LOWER(po_marker) LIKE LOWER('%" . $keyword . "%')");
+                })->order(function ($query) {
                     $query->orderBy('cancel', 'asc')->orderBy('updated_at', 'desc');
                 })->toJson();
         }
@@ -86,10 +80,7 @@ class MarkerController extends Controller
                     marker_input_detail.so_det_id,
                     marker_input.panel,
                     SUM(marker_input_detail.cut_qty) total_cut_qty
-                ")->
-                leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->
-                where('marker_input.cancel', 'N')->
-                groupBy("marker_input_detail.so_det_id", "marker_input.panel")->get();
+                ")->leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->where('marker_input.cancel', 'N')->groupBy("marker_input_detail.so_det_id", "marker_input.panel")->get();
 
             return $markerDetail;
         }
@@ -126,12 +117,12 @@ class MarkerController extends Controller
     public function getSizeList(Request $request)
     {
         $sizes = DB::connection('mysql_sb')->select("
-                select sd.id, ac.kpno no_ws, sd.color, sd.qty order_qty, sd.size from so_det sd
+                select sd.id, ac.kpno no_ws, sd.color, sum(sd.qty) order_qty, sd.size from so_det sd
                     inner join so on sd.id_so = so.id
                     inner join act_costing ac on so.id_cost = ac.id
                     inner join master_size_new msn on sd.size = msn.size
                 where ac.id = '" . $request->act_costing_id . "' and sd.color = '" . $request->color . "' and sd.cancel = 'N'
-                group by sd.size
+                group by sd.size, sd.color
                 order by msn.urutan asc
             ");
 
