@@ -11,8 +11,7 @@
 @endsection
 
 @section('content')
-    <form action="{{ route('store-spreading') }}" method="post" id="store-spreading" name='form'
-        onsubmit="submitSpreadingForm(this, event)">
+    <form action="{{ route('store-spreading') }}" method="post" id="store-spreading" name='form' onsubmit="submitSpreadingForm(this, event)">
         @csrf
         <div class="card card-outline">
             <div class="card-header">
@@ -26,8 +25,7 @@
                         <div class="card-header">
                             <h3 class="card-title">Filter Data :</h3>
                             <div class="card-tools">
-                                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i
-                                        class="fas fa-minus"></i></button>
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
                             </div>
                         </div>
                         <div class="card-body">
@@ -35,8 +33,7 @@
                                 <div class="col-sm-4">
                                     <div class="form-group">
                                         <label>No. WS</label>
-                                        <select class="form-control select2bs4" id="cbows" name="cbows"
-                                            onchange='getno_marker();' style="width: 100%;">
+                                        <select class="form-control select2bs4" id="cbows" name="cbows" onchange='getno_marker();' style="width: 100%;">
                                             <option selected="selected" value="">Pilih WS</option>
                                             @foreach ($data_ws as $dataws)
                                                 <option value="{{ $dataws->act_costing_id }}">
@@ -50,16 +47,13 @@
                                 <div class="col-sm-5">
                                     <div class="form-group">
                                         <label>No. Marker</label>
-                                        <select class='form-control select2bs4' style='width: 100%;' name='cbomarker'
-                                            id='cbomarker' onchange='getdata_marker();'>
-                                        </select>
+                                        <select class='form-control select2bs4' style='width: 100%;' name='cbomarker' id='cbomarker' onchange='getdata_marker();'></select>
                                     </div>
                                 </div>
                                 <div class="col-sm-3">
                                     <div class="form-group">
                                         <label>Qty Ply Cutting</label>
-                                        <input type='number' class='form-control' id='txtqty_ply_cut' name='txtqty_ply_cut'
-                                            oninput='sum();' autocomplete='off'>
+                                        <input type='number' class='form-control' id='txtqty_ply_cut' name='txtqty_ply_cut' oninput='sum();' autocomplete='off'>
                                     </div>
                                 </div>
                             </div>
@@ -71,8 +65,7 @@
                         <div class="card-header">
                             <h3 class="card-title">Hasil Data</h3>
                             <div class="card-tools">
-                                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i
-                                        class="fas fa-minus"></i></button>
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
                             </div>
                         </div>
                         <div class="card-body">
@@ -80,8 +73,7 @@
                                 <div class="col-sm-3">
                                     <div class="form-group">
                                         <label>Qty Ply Marker</label>
-                                        <input type='text' class='form-control' id='hitungmarker' name='hitungmarker'
-                                            readonly>
+                                        <input type='text' class='form-control' id='hitungmarker' name='hitungmarker' readonly>
                                     </div>
                                 </div>
                                 <div class="col-sm-3">
@@ -93,8 +85,7 @@
                                 <div class="col-sm-3">
                                     <div class="form-group">
                                         <label>Total Form</label>
-                                        <input type='text' class='form-control' id='hitungform' name='hitungform'
-                                            readonly>
+                                        <input type='text' class='form-control' id='hitungform' name='hitungform' readonly>
                                     </div>
                                 </div>
                                 <div class="col-sm-3">
@@ -116,8 +107,7 @@
                         <div class="card-header">
                             <h3 class="card-title">Detail Data :</h3>
                             <div class="card-tools">
-                                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i
-                                        class="fas fa-minus"></i></button>
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
                             </div>
                         </div>
                         <div class="card-body">
@@ -125,15 +115,13 @@
                                 <div class="col-sm-6">
                                     <div class="form-group">
                                         <label>Panel</label>
-                                        <input type='text' class='form-control' id='txtpanel' name='txtpanel'
-                                            readonly>
+                                        <input type='text' class='form-control' id='txtpanel' name='txtpanel' readonly>
                                     </div>
                                 </div>
                                 <div class="col-sm-6">
                                     <div class="form-group">
                                         <label>Color</label>
-                                        <input type='text' class='form-control' id='txtcolor' name='txtcolor'
-                                            readonly>
+                                        <input type='text' class='form-control' id='txtcolor' name='txtcolor' readonly>
                                     </div>
                                 </div>
                             </div>
@@ -141,15 +129,13 @@
                                 <div class="col-sm-6">
                                     <div class="form-group">
                                         <label>Buyer</label>
-                                        <input type='text' class='form-control' id='txtbuyer' name='txtbuyer'
-                                            readonly>
+                                        <input type='text' class='form-control' id='txtbuyer' name='txtbuyer' readonly>
                                     </div>
                                 </div>
                                 <div class="col-sm-6">
                                     <div class="form-group">
                                         <label>Style</label>
-                                        <input type='text' class='form-control' id='txtstyle' name='txtstyle'
-                                            readonly>
+                                        <input type='text' class='form-control' id='txtstyle' name='txtstyle' readonly>
                                     </div>
                                 </div>
                             </div>
@@ -157,29 +143,25 @@
                                 <div class="col-sm-3">
                                     <div class="form-group">
                                         <label>P. Marker</label>
-                                        <input type='text' class='form-control' id='txt_p_marker' name='txt_p_marker'
-                                            readonly>
+                                        <input type='text' class='form-control' id='txt_p_marker' name='txt_p_marker' readonly>
                                     </div>
                                 </div>
                                 <div class="col-sm-3">
                                     <div class="form-group">
                                         <label>Unit</label>
-                                        <input type='text' class='form-control' id='txt_unit_p_marker'
-                                            name='txt_unit_p_marker' readonly>
+                                        <input type='text' class='form-control' id='txt_unit_p_marker' name='txt_unit_p_marker' readonly>
                                     </div>
                                 </div>
                                 <div class="col-sm-3">
                                     <div class="form-group">
                                         <label>Comma</label>
-                                        <input type='text' class='form-control' id='txt_comma_p_marker'
-                                            name='txt_comma_p_marker' readonly>
+                                        <input type='text' class='form-control' id='txt_comma_p_marker' name='txt_comma_p_marker' readonly>
                                     </div>
                                 </div>
                                 <div class="col-sm-3">
                                     <div class="form-group">
                                         <label>Unit</label>
-                                        <input type='text' class='form-control' id='txt_unit_comma_p_marker'
-                                            name='txt_unit_comma_p_marker' readonly>
+                                        <input type='text' class='form-control' id='txt_unit_comma_p_marker' name='txt_unit_comma_p_marker' readonly>
                                     </div>
                                 </div>
                             </div>
@@ -188,22 +170,19 @@
                                 <div class="col-sm-6">
                                     <div class="form-group">
                                         <label>PO</label>
-                                        <input type='text' class='form-control' id='txt_po_marker'
-                                            name='txt_po_marker' readonly>
+                                        <input type='text' class='form-control' id='txt_po_marker' name='txt_po_marker' readonly>
                                     </div>
                                 </div>
                                 <div class="col-sm-3">
                                     <div class="form-group">
                                         <label>L. Marker</label>
-                                        <input type='text' class='form-control' id='txt_l_marker' name='txt_l_marker'
-                                            readonly>
+                                        <input type='text' class='form-control' id='txt_l_marker' name='txt_l_marker' readonly>
                                     </div>
                                 </div>
                                 <div class="col-sm-3">
                                     <div class="form-group">
                                         <label>Unit</label>
-                                        <input type='text' class='form-control' id='txt_unit_l_marker'
-                                            name='txt_unit_l_marker' readonly>
+                                        <input type='text' class='form-control' id='txt_unit_l_marker' name='txt_unit_l_marker' readonly>
                                     </div>
                                 </div>
                             </div>
@@ -422,6 +401,8 @@
                             confirmButtonText: 'Oke',
                             timer: 5000,
                             timerProgressBar: true
+                        }).then((result) => {
+                            location.reload();
                         })
 
                         datatable.ajax.reload();

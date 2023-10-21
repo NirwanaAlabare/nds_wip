@@ -207,7 +207,8 @@
                                         calculateTotalPemakaian();
                                         calculateShortRoll();
                                         calculateRemark();
-                                    ">
+                                    "
+                                >
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
@@ -273,12 +274,14 @@
                                 <label class="form-label label-input"><small><b>L. Act</b></small></label>
                                 <input type="number" class="form-control form-control-sm border-input" name="l_act" id="l_act" value="{{ $formCutInputData->l_act }}"
                                     onkeyup="
+                                        calculateConsAmpar();
                                         calculateEstAmpar();
                                         calculateTotalPemakaian();
                                         calculateShortRoll();
                                         calculateRemark();
                                     "
                                     onchange="
+                                        calculateConsAmpar();
                                         calculateEstAmpar();
                                         calculateTotalPemakaian();
                                         calculateShortRoll();
@@ -301,13 +304,13 @@
                         <div class="col-6 col-md-3">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Cons WS</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="cons_ws" id="cons_ws" onkeyup="calculateEstKain(this.value)" onchange="calculateEstKain(this.value)" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="cons_ws" id="cons_ws" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Cons Marker</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="cons_marker" id="cons_marker" value="{{ $formCutInputData->cons_marker }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="cons_marker" id="cons_marker" value="{{ $formCutInputData->cons_marker }}" onkeyup="calculateEstKain(this.value)" onchange="calculateEstKain(this.value)" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
@@ -333,7 +336,7 @@
                                         <input type="number" class="form-control form-control-sm border-calc" step=".01" name="cons_ampar" id="cons_ampar" value="{{ $formCutInputData->cons_ampar }}" readonly>
                                     </div>
                                     <div class="col-4">
-                                        <input type="text" class="form-control form-control-sm border-calc" name="unit_cons_ampar" id="unit_cons_ampar" value="-" readonly>
+                                        <input type="text" class="form-control form-control-sm border-calc" name="unit_cons_ampar" id="unit_cons_ampar" value="KGM" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -356,7 +359,7 @@
                                 <label class="form-label label-calc"><small><b>Est. Kebutuhan Kain</b></small></label>
                                 <div class="row g-1">
                                     <div class="col-6">
-                                        <input type="number" class="form-control form-control-sm border-calc" step=".01" name="est_kain" id="est_kain" value="{{ $formCutInputData->est_kain }}" readonly>
+                                        <input type="number" class="form-control form-control-sm border-calc" step=".01" name="est_kain" id="est_kain" value="{{ $formCutInputData->cons_marker * $totalCutQtyPly }}" readonly>
                                     </div>
                                     <div class="col-6">
                                         <input type="text" class="form-control form-control-sm border-calc" name="est_kain_unit" id="est_kain_unit" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
@@ -574,8 +577,8 @@
                                     <label class="form-label label-input"><small><b>Kepala Kain</b></small></label>
                                     <div class="input-group input-group-sm mb-3">
                                         <input type="number" class="form-control border-input" id="current_kepala_kain" name="current_kepala_kain" step=".01"
-                                            onkeyup="calculateTotalPemakaian()"
-                                            onchange="calculateTotalPemakaian()"
+                                            onkeyup="calculateTotalPemakaian(); calculateShortRoll();"
+                                            onchange="calculateTotalPemakaian(); calculateShortRoll();"
                                         >
                                         <span class="input-group-text input-group-unit"></span>
                                     </div>
@@ -1466,11 +1469,11 @@
                 let commaActualVar = Number(document.getElementById("comma_act").value);
                 let lActualVar = Number(document.getElementById("l_act").value);
                 let gramasiVar = Number(document.getElementById("gramasi").value);
-                let unitConsAmparVar = document.getElementById("unit_cons_ampar").value;
+                let lActualMeter = lActualVar / 100;
 
                 let pActualFinal = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
 
-                consAmpar = totalRatio > 0 ? pActualFinal / totalRatio : 0;
+                consAmpar = totalRatio > 0 ? (gramasiVar * pActualFinal * lActualMeter) / 1000 : 0;
 
                 document.getElementById('cons_ampar').value = consAmpar.round(2);
             }
@@ -1500,10 +1503,10 @@
             }
 
             // -Calculate Est. Kain-
-            function calculateEstKain(consWs = 0) {
-                let consWsVar = consWs;
+            function calculateEstKain(consMarker = 0) {
+                let consMarkerVar = consMarker;
 
-                let estKain = consWsVar * totalQtyCut
+                let estKain = consMarkerVar * totalQtyCut
 
                 document.getElementById('est_kain').value = estKain.round(2);
             }
@@ -1727,8 +1730,6 @@
                             let consWs = res.cons_ws;
 
                             document.getElementById("cons_ws").value = consWs;
-
-                            calculateEstKain(consWs);
                         }
                     }
                 });
