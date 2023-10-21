@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
+use PDF;
 
 class MarkerController extends Controller
 {
@@ -36,6 +37,7 @@ class MarkerController extends Controller
                 po_marker,
                 urutan_marker,
                 ifnull(b.tot_form,0) tot_form,
+                notes,
                 cancel
             ")->leftJoin(DB::raw("(select id_marker,coalesce(count(id_marker),0) tot_form from form_cut_input group by id_marker)b"), "marker_input.kode", "=", "b.id_marker");
 
@@ -51,18 +53,18 @@ class MarkerController extends Controller
                     $query->whereRaw("tgl_cutting <= '" . $tglAkhir . "'");
                 }
             }, true)->filterColumn('kode', function ($query, $keyword) {
-                    $query->whereRaw("LOWER(kode) LIKE LOWER('%" . $keyword . "%')");
-                })->filterColumn('act_costing_ws', function ($query, $keyword) {
-                    $query->whereRaw("LOWER(act_costing_ws) LIKE LOWER('%" . $keyword . "%')");
-                })->filterColumn('color', function ($query, $keyword) {
-                    $query->whereRaw("LOWER(color) LIKE LOWER('%" . $keyword . "%')");
-                })->filterColumn('panel', function ($query, $keyword) {
-                    $query->whereRaw("LOWER(panel) LIKE LOWER('%" . $keyword . "%')");
-                })->filterColumn('po_marker', function ($query, $keyword) {
-                    $query->whereRaw("LOWER(po_marker) LIKE LOWER('%" . $keyword . "%')");
-                })->order(function ($query) {
-                    $query->orderBy('cancel', 'asc')->orderBy('updated_at', 'desc');
-                })->toJson();
+                $query->whereRaw("LOWER(kode) LIKE LOWER('%" . $keyword . "%')");
+            })->filterColumn('act_costing_ws', function ($query, $keyword) {
+                $query->whereRaw("LOWER(act_costing_ws) LIKE LOWER('%" . $keyword . "%')");
+            })->filterColumn('color', function ($query, $keyword) {
+                $query->whereRaw("LOWER(color) LIKE LOWER('%" . $keyword . "%')");
+            })->filterColumn('panel', function ($query, $keyword) {
+                $query->whereRaw("LOWER(panel) LIKE LOWER('%" . $keyword . "%')");
+            })->filterColumn('po_marker', function ($query, $keyword) {
+                $query->whereRaw("LOWER(po_marker) LIKE LOWER('%" . $keyword . "%')");
+            })->order(function ($query) {
+                $query->orderBy('cancel', 'asc')->orderBy('updated_at', 'desc');
+            })->toJson();
         }
 
         return view('marker.marker', ["page" => "dashboard-cutting"]);
@@ -116,15 +118,13 @@ class MarkerController extends Controller
 
     public function getSizeList(Request $request)
     {
-        $sizes = DB::connection('mysql_sb')->select("
-                select sd.id, ac.kpno no_ws, sd.color, sum(sd.qty) order_qty, sd.size from so_det sd
-                    inner join so on sd.id_so = so.id
-                    inner join act_costing ac on so.id_cost = ac.id
-                    inner join master_size_new msn on sd.size = msn.size
-                where ac.id = '" . $request->act_costing_id . "' and sd.color = '" . $request->color . "' and sd.cancel = 'N'
-                group by sd.size, sd.color
-                order by msn.urutan asc
-            ");
+        $sizes = DB::table("master_sb_ws")->selectRaw("
+                master_sb_ws.id_so_det so_det_id,
+                master_sb_ws.ws no_ws,
+                master_sb_ws.color,
+                master_sb_ws.size,
+                master_sb_ws.qty order_qty
+            ")->where("id_act_cost", $request->act_costing_id)->where("color", $request->color)->join("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->groupBy("id_act_cost", "id_so_det")->orderBy("master_size_new.urutan")->get();
 
         return json_encode([
             "draw" => intval($request->input('draw')),
@@ -217,7 +217,7 @@ class MarkerController extends Controller
             "no_urut_marker" => "required",
             "cons_marker" => "required",
             "gramasi" => "required",
-            "tipe_marker" => "required",
+            "tipe_marker" => "required"
         ]);
 
         foreach ($request["cut_qty"] as $qty) {
@@ -247,6 +247,7 @@ class MarkerController extends Controller
                 'cons_marker' => $validatedRequest['cons_marker'],
                 'gramasi' => $validatedRequest['gramasi'],
                 'tipe_marker' => $validatedRequest['tipe_marker'],
+                'notes' => $request['notes'],
                 'cancel' => 'N',
             ]);
 
@@ -437,7 +438,7 @@ class MarkerController extends Controller
         </div>
 
         <div class='row'>
-            <div class='col-sm-6'>
+            <div class='col-sm-3'>
                 <div class='form-group'>
                     <label class='form-label'><small>PO</small></label>
                     <input type='text' class='form-control' id='txtpo' name='txtpo' value = '" . $datanomarker->po_marker . "' readonly>
@@ -453,6 +454,14 @@ class MarkerController extends Controller
                 <div class='form-group'>
                     <label class='form-label'><small>Urutan</small></label>
                     <input type='text' class='form-control' id='txturutan' name='txturutan'  value = '" . $datanomarker->urutan_marker . "' readonly>
+                </div>
+            </div>
+            <div class='col-sm-3'>
+                <div class='form-group'>
+                    <label class='form-label'><small>Catatan</small></label>
+                    <textarea class='form-control' id='txtarea' name='txtarea' readonly>"
+                . ($datanomarker->notes ? $datanomarker->notes : '-') .
+                "</textarea>
                 </div>
             </div>
         </div>
@@ -596,5 +605,45 @@ class MarkerController extends Controller
     public function destroy(Marker $marker)
     {
         //
+    }
+
+    public function printMarker($kodeMarker)
+    {
+        $kodeMarker = str_replace("_", "/", $kodeMarker);
+
+        $markerData = Marker::where('kode', $kodeMarker)->first();
+        $actCostingData = DB::connection('mysql_sb')->table('act_costing')->selectRaw('
+                SUM(so_det.qty) order_qty,
+                so_det.unit unit_qty
+            ')->leftJoin('so', 'so.id_cost', '=', 'act_costing.id')->leftJoin('so_det', 'so_det.id_so', '=', 'so.id')->where('act_costing.id', $markerData->act_costing_id)->where('so_det.color', $markerData->color)->groupBy('act_costing.id')->first();
+        $soDetData = DB::connection('mysql_sb')->table('so_det')->selectRaw('
+                so_det.id,
+                so_det.size as size,
+                so_det.qty as qty
+            ')->leftJoin('so', 'so.id', '=', 'so_det.id_so')->leftJoin('act_costing', 'so.id_cost', '=', 'act_costing.id')->where('act_costing.id', $markerData->act_costing_id)->where('so_det.color', $markerData->color)->get();
+        $orderQty = DB::connection('mysql_sb')->select("
+            select k.cons cons_ws,sum(sd.qty) order_qty from bom_jo_item k
+                inner join so_det sd on k.id_so_det = sd.id
+                inner join so on sd.id_so = so.id
+                inner join act_costing ac on so.id_cost = ac.id
+                inner join masteritem mi on k.id_item = mi.id_gen
+                inner join masterpanel mp on k.id_panel = mp.id
+            where ac.id = '" . $markerData->act_costing_id . "' and sd.color = '" . $markerData->color . "' and mp.nama_panel ='" . $markerData->panel . "' and k.status = 'M'
+            and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and ac.status = 'confirm' and mi.mattype = 'F'
+            group by sd.color, k.id_item, k.unit
+            limit 1");
+
+        if ($markerData) {
+            // generate pdf
+            PDF::setOption(['dpi' => 150]);
+            $pdf = PDF::loadView('marker.pdf.print-marker', ["markerData" => $markerData, "actCostingData" => $actCostingData, "soDetData" => $soDetData, "orderQty" => $orderQty])->setPaper('a4', 'landscape');
+
+            $path = public_path('pdf/');
+            $fileName = 'stocker-' . str_replace("/", "_", $kodeMarker) . '.pdf';
+            $pdf->save($path . '/' . str_replace("/", "_", $kodeMarker));
+            $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $kodeMarker));
+
+            return response()->download($generatedFilePath);
+        }
     }
 }

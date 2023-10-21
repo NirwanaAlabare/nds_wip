@@ -104,10 +104,7 @@
                         <div class="col-6 col-md-3">
                             <div class="mb-1">
                                 <label class="form-label"><small>Unit</small></label>
-                                <select class="form-control input-sm select2bs4" id="p_unit" name="p_unit" style="width: 100%;">
-                                    <option selected="selected" value="yard">YARD</option>
-                                    <option value="meter">METER</option>
-                                </select>
+                                <input type="text" class="form-control" id="p_unit" name="p_unit" value="METER" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
@@ -120,7 +117,7 @@
                             <div class="mb-1">
                                 <label class="form-label"><small>Unit</small></label>
                                 <input type="text" class="form-control" id="comma_unit" name="comma_unit"
-                                    value="INCH" readonly>
+                                    value="CM" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
@@ -132,11 +129,7 @@
                         <div class="col-6 col-md-6">
                             <div class="mb-1">
                                 <label class="form-label"><small>Unit</small></label>
-                                <select class="form-control input-sm select2bs4" id="l_unit" name="l_unit"
-                                    style="width: 100%;">
-                                    <option selected="selected" value="inch">INCH</option>
-                                    <option value="cm">CM</option>
-                                </select>
+                                <input type="text" class="form-control" id="l_unit" name="l_unit" value="CM" readonly>
                             </div>
                         </div>
                         <div class="col-4 col-md-4">
@@ -154,19 +147,18 @@
                         <div class="col-4 col-md-4">
                             <div class="mb-1">
                                 <label class="form-label"><small>Qty Gelar Marker</small></label>
-                                <input type="number" class="form-control" id="gelar_marker_qty"
-                                    name="gelar_marker_qty" onchange="calculateAllRatio(this)" onkeyup="calculateAllRatio(this)">
+                                <input type="number" class="form-control" id="gelar_marker_qty" name="gelar_marker_qty" onchange="calculateAllRatio(this)" onkeyup="calculateAllRatio(this)">
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="mb-1">
                         <label class="form-label"><small>PO</small></label>
                         <input type="text" class="form-control" id="po" name="po">
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="mb-1">
                         <label class="form-label"><small>Tipe Marker</small></label>
                         <select class="form-select rounded-0" id="tipe_marker" name="tipe_marker" style="width: 100%;">
@@ -175,11 +167,17 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="mb-1">
                         <label class="form-label"><small>No. Urut Marker</small></label>
                         <input type="text" class="form-control" id="no_urut_marker" name="no_urut_marker"
                             readonly>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-1">
+                        <label class="form-label"><small>Catatan</small></label>
+                        <textarea class="form-control" id="notes" name="notes"></textarea>
                     </div>
                 </div>
                 <input type="hidden" class="form-control" id="jumlah_so_det" name="jumlah_so_det" readonly>
@@ -193,7 +191,7 @@
             </h5>
         </div>
         <div class="card-body table-responsive">
-            <table id="datatable" class="table table-bordered table-striped table-sm w-100">
+            <table id="orderQtyDatatable" class="table table-bordered table-striped table-sm w-100">
                 <thead>
                     <tr>
                         <th>WS</th>
@@ -228,7 +226,7 @@
 @endsection
 
 @section('custom-script')
-    <!-- DataTables  & Plugins -->
+    <!-- DataTables & Plugins -->
     <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
@@ -237,75 +235,84 @@
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <!-- Page specific script -->
     <script>
+        // Global Variable
         var sumCutQty = null;
         var totalRatio = null;
-        $(document).ready(async function () {
-            sumCutQty = await $.ajax({
-                url: '{{ route("create-marker") }}',
-                type: 'get',
-                data: {
-                    act_costing_id: $('#ws_id').val(),
-                    color: $('#color').val(),
-                },
-                dataType: 'json',
-            });
 
+        // Initial Window On Load Event
+        $(document).ready(async function () {
+            // Call Get Total Cut Qty ( set sum cut qty variable )
+            getTotalCutQty($("#ws_id").val(), $("#color").val());
+
+            // Marker Type Default Value
             $("#tipe_marker").val("regular marker");
+
+            //Reset Form
+            if (document.getElementById('store-marker')) {
+                document.getElementById('store-marker').reset();
+
+                $("#ws_id").val(null).trigger("change");
+            }
+
+            // Select2 Prevent Step-Jump Input ( Step = WS -> Color -> Panel )
+            $("#color").prop("disabled", true);
+            $("#panel").prop("disabled", true);
         });
 
+        // Select2 Autofocus
         $(document).on('select2:open', () => {
             document.querySelector('.select2-search__field').focus();
         });
 
-        //Initialize Select2 Elements
+        // Initialize Select2 Elements
         $('.select2').select2()
 
-        //Initialize Select2 Elements
+        // Initialize Select2BS4 Elements
         $('.select2bs4').select2({
             theme: 'bootstrap4',
         })
 
-        $("#color").prop("disabled", true);
-        $("#panel").prop("disabled", true);
-        $('#p_unit').val("yard").trigger('change');
-
-        //Reset Form
-        if (document.getElementById('store-marker')) {
-            document.getElementById('store-marker').reset();
+        // Get & Set Total Cut Qty Based on Order WS and Order Color ( to know remaining cut qty )
+        async function getTotalCutQty(wsId, color) {
+            sumCutQty = await $.ajax({
+                url: '{{ route("create-marker") }}',
+                type: 'get',
+                data: {
+                    act_costing_id: wsId,
+                    color: color,
+                },
+                dataType: 'json',
+            });
         }
 
-        $('#ws_id').on('change', async function(e) {
-            await updateColorList();
-            await updateOrderInfo();
-        });
-
-        $('#color').on('change', async function(e) {
-            await updatePanelList();
-            await updateSizeList();
-        });
-
-        $('#panel').on('change', async function(e) {
-            await getMarkerCount();
-            await getNumber();
-            await updateSizeList();
-        });
-
-        $('#p_unit').on('change', async function(e) {
-            let unit = $('#p_unit').val();
-            if (unit == 'yard') {
-                $('#comma_unit').val('INCH');
-                $('#l_unit').val('inch').trigger("change");
-            } else if (unit == 'meter') {
-                $('#comma_unit').val('CM');
-                $('#l_unit').val('cm').trigger("change");
+        // Step One (WS) on change event
+        $('#ws_id').on('change', function(e) {
+            if (this.value) {
+                updateColorList();
+                updateOrderInfo();
             }
         });
 
+        // Step Two (Color) on change event
+        $('#color').on('change', function(e) {
+            if (this.value) {
+                updatePanelList();
+                updateSizeList();
+            }
+        });
+
+        // Step Three (Panel) on change event
+        $('#panel').on('change', function(e) {
+            if (this.value) {
+                getMarkerCount();
+                getNumber();
+                updateSizeList();
+            }
+        });
+
+        // Update Order Information Based on Order WS and Order Color
         function updateOrderInfo() {
             return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
                 url: '{{ route("get-marker-order") }}',
                 type: 'get',
                 data: {
@@ -323,12 +330,11 @@
             });
         }
 
+        // Update Color Select Option Based on Order WS
         function updateColorList() {
             document.getElementById('color').value = null;
+
             return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
                 url: '{{ route("get-marker-colors") }}',
                 type: 'get',
                 data: {
@@ -336,14 +342,20 @@
                 },
                 success: function (res) {
                     if (res) {
+                        // Update this step
                         document.getElementById('color').innerHTML = res;
+
+                        // Reset next step
                         document.getElementById('panel').innerHTML = null;
                         document.getElementById('panel').value = null;
 
+                        // Open this step
                         $("#color").prop("disabled", false);
+
+                        // Close next step
                         $("#panel").prop("disabled", true);
 
-                        // input text
+                        // Reset order information
                         document.getElementById('no_urut_marker').value = null;
                         document.getElementById('cons_ws').value = null;
                         document.getElementById('order_qty').value = null;
@@ -352,12 +364,10 @@
             });
         }
 
+        // Update Panel Select Option Based on Order WS and Color WS
         function updatePanelList() {
             document.getElementById('panel').value = null;
             return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
                 url: '{{ route("get-marker-panels") }}',
                 type: 'get',
                 data: {
@@ -366,10 +376,13 @@
                 },
                 success: function (res) {
                     if (res) {
+                        // Update this step
                         document.getElementById('panel').innerHTML = res;
+
+                        // Open this step
                         $("#panel").prop("disabled", false);
 
-                        // input text
+                        // Reset order information
                         document.getElementById('no_urut_marker').value = null;
                         document.getElementById('cons_ws').value = null;
                         document.getElementById('order_qty').value = null;
@@ -378,7 +391,19 @@
             });
         }
 
-        let datatable = $("#datatable").DataTable({
+        // Calculate Remaining Cut Qty
+        function remainingCutQty(orderQty, soDetId) {
+            // Get Total Cut Qty Based on Order WS, Order Color and Order Panel ( to know remaining cut qty )
+            let sumCutQtyData = sumCutQty.find(o => o.so_det_id == soDetId)  ;
+
+            // Calculate Remaining Cut Qty
+            let remain = orderQty - (sumCutQtyData ? sumCutQtyData.total_cut_qty : 0);
+
+            return remain;
+        }
+
+        // Order Qty Datatable (Size|Ratio|Cut Qty)
+        let orderQtyDatatable = $("#orderQtyDatatable").DataTable({
             ordering: false,
             processing: true,
             serverSide: true,
@@ -400,60 +425,78 @@
                     data: 'size'
                 },
                 {
-                    data: 'size'
+                    data: 'size' // size input
                 },
                 {
                     data: 'order_qty'
                 },
                 {
-                    data: null
+                    data: null // remaining cut qty
                 },
                 {
-                    data: 'id'
+                    data: 'so_det_id' // detail so input
                 },
                 {
-                    data: 'id'
+                    data: 'so_det_id' // ratio input
                 },
                 {
-                    data: 'id'
+                    data: 'so_det_id' // cut qty input
                 }
             ],
             columnDefs: [
                 {
+                    // Size Input
                     targets: [3],
                     className: "d-none",
-                    render: (data, type, row, meta) => '<input type="hidden" id="size-' + meta.row + '" name="size['+meta.row+']" value="' + data + '" readonly />'
-                },
-                {
-                    targets: [5],
                     render: (data, type, row, meta) => {
-                        let sumCutQtyData = sumCutQty.find(o => o.so_det_id == row.id && o.panel == $('#panel').val())  ;
-                        let left = row.order_qty - (sumCutQtyData ? sumCutQtyData.total_cut_qty : 0);
-
-                        return left < 0 ? 0 : left;
+                        // Hidden Size Input
+                        return '<input type="hidden" id="size-' + meta.row + '" name="size['+meta.row+']" value="' + data + '" readonly />'
                     }
                 },
                 {
-                    targets: [6],
-                    className: "d-none",
-                    render: (data, type, row, meta) => '<input type="hidden" id="so-det-id-' + meta.row + '" name="so_det_id['+meta.row+']" value="' + data + '" readonly />'
+                    // Remaining Cut Qty
+                    targets: [5],
+                    render: (data, type, row, meta) => {
+                        // Calculate Remaining Cut Qty
+                        let remain = remainingCutQty(row.order_qty, row.so_det_id);
+
+                        return remain < 0 ? 0 : remain;
+                    }
                 },
                 {
+                    // SO Detail Input
+                    targets: [6],
+                    className: "d-none",
+                    render: (data, type, row, meta) => {
+                        // Hidden Detail SO Input
+                        return '<input type="hidden" id="so-det-id-' + meta.row + '" name="so_det_id['+meta.row+']" value="' + data + '" readonly />'
+                    }
+                },
+                {
+                    // Ratio Input
                     targets: [7],
                     render: (data, type, row, meta) => {
-                        let sumCutQtyData = sumCutQty.find(o => o.so_det_id == row.id &&  o.panel == $('#panel').val())  ;
-                        let left = row.order_qty - (sumCutQtyData ? sumCutQtyData.total_cut_qty : 0);
-                        let readonly = left < 1 ? "readonly" : "";
+                        // Calculate Remaining Cut Qty
+                        let remain = remainingCutQty(row.order_qty, row.so_det_id);
 
+                        // Conditional Based on Remaining Cut Qty
+                        let readonly = remain < 1 ? "readonly" : "";
+
+                        // Hidden Ratio Input
                         return '<input type="number" id="ratio-' + meta.row + '" name="ratio[' + meta.row + ']" onchange="calculateRatio(' + meta.row + ');" onkeyup="calculateRatio(' + meta.row + ');" '+readonly+' />';
                     }
                 },
                 {
+                    // Cut Qty Input
                     targets: [8],
-                    render: (data, type, row, meta) => '<input type="number" id="cut-qty-' + meta.row + '" name="cut_qty['+meta.row+']" readonly />'
+                    render: (data, type, row, meta) => {
+                        // Hidden Cut Qty Input
+                        return '<input type="number" id="cut-qty-' + meta.row + '" name="cut_qty['+meta.row+']" readonly />'
+                    }
                 }
             ],
             footerCallback: function(row, data, start, end, display) {
+                // This datatable api
                 let api = this.api();
 
                 // Remove the formatting to get integer data for summation
@@ -461,7 +504,7 @@
                     return typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
                 };
 
-                // Total over this page
+                // Total order qty
                 let orderQtyTotal = api
                     .column(4, {
                         page: 'current'
@@ -472,7 +515,8 @@
                         return result;
                     }, 0);
 
-                let remainQtyTotal = datatable
+                // Total remain qty
+                let remainQtyTotal = orderQtyDatatable
                     .cells( null, 5 )
                     .render( 'display' )
                     .reduce(function(a, b) {
@@ -480,37 +524,27 @@
                         return result;
                     }, 0);
 
-                // let remainQtyTotal = api
-                //     .column(4, {
-                //         page: 'current'
-                //     })
-                //     .render()
-                //     .reduce(function(a, b) {
-                //         let result = intVal(a) + intVal(b);
-                //         return result.toFixed(2);
-                //     }, 0);
-
                 // Update footer
                 $(api.column(1).footer()).html("Total");
                 $(api.column(4).footer()).html(Number(orderQtyTotal).toLocaleString('id-ID'));
                 $(api.column(5).footer()).html(Number(remainQtyTotal).toLocaleString('id-ID'));
-                $(api.column(7).footer()).html(0);
-                $(api.column(8).footer()).html(0);
+                $(api.column(7).footer()).html(0); // Total ratio
+                $(api.column(8).footer()).html(0); // Total cut qty
             },
         });
 
+        // Update Order Qty Datatable
         async function updateSizeList() {
-            await datatable.ajax.reload(() => {
-                document.getElementById('jumlah_so_det').value = datatable.data().count();
+            await orderQtyDatatable.ajax.reload(() => {
+                // Get Sizes Count ( for looping over sizes input )
+                document.getElementById('jumlah_so_det').value = orderQtyDatatable.data().count();
             });
         }
 
+        // Get & Set Marker Count Based on Order WS, Order Color and Order Panel
         function getMarkerCount() {
             document.getElementById('no_urut_marker').value = "";
             return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
                 url: '{{ route("get-marker-count") }}',
                 type: 'get',
                 data: {
@@ -526,13 +560,11 @@
             });
         }
 
+        // Get & Set Order WS Cons and Order Qty Based on Order WS, Order Color and Order Panel
         function getNumber() {
             document.getElementById('cons_ws').value = null;
             document.getElementById('order_qty').value = null;
             return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
                 url: ' {{ route("get-marker-number") }}',
                 type: 'get',
                 dataType: 'json',
@@ -548,42 +580,61 @@
                     }
                 }
             });
-
         }
 
+        // Calculate Cut Qty Based on Ratio and Spread Qty ( Ratio * Spread Qty )
         function calculateRatio(id) {
             let ratio = document.getElementById('ratio-'+id).value;
             let gelarQty = document.getElementById('gelar_marker_qty').value;
+
+            // Cut Qty Formula
             document.getElementById('cut-qty-'+id).value = ratio * gelarQty;
 
+            // Call Calculate Total Ratio Function ( for order qty datatable summary )
             calculateTotalRatio();
         }
 
+        // Calculate Total Ratio
         function calculateTotalRatio() {
-            let totalSize = datatable.rows().count();
+            // Get Sizes Count
+            let totalSize = document.getElementById('jumlah_so_det').value;
+
             let totalRatio = 0;
             let totalCutQty = 0;
 
+            // Looping Over Sizes Input
             for (let i = 0; i < totalSize; i++) {
+                // Sum Ratio and Cut Qty
                 totalRatio += Number(document.getElementById('ratio-'+i).value);
                 totalCutQty += Number(document.getElementById('cut-qty-'+i).value);
             }
 
-            document.querySelector("table#datatable tfoot tr th:nth-child(6)").innerText = totalRatio;
-            document.querySelector("table#datatable tfoot tr th:nth-child(7)").innerText = totalCutQty;
+            // Set Ratio and Cut Qty ( order qty datatable summary )
+            document.querySelector("table#orderQtyDatatable tfoot tr th:nth-child(6)").innerText = totalRatio;
+            document.querySelector("table#orderQtyDatatable tfoot tr th:nth-child(7)").innerText = totalCutQty;
         }
 
+        // Calculate All Cut Qty at Once Based on Spread Qty
         function calculateAllRatio(element) {
+            // Get Sizes Count
+            let totalSize = document.getElementById('jumlah_so_det').value;
+
             let gelarQty = element.value;
 
-            for (let i = 0; i < datatable.data().count(); i++) {
+            // Looping Over Sizes Input
+            for (let i = 0; i < totalSize; i++) {
+                // Calculate Cut Qty
                 let ratio = document.getElementById('ratio-'+i).value;
+
+                // Cut Qty Formula
                 document.getElementById('cut-qty-'+i).value = ratio * gelarQty;
             }
 
+            // Call Calculate Total Ratio Function ( for order qty datatable summary )
             calculateTotalRatio();
         }
 
+        // Prevent Form Submit When Pressing Enter
         document.getElementById("store-marker").onkeypress = function(e) {
             var key = e.charCode || e.keyCode || 0;
             if (key == 13) {
@@ -591,11 +642,11 @@
             }
         }
 
+        // Submit Marker Form
         function submitMarkerForm(e, evt) {
             evt.preventDefault();
 
             clearModified();
-
 
             $.ajax({
                 url: e.getAttribute('action'),
@@ -604,9 +655,15 @@
                 processData: false,
                 contentType: false,
                 success: async function(res) {
+                    // Success Response
+
                     if (res.status == 200) {
+                        // When Actually Success :
+
+                        // Reset This Form
                         e.reset();
 
+                        // Success Alert
                         Swal.fire({
                             icon: 'success',
                             title: 'Data Marker berhasil disimpan',
@@ -618,26 +675,15 @@
                             timerProgressBar: true
                         })
 
-                        await $("#ws_id").val(null).trigger("change");
-                        await $("#panel").val(null).trigger("change");
-                        await $("#color").val(null).trigger("change");
-                        await $('#p_unit').val("yard").trigger('change');
-                        await $("#panel").prop("disabled", true);
-                        await $("#color").prop("disabled", true);
+                        // Call Get Total Cut Qty ( update sum cut qty variable )
+                        getTotalCutQty($("#ws_id").val(), $("#color").val());
 
-                        sumCutQty = await $.ajax({
-                            headers: {
-                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                            },
-                            url: '{{ route("create-marker") }}',
-                            type: 'get',
-                            data: {
-                                act_costing_id: $('#ws_id').val(),
-                                color: $('#color').val(),
-                            },
-                            dataType: 'json',
-                        });
+                        // Reset Step ( back to step one )
+                        resetStep();
                     } else {
+                        // When Actually Error :
+
+                        // Error Alert
                         iziToast.error({
                             title: 'Error',
                             message: res.message,
@@ -645,8 +691,10 @@
                         });
                     }
 
-                    $('#datatable').DataTable().ajax.reload();
+                    // Reload Order Qty Datatable
+                    orderQtyDatatable.ajax.reload();
 
+                    // If There Are Some Additional Error
                     if (Object.keys(res.additional).length > 0 ) {
                         for (let key in res.additional) {
                             if (document.getElementById(key)) {
@@ -670,6 +718,8 @@
                         }
                     }
                 }, error: function (jqXHR) {
+                    // Error Response
+
                     let res = jqXHR.responseJSON;
                     let message = '';
                     let i = 0;
@@ -688,6 +738,15 @@
                     };
                 }
             });
+        }
+
+        // Reset Step
+        async function resetStep() {
+            await $("#ws_id").val(null).trigger("change");
+            await $("#color").val(null).trigger("change");
+            await $("#panel").val(null).trigger("change");
+            await $("#color").prop("disabled", true);
+            await $("#panel").prop("disabled", true);
         }
     </script>
 @endsection

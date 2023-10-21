@@ -11,8 +11,7 @@
                 <div class="card-header">
                     <h3 class="card-title">Header Data</h3>
                     <div class="card-tools">
-                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
-                        </button>
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
                     </div>
                 </div>
                 <div class="card-body" style="display: block;">
@@ -41,12 +40,9 @@
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Shell</b></small></label>
                                 <select class="form-select form-select-sm" name="shell" id="shell">
-                                    <option value="a" {{ $formCutInputData->shell == 'a' ? 'selected' : '' }}>A
-                                    </option>
-                                    <option value="b" {{ $formCutInputData->shell == 'b' ? 'selected' : '' }}>B
-                                    </option>
-                                    <option value="c" {{ $formCutInputData->shell == 'c' ? 'selected' : '' }}>C
-                                    </option>
+                                    <option value="a" {{ $formCutInputData->shell == 'a' ? 'selected' : '' }}>A</option>
+                                    <option value="b" {{ $formCutInputData->shell == 'b' ? 'selected' : '' }}>B</option>
+                                    <option value="c" {{ $formCutInputData->shell == 'c' ? 'selected' : '' }}>C</option>
                                 </select>
                             </div>
                         </div>
@@ -166,7 +162,7 @@
                         </tbody>
                         <tfoot>
                             <tr>
-                                <th>Total</th>
+                                <th class="text-center">Total</th>
                                 <th id="totalRatio">{{ $totalRatio }}</th>
                                 <th id="totalQtyCutMarker">{{ $totalCutQty }}</th>
                                 <th id="totalQtyCutPly">{{ $totalCutQtyPly }}</th>
@@ -788,6 +784,24 @@
                                     </thead>
                                     <tbody>
                                     </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th colspan="8" class="text-center">Total</th>
+                                            <th id="total-sisa-gelaran"></th>
+                                            <th id="total-sambungan"></th>
+                                            <th id="total-est-amparan"></th>
+                                            <th id="total-lembar"></th>
+                                            <th id="total-average-time"></th>
+                                            <th id="total-kepala-kain"></th>
+                                            <th id="total-sisa-tidak-bisa"></th>
+                                            <th id="total-reject"></th>
+                                            <th id="total-sisa-kain"></th>
+                                            <th id="total-total-pemakaian"></th>
+                                            <th id="total-short-roll"></th>
+                                            <th id="total-piping"></th>
+                                            <th id="total-remark"></th>
+                                        </tr>
+                                    </tfoot>
                                 </table>
                             </div>
                         </div>
@@ -1392,7 +1406,7 @@
             let sisaGelar = Number(document.getElementById('current_sisa_gelaran').value);
             let pAct = Number(document.getElementById('p_act').value);
 
-            let estSambungan = calculateSambungan(sisaGelaran, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
+            let estSambungan = calculateSambungan(sisaGelar, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
 
             if (estSambungan <= 0) {
                 document.getElementById('current_sisa_gelaran').value = 0;
@@ -2064,6 +2078,17 @@
         var scannedItemTable = document.getElementById("scannedItemTable");
         var scannedItemTableTbody = scannedItemTable.getElementsByTagName("tbody")[0];
         var totalScannedItem = 0;
+        var totalSisaGelaran = 0;
+        var totalSambungan = 0;
+        var totalEstAmparan = 0;
+        var totalAverageTime = 0;
+        var totalKepalaKain = 0;
+        var totalSisaTidakBisa = 0;
+        var totalReject = 0;
+        var totalSisaKain = 0;
+        var totalTotalPemakaian = 0;
+        var totalShortRoll = 0;
+        var totalRemark = 0;
         var totalLembar = 0;
         var totalPiping = 0;
         var totalQtyFabric = 0;
@@ -2213,6 +2238,36 @@
             totalScannedItem++;
 
             calculateConsActualGelaran(unit = latestUnit, piping = totalPiping, lembar = totalLembar, pActual = undefined, totalQtyFabric, totalQtyCut);
+
+            totalSisaGelaran += Number(data.sisa_gelaran);
+            totalSambungan += Number(data.sambungan);
+            totalEstAmparan += Number(data.est_amparan);
+            totalAverageTime += (Number(data.average_time.slice(0, 2)) * 60) + Number(data.average_time.slice(3, 5));
+            totalKepalaKain += Number(data.kepala_kain);
+            totalSisaTidakBisa += Number(data.sisa_tidak_bisa);
+            totalReject += Number(data.reject);
+            totalSisaKain += Number(data.sisa_kain);
+            totalTotalPemakaian += Number(data.total_pemakaian_roll);
+            totalShortRoll += Number(data.short_roll);
+            totalRemark += Number(data.remark);
+
+            let averageTotalAverageTime = totalAverageTime/totalScannedItem;
+            let averageTotalAverageTimeMinute = pad((averageTotalAverageTime/60).toFixed(0));
+            let averageTotalAverageTimeSecond = pad((averageTotalAverageTime%60).toFixed(0));
+
+            document.getElementById("total-sisa-gelaran").innerText = Number(totalSisaGelaran).round(2);
+            document.getElementById("total-sambungan").innerText = Number(totalSambungan).round(2);
+            document.getElementById("total-est-amparan").innerText = Number(totalEstAmparan).round(2);
+            document.getElementById("total-lembar").innerText = Number(totalLembar).round(2);
+            document.getElementById("total-average-time").innerText = averageTotalAverageTimeMinute+":"+averageTotalAverageTimeSecond;
+            document.getElementById("total-kepala-kain").innerText = Number(totalKepalaKain).round(2);
+            document.getElementById("total-sisa-tidak-bisa").innerText = Number(totalSisaTidakBisa).round(2);
+            document.getElementById("total-reject").innerText = Number(totalReject).round(2);
+            document.getElementById("total-sisa-kain").innerText = Number(totalSisaKain).round(2);
+            document.getElementById("total-total-pemakaian").innerText = Number(totalTotalPemakaian).round(2);
+            document.getElementById("total-short-roll").innerText = Number(totalShortRoll).round(2);
+            document.getElementById("total-piping").innerText = Number(totalPiping).round(2);
+            document.getElementById("total-remark").innerText = Number(totalRemark).round(2);
         }
 
         // Time Record Module :
@@ -2269,8 +2324,7 @@
                         averageSeconds = (parseFloat(summarySeconds) / parseFloat(lap)).toFixed(0);
 
                         $("#current_lembar_gelaran").val(lap).trigger('change');
-                        $("#current_average_time").val((pad(parseInt(averageSeconds / 60))) + ':' + (pad(
-                            averageSeconds % 60)))
+                        $("#current_average_time").val((pad(parseInt(averageSeconds / 60))) + ':' + (pad(averageSeconds % 60)))
                     }
 
                     let tr = document.createElement('tr');

@@ -35,6 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 });
 
+// Round
+Number.prototype.round = function(places) {
+    return +(Math.round(this + "e+" + places)  + "e-" + places);
+}
+
 // Capitalize
 function capitalizeFirstLetter(string) {
     if (string) {
@@ -58,6 +63,14 @@ function checkIfNull(value) {
     }
 
     return true;
+}
+
+function formatDate(date) {
+    return [
+        date.getFullYear(),
+        pad(date.getMonth() + 1),
+        pad(date.getDate()),
+    ].join('-');
 }
 
 // Clear modified

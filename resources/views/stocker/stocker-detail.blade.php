@@ -167,6 +167,31 @@
         function printStocker(index) {
             let stockerForm = new FormData(document.getElementById("stocker-form"));
 
+            let no_ws = document.getElementById("no_ws").value;
+            let style = document.getElementById("style").value;
+            let color = document.getElementById("color").value;
+            let panel = document.getElementById("panel").value;
+            let no_form_cut = document.getElementById("no_form_cut").value;
+            let current_size = document.getElementById("size_"+index).value;
+
+            let fileName = [
+                no_ws,
+                style,
+                color,
+                panel,
+                no_form_cut,
+                current_size,
+            ].join('-');
+
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
             $.ajax({
                 url: '{{ route('print-stocker') }}/'+index,
                 type: 'post',
@@ -184,8 +209,10 @@
                         var blob = new Blob([res], {type: 'application/pdf'});
                         var link = document.createElement('a');
                         link.href = window.URL.createObjectURL(blob);
-                        link.download = index+".pdf";
+                        link.download = fileName+".pdf";
                         link.click();
+
+                        swal.close();
                     }
                 }
             });
@@ -193,6 +220,31 @@
 
         function printNumbering(index) {
             let stockerForm = new FormData(document.getElementById("stocker-form"));
+
+            let no_ws = document.getElementById("no_ws").value;
+            let style = document.getElementById("style").value;
+            let color = document.getElementById("color").value;
+            let panel = document.getElementById("panel").value;
+            let no_form_cut = document.getElementById("no_form_cut").value;
+            let current_size = document.getElementById("size_"+index).value;
+
+            let fileName = [
+                no_ws,
+                style,
+                color,
+                panel,
+                no_form_cut,
+                current_size,
+            ].join('-');
+
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
 
             $.ajax({
                 url: '{{ route('print-numbering') }}/'+index,
@@ -211,9 +263,11 @@
                         var blob = new Blob([res], {type: 'application/pdf'});
                         var link = document.createElement('a');
                         link.href = window.URL.createObjectURL(blob);
-                        link.download = index+".pdf";
+                        link.download = fileName+".pdf";
                         link.click();
                     }
+
+                    swal.close();
                 }
             });
         }
