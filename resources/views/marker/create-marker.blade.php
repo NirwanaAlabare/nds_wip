@@ -11,218 +11,224 @@
 @endsection
 
 @section('content')
-<form action="{{ route('store-marker') }}" method="post" id="store-marker" onsubmit="submitMarkerForm(this, event)">
-    @csrf
-    <div class="card card-sb card-outline">
-        <div class="card-header">
-            <h5 class="card-title fw-bold">
-                List Data
-            </h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-6 col-md-3">
-                    <div class="mb-1">
-                        <label class="form-label"><small>Tgl Cutting</small></label>
-                        <input type="date" class="form-control" id="tgl_cutting" name="tgl_cutting" value="{{ date('Y-m-d') }}">
-                    </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="mb-1">
-                        <div class="form-group">
-                            <label><small>No. WS</small></label>
-                            <select class="form-control select2bs4" id="ws_id" name="ws_id" style="width: 100%;">
-                                <option selected="selected" value="">Pilih WS</option>
-                                @foreach ($orders as $order)
-                                    <option value="{{ $order->id }}">
-                                        {{ $order->kpno }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="mb-1">
-                        <div class="form-group">
-                            <label><small>Color</small></label>
-                            <select class="form-control select2bs4" id="color" name="color" style="width: 100%;">
-                                <option selected="selected" value="">Pilih Color</option>
-                                {{-- select 2 option --}}
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="mb-1">
-                        <div class="form-group">
-                            <label><small>Panel</small></label>
-                            <select class="form-control select2bs4" id="panel" name="panel" style="width: 100%;" >
-                                <option selected="selected" value="">Pilih Panel</option>
-                                {{-- select 2 option --}}
-                            </select>
-                        </div>
-                    </div>
-                </div>
+    <form action="{{ route('store-marker') }}" method="post" id="store-marker" onsubmit="submitMarkerForm(this, event)">
+        @csrf
+        <div class="card card-sb card-outline">
+            <div class="card-header">
+                <h5 class="card-title fw-bold">
+                    List Data
+                </h5>
             </div>
-            <div class="row">
-                <div class="col-12 col-md-6">
-                    <div class="d-flex flex-column">
-                        <input type="hidden" class="form-control" id="ws" name="ws" readonly>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6 col-md-3">
                         <div class="mb-1">
-                            <label class="form-label"><small>Buyer</small></label>
-                            <input type="text" class="form-control" id="buyer" name="buyer" readonly>
+                            <label class="form-label"><small>Tgl Cutting</small></label>
+                            <input type="date" class="form-control" id="tgl_cutting" name="tgl_cutting" value="{{ date('Y-m-d') }}">
                         </div>
+                    </div>
+                    <div class="col-6 col-md-3">
                         <div class="mb-1">
-                            <label class="form-label"><small>Style</small></label>
-                            <input type="text" class="form-control" id="style" name="style" readonly>
+                            <div class="form-group">
+                                <label><small>No. WS</small></label>
+                                <select class="form-control select2bs4" id="ws_id" name="ws_id" style="width: 100%;">
+                                    <option selected="selected" value="">Pilih WS</option>
+                                    @foreach ($orders as $order)
+                                        <option value="{{ $order->id }}">
+                                            {{ $order->kpno }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <div class="mb-1">
-                                    <label class="form-label"><small>Cons WS</small></label>
-                                    <input type="text" class="form-control" id="cons_ws" name="cons_ws" readonly>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="mb-1">
+                            <div class="form-group">
+                                <label><small>Color</small></label>
+                                <select class="form-control select2bs4" id="color" name="color" style="width: 100%;">
+                                    <option selected="selected" value="">Pilih Color</option>
+                                    {{-- select 2 option --}}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="mb-1">
+                            <div class="form-group">
+                                <label><small>Panel</small></label>
+                                <select class="form-control select2bs4" id="panel" name="panel" style="width: 100%;" >
+                                    <option selected="selected" value="">Pilih Panel</option>
+                                    {{-- select 2 option --}}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 col-md-6">
+                        <div class="d-flex flex-column">
+                            <input type="hidden" class="form-control" id="ws" name="ws" readonly>
+                            <div class="mb-1">
+                                <label class="form-label"><small>Buyer</small></label>
+                                <input type="text" class="form-control" id="buyer" name="buyer" readonly>
+                            </div>
+                            <div class="mb-1">
+                                <label class="form-label"><small>Style</small></label>
+                                <input type="text" class="form-control" id="style" name="style" readonly>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="mb-1">
+                                        <label class="form-label"><small>Cons WS</small></label>
+                                        <input type="text" class="form-control" id="cons_ws" name="cons_ws" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-1">
+                                        <label class="form-label"><small>Qty Order</small></label>
+                                        <input type="text" class="form-control" id="order_qty" name="order_qty" readonly>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <div class="row">
+                            <div class="col-6 col-md-3">
                                 <div class="mb-1">
-                                    <label class="form-label"><small>Qty Order</small></label>
-                                    <input type="text" class="form-control" id="order_qty" name="order_qty" readonly>
+                                    <label class="form-label"><small>P. Marker</small></label>
+                                    <input type="number" class="form-control" id="p_marker" name="p_marker" step=".001">
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="mb-1">
+                                    <label class="form-label"><small>Unit</small></label>
+                                    <input type="text" class="form-control" id="p_unit" name="p_unit" value="METER" readonly>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="mb-1">
+                                    <label class="form-label"><small>Comma</small></label>
+                                    <input type="number" class="form-control" id="comma_marker" name="comma_marker" step=".001">
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="mb-1">
+                                    <label class="form-label"><small>Unit</small></label>
+                                    <input type="text" class="form-control" id="comma_unit" name="comma_unit"
+                                        value="CM" readonly>
+                                </div>
+                            </div>
+                            <div class="col-3 col-md-3">
+                                <div class="mb-1">
+                                    <label class="form-label"><small>L. Marker</small></label>
+                                    <input type="number" class="form-control" id="l_marker" name="l_marker" step=".001">
+                                </div>
+                            </div>
+                            <div class="col-3 col-md-3">
+                                <div class="mb-1">
+                                    <label class="form-label"><small>Unit</small></label>
+                                    <input type="text" class="form-control" id="l_unit" name="l_unit" value="CM" readonly>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-6">
+                                <div class="mb-1">
+                                    <label class="form-label"><small>Cons Piping</small></label>
+                                    <input type="number" class="form-control" id="cons_piping" name="cons_piping" step=".001">
+                                </div>
+                            </div>
+                            <div class="col-4 col-md-4">
+                                <div class="mb-1">
+                                    <label class="form-label"><small>Gramasi</small></label>
+                                    <input type="number" class="form-control" id="gramasi" name="gramasi" step=".001">
+                                </div>
+                            </div>
+                            <div class="col-4 col-md-4">
+                                <div class="mb-1">
+                                    <label class="form-label"><small>Cons Marker</small></label>
+                                    <input type="number" class="form-control" id="cons_marker" name="cons_marker" step=".001">
+                                </div>
+                            </div>
+                            <div class="col-4 col-md-4">
+                                <div class="mb-1">
+                                    <label class="form-label"><small>Qty Gelar Marker</small></label>
+                                    <input type="number" class="form-control" id="gelar_marker_qty" name="gelar_marker_qty" onchange="calculateAllRatio(this)" onkeyup="calculateAllRatio(this)">
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-12 col-md-6">
-                    <div class="row">
-                        <div class="col-6 col-md-3">
-                            <div class="mb-1">
-                                <label class="form-label"><small>P. Marker</small></label>
-                                <input type="number" class="form-control" id="p_marker" name="p_marker" step=".001">
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="mb-1">
-                                <label class="form-label"><small>Unit</small></label>
-                                <input type="text" class="form-control" id="p_unit" name="p_unit" value="METER" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="mb-1">
-                                <label class="form-label"><small>Comma</small></label>
-                                <input type="number" class="form-control" id="comma_marker" name="comma_marker" step=".001">
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="mb-1">
-                                <label class="form-label"><small>Unit</small></label>
-                                <input type="text" class="form-control" id="comma_unit" name="comma_unit"
-                                    value="CM" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-6">
-                            <div class="mb-1">
-                                <label class="form-label"><small>L. Marker</small></label>
-                                <input type="number" class="form-control" id="l_marker" name="l_marker" step=".001">
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-6">
-                            <div class="mb-1">
-                                <label class="form-label"><small>Unit</small></label>
-                                <input type="text" class="form-control" id="l_unit" name="l_unit" value="CM" readonly>
-                            </div>
-                        </div>
-                        <div class="col-4 col-md-4">
-                            <div class="mb-1">
-                                <label class="form-label"><small>Gramasi</small></label>
-                                <input type="number" class="form-control" id="gramasi" name="gramasi" step=".001">
-                            </div>
-                        </div>
-                        <div class="col-4 col-md-4">
-                            <div class="mb-1">
-                                <label class="form-label"><small>Cons Marker</small></label>
-                                <input type="number" class="form-control" id="cons_marker" name="cons_marker" step=".001">
-                            </div>
-                        </div>
-                        <div class="col-4 col-md-4">
-                            <div class="mb-1">
-                                <label class="form-label"><small>Qty Gelar Marker</small></label>
-                                <input type="number" class="form-control" id="gelar_marker_qty" name="gelar_marker_qty" onchange="calculateAllRatio(this)" onkeyup="calculateAllRatio(this)">
-                            </div>
+                    <div class="col-md-3">
+                        <div class="mb-1">
+                            <label class="form-label"><small>PO</small></label>
+                            <input type="text" class="form-control" id="po" name="po">
                         </div>
                     </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="mb-1">
-                        <label class="form-label"><small>PO</small></label>
-                        <input type="text" class="form-control" id="po" name="po">
+                    <div class="col-md-3">
+                        <div class="mb-1">
+                            <label class="form-label"><small>Tipe Marker</small></label>
+                            <select class="form-select rounded-0" id="tipe_marker" name="tipe_marker" style="width: 100%;">
+                                <option selected="selected" value="regular marker">Regular Marker</option>
+                                <option value="special marker">Special Marker</option>
+                            </select>
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="mb-1">
-                        <label class="form-label"><small>Tipe Marker</small></label>
-                        <select class="form-select rounded-0" id="tipe_marker" name="tipe_marker" style="width: 100%;">
-                            <option selected="selected" value="regular marker">Regular Marker</option>
-                            <option value="special marker">Special Marker</option>
-                        </select>
+                    <div class="col-md-3">
+                        <div class="mb-1">
+                            <label class="form-label"><small>No. Urut Marker</small></label>
+                            <input type="text" class="form-control" id="no_urut_marker" name="no_urut_marker"
+                                readonly>
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="mb-1">
-                        <label class="form-label"><small>No. Urut Marker</small></label>
-                        <input type="text" class="form-control" id="no_urut_marker" name="no_urut_marker"
-                            readonly>
+                    <div class="col-md-3">
+                        <div class="mb-1">
+                            <label class="form-label"><small>Catatan</small></label>
+                            <textarea class="form-control" id="notes" name="notes"></textarea>
+                        </div>
                     </div>
+                    <input type="hidden" class="form-control" id="jumlah_so_det" name="jumlah_so_det" readonly>
                 </div>
-                <div class="col-md-3">
-                    <div class="mb-1">
-                        <label class="form-label"><small>Catatan</small></label>
-                        <textarea class="form-control" id="notes" name="notes"></textarea>
-                    </div>
-                </div>
-                <input type="hidden" class="form-control" id="jumlah_so_det" name="jumlah_so_det" readonly>
             </div>
         </div>
-    </div>
-    <div class="card card-sb card-outline">
-        <div class="card-header">
-            <h5 class="card-title fw-bold">
-                Data Ratio :
-            </h5>
+        <div class="card card-sb card-outline">
+            <div class="card-header">
+                <h5 class="card-title fw-bold">
+                    Data Ratio :
+                </h5>
+            </div>
+            <div class="card-body table-responsive">
+                <table id="orderQtyDatatable" class="table table-bordered table-striped table-sm w-100">
+                    <thead>
+                        <tr>
+                            <th>WS</th>
+                            <th>Color</th>
+                            <th>Size</th>
+                            <th>Size Input</th>
+                            <th>QTY Order</th>
+                            <th>Sisa</th>
+                            <th>So Det Id</th>
+                            <th>Ratio</th>
+                            <th>Cut Qty</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="3"></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th id="total_ratio"></th>
+                            <th id="total_cut_qty"></th>
+                        </tr>
+                    </tfoot>
+                </table>
+                <button class="btn btn-sb float-end mt-3">Simpan</button>
+            </div>
         </div>
-        <div class="card-body table-responsive">
-            <table id="orderQtyDatatable" class="table table-bordered table-striped table-sm w-100">
-                <thead>
-                    <tr>
-                        <th>WS</th>
-                        <th>Color</th>
-                        <th>Size</th>
-                        <th>Size Input</th>
-                        <th>QTY Order</th>
-                        <th>Sisa</th>
-                        <th>So Det Id</th>
-                        <th>Ratio</th>
-                        <th>Cut Qty</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <th colspan="3"></th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                        <th id="total_ratio"></th>
-                        <th id="total_cut_qty"></th>
-                    </tr>
-                </tfoot>
-            </table>
-            <button class="btn btn-sb float-end mt-3">Simpan</button>
-        </div>
-    </div>
-</form>
+    </form>
 @endsection
 
 @section('custom-script')
@@ -480,7 +486,8 @@
                         let remain = remainingCutQty(row.order_qty, row.so_det_id);
 
                         // Conditional Based on Remaining Cut Qty
-                        let readonly = remain < 1 ? "readonly" : "";
+                        // let readonly = remain < 1 ? "readonly" : "";
+                        let readonly = remain < 1 ? "" : "";
 
                         // Hidden Ratio Input
                         return '<input type="number" id="ratio-' + meta.row + '" name="ratio[' + meta.row + ']" onchange="calculateRatio(' + meta.row + ');" onkeyup="calculateRatio(' + meta.row + ');" '+readonly+' />';
