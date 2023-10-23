@@ -37,7 +37,7 @@ class MarkerController extends Controller
                 po_marker,
                 urutan_marker,
                 ifnull(b.tot_form,0) tot_form,
-                notes,
+                ifnull(notes, '-') notes,
                 cancel
             ")->leftJoin(DB::raw("(select id_marker,coalesce(count(id_marker),0) tot_form from form_cut_input group by id_marker)b"), "marker_input.kode", "=", "b.id_marker");
 
@@ -216,7 +216,8 @@ class MarkerController extends Controller
             "no_urut_marker" => "required",
             "cons_marker" => "required",
             "gramasi" => "required",
-            "tipe_marker" => "required"
+            "tipe_marker" => "required",
+            "cons_piping" => "required"
         ]);
 
         foreach ($request["cut_qty"] as $qty) {
@@ -247,6 +248,7 @@ class MarkerController extends Controller
                 'gramasi' => $validatedRequest['gramasi'],
                 'tipe_marker' => $validatedRequest['tipe_marker'],
                 'notes' => $request['notes'],
+                'cons_piping' => $validatedRequest['cons_piping'],
                 'cancel' => 'N',
             ]);
 
@@ -380,16 +382,22 @@ class MarkerController extends Controller
 
 
         <div class='row'>
-            <div class='col-sm-6'>
+            <div class='col-sm-4'>
                 <div class='form-group'>
                     <label class='form-label'><small>Buyer</small></label>
                     <input type='text' class='form-control' id='txtbuyer' name='txtbuyer' value = '" . $datanomarker->buyer . "' readonly>
                 </div>
             </div>
-            <div class='col-sm-6'>
+            <div class='col-sm-4'>
                 <div class='form-group'>
                     <label class='form-label'><small>Panjang Marker</small></label>
                     <input type='text' class='form-control' id='txtp_marker' name='txtp_marker'  value = '" . $datanomarker->panjang_marker_fix . "' readonly>
+                </div>
+            </div>
+            <div class='col-sm-4'>
+                <div class='form-group'>
+                    <label class='form-label'><small>Lebar Marker</small></label>
+                    <input type='text' class='form-control' id='txtl_marker' name='txtl_marker'  value = '" . $datanomarker->lebar_marker_fix . "' readonly>
                 </div>
             </div>
         </div>
@@ -403,8 +411,8 @@ class MarkerController extends Controller
             </div>
             <div class='col-sm-6'>
                 <div class='form-group'>
-                    <label class='form-label'><small>Lebar Marker</small></label>
-                    <input type='text' class='form-control' id='txtl_marker' name='txtl_marker'  value = '" . $datanomarker->lebar_marker_fix . "' readonly>
+                    <label class='form-label'><small>Qty Order</small></label>
+                    <input type='text' class='form-control' id='txtqty_order' name='txtqty_order' value = '" . $datanomarker->qty_order . "' readonly>
                 </div>
             </div>
         </div>
@@ -418,8 +426,8 @@ class MarkerController extends Controller
             </div>
             <div class='col-sm-3'>
                 <div class='form-group'>
-                    <label class='form-label'><small>Qty Order</small></label>
-                    <input type='text' class='form-control' id='txtqty_order' name='txtqty_order' value = '" . $datanomarker->qty_order . "' readonly>
+                    <label class='form-label'><small>Cons Piping</small></label>
+                    <input type='text' class='form-control' id='txtcons_piping' name='txtcons_piping' value = '" . $datanomarker->cons_piping . "' readonly>
                 </div>
             </div>
             <div class='col-sm-3'>
@@ -619,16 +627,32 @@ class MarkerController extends Controller
                 so_det.id,
                 so_det.size as size,
                 so_det.qty as qty
-            ')->leftJoin('so', 'so.id', '=', 'so_det.id_so')->leftJoin('act_costing', 'so.id_cost', '=', 'act_costing.id')->where('act_costing.id', $markerData->act_costing_id)->where('so_det.color', $markerData->color)->get();
+            ')->
+            leftJoin('so', 'so.id', '=', 'so_det.id_so')->
+            leftJoin('act_costing', 'so.id_cost', '=', 'act_costing.id')->
+            where('act_costing.id', $markerData->act_costing_id)->
+            where('so_det.color', $markerData->color)->
+            where('so_det.qty', '>', '0')->
+            groupBy('so_det.size')->
+            get();
+
         $orderQty = DB::connection('mysql_sb')->select("
-            select k.cons cons_ws,sum(sd.qty) order_qty from bom_jo_item k
+            select k.cons cons_ws, sum(sd.qty) order_qty from bom_jo_item k
                 inner join so_det sd on k.id_so_det = sd.id
                 inner join so on sd.id_so = so.id
                 inner join act_costing ac on so.id_cost = ac.id
                 inner join masteritem mi on k.id_item = mi.id_gen
                 inner join masterpanel mp on k.id_panel = mp.id
-            where ac.id = '" . $markerData->act_costing_id . "' and sd.color = '" . $markerData->color . "' and mp.nama_panel ='" . $markerData->panel . "' and k.status = 'M'
-            and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and ac.status = 'confirm' and mi.mattype = 'F'
+            where ac.id = '" . $markerData->act_costing_id . "' and
+            sd.color = '" . $markerData->color . "' and
+            mp.nama_panel ='" . $markerData->panel . "' and
+            k.status = 'M' and
+            k.cancel = 'N' and
+            sd.cancel = 'N' and
+            so.cancel_h = 'N' and
+            ac.status = 'confirm' and
+            mi.mattype = 'F' and
+            sd.qty > 0
             group by sd.color, k.id_item, k.unit
             limit 1");
 

@@ -321,8 +321,8 @@
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-input"><small><b>Cons Piping</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-input" step=".01" name="cons_pipping" id="cons_pipping" value="{{ $formCutInputData->cons_pipping ? $formCutInputData->cons_pipping : 0 }}"
+                                <label class="form-label label-fetch"><small><b>Cons Piping</b></small></label>
+                                <input type="number" class="form-control form-control-sm border-fetch" step=".01" name="cons_pipping" id="cons_pipping" value="{{ $formCutInputData->cons_piping }}" readonly
                                     onkeyup="calculateEstPipping(this.value)"
                                     onchange="calculateEstPipping(this.value)"
                                 >
@@ -1552,17 +1552,16 @@
 
                 let pActualConverted = 0;
 
-                // if (document.getElementById("status_sambungan").value == "extension") {
-                //     pActualConverted = document.getElementById("current_sambungan").value;
-                // } else {
-
-                // }
-                if (unitQtyVar != "KGM") {
-                    pActualConverted = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
+                if (document.getElementById("status_sambungan").value == "extension") {
+                    pActualConverted = document.getElementById("current_sambungan").value;
                 } else {
-                    qtyVar = Number(document.getElementById("current_qty_real").value);
+                    if (unitQtyVar != "KGM") {
+                        pActualConverted = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
+                    } else {
+                        qtyVar = Number(document.getElementById("current_qty_real").value);
 
-                    pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                        pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                    }
                 }
 
                 // let totalPemakaian = lembarGelaranVar * pActualConverted + kepalaKainVar + sisaTidakBisaVar + rejectVar;
@@ -1591,17 +1590,16 @@
 
                 let pActualConverted = 0;
 
-                // if (document.getElementById("status_sambungan").value == "extension") {
-                //     pActualConverted = document.getElementById("current_sambungan").value;
-                // } else {
-
-                // }
-                if (unitQtyVar != "KGM") {
-                    pActualConverted = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
+                if (document.getElementById("status_sambungan").value == "extension") {
+                    pActualConverted = document.getElementById("current_sambungan").value;
                 } else {
-                    qtyVar = Number(document.getElementById("current_qty_real").value);
+                    if (unitQtyVar != "KGM") {
+                        pActualConverted = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
+                    } else {
+                        qtyVar = Number(document.getElementById("current_qty_real").value);
 
-                    pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                        pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                    }
                 }
 
                 // let shortRoll = pActualConverted * lembarGelaranVar + kepalaKainVar + pipingVar + sisaKainVar + rejectVar + sambunganVar - qtyVar;
@@ -1630,17 +1628,16 @@
 
                 let pActualConverted = 0;
 
-                // if (document.getElementById("status_sambungan").value == "extension") {
-                //     pActualConverted = document.getElementById("current_sambungan").value;
-                // } else {
-
-                // }
-                if (unitQtyVar != "KGM") {
-                    pActualConverted = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
+                if (document.getElementById("status_sambungan").value == "extension") {
+                    pActualConverted = document.getElementById("current_sambungan").value;
                 } else {
-                    qtyVar = Number(document.getElementById("current_qty_real").value);
+                    if (unitQtyVar != "KGM") {
+                        pActualConverted = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
+                    } else {
+                        qtyVar = Number(document.getElementById("current_qty_real").value);
 
-                    pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                        pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                    }
                 }
 
                 let remark = ((pActualConverted * lembarGelaranVar) +  sisaGelaranVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar);
@@ -1708,7 +1705,7 @@
 
                     document.getElementById("cons_actual_gelaran").value = consActualGelaran.round(2);
                     document.getElementById("unit_cons_actual_gelaran").value = unitVar.toLowerCase();
-                    document.getElementById("unit_cons_ampar").value = unitVar.toUpperCase();
+                    // document.getElementById("unit_cons_ampar").value = unitVar.toUpperCase();
 
                     calculateConsAmpar();
                 }

@@ -32,7 +32,9 @@
             vertical-align: middle;
             padding: 1.5px 3px;
             border: 1px solid;
-            width: auto;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
     </style>
 </head>
@@ -49,9 +51,9 @@
             $commaCM = $markerData->comma_marker;
         }
     @endphp
-    <table>
+    <table class="table">
         <tr>
-            <th colspan="5" style="white-space: nowrap;">PT. NIRWANA ALABARE GARMENT</th>
+            <th colspan="5">PT. NIRWANA ALABARE GARMENT</th>
             <th colspan="{{ $markerData->markerDetails->count()+5 }}">JOB ORDER</th>
             <th>DATE</th>
             <th colspan="3">{{ date("d-M-Y") }}</th>
@@ -100,7 +102,7 @@
         </tr>
         <tr>
             <td rowspan="13" colspan="5"></td>
-            <th rowspan="3" colspan="3">{{ $markerData->color }}</th>
+            <th rowspan="3" colspan="3" >{{ $markerData->color }}</th>
             <td colspan="{{ $markerData->markerDetails->count()+1 }}">QUANTITY</td>
             <td rowspan="2" colspan="2">CONS WS</td>
             <td rowspan="2" colspan="2">TOTAL CONS WS</td>
@@ -108,7 +110,7 @@
         </tr>
         <tr>
             @foreach ($markerData->markerDetails as $markerDetail)
-                <th>{{ $markerDetail->size }}</th>
+                <th>{{ $markerDetail? $markerDetail->size : 0 }}</th>
             @endforeach
             <th>TOTAL</th>
             <td>{{ $markerData->panel }}</td>
@@ -145,7 +147,7 @@
                 @php
                     $markerDetail = $markerData->markerDetails->where("so_det_id", $soDet->id)->first();
                 @endphp
-                <th rowspan="2">{{ $markerDetail->size }}</th>
+                <th rowspan="2">{{ $markerDetail ? $markerDetail->size : 0 }}</th>
             @endforeach
             <th rowspan="2">TOTAL</th>
             <th rowspan="2">TOTAL PLY</th>
@@ -166,13 +168,13 @@
             @foreach ($soDetData as $soDet)
                 @php
                     $markerDetail = $markerData->markerDetails->where("so_det_id", $soDet->id)->first();
-                    $totalRatio += $markerDetail->ratio;
+                    $totalRatio += $markerDetail ? $markerDetail->ratio : 0;
                 @endphp
-                <th>{{ $markerDetail->ratio }}</th>
+                <th>{{ $markerDetail ? $markerDetail->ratio : 0 }}</th>
             @endforeach
             <th>{{ $totalRatio }}</th>
             <th>{{ $markerData->gelar_qty }}</th>
-            <th>{{ $totalRatio * $markerData->gelar_qty }}</th>
+            <th>{{ $markerData->gelar_qty * $totalRatio }}</th>
             <th>{{ $pMeter }}</th>
             <th>{{ $commaCM }}</th>
             <th>{{ $markerData->cons_marker }}</th>

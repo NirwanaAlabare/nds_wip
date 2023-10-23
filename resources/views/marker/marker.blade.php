@@ -187,13 +187,15 @@
                             `;
                         } else if (row.cancel != 'Y' && row.tot_form == 0) {
                             return `
-                                <div class='d-flex gap-1 justify-content-center'>
+                                <div class='d-flex gap-1 justify-content-center mb-1'>
                                     <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModal" onclick='getdetail(` + row.id + `);'>
                                         <i class='fa fa-search'></i>
                                     </a>
                                     <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModalEdit" onclick='edit(` + row.id + `);'>
                                         <i class='fa fa-edit'></i>
                                     </a>
+                                </div>
+                                <div class='d-flex gap-1 justify-content-center'>
                                     <a class='btn btn-danger btn-sm' onclick='cancel(` + row.id + `);'>
                                         <i class='fa fa-ban'></i>
                                     </a>
