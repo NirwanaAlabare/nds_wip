@@ -23,30 +23,34 @@ class CutPlanController extends Controller
             $additionalQuery = "";
 
             $cutPlanQuery = CutPlan::selectRaw("
-                id,
+                cutting_plan.id,
                 tgl_plan,
+                DATE_FORMAT(tgl_plan, '%d-%m-%Y') tgl_plan_fix,
                 no_cut_plan,
-                COUNT(no_form_cut_input) total_form
-            ")->groupBy("tgl_plan", "no_cut_plan");
+                COUNT(no_form_cut_input) total_form,
+                count(IF(form_cut_input.status ='SPREADING',1,null)) total_belum,
+                count(IF(form_cut_input.status ='PENGERJAAN FORM CUTTING DETAIL' or form_cut_input.status ='PENGERJAAN FORM CUTTING SPREAD' ,1,null)) total_on_progress,
+                count(IF(form_cut_input.status='SELESAI PENGERJAAN',1,null)) total_beres
+            ")
+                ->leftJoin('form_cut_input', 'cutting_plan.no_form_cut_input', '=', 'form_cut_input.no_form')
+                ->groupBy("tgl_plan", "no_cut_plan");
 
             return DataTables::eloquent($cutPlanQuery)->filter(function ($query) {
-                    $tglAwal = request('tgl_awal');
-                    $tglAkhir = request('tgl_akhir');
+                $tglAwal = request('tgl_awal');
+                $tglAkhir = request('tgl_akhir');
 
-                    if ($tglAwal) {
-                        $query->whereRaw("tgl_plan >= '" . $tglAwal . "'");
-                    }
+                if ($tglAwal) {
+                    $query->whereRaw("tgl_plan >= '" . $tglAwal . "'");
+                }
 
-                    if ($tglAkhir) {
-                        $query->whereRaw("tgl_plan <= '" . $tglAkhir . "'");
-                    }
-                }, true)->
-                filterColumn('no_cut_plan', function($query, $keyword) {
-                    $query->whereRaw("LOWER(no_cut_plan) LIKE LOWER('%".$keyword."%')");
-                })->
-                order(function ($query) {
-                    $query->orderBy('updated_at', 'desc');
-                })->toJson();
+                if ($tglAkhir) {
+                    $query->whereRaw("tgl_plan <= '" . $tglAkhir . "'");
+                }
+            }, true)->filterColumn('no_cut_plan', function ($query, $keyword) {
+                $query->whereRaw("LOWER(no_cut_plan) LIKE LOWER('%" . $keyword . "%')");
+            })->order(function ($query) {
+                $query->orderBy('cutting_plan.updated_at', 'desc');
+            })->toJson();
         }
 
         return view('cut-plan.cut-plan', ["page" => "dashboard-cutting"]);
@@ -62,18 +66,16 @@ class CutPlanController extends Controller
         if ($request->ajax()) {
             $additionalQuery = "";
 
-            $thisStoredCutPlan = CutPlan::select("no_form_cut_input")->
-                where("tgl_plan", $request->tgl_plan)->
-                get();
+            $thisStoredCutPlan = CutPlan::select("no_form_cut_input")->where("tgl_plan", $request->tgl_plan)->get();
 
             if ($thisStoredCutPlan->count() > 0) {
                 foreach ($thisStoredCutPlan as $cutPlan) {
-                    $additionalQuery .= " and a.no_form != '".$cutPlan->no_form_cut_input."' ";
+                    $additionalQuery .= " and a.no_form != '" . $cutPlan->no_form_cut_input . "' ";
                 }
             }
 
             if ($request->tgl_form) {
-                $additionalQuery .= " and tgl_form_cut = '".$request->tgl_form."' ";
+                $additionalQuery .= " and tgl_form_cut = '" . $request->tgl_form . "' ";
             }
 
             $keywordQuery = "";
@@ -138,12 +140,11 @@ class CutPlanController extends Controller
         return view('cut-plan.create-cut-plan', ["page" => "dashboard-cutting"]);
     }
 
-    public function getSelectedForm(Request $request, $noCutPlan = 0) {
+    public function getSelectedForm(Request $request, $noCutPlan = 0)
+    {
         $additionalQuery = "";
 
-        $thisStoredCutPlan = CutPlan::select("no_form_cut_input")->
-            where("tgl_plan", $request->tgl_plan)->
-            get();
+        $thisStoredCutPlan = CutPlan::select("no_form_cut_input")->where("tgl_plan", $request->tgl_plan)->get();
 
         if ($thisStoredCutPlan->count() > 0) {
             $additionalQuery .= " and (";
@@ -152,9 +153,9 @@ class CutPlanController extends Controller
             $length = $thisStoredCutPlan->count();
             foreach ($thisStoredCutPlan as $cutPlan) {
                 if ($i == 0) {
-                    $additionalQuery .= " a.no_form = '".$cutPlan->no_form_cut_input."' ";
+                    $additionalQuery .= " a.no_form = '" . $cutPlan->no_form_cut_input . "' ";
                 } else {
-                    $additionalQuery .= " or a.no_form = '".$cutPlan->no_form_cut_input."' ";
+                    $additionalQuery .= " or a.no_form = '" . $cutPlan->no_form_cut_input . "' ";
                 }
 
                 $i++;
@@ -166,8 +167,8 @@ class CutPlanController extends Controller
         }
 
         $keywordQuery = "";
-            if ($request->search["value"]) {
-                $keywordQuery = "
+        if ($request->search["value"]) {
+            $keywordQuery = "
                     and (
                         a.id_marker like '%" . $request->search["value"] . "%' OR
                         a.no_meja like '%" . $request->search["value"] . "%' OR
@@ -180,9 +181,9 @@ class CutPlanController extends Controller
                         users.name like '%" . $request->search["value"] . "%'
                     )
                 ";
-            }
+        }
 
-            $data_spreading = DB::select("
+        $data_spreading = DB::select("
                 SELECT
                     a.id,
                     a.no_meja,
@@ -220,7 +221,7 @@ class CutPlanController extends Controller
                 ORDER BY b.cancel asc, a.updated_at desc
             ");
 
-            return DataTables::of($data_spreading)->toJson();
+        return DataTables::of($data_spreading)->toJson();
     }
 
     /**
@@ -232,16 +233,14 @@ class CutPlanController extends Controller
     public function store(Request $request)
     {
         $dateFormat = date("dmY", strtotime($request->tgl_plan));
-        $noCutPlan = "CP-".$dateFormat;
+        $noCutPlan = "CP-" . $dateFormat;
 
         $success = [];
         $fail = [];
         $exist = [];
 
         foreach ($request->formCutPlan as $req) {
-            $isExist = CutPlan::where("tgl_plan", $request->tgl_plan)->
-                where("no_form_cut_input", $req['no_form'])->
-                count();
+            $isExist = CutPlan::where("tgl_plan", $request->tgl_plan)->where("no_form_cut_input", $req['no_form'])->count();
 
             if ($isExist < 1) {
                 $addToCutPlan = CutPlan::create([
@@ -325,14 +324,10 @@ class CutPlanController extends Controller
         $fail = [];
 
         foreach ($request->formCutPlan as $req) {
-            $isExist = CutPlan::where("tgl_plan", $request->tgl_plan)->
-                where("no_form_cut_input", $req['no_form'])->
-                count();
+            $isExist = CutPlan::where("tgl_plan", $request->tgl_plan)->where("no_form_cut_input", $req['no_form'])->count();
 
             if ($isExist > 0) {
-                $removeCutPlan = CutPlan::where("tgl_plan", $request->tgl_plan)->
-                    where("no_form_cut_input", $req['no_form'])->
-                    delete();
+                $removeCutPlan = CutPlan::where("tgl_plan", $request->tgl_plan)->where("no_form_cut_input", $req['no_form'])->delete();
 
                 if ($removeCutPlan) {
                     array_push($success, ['no_form' => $req['no_form']]);
