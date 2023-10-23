@@ -38,9 +38,9 @@
                                     Select Form Cut :
                                 </h5>
                             </div>
-                            <div class="col-6">
+                            {{-- <div class="col-6">
                                 <input type="date" class="form-control form-control-sm w-auto float-end" id="tgl_form" name="tgl_form" value="{{ date('Y-m-d') }}">
-                            </div>
+                            </div> --}}
                         </div>
                     </div>
                     <div class="card-body">
@@ -162,13 +162,13 @@
             });
         });
 
-        document.getElementById("tgl_form").addEventListener("change", function () {
-            datatableSelect.ajax.reload(() => {
-                $('#datatable-select').DataTable().ajax.reload(() => {
-                    document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
-                });
-            });
-        });
+        // document.getElementById("tgl_form").addEventListener("change", function () {
+        //     datatableSelect.ajax.reload(() => {
+        //         $('#datatable-select').DataTable().ajax.reload(() => {
+        //             document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
+        //         });
+        //     });
+        // });
 
         let datatableSelect = $("#datatable-select").DataTable({
             ordering: false,
@@ -178,7 +178,6 @@
                 url: '{{ route('create-cut-plan') }}',
                 data: function(d) {
                     d.tgl_plan = $('#tgl_plan').val();
-                    d.tgl_form = $('#tgl_form').val();
                 },
             },
             columns: [

@@ -400,6 +400,7 @@ class FormCutInputController extends Controller
             "current_group" => "required",
             "current_roll" => "required",
             "current_qty" => "required",
+            "current_qty_real" => "required",
             "current_unit" => "required",
             "current_sisa_gelaran" => "required",
             "current_est_amparan" => "required",
@@ -423,6 +424,9 @@ class FormCutInputController extends Controller
             $status = 'need extension';
         }
 
+        $itemQty = ($validatedRequest["current_unit"] != "KGM" ? floatval($validatedRequest['current_qty']) : floatval($validatedRequest['current_qty_real']));
+        $itemUnit = ($validatedRequest["current_unit"] != "KGM" ? "METER" : $validatedRequest['current_unit']);
+
         $storeTimeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->where('form_cut_input.no_meja', $validatedRequest['no_meja'])->where('form_cut_input_detail.status', 'not complete')->updateOrCreate(
             ["no_form_cut_input" => $validatedRequest['no_form_cut_input']],
             [
@@ -433,8 +437,8 @@ class FormCutInputController extends Controller
                 "group" => $validatedRequest['current_group'],
                 "lot" => $request["current_lot"],
                 "roll" => $validatedRequest['current_roll'],
-                "qty" => $validatedRequest['current_qty'],
-                "unit" => $validatedRequest['current_unit'],
+                "qty" => $itemQty,
+                "unit" => $itemUnit,
                 "sisa_gelaran" => $validatedRequest['current_sisa_gelaran'],
                 "sambungan" => $validatedRequest['current_sambungan'],
                 "est_amparan" => $validatedRequest['current_est_amparan'],
@@ -453,7 +457,7 @@ class FormCutInputController extends Controller
         );
 
         if ($storeTimeRecordSummary) {
-            $itemRemain = floatval($validatedRequest['current_qty']) - floatval($validatedRequest['current_total_pemakaian_roll']);
+            $itemRemain = $itemQty - floatval($validatedRequest['current_total_pemakaian_roll']);
 
             if ($status == 'need extension') {
                 ScannedItem::updateOrCreate(
@@ -465,7 +469,7 @@ class FormCutInputController extends Controller
                         "lot" => $request['current_lot'],
                         "roll" => $validatedRequest['current_roll'],
                         "qty" => $itemRemain > 0 ? 0 : $itemRemain,
-                        "unit" => $validatedRequest['current_unit'],
+                        "unit" => $itemUnit,
                     ]
                 );
 
@@ -496,7 +500,7 @@ class FormCutInputController extends Controller
                         "lot" => $request['current_lot'],
                         "roll" => $validatedRequest['current_roll'],
                         "qty" => $itemRemain,
-                        "unit" => $validatedRequest['current_unit'],
+                        "unit" => $itemUnit,
                     ]
                 );
             }
@@ -522,6 +526,9 @@ class FormCutInputController extends Controller
     {
         $lap = $request->lap;
 
+        $itemQty = ($request["current_unit"] != "KGM" ? floatval($request['current_qty']) : floatval($request['current_qty_real']));
+        $itemUnit = ($request["current_unit"] != "KGM" ? "METER" : $request['current_unit']);
+
         $storeTimeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->where('form_cut_input.no_meja', $request->no_meja)->where('form_cut_input_detail.status', 'not complete')->updateOrCreate(
             ["no_form_cut_input" => $request->no_form_cut_input],
             [
@@ -532,8 +539,8 @@ class FormCutInputController extends Controller
                 "group" => $request->current_group,
                 "lot" => $request->current_lot,
                 "roll" => $request->current_roll,
-                "qty" => $request->current_qty,
-                "unit" => $request->current_unit,
+                "qty" => $itemQty,
+                "unit" => $itemUnit,
                 "sisa_gelaran" => $request->current_sisa_gelaran,
                 "sambungan" => $request->current_sambungan,
                 "est_amparan" => $request->current_est_amparan,
@@ -601,6 +608,7 @@ class FormCutInputController extends Controller
             "current_group" => "required",
             "current_roll" => "required",
             "current_qty" => "required",
+            "current_qty_real" => "required",
             "current_unit" => "required",
             "current_sisa_gelaran" => "required",
             "current_est_amparan" => "required",
@@ -617,6 +625,9 @@ class FormCutInputController extends Controller
             "current_sambungan" => "required"
         ]);
 
+        $itemQty = ($validatedRequest["current_unit"] != "KGM" ? floatval($validatedRequest['current_qty']) : floatval($validatedRequest['current_qty_real']));
+        $itemUnit = ($validatedRequest["current_unit"] != "KGM" ? "METER" : $validatedRequest['current_unit']);
+
         $storeTimeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->where('form_cut_input.no_meja', $validatedRequest['no_meja'])->where('form_cut_input_detail.status', 'extension')->updateOrCreate(
             ['form_cut_input_detail.no_form_cut_input' => $validatedRequest['no_form_cut_input']],
             [
@@ -627,8 +638,8 @@ class FormCutInputController extends Controller
                 "group" => $validatedRequest['current_group'],
                 "lot" => $request['current_lot'],
                 "roll" => $validatedRequest['current_roll'],
-                "qty" => $validatedRequest['current_qty'],
-                "unit" => $validatedRequest['current_unit'],
+                "qty" => $itemQty,
+                "unit" => $itemUnit,
                 "sisa_gelaran" => $validatedRequest['current_sisa_gelaran'],
                 "sambungan" => $validatedRequest['current_sambungan'],
                 "est_amparan" => $validatedRequest['current_est_amparan'],
@@ -647,6 +658,8 @@ class FormCutInputController extends Controller
         );
 
         if ($storeTimeRecordSummary) {
+            $itemRemain = $itemQty - floatval($validatedRequest['current_sambungan']);
+
             ScannedItem::updateOrCreate(
                 ["id_roll" => $validatedRequest['current_id_roll']],
                 [
@@ -655,8 +668,8 @@ class FormCutInputController extends Controller
                     "detail_item" => $validatedRequest['detail_item'],
                     "lot" => $request['current_lot'],
                     "roll" => $validatedRequest['current_roll'],
-                    "qty" => (floatval($validatedRequest['current_qty']) - floatval($validatedRequest['current_sambungan'])),
-                    "unit" => $validatedRequest['current_unit'],
+                    "qty" => $itemRemain,
+                    "unit" => $itemUnit,
                 ]
             );
 
@@ -680,8 +693,8 @@ class FormCutInputController extends Controller
                         "group" => $validatedRequest['current_group'],
                         "lot" => $request['current_lot'],
                         "roll" => $validatedRequest['current_roll'],
-                        "qty" => (floatval($validatedRequest['current_qty']) - floatval($validatedRequest['current_sambungan'])),
-                        "unit" => $validatedRequest['current_unit'],
+                        "qty" => $itemRemain,
+                        "unit" => $itemUnit,
                         "sambungan" => 0,
                         "status" => "not complete",
                     ]);
