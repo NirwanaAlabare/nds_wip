@@ -123,9 +123,8 @@ class MarkerController extends Controller
                 master_sb_ws.ws no_ws,
                 master_sb_ws.color,
                 master_sb_ws.size,
-                master_sb_ws.qty order_qty
-            ")->where("id_act_cost", $request->act_costing_id)->where("color", $request->color)->join("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->groupBy("id_act_cost", "id_so_det")->orderBy("master_size_new.urutan")->get();
-
+                sum(master_sb_ws.qty) order_qty
+            ")->where("id_act_cost", $request->act_costing_id)->where("color", $request->color)->join("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->groupBy("id_act_cost", "color", "size")->orderBy("master_size_new.urutan")->get();
         return json_encode([
             "draw" => intval($request->input('draw')),
             "recordsTotal" => intval(count($sizes)),
