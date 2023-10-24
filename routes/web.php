@@ -9,6 +9,7 @@ use App\Http\Controllers\SpreadingController;
 use App\Http\Controllers\FormCutInputController;
 use App\Http\Controllers\LapPemakaianController;
 use App\Http\Controllers\StockerController;
+use App\Http\Controllers\ManagerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -146,6 +147,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/show/{id?}', 'show')->name('show-stocker');
         Route::post('/print-stocker/{index?}', 'printStocker')->name('print-stocker');
         Route::post('/print-numbering/{index?}', 'printNumbering')->name('print-numbering');
+    });
+
+    // Manager
+    Route::controller(ManagerController::class)->prefix("manager")->middleware('manager')->group(function () {
+        Route::get('/cutting', 'cutting')->name('manage-cutting');
+        Route::get('/cutting/detail/{id?}', 'detailCutting')->name('detail-cutting');
+        Route::put('/cutting/approve/{id?}', 'approveCutting')->name('approve-cutting');
     });
 });
 

@@ -83,9 +83,11 @@ class StockerController extends Controller
                 left join marker_input_detail on b.id = marker_input_detail.marker_id
                 left join master_size_new on marker_input_detail.size = master_size_new.size
                 left join users on users.id = a.no_meja
-                where a.status = 'SELESAI PENGERJAAN'
-                " . $additionalQuery . "
-                " . $keywordQuery . "
+                where
+                    a.status = 'SELESAI PENGERJAAN' and
+                    a.app = 'Y'
+                    " . $additionalQuery . "
+                    " . $keywordQuery . "
                 GROUP BY a.id
                 ORDER BY a.updated_at desc
             ");
@@ -165,6 +167,7 @@ class StockerController extends Controller
             leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->
             leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
             where("form_cut_input.status", "SELESAI PENGERJAAN")->
+            where("form_cut_input.app", "Y")->
             where("form_cut_input.id", $id)->
             where("marker_input_detail.ratio", ">", "0")->
             groupBy("form_cut_input.id")->

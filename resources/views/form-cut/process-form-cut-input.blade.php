@@ -924,6 +924,16 @@
                     }
                 });
 
+                // -Trigger Next Lap Button on Key Up 'Enter'-
+                nextLapButton.addEventListener("keyup", function (evt) {
+                    if (evt.key === "Enter") {
+                        // Cancel the default action, if needed
+                        event.preventDefault();
+                        // Trigger the button element with a click
+                        nextLapButton.click();
+                    }
+                });
+
                 // -On Scan Card Collapse-
                 $('#scan-qr-card').on('collapsed.lte.cardwidget', function(e) {
                     html5QrcodeScanner.clear();
@@ -2445,7 +2455,6 @@
 
                     startLapButton.classList.add("d-none")
                     nextLapButton.classList.remove('d-none');
-                    nextLapButton.focus();
 
                     openLapTimeRecordCondition();
 
@@ -2519,6 +2528,8 @@
                     setTimeout(function(){
                         startLapButton.disabled = false;
                         nextLapButton.disabled = false;
+
+                        nextLapButton.focus();
                     },1500);
                 }
 

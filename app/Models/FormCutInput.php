@@ -28,4 +28,9 @@ class FormCutInput extends Model
     {
         return $this->hasMany(CutPlan::class, 'no_form_cut_input', 'no_form');
     }
+
+    public function formCutInputDetails()
+    {
+        return $this->hasMany(FormCutInputDetail::class, 'no_form_cut_input', 'no_form');
+    }
 }

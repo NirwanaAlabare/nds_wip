@@ -22,11 +22,11 @@
                 {{-- <li class="nav-item">
                     <a href="/marker" class="nav-link {{ $page == 'marker' ? 'active' : '' }}">Marker</a>
                 </li> --}}
-                <li class="nav-item dropdown">
-                    <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
-                        aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
-                    <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-                        @if ($page == 'dashboard-cutting')
+                @if ($page == 'dashboard-cutting')
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @marker
                                 <li>
                                     <a href="{{ route('marker') }}" class="dropdown-item">
@@ -58,9 +58,48 @@
                                     </a>
                                 </li>
                             @endadmin
-                        @endif
+                        </ul>
+                    </li>
 
-                        @if ($page == 'dashboard-stocker')
+                    @admin
+                        <li class="nav-item dropdown">
+                            <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                                aria-expanded="false" class="nav-link dropdown-toggle">Cut Plan</a>
+                            <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
+                                <li>
+                                    <a href="{{ route('cut-plan-new') }}" class="dropdown-item">
+                                        Cutting Plan
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                                aria-expanded="false" class="nav-link dropdown-toggle">Laporan</a>
+                            <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
+                                <li>
+                                    <a href="{{ route('lap_pemakaian') }}" class="dropdown-item">
+                                        Laporan Pemakaian
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    @endadmin
+
+                    @manager
+                        <li class="nav-item">
+                            <a href="{{ route('manage-cutting') }}" class="nav-link">
+                                Approval
+                            </a>
+                        </li>
+                    @endmanager
+                @endif
+
+                @if ($page == 'dashboard-stocker')
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @stocker
                                 <li>
                                     <a href="{{ route('stocker') }}" class="dropdown-item">
@@ -68,10 +107,10 @@
                                     </a>
                                 </li>
                             @endstocker
-                        @endif
-                        {{-- <li class="dropdown-divider"></li> --}}
-                        <!-- Level two dropdown-->
-                        {{-- <li class="dropdown-submenu dropdown-hover">
+                @endif
+                {{-- <li class="dropdown-divider"></li> --}}
+                <!-- Level two dropdown-->
+                {{-- <li class="dropdown-submenu dropdown-hover">
                             <a id="dropdownSubMenu2" href="#" role="button" data-bs-toggle="dropdown"
                                 aria-haspopup="true" aria-expanded="false" class="dropdown-item dropdown-toggle">Hover
                                 for action</a>
@@ -96,37 +135,7 @@
                                 <li><a href="#" class="dropdown-item">level 2</a></li>
                             </ul>
                         </li> --}}
-                        <!-- End Level two -->
-                    </ul>
-                </li>
-
-                @if ($page == 'dashboard-cutting')
-                    <li class="nav-item dropdown">
-                        <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
-                            aria-expanded="false" class="nav-link dropdown-toggle">Cut Plan</a>
-                        <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
-                            <li>
-                                <a href="{{ route('cut-plan-new') }}" class="dropdown-item">
-                                    Cutting Plan
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                @endif
-
-                @if (auth()->user()->type == 'admin')
-                    <li class="nav-item dropdown">
-                        <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
-                            aria-expanded="false" class="nav-link dropdown-toggle">Laporan</a>
-                        <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
-                            <li>
-                                <a href="{{ route('lap_pemakaian') }}" class="dropdown-item">
-                                    Laporan Pemakaian
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                @endif
+                <!-- End Level two -->
 
                 <li class="nav-item">
                     <a href="{{ route('home') }}/" class="nav-link">

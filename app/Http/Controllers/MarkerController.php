@@ -619,10 +619,17 @@ class MarkerController extends Controller
         $kodeMarker = str_replace("_", "/", $kodeMarker);
 
         $markerData = Marker::where('kode', $kodeMarker)->first();
+
         $actCostingData = DB::connection('mysql_sb')->table('act_costing')->selectRaw('
                 SUM(so_det.qty) order_qty,
                 so_det.unit unit_qty
-            ')->leftJoin('so', 'so.id_cost', '=', 'act_costing.id')->leftJoin('so_det', 'so_det.id_so', '=', 'so.id')->where('act_costing.id', $markerData->act_costing_id)->where('so_det.color', $markerData->color)->groupBy('act_costing.id')->first();
+            ')->
+            leftJoin('so', 'so.id_cost', '=', 'act_costing.id')->
+            leftJoin('so_det', 'so_det.id_so', '=', 'so.id')->
+            where('act_costing.id', $markerData->act_costing_id)->
+            where('so_det.color', $markerData->color)->
+            groupBy('act_costing.id')->first();
+
         $soDetData = DB::connection('mysql_sb')->table('so_det')->selectRaw('
                 so_det.id,
                 so_det.size as size,
@@ -630,10 +637,12 @@ class MarkerController extends Controller
             ')->
             leftJoin('so', 'so.id', '=', 'so_det.id_so')->
             leftJoin('act_costing', 'so.id_cost', '=', 'act_costing.id')->
+            leftJoin('master_size_new', 'master_size_new.size', '=', 'so_det.size')->
             where('act_costing.id', $markerData->act_costing_id)->
             where('so_det.color', $markerData->color)->
             where('so_det.qty', '>', '0')->
             groupBy('so_det.size')->
+            orderBy('master_size_new.urutan')->
             get();
 
         $orderQty = DB::connection('mysql_sb')->select("
@@ -643,16 +652,17 @@ class MarkerController extends Controller
                 inner join act_costing ac on so.id_cost = ac.id
                 inner join masteritem mi on k.id_item = mi.id_gen
                 inner join masterpanel mp on k.id_panel = mp.id
-            where ac.id = '" . $markerData->act_costing_id . "' and
-            sd.color = '" . $markerData->color . "' and
-            mp.nama_panel ='" . $markerData->panel . "' and
-            k.status = 'M' and
-            k.cancel = 'N' and
-            sd.cancel = 'N' and
-            so.cancel_h = 'N' and
-            ac.status = 'confirm' and
-            mi.mattype = 'F' and
-            sd.qty > 0
+            where
+                ac.id = '" . $markerData->act_costing_id . "' and
+                sd.color = '" . $markerData->color . "' and
+                mp.nama_panel ='" . $markerData->panel . "' and
+                k.status = 'M' and
+                k.cancel = 'N' and
+                sd.cancel = 'N' and
+                so.cancel_h = 'N' and
+                ac.status = 'confirm' and
+                mi.mattype = 'F' and
+                sd.qty > 0
             group by sd.color, k.id_item, k.unit
             limit 1");
 
