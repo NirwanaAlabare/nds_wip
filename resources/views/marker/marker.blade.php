@@ -289,9 +289,16 @@
         };
 
         function printMarker(kodeMarker) {
-            // window.location.href = '{{ route('print-marker') }}/'+ kodeMarker.replace(/\//g, '_');
-
             let fileName = kodeMarker;
+
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
 
             $.ajax({
                 url: '{{ route('print-marker') }}/'+kodeMarker.replace(/\//g, '_'),
