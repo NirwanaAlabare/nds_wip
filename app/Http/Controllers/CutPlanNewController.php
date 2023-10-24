@@ -302,6 +302,17 @@ class CutPlanNewController extends Controller
         //
     }
 
+    public function show_detail(Request $request)
+    {
+        $data_detail = DB::select("
+        select tgl_plan from cutting_plan
+        where tgl_plan = '$request->tgl_plan' limit 1");
+        // dd($request->tgl_plan);
+        return json_encode($data_detail[0]);
+        // return json_encode($data_detail ? $data_detail[0] : null);
+    }
+
+
     /**
      * Show the form for editing the specified resource.
      *

@@ -64,12 +64,78 @@
                 </div>
                 <div class="modal-body">
                     <div class='row'>
+                        <div class='col-sm-6'>
+                            <div class='form-group'>
+                                <label class='form-label'><small>Tgl. Plan</small></label>
+                                <input type='text' class='form-control' id='txttgl_plan' name='txttgl_plan'
+                                    value = '' readonly>
+                            </div>
+                        </div>
+                        <div class='col-sm-6'>
+                            <div class='form-group'>
+                                <label class='form-label'><small>Buyer</small></label>
+                                <input type='text' class='form-control' id='txtbuyertxtws' name='txtbuyer' value = ''
+                                    readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='row'>
                         <div class='col-sm-3'>
                             <div class='form-group'>
-                                <label class='form-label'><small>Gramasi</small></label>
-                                <input type='text' class='form-control' id='txt_gramasi' name='txt_gramasi'
-                                    value = ''>
-                                <input type='hidden' class='form-control' id='id_c' name='id_c' value = ''>
+                                <label class='form-label'><small>WS</small></label>
+                                <input type='text' class='form-control' id='txtws' name='txtws' value = ''
+                                    readonly>
+                            </div>
+                        </div>
+                        <div class='col-sm-3'>
+                            <div class='form-group'>
+                                <label class='form-label'><small>Style</small></label>
+                                <input type='text' class='form-control' id='txtstyle' name='txtstyle' value = ''
+                                    readonly>
+                            </div>
+                        </div>
+                        <div class='col-sm-3'>
+                            <div class='form-group'>
+                                <label class='form-label'><small>Color</small></label>
+                                <input type='text' class='form-control' id='txtcolor' name='txtcolor' value = ''
+                                    readonly>
+                            </div>
+                        </div>
+                        <div class='col-sm-3'>
+                            <div class='form-group'>
+                                <label class='form-label'><small>Panel</small></label>
+                                <input type='text' class='form-control' id='txtpanel' name='txtpanel' value = ''
+                                    readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='row'>
+                        <div class='col-sm-3'>
+                            <div class='form-group'>
+                                <label class='form-label'><small>Total Form</small></label>
+                                <input type='text' class='form-control' id='txttot' name='txttot' value = ''
+                                    readonly>
+                            </div>
+                        </div>
+                        <div class='col-sm-3'>
+                            <div class='form-group'>
+                                <label class='form-label'><small>Form Tersedia</small></label>
+                                <input type='text' class='form-control' id='txttersedia' name='txttersedia'
+                                    value = '' readonly>
+                            </div>
+                        </div>
+                        <div class='col-sm-3'>
+                            <div class='form-group'>
+                                <label class='form-label'><small>Form On Progress</small></label>
+                                <input type='text' class='form-control' id='txtonprogress' name='txtonprogress'
+                                    value = '' readonly>
+                            </div>
+                        </div>
+                        <div class='col-sm-3'>
+                            <div class='form-group'>
+                                <label class='form-label'><small>Form Selesai</small></label>
+                                <input type='text' class='form-control' id='txtselesai' name='txtselesai'
+                                    value = '' readonly>
                             </div>
                         </div>
                     </div>
@@ -119,7 +185,7 @@
                             <th>Color</th>
                             <th>Panel</th>
                             <th>Qty Output</th>
-                            <th>Act</th>
+                            {{-- <th>Act</th> --}}
                         </tr>
                     </thead>
                 </table>
@@ -168,47 +234,53 @@
                 {
                     data: 'qty_output'
                 },
-            ],
-            columnDefs: [{
-                targets: [7],
-                render: (data, type, row, meta) => {
-                    return `
-                        <div class='d-flex gap-1 justify-content-center'>
-                            <a class='btn btn-primary btn-sm' onclick='editData(` + JSON.stringify(row) +
-                        `, \"cutPlanDetailModal\", [{\"function\" : \"datatableFormReload()\"}]);'>
-                                <i class='fa fa-search'></i>
-                            </a>
-                            <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModalEdit"
-                            onclick='edit(` + row.tgl_plan + `,"` + row.buyer + `");'>
-                                        <i class='fa fa-edit'></i>
-                                    </a>
-                        </div>
-                    `;
-                }
-            }, ]
+            ]
+            // ,
+            // columnDefs: [{
+            //     targets: [7],
+            //     render: (data, type, row, meta) => {
+            //         return `
+        //             <div class='d-flex gap-1 justify-content-center'>
+        //                 <a class='btn btn-primary btn-sm' onclick='editData(` + JSON.stringify(row) +
+            //             `, \"cutPlanDetailModal\", [{\"function\" : \"datatableFormReload()\"}]);'>
+        //                     <i class='fa fa-search'></i>
+        //                 </a>
+        //                 <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModalEdit"
+        //                 onclick='edit("` + row.tgl_plan + `","` + row.buyer + `","` + row.color + `","` + row
+            //             .style +
+            //             `","` + row.panel + `");'>
+        //                             <i class='fa fa-edit'></i>
+        //                         </a>
+        //             </div>
+        //         `;
+            //     }
+            // }, ]
         });
 
         function filterTable() {
             datatable.ajax.reload();
         }
 
-        function edit(tgl_plan, buyer) {
-            $("#exampleModalEditLabel").html('Marker Edit');
-            // jQuery.ajax({
-            //     url: '{{ route('show_gramasi') }}',
-            //     method: 'POST',
-            //     data: {
-            //         id_c: id_c
-            //     },
-            //     dataType: 'json',
-            //     success: function(response) {
-            //         document.getElementById('txt_gramasi').value = response.gramasi;
-            //         document.getElementById('id_c').value = response.id;
-            //     },
-            //     error: function(request, status, error) {
-            //         alert(request.responseText);
-            //     },
-            // });
+        function edit(tgl_plan, buyer, color, style, panel) {
+            $("#exampleModalEditLabel").html('Detail Data');
+            jQuery.ajax({
+                url: '{{ route('show_detail') }}',
+                method: 'POST',
+                data: {
+                    tgl_plan: tgl_plan,
+                    buyer: buyer,
+                    color: color,
+                    style: style,
+                    panel: panel
+                },
+                dataType: 'json',
+                success: function(response) {
+                    document.getElementById('txttgl_plan').value = response.tgl_plan;
+                },
+                error: function(request, status, error) {
+                    alert(request.responseText);
+                },
+            });
         };
 
 
