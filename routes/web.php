@@ -125,6 +125,7 @@ Route::middleware('auth')->group(function () {
     // Cutting Plan New
     Route::controller(CutPlanNewController::class)->prefix("cut-plan-new")->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('cut-plan-new');
+        Route::post('/show_detail', 'show_detail')->name('show_detail');
         Route::get('/create', 'create')->name('create-cut-plan');
         Route::post('/store', 'store')->name('store-cut-plan');
         Route::put('/update', 'update')->name('update-cut-plan');
