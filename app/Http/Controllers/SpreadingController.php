@@ -206,7 +206,7 @@ class SpreadingController extends Controller
 
             if (intval($request['hitungform'] > 1)) {
                 if ($i == intval($request['hitungform'])) {
-                    $qtyPly = $qtyPlyMarkerModulus;
+                    $qtyPly = $qtyPlyMarkerModulus > 0 ? $qtyPlyMarkerModulus : $request['txtqty_ply_cut'];
                 }
             }
 
