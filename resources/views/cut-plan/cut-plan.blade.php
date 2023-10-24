@@ -8,7 +8,8 @@
 @endsection
 
 @section('content')
-    <div class="modal fade" id="cutPlanDetailModal" tabindex="-1" role="dialog" aria-labelledby="cutPlanDetailModalLabel" aria-hidden="true">
+    <div class="modal fade" id="cutPlanDetailModal" tabindex="-1" role="dialog" aria-labelledby="cutPlanDetailModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable" style="max-width: 55%;">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-light">
@@ -18,7 +19,8 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label>Tanggal Plan</label>
-                        <input type="date" class="form-control form-control" name="edit_tgl_plan" id="edit_tgl_plan" readonly>
+                        <input type="date" class="form-control form-control" name="edit_tgl_plan" id="edit_tgl_plan"
+                            readonly>
                     </div>
                     <div class="mb-3">
                         <div class="table-responsive">
@@ -81,6 +83,9 @@
                         <tr>
                             <th>Tanggal</th>
                             <th>Total Form</th>
+                            <th>Belum Dikerjakan</th>
+                            <th>On Progress</th>
+                            <th>Selesai</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -108,19 +113,28 @@
                     d.tgl_akhir = $('#tgl-akhir').val();
                 },
             },
-            columns: [
-                {
-                    data: 'tgl_plan',
+            columns: [{
+                    data: 'tgl_plan_fix',
                 },
                 {
                     data: 'total_form'
                 },
                 {
+                    data: 'total_belum'
+                },
+                {
+                    data: 'total_on_progress'
+                },
+                {
+                    data: 'total_beres'
+                },
+
+                {
                     data: 'no_cut_plan'
                 },
             ],
             columnDefs: [{
-                targets: [2],
+                targets: [5],
                 render: (data, type, row, meta) => {
                     return `
                         <div class='d-flex gap-1 justify-content-center'>
@@ -130,7 +144,7 @@
                         </div>
                     `;
                 }
-            }]
+            }, ]
         });
 
         function filterTable() {
@@ -178,9 +192,7 @@
                     data: 'qty_ply'
                 },
             ],
-            columnDefs:
-            [
-                {
+            columnDefs: [{
                     targets: [2],
                     render: (data, type, row, meta) => {
                         let color = "";
@@ -195,7 +207,8 @@
                             color = '#2243d6';
                         }
 
-                        return data ? "<span style='color: "+ color + "' >" + data.toUpperCase() + "</span>" : "<span style=' color: " + color + "'>-</span>"
+                        return data ? "<span style='color: " + color + "' >" + data.toUpperCase() +
+                            "</span>" : "<span style=' color: " + color + "'>-</span>"
                     }
                 },
                 {
@@ -211,7 +224,8 @@
                             case "PENGERJAAN FORM CUTTING":
                             case "PENGERJAAN FORM CUTTING DETAIL":
                             case "PENGERJAAN FORM CUTTING SPREAD":
-                                icon = `<i class="fas fa-sync-alt fa-spin fa-lg" style="color: #2243d6;"></i>`;
+                                icon =
+                                    `<i class="fas fa-sync-alt fa-spin fa-lg" style="color: #2243d6;"></i>`;
                                 break;
                             case "SELESAI PENGERJAAN":
                                 icon = `<i class="fas fa-check fa-lg" style="color: #087521;"></i>`;
@@ -236,7 +250,8 @@
                             color = '#2243d6';
                         }
 
-                        return data ? "<span style='color: "+ color + "' >" + data + "</span>" : "<span style=' color: " + color + "'>-</span>"
+                        return data ? "<span style='color: " + color + "' >" + data + "</span>" :
+                            "<span style=' color: " + color + "'>-</span>"
                     }
                 }
             ]
