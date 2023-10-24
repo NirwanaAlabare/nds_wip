@@ -109,8 +109,8 @@
             <td>GRAMASI</td>
         </tr>
         <tr>
-            @foreach ($markerData->markerDetails as $markerDetail)
-                <th>{{ $markerDetail? $markerDetail->size : 0 }}</th>
+            @foreach ($soDetData as $soDet)
+                <th>{{ $soDet->size }}</th>
             @endforeach
             <th>TOTAL</th>
             <td>{{ $markerData->panel }}</td>
