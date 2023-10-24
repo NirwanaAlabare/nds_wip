@@ -23,28 +23,36 @@ class DatabaseSeeder extends Seeder
         // ]);
 
         \App\Models\User::create([
-            'name' => 'usermarker',
-            'username' => 'usermarker',
-            'type' => 'marker',
+            'name' => 'usermanager',
+            'username' => 'usermanager',
+            'type' => 'manager',
             'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
             'remember_token' => Str::random(10),
         ]);
 
-        \App\Models\User::create([
-            'name' => 'userspreading',
-            'username' => 'userspreading',
-            'type' => 'spreading',
-            'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
-            'remember_token' => Str::random(10),
-        ]);
+        // \App\Models\User::create([
+        //     'name' => 'usermarker',
+        //     'username' => 'usermarker',
+        //     'type' => 'marker',
+        //     'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
+        //     'remember_token' => Str::random(10),
+        // ]);
 
-        \App\Models\User::create([
-            'name' => 'userstocker',
-            'username' => 'userstocker',
-            'type' => 'stocker',
-            'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
-            'remember_token' => Str::random(10),
-        ]);
+        // \App\Models\User::create([
+        //     'name' => 'userspreading',
+        //     'username' => 'userspreading',
+        //     'type' => 'spreading',
+        //     'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
+        //     'remember_token' => Str::random(10),
+        // ]);
+
+        // \App\Models\User::create([
+        //     'name' => 'userstocker',
+        //     'username' => 'userstocker',
+        //     'type' => 'stocker',
+        //     'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
+        //     'remember_token' => Str::random(10),
+        // ]);
 
         // Generate Meja User
         // for ($i = 0;$i < 10;$i++) {

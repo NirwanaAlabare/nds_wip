@@ -67,5 +67,6 @@ class Kernel extends HttpKernel
         'spreading' => \App\Http\Middleware\IsSpreading::class,
         'stocker' => \App\Http\Middleware\IsStocker::class,
         'meja' => \App\Http\Middleware\IsMeja::class,
+        'manager' => \App\Http\Middleware\IsManager::class,
     ];
 }
