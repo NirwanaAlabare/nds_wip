@@ -10,7 +10,7 @@ use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
 use DB;
 
-class CutPlanController extends Controller
+class CutPlanNewController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -22,38 +22,50 @@ class CutPlanController extends Controller
         if ($request->ajax()) {
             $additionalQuery = "";
 
-            $cutPlanQuery = CutPlan::selectRaw("
-                cutting_plan.id,
-                tgl_plan,
-                DATE_FORMAT(tgl_plan, '%d-%m-%Y') tgl_plan_fix,
-                no_cut_plan,
-                COUNT(no_form_cut_input) total_form,
-                count(IF(form_cut_input.status ='SPREADING',1,null)) total_belum,
-                count(IF(form_cut_input.status ='PENGERJAAN FORM CUTTING DETAIL' or form_cut_input.status ='PENGERJAAN FORM CUTTING SPREAD' ,1,null)) total_on_progress,
-                count(IF(form_cut_input.status='SELESAI PENGERJAAN',1,null)) total_beres
-            ")
-                ->leftJoin('form_cut_input', 'cutting_plan.no_form_cut_input', '=', 'form_cut_input.no_form')
-                ->groupBy("tgl_plan", "no_cut_plan");
+            if ($request->tgl_awal) {
+                $additionalQuery .= "  and a.tgl_plan >= '" . $request->tgl_awal . "' ";
+            }
 
-            return DataTables::eloquent($cutPlanQuery)->filter(function ($query) {
-                $tglAwal = request('tgl_awal');
-                $tglAkhir = request('tgl_akhir');
+            if ($request->tgl_akhir) {
+                $additionalQuery .= " and a.tgl_plan <= '" . $request->tgl_akhir . "' ";
+            }
 
-                if ($tglAwal) {
-                    $query->whereRaw("tgl_plan >= '" . $tglAwal . "'");
-                }
+            $keywordQuery = "";
+            if ($request->search["value"]) {
+                $keywordQuery = "
+                    and (
+                        c.buyer like '%" . $request->search["value"] . "%' OR
+                        c.style like '%" . $request->search["value"] . "%'
+                    )
+                ";
+            }
 
-                if ($tglAkhir) {
-                    $query->whereRaw("tgl_plan <= '" . $tglAkhir . "'");
-                }
-            }, true)->filterColumn('no_cut_plan', function ($query, $keyword) {
-                $query->whereRaw("LOWER(no_cut_plan) LIKE LOWER('%" . $keyword . "%')");
-            })->order(function ($query) {
-                $query->orderBy('cutting_plan.updated_at', 'desc');
-            })->toJson();
+            $cutPlanQuery  = DB::select("
+            select
+            a.tgl_plan,
+            DATE_FORMAT(tgl_plan, '%d-%m-%Y') tgl_plan_fix,
+            buyer,
+            act_costing_ws,
+            style,
+            color,
+            panel,
+            sum(d.ratio) * sum(b.qty_ply)	qty_output
+            from cutting_plan a
+            inner join form_cut_input b on a.no_form_cut_input = b.no_form
+            inner join marker_input c on b.id_marker = c.kode
+            inner join marker_input_detail d on c.id = d.marker_id
+            where
+            b.cancel = 'N'
+            " . $additionalQuery . "
+            " . $keywordQuery . "
+                group by tgl_plan, act_costing_ws, buyer, style, color, panel
+                ORDER BY a.tgl_plan desc
+            ");
+
+            return DataTables::of($cutPlanQuery)->toJson();
         }
 
-        return view('cut-plan.cut-plan', ["page" => "dashboard-cutting"]);
+        return view('cut-plan.cut-plan-new', ["page" => "dashboard-cutting"]);
     }
 
     /**

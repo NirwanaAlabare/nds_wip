@@ -100,6 +100,20 @@
                     </ul>
                 </li>
 
+                @if ($page == 'dashboard-cutting')
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false" class="nav-link dropdown-toggle">Cut Plan</a>
+                        <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('cut-plan-new') }}" class="dropdown-item">
+                                    Cutting Plan
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endif
+
                 @if (auth()->user()->type == 'admin')
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true"

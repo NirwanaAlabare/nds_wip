@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CutPlanController;
+use App\Http\Controllers\CutPlanNewController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MarkerController;
@@ -119,6 +120,17 @@ Route::middleware('auth')->group(function () {
         Route::delete('/destroy', 'destroy')->name('destroy-cut-plan');
         Route::get('/get-selected-form/{noCutPlan?}', 'getSelectedForm')->name('get-selected-form');
     });
+
+    // Cutting Plan New
+    Route::controller(CutPlanNewController::class)->prefix("cut-plan-new")->middleware('admin')->group(function () {
+        Route::get('/', 'index')->name('cut-plan-new');
+        Route::get('/create', 'create')->name('create-cut-plan');
+        Route::post('/store', 'store')->name('store-cut-plan');
+        Route::put('/update', 'update')->name('update-cut-plan');
+        Route::delete('/destroy', 'destroy')->name('destroy-cut-plan');
+        Route::get('/get-selected-form/{noCutPlan?}', 'getSelectedForm')->name('get-selected-form');
+    });
+
 
     // Laporan
     Route::controller(LapPemakaianController::class)->prefix("lap_pemakaian")->middleware('admin')->group(function () {

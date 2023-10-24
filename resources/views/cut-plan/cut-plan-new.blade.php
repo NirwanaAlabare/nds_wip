@@ -54,6 +54,36 @@
         </div>
     </div>
 
+    <div class="modal fade" id="exampleModalEdit" tabindex="-1" role="dialog" aria-labelledby="exampleModalEditLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable" style="max-width: 55%;">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-light">
+                    <h1 class="modal-title fs-5" id="exampleModalEditLabel"></h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class='row'>
+                        <div class='col-sm-3'>
+                            <div class='form-group'>
+                                <label class='form-label'><small>Gramasi</small></label>
+                                <input type='text' class='form-control' id='txt_gramasi' name='txt_gramasi'
+                                    value = ''>
+                                <input type='hidden' class='form-control' id='id_c' name='id_c' value = ''>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-sb">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
     <div class="card card-sb card-outline">
         <div class="card-header">
             <h5 class="card-title fw-bold mb-0">Data Cutting Plan</h5>
@@ -65,12 +95,12 @@
             </a>
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
-                    <label class="form-label"><small>Tgl Awal</small></label>
+                    <label class="form-label"><small>Tgl Plan Awal</small></label>
                     <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
                         value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
-                    <label class="form-label"><small>Tgl Akhir</small></label>
+                    <label class="form-label"><small>Tgl Plan Akhir</small></label>
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
                         value="{{ date('Y-m-d') }}">
                 </div>
@@ -82,12 +112,14 @@
                 <table id="datatable" class="table table-bordered table-sm w-100">
                     <thead>
                         <tr>
-                            <th>Tanggal</th>
-                            <th>Total Form</th>
-                            <th>Belum Dikerjakan</th>
-                            <th>On Progress</th>
-                            <th>Selesai</th>
-                            <th>Action</th>
+                            <th>Tgl Plan</th>
+                            <th>Buyer</th>
+                            <th>WS</th>
+                            <th>Style</th>
+                            <th>Color</th>
+                            <th>Panel</th>
+                            <th>Qty Output</th>
+                            <th>Act</th>
                         </tr>
                     </thead>
                 </table>
@@ -108,7 +140,7 @@
             processing: true,
             serverSide: true,
             ajax: {
-                url: '{{ route('cut-plan') }}',
+                url: '{{ route('cut-plan-new') }}',
                 data: function(d) {
                     d.tgl_awal = $('#tgl-awal').val();
                     d.tgl_akhir = $('#tgl-akhir').val();
@@ -116,32 +148,40 @@
             },
             columns: [{
                     data: 'tgl_plan_fix',
+                    searchable: false
                 },
                 {
-                    data: 'total_form'
+                    data: 'buyer'
                 },
                 {
-                    data: 'total_belum'
+                    data: 'act_costing_ws'
                 },
                 {
-                    data: 'total_on_progress'
+                    data: 'style'
                 },
                 {
-                    data: 'total_beres'
+                    data: 'color'
                 },
-
                 {
-                    data: 'no_cut_plan'
+                    data: 'panel'
+                },
+                {
+                    data: 'qty_output'
                 },
             ],
             columnDefs: [{
-                targets: [5],
+                targets: [7],
                 render: (data, type, row, meta) => {
                     return `
                         <div class='d-flex gap-1 justify-content-center'>
-                            <a class='btn btn-primary btn-sm' onclick='editData(` + JSON.stringify(row) + `, \"cutPlanDetailModal\", [{\"function\" : \"datatableFormReload()\"}]);'>
+                            <a class='btn btn-primary btn-sm' onclick='editData(` + JSON.stringify(row) +
+                        `, \"cutPlanDetailModal\", [{\"function\" : \"datatableFormReload()\"}]);'>
                                 <i class='fa fa-search'></i>
                             </a>
+                            <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModalEdit"
+                            onclick='edit(` + row.tgl_plan + `,"` + row.buyer + `");'>
+                                        <i class='fa fa-edit'></i>
+                                    </a>
                         </div>
                     `;
                 }
@@ -151,6 +191,27 @@
         function filterTable() {
             datatable.ajax.reload();
         }
+
+        function edit(tgl_plan, buyer) {
+            $("#exampleModalEditLabel").html('Marker Edit');
+            // jQuery.ajax({
+            //     url: '{{ route('show_gramasi') }}',
+            //     method: 'POST',
+            //     data: {
+            //         id_c: id_c
+            //     },
+            //     dataType: 'json',
+            //     success: function(response) {
+            //         document.getElementById('txt_gramasi').value = response.gramasi;
+            //         document.getElementById('id_c').value = response.id;
+            //     },
+            //     error: function(request, status, error) {
+            //         alert(request.responseText);
+            //     },
+            // });
+        };
+
+
 
         let datatableForm = $("#datatable-form").DataTable({
             ordering: false,
