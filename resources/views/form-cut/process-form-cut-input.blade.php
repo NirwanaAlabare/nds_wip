@@ -493,13 +493,13 @@
                                         <div style="width: 60%;">
                                             <input type="number" class="form-control form-control-sm border-input" id="current_sisa_gelaran" name="current_sisa_gelaran" step=".01"
                                                 onkeyup="
-                                                    restrictRemainPly();
+                                                    // restrictRemainPly();
                                                     calculateShortRoll();
                                                     calculateRemark();
                                                 "
 
                                                 onchange="
-                                                    restrictRemainPly();
+                                                    // restrictRemainPly();
                                                     calculateShortRoll();
                                                     calculateRemark();
                                                 "
@@ -1902,7 +1902,6 @@
                     if (!(sisaGelaran)) {
                         clearSpreadingForm();
                     }
-
 
                     let convertedQty = rollQtyConversion(data.qty, data.unit);
 
