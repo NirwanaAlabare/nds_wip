@@ -78,18 +78,19 @@ class ManagerController extends Controller
                     b.po_marker,
                     b.urutan_marker,
                     b.cons_marker,
-                    a.app,
-                    manager.name app_by,
+                    a.generated,
+                    manager.name generated_by,
                     GROUP_CONCAT(CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC) marker_details
                 FROM `form_cut_input` a
                 left join marker_input b on a.id_marker = b.kode
                 left join marker_input_detail on b.id = marker_input_detail.marker_id
                 left join master_size_new on marker_input_detail.size = master_size_new.size
                 left join users as meja on meja.id = a.no_meja
-                left join users as manager on manager.id = a.app_by
+                left join users as manager on manager.id = a.generated_by
                 where
                     b.cancel = 'N' and
-                    a.status = 'SELESAI PENGERJAAN'
+                    a.status = 'SELESAI PENGERJAAN' and
+                    a.app = 'Y'
                     " . $additionalQuery . "
                     " . $keywordQuery . "
                 GROUP BY a.id
@@ -186,23 +187,25 @@ class ManagerController extends Controller
         //
     }
 
-    public function approveCutting(Request $request, $id) {
-        $approvedBy = Auth::user()->id;
-        $approvedAt = Carbon::now();
+    public function generateStocker(Request $request, $id) {
+        $generatedBy = Auth::user()->id;
+        $generatedAt = Carbon::now();
 
         $validatedRequest = $request->validate([
-            "approve_type" => "required"
+            "generated_type" => "required"
         ]);
 
-        $approveFormCut = FormCutInput::where("id", $id)->
+        $generateFormCut = FormCutInput::where("id", $id)->
             update([
-                "app" => $validatedRequest['approve_type'],
-                "app_by" => $approvedBy,
-                "app_at" => $approvedAt,
-                "app_notes" => $request['approve_notes'],
+                "generated" => $validatedRequest['generated_type'],
+                "generated_by" => $generatedBy,
+                "generated_at" => $generatedAt,
+                "generated_notes" => $request['generated_notes'],
             ]);
 
-        if ($approveFormCut) {
+        $generateFormCut = true;
+
+        if ($generateFormCut) {
             return array(
                 "status" => 200,
                 "message" => "alright",

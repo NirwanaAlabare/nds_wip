@@ -89,7 +89,7 @@
                     @manager
                         <li class="nav-item">
                             <a href="{{ route('manage-cutting') }}" class="nav-link">
-                                Approval
+                                Generate
                             </a>
                         </li>
                     @endmanager
@@ -107,6 +107,8 @@
                                     </a>
                                 </li>
                             @endstocker
+                        </ul>
+                    </li>
                 @endif
                 {{-- <li class="dropdown-divider"></li> --}}
                 <!-- Level two dropdown-->

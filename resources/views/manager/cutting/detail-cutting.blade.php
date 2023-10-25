@@ -451,10 +451,10 @@
             </div>
         </div>
         <div class="col-md-12">
-            @if ($formCutInputData->app == "Y")
-                <button class="btn btn-block btn-danger" id="approve-cutting" onclick="approveCutting({{ $id }}, 'N')"><i class="fa fa-times"></i> DISAPPROVE</button>
+            @if ($formCutInputData->generated == "Y")
+                <button class="btn btn-block btn-danger" id="generate-stocker" onclick="generateStocker({{ $id }}, 'N')"><i class="fa fa-times"></i> CANCEL GENERATE</button>
             @else
-                <button class="btn btn-block btn-success" id="approve-cutting" onclick="approveCutting({{ $id }}, 'Y')"><i class="fa fa-check"></i> APPROVE</button>
+                <button class="btn btn-block btn-success" id="generate-stocker" onclick="generateStocker({{ $id }}, 'Y')"><i class="fa fa-check"></i> GENERATE</button>
             @endif
         </div>
     </div>
@@ -639,22 +639,22 @@
             calculateConsActualGelaran(unit = latestUnit, lembar = totalLembar, totalTotalPemakaian);
         }
 
-        function approveCutting(id, approveType) {
+        function generateStocker(id, generatedType) {
             let alertTitle = "";
             let alertText = "";
             let alertButtonText = "";
             let alertButtonColor = "";
-            let approveNotes = document.getElementById("notes").value;
+            let generatedNotes = document.getElementById("notes").value;
 
-            if (approveType == "Y") {
-                alertTitle = "Approve Form Cut?";
-                alertText = "Yakin akan approve Form Cut ini?";
-                alertButtonText = "Approve";
+            if (generatedType == "Y") {
+                alertTitle = "Generate Stocker?";
+                alertText = "Yakin akan generate stocker Form Cut ini?";
+                alertButtonText = "Generate";
                 alertButtonColor = "#2e8a57";
             } else {
-                alertTitle = "Disapprove Form Cut";
-                alertText = "Yakin akan disapprove Form Cut ini?";
-                alertButtonText = "Disapprove";
+                alertTitle = "Cancel Generate Stocker?";
+                alertText = "Yakin akan membatalkan generate stocker Form Cut ini?";
+                alertButtonText = "Cancel Generate";
                 alertButtonColor = "#d33141";
             }
 
@@ -669,11 +669,11 @@
             }).then(async (result) => {
                 if (result.isConfirmed) {
                     $.ajax({
-                        url: '{{ route('approve-cutting') }}/' + id,
+                        url: '{{ route('generate-stocker') }}/' + id,
                         type: 'put',
                         data: {
-                            approve_type: approveType,
-                            approve_notes: approveNotes
+                            generated_type: generatedType,
+                            generated_notes: generatedNotes
                         },
                         dataType: 'json',
                         success: function(res) {
@@ -682,61 +682,6 @@
                                     icon: 'success',
                                     title: 'Berhasil',
                                     text: 'Form Cut telah di '+alertButtonText+' (Laman akan ditutup)',
-                                    showCancelButton: false,
-                                    showConfirmButton: true,
-                                    confirmButtonText: 'Oke',
-                                    timer: 3000,
-                                    timerProgressBar: true
-                                }).then((result) => {
-                                    window.close();
-                                })
-                            } else {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Gagal',
-                                    text: 'Terjadi kesalahan',
-                                    showCancelButton: false,
-                                    showConfirmButton: true,
-                                    confirmButtonText: 'Oke',
-                                });
-                            }
-                        },
-                        error: function(jqXHR) {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Gagal',
-                                text: 'Terjadi kesalahan',
-                                showCancelButton: false,
-                                showConfirmButton: true,
-                                confirmButtonText: 'Oke',
-                            });
-                        }
-                    });
-                }
-            });
-        }
-
-        function unApproveCutting(id) {
-            Swal.fire({
-                icon: 'info',
-                title: 'Selesaikan Pengerjaan?',
-                text: 'Yakin akan menyelesaikan proses pengerjaan?',
-                showCancelButton: true,
-                showConfirmButton: true,
-                confirmButtonText: 'Selesaikan',
-                confirmButtonColor: "#6531a0",
-            }).then(async (result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: '{{ route('approve-cutting') }}/' + id,
-                        type: 'put',
-                        dataType: 'json',
-                        success: function(res) {
-                            if (res.status == 200) {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Berhasil',
-                                    text: 'Form Cut telah di Approve (Laman akan ditutup)',
                                     showCancelButton: false,
                                     showConfirmButton: true,
                                     confirmButtonText: 'Oke',

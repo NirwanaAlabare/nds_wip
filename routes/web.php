@@ -154,7 +154,7 @@ Route::middleware('auth')->group(function () {
     Route::controller(ManagerController::class)->prefix("manager")->middleware('manager')->group(function () {
         Route::get('/cutting', 'cutting')->name('manage-cutting');
         Route::get('/cutting/detail/{id?}', 'detailCutting')->name('detail-cutting');
-        Route::put('/cutting/approve/{id?}', 'approveCutting')->name('approve-cutting');
+        Route::put('/cutting/generate/{id?}', 'generateStocker')->name('generate-stocker');
     });
 });
 

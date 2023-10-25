@@ -14,7 +14,7 @@
 @section('content')
     <div class="card card-sb card-outline">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0">Approve Form Cut</h5>
+            <h5 class="card-title fw-bold mb-0">Generate Stocker</h5>
         </div>
         <div class="card-body">
             <div class="d-flex align-items-end gap-3 mb-3">
@@ -43,7 +43,7 @@
                             <th>Panel</th>
                             <th>Size Ratio</th>
                             <th>Qty Ply</th>
-                            <th>Approve</th>
+                            <th>Generated</th>
                             <th>By</th>
                             <th>Act</th>
                         </tr>
@@ -276,10 +276,10 @@
                     data: 'qty_ply'
                 },
                 {
-                    data: 'app'
+                    data: 'generated'
                 },
                 {
-                    data: 'app_by'
+                    data: 'generated_by'
                 },
                 {
                     data: 'id'
@@ -290,10 +290,8 @@
                     render: (data, type, row, meta) => {
                         let color = "";
 
-                        if (row.app == 'Y') {
+                        if (row.generated == 'Y') {
                             color = '#087521';
-                        } else {
-                            color = '#d33141';
                         }
 
                         return data ? "<span style='color: "+ color + "' >" + data.toUpperCase() + "</span>" : "<span style=' color: " + color + "'>-</span>"
@@ -305,10 +303,10 @@
                     render: (data, type, row, meta) => {
                         icon = "";
 
-                        if (row.app == 'Y') {
+                        if (row.generated == 'Y') {
                             icon = `<i class="fas fa-check fa-lg" style="color: #087521;"></i>`;
                         } else {
-                            icon = `<i class="fas fa-times fa-lg" style="color: #d33141;"></i>`;
+                            icon = `<i class="fas fa-minus fa-lg"></i>`;
                         }
 
                         return icon;
@@ -327,10 +325,8 @@
                     render: (data, type, row, meta) => {
                         let color = "";
 
-                        if (row.app == 'Y') {
+                        if (row.generated == 'Y') {
                             color = '#087521';
-                        } else {
-                            color = '#e6152a';
                         }
 
                         return data ? "<span style='color: "+ color + "' >" + data + "</span>" : "<span style=' color: " + color + "'>-</span>"

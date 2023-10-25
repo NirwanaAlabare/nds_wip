@@ -493,13 +493,13 @@
                                         <div style="width: 60%;">
                                             <input type="number" class="form-control form-control-sm border-input" id="current_sisa_gelaran" name="current_sisa_gelaran" step=".01"
                                                 onkeyup="
-                                                    restrictRemainPly();
+                                                    // restrictRemainPly();
                                                     calculateShortRoll();
                                                     calculateRemark();
                                                 "
 
                                                 onchange="
-                                                    restrictRemainPly();
+                                                    // restrictRemainPly();
                                                     calculateShortRoll();
                                                     calculateRemark();
                                                 "
@@ -948,14 +948,26 @@
         // Process :
             // -Start Process-
             function startProcess() {
-                let now = new Date();
-                startTime.value = now.getFullYear().toString() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate()) + " " + pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds());
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Approve Pengerjaan Form Cut?',
+                    text: 'Yakin akan approve proses pengerjaan?',
+                    showCancelButton: true,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Approve',
+                    confirmButtonColor: "#6531a0",
+                }).then(async (result) => {
+                    if (result.isConfirmed) {
+                        let now = new Date();
+                        startTime.value = now.getFullYear().toString() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate()) + " " + pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds());
 
-                updateToStartProcess();
+                        updateToStartProcess();
 
-                startProcessButton.classList.add("d-none");
-                nextProcessOneButton.classList.remove("d-none");
-                document.getElementById("lost-time-card").classList.remove("d-none");
+                        startProcessButton.classList.add("d-none");
+                        nextProcessOneButton.classList.remove("d-none");
+                        document.getElementById("lost-time-card").classList.remove("d-none");
+                    }
+                });
             }
 
             // -Start Process Transaction-
@@ -1902,7 +1914,6 @@
                     if (!(sisaGelaran)) {
                         clearSpreadingForm();
                     }
-
 
                     let convertedQty = rollQtyConversion(data.qty, data.unit);
 

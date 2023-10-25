@@ -291,7 +291,10 @@ class FormCutInputController extends Controller
     {
         $updateFormCutInput = FormCutInput::where("id", $id)->update([
             "status" => "PENGERJAAN FORM CUTTING",
-            "waktu_mulai" => $request->startTime
+            "waktu_mulai" => $request->startTime,
+            "app" => "Y",
+            "app_by" => Auth::user()->id,
+            "app_at" => Carbon::now()
         ]);
 
         if ($updateFormCutInput) {
