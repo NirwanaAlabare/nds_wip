@@ -169,6 +169,7 @@
             columnDefs: [
                 {
                     targets: [13],
+                    className: "align-middle",
                     render: (data, type, row, meta) => {
                         let exportBtn = `
                             <button type="button" class="btn btn-sm btn-secondary" onclick="printMarker('`+row.kode+`');">

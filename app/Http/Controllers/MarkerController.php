@@ -342,9 +342,9 @@ class MarkerController extends Controller
             <tr>
             <td>$track->no_form</td>
             <td>$track->tgl_form_cut</td>
-            <td>$track->no_meja</td>
-            <td>$track->waktu_mulai</td>
-            <td>$track->waktu_selesai</td>
+            <td>".($track->no_meja ? $track->no_meja : '-')."</td>
+            <td>".($track->waktu_mulai ? $track->waktu_mulai : '-')."</td>
+            <td>".($track->waktu_selesai ? $track->waktu_selesai : '-')."</td>
             <td>$track->status</td>
             </tr>
  ";
