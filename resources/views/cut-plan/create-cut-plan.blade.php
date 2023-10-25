@@ -23,7 +23,8 @@
                 <form action="#" method="post">
                     <div class="mb-3">
                         <label>Tgl Plan</label>
-                        <input type="date" class="form-control" name="tgl_plan" id="tgl_plan" min='{{ date('Y-m-d') }}' value="{{ date('Y-m-d') }}">
+                        <input type="date" class="form-control" name="tgl_plan" id="tgl_plan" min='{{ date('Y-m-d') }}'
+                            value="{{ date('Y-m-d') }}">
                     </div>
                 </form>
             </div>
@@ -49,7 +50,8 @@
                                 <p>Selected Form : <span class="fw-bold" id="selected-row-count-1">0</span></p>
                             </div>
                             <div class="col-6">
-                                <button class="btn btn-success btn-sm float-end" onclick="addToCutPlan()"><i class="fa fa-plus fa-sm"></i> Add To Cut Plan</button>
+                                <button class="btn btn-success btn-sm float-end" onclick="addToCutPlan()"><i
+                                        class="fa fa-plus fa-sm"></i> Add To Cut Plan</button>
                             </div>
                         </div>
                         <div class="table-responsive">
@@ -61,6 +63,7 @@
                                         <th>No. Meja</th>
                                         <th>Marker</th>
                                         <th>WS</th>
+                                        <th>Style</th>
                                         <th>Color</th>
                                         <th>Panel</th>
                                         <th>Size Ratio</th>
@@ -87,7 +90,8 @@
                                 <p>Selected Cut Plan : <span class="fw-bold" id="selected-row-count-2">0</span></p>
                             </div>
                             <div class="col-6">
-                                <button class="btn btn-danger btn-sm float-end" onclick="removeCutPlan()"><i class="fa fa-minus fa-sm"></i> Remove Cut Plan</button>
+                                <button class="btn btn-danger btn-sm float-end" onclick="removeCutPlan()"><i
+                                        class="fa fa-minus fa-sm"></i> Remove Cut Plan</button>
                             </div>
                         </div>
                         <div class="table-responsive">
@@ -99,6 +103,7 @@
                                         <th>No. Meja</th>
                                         <th>Marker</th>
                                         <th>WS</th>
+                                        <th>Style</th>
                                         <th>Color</th>
                                         <th>Panel</th>
                                         <th>Status</th>
@@ -141,7 +146,7 @@
             document.getElementById('store-cut-plan').reset();
         }
 
-        document.getElementById("tgl_plan").addEventListener("change", function () {
+        document.getElementById("tgl_plan").addEventListener("change", function() {
             let todayDate = new Date();
             let selectedDate = new Date(this.value);
 
@@ -151,13 +156,15 @@
 
             datatableSelect.ajax.reload(() => {
                 $('#datatable-select').DataTable().ajax.reload(() => {
-                    document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
+                    document.getElementById('selected-row-count-1').innerText = $(
+                        '#datatable-select').DataTable().rows('.selected').data().length;
                 });
             });
 
             datatableSelected.ajax.reload(() => {
                 $('#datatable-selected').DataTable().ajax.reload(() => {
-                    document.getElementById('selected-row-count-2').innerText = $('#datatable-selected').DataTable().rows('.selected').data().length;
+                    document.getElementById('selected-row-count-2').innerText = $(
+                        '#datatable-selected').DataTable().rows('.selected').data().length;
                 });
             });
         });
@@ -180,8 +187,7 @@
                     d.tgl_plan = $('#tgl_plan').val();
                 },
             },
-            columns: [
-                {
+            columns: [{
                     data: 'no_form'
                 },
                 {
@@ -197,6 +203,9 @@
                     data: 'ws'
                 },
                 {
+                    data: 'style'
+                },
+                {
                     data: 'color'
                 },
                 {
@@ -209,21 +218,20 @@
                     data: 'qty_ply'
                 },
             ],
-            columnDefs: [
-                {
-                    targets: [2],
-                    render: (data, type, row, meta) => {
+            columnDefs: [{
+                targets: [2],
+                render: (data, type, row, meta) => {
 
-                        return data ? data.toUpperCase() : "-";
-                    }
-                },
-            ]
+                    return data ? data.toUpperCase() : "-";
+                }
+            }, ]
         });
 
         // Datatable row selection
-        datatableSelect.on('click', 'tbody tr', function (e) {
+        datatableSelect.on('click', 'tbody tr', function(e) {
             e.currentTarget.classList.toggle('selected');
-            document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
+            document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows(
+                '.selected').data().length;
         });
 
         function addToCutPlan() {
@@ -245,7 +253,8 @@
                     data: {
                         tgl_plan: tglPlan,
                         formCutPlan: formCutPlan
-                    }, success: function (res) {
+                    },
+                    success: function(res) {
                         if (res.status == 200) {
                             iziToast.success({
                                 title: 'Success',
@@ -261,12 +270,14 @@
                         }
 
                         if (res.table != '') {
-                            $('#'+res.table).DataTable().ajax.reload(() => {
-                                document.getElementById('selected-row-count-2').innerText = $('#'+res.table).DataTable().rows('.selected').data().length;
+                            $('#' + res.table).DataTable().ajax.reload(() => {
+                                document.getElementById('selected-row-count-2').innerText = $('#' + res
+                                    .table).DataTable().rows('.selected').data().length;
                             });
 
                             $('#datatable-select').DataTable().ajax.reload(() => {
-                                document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
+                                document.getElementById('selected-row-count-1').innerText = $(
+                                    '#datatable-select').DataTable().rows('.selected').data().length;
                             });
                         }
 
@@ -275,23 +286,24 @@
 
                             if (res.additional['success'].length > 0) {
                                 res.additional['success'].forEach(element => {
-                                    message += element['no_form']+" - Berhasil <br>";
+                                    message += element['no_form'] + " - Berhasil <br>";
                                 });
                             }
 
                             if (res.additional['fail'].length > 0) {
                                 res.additional['fail'].forEach(element => {
-                                    message += element['no_form']+" - Gagal <br>";
+                                    message += element['no_form'] + " - Gagal <br>";
                                 });
                             }
 
                             if (res.additional['exist'].length > 0) {
                                 res.additional['exist'].forEach(element => {
-                                    message += element['no_form']+" - Sudah Ada <br>";
+                                    message += element['no_form'] + " - Sudah Ada <br>";
                                 });
                             }
 
-                            if ((res.additional['success'].length+res.additional['fail'].length+res.additional['exist'].length) > 1) {
+                            if ((res.additional['success'].length + res.additional['fail'].length + res
+                                    .additional['exist'].length) > 1) {
                                 Swal.fire({
                                     icon: 'info',
                                     title: 'Hasil Transfer',
@@ -302,7 +314,8 @@
                                 });
                             }
                         }
-                    }, error: function (jqXHR) {
+                    },
+                    error: function(jqXHR) {
                         let res = jqXHR.responseJSON;
                         let message = '';
 
@@ -312,7 +325,7 @@
 
                         iziToast.error({
                             title: 'Error',
-                            message: 'Terjadi kesalahan. '+message,
+                            message: 'Terjadi kesalahan. ' + message,
                             position: 'topCenter'
                         });
                     }
@@ -339,8 +352,7 @@
                     d.tgl_plan = $('#tgl_plan').val();
                 },
             },
-            columns: [
-                {
+            columns: [{
                     data: 'no_form'
                 },
                 {
@@ -354,6 +366,9 @@
                 },
                 {
                     data: 'ws'
+                },
+                {
+                    data: 'style'
                 },
                 {
                     data: 'color'
@@ -371,8 +386,7 @@
                     data: 'qty_ply'
                 },
             ],
-            columnDefs: [
-                {
+            columnDefs: [{
                     targets: [2],
                     render: (data, type, row, meta) => {
                         let color = "";
@@ -387,7 +401,8 @@
                             color = '#2243d6';
                         }
 
-                        return data ? "<span style='color: "+ color + "' >" + data.toUpperCase() + "</span>" : "<span style=' color: " + color + "'>-</span>"
+                        return data ? "<span style='color: " + color + "' >" + data.toUpperCase() +
+                            "</span>" : "<span style=' color: " + color + "'>-</span>"
                     }
                 },
                 {
@@ -403,7 +418,8 @@
                             case "PENGERJAAN FORM CUTTING":
                             case "PENGERJAAN FORM CUTTING DETAIL":
                             case "PENGERJAAN FORM CUTTING SPREAD":
-                                icon = `<i class="fas fa-sync-alt fa-spin fa-lg" style="color: #2243d6;"></i>`;
+                                icon =
+                                    `<i class="fas fa-sync-alt fa-spin fa-lg" style="color: #2243d6;"></i>`;
                                 break;
                             case "SELESAI PENGERJAAN":
                                 icon = `<i class="fas fa-check fa-lg" style="color: #087521;"></i>`;
@@ -428,7 +444,8 @@
                             color = '#2243d6';
                         }
 
-                        return data ? "<span style='color: "+ color + "' >" + data + "</span>" : "<span style=' color: " + color + "'>-</span>"
+                        return data ? "<span style='color: " + color + "' >" + data + "</span>" :
+                            "<span style=' color: " + color + "'>-</span>"
                     }
                 }
             ]
@@ -447,7 +464,9 @@
                 }
             }
 
-            if (tglPlan && formCutPlan.length > 0 && !(formCutPlan.some(item => item.status.includes('PENGERJAAN FORM CUTTING') || item.status.includes('PENGERJAAN FORM CUTTING DETAIL') || item.status.includes('PENGERJAAN FORM CUTTING SPREAD') || item.status.includes('SELESAI PENGERJAAN')))) {
+            if (tglPlan && formCutPlan.length > 0 && !(formCutPlan.some(item => item.status.includes(
+                        'PENGERJAAN FORM CUTTING') || item.status.includes('PENGERJAAN FORM CUTTING DETAIL') || item
+                    .status.includes('PENGERJAAN FORM CUTTING SPREAD') || item.status.includes('SELESAI PENGERJAAN')))) {
                 Swal.fire({
                     icon: 'info',
                     title: 'Singkirkan Plan yang dipilih?',
@@ -464,7 +483,8 @@
                             data: {
                                 tgl_plan: tglPlan,
                                 formCutPlan: formCutPlan
-                            }, success: function (res) {
+                            },
+                            success: function(res) {
                                 if (res.status == 200) {
                                     iziToast.success({
                                         title: 'Success',
@@ -480,12 +500,16 @@
                                 }
 
                                 if (res.table != '') {
-                                    $('#'+res.table).DataTable().ajax.reload(() => {
-                                        document.getElementById('selected-row-count-2').innerText = $('#'+res.table).DataTable().rows('.selected').data().length;
+                                    $('#' + res.table).DataTable().ajax.reload(() => {
+                                        document.getElementById('selected-row-count-2')
+                                            .innerText = $('#' + res.table).DataTable()
+                                            .rows('.selected').data().length;
                                     });
 
                                     $('#datatable-select').DataTable().ajax.reload(() => {
-                                        document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
+                                        document.getElementById('selected-row-count-1')
+                                            .innerText = $('#datatable-select').DataTable()
+                                            .rows('.selected').data().length;
                                     });
                                 }
 
@@ -494,17 +518,19 @@
 
                                     if (res.additional['success'].length > 0) {
                                         res.additional['success'].forEach(element => {
-                                            message += element['no_form']+" - Berhasil <br>";
+                                            message += element['no_form'] +
+                                                " - Berhasil <br>";
                                         });
                                     }
 
                                     if (res.additional['fail'].length > 0) {
                                         res.additional['fail'].forEach(element => {
-                                            message += element['no_form']+" - Gagal <br>";
+                                            message += element['no_form'] + " - Gagal <br>";
                                         });
                                     }
 
-                                    if (res.additional['success'].length+res.additional['fail'].length > 1) {
+                                    if (res.additional['success'].length + res.additional['fail']
+                                        .length > 1) {
                                         Swal.fire({
                                             icon: 'info',
                                             title: 'Plan berhasil disingkirkan',
@@ -515,7 +541,8 @@
                                         });
                                     }
                                 }
-                            }, error: function (jqXHR) {
+                            },
+                            error: function(jqXHR) {
                                 let res = jqXHR.responseJSON;
                                 let message = '';
 
@@ -525,7 +552,7 @@
 
                                 iziToast.error({
                                     title: 'Error',
-                                    message: 'Terjadi kesalahan. '+message,
+                                    message: 'Terjadi kesalahan. ' + message,
                                     position: 'topCenter'
                                 });
                             }
@@ -545,9 +572,10 @@
         }
 
         // Datatable selected row selection
-        datatableSelected.on('click', 'tbody tr', function (e) {
+        datatableSelected.on('click', 'tbody tr', function(e) {
             e.currentTarget.classList.toggle('selected');
-            document.getElementById('selected-row-count-2').innerText = $('#datatable-selected').DataTable().rows('.selected').data().length;
+            document.getElementById('selected-row-count-2').innerText = $('#datatable-selected').DataTable().rows(
+                '.selected').data().length;
         });
 
         // function submitCutPlanForm(e, evt) {

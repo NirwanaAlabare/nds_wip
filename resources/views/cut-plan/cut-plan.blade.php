@@ -32,12 +32,14 @@
                                         <th>No. Meja</th>
                                         <th>Marker</th>
                                         <th>WS</th>
+                                        <th>Style</th>
                                         <th>Color</th>
                                         <th>Panel</th>
                                         <th>Status</th>
                                         <th>Size Ratio</th>
                                         <th>Qty Ply</th>
                                         <th>Qty Output</th>
+                                        <th>Qty Actual</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -178,6 +180,9 @@
                     data: 'ws'
                 },
                 {
+                    data: 'style'
+                },
+                {
                     data: 'color'
                 },
                 {
@@ -194,6 +199,9 @@
                 },
                 {
                     data: 'qty_output'
+                },
+                {
+                    data: 'qty_act'
                 },
             ],
             columnDefs: [{
@@ -216,7 +224,7 @@
                     }
                 },
                 {
-                    targets: [7],
+                    targets: [8],
                     className: "text-center align-middle",
                     render: (data, type, row, meta) => {
                         icon = "";

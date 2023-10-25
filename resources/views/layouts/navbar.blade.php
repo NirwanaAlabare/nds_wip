@@ -51,13 +51,13 @@
                                 </li>
                             @endmeja
 
-                            @admin
+                            {{-- @admin
                                 <li>
                                     <a href="{{ route('cut-plan') }}" class="dropdown-item">
                                         Cutting Plan
                                     </a>
                                 </li>
-                            @endadmin
+                            @endadmin --}}
                         </ul>
                     </li>
 
@@ -67,7 +67,7 @@
                                 aria-expanded="false" class="nav-link dropdown-toggle">Cut Plan</a>
                             <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
                                 <li>
-                                    <a href="{{ route('cut-plan-new') }}" class="dropdown-item">
+                                    <a href="{{ route('cut-plan') }}" class="dropdown-item">
                                         Cutting Plan
                                     </a>
                                 </li>

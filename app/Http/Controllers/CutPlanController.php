@@ -104,6 +104,7 @@ class CutPlanController extends Controller
                     a.tgl_form_cut,
                     b.id marker_id,
                     b.act_costing_ws ws,
+                    b.style,
                     panel,
                     b.color,
                     a.status,
@@ -192,6 +193,7 @@ class CutPlanController extends Controller
                     a.tgl_form_cut,
                     b.id marker_id,
                     b.act_costing_ws ws,
+                    b.style,
                     panel,
                     b.color,
                     a.status,
@@ -208,12 +210,15 @@ class CutPlanController extends Controller
                     b.urutan_marker,
                     b.cons_marker,
                     GROUP_CONCAT(CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC) marker_details,
-                    sum(marker_input_detail.ratio) * a.qty_ply	qty_output
+                    sum(marker_input_detail.ratio) * a.qty_ply	qty_output,
+                    coalesce(sum(marker_input_detail.ratio) * c.tot_lembar_akt,0) qty_act
                 FROM `form_cut_input` a
                 left join marker_input b on a.id_marker = b.kode
                 left join marker_input_detail on b.id = marker_input_detail.marker_id
                 left join master_size_new on marker_input_detail.size = master_size_new.size
                 left join users on users.id = a.no_meja
+                left join (select no_form_cut_input,sum(lembar_gelaran) tot_lembar_akt from form_cut_input_detail
+                group by no_form_cut_input) c on a.no_form = c.no_form_cut_input
                 where
                     b.cancel = 'N'
                     " . $additionalQuery . "
@@ -221,7 +226,6 @@ class CutPlanController extends Controller
                 GROUP BY a.id
                 ORDER BY b.cancel asc, a.tgl_form_cut desc, panel asc
             ");
-
         return DataTables::of($data_spreading)->toJson();
     }
 
