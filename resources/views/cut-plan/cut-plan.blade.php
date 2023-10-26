@@ -248,6 +248,9 @@
             },
             columns: [
                 {
+                    data: 'no_form'
+                },
+                {
                     data: 'tgl_form_cut'
                 },
                 {
