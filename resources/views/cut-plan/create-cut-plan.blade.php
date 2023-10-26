@@ -16,7 +16,7 @@
         <div class="card card-sb card-outline">
             <div class="card-header">
                 <h5 class="card-title fw-bold">
-                    Manage Cutting Plan
+                    Atur Cutting Plan
                 </h5>
             </div>
             <div class="card-body">
@@ -352,7 +352,8 @@
                     d.tgl_plan = $('#tgl_plan').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'no_form'
                 },
                 {
