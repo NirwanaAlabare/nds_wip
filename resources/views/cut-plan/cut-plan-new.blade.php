@@ -234,27 +234,26 @@
                 {
                     data: 'qty_output'
                 },
-            ]
-            // ,
-            // columnDefs: [{
-            //     targets: [7],
-            //     render: (data, type, row, meta) => {
-            //         return `
-        //             <div class='d-flex gap-1 justify-content-center'>
-        //                 <a class='btn btn-primary btn-sm' onclick='editData(` + JSON.stringify(row) +
-            //             `, \"cutPlanDetailModal\", [{\"function\" : \"datatableFormReload()\"}]);'>
-        //                     <i class='fa fa-search'></i>
-        //                 </a>
-        //                 <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModalEdit"
-        //                 onclick='edit("` + row.tgl_plan + `","` + row.buyer + `","` + row.color + `","` + row
-            //             .style +
-            //             `","` + row.panel + `");'>
-        //                             <i class='fa fa-edit'></i>
-        //                         </a>
-        //             </div>
-        //         `;
-            //     }
-            // }, ]
+            ],
+            columnDefs: [{
+                targets: [7],
+                render: (data, type, row, meta) => {
+                    return `
+                    <div class='d-flex gap-1 justify-content-center'>
+                        <a class='btn btn-primary btn-sm' onclick='editData(` + JSON.stringify(row) +
+                        `, \"cutPlanDetailModal\", [{\"function\" : \"datatableFormReload()\"}]);'>
+                            <i class='fa fa-search'></i>
+                        </a>
+                        <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModalEdit"
+                        onclick='edit("` + row.tgl_plan + `","` + row.buyer + `","` + row.color + `","` + row
+                        .style +
+                        `","` + row.panel + `");'>
+                                    <i class='fa fa-edit'></i>
+                                </a>
+                    </div>
+                `;
+                }
+            }, ]
         });
 
         function filterTable() {

@@ -56,6 +56,102 @@
         </div>
     </div>
 
+
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable" style="max-width: 55%;">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-light">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel"></h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class='row'>
+                        <div class='col-sm-6'>
+                            <div class='form-group'>
+                                <label class='form-label'><small>Tgl. Plan</small></label>
+                                <input type='text' class='form-control' id='txttgl_plan' name='txttgl_plan'
+                                    value = '' readonly>
+                            </div>
+                        </div>
+                        <div class='col-sm-6'>
+                            <div class='form-group'>
+                                <label class='form-label'><small>Buyer</small></label>
+                                <input type='text' class='form-control' id='txtbuyertxtws' name='txtbuyer' value = ''
+                                    readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='row'>
+                        <div class='col-sm-3'>
+                            <div class='form-group'>
+                                <label class='form-label'><small>WS</small></label>
+                                <input type='text' class='form-control' id='txtws' name='txtws' value = ''
+                                    readonly>
+                            </div>
+                        </div>
+                        <div class='col-sm-3'>
+                            <div class='form-group'>
+                                <label class='form-label'><small>Style</small></label>
+                                <input type='text' class='form-control' id='txtstyle' name='txtstyle' value = ''
+                                    readonly>
+                            </div>
+                        </div>
+                        <div class='col-sm-3'>
+                            <div class='form-group'>
+                                <label class='form-label'><small>Color</small></label>
+                                <input type='text' class='form-control' id='txtcolor' name='txtcolor' value = ''
+                                    readonly>
+                            </div>
+                        </div>
+                        <div class='col-sm-3'>
+                            <div class='form-group'>
+                                <label class='form-label'><small>Panel</small></label>
+                                <input type='text' class='form-control' id='txtpanel' name='txtpanel' value = ''
+                                    readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='row'>
+                        <div class='col-sm-3'>
+                            <div class='form-group'>
+                                <label class='form-label'><small>Total Form</small></label>
+                                <input type='text' class='form-control' id='txttot' name='txttot' value = ''
+                                    readonly>
+                            </div>
+                        </div>
+                        <div class='col-sm-3'>
+                            <div class='form-group'>
+                                <label class='form-label'><small>Form Tersedia</small></label>
+                                <input type='text' class='form-control' id='txttersedia' name='txttersedia'
+                                    value = '' readonly>
+                            </div>
+                        </div>
+                        <div class='col-sm-3'>
+                            <div class='form-group'>
+                                <label class='form-label'><small>Form On Progress</small></label>
+                                <input type='text' class='form-control' id='txtonprogress' name='txtonprogress'
+                                    value = '' readonly>
+                            </div>
+                        </div>
+                        <div class='col-sm-3'>
+                            <div class='form-group'>
+                                <label class='form-label'><small>Form Selesai</small></label>
+                                <input type='text' class='form-control' id='txtselesai' name='txtselesai'
+                                    value = '' readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-sb">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <div class="card card-sb card-outline">
         <div class="card-header">
             <h5 class="card-title fw-bold mb-0">Data Cutting Plan</h5>
@@ -141,14 +237,25 @@
                 render: (data, type, row, meta) => {
                     return `
                         <div class='d-flex gap-1 justify-content-center'>
-                            <a class='btn btn-primary btn-sm' onclick='editData(` + JSON.stringify(row) + `, \"cutPlanDetailModal\", [{\"function\" : \"datatableFormReload()\"}]);'>
+                            <a class='btn btn-warning btn-sm' onclick='editData(` + JSON.stringify(row) +
+                        `, \"cutPlanDetailModal\", [{\"function\" : \"datatableFormReload()\"}]);'>
                                 <i class='fa fa-search'></i>
                             </a>
+                            <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModal"
+                            onclick='checkdata("` + row.no_cut_plan + `");'>
+                                <i class='fa fa-edit'></i>
+                            </a>
                         </div>
+
                     `;
                 }
             }, ]
         });
+
+
+        function checkdata(no_cut_plan) {
+            $("#exampleModalLabel").html('Detail Data');
+        };
 
         function filterTable() {
             datatable.ajax.reload();
