@@ -28,11 +28,11 @@ class StockerController extends Controller
             $additionalQuery = "";
 
             if ($request->dateFrom) {
-                $additionalQuery .= " and a.tgl_form_cut >= '" . $request->dateFrom . "' ";
+                $additionalQuery .= " and DATE(a.generated_at) >= '" . $request->dateFrom . "' ";
             }
 
             if ($request->dateTo) {
-                $additionalQuery .= " and a.tgl_form_cut <= '" . $request->dateTo . "' ";
+                $additionalQuery .= " and DATE(a.generated_at) <= '" . $request->dateTo . "' ";
             }
 
             $keywordQuery = "";
@@ -43,6 +43,7 @@ class StockerController extends Controller
                         a.no_meja like '%" . $request->search["value"] . "%' OR
                         a.no_form like '%" . $request->search["value"] . "%' OR
                         a.tgl_form_cut like '%" . $request->search["value"] . "%' OR
+                        a.generated_at like '%" . $request->search["value"] . "%' OR
                         b.act_costing_ws like '%" . $request->search["value"] . "%' OR
                         panel like '%" . $request->search["value"] . "%' OR
                         b.color like '%" . $request->search["value"] . "%' OR
@@ -89,7 +90,7 @@ class StockerController extends Controller
                     " . $additionalQuery . "
                     " . $keywordQuery . "
                 GROUP BY a.id
-                ORDER BY a.updated_at desc
+                ORDER BY a.generated_at desc
             ");
 
             return json_encode([
