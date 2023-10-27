@@ -123,6 +123,10 @@ table tr.selected {
     background-color: var(--dark-color);
 }
 
+.bg-transparent {
+    background: rgba(251, 251, 251, 0.05);
+}
+
 /* Text Color */
 .text-sb {
     color: var(--sb-color);

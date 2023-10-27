@@ -950,11 +950,11 @@
             function startProcess() {
                 Swal.fire({
                     icon: 'info',
-                    title: 'Approve Pengerjaan Form Cut?',
-                    text: 'Yakin akan approve proses pengerjaan?',
+                    title: 'Mulai Pengerjaan Form Cut?',
+                    text: 'Yakin akan memulai proses pengerjaan?',
                     showCancelButton: true,
                     showConfirmButton: true,
-                    confirmButtonText: 'Approve',
+                    confirmButtonText: 'Mulai',
                     confirmButtonColor: "#6531a0",
                 }).then(async (result) => {
                     if (result.isConfirmed) {

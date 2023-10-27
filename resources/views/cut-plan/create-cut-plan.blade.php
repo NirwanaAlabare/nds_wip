@@ -36,7 +36,7 @@
                         <div class="row align-items-center">
                             <div class="col-6">
                                 <h5 class="card-title fw-bold">
-                                    Select Form Cut :
+                                    Pilih Form Cut :
                                 </h5>
                             </div>
                             {{-- <div class="col-6">
@@ -81,7 +81,7 @@
                 <div class="card card-success h-100">
                     <div class="card-header">
                         <h5 class="card-title mb-2 fw-bold" style="padding-bottom: 2px">
-                            Current Cut Plan :
+                            Cut Plan Form :
                         </h5>
                     </div>
                     <div class="card-body">

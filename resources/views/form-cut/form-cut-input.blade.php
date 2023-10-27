@@ -244,7 +244,8 @@
                     d.dateTo = $('#tgl-akhir').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'no_form'
                 },
                 {
@@ -291,6 +292,10 @@
                             color = '#2243d6';
                         } else if (row.status == 'PENGERJAAN FORM CUTTING SPREAD') {
                             color = '#2243d6';
+                        } else {
+                            if (row.app != 'Y') {
+                                color = '#616161';
+                            }
                         }
 
                         return data ? "<span style='color: " + color + "'>" + data.toUpperCase() +
@@ -305,7 +310,11 @@
 
                         switch (data) {
                             case "SPREADING":
-                                icon = `<i class="fas fa-file fa-lg"></i>`;
+                                if (row.app != 'Y') {
+                                    icon = `<i class="fas fa-file fa-lg" style="color: #616161;"></i>`;
+                                } else {
+                                    icon = `<i class="fas fa-file fa-lg"></i>`;
+                                }
                                 break;
                             case "PENGERJAAN FORM CUTTING":
                             case "PENGERJAAN FORM CUTTING DETAIL":
@@ -328,7 +337,8 @@
                             JSON.stringify(row) +
                             ", \"detailSpreadingModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-search'></i></a>" :
                             "";
-                            let btnProcess = row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null ?
+
+                        let btnProcess = row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y' ?
                             `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` +
                             row.id +
                             `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>` :
@@ -351,6 +361,10 @@
                             color = '#2243d6';
                         } else if (row.status == 'PENGERJAAN FORM CUTTING SPREAD') {
                             color = '#2243d6';
+                        } else {
+                            if (row.app != 'Y') {
+                                color = '#616161';
+                            }
                         }
 
                         return '<span style="color:' + color + '">' + data + '</span>';

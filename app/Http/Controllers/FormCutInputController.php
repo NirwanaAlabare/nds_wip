@@ -29,11 +29,11 @@ class FormCutInputController extends Controller
             $additionalQuery = "";
 
             if ($request->dateFrom) {
-                $additionalQuery .= "and a.tgl_form_cut >= '" . $request->dateFrom . "' ";
+                $additionalQuery .= "and cutting_plan.tgl_plan >= '" . $request->dateFrom . "' ";
             }
 
             if ($request->dateTo) {
-                $additionalQuery .= " and a.tgl_form_cut <= '" . $request->dateTo . "' ";
+                $additionalQuery .= " and cutting_plan.tgl_plan <= '" . $request->dateTo . "' ";
             }
 
             if (Auth::user()->type == "meja") {
@@ -81,8 +81,10 @@ class FormCutInputController extends Controller
                     b.po_marker,
                     b.urutan_marker,
                     b.cons_marker,
+                    cutting_plan.app,
                     GROUP_CONCAT(CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC) marker_details
-                FROM `form_cut_input` a
+                FROM cutting_plan
+                left join form_cut_input a on a.no_form = cutting_plan.no_form_cut_input
                 left join marker_input b on a.id_marker = b.kode
                 left join marker_input_detail on b.id = marker_input_detail.marker_id
                 left join master_size_new on marker_input_detail.size = master_size_new.size
@@ -292,9 +294,6 @@ class FormCutInputController extends Controller
         $updateFormCutInput = FormCutInput::where("id", $id)->update([
             "status" => "PENGERJAAN FORM CUTTING",
             "waktu_mulai" => $request->startTime,
-            "app" => "Y",
-            "app_by" => Auth::user()->id,
-            "app_at" => Carbon::now()
         ]);
 
         if ($updateFormCutInput) {

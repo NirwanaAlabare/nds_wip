@@ -31,7 +31,7 @@ class CutPlanController extends Controller
                     no_cut_plan,
                     COUNT(no_form_cut_input) total_form,
                     count(IF(form_cut_input.status ='SPREADING',1,null)) total_belum,
-                    count(IF(form_cut_input.status ='PENGERJAAN FORM CUTTING DETAIL' or form_cut_input.status ='PENGERJAAN FORM CUTTING SPREAD' ,1,null)) total_on_progress,
+                    count(IF(form_cut_input.status ='PENGERJAAN FORM CUTTING' or form_cut_input.status ='PENGERJAAN FORM CUTTING DETAIL' or form_cut_input.status ='PENGERJAAN FORM CUTTING SPREAD' ,1,null)) total_on_progress,
                     count(IF(form_cut_input.status='SELESAI PENGERJAAN',1,null)) total_beres
                 ")
                 ->leftJoin('form_cut_input', 'cutting_plan.no_form_cut_input', '=', 'form_cut_input.no_form')
@@ -329,7 +329,15 @@ class CutPlanController extends Controller
 
         if (count($request['no_form_cut']) > 0) {
             foreach($request['no_form_cut'] as $noFormId => $noFormVal) {
-                $updateForm =FormCutInput::where('no_form', $request['no_form_cut'][$noFormId])->
+                $updateCutPlan = CutPlan::where('no_cut_plan', $request['manage_no_cut_plan'])->
+                    where('no_form_cut_input', $request['no_form_cut'][$noFormId])->
+                    update([
+                        'app' => (array_key_exists($noFormId, $request['approve'])) ? $request['approve'][$noFormId] : 'N',
+                        'app_by' => (array_key_exists($noFormId, $request['approve'])) ? $approvedBy : null,
+                        'app_at' => (array_key_exists($noFormId, $request['approve'])) ? $approvedAt : null,
+                    ]);
+
+                $updateForm = FormCutInput::where('no_form', $request['no_form_cut'][$noFormId])->
                     update([
                         'no_meja' => (array_key_exists($noFormId, $request['no_meja'])) ? $request['no_meja'][$noFormId] : null,
                         'app' => (array_key_exists($noFormId, $request['approve'])) ? $request['approve'][$noFormId] : 'N',
@@ -337,7 +345,7 @@ class CutPlanController extends Controller
                         'app_at' => (array_key_exists($noFormId, $request['approve'])) ? $approvedAt : null,
                     ]);
 
-                if ($updateForm) {
+                if ($updateCutPlan) {
                     array_push($success, $noFormVal);
                 } else {
                     array_push($fail, $noFormVal);
@@ -410,7 +418,7 @@ class CutPlanController extends Controller
         if ($request->ajax()) {
             $additionalQuery = "";
 
-            $cutPlanForm = CutPlan::where("no_cut_plan", $request->no_cut_plan);
+            $cutPlanForm = CutPlan::with('formCutInput')->where("no_cut_plan", $request->no_cut_plan);
 
             return DataTables::eloquent($cutPlanForm)->
                 addIndexColumn()->
@@ -433,7 +441,7 @@ class CutPlanController extends Controller
                     $markerInfo = $markerInfo."<li class='list-group-item'>Style :<br><b>".$markerData->style."</b></li>";
                     $markerInfo = $markerInfo."<li class='list-group-item'>Color :<br><b>".$markerData->color."</b></li>";
                     $markerInfo = $markerInfo."<li class='list-group-item'>Panel :<br><b>".$markerData->panel."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Tipe Marker :<br><b>".$markerData->tipe_marker."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Tipe Marker :<br><b>".strtoupper($markerData->tipe_marker)."</b></li>";
                     $markerInfo = $markerInfo."<li class='list-group-item'>PO :<br><b>".($markerData->po ? $markerData->po : '-')."</b></li>";
                     $markerInfo = $markerInfo."</ul>";
                     return $markerInfo;
@@ -518,31 +526,27 @@ class CutPlanController extends Controller
                 })->
                 addColumn('approve', function($row) {
                     $input = "
-                        <div class='form-check w-100 text-center'><input type='checkbox' class='form-check-input border-success' id='approve_".$row->id."' name='approve[".$row->id."]' value='Y' ".($row->formCutInput->app == 'Y' ? 'checked' : '')." ".($row->formCutInput->status != 'SPREADING' ? 'disabled' : '')."></div>
+                        <div class='form-check w-100 text-center'><input type='checkbox' class='form-check-input border-success' id='approve_".$row->id."' name='approve[".$row->id."]' value='Y' ".($row->app == 'Y' ? 'checked' : '')." ".($row->formCutInput->status != 'SPREADING' ? 'disabled' : '')."></div>
                         ".($row->formCutInput->status != 'SPREADING' ? '<input type="hidden" class="form-control" id="approve_'.$row->id.'" name="approve['.$row->id.']" value="'.$row->formCutInput->app.'">' : '');
 
                     return $input;
                 })->
                 rawColumns(['form_info', 'marker_info', 'marker_detail_info', 'ratio_info', 'input_no_form', 'meja', 'approve'])->
-                order(
-                    function ($query) {
-                        $query->whereHas('formCutInput', function($query) {
-                            $query->orderBy('form_cut_input.tgl_form_cut', 'asc');
-                        });
-                    }
-                )->
                 filterColumn('marker_info', function($query, $keyword) {
                     $query->whereHas('formCutInput', function($query) use ($keyword) {
                         $query->whereHas('marker', function($query) use ($keyword) {
                             $query->whereRaw("
-                                LOWER(CAST(marker_input.kode as TEXT)) LIKE LOWER('%".$keyword."%')
-                                LOWER(CAST(marker_input.act_costing_ws as TEXT)) LIKE LOWER('%".$keyword."%')
-                                LOWER(CAST(marker_input.style as TEXT)) LIKE LOWER('%".$keyword."%')
-                                LOWER(CAST(marker_input.color as TEXT)) LIKE LOWER('%".$keyword."%')
-                                LOWER(CAST(marker_input.panel as TEXT)) LIKE LOWER('%".$keyword."%')
+                                marker_input.kode LIKE '%".$keyword."%' OR
+                                marker_input.act_costing_ws LIKE '%".$keyword."%' OR
+                                marker_input.style LIKE '%".$keyword."%' OR
+                                marker_input.color LIKE '%".$keyword."%' OR
+                                marker_input.panel LIKE '%".$keyword."%'
                             ");
                         });
                     });
+                })->
+                order(function ($query) {
+                    $query->orderBy('app', 'desc')->orderBy('no_form_cut_input', 'desc');
                 })->
                 toJson();
         }

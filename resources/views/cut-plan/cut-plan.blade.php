@@ -48,10 +48,10 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
+                {{-- <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    {{-- <button type="submit" class="btn btn-sb">Simpan</button> --}}
-                </div>
+                    <button type="submit" class="btn btn-sb">Simpan</button>
+                </div> --}}
             </div>
         </div>
     </div>
@@ -64,72 +64,72 @@
                     <h1 class="modal-title fs-5" id="manageCutPlanModalLabel">Atur Form Cut</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                    <div class="modal-body">
-                        <form action="{{ route('update-cut-plan') }}" method="post" id="manage-cut-plan-form">
-                            @method('PUT')
-                            <div class='row'>
-                                <div class='col-sm-6'>
-                                    <div class='form-group'>
-                                        <label class='form-label'><small>Tgl. Plan</small></label>
-                                        <input type='text' class='form-control' id='manage_tgl_plan' name='manage_tgl_plan' readonly>
-                                    </div>
-                                </div>
-                                <div class='col-sm-6'>
-                                    <div class='form-group'>
-                                        <label class='form-label'><small>No. Cut Plan</small></label>
-                                        <input type='text' class='form-control' id='manage_no_cut_plan' name='manage_no_cut_plan' onchange="datatableManageFormReload();" readonly>
-                                    </div>
+                <div class="modal-body">
+                    <form action="{{ route('update-cut-plan') }}" method="post" id="manage-cut-plan-form">
+                        @method('PUT')
+                        <div class='row'>
+                            <div class='col-sm-6'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Tgl. Plan</small></label>
+                                    <input type='text' class='form-control' id='manage_tgl_plan' name='manage_tgl_plan' readonly>
                                 </div>
                             </div>
-                            <div class='row'>
-                                <div class='col-sm-3'>
-                                    <div class='form-group'>
-                                        <label class='form-label'><small>Total Form</small></label>
-                                        <input type='text' class='form-control' id='total_form' name='total_form' value = '' readonly>
-                                    </div>
-                                </div>
-                                <div class='col-sm-3'>
-                                    <div class='form-group'>
-                                        <label class='form-label'><small>Form Tersedia</small></label>
-                                        <input type='text' class='form-control' id='form_tersedia' name='form_tersedia' value = '' readonly>
-                                    </div>
-                                </div>
-                                <div class='col-sm-3'>
-                                    <div class='form-group'>
-                                        <label class='form-label'><small>Form On Progress</small></label>
-                                        <input type='text' class='form-control' id='form_onprogress' name='form_onprogress' value = '' readonly>
-                                    </div>
-                                </div>
-                                <div class='col-sm-3'>
-                                    <div class='form-group'>
-                                        <label class='form-label'><small>Form Selesai</small></label>
-                                        <input type='text' class='form-control' id='form_selesai' name='form_selesai' value = '' readonly>
-                                    </div>
+                            <div class='col-sm-6'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>No. Cut Plan</small></label>
+                                    <input type='text' class='form-control' id='manage_no_cut_plan' name='manage_no_cut_plan' onchange="datatableManageFormReload();" readonly>
                                 </div>
                             </div>
-                            <div class="mt-3 table-responsive">
-                                <table class="table table-bordered w-100" id="manage-form-datatable">
-                                    <thead>
-                                        <tr>
-                                            <th>Form Cut Data</th>
-                                            <th>Marker Data</th>
-                                            <th>Detail Data</th>
-                                            <th>Ratio Data</th>
-                                            <th>No. Form</th>
-                                            <th>Meja</th>
-                                            <th>Approve</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    </tbody>
-                                </table>
+                        </div>
+                        <div class='row'>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Total Form</small></label>
+                                    <input type='text' class='form-control' id='manage_total_form' name='manage_total_form' value = '' readonly>
+                                </div>
                             </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                        <button type="button" class="btn btn-sb" onclick="submitManageForm();">Simpan</button>
-                    </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Form Tersedia</small></label>
+                                    <input type='text' class='form-control' id='manage_total_belum' name='manage_total_belum' value = '' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Form On Progress</small></label>
+                                    <input type='text' class='form-control' id='manage_total_on_progress' name='manage_total_on_progress' value = '' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Form Selesai</small></label>
+                                    <input type='text' class='form-control' id='manage_total_beres' name='manage_total_beres' value = '' readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3 table-responsive">
+                            <table class="table table-bordered w-100" id="manage-form-datatable">
+                                <thead>
+                                    <tr>
+                                        <th>Form Cut Data</th>
+                                        <th>Marker Data</th>
+                                        <th>Detail Data</th>
+                                        <th>Ratio Data</th>
+                                        <th>No. Form</th>
+                                        <th>Meja</th>
+                                        <th>Approve</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="my-3">
+                            <button type="button" class="btn btn-sb btn-block fw-bold mb-3" onclick="submitManageForm();">SIMPAN</button>
+                            <button type="button" class="btn btn-no btn-block fw-bold mb-3" data-bs-dismiss="modal">BATAL</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -372,7 +372,6 @@
         };
 
         let manageFormDatatable = $("#manage-form-datatable").DataTable({
-            ordering: false,
             processing: true,
             serverSide: true,
             ajax: {
@@ -384,32 +383,38 @@
             columns: [
                 {
                     data: 'form_info',
-                    searchable: false
+                    searchable: false,
+                    sortable: false
                 },
                 {
                     data: 'marker_info',
-                    searchable: false
+                    sortable: false,
                 },
                 {
                     data: 'marker_detail_info',
-                    searchable: false
+                    searchable: false,
+                    sortable: false
                 },
                 {
                     data: 'ratio_info',
                     searchable: false,
+                    sortable: false,
                 },
                 {
                     data: 'input_no_form',
                     searchable: false,
+                    sortable: false,
                 },
                 {
                     data: 'meja',
-                    searchable: false
+                    searchable: false,
+                    sortable: false
                 },
                 {
                     data: 'approve',
-                    searchable: false
-                }
+                    searchable: false,
+                    sortable: false
+                },
             ],
             columnDefs: [
                 {
@@ -420,7 +425,7 @@
                     targets: [4],
                     className: 'd-none',
                 }
-            ]
+            ],
         });
 
         function datatableManageFormReload() {
