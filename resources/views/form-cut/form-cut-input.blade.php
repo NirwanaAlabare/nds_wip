@@ -357,7 +357,7 @@
                 {
                     targets: [11],
                     render: (data, type, row, meta) => {
-                        let btnEdit = row.status == "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" +
+                        let btnEdit = "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" +
                             JSON.stringify(row) +
                             ", \"detailSpreadingModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-search'></i></a>";
 
