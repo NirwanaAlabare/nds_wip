@@ -46,6 +46,7 @@
                             <th>Status</th>
                             <th>Size Ratio</th>
                             <th>Qty Ply</th>
+                            <th>App</th>
                             <th>Act</th>
                         </tr>
                     </thead>
@@ -276,6 +277,9 @@
                     data: 'qty_ply'
                 },
                 {
+                    data: 'app'
+                },
+                {
                     data: 'id'
                 },
             ],
@@ -331,6 +335,27 @@
                 },
                 {
                     targets: [10],
+                    className: "text-center align-middle",
+                    render: (data, type, row, meta) => {
+                        icon = "";
+
+                        switch (data) {
+                            case "Y":
+                                icon = `<i class="fas fa-check fa-lg"></i>`;
+                                break;
+                            case "N":
+                                icon = `<i class="fas fa-times fa-lg" style="color: #616161;"></i>`;
+                                break;
+                            default:
+                                icon = `<i class="fas fa-minus fa-lg" style="color: #616161;"></i>`;
+                                break;
+                        }
+
+                        return icon;
+                    }
+                },
+                {
+                    targets: [11],
                     render: (data, type, row, meta) => {
                         let btnEdit = row.status == 'SPREADING' ?
                             "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" +
@@ -338,7 +363,7 @@
                             ", \"detailSpreadingModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-search'></i></a>" :
                             "";
 
-                        let btnProcess = row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y' ?
+                        let btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ?
                             `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` +
                             row.id +
                             `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>` :
