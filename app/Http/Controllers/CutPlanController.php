@@ -441,7 +441,7 @@ class CutPlanController extends Controller
                     $markerInfo = $markerInfo."<li class='list-group-item'>Buyer :<br><b>".$markerData->buyer."</b></li>";
                     $markerInfo = $markerInfo."<li class='list-group-item'>Style :<br><b>".$markerData->style."</b></li>";
                     $markerInfo = $markerInfo."<li class='list-group-item'>Color :<br><b>".$markerData->color."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Panel :<br><b>".$markerData->panel."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Panel :<br><b>".$markerData->panel.' - '.$markerData->urutan_marker."</b></li>";
                     $markerInfo = $markerInfo."<li class='list-group-item'>Tipe Marker :<br><b>".strtoupper($markerData->tipe_marker)."</b></li>";
                     $markerInfo = $markerInfo."<li class='list-group-item'>PO :<br><b>".($markerData->po ? $markerData->po : '-')."</b></li>";
                     $markerInfo = $markerInfo."</ul>";
