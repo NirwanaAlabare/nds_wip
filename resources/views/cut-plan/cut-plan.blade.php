@@ -388,7 +388,6 @@
                 },
                 {
                     data: 'marker_info',
-                    sortable: false,
                 },
                 {
                     data: 'marker_detail_info',

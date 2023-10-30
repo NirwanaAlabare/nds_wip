@@ -534,13 +534,13 @@ class CutPlanController extends Controller
                 filterColumn('marker_info', function($query, $keyword) {
                     $query->whereHas('formCutInput', function($query) use ($keyword) {
                         $query->whereHas('marker', function($query) use ($keyword) {
-                            $query->whereRaw("
+                            $query->whereRaw("(
                                 marker_input.kode LIKE '%".$keyword."%' OR
                                 marker_input.act_costing_ws LIKE '%".$keyword."%' OR
                                 marker_input.style LIKE '%".$keyword."%' OR
                                 marker_input.color LIKE '%".$keyword."%' OR
                                 marker_input.panel LIKE '%".$keyword."%'
-                            ");
+                            )");
                         });
                     });
                 })->
