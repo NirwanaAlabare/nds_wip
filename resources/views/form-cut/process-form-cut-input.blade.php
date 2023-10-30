@@ -346,7 +346,7 @@
                                 <label class="form-label label-calc"><small><b>Est. Kebutuhan Kain Piping</b></small></label>
                                 <div class="row g-1">
                                     <div class="col-6">
-                                        <input type="number" class="form-control form-control-sm border-calc" step=".01" name="est_pipping" id="est_pipping" value="{{ $formCutInputData->est_pipping ? $formCutInputData->est_pipping : "0.00" }}" readonly>
+                                        <input type="number" class="form-control form-control-sm border-calc" step=".01" name="est_pipping" id="est_pipping" value="{{ $formCutInputData->cons_piping * $totalCutQtyPly }}" readonly>
                                     </div>
                                     <div class="col-6">
                                         <input type="text" class="form-control form-control-sm border-calc" name="est_pipping_unit" id="est_pipping_unit" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
