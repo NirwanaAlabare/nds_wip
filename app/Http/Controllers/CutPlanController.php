@@ -319,7 +319,6 @@ class CutPlanController extends Controller
     {
         $now = Carbon::now();
 
-        $formToUpdate = [];
         $success = [];
         $fail = [];
         $exist = [];
@@ -332,17 +331,17 @@ class CutPlanController extends Controller
                 $updateCutPlan = CutPlan::where('no_cut_plan', $request['manage_no_cut_plan'])->
                     where('no_form_cut_input', $request['no_form_cut'][$noFormId])->
                     update([
-                        'app' => (array_key_exists($noFormId, $request['approve'])) ? $request['approve'][$noFormId] : 'N',
-                        'app_by' => (array_key_exists($noFormId, $request['approve'])) ? $approvedBy : null,
-                        'app_at' => (array_key_exists($noFormId, $request['approve'])) ? $approvedAt : null,
+                        'app' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $request['approve'][$noFormId] : 'N') : 'N',
+                        'app_by' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $approvedBy : null) : 'N',
+                        'app_at' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $approvedAt : null) : 'N',
                     ]);
 
                 $updateForm = FormCutInput::where('no_form', $request['no_form_cut'][$noFormId])->
                     update([
                         'no_meja' => (array_key_exists($noFormId, $request['no_meja'])) ? $request['no_meja'][$noFormId] : null,
-                        'app' => (array_key_exists($noFormId, $request['approve'])) ? $request['approve'][$noFormId] : 'N',
-                        'app_by' => (array_key_exists($noFormId, $request['approve'])) ? $approvedBy : null,
-                        'app_at' => (array_key_exists($noFormId, $request['approve'])) ? $approvedAt : null,
+                        'app' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $request['approve'][$noFormId] : 'N') : 'N',
+                        'app_by' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $approvedBy : null) : 'N',
+                        'app_at' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $approvedAt : null) : 'N',
                     ]);
 
                 if ($updateCutPlan) {
