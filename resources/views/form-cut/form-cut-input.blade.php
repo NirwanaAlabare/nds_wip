@@ -357,11 +357,9 @@
                 {
                     targets: [11],
                     render: (data, type, row, meta) => {
-                        let btnEdit = row.status == 'SPREADING' ?
-                            "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" +
+                        let btnEdit = row.status == "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" +
                             JSON.stringify(row) +
-                            ", \"detailSpreadingModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-search'></i></a>" :
-                            "";
+                            ", \"detailSpreadingModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-search'></i></a>";
 
                         let btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ?
                             `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` +
