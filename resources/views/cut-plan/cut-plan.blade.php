@@ -383,11 +383,11 @@
             columns: [
                 {
                     data: 'form_info',
-                    searchable: false,
                     sortable: false
                 },
                 {
                     data: 'marker_info',
+                    sortable: false
                 },
                 {
                     data: 'marker_detail_info',
