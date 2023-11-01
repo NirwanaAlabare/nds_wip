@@ -1,4 +1,4 @@
-@if (!(isset($page)))
+@if (!isset($page))
     @php
         $page = '';
     @endphp
@@ -6,6 +6,7 @@
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -17,9 +18,10 @@
 
     @yield('custom-link')
 </head>
+
 <body class="hold-transition layout-top-nav">
     <div class="wrapper">
-        @if (!(isset($navbar)))
+        @if (!isset($navbar))
             @php
                 $navbar = true;
             @endphp
@@ -53,7 +55,7 @@
                 </div>
             </div>
 
-            @if (!(isset($footer)))
+            @if (!isset($footer))
                 @php
                     $footer = true;
                 @endphp
@@ -62,7 +64,8 @@
             @if ($footer)
                 <footer class="main-footer mt-3">
                     <strong>
-                        <a href="https://nirwanagroup.co.id/en/service/nirwana-alabare-santosa/" class="text-dark" target="_blank">
+                        <a href="https://nirwanagroup.co.id/en/service/nirwana-alabare-santosa/" class="text-dark"
+                            target="_blank">
                             Nirwana Digital Solution
                         </a> &copy; {{ date('Y') }}
                     </strong>
@@ -74,4 +77,5 @@
 
     @include('layouts.script')
 </body>
+
 </html>
