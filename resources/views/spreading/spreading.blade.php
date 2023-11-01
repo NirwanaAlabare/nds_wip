@@ -17,7 +17,7 @@
             <h5 class="card-title fw-bold mb-0">Data Spreading</h5>
         </div>
         <div class="card-body">
-            <a href="{{ route('create-spreading') }}" class="btn btn-primary btn-sm mb-3">
+            <a href="{{ route('create-spreading') }}" class="btn btn-success btn-sm mb-3">
                 <i class="fas fa-plus"></i>
                 Baru
             </a>
@@ -194,7 +194,8 @@
                                 <div class="col-12 col-md-12">
                                     <div class="mb-3">
                                         <label class="form-label"><small>No. Meja</small></label>
-                                        <select class="form-select form-select-sm select2bs4" aria-label="Default select example" id="edit_no_meja" name="edit_no_meja">
+                                        <select class="form-select form-select-sm select2bs4" aria-label="Default select example" id="edit_no_meja" name="edit_no_meja" disabled>
+                                            <option value="">-</option>
                                             @foreach ($meja as $m)
                                                 <option value="{{ $m->id }}">{{ strtoupper($m->name) }}</option>
                                             @endforeach
@@ -216,7 +217,7 @@
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                            <button type="submit" class="btn btn-sb">Simpan</button>
+                            {{-- <button type="submit" class="btn btn-sb">Simpan</button> --}}
                         </div>
                     </div>
                 </div>
@@ -341,19 +342,10 @@
                 {
                     targets: [10],
                     render: (data, type, row, meta) => {
-                        let btnEdit = row.status == 'SPREADING' ?
-                            "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" +
-                            JSON.stringify(row) +
-                            ", \"editMejaModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-pen'></i></a>" :
-                            "";
-                        let btnProcess = row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null ?
-                            `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` +
-                            row.id +
-                            `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) +`'></i></a>` :
-                            "";
+                        let btnEdit = row.status == 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"editMejaModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-search'></i></a>" : "";
+                        let btnProcess = row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null ? `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) +`'></i></a>` : "";
 
-                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnProcess +
-                            `</div>`;
+                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnProcess + `</div>`;
                     }
                 },
                 {

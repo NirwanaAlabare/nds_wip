@@ -58,7 +58,7 @@
             <h5 class="card-title fw-bold mb-0">Data Marker</h5>
         </div>
         <div class="card-body">
-            <a href="{{ route('create-marker') }}" class="btn btn-primary btn-sm mb-3">
+            <a href="{{ route('create-marker') }}" class="btn btn-success btn-sm mb-3">
                 <i class="fas fa-plus"></i>
                 Baru
             </a>
@@ -189,24 +189,24 @@
                         } else if (row.cancel != 'Y' && row.tot_form == 0) {
                             return `
                                 <div class='d-flex gap-1 justify-content-center mb-1'>
-                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModal" onclick='getdetail(` + row.id + `);'>
+                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModal" onclick='getdetail(` + row.id + `);'>
                                         <i class='fa fa-search'></i>
                                     </a>
-                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModalEdit" onclick='edit(` + row.id + `);'>
-                                        <i class='fa fa-edit'></i>
-                                    </a>
+                                    `+exportBtn+`
                                 </div>
                                 <div class='d-flex gap-1 justify-content-center'>
+                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModalEdit" onclick='edit(` + row.id + `);'>
+                                        <i class='fa fa-edit'></i>
+                                    </a>
                                     <a class='btn btn-danger btn-sm' onclick='cancel(` + row.id + `);'>
                                         <i class='fa fa-ban'></i>
                                     </a>
-                                    `+exportBtn+`
                                 </div>
                             `;
                         } else if (row.cancel == 'Y') {
                             return `
                                 <div class='d-flex gap-1 justify-content-center'>
-                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModal" onclick='getdetail(` + row.id + `);'>
+                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModal" onclick='getdetail(` + row.id + `);'>
                                         <i class='fa fa-search'></i>
                                     </a>
                                     `+exportBtn+`

@@ -118,9 +118,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('cut-plan');
         Route::get('/create', 'create')->name('create-cut-plan');
         Route::post('/store', 'store')->name('store-cut-plan');
-        Route::put('/update', 'update')->name('update-cut-plan');
+        Route::put('/update/{id?}', 'update')->name('update-cut-plan');
         Route::delete('/destroy', 'destroy')->name('destroy-cut-plan');
         Route::get('/get-selected-form/{noCutPlan?}', 'getSelectedForm')->name('get-selected-form');
+        Route::get('/get-cut-plan-form', 'getCutPlanForm')->name('get-cut-plan-form');
     });
 
     // Cutting Plan New

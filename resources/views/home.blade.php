@@ -52,40 +52,13 @@
                         </a>
                     </div>
                     <div class="col-md-2 col-3">
-                        <a href="items" class="home-item">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <div class="d-flex h-100 flex-column justify-content-between">
-                                        <img src="{{ asset('dist/img/qr-generate.png') }}" class="img-fluid p-3"
-                                            alt="qr code image">
-                                        <p class="text-center">Generate QR</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                    <div class="col-md-2 col-3">
-                        <a href="item-details" class="home-item">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <div class="d-flex h-100 flex-column justify-content-between">
-                                        <img src="{{ asset('dist/img/scan-qr.png') }}" class="img-fluid p-3"
-                                            alt="qr code image">
-                                        <p class="text-center">Scan QR</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                    <div class="col-md-2 col-3">
                         <a href="{{ route('logout') }}"
                             onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
                             class="home-item">
                             <div class="card h-100">
                                 <div class="card-body">
                                     <div class="d-flex h-100 flex-column justify-content-between">
-                                        <img src="{{ asset('dist/img/signout.png') }}" class="img-fluid p-3"
-                                            alt="other">
+                                        <img src="{{ asset('dist/img/signout.png') }}" class="img-fluid p-3" alt="other">
                                         <p class="text-center">Logout</p>
                                     </div>
                                 </div>

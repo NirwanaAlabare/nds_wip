@@ -19,6 +19,6 @@ class CutPlan extends Model
      */
     public function formCutInput()
     {
-        return $this->belongsTo(FormCutInput::class, 'no_form_cut_input', 'no_form');
+        return $this->hasOne(FormCutInput::class, 'no_form', 'no_form_cut_input');
     }
 }

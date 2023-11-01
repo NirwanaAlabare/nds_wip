@@ -48,104 +48,87 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
+                {{-- <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    {{-- <button type="submit" class="btn btn-sb">Simpan</button> --}}
-                </div>
+                    <button type="submit" class="btn btn-sb">Simpan</button>
+                </div> --}}
             </div>
         </div>
     </div>
 
 
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable" style="max-width: 55%;">
+    <div class="modal fade" id="manageCutPlanModal" tabindex="-1" role="dialog" aria-labelledby="manageCutPlanModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-light">
-                    <h1 class="modal-title fs-5" id="exampleModalLabel"></h1>
+                    <h1 class="modal-title fs-5" id="manageCutPlanModalLabel">Atur Form Cut</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class='row'>
-                        <div class='col-sm-6'>
-                            <div class='form-group'>
-                                <label class='form-label'><small>Tgl. Plan</small></label>
-                                <input type='text' class='form-control' id='txttgl_plan' name='txttgl_plan'
-                                    value = '' readonly>
+                    <form action="{{ route('update-cut-plan') }}" method="post" id="manage-cut-plan-form">
+                        @method('PUT')
+                        <div class='row'>
+                            <div class='col-sm-6'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Tgl. Plan</small></label>
+                                    <input type='text' class='form-control' id='manage_tgl_plan' name='manage_tgl_plan' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-6'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>No. Cut Plan</small></label>
+                                    <input type='text' class='form-control' id='manage_no_cut_plan' name='manage_no_cut_plan' onchange="datatableManageFormReload();" readonly>
+                                </div>
                             </div>
                         </div>
-                        <div class='col-sm-6'>
-                            <div class='form-group'>
-                                <label class='form-label'><small>Buyer</small></label>
-                                <input type='text' class='form-control' id='txtbuyertxtws' name='txtbuyer' value = ''
-                                    readonly>
+                        <div class='row'>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Total Form</small></label>
+                                    <input type='text' class='form-control' id='manage_total_form' name='manage_total_form' value = '' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Form Tersedia</small></label>
+                                    <input type='text' class='form-control' id='manage_total_belum' name='manage_total_belum' value = '' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Form On Progress</small></label>
+                                    <input type='text' class='form-control' id='manage_total_on_progress' name='manage_total_on_progress' value = '' readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Form Selesai</small></label>
+                                    <input type='text' class='form-control' id='manage_total_beres' name='manage_total_beres' value = '' readonly>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class='row'>
-                        <div class='col-sm-3'>
-                            <div class='form-group'>
-                                <label class='form-label'><small>WS</small></label>
-                                <input type='text' class='form-control' id='txtws' name='txtws' value = ''
-                                    readonly>
-                            </div>
+                        <div class="mt-3 table-responsive">
+                            <table class="table table-bordered w-100" id="manage-form-datatable">
+                                <thead>
+                                    <tr>
+                                        <th>Form Cut Data</th>
+                                        <th>Marker Data</th>
+                                        <th>Detail Data</th>
+                                        <th>Ratio Data</th>
+                                        <th>No. Form</th>
+                                        <th>Meja</th>
+                                        <th>Approve</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
                         </div>
-                        <div class='col-sm-3'>
-                            <div class='form-group'>
-                                <label class='form-label'><small>Style</small></label>
-                                <input type='text' class='form-control' id='txtstyle' name='txtstyle' value = ''
-                                    readonly>
-                            </div>
+                        <div class="my-3">
+                            <button type="button" class="btn btn-sb btn-block fw-bold mb-3" onclick="submitManageForm();">SIMPAN</button>
+                            <button type="button" class="btn btn-no btn-block fw-bold mb-3" data-bs-dismiss="modal">BATAL</button>
                         </div>
-                        <div class='col-sm-3'>
-                            <div class='form-group'>
-                                <label class='form-label'><small>Color</small></label>
-                                <input type='text' class='form-control' id='txtcolor' name='txtcolor' value = ''
-                                    readonly>
-                            </div>
-                        </div>
-                        <div class='col-sm-3'>
-                            <div class='form-group'>
-                                <label class='form-label'><small>Panel</small></label>
-                                <input type='text' class='form-control' id='txtpanel' name='txtpanel' value = ''
-                                    readonly>
-                            </div>
-                        </div>
-                    </div>
-                    <div class='row'>
-                        <div class='col-sm-3'>
-                            <div class='form-group'>
-                                <label class='form-label'><small>Total Form</small></label>
-                                <input type='text' class='form-control' id='txttot' name='txttot' value = ''
-                                    readonly>
-                            </div>
-                        </div>
-                        <div class='col-sm-3'>
-                            <div class='form-group'>
-                                <label class='form-label'><small>Form Tersedia</small></label>
-                                <input type='text' class='form-control' id='txttersedia' name='txttersedia'
-                                    value = '' readonly>
-                            </div>
-                        </div>
-                        <div class='col-sm-3'>
-                            <div class='form-group'>
-                                <label class='form-label'><small>Form On Progress</small></label>
-                                <input type='text' class='form-control' id='txtonprogress' name='txtonprogress'
-                                    value = '' readonly>
-                            </div>
-                        </div>
-                        <div class='col-sm-3'>
-                            <div class='form-group'>
-                                <label class='form-label'><small>Form Selesai</small></label>
-                                <input type='text' class='form-control' id='txtselesai' name='txtselesai'
-                                    value = '' readonly>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    <button type="submit" class="btn btn-sb">Simpan</button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -157,7 +140,7 @@
             <h5 class="card-title fw-bold mb-0">Data Cutting Plan</h5>
         </div>
         <div class="card-body">
-            <a href="{{ route('create-cut-plan') }}" class="btn btn-primary btn-sm mb-3">
+            <a href="{{ route('create-cut-plan') }}" class="btn btn-success btn-sm mb-3">
                 <i class="fa fa-cog"></i>
                 Atur Cutting Plan
             </a>
@@ -212,7 +195,8 @@
                     d.tgl_akhir = $('#tgl-akhir').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'tgl_plan_fix',
                 },
                 {
@@ -227,7 +211,6 @@
                 {
                     data: 'total_beres'
                 },
-
                 {
                     data: 'no_cut_plan'
                 },
@@ -237,25 +220,17 @@
                 render: (data, type, row, meta) => {
                     return `
                         <div class='d-flex gap-1 justify-content-center'>
-                            <a class='btn btn-warning btn-sm' onclick='editData(` + JSON.stringify(row) +
-                        `, \"cutPlanDetailModal\", [{\"function\" : \"datatableFormReload()\"}]);'>
+                            <a class='btn btn-primary btn-sm' onclick='editData(` + JSON.stringify(row) + `, \"cutPlanDetailModal\", [{\"function\" : \"datatableFormReload()\"}]);'>
                                 <i class='fa fa-search'></i>
                             </a>
-                            <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModal"
-                            onclick='checkdata("` + row.no_cut_plan + `");'>
-                                <i class='fa fa-edit'></i>
+                            <a class='btn btn-warning btn-sm' onclick='manageCutPlan(` + JSON.stringify(row) + `);'>
+                                <i class='fa fa-cog'></i>
                             </a>
                         </div>
-
                     `;
                 }
             }, ]
         });
-
-
-        function checkdata(no_cut_plan) {
-            $("#exampleModalLabel").html('Detail Data');
-        };
 
         function filterTable() {
             datatable.ajax.reload();
@@ -271,7 +246,8 @@
                     d.tgl_plan = $('#edit_tgl_plan').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'no_form'
                 },
                 {
@@ -379,5 +355,154 @@
         function datatableFormReload() {
             datatableForm.ajax.reload();
         }
+
+        function manageCutPlan(data) {
+            for (let key in data) {
+                if (document.getElementById('manage_'+key)) {
+                    $('#manage_'+key).val(data[key]).trigger("change");
+                    document.getElementById('manage_'+key).setAttribute('value', data[key]);
+
+                    if (document.getElementById('manage_'+key).classList.contains('select2bs4') || document.getElementById('manage_'+key).classList.contains('select2')) {
+                        $('#manage_'+key).val(data[key]).trigger('change.select2');
+                    }
+                }
+            }
+
+            $("#manageCutPlanModal").modal('show');
+        };
+
+        let manageFormDatatable = $("#manage-form-datatable").DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '{{ route('get-cut-plan-form') }}',
+                data: function(d) {
+                    d.no_cut_plan = $('#manage_no_cut_plan').val();
+                },
+            },
+            columns: [
+                {
+                    data: 'form_info',
+                    sortable: false
+                },
+                {
+                    data: 'marker_info',
+                    sortable: false
+                },
+                {
+                    data: 'marker_detail_info',
+                    searchable: false,
+                    sortable: false
+                },
+                {
+                    data: 'ratio_info',
+                    searchable: false,
+                    sortable: false,
+                },
+                {
+                    data: 'input_no_form',
+                    searchable: false,
+                    sortable: false,
+                },
+                {
+                    data: 'meja',
+                    searchable: false,
+                    sortable: false
+                },
+                {
+                    data: 'approve',
+                    searchable: false,
+                    sortable: false
+                },
+            ],
+            columnDefs: [
+                {
+                    targets: [0,1,2,3,5,6],
+                    className: 'w-auto',
+                },
+                {
+                    targets: [4],
+                    className: 'd-none',
+                }
+            ],
+        });
+
+        function datatableManageFormReload() {
+            manageFormDatatable.ajax.reload();
+        }
+
+        function approve(id) {
+            document.getElementById('approve_'+id).value = 'Y';
+        }
+
+        function submitManageForm() {
+            let manageForm = document.getElementById('manage-cut-plan-form');
+
+            $.ajax({
+                url: manageForm.getAttribute('action'),
+                type: manageForm.getAttribute('method'),
+                data: new FormData(manageForm),
+                processData: false,
+                contentType: false,
+                success: function(res) {
+                    if (res.status == 200) {
+                        $('.modal').modal('hide');
+
+                        iziToast.success({
+                            title: 'Success',
+                            message: 'Form berhasil diubah',
+                            position: 'topCenter'
+                        });
+
+                        if (res.additional) {
+                            let message = "";
+
+                            if (res.additional['success'].length > 0) {
+                                res.additional['success'].forEach(element => {
+                                    message += element+" - Berhasil <br>";
+                                });
+                            }
+
+                            if (res.additional['fail'].length > 0) {
+                                res.additional['fail'].forEach(element => {
+                                    message += element+" - Gagal <br>";
+                                });
+                            }
+
+                            if (res.additional['exist'].length > 0) {
+                                res.additional['exist'].forEach(element => {
+                                    message += element+" - Sudah Ada <br>";
+                                });
+                            }
+
+                            if (res.additional['success'].length+res.additional['fail'].length+res.additional['exist'].length > 1) {
+                                Swal.fire({
+                                    icon: 'info',
+                                    title: 'Hasil Ubah Data Form',
+                                    html: message,
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                });
+                            }
+                        }
+                    } else {
+                        iziToast.error({
+                            title: 'Error',
+                            message: res.message,
+                            position: 'topCenter'
+                        });
+                    }
+                },
+                error: function (jqXHR) {
+                    iziToast.error({
+                        title: 'Error',
+                        message: 'Terjadi kesalahan.',
+                        position: 'topCenter'
+                    });
+                }
+            })
+        }
+
     </script>
 @endsection

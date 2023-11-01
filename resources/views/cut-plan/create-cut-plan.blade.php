@@ -16,7 +16,7 @@
         <div class="card card-sb card-outline">
             <div class="card-header">
                 <h5 class="card-title fw-bold">
-                    Manage Cutting Plan
+                    Atur Cutting Plan
                 </h5>
             </div>
             <div class="card-body">
@@ -36,7 +36,7 @@
                         <div class="row align-items-center">
                             <div class="col-6">
                                 <h5 class="card-title fw-bold">
-                                    Select Form Cut :
+                                    Pilih Form Cut :
                                 </h5>
                             </div>
                             {{-- <div class="col-6">
@@ -81,7 +81,7 @@
                 <div class="card card-success h-100">
                     <div class="card-header">
                         <h5 class="card-title mb-2 fw-bold" style="padding-bottom: 2px">
-                            Current Cut Plan :
+                            Cut Plan Form :
                         </h5>
                     </div>
                     <div class="card-body">
@@ -352,7 +352,8 @@
                     d.tgl_plan = $('#tgl_plan').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'no_form'
                 },
                 {
@@ -406,7 +407,7 @@
                     }
                 },
                 {
-                    targets: [7],
+                    targets: [8],
                     className: "text-center align-middle",
                     render: (data, type, row, meta) => {
                         icon = "";

@@ -20,4 +20,9 @@ class Marker extends Model
     {
         return $this->hasMany(MarkerDetail::class, 'marker_id', 'id');
     }
+
+    public function formCutInputs()
+    {
+        return $this->hasMany(FormCutInput::class, 'id_marker', 'kode');
+    }
 }

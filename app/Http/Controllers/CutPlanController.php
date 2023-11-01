@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\User;
 use App\Models\CutPlan;
+use App\Models\FormCutInput;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Yajra\DataTables\Facades\DataTables;
@@ -23,15 +25,15 @@ class CutPlanController extends Controller
             $additionalQuery = "";
 
             $cutPlanQuery = CutPlan::selectRaw("
-                cutting_plan.id,
-                tgl_plan,
-                DATE_FORMAT(tgl_plan, '%d-%m-%Y') tgl_plan_fix,
-                no_cut_plan,
-                COUNT(no_form_cut_input) total_form,
-                count(IF(form_cut_input.status ='SPREADING',1,null)) total_belum,
-                count(IF(form_cut_input.status ='PENGERJAAN FORM CUTTING DETAIL' or form_cut_input.status ='PENGERJAAN FORM CUTTING SPREAD' ,1,null)) total_on_progress,
-                count(IF(form_cut_input.status='SELESAI PENGERJAAN',1,null)) total_beres
-            ")
+                    cutting_plan.id,
+                    tgl_plan,
+                    DATE_FORMAT(tgl_plan, '%d-%m-%Y') tgl_plan_fix,
+                    no_cut_plan,
+                    COUNT(no_form_cut_input) total_form,
+                    count(IF(form_cut_input.status ='SPREADING',1,null)) total_belum,
+                    count(IF(form_cut_input.status ='PENGERJAAN FORM CUTTING' or form_cut_input.status ='PENGERJAAN FORM CUTTING DETAIL' or form_cut_input.status ='PENGERJAAN FORM CUTTING SPREAD' ,1,null)) total_on_progress,
+                    count(IF(form_cut_input.status='SELESAI PENGERJAAN',1,null)) total_beres
+                ")
                 ->leftJoin('form_cut_input', 'cutting_plan.no_form_cut_input', '=', 'form_cut_input.no_form')
                 ->groupBy("tgl_plan", "no_cut_plan");
 
@@ -120,6 +122,7 @@ class CutPlanController extends Controller
                     b.po_marker,
                     b.urutan_marker,
                     b.cons_marker,
+                    CONCAT(b.panel, ' - ', b.urutan_marker) panel,
                     GROUP_CONCAT(CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC) marker_details
                 FROM `form_cut_input` a
                 left join marker_input b on a.id_marker = b.kode
@@ -209,6 +212,7 @@ class CutPlanController extends Controller
                     b.po_marker,
                     b.urutan_marker,
                     b.cons_marker,
+                    CONCAT(b.panel, ' - ', b.urutan_marker) panel,
                     GROUP_CONCAT(CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC) marker_details,
                     sum(marker_input_detail.ratio) * a.qty_ply	qty_output,
                     coalesce(sum(marker_input_detail.ratio) * c.tot_lembar_akt,0) qty_act
@@ -226,6 +230,7 @@ class CutPlanController extends Controller
                 GROUP BY a.id
                 ORDER BY b.cancel asc, a.tgl_form_cut desc, panel asc
             ");
+
         return DataTables::of($data_spreading)->toJson();
     }
 
@@ -312,9 +317,56 @@ class CutPlanController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $id = 0)
     {
-        //
+        $now = Carbon::now();
+
+        $success = [];
+        $fail = [];
+        $exist = [];
+
+        $approvedBy = Auth::user()->id;
+        $approvedAt = $now;
+
+        if (count($request['no_form_cut']) > 0) {
+            foreach($request['no_form_cut'] as $noFormId => $noFormVal) {
+                $updateCutPlan = CutPlan::where('no_cut_plan', $request['manage_no_cut_plan'])->
+                    where('no_form_cut_input', $request['no_form_cut'][$noFormId])->
+                    update([
+                        'app' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $request['approve'][$noFormId] : 'N') : 'N',
+                        'app_by' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $approvedBy : null) : 'N',
+                        'app_at' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $approvedAt : null) : 'N',
+                    ]);
+
+                $updateForm = FormCutInput::where('no_form', $request['no_form_cut'][$noFormId])->
+                    update([
+                        'no_meja' => (array_key_exists($noFormId, $request['no_meja'])) ? $request['no_meja'][$noFormId] : null,
+                        'app' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $request['approve'][$noFormId] : 'N') : 'N',
+                        'app_by' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $approvedBy : null) : 'N',
+                        'app_at' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $approvedAt : null) : 'N',
+                    ]);
+
+                if ($updateCutPlan) {
+                    array_push($success, $noFormVal);
+                } else {
+                    array_push($fail, $noFormVal);
+                }
+            }
+
+            return array(
+                'status' => 200,
+                'message' => 'Form berhasil diubah',
+                'redirect' => '',
+                'additional' => ["success" => $success, "fail" => $fail, "exist" => $exist],
+            );
+        }
+
+        return array(
+            'status' => 400,
+            'message' => 'Data tidak ditemukan',
+            'redirect' => '',
+            'additional' => ["success" => $success, "fail" => $fail, "exist" => $exist],
+        );
     }
 
     /**
@@ -360,6 +412,152 @@ class CutPlanController extends Controller
                 'table' => 'datatable-selected',
                 'additional' => ["success" => $success, "fail" => $fail],
             );
+        }
+    }
+
+    public function getCutPlanForm(Request $request) {
+        if ($request->ajax()) {
+            $additionalQuery = "";
+
+            $cutPlanForm = CutPlan::with('formCutInput')->where("no_cut_plan", $request->no_cut_plan);
+
+            return DataTables::eloquent($cutPlanForm)->
+                addIndexColumn()->
+                addColumn('form_info', function($row) {
+                    $formInfo = "<ul class='list-group'>";
+                    $formInfo = $formInfo."<li class='list-group-item'>Tanggal Form :<br><b>".$row->formCutInput->tgl_form_cut."</b></li>";
+                    $formInfo = $formInfo."<li class='list-group-item'>No. Form :<br><b>".$row->no_form_cut_input."</b></li>";
+                    $formInfo = $formInfo."<li class='list-group-item'>Qty Ply :<br><b>".$row->formCutInput->qty_ply."</b></li>";
+                    $formInfo = $formInfo."<li class='list-group-item'>Status :<br><b>".$row->formCutInput->status."</b></li>";
+                    $formInfo = $formInfo."</ul>";
+                    return $formInfo;
+                })->
+                addColumn('marker_info', function($row) {
+                    $markerData = $row->formCutInput->marker;
+
+                    $markerInfo = "<ul class='list-group'>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Kode Marker :<br><b>".$markerData->kode."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>WS Number :<br><b>".$markerData->act_costing_ws."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Buyer :<br><b>".$markerData->buyer."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Style :<br><b>".$markerData->style."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Color :<br><b>".$markerData->color."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Panel :<br><b>".$markerData->panel.' - '.$markerData->urutan_marker."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Tipe Marker :<br><b>".strtoupper($markerData->tipe_marker)."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>PO :<br><b>".($markerData->po ? $markerData->po : '-')."</b></li>";
+                    $markerInfo = $markerInfo."</ul>";
+                    return $markerInfo;
+                })->
+                addColumn('marker_detail_info', function($row) {
+                    $markerData = $row->formCutInput->marker;
+
+                    $markerInfo = "<ul class='list-group'>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Panjang : <br><b>".$markerData->panjang_marker." ".$markerData->unit_panjang_marker." ".$markerData->comma_marker." ".$markerData->unit_comma_marker."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Lebar : <br><b>".$markerData->lebar_marker." ".$markerData->unit_lebar_marker."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Gelar Qty : <br><b>".$markerData->gelar_qty."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Urutan : <br><b>".$markerData->urutan_marker."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Cons WS : <br><b>".$markerData->cons_ws."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Cons Marker : <br><b>".$markerData->cons_marker."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Cons Piping : <br><b>".$markerData->cons_piping."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Gramasi : <br><b>".$markerData->gramasi."</b></li>";
+                    $markerInfo = $markerInfo."</ul>";
+                    return $markerInfo;
+                })->
+                addColumn('ratio_info', function($row) {
+                    $markerDetailData = $row->formCutInput->marker->markerDetails;
+
+                    $markerDetailInfo = "
+                        <table class='table table-bordered table-sm w-auto'>
+                            <thead>
+                                <tr>
+                                    <th>Size</th>
+                                    <th>Ratio</th>
+                                    <th>Cut</th>
+                                    <th>Output</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    ";
+
+                    foreach ($markerDetailData as $markerDetail) {
+                        $markerDetailInfo .= "
+                            <tr>
+                                <td>".$markerDetail->size."</td>
+                                <td>".$markerDetail->ratio."</td>
+                                <td>".$markerDetail->cut_qty."</td>
+                                <td>".($markerDetail->ratio * $row->formCutInput->qty_ply)."</td>
+                            </tr>
+                        ";
+                    }
+
+                    $markerDetailInfo .= "
+                            </tbody>
+                        </table>
+                    ";
+
+                    return $markerDetailInfo;
+                })->
+                addColumn('input_no_form', function($row) {
+                    $input = "<input type='hidden' class='form-control' id='no_form_cut_".$row->id."' name='no_form_cut[".$row->id."]' value='".$row->no_form_cut_input."'>";
+
+                    return $input;
+                })->
+                addColumn('meja', function($row) {
+                    $meja = User::where('type', 'meja')->get();
+
+                    $input = "
+                        <select class='form-select' id='no_meja_".$row->id."' name='no_meja[".$row->id."]'>
+                            <option value=''>Pilih Meja</option>
+                    ";
+                    foreach ($meja as $m) {
+                        $input .= "<option value='".$m->id."' ".($m->id == $row->formCutInput->no_meja ? 'class="fw-bold" selected' : '').">".strtoupper($m->name)."</option>";
+                    }
+
+                    $input .= "
+                        </select>
+                    ";
+
+                    if ($row->formCutInput->status != 'SPREADING') {
+                        $input = "
+                            <input class='form-control' type='hidden' id='no_meja_".$row->id."' name='no_meja[".$row->id."]' value='".$row->formCutInput->no_meja."' readonly>
+                            <input class='form-control' type='text' value='".strtoupper($row->formCutInput->alokasiMeja ? $row->formCutInput->alokasiMeja->name : '')."' readonly>
+                        ";
+                    }
+
+                    return $input;
+                })->
+                addColumn('approve', function($row) {
+                    $input = "
+                        <div class='form-check w-100 text-center'><input type='checkbox' class='form-check-input border-success' id='approve_".$row->id."' name='approve[".$row->id."]' value='Y' ".($row->app == 'Y' ? 'checked' : '')." ".($row->formCutInput->status != 'SPREADING' ? 'disabled' : '')."></div>
+                        ".($row->formCutInput->status != 'SPREADING' ? '<input type="hidden" class="form-control" id="approve_'.$row->id.'" name="approve['.$row->id.']" value="'.$row->formCutInput->app.'">' : '');
+
+                    return $input;
+                })->
+                rawColumns(['form_info', 'marker_info', 'marker_detail_info', 'ratio_info', 'input_no_form', 'meja', 'approve'])->
+                filterColumn('marker_info', function($query, $keyword) {
+                    $query->whereHas('formCutInput', function($query) use ($keyword) {
+                        $query->whereHas('marker', function($query) use ($keyword) {
+                            $query->whereRaw("(
+                                marker_input.kode LIKE '%".$keyword."%' OR
+                                marker_input.act_costing_ws LIKE '%".$keyword."%' OR
+                                marker_input.style LIKE '%".$keyword."%' OR
+                                marker_input.color LIKE '%".$keyword."%' OR
+                                marker_input.panel LIKE '%".$keyword."%'
+                            )");
+                        });
+                    });
+                })->
+                filterColumn('form_info', function($query, $keyword) {
+                    $query->whereHas('formCutInput', function($query) use ($keyword) {
+                        $query->whereRaw("(
+                            form_cut_input.no_form LIKE '%".$keyword."%' OR
+                            form_cut_input.tgl_form_cut LIKE '%".$keyword."%'
+                        )");
+                    });
+                })->
+                order(function ($query) {
+                    $query->orderBy('app', 'desc')->orderBy('no_form_cut_input', 'desc');
+                })->
+                toJson();
         }
     }
 }

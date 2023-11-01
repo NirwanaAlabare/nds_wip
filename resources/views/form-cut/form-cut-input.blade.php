@@ -46,6 +46,7 @@
                             <th>Status</th>
                             <th>Size Ratio</th>
                             <th>Qty Ply</th>
+                            <th>App</th>
                             <th>Act</th>
                         </tr>
                     </thead>
@@ -244,7 +245,8 @@
                     d.dateTo = $('#tgl-akhir').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'no_form'
                 },
                 {
@@ -275,6 +277,9 @@
                     data: 'qty_ply'
                 },
                 {
+                    data: 'app'
+                },
+                {
                     data: 'id'
                 },
             ],
@@ -291,6 +296,10 @@
                             color = '#2243d6';
                         } else if (row.status == 'PENGERJAAN FORM CUTTING SPREAD') {
                             color = '#2243d6';
+                        } else {
+                            if (row.app != 'Y') {
+                                color = '#616161';
+                            }
                         }
 
                         return data ? "<span style='color: " + color + "'>" + data.toUpperCase() +
@@ -305,7 +314,11 @@
 
                         switch (data) {
                             case "SPREADING":
-                                icon = `<i class="fas fa-file fa-lg"></i>`;
+                                if (row.app != 'Y') {
+                                    icon = `<i class="fas fa-file fa-lg" style="color: #616161;"></i>`;
+                                } else {
+                                    icon = `<i class="fas fa-file fa-lg"></i>`;
+                                }
                                 break;
                             case "PENGERJAAN FORM CUTTING":
                             case "PENGERJAAN FORM CUTTING DETAIL":
@@ -322,13 +335,33 @@
                 },
                 {
                     targets: [10],
+                    className: "text-center align-middle",
                     render: (data, type, row, meta) => {
-                        let btnEdit = row.status == 'SPREADING' ?
-                            "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" +
+                        icon = "";
+
+                        switch (data) {
+                            case "Y":
+                                icon = `<i class="fas fa-check fa-lg"></i>`;
+                                break;
+                            case "N":
+                                icon = `<i class="fas fa-times fa-lg" style="color: #616161;"></i>`;
+                                break;
+                            default:
+                                icon = `<i class="fas fa-minus fa-lg" style="color: #616161;"></i>`;
+                                break;
+                        }
+
+                        return icon;
+                    }
+                },
+                {
+                    targets: [11],
+                    render: (data, type, row, meta) => {
+                        let btnEdit = "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" +
                             JSON.stringify(row) +
-                            ", \"detailSpreadingModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-search'></i></a>" :
-                            "";
-                            let btnProcess = row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null ?
+                            ", \"detailSpreadingModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-search'></i></a>";
+
+                        let btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ?
                             `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` +
                             row.id +
                             `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>` :
@@ -351,6 +384,10 @@
                             color = '#2243d6';
                         } else if (row.status == 'PENGERJAAN FORM CUTTING SPREAD') {
                             color = '#2243d6';
+                        } else {
+                            if (row.app != 'Y') {
+                                color = '#616161';
+                            }
                         }
 
                         return '<span style="color:' + color + '">' + data + '</span>';
