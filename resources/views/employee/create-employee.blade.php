@@ -72,6 +72,11 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <div id="reader_nik"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
     </form>
@@ -144,9 +149,11 @@
 
                     document.getElementById('txtline').value = decodedText;
 
-                    scanline()
+                    scanline();
 
-                    // html5QrcodeScanner.clear();
+                    html5QrcodeScanner.clear();
+
+                    initScan1();
                 }
 
                 function onScanFailure(error) {
@@ -170,6 +177,53 @@
             }
         }
 
+
+         // Scan QR Module :
+        // Variable List :
+        var html5QrcodeScanner1 = null;
+
+        // Function List :
+        // -Initialize Scanner-
+        async function initScan1() {
+            if (document.getElementById("reader_nik")) {
+                if (html5QrcodeScanner1) {
+                    await html5QrcodeScanner1.clear();
+                }
+
+                function onScanSuccess(decodedText, decodedResult) {
+                    // handle the scanned code as you like, for example:
+                    console.log(`Code matched = ${decodedText}`, decodedResult);
+
+                    // store to input text
+                    // let breakDecodedText = decodedText.split('-');
+
+                    document.getElementById('txtnik').value = decodedText;
+
+                    scannik();
+
+                    // html5QrcodeScanner1.clear();
+                }
+
+                function onScanFailure(error) {
+                    // handle scan failure, usually better to ignore and keep scanning.
+                    // for example:
+                    console.warn(`Code scan error = ${error}`);
+                }
+
+                html5QrcodeScanner1 = new Html5QrcodeScanner(
+                    "reader_nik", {
+                        fps: 10,
+                        qrbox: {
+                            width: 250,
+                            height: 250
+                        }
+                    },
+                    /* verbose= */
+                    false);
+
+                    html5QrcodeScanner1.render(onScanSuccess, onScanFailure);
+            }
+        }
 
 
 
