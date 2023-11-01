@@ -144,9 +144,9 @@
 
                     document.getElementById('txtline').value = decodedText;
 
-                    scanline()
+                    scanline();
 
-                    // html5QrcodeScanner.clear();
+                    html5QrcodeScanner.clear();
                 }
 
                 function onScanFailure(error) {
