@@ -2067,7 +2067,7 @@
                     pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
                 }
 
-                let estAmpar = pActualVar > 0 ? qtyVar / pActualConverted : 0;
+                let estAmpar = pActualConverted > 0 ? qtyVar / pActualConverted : 0;
 
                 document.getElementById("current_est_amparan").value = estAmpar.round(2);
             }

@@ -764,7 +764,7 @@
                                                 calculateShortRoll();
                                                 calculateRemark();
                                             ">
-                                        <span class="input-group-text input-group-unit"></span>startTime
+                                        <span class="input-group-text input-group-unit"></span>
                                     </div>
                                 </div>
                             </div>
@@ -1558,17 +1558,12 @@
         }
 
         // -Convert Roll Qty Actual-
-        function rollQtyConversion(rollQtyVar, unitQtyVar, gramasi = 0, pActual = 0, lActual = 0,
-            commaActual = 0) {
+        function rollQtyConversion(rollQtyVar, unitQtyVar, gramasi = 0, pActual = 0, lActual = 0, commaActual = 0) {
             let rollQtyConverted = 0;
-            let gramasiVar = gramasi > 0 ? Number(gramasi) : Number(document.getElementById("gramasi")
-                .value);
-            let pActualVar = pActual > 0 ? Number(pActual) : Number(document.getElementById("p_act")
-                .value);
-            let lActualVar = lActual > 0 ? Number(lActual) : Number(document.getElementById("l_act")
-                .value);
-            let commaActualVar = commaActual > 0 ? Number(commaActual) : Number(document.getElementById(
-                "comma_act").value);
+            let gramasiVar = gramasi > 0 ? Number(gramasi) : Number(document.getElementById("gramasi").value);
+            let pActualVar = pActual > 0 ? Number(pActual) : Number(document.getElementById("p_act").value);
+            let lActualVar = lActual > 0 ? Number(lActual) : Number(document.getElementById("l_act").value);
+            let commaActualVar = commaActual > 0 ? Number(commaActual) : Number(document.getElementById("comma_act").value);
 
             if (rollQtyVar && unitQtyVar) {
                 if (unitQtyVar == "YARD" || unitQtyVar == "YRD") {
@@ -2077,32 +2072,19 @@
             data.qty ? document.getElementById("current_qty").value = convertedQty : '';
             data.qty ? document.getElementById("current_qty_real").value = data.qty : '';
             data.unit ? document.getElementById("current_unit").value = data.unit : '';
-            data.unit ? document.getElementById("current_sisa_gelaran_unit").value = (data.unit !=
-                "KGM" ? "METER" :
-                "KGM") : '';
-            data.unit ? document.getElementById("current_sambungan_unit").value = (data.unit != "KGM" ?
-                    "METER" : "KGM") :
-                '';
-            data.sisa_gelaran ? document.getElementById("current_sisa_gelaran").value = data
-                .sisa_gelaran : '';
+            data.unit ? document.getElementById("current_sisa_gelaran_unit").value = (data.unit != "KGM" ? "METER" : "KGM") : '';
+            data.unit ? document.getElementById("current_sambungan_unit").value = (data.unit != "KGM" ? "METER" : "KGM") : '';
+            data.sisa_gelaran ? document.getElementById("current_sisa_gelaran").value = data .sisa_gelaran : '';
             data.sambungan ? document.getElementById("current_sambungan").value = data.sambungan : '';
-            data.est_amparan ? document.getElementById("current_est_amparan").value = data.est_amparan :
-                '';
-            data.lembar_gelaran ? document.getElementById("current_lembar_gelaran").value = data
-                .lembar_gelaran : '';
-            data.average_time ? document.getElementById("current_average_time").value = data
-                .average_time : '';
-            data.kepala_kain ? document.getElementById("current_kepala_kain").value = data.kepala_kain :
-                '';
-            data.sisa_tidak_bisa ? document.getElementById("current_sisa_tidak_bisa").value = data
-                .sisa_tidak_bisa : '';
+            data.est_amparan ? document.getElementById("current_est_amparan").value = data.est_amparan : '';
+            data.lembar_gelaran ? document.getElementById("current_lembar_gelaran").value = data .lembar_gelaran : '';
+            data.average_time ? document.getElementById("current_average_time").value = data .average_time : '';
+            data.kepala_kain ? document.getElementById("current_kepala_kain").value = data.kepala_kain : '';
+            data.sisa_tidak_bisa ? document.getElementById("current_sisa_tidak_bisa").value = data .sisa_tidak_bisa : '';
             data.reject ? document.getElementById("current_reject").value = data.reject : '';
             data.sisa_kain ? document.getElementById("current_sisa_kain").value = data.sisa_kain : '';
-            data.total_pemakaian_roll ? document.getElementById("current_total_pemakaian_roll").value =
-                data
-                .total_pemakaian_roll : '';
-            data.short_roll ? document.getElementById("current_short_roll").value = data.short_roll :
-            '';
+            data.total_pemakaian_roll ? document.getElementById("current_total_pemakaian_roll").value = data .total_pemakaian_roll : '';
+            data.short_roll ? document.getElementById("current_short_roll").value = data.short_roll : '';
             data.piping ? document.getElementById("current_piping").value = data.piping : '';
             data.remark ? document.getElementById("current_remark").value = data.remark : '';
 
