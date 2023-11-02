@@ -11,6 +11,7 @@ use App\Http\Controllers\ManualFormCutController;
 use App\Http\Controllers\LapPemakaianController;
 use App\Http\Controllers\StockerController;
 use App\Http\Controllers\ManagerController;
+use App\Http\Controllers\EmployeeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -190,6 +191,22 @@ Route::middleware('auth')->group(function () {
         Route::post('/print-numbering/{index?}', 'printNumbering')->name('print-numbering');
     });
 
+
+    // Mutasi Karywawan
+    Route::controller(EmployeeController::class)->prefix("mut-karyawan")->middleware('admin')->group(function () {
+        Route::get('/', 'index')->name('mut-karyawan');
+        Route::get('/create', 'create')->name('create-mut-karyawan');
+        Route::post('/store', 'store')->name('store-mut-karyawan');
+        Route::put('/update', 'update')->name('update-mut-karyawan');
+        Route::delete('/destroy', 'destroy')->name('destroy-mut-karyawan');
+        Route::get('/getdataline', 'getdataline')->name('getdataline');
+        Route::get('/gettotal', 'gettotal')->name('gettotal');
+        Route::get('/getdatanik', 'getdatanik')->name('getdatanik');
+        Route::get('/getdatalinekaryawan', 'getdatalinekaryawan')->name('getdatalinekaryawan');
+        Route::get('/export_excel_mut_karyawan', 'export_excel_mut_karyawan')->name('export_excel_mut_karyawan');
+    });
+
+
     // Manager
     Route::controller(ManagerController::class)->prefix("manager")->middleware('manager')->group(function () {
         Route::get('/cutting', 'cutting')->name('manage-cutting');
@@ -205,6 +222,10 @@ Route::get('/dashboard-cutting', function () {
 Route::get('/dashboard-stocker', function () {
     return view('dashboard', ['page' => 'dashboard-stocker']);
 })->middleware('auth')->name('dashboard-stocker');
+
+Route::get('/dashboard-mut-karyawan', function () {
+    return view('dashboard', ['page' => 'dashboard-mut-karyawan']);
+})->middleware('auth')->name('dashboard-mut-karyawan');
 
 Route::get('/timer', function () {
     return view('example.timeout');
