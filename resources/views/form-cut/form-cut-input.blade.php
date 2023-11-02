@@ -34,7 +34,7 @@
                     </div>
                 </div>
 
-                <a href="{{ url('manual-form-cut/create') }}" class="btn btn-sm btn-dark mb-3"><i class="fas fa-cog"></i> Form Cut Manual</a>
+                <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-dark mb-3"><i class="fas fa-clipboard-list"></i> Form Cut Manual</a>
             </div>
             <div class="table-responsive">
                 <table id="datatable" class="table table-bordered table-sm w-100">
