@@ -1,13 +1,23 @@
 @extends('layouts.index')
 
+@section('custom-link')
+    <!-- DataTables -->
+    <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
+    <!-- Select2 -->
+    <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+@endsection
+
 @section('content')
     <div class="row g-3">
         <div class="d-flex gap-3 align-items-center">
-            <h5 class="mb-1">Form Cut - {{ strtoupper($formCutInputData->name) }}</h5>
+            <h5 class="mb-1">Form Cut Manual - {{ strtoupper(Auth::user()->name) }}</h5>
             <button class="btn btn-sm btn-success" id="start-process" onclick="startProcess()">Mulai Pengerjaan</button>
         </div>
         <div class="col-md-6">
-            <div class="card card-sb" id="header-data-card">
+            <div class="card card-sb d-none" id="header-data-card">
                 <div class="card-header">
                     <h3 class="card-title">Header Data</h3>
                     <div class="card-tools">
@@ -16,152 +26,161 @@
                     </div>
                 </div>
                 <div class="card-body" style="display: block;">
-                    @php
-                        $thisActCosting = $actCostingData->where('id', $formCutInputData->act_costing_id)->first();
-                        $thisMarkerDetails = $markerDetailData->where('kode_marker', $formCutInputData->id_marker);
-                    @endphp
-                    <div class="row align-items-end">
-                        <input type="hidden" name="id" id="id" value="{{ $id }}" readonly>
-                        <input type="hidden" name="act_costing_id" id="act_costing_id" value="{{ $formCutInputData->act_costing_id }}" readonly>
-                        <input type="hidden" name="status" id="status" value="{{ $formCutInputData->status }}" readonly>
-                        <input type="hidden" name="no_meja" id="no_meja" value="{{ $formCutInputData->no_meja }}" readonly>
-                        <div class="col-6 col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label"><small><b>Start</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="start" id="start-time" value="{{ $formCutInputData->waktu_mulai }}" readonly>
+                    <form action="{{ route('store-marker-manual-form-cut') }}" method="post" onsubmit="submitMarkerForm(this, event)" id="store-marker">
+                        <div class="row align-items-end">
+                            {{-- Form Information --}}
+                            <input type="hidden" name="id" id="id" value="" readonly>
+                            <input type="hidden" name="status" id="status" value="" readonly>
+                            <input type="hidden" name="no_meja" id="no_meja" value="{{ Auth::user()->id }}" readonly>
+                            <div class="col-6 col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label"><small><b>Start</b></small></label>
+                                    <input type="text" class="form-control form-control-sm" name="start" id="start-time" value="" readonly>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label"><small><b>Finish</b></small></label>
+                                    <input type="text" class="form-control form-control-sm" name="finish" id="finish-time" value="" readonly>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label"><small><b>Shell</b></small></label>
+                                    <select class="form-select form-select-sm" name="shell" id="shell">
+                                        <option value="a">A</option>
+                                        <option value="b">B</option>
+                                        <option value="c">C</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label "><small><b>No. Form</b></small></label>
+                                    <input type="text" class="form-control form-control-sm " name="no_form" id="no_form" value="" readonly>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label"><small><b>Tanggal</b></small></label>
+                                    <input type="date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" name="tgl_form" readonly>
+                                </div>
+                            </div>
+
+                            {{-- Marker Form --}}
+                            <div class="col-6 col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label "><small><b>Kode Marker</b></small></label>
+                                    <input type="text" class="form-control form-control-sm" id="id_marker" value="" readonly>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label "><small><b>No. WS</b></small></label>
+                                    <input type="hidden" name="no_ws" id="no_ws" readonly>
+                                    <select class="form-control select2bs4" id="act_costing_id" name="act_costing_id" style="width: 100%;">
+                                        <option selected="selected" value="">Pilih WS</option>
+                                        @foreach ($orders as $order)
+                                            <option value="{{ $order->id }}">
+                                                {{ $order->kpno }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label "><small><b>Color</b></small></label>
+                                    <select class="form-control select2bs4" id="color" name="color" style="width: 100%;">
+                                        <option selected="selected" value="">Pilih Color</option>
+                                        {{-- select 2 option --}}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label "><small><b>Panel</b></small></label>
+                                    <select class="form-control select2bs4" id="panel" name="panel" style="width: 100%;">
+                                        <option selected="selected" value="">Pilih Panel</option>
+                                        {{-- select 2 option --}}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label "><small><b>Buyer</b></small></label>
+                                    <input type="text" class="form-control form-control-sm " name="buyer" id="buyer" value="" readonly>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label "><small><b>Style</b></small></label>
+                                    <input type="text" class="form-control form-control-sm " name="style" id="style" value="" readonly>
+                                </div>
+                            </div>
+                            <div class="col-4 col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label "><small><b>Tipe Marker</b></small></label>
+                                    <select class="form-select form-select-sm" name="tipe_marker" id="tipe_marker">
+                                        <option value="regular marker" selected>Regular Marker</option>
+                                        <option value="special marker">Special Marker</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-4 col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label"><small><b>PO</b></small></label>
+                                    <input type="text" class="form-control form-control-sm" name="po" id="po">
+                                </div>
+                            </div>
+                            <div class="col-4 col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label"><small><b>QTY Gelar Marker</b></small></label>
+                                    <input type="text" class="form-control form-control-sm" name="gelar_qty" id="gelar_qty" onchange="calculateAllRatio(this)" onkeyup="calculateAllRatio(this)">
+                                </div>
                             </div>
                         </div>
-                        <div class="col-6 col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label"><small><b>Finish</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="finish" id="finish-time" value="{{ $formCutInputData->waktu_selesai }}" readonly>
-                            </div>
+                        @php
+                            $totalRatio = 0;
+                            $totalCutQty = 0;
+                            $totalCutQtyPly = 0;
+                        @endphp
+                        <div class="table-responsive ? 'd-none' : '' }}">
+                            <table id="ratio-datatable" class="table table-bordered table-striped table-sm w-100">
+                                <thead>
+                                    <tr>
+                                        <th>Size</th>
+                                        <th>Size Input</th>
+                                        <th>So Det Id</th>
+                                        <th>Ratio</th>
+                                        <th>Cut Qty</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th>Total</th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                        <th></th>
+                                    </tr>
+                                </tfoot>
+                            </table>
                         </div>
-                        <div class="col-6 col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label"><small><b>Shell</b></small></label>
-                                <select class="form-select form-select-sm" name="shell" id="shell">
-                                    <option value="a" {{ $formCutInputData->shell == 'a' ? 'selected' : '' }}>A</option>
-                                    <option value="b" {{ $formCutInputData->shell == 'b' ? 'selected' : '' }}>B</option>
-                                    <option value="c" {{ $formCutInputData->shell == 'c' ? 'selected' : '' }}>C</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>No. Form</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="no_form" id="no_form" value="{{ $formCutInputData->no_form }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label"><small><b>Tanggal</b></small></label>
-                                <input type="date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Kode Marker</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" value="{{ $formCutInputData->id_marker }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>No. WS</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="no_ws" value="{{ $formCutInputData->act_costing_ws }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Buyer</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="buyer" value="{{ $thisActCosting->buyer }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Style</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="style" value="{{ $thisActCosting->style }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-4 col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Color</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="color" id="color" value="{{ $formCutInputData->color }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-4 col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Panel</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="panel" id="panel" value="{{ $formCutInputData->panel }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-4 col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Tipe Marker</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="tipe_marker" id="tipe_marker" value="{{ $formCutInputData->tipe_marker ? strtoupper($formCutInputData->tipe_marker) : '-' }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-4 col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>PO</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="po" value="{{ $formCutInputData->po_marker }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-4 col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>QTY Gelar Marker</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="gelar_qty" value="{{ $formCutInputData->gelar_qty }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-4 col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>QTY Cut Ply</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" id="qty_ply" name="qty_ply" value="{{ $formCutInputData->qty_ply }}" readonly>
-                            </div>
-                        </div>
-                    </div>
-                    <table id="ratio-datatable" class="table table-striped table-bordered table-sm w-100 text-center mt-3">
-                        <thead>
-                            <tr>
-                                <th class="label-fetch">Size</th>
-                                <th class="label-fetch">Ratio</th>
-                                <th class="label-fetch">Qty Cut Marker</th>
-                                <th class="label-fetch">Qty Output</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @php
-                                $totalRatio = 0;
-                                $totalCutQty = 0;
-                                $totalCutQtyPly = 0;
-                            @endphp
-                            @foreach ($thisMarkerDetails as $item)
-                                <tr>
-                                    @php
-                                        $totalRatio += $item->ratio;
-                                        $totalCutQty += $item->cut_qty;
-                                        $qtyPly = $item->ratio*$formCutInputData->qty_ply;
-                                        $totalCutQtyPly += $qtyPly;
-                                    @endphp
-                                    <td>{{ $item->size }}</td>
-                                    <td>{{ $item->ratio }}</td>
-                                    <td>{{ $item->cut_qty }}</td>
-                                    <td>{{ $qtyPly }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <th class="text-center">Total</th>
-                                <th id="totalRatio">{{ $totalRatio }}</th>
-                                <th id="totalQtyCutMarker">{{ $totalCutQty }}</th>
-                                <th id="totalQtyCutPly">{{ $totalCutQtyPly }}</th>
-                            </tr>
-                        </tfoot>
-                    </table>
-                    <input type="hidden" name="total_ratio" id="total_ratio" value="{{ $totalRatio }}">
-                    <input type="hidden" name="total_qty_cut" id="total_qty_cut" value="{{ $totalCutQty }}">
-                    <input type="hidden" name="total_qty_cut_ply" id="total_qty_cut_ply" value="{{ $totalCutQtyPly }}">
+
+                        {{-- Marker Number Information --}}
+                        <input type="hidden" name="cons_ws_marker" id="cons_ws_marker" value=": '' }}">
+                        <input type="hidden" name="urutan_marker" id="urutan_marker" value=": '' }}">
+
+                        {{-- Marker Summary Information --}}
+                        <input type="hidden" name="total_size" id="total_size" value="">
+                        <input type="hidden" name="total_ratio" id="total_ratio" value="{{ $totalRatio }}">
+                        <input type="hidden" name="total_qty_cut_ply" id="total_qty_cut_ply" value="{{ $totalCutQtyPly }}">
+
+                        <button type="submit" class="btn btn-sb d-none mt-3" id="store-marker-submit">Simpan</button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -176,22 +195,10 @@
                 </div>
                 <div class="card-body" style="display: block;">
                     <div class="row">
-                        <div class="col-6 col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>P. Marker</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-fetch" value="{{ $formCutInputData->panjang_marker }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Unit</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-input"><small><b>P. Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-input" name="p_act" id="p_act" value="{{ $formCutInputData->p_act }}"
+                                <input type="number" class="form-control form-control-sm border-input" name="p_act" id="p_act" value=""
                                     onkeyup="
                                         calculateConsAct();
                                         calculateConsAmpar();
@@ -211,28 +218,16 @@
                                 >
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-input"><small><b>Unit Act</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-input" name="unit_p_act" id="unit_p_act" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-input" name="unit_p_act" id="unit_p_act" value="METER" readonly>
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Comma</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-fetch" value="{{ $formCutInputData->comma_marker }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Unit</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" value="{{ strtoupper($formCutInputData->unit_comma_marker) }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-input"><small><b>Comma Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-input" name="comma_act" id="comma_act" value="{{ $formCutInputData->comma_p_act }}"
+                                <input type="number" class="form-control form-control-sm border-input" name="comma_act" id="comma_act" value="CM"
                                     onkeyup="
                                         calculateConsAct();
                                         calculateConsAmpar();
@@ -251,28 +246,16 @@
                                     ">
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-input"><small><b>Unit Act</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-input" name="unit_comma_act" id="unit_comma_act" value="{{ strtoupper($formCutInputData->unit_comma_marker) }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-input" name="unit_comma_act" id="unit_comma_act" value="CM" readonly>
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>L. Marker</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-fetch" value="{{ strtoupper($formCutInputData->lebar_marker) }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Unit</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" value="{{ strtoupper($formCutInputData->unit_lebar_marker) }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-input"><small><b>L. Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-input" name="l_act" id="l_act" value="{{ $formCutInputData->l_act }}"
+                                <input type="number" class="form-control form-control-sm border-input" name="l_act" id="l_act" value=""
                                     onkeyup="
                                         calculateConsAmpar();
                                         calculateEstAmpar();
@@ -289,43 +272,50 @@
                                     ">
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-input"><small><b>Unit Act</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-input" name="unit_l_act" id="unit_l_act" value="{{ strtoupper($formCutInputData->unit_lebar_marker) }}" readonly>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Gramasi</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="gramasi" id="gramasi" value="{{ $formCutInputData->gramasi }}" onkeyup="calculateEstAmpar(undefined, undefined, undefined, this.value);" onchange="calculateEstAmpar(undefined, undefined, undefined, this.value);" readonly>
+                                <input type="text" class="form-control form-control-sm border-input" name="unit_l_act" id="unit_l_act" value="CM" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Cons WS</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="cons_ws" id="cons_ws" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="cons_ws" id="cons_ws" value="" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
                             <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Cons Marker</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="cons_marker" id="cons_marker" value="{{ $formCutInputData->cons_marker }}" onkeyup="calculateEstKain(this.value)" onchange="calculateEstKain(this.value)" readonly>
+                                <label class="form-label"><small><b>Gramasi</b></small></label>
+                                <input type="text" class="form-control form-control-sm" name="gramasi" id="gramasi" value="" onkeyup="calculateEstAmpar(undefined, undefined, undefined, this.value);" onchange="calculateEstAmpar(undefined, undefined, undefined, this.value);">
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label"><small><b>Cons Marker</b></small></label>
+                                <input type="text" class="form-control form-control-sm" name="cons_marker" id="cons_marker" value="" onkeyup="calculateEstKain(this.value)" onchange="calculateEstKain(this.value)">
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
                             <div class="mb-3">
                                 <label class="form-label label-calc"><small><b>Cons Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-calc" name="cons_act" id="cons_act" value="{{ round($formCutInputData->cons_act, 2) > 0 ? $formCutInputData->cons_act : ($totalCutQtyPly > 0 ? round($formCutInputData->p_act / $totalCutQtyPly, 2) : '0') }}" step=".01" readonly>
+                                <input type="number" class="form-control form-control-sm border-calc" name="cons_act" id="cons_act" value="" step=".01" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-fetch"><small><b>Cons Piping</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-fetch" step=".01" name="cons_pipping" id="cons_pipping" value="{{ $formCutInputData->cons_pipping }}" readonly
-                                    onkeyup="calculateEstPipping(this.value)"
-                                    onchange="calculateEstPipping(this.value)"
-                                >
+                                <label class="form-label"><small><b>Cons Piping</b></small></label>
+                                <div class="row">
+                                    <div class="col-8">
+                                        <input type="number" class="form-control form-control-sm" step=".01" name="cons_pipping" id="cons_pipping" value=""
+                                            onkeyup="calculateEstPipping(this.value)"
+                                            onchange="calculateEstPipping(this.value)"
+                                        >
+                                    </div>
+                                    <div class="col-4">
+                                        <input type="text" class="form-control form-control-sm" name="unit_cons_pipping" id="unit_cons_pipping" value="METER" readonly>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
@@ -333,7 +323,7 @@
                                 <label class="form-label label-calc"><small><b>Cons 1 Ampar</b></small></label>
                                 <div class="row">
                                     <div class="col-8">
-                                        <input type="number" class="form-control form-control-sm border-calc" step=".01" name="cons_ampar" id="cons_ampar" value="{{ $formCutInputData->cons_ampar }}" readonly>
+                                        <input type="number" class="form-control form-control-sm border-calc" step=".01" name="cons_ampar" id="cons_ampar" value="" readonly>
                                     </div>
                                     <div class="col-4">
                                         <input type="text" class="form-control form-control-sm border-calc" name="unit_cons_ampar" id="unit_cons_ampar" value="KGM" readonly>
@@ -346,10 +336,10 @@
                                 <label class="form-label label-calc"><small><b>Est. Kebutuhan Kain Piping</b></small></label>
                                 <div class="row g-1">
                                     <div class="col-6">
-                                        <input type="number" class="form-control form-control-sm border-calc" step=".01" name="est_pipping" id="est_pipping" value="{{ $formCutInputData->cons_piping * $totalCutQtyPly }}" readonly>
+                                        <input type="number" class="form-control form-control-sm border-calc" step=".01" name="est_pipping" id="est_pipping" value="0" readonly>
                                     </div>
                                     <div class="col-6">
-                                        <input type="text" class="form-control form-control-sm border-calc" name="est_pipping_unit" id="est_pipping_unit" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
+                                        <input type="text" class="form-control form-control-sm border-calc" name="est_pipping_unit" id="est_pipping_unit" value="METER" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -359,10 +349,10 @@
                                 <label class="form-label label-calc"><small><b>Est. Kebutuhan Kain</b></small></label>
                                 <div class="row g-1">
                                     <div class="col-6">
-                                        <input type="number" class="form-control form-control-sm border-calc" step=".01" name="est_kain" id="est_kain" value="{{ $formCutInputData->cons_marker * $totalCutQtyPly }}" readonly>
+                                        <input type="number" class="form-control form-control-sm border-calc" step=".01" name="est_kain" id="est_kain" value="0" readonly>
                                     </div>
                                     <div class="col-6">
-                                        <input type="text" class="form-control form-control-sm border-calc" name="est_kain_unit" id="est_kain_unit" value="{{ strtoupper($formCutInputData->unit_panjang_marker) }}" readonly>
+                                        <input type="text" class="form-control form-control-sm border-calc" name="est_kain_unit" id="est_kain_unit" value="METER" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -839,7 +829,7 @@
                                 <div class="col-md-4">
                                     <div class="mb-3">
                                         <label class="form-label label-input"><small><b>Operator</b></small></label>
-                                        <input type="text" class="form-control form-control-sm border-input" name="operator" id="operator" value="{{ $formCutInputData->operator }}">
+                                        <input type="text" class="form-control form-control-sm border-input" name="operator" id="operator" value="">
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -871,10 +861,449 @@
 @endsection
 
 @section('custom-script')
+    <!-- DataTables & Plugins -->
+    <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+    <!-- Select2 -->
+    <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+    <!-- Page specific script -->
+
+    <!-- Marker Script -->
     <script>
+        // -Form ID-
+        var id = document.getElementById("id").value;
+
+        // -Ratio & Qty Cuy-
+        var totalRatio = document.getElementById('total_ratio').value;
+        var totalQtyCut = document.getElementById('total_qty_cut_ply').value;
+
+        // Step One (WS) on change event
+        $('#act_costing_id').on('change', function(e) {
+            if (this.value) {
+                updateColorList();
+                updateOrderInfo();
+            }
+        });
+
+        // Step Two (Color) on change event
+        $('#color').on('change', function(e) {
+            if (this.value) {
+                updatePanelList();
+                updateSizeList();
+            }
+        });
+
+        // Step Three (Panel) on change event
+        $('#panel').on('change', function(e) {
+            if (this.value) {
+                getNumber();
+                updateSizeList();
+                getMarkerCount();
+            }
+        });
+
+        // Update Order Information Based on Order WS and Order Color
+        function updateOrderInfo() {
+            return $.ajax({
+                url: '{{ route("manual-form-cut-get-order") }}',
+                type: 'get',
+                data: {
+                    act_costing_id: $('#act_costing_id').val(),
+                    color: $('#color').val(),
+                },
+                dataType: 'json',
+                success: function (res) {
+                    if (res) {
+                        document.getElementById('no_ws').value = res.kpno;
+                        document.getElementById('buyer').value = res.buyer;
+                        document.getElementById('style').value = res.styleno;
+                    }
+                },
+            });
+        }
+
+        // Update Color Select Option Based on Order WS
+        function updateColorList() {
+            document.getElementById('color').value = null;
+
+            return $.ajax({
+                url: '{{ route("manual-form-cut-get-colors") }}',
+                type: 'get',
+                data: {
+                    act_costing_id: $('#act_costing_id').val(),
+                },
+                success: function (res) {
+                    if (res) {
+                        // Update this step
+                        document.getElementById('color').innerHTML = res;
+
+                        // Reset next step
+                        document.getElementById('panel').innerHTML = null;
+                        document.getElementById('panel').value = null;
+
+                        // Open this step
+                        $("#color").prop("disabled", false);
+
+                        // Close next step
+                        $("#panel").prop("disabled", true);
+
+                        // Reset order information
+                        document.getElementById('cons_ws_marker').value = null;
+                    }
+                },
+            });
+        }
+
+        // Update Panel Select Option Based on Order WS and Color WS
+        function updatePanelList() {
+            document.getElementById('panel').value = null;
+            return $.ajax({
+                url: '{{ route("manual-form-cut-get-panels") }}',
+                type: 'get',
+                data: {
+                    act_costing_id: $('#act_costing_id').val(),
+                    color: $('#color').val(),
+                },
+                success: function (res) {
+                    if (res) {
+                        // Update this step
+                        document.getElementById('panel').innerHTML = res;
+                        document.getElementById('cons_ws').innerHTML = res;
+
+                        // Open this step
+                        $("#panel").prop("disabled", false);
+
+                        // Reset order information
+                        document.getElementById('cons_ws_marker').value = null;
+                    }
+                },
+            });
+        }
+
+        // Order Qty Datatable (Size|Ratio|Cut Qty)
+        let ratioDatatable = $("#ratio-datatable").DataTable({
+            info: false,
+            ordering: false,
+            searching: false,
+            paging: false,
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '{{ route("manual-form-cut-get-sizes") }}',
+                data: function (d) {
+                    d.act_costing_id = $('#act_costing_id').val();
+                    d.color = $('#color').val();
+                },
+            },
+            columns: [
+                {
+                    data: 'size'
+                },
+                {
+                    data: 'size' // size input
+                },
+                {
+                    data: 'so_det_id' // detail so input
+                },
+                {
+                    data: 'so_det_id' // ratio input
+                },
+                {
+                    data: 'so_det_id' // cut qty input
+                }
+            ],
+            columnDefs: [
+                {
+                    // Size Input
+                    targets: [1],
+                    className: "d-none",
+                    render: (data, type, row, meta) => {
+                        // Hidden Size Input
+                        return '<input type="hidden" id="size-' + meta.row + '" name="size['+meta.row+']" value="' + data + '" readonly />'
+                    }
+                },
+                {
+                    // SO Detail Input
+                    targets: [2],
+                    className: "d-none",
+                    render: (data, type, row, meta) => {
+                        // Hidden Detail SO Input
+                        return '<input type="hidden" id="so-det-id-' + meta.row + '" name="so_det_id['+meta.row+']" value="' + data + '" readonly />'
+                    }
+                },
+                {
+                    // Ratio Input
+                    targets: [3],
+                    render: (data, type, row, meta) => {
+                        // Hidden Ratio Input
+                        return '<input type="number" id="ratio-' + meta.row + '" name="ratio[' + meta.row + ']" onchange="calculateRatio(' + meta.row + ');" onkeyup="calculateRatio(' + meta.row + ');" />';
+                    }
+                },
+                {
+                    // Cut Qty Input
+                    targets: [4],
+                    render: (data, type, row, meta) => {
+                        // Hidden Cut Qty Input
+                        return '<input type="number" id="cut-qty-' + meta.row + '" name="cut_qty['+meta.row+']" readonly />'
+                    }
+                }
+            ],
+            footerCallback: function(row, data, start, end, display) {
+                // This datatable api
+                let api = this.api();
+
+                // Remove the formatting to get integer data for summation
+                let intVal = function(i) {
+                    return typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
+                };
+
+                // Update footer
+                $(api.column(0).footer()).html("Total");
+                $(api.column(3).footer()).html(0); // Total ratio
+                $(api.column(4).footer()).html(0); // Total cut qty
+            },
+        });
+
+        // Update Order Qty Datatable
+        async function updateSizeList() {
+            await ratioDatatable.ajax.reload(() => {
+                // Get Sizes Count ( for looping over sizes input )
+                document.getElementById('total_size').value = ratioDatatable.data().count();
+            });
+        }
+
+        // Get & Set Marker Count Based on Order WS, Order Color and Order Panel
+        function getMarkerCount() {
+            document.getElementById('urutan_marker').value = "";
+            return $.ajax({
+                url: '{{ route("manual-form-cut-get-count") }}',
+                type: 'get',
+                data: {
+                    act_costing_id: $('#act_costing_id').val(),
+                    color: $('#color').val(),
+                    panel: $('#panel').val()
+                },
+                success: function (res) {
+                    if (res) {
+                        document.getElementById('urutan_marker').value = res;
+                    }
+                }
+            });
+        }
+
+        // Get & Set Order WS Cons and Order Qty Based on Order WS, Order Color and Order Panel
+        function getNumber() {
+            document.getElementById('cons_ws_marker').value = null;
+            document.getElementById('cons_ws').value = null;
+            return $.ajax({
+                url: ' {{ route("manual-form-cut-get-number") }}',
+                type: 'get',
+                dataType: 'json',
+                data: {
+                    act_costing_id: $('#act_costing_id').val(),
+                    color: $('#color').val(),
+                    panel: $('#panel').val()
+                },
+                success: function (res) {
+                    if (res) {
+                        document.getElementById('cons_ws_marker').value = res.cons_ws;
+                        document.getElementById('cons_ws').value = res.cons_ws;
+                    }
+                },
+                error: function (jqXHR) {
+                    console.log(jqXHR);
+                }
+            });
+        }
+
+        // Calculate Cut Qty Based on Ratio and Spread Qty ( Ratio * Spread Qty )
+        function calculateRatio(id) {
+            let ratio = document.getElementById('ratio-'+id).value;
+            let gelarQty = document.getElementById('gelar_qty').value;
+
+            // Cut Qty Formula
+            document.getElementById('cut-qty-'+id).value = ratio * gelarQty;
+
+            // Call Calculate Total Ratio Function ( for order qty datatable summary )
+            calculateTotalRatio();
+        }
+
+        // Calculate Total Ratio
+        function calculateTotalRatio() {
+            // Get Sizes Count
+            let totalSize = document.getElementById('total_size').value;
+
+            totalRatio = 0;
+            totalQtyCut = 0;
+
+            // Looping Over Sizes Input
+            for (let i = 0; i < totalSize; i++) {
+                // Sum Ratio and Cut Qty
+                totalRatio += Number(document.getElementById('ratio-'+i).value);
+                totalQtyCut += Number(document.getElementById('cut-qty-'+i).value);
+            }
+
+            // Set Ratio and Cut Qty ( order qty datatable summary )
+            document.getElementById('total_ratio').value = totalRatio;
+            document.getElementById('total_qty_cut_ply').value = totalQtyCut;
+            document.querySelector("table#ratio-datatable tfoot tr th:nth-child(4)").innerText = totalRatio;
+            document.querySelector("table#ratio-datatable tfoot tr th:nth-child(5)").innerText = totalQtyCut;
+        }
+
+        // Calculate All Cut Qty at Once Based on Spread Qty
+        function calculateAllRatio(element) {
+            // Get Sizes Count
+            let totalSize = document.getElementById('total_size').value;
+
+            let gelarQty = element.value;
+
+            // Looping Over Sizes Input
+            for (let i = 0; i < totalSize; i++) {
+                // Calculate Cut Qty
+                let ratio = document.getElementById('ratio-'+i).value;
+
+                // Cut Qty Formula
+                document.getElementById('cut-qty-'+i).value = ratio * gelarQty;
+            }
+
+            // Call Calculate Total Ratio Function ( for order qty datatable summary )
+            calculateTotalRatio();
+        }
+
+        // Prevent Form Submit When Pressing Enter
+        document.getElementById("store-marker").onkeypress = function(e) {
+            var key = e.charCode || e.keyCode || 0;
+            if (key == 13) {
+                e.preventDefault();
+            }
+        }
+
+        // Submit Marker Form
+        function submitMarkerForm(e, evt) {
+            evt.preventDefault();
+
+            clearModified();
+
+            $.ajax({
+                url: e.getAttribute('action'),
+                type: e.getAttribute('method'),
+                data: new FormData(e),
+                processData: false,
+                contentType: false,
+                success: async function(res) {
+                    // Success Response
+
+                    if (res.status == 200) {
+                        // When Actually Success :
+                        disableMarkerForm();
+
+                        $('#header-data-card').CardWidget('collapse');
+                        $('#detail-data-card').removeClass('d-none');
+
+                        nextProcessOneButton.classList.add("d-none");
+                        nextProcessTwoButton.classList.remove("d-none");
+
+                        if (Object.keys(res.additional).length > 0) {
+                            for (let key in res.additional) {
+                                if (document.getElementById(key)) {
+                                    console.log(key, document.getElementById(key), res.additional[key]);
+                                    document.getElementById(key).value = res.additional[key];
+
+                                    if (key == 'id') {
+                                        id = res.additional[key];
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        // When Actually Error :
+
+                        // Error Alert
+                        iziToast.error({
+                            title: 'Error',
+                            message: res.message,
+                            position: 'topCenter'
+                        });
+                    }
+                }, error: function (jqXHR) {
+                    // Error Response
+
+                    let res = jqXHR.responseJSON;
+                    let message = '';
+                    let i = 0;
+
+                    for (let key in res.errors) {
+                        message = res.errors[key];
+
+                        if (document.getElementById(key)) {
+                            document.getElementById(key).classList.add('is-invalid');
+                            modified.push(
+                                [key, '.classList', '.remove(', "'is-invalid')"],
+                            )
+
+                            if (i == 0) {
+                                document.getElementById(key).focus();
+                                i++;
+                            }
+                        }
+                    };
+                }
+            });
+        }
+
+        // Reset Step
+        async function resetStep() {
+            await $("#act_costing_id").val(null).trigger("change");
+            await $("#color").val(null).trigger("change");
+            await $("#panel").val(null).trigger("change");
+            await $("#color").prop("disabled", true);
+            await $("#panel").prop("disabled", true);
+        }
+
+        function disableMarkerForm() {
+            $("#act_costing_id").prop("disabled", true);
+            $("#color").prop("disabled", true);
+            $("#panel").prop("disabled", true);
+            $("#tipe_marker").prop("readonly", true);
+            $("#po").prop("readonly", true);
+            $("#gelar_qty").prop("readonly", true);
+
+            let totalSize = $("#total_size").val()
+
+            for (let i = 0; i < totalSize; i++) {
+                $('#ratio-'+i).prop("readonly", true);
+                $('#cut-qty-'+i).prop("readonly", true);
+            }
+        }
+
+    // Form Cut Script
+        // Select2 Autofocus
+        $(document).on('select2:open', () => {
+            document.querySelector('.select2-search__field').focus();
+        });
+
+        // Initialize Select2 Elements
+        $('.select2').select2()
+
+        // Initialize Select2BS4 Elements
+        $('.select2bs4').select2({
+            theme: 'bootstrap4',
+            containerCssClass: 'form-control-sm'
+        })
+
+        // -Global Key Event-
+        $(document).keyup(function(e) {
+            if (e.key === "Escape") {
+                e.preventDefault();
+
+                // stopTimeRecord()
+            }
+        });
+
         // Variable List :
             // -Form Cut Input Header Data-
-            var id = document.getElementById("id").value;
             var status = document.getElementById("status").value;
             var startTime = document.getElementById("start-time");
             var finishTime = document.getElementById("finish-time");
@@ -893,27 +1322,13 @@
             // -Summary Data-
             var summaryData = null;
 
-            // -Ratio & Qty Cuy-
-            var totalRatio = document.getElementById('total_ratio').value;
-            var totalQtyCut = document.getElementById('total_qty_cut_ply').value;
-
         // Function List :
             // -On Load-
             $(document).ready(() => {
                 checkStatus();
-                getNumberData();
                 clearGeneralForm();
                 clearScanItemForm();
                 clearSpreadingForm();
-
-                // -Global Key Event-
-                $(document).keyup(function(e) {
-                    if (e.key === "Escape") {
-                        e.preventDefault();
-
-                        // stopTimeRecord()
-                    }
-                });
 
                 // -Kode Barang Manual Input Event-
                 $('#kode_barang').keyup(function(e) {
@@ -943,9 +1358,39 @@
                 $('#scan-qr-card').on('expanded.lte.cardwidget', function(e) {
                     initScan();
                 });
+
+                // -Select2 Prevent Step-Jump Input ( Step = WS -> Color -> Panel )-
+                $("#color").prop("disabled", true);
+                $("#panel").prop("disabled", true);
             });
 
         // Process :
+            // -Create New Form
+            function createNewForm() {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Buat Form Cut Manual Baru?',
+                    text: 'Yakin akan membuat form baru?',
+                    showCancelButton: true,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Buat',
+                    confirmButtonColor: "#6531a0",
+                }).then(async (result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: '{{ route('create-new-manual-form-cut') }}/',
+                            type: 'get',
+                            dataType: 'json',
+                            success: function(res) {
+                                if (res) {
+                                    window.location = res.redirect;
+                                }
+                            }
+                        })
+                    }
+                });
+            }
+
             // -Start Process-
             function startProcess() {
                 Swal.fire({
@@ -959,6 +1404,7 @@
                 }).then(async (result) => {
                     if (result.isConfirmed) {
                         let now = new Date();
+
                         startTime.value = now.getFullYear().toString() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate()) + " " + pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds());
 
                         updateToStartProcess();
@@ -973,7 +1419,7 @@
             // -Start Process Transaction-
             function updateToStartProcess() {
                 return $.ajax({
-                    url: '{{ route('start-process-form-cut-input') }}/' + id,
+                    url: '{{ route('start-process-manual-form-cut') }}/' + id,
                     type: 'put',
                     dataType: 'json',
                     data: {
@@ -981,7 +1427,19 @@
                     },
                     success: function(res) {
                         if (res) {
-                            console.log(res);
+                            $('#header-data-card').removeClass('d-none');
+
+                            if (Object.keys(res.additional).length > 0) {
+                                for (let key in res.additional) {
+                                    if (document.getElementById(key)) {
+                                        document.getElementById(key).value = res.additional[key];
+
+                                        if (key == 'id') {
+                                            id = res.additional[key];
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 });
@@ -990,29 +1448,11 @@
             // -Process One-
             function nextProcessOne() {
                 updateToNextProcessOne();
-
-                $('#header-data-card').CardWidget('collapse');
-                $('#detail-data-card').removeClass('d-none');
-
-                nextProcessOneButton.classList.add("d-none");
-                nextProcessTwoButton.classList.remove("d-none");
             }
 
             // -Process One Transaction-
-            function updateToNextProcessOne() {
-                return $.ajax({
-                    url: '{{ route('next-process-one-form-cut-input') }}/' + id,
-                    type: 'put',
-                    dataType: 'json',
-                    data: {
-                        shell: $("#shell").val()
-                    },
-                    success: function(res) {
-                        if (res) {
-                            console.log(res);
-                        }
-                    }
-                });
+            function  updateToNextProcessOne() {
+                return document.getElementById('store-marker-submit').click();
             }
 
             // -Process Two-
@@ -1022,12 +1462,15 @@
 
             // -Process Two Transaction-
             function updateToNextProcessTwo() {
+                id = document.getElementById('id').value;
+                var idMarker = document.getElementById('id_marker').value;
                 var pActual = document.getElementById('p_act').value;
                 var pUnitActual = document.getElementById('unit_p_act').value;
                 var commaActual = document.getElementById('comma_act').value;
                 var commaUnitActual = document.getElementById('unit_comma_act').value;
                 var lActual = document.getElementById('l_act').value;
                 var lUnitActual = document.getElementById('unit_l_act').value;
+                var consWs = document.getElementById('cons_ws').value;
                 var consActual = document.getElementById('cons_act').value;
                 var consPipping = document.getElementById('cons_pipping').value;
                 var consAmpar = document.getElementById('cons_ampar').value;
@@ -1035,20 +1478,26 @@
                 var estPippingUnit = document.getElementById('est_pipping_unit').value;
                 var estKain = document.getElementById('est_kain').value;
                 var estKainUnit = document.getElementById('est_kain_unit').value;
+                var gramasi = document.getElementById('gramasi').value;
+                var consMarker = document.getElementById('cons_marker').value;
 
                 clearModified();
 
+                console.log(id);
+
                 return $.ajax({
-                    url: '{{ route('next-process-two-form-cut-input') }}/' + id,
+                    url: '{{ route('next-process-two-manual-form-cut') }}/' + id,
                     type: 'put',
                     dataType: 'json',
                     data: {
+                        id_marker: idMarker,
                         p_act: pActual,
                         unit_p_act: pUnitActual,
                         comma_act: commaActual,
                         unit_comma_act: commaUnitActual,
                         l_act: lActual,
                         unit_l_act: lUnitActual,
+                        cons_ws: consWs,
                         cons_act: consActual,
                         cons_pipping: consPipping,
                         cons_ampar: consAmpar,
@@ -1056,6 +1505,8 @@
                         est_pipping_unit: estPippingUnit,
                         est_kain: estKain,
                         est_kain_unit: estKainUnit,
+                        gramasi: gramasi,
+                        cons_marker: consMarker,
                     },
                     success: function(res) {
                         if (res) {
@@ -1148,7 +1599,7 @@
                     // Not an Extension :
 
                     return $.ajax({
-                        url: '{{ route('store-time-form-cut-input') }}',
+                        url: '{{ route('store-time-manual-form-cut') }}',
                         type: 'post',
                         dataType: 'json',
                         data: dataObj,
@@ -1205,7 +1656,7 @@
                     // An Extension :
 
                     return $.ajax({
-                        url: '{{ route('store-time-ext-form-cut-input') }}',
+                        url: '{{ route('store-time-ext-manual-form-cut') }}',
                         type: 'post',
                         dataType: 'json',
                         data: dataObj,
@@ -1276,7 +1727,7 @@
                 spreadingForm.forEach((value, key) => dataObj[key] = value);
 
                 return $.ajax({
-                    url: '{{ route('store-this-time-form-cut-input') }}',
+                    url: '{{ route('store-this-time-manual-form-cut') }}',
                     type: 'post',
                     dataType: 'json',
                     data: dataObj,
@@ -1323,7 +1774,7 @@
                         await updateToNextProcessTwo();
 
                         $.ajax({
-                            url: '{{ route('finish-process-form-cut-input') }}/' + id,
+                            url: '{{ route('finish-process-manual-form-cut') }}/' + id,
                             type: 'put',
                             dataType: 'json',
                             data: {
@@ -1494,6 +1945,8 @@
                 let lActualMeter = lActualVar / 100;
 
                 let pActualFinal = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
+
+                console.log(totalRatio, totalQtyCut)
 
                 consAmpar = totalRatio > 0 ? (gramasiVar * pActualFinal * lActualMeter) / 1000 : 0;
 
@@ -1733,34 +2186,13 @@
                 }
             }
 
-            // -Get Cons. WS Data-
-            function getNumberData() {
-                return $.ajax({
-                    url: '{{ route('get-number-form-cut-input') }}',
-                    type: 'get',
-                    data: {
-                        act_costing_id: $("#act_costing_id").val(),
-                        color: $("#color").val(),
-                        panel: $("#panel").val(),
-                    },
-                    dataType: 'json',
-                    success: function(res) {
-                        if (res) {
-                            let consWs = res.cons_ws;
-
-                            document.getElementById("cons_ws").value = consWs;
-                        }
-                    }
-                });
-            }
-
             // -Check Form Cut Input Status-
             async function checkStatus() {
                 $('#lost-time-card').CardWidget('collapse');
 
                 checkLostTime(id);
 
-                if (status == "PENGERJAAN FORM CUTTING") {
+                if (status == "PENGERJAAN MARKER") {
                     startProcessButton.classList.add("d-none");
                     nextProcessOneButton.classList.remove("d-none");
 
@@ -1768,6 +2200,9 @@
                 }
 
                 if (status == "PENGERJAAN FORM CUTTING DETAIL") {
+                    console.log(status);
+                    updateSizeList();
+
                     document.getElementById("lost-time-card").classList.remove("d-none");
 
                     startProcessButton.classList.add("d-none");
@@ -1855,7 +2290,6 @@
                 document.getElementById('p_act').setAttribute('readonly', true);
                 document.getElementById('comma_act').setAttribute('readonly', true);
                 document.getElementById('l_act').setAttribute('readonly', true);
-                document.getElementById('cons_ws').setAttribute('readonly', true);
                 document.getElementById('cons_act').setAttribute('readonly', true);
                 document.getElementById('cons_pipping').setAttribute('readonly', true);
                 document.getElementById('cons_ampar').setAttribute('readonly', true);
@@ -1877,7 +2311,7 @@
                     let noMeja = document.getElementById("no_meja").value;
 
                     $.ajax({
-                        url: '{{ route('check-spreading-form-cut-input') }}/' + noForm + '/' + noMeja,
+                        url: '{{ route('check-spreading-manual-form-cut') }}/' + noForm + '/' + noMeja,
                         type: 'get',
                         dataType: 'json',
                         success: function(res) {
@@ -2048,7 +2482,7 @@
                         let noForm = document.getElementById("no_form").value;
 
                         return $.ajax({
-                            url: '{{ route('get-time-form-cut-input') }}/' + noForm,
+                            url: '{{ route('get-time-manual-form-cut') }}/' + noForm,
                             type: 'get',
                             dataType: 'json',
                             success: function(res) {
@@ -2075,7 +2509,7 @@
                 // -Update Ply Progress-
                 function updatePlyProgress() {
                     let currentLembar = Number($("#current_lembar_gelaran").val());
-                    let qtyPly = Number($("#qty_ply").val());
+                    let qtyPly = Number($("#gelar_qty").val());
 
                     document.getElementById("current_ply_progress_txt").innerText = (totalLembar+currentLembar)+"/"+qtyPly;
                     document.getElementById("current_ply_progress").style.width = Number(qtyPly) > 0 ? (Number(totalLembar+currentLembar)/Number(qtyPly) * 100) +"%" : "0%";
@@ -2204,7 +2638,7 @@
 
                     if (checkIfNull(id)) {
                         return $.ajax({
-                            url: '{{ route('get-scanned-form-cut-input') }}/' + id,
+                            url: '{{ route('get-scanned-manual-form-cut') }}/' + id,
                             type: 'get',
                             dataType: 'json',
                             success: function(res) {
@@ -2399,7 +2833,7 @@
                 // -Time Record-
                 function checkTimeRecordLap(detailId) {
                     $.ajax({
-                        url: '{{ route('check-time-record-form-cut-input') }}/' + detailId,
+                        url: '{{ route('check-time-record-manual-form-cut') }}/' + detailId,
                         type: 'get',
                         dataType: 'json',
                         success: function(res) {
@@ -2433,8 +2867,7 @@
                         td1.innerHTML = lap;
                         td2.innerHTML = element.waktu;
                         td3.classList.add('d-none');
-                        td3.innerHTML = `<input type='hidden' name="time_record[` + lap + `]" value="` + element.waktu +
-                            `" />`;
+                        td3.innerHTML = `<input type='hidden' name="time_record[` + lap + `]" value="` + element.waktu + `" />`;
                         tr.appendChild(td1);
                         tr.appendChild(td2);
                         tr.appendChild(td3);
@@ -2625,7 +3058,7 @@
                 // -Time Record-
                 function checkLostTime(id) {
                     $.ajax({
-                        url: '{{ route('check-lost-form-cut-input') }}/' + id,
+                        url: '{{ route('check-lost-manual-form-cut') }}/' + id,
                         type: 'get',
                         dataType: 'json',
                         success: function(res) {
@@ -2759,7 +3192,7 @@
                     let lostTimeForm = new FormData(document.getElementById('lost-time-form'));
 
                     $.ajax({
-                        url: '{{ route('store-lost-form-cut-input') }}/' + id,
+                        url: '{{ route('store-lost-manual-form-cut') }}/' + id,
                         type: 'post',
                         processData: false,
                         contentType: false,
