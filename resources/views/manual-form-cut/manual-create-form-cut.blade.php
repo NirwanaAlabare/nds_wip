@@ -15,6 +15,7 @@
         <div class="d-flex gap-3 align-items-center">
             <h5 class="mb-1">Form Cut Manual - {{ strtoupper(Auth::user()->name) }}</h5>
             <button class="btn btn-sm btn-success" id="start-process" onclick="startProcess()">Mulai Pengerjaan</button>
+            <button class="btn btn-sm btn-dark d-none" id="create-new-form" onclick="createNewForm()">Buat Form Manual Baru</button>
         </div>
         <div class="col-md-6">
             <div class="card card-sb d-none" id="header-data-card">
@@ -1427,6 +1428,7 @@
                     },
                     success: function(res) {
                         if (res) {
+                            $("#create-new-form").removeClass("d-none");
                             $('#header-data-card').removeClass('d-none');
 
                             if (Object.keys(res.additional).length > 0) {
@@ -2007,7 +2009,7 @@
                     pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
                 }
 
-                let estAmpar = pActualVar > 0 ? qtyVar / pActualConverted : 0;
+                let estAmpar = pActualConverted > 0 ? qtyVar / pActualConverted : 0;
 
                 document.getElementById("current_est_amparan").value = estAmpar.round(2);
             }
@@ -2196,11 +2198,11 @@
                     startProcessButton.classList.add("d-none");
                     nextProcessOneButton.classList.remove("d-none");
 
+                    document.getElementById("create-new-form").classList.remove("d-none");
                     document.getElementById("lost-time-card").classList.remove("d-none");
                 }
 
                 if (status == "PENGERJAAN FORM CUTTING DETAIL") {
-                    console.log(status);
                     updateSizeList();
 
                     document.getElementById("lost-time-card").classList.remove("d-none");
