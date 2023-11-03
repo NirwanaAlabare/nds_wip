@@ -409,10 +409,16 @@
                             }
                         }
 
-                        return '<span style="color:' + color + '">' + data + '</span>';
+                        return '<span style="color:' + color + ';">' + data + '</span>';
                     }
                 }
-            ]
+            ],
+            rowCallback: function( row, data, index ) {
+                if (data['tipe_form_cut'] == 'MANUAL') {
+                    $('td', row).css('background-color', '#e7dcf7');
+                    $('td', row).css('border', '0.15px solid #d0d0d0');
+                }
+            }
         });
 
         let datatableRatio = $("#datatable-ratio").DataTable({

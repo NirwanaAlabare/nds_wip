@@ -76,10 +76,6 @@ class CutPlanController extends Controller
                 }
             }
 
-            if ($request->tgl_form) {
-                $additionalQuery .= " and tgl_form_cut = '" . $request->tgl_form . "' ";
-            }
-
             $keywordQuery = "";
             if ($request->search["value"]) {
                 $keywordQuery = "
@@ -131,7 +127,8 @@ class CutPlanController extends Controller
                 left join users on users.id = a.no_meja
                 where
                     a.status = 'SPREADING' and
-                    b.cancel = 'N'
+                    b.cancel = 'N' and
+                    a.tgl_form_cut = '" . date('Y-m-d') . "'
                     " . $additionalQuery . "
                     " . $keywordQuery . "
                 GROUP BY a.id
@@ -436,14 +433,14 @@ class CutPlanController extends Controller
                     $markerData = $row->formCutInput->marker;
 
                     $markerInfo = "<ul class='list-group'>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Kode Marker :<br><b>".$markerData->kode."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>WS Number :<br><b>".$markerData->act_costing_ws."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Buyer :<br><b>".$markerData->buyer."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Style :<br><b>".$markerData->style."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Color :<br><b>".$markerData->color."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Panel :<br><b>".$markerData->panel.' - '.$markerData->urutan_marker."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Tipe Marker :<br><b>".strtoupper($markerData->tipe_marker)."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>PO :<br><b>".($markerData->po ? $markerData->po : '-')."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Kode Marker :<br><b>".($markerData ? $markerData->kode : "-")."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>WS Number :<br><b>".($markerData ? $markerData->act_costing_ws : "-")."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Buyer :<br><b>".($markerData ? $markerData->buyer : "-")."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Style :<br><b>".($markerData ? $markerData->style : "-")."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Color :<br><b>".($markerData ? $markerData->color : "-")."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Panel :<br><b>".($markerData ? $markerData->panel.' - '.$markerData->urutan_marker : "-")."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Tipe Marker :<br><b>".($markerData ? strtoupper($markerData->tipe_marker) : "-")."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>PO :<br><b>".($markerData ? ($markerData->po ? $markerData->po : '-') : '-')."</b></li>";
                     $markerInfo = $markerInfo."</ul>";
                     return $markerInfo;
                 })->
@@ -451,19 +448,19 @@ class CutPlanController extends Controller
                     $markerData = $row->formCutInput->marker;
 
                     $markerInfo = "<ul class='list-group'>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Panjang : <br><b>".$markerData->panjang_marker." ".$markerData->unit_panjang_marker." ".$markerData->comma_marker." ".$markerData->unit_comma_marker."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Lebar : <br><b>".$markerData->lebar_marker." ".$markerData->unit_lebar_marker."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Gelar Qty : <br><b>".$markerData->gelar_qty."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Urutan : <br><b>".$markerData->urutan_marker."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Cons WS : <br><b>".$markerData->cons_ws."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Cons Marker : <br><b>".$markerData->cons_marker."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Cons Piping : <br><b>".$markerData->cons_piping."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Gramasi : <br><b>".$markerData->gramasi."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Panjang : <br><b>". ($markerData ? $markerData->panjang_marker." ". $markerData->unit_panjang_marker." ". $markerData->comma_marker." ". $markerData->unit_comma_marker : "-")."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Lebar : <br><b>".($markerData ? $markerData->lebar_marker." ". $markerData->unit_lebar_marker : "-")."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Gelar Qty : <br><b>". ($markerData ? $markerData->gelar_qty : "-")."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Urutan : <br><b>". ($markerData ? $markerData->urutan_marker : "-")."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Cons WS : <br><b>". ($markerData ? $markerData->cons_ws : "-")."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Cons Marker : <br><b>". ($markerData ? $markerData->cons_marker : "-")."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Cons Piping : <br><b>". ($markerData ? $markerData->cons_piping : "-")."</b></li>";
+                    $markerInfo = $markerInfo."<li class='list-group-item'>Gramasi : <br><b>". ($markerData ? $markerData->gramasi : "-")."</b></li>";
                     $markerInfo = $markerInfo."</ul>";
                     return $markerInfo;
                 })->
                 addColumn('ratio_info', function($row) {
-                    $markerDetailData = $row->formCutInput->marker->markerDetails;
+                    $markerDetailData = $row->formCutInput->marker ? $row->formCutInput->marker->markerDetails : null;
 
                     $markerDetailInfo = "
                         <table class='table table-bordered table-sm w-auto'>
@@ -478,15 +475,17 @@ class CutPlanController extends Controller
                             <tbody>
                     ";
 
-                    foreach ($markerDetailData as $markerDetail) {
-                        $markerDetailInfo .= "
-                            <tr>
-                                <td>".$markerDetail->size."</td>
-                                <td>".$markerDetail->ratio."</td>
-                                <td>".$markerDetail->cut_qty."</td>
-                                <td>".($markerDetail->ratio * $row->formCutInput->qty_ply)."</td>
-                            </tr>
-                        ";
+                    if ($markerDetailData) {
+                        foreach ($markerDetailData as $markerDetail) {
+                            $markerDetailInfo .= "
+                                <tr>
+                                    <td>".$markerDetail->size."</td>
+                                    <td>".$markerDetail->ratio."</td>
+                                    <td>".$markerDetail->cut_qty."</td>
+                                    <td>".($markerDetail->ratio * $row->formCutInput->qty_ply)."</td>
+                                </tr>
+                            ";
+                        }
                     }
 
                     $markerDetailInfo .= "
@@ -549,6 +548,7 @@ class CutPlanController extends Controller
                 filterColumn('form_info', function($query, $keyword) {
                     $query->whereHas('formCutInput', function($query) use ($keyword) {
                         $query->whereRaw("(
+                            form_cut_input.status != 'PENGERJAAN MARKER' OR
                             form_cut_input.no_form LIKE '%".$keyword."%' OR
                             form_cut_input.tgl_form_cut LIKE '%".$keyword."%'
                         )");
