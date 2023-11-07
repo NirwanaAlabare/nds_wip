@@ -2515,6 +2515,7 @@
                             });
 
                             chart.updateSeries([{
+                                name: "Karyawan Line",
                                 data: dataArr
                             }], true);
 
