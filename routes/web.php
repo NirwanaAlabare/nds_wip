@@ -174,7 +174,6 @@ Route::middleware('auth')->group(function () {
     //     Route::get('/get-selected-form/{noCutPlan?}', 'getSelectedForm')->name('get-selected-form');
     // });
 
-
     // Laporan
     Route::controller(LapPemakaianController::class)->prefix("lap_pemakaian")->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('lap_pemakaian');
@@ -216,6 +215,7 @@ Route::middleware('auth')->group(function () {
     });
 });
 
+// Dashboard
 Route::get('/dashboard-cutting', function () {
     return view('dashboard', ['page' => 'dashboard-cutting']);
 })->middleware('auth')->name('dashboard-cutting');
@@ -228,6 +228,7 @@ Route::get('/dashboard-mut-karyawan', function () {
     return view('dashboard', ['page' => 'dashboard-mut-karyawan']);
 })->middleware('auth')->name('dashboard-mut-karyawan');
 
+// Misc
 Route::get('/timer', function () {
     return view('example.timeout');
 })->middleware('auth');
