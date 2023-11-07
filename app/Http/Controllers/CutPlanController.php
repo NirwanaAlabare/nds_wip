@@ -35,7 +35,8 @@ class CutPlanController extends Controller
                     count(IF(form_cut_input.status='SELESAI PENGERJAAN',1,null)) total_beres
                 ")
                 ->leftJoin('form_cut_input', 'cutting_plan.no_form_cut_input', '=', 'form_cut_input.no_form')
-                ->groupBy("tgl_plan", "no_cut_plan");
+                ->groupBy("tgl_plan", "no_cut_plan")
+                ->orderBy('tgl_plan', 'desc');
 
             return DataTables::eloquent($cutPlanQuery)->filter(function ($query) {
                 $tglAwal = request('tgl_awal');
