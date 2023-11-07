@@ -47,10 +47,11 @@
                             <th>WS</th>
                             <th>Color</th>
                             <th>Panel</th>
-                            <th>Status</th>
+                            <th class="align-bottom">Status</th>
                             <th>Size Ratio</th>
                             <th>Qty Ply</th>
-                            <th>App</th>
+                            <th>Ket.</th>
+                            <th class="align-bottom">App</th>
                             <th>Act</th>
                         </tr>
                     </thead>
@@ -281,19 +282,25 @@
                     data: 'qty_ply'
                 },
                 {
+                    data: 'notes'
+                },
+                {
                     data: 'app'
                 },
                 {
                     data: 'id'
                 },
             ],
-            columnDefs: [{
+            columnDefs: [
+                {
                     targets: [2],
                     render: (data, type, row, meta) => {
                         let color = "";
 
                         if (row.status == 'SELESAI PENGERJAAN') {
                             color = '#087521';
+                        } else if (row.status == 'PENGERJAAN MARKER') {
+                            color = '#2243d6';
                         } else if (row.status == 'PENGERJAAN FORM CUTTING') {
                             color = '#2243d6';
                         } else if (row.status == 'PENGERJAAN FORM CUTTING DETAIL') {
@@ -324,6 +331,7 @@
                                     icon = `<i class="fas fa-file fa-lg" style="color: #616161;"></i>`;
                                 }
                                 break;
+                            case "PENGERJAAN MARKER":
                             case "PENGERJAAN FORM CUTTING":
                             case "PENGERJAAN FORM CUTTING DETAIL":
                             case "PENGERJAAN FORM CUTTING SPREAD":
@@ -338,7 +346,7 @@
                     }
                 },
                 {
-                    targets: [10],
+                    targets: [11],
                     className: "text-center align-middle",
                     render: (data, type, row, meta) => {
                         icon = "";
@@ -346,6 +354,8 @@
 
                         if (row.status == 'SELESAI PENGERJAAN') {
                             color = '#087521';
+                        } else if (row.status == 'PENGERJAAN MARKER') {
+                            color = '#2243d6';
                         } else if (row.status == 'PENGERJAAN FORM CUTTING') {
                             color = '#2243d6';
                         } else if (row.status == 'PENGERJAAN FORM CUTTING DETAIL') {
@@ -374,17 +384,27 @@
                     }
                 },
                 {
-                    targets: [11],
+                    targets: [12],
                     render: (data, type, row, meta) => {
                         let btnEdit = "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" +
                             JSON.stringify(row) +
                             ", \"detailSpreadingModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-search'></i></a>";
 
-                        let btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ?
-                            `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` +
-                            row.id +
-                            `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>` :
-                            "";
+                        let btnProcess = "";
+
+                        if (row.tipe_form_cut == 'MANUAL') {
+                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ?
+                                `<a class='btn btn-success btn-sm' href='{{ route('process-manual-form-cut') }}/` +
+                                row.id +
+                                `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>` :
+                                "";
+                        } else {
+                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ?
+                                `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` +
+                                row.id +
+                                `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>` :
+                                "";
+                        }
 
                         return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnProcess +
                             `</div>`;
@@ -397,6 +417,8 @@
 
                         if (row.status == 'SELESAI PENGERJAAN') {
                             color = '#087521';
+                        } else if (row.status == 'PENGERJAAN MARKER') {
+                            color = '#2243d6';
                         } else if (row.status == 'PENGERJAAN FORM CUTTING') {
                             color = '#2243d6';
                         } else if (row.status == 'PENGERJAAN FORM CUTTING DETAIL') {
@@ -409,7 +431,7 @@
                             }
                         }
 
-                        return '<span style="color:' + color + ';">' + data + '</span>';
+                        return '<span style="color:' + color + ';">' + (data ? data : "-") + '</span>';
                     }
                 }
             ],

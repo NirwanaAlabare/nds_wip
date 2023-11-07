@@ -416,7 +416,7 @@ class CutPlanController extends Controller
         if ($request->ajax()) {
             $additionalQuery = "";
 
-            $cutPlanForm = CutPlan::with('formCutInput')->where("no_cut_plan", $request->no_cut_plan);
+            $cutPlanForm = CutPlan::with('formCutInput')->where("no_cut_plan", $request->no_cut_plan)->groupBy("no_form_cut_input");
 
             return DataTables::eloquent($cutPlanForm)->
                 addIndexColumn()->
@@ -425,6 +425,7 @@ class CutPlanController extends Controller
                     $formInfo = $formInfo."<li class='list-group-item'>Tanggal Form :<br><b>".$row->formCutInput->tgl_form_cut."</b></li>";
                     $formInfo = $formInfo."<li class='list-group-item'>No. Form :<br><b>".$row->no_form_cut_input."</b></li>";
                     $formInfo = $formInfo."<li class='list-group-item'>Qty Ply :<br><b>".$row->formCutInput->qty_ply."</b></li>";
+                    $formInfo = $formInfo."<li class='list-group-item'>Tipe Form :<br><b>".$row->formCutInput->tipe_form_cut."</b></li>";
                     $formInfo = $formInfo."<li class='list-group-item'>Status :<br><b>".$row->formCutInput->status."</b></li>";
                     $formInfo = $formInfo."</ul>";
                     return $formInfo;
@@ -554,7 +555,7 @@ class CutPlanController extends Controller
                     });
                 })->
                 order(function ($query) {
-                    $query->orderBy('app', 'desc')->orderBy('no_form_cut_input', 'desc');
+                    $query->orderByRaw('FIELD(app, "N", "Y")')->orderBy('no_form_cut_input', 'desc');
                 })->
                 toJson();
         }
