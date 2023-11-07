@@ -31,7 +31,7 @@ class CutPlanController extends Controller
                     no_cut_plan,
                     COUNT(no_form_cut_input) total_form,
                     count(IF(form_cut_input.status ='SPREADING',1,null)) total_belum,
-                    count(IF(form_cut_input.status ='PENGERJAAN FORM CUTTING' or form_cut_input.status ='PENGERJAAN FORM CUTTING DETAIL' or form_cut_input.status ='PENGERJAAN FORM CUTTING SPREAD' ,1,null)) total_on_progress,
+                    count(IF(form_cut_input.status ='PENGERJAAN MARKER' or form_cut_input.status ='PENGERJAAN FORM CUTTING' or form_cut_input.status ='PENGERJAAN FORM CUTTING DETAIL' or form_cut_input.status ='PENGERJAAN FORM CUTTING SPREAD' ,1,null)) total_on_progress,
                     count(IF(form_cut_input.status='SELESAI PENGERJAAN',1,null)) total_beres
                 ")
                 ->leftJoin('form_cut_input', 'cutting_plan.no_form_cut_input', '=', 'form_cut_input.no_form')

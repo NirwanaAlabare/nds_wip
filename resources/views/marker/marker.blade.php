@@ -92,7 +92,7 @@
                             <th>Urutan</th>
                             <th>Tot Form</th>
                             <th>Catatan</th>
-                            <th>Act</th>
+                            <th class="align-bottom">Act</th>
                         </tr>
                     </thead>
                 </table>
