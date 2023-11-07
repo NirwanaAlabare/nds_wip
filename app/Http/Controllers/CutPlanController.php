@@ -549,7 +549,6 @@ class CutPlanController extends Controller
                 filterColumn('form_info', function($query, $keyword) {
                     $query->whereHas('formCutInput', function($query) use ($keyword) {
                         $query->whereRaw("(
-                            form_cut_input.status != 'PENGERJAAN MARKER' OR
                             form_cut_input.no_form LIKE '%".$keyword."%' OR
                             form_cut_input.tgl_form_cut LIKE '%".$keyword."%'
                         )");
