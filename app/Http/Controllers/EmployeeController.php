@@ -15,7 +15,7 @@ class EmployeeController extends Controller
 {
     public function index(Request $request)
     {
-
+        $tgl_skrg = Carbon::now()->isoFormat('D MMMM Y hh:mm:ss');
         if ($request->ajax()) {
             $additionalQuery = "";
 
@@ -39,7 +39,8 @@ class EmployeeController extends Controller
             $data_line = DB::select("
             SELECT
                 line,
-                count(id) tot_orang
+                count(id) tot_orang,
+                cast(right(line,2) as UNSIGNED) urutan
             from
             (
                 select a.id, b.tgl_pindah,b.nik,b.nm_karyawan,b.line from
@@ -48,6 +49,7 @@ class EmployeeController extends Controller
                 inner join mut_karyawan_input b on a.id = b.id
             ) master_karyawan
             group by line
+            order by cast(right(line,2) as UNSIGNED) asc
             ");
 
             return DataTables::of($data_line)->toJson();
@@ -59,7 +61,7 @@ class EmployeeController extends Controller
 
         //     return DataTables::eloquent($employeeQuery)->toJson();;
         // }
-        return view('employee.employee', ['page' => 'dashboard-mut-karyawan']);
+        return view('employee.employee', ['page' => 'dashboard-mut-karyawan'], ['tgl_skrg' => $tgl_skrg]);
     }
 
     public function create()
@@ -137,8 +139,9 @@ class EmployeeController extends Controller
             ) master_karyawan
         where nik ='$nik'
         ");
+        $line_asal_data = $line_asal ? $line_asal[0]->line : null;
 
-        if ($line_asal[0]->line == $request->nm_line) {
+        if ($line_asal_data == $request->nm_line) {
             return array(
                 'icon' => 'error',
                 'msg' => 'Data Sudah Ada',
@@ -152,7 +155,7 @@ class EmployeeController extends Controller
                 "nik" => $request["txtnik"],
                 "nm_karyawan" => $request["nm_karyawan"],
                 "line" => $request["nm_line"],
-                "line_asal" => $line_asal[0]->line,
+                "line_asal" => $line_asal_data ,
                 "created_at" => $timestamp,
                 "updated_at" => $timestamp,
             ]);
@@ -168,6 +171,7 @@ class EmployeeController extends Controller
             'prog' => false,
         );
     }
+
 
     public function export_excel_mut_karyawan(Request $request)
     {

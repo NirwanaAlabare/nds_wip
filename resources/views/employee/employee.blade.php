@@ -12,15 +12,21 @@
 @endsection
 
 @section('content')
-    <div class="card card-info">
+    <a href="{{ route('create-mut-karyawan') }}" class="btn btn-primary btn-sm mb-3">
+        <i class="fas fa-qrcode fa-spin fa-lg"></i>
+        Scan Perpindahan
+    </a>
+    <div class="card card-success collapsed-card">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0">Data Mutasi Karyawan</h5>
+            <h5 class="card-title fw-bold mb-0">Export Data Karyawan</h5>
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
         </div>
         <div class="card-body">
-            <a href="{{ route('create-mut-karyawan') }}" class="btn btn-primary btn-sm mb-3">
-                <i class="fas fa-plus"></i>
-                Baru
-            </a>
+
             <form action="{{ route('export_excel_mut_karyawan') }}" method="get">
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div class="mb-3">
@@ -34,16 +40,24 @@
                             value="{{ date('Y-m-d') }}">
                     </div>
                     <div class="mb-3">
-                        <input type='button' class='btn btn-primary btn-sm' onclick="dataTableReload();" value="Tampilkan">
+                        {{-- <input type='button' class='btn btn-primary btn-sm' onclick="dataTableReload();" value="Tampilkan"> --}}
                         <button type='submit' name='submit' class='btn btn-success btn-sm'>
                             <i class="fas fa-file-excel"></i> Export</button>
                     </div>
                 </div>
             </form>
+        </div>
+    </div>
+    <div class="card card-info">
+        <div class="card-header">
+            <h5 class="card-title fw-bold mb-0">List Data Karyawan Hari Ini</h5>
+        </div>
+        <div class="card-body">
             <div class="table-responsive">
                 <table id="datatable" class="table table-bordered table-sm w-100">
                     <thead>
                         <tr>
+                            <th>No</th>
                             <th>Line</th>
                             <th>Total</th>
                         </tr>
@@ -53,6 +67,7 @@
                 </table>
             </div>
         </div>
+    </div>
     </div>
 @endsection
 
@@ -94,7 +109,13 @@
                     d.dateTo = $('#tgl-akhir').val();
                 },
             },
+            "fnCreatedRow": function(row, data, index) {
+                $('td', row).eq(0).html(index + 1);
+            },
             columns: [{
+                    data: 'line'
+
+                }, {
                     data: 'line'
                 },
                 {

@@ -35,10 +35,13 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-12">
-                        <div class="mb-3">
-                            <div id="reader"></div>
-                        </div>
+                    <div class="col-2">
+                        <div></div>
+                    </div>
+                    <div class="col-8">
+                        <div id="reader"></div>
+                    </div>
+                    <div class="col-2">
                     </div>
                     <div class="col-6 col-md-6">
                         <div class="mb-3">
@@ -72,10 +75,13 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-12">
-                        <div class="mb-3">
-                            <div id="reader_nik"></div>
-                        </div>
+                    <div class="col-2">
+                        <div></div>
+                    </div>
+                    <div class="col-8">
+                        <div id="reader_nik"></div>
+                    </div>
+                    <div class="col-2">
                     </div>
                 </div>
             </div>
@@ -89,6 +95,7 @@
                 <table id="datatable" class="table table-bordered table-sm w-100">
                     <thead>
                         <tr>
+                            <th>No</th>
                             <th>Tgl</th>
                             <th>Line</th>
                             <th>NIK</th>
@@ -113,7 +120,6 @@
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
-
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
@@ -123,10 +129,10 @@
 
         $('.select2').select2()
 
-        $('.select2bs4').select2({
-            theme: 'bootstrap4',
-            dropdownParent: $("#editMejaModal")
-        })
+        // $('.select2bs4').select2({
+        //     theme: 'bootstrap4',
+        //     dropdownParent: $("#editMejaModal")
+        // })
 
         // Scan QR Module :
         // Variable List :
@@ -152,8 +158,6 @@
                     scanline();
 
                     html5QrcodeScanner.clear();
-
-                    initScan1();
                 }
 
                 function onScanFailure(error) {
@@ -201,7 +205,9 @@
 
                     scannik();
 
-                    // html5QrcodeScanner1.clear();
+                    html5QrcodeScanner1.clear();
+                    // await initScan1();
+
                 }
 
                 function onScanFailure(error) {
@@ -221,7 +227,8 @@
                     /* verbose= */
                     false);
 
-                html5QrcodeScanner1.render(onScanSuccess, onScanFailure);
+                await html5QrcodeScanner1.render(onScanSuccess, onScanFailure);
+
             }
         }
 
@@ -248,7 +255,6 @@
         //     alert('Key pressed: ' + e.keyCode);
         // });
     </script>
-
     <script>
         $(document).ready(function() {
             $("#nm_line").val('');
@@ -280,7 +286,12 @@
                     d.nm_line = $('#nm_line').val();
                 },
             },
+            "fnCreatedRow": function(row, data, index) {
+                $('td', row).eq(0).html(index + 1);
+            },
             columns: [{
+                    data: 'tgl_pindah'
+                }, {
                     data: 'tgl_pindah'
                 },
                 {
@@ -318,16 +329,19 @@
                     gettotal();
                     // updatelist();
                     // Reload Order Qty Datatable
+                    initScan1();
                     datatable.ajax.reload();
                 },
                 error: function(request, status, error) {
                     Swal.fire({
                         icon: 'error',
                         title: 'Data Line Tidak Terdaftar',
+                        showConfirmButton: true,
                         showCancelButton: false,
-                        timer: 1000,
-                        timerProgressBar: true
+
                     })
+                    initScan();
+                    $("#txtline").val('');
                     // alert(request.responseText);
                 },
             });
@@ -393,12 +407,23 @@
                             $("#nik").val('');
                             $("#nm_karyawan").val('');
                             $("#txtnik").val('');
-
+                            initScan1();
                         }
                     });
                 },
                 error: function(request, status, error) {
-                    alert(request.responseText);
+                    // alert(request.responseText);
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Data NIK Tidak Terdaftar Silahkan hubungi Department HRD',
+                        showConfirmButton: true,
+                    })
+                    document.getElementById('txtnik').focus();
+                    $("#nik").val('');
+                    $("#nm_karyawan").val('');
+                    $("#txtnik").val('');
+                    initScan1();
+
                 },
             });
         };

@@ -47,7 +47,7 @@ class ExportLaporanMutasiKaryawan implements FromView, WithEvents, ShouldAutoSiz
 
     {
         $data = DB::select("
-        select * from
+        select *,cast(right(line,2) as UNSIGNED) urutan from
         (
         select max(a.id)id from
         (
@@ -60,6 +60,7 @@ class ExportLaporanMutasiKaryawan implements FromView, WithEvents, ShouldAutoSiz
         group by a.nik
         ) b
         inner join  mut_karyawan_input c on b.id = c.id
+        order by tgl_pindah asc,nm_karyawan asc, urutan asc
         ");
 
         $this->rowCount = count($data) + 3;
@@ -85,7 +86,7 @@ class ExportLaporanMutasiKaryawan implements FromView, WithEvents, ShouldAutoSiz
     {
 
         $event->sheet->styleCells(
-            'A3:F' . $event->getConcernable()->rowCount,
+            'A3:G' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [

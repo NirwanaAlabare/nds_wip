@@ -13,9 +13,10 @@
         <tr>
             <td>No</td>
             <td>Tgl. Pindah</td>
+            <td>Line Sekarang</td>
             <td>NIK</td>
             <td>Nama Karyawan</td>
-            <td>Line</td>
+            <td>Line Asal</td>
             <td>Last Update</td>
         </tr>
     </thead>
@@ -27,9 +28,10 @@
             <tr>
                 <td>{{ $no++ }}.</td>
                 <td>{{ $item->tgl_pindah }}</td>
+                <td>{{ $item->line }}</td>
                 <td>{{ $item->nik }}</td>
                 <td>{{ $item->nm_karyawan }}</td>
-                <td>{{ $item->line }}</td>
+                <td>{{ $item->line_asal }}</td>
                 <td>{{ $item->updated_at }}</td>
             </tr>
         @endforeach
