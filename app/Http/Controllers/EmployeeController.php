@@ -64,6 +64,26 @@ class EmployeeController extends Controller
         return view('employee.employee', ['page' => 'dashboard-mut-karyawan'], ['tgl_skrg' => $tgl_skrg]);
     }
 
+    public function lineChartData() {
+        $data_line = DB::select("
+            SELECT
+                line,
+                count(id) tot_orang,
+                cast(right(line,2) as UNSIGNED) urutan
+            from
+            (
+                select a.id, b.tgl_pindah,b.nik,b.nm_karyawan,b.line from
+                (select max(id) id from mut_karyawan_input a
+                group by nik)a
+                inner join mut_karyawan_input b on a.id = b.id
+            ) master_karyawan
+            group by line
+            order by cast(right(line,2) as UNSIGNED) asc
+            ");
+
+        return json_encode($data_line);
+    }
+
     public function create()
     {
 

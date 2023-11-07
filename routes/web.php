@@ -204,6 +204,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/getdatanik', 'getdatanik')->name('getdatanik');
         Route::get('/getdatalinekaryawan', 'getdatalinekaryawan')->name('getdatalinekaryawan');
         Route::get('/export_excel_mut_karyawan', 'export_excel_mut_karyawan')->name('export_excel_mut_karyawan');
+        Route::get('/line-chart-data', 'lineChartData')->name('line-chart-data');
     });
 
 
