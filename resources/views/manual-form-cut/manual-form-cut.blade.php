@@ -17,24 +17,21 @@
             <h5 class="card-title fw-bold mb-0">Form Cutting</h5>
         </div>
         <div class="card-body">
-            <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
-                <div class="d-flex align-items-end gap-3 mb-3">
-                    <div>
-                        <label class="form-label"><small>Tgl Awal</small></label>
-                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
-                            value="{{ date('Y-m-d') }}">
-                    </div>
-                    <div>
-                        <label class="form-label"><small>Tgl Akhir</small></label>
-                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                            value="{{ date('Y-m-d') }}">
-                    </div>
-                    <div>
-                        <button class="btn btn-primary btn-sm" onclick="dataTableReload()">Tampilkan</button>
-                    </div>
+            <a href="{{ route('create-manual-form-cut') }}" target="_blank" class="btn btn-sm btn-success mb-3"><i class="fas fa-plus"></i> Form Cut Manual</a>
+            <div class="d-flex align-items-end gap-3 mb-3">
+                <div class="mb-3">
+                    <label class="form-label"><small>Tgl Awal</small></label>
+                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
+                        value="{{ date('Y-m-d') }}">
                 </div>
-
-                <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-dark mb-3"><i class="fas fa-clipboard-list"></i> Form Cut Manual</a>
+                <div class="mb-3">
+                    <label class="form-label"><small>Tgl Akhir</small></label>
+                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
+                        value="{{ date('Y-m-d') }}">
+                </div>
+                <div class="mb-3">
+                    <button class="btn btn-primary btn-sm" onclick="dataTableReload()">Tampilkan</button>
+                </div>
             </div>
             <div class="table-responsive">
                 <table id="datatable" class="table table-bordered table-sm w-100">
@@ -409,16 +406,10 @@
                             }
                         }
 
-                        return '<span style="color:' + color + ';">' + data + '</span>';
+                        return '<span style="color:' + color + '">' + data + '</span>';
                     }
                 }
-            ],
-            rowCallback: function( row, data, index ) {
-                if (data['tipe_form_cut'] == 'MANUAL') {
-                    $('td', row).css('background-color', '#e7dcf7');
-                    $('td', row).css('border', '0.15px solid #d0d0d0');
-                }
-            }
+            ]
         });
 
         let datatableRatio = $("#datatable-ratio").DataTable({

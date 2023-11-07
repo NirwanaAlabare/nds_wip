@@ -7,6 +7,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\MarkerController;
 use App\Http\Controllers\SpreadingController;
 use App\Http\Controllers\FormCutInputController;
+use App\Http\Controllers\ManualFormCutController;
 use App\Http\Controllers\LapPemakaianController;
 use App\Http\Controllers\StockerController;
 use App\Http\Controllers\ManagerController;
@@ -111,6 +112,44 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-count', 'getCount')->name('form-cut-get-marker-count');
         // get number
         Route::get('/get-number', 'getNumber')->name('form-cut-get-marker-number');
+    });
+
+    // Manual Form Cut Input
+    Route::controller(ManualFormCutController::class)->prefix("manual-form-cut")->middleware("meja")->group(function () {
+        Route::get('/', 'index')->name('manual-form-cut');
+        Route::get('/create', 'create')->name('create-manual-form-cut');
+        Route::get('/create-new', 'createNew')->name('create-new-manual-form-cut');
+        Route::get('/process/{id?}', 'process')->name('process-manual-form-cut');
+        Route::get('/get-number-data', 'getNumberData')->name('get-number-manual-form-cut');
+        Route::get('/get-scanned-item/{id?}', 'getScannedItem')->name('get-scanned-manual-form-cut');
+        Route::put('/start-process', 'startProcess')->name('start-process-manual-form-cut');
+        Route::post('/store-marker/{id?}', 'storeMarker')->name('store-marker-manual-form-cut');
+        Route::put('/next-process-one/{id?}', 'nextProcessOne')->name('next-process-one-manual-form-cut');
+        Route::put('/next-process-two/{id?}', 'nextProcessTwo')->name('next-process-two-manual-form-cut');
+        Route::get('/get-time-record/{noForm?}', 'getTimeRecord')->name('get-time-manual-form-cut');
+        Route::post('/store-scanned-item', 'storeScannedItem')->name('store-scanned-manual-form-cut');
+        Route::post('/store-time-record', 'storeTimeRecord')->name('store-time-manual-form-cut');
+        Route::post('/store-time-record-extension', 'storeTimeRecordExtension')->name('store-time-ext-manual-form-cut');
+        Route::post('/store-this-time-record', 'storeThisTimeRecord')->name('store-this-time-manual-form-cut');
+        Route::put('/finish-process/{id?}', 'finishProcess')->name('finish-process-manual-form-cut');
+        Route::get('/check-spreading-form/{noForm?}/{noMeja?}', 'checkSpreadingForm')->name('check-spreading-manual-form-cut');
+        Route::get('/check-time-record/{detailId?}', 'checkTimeRecordLap')->name('check-time-record-manual-form-cut');
+        Route::post('/store-lost-time/{id?}', 'storeLostTime')->name('store-lost-manual-form-cut');
+        Route::get('/check-lost-time/{id?}', 'checkLostTime')->name('check-lost-manual-form-cut');
+        Route::get('/get-form-cut-ratio', 'getRatio')->name('get-manual-form-cut-ratio');
+
+        // get order
+        Route::get('/get-order', 'getOrderInfo')->name('manual-form-cut-get-order');
+        // get colors
+        Route::get('/get-colors', 'getColorList')->name('manual-form-cut-get-colors');
+        // get panels
+        Route::get('/get-panels', 'getPanelList')->name('manual-form-cut-get-panels');
+        // get sizes
+        Route::get('/get-sizes', 'getSizeList')->name('manual-form-cut-get-sizes');
+        // get count
+        Route::get('/get-count', 'getCount')->name('manual-form-cut-get-count');
+        // get number
+        Route::get('/get-number', 'getNumber')->name('manual-form-cut-get-number');
     });
 
     // Cutting Plan

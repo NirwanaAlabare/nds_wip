@@ -295,6 +295,25 @@ table tr.selected {
     margin: auto;
 }
 
+/* force select2 to match bootstrap form-control-sm */
+.select2-container--bootstrap4 .select2-selection--single.form-control-sm .select2-selection__placeholder {
+    line-height: 1.25rem;
+    border-radius: 0.3px;
+}
+.select2-container--bootstrap4 .select2-selection--single.form-control-sm .select2-selection__rendered {
+    line-height: 1.25rem;
+    border-radius: 0.3px;
+}
+.select2-container--bootstrap4 .select2-selection--single.form-control-sm {
+    height: calc(1.25rem + 11px)!important;
+    border-radius: 0.3px;
+}
+.select2-container--bootstrap4 .select2-selection--single.form-control-sm .select2-selection__clear {
+    margin-top: 0.1em!important;
+    margin-right: 0!important;
+    border-radius: 0.3px;
+}
+
 @media only screen and (max-width: 768px) {
     #reader {
         min-width: 100% !important;
