@@ -128,12 +128,11 @@ class CutPlanController extends Controller
                 left join users on users.id = a.no_meja
                 where
                     a.status = 'SPREADING' and
-                    b.cancel = 'N' and
-                    a.tgl_form_cut = '" . date('Y-m-d') . "'
+                    b.cancel = 'N'
                     " . $additionalQuery . "
                     " . $keywordQuery . "
                 GROUP BY a.id
-                ORDER BY b.cancel asc, a.updated_at desc
+                ORDER BY b.cancel asc, a.tgl_form_cut desc, a.no_form desc
             ");
 
             return DataTables::of($data_spreading)->toJson();
