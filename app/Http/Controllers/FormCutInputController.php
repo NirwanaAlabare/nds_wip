@@ -83,7 +83,7 @@ class FormCutInputController extends Controller
                     b.cons_marker,
                     cutting_plan.app,
                     a.tipe_form_cut,
-                    GROUP_CONCAT(CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC) marker_details
+                    GROUP_CONCAT(DISTINCT CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC) marker_details
                 FROM cutting_plan
                 left join form_cut_input a on a.no_form = cutting_plan.no_form_cut_input
                 left join marker_input b on a.id_marker = b.kode
