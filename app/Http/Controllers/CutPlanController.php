@@ -126,9 +126,11 @@ class CutPlanController extends Controller
                 left join marker_input_detail on b.id = marker_input_detail.marker_id
                 left join master_size_new on marker_input_detail.size = master_size_new.size
                 left join users on users.id = a.no_meja
+                left join cutting_plan on cutting_plan.no_form_cut_input = a.no_form
                 where
                     a.status = 'SPREADING' and
-                    b.cancel = 'N'
+                    b.cancel = 'N' and
+                    cutting_plan.no_form_cut_input is null
                     " . $additionalQuery . "
                     " . $keywordQuery . "
                 GROUP BY a.id
