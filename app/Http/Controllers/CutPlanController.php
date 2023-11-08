@@ -69,7 +69,7 @@ class CutPlanController extends Controller
         if ($request->ajax()) {
             $additionalQuery = "";
 
-            $thisStoredCutPlan = CutPlan::select("no_form_cut_input")->where("tgl_plan", $request->tgl_plan)->get();
+            $thisStoredCutPlan = CutPlan::select("no_form_cut_input")->groupBy("no_form_cut_input")->get();
 
             if ($thisStoredCutPlan->count() > 0) {
                 foreach ($thisStoredCutPlan as $cutPlan) {
@@ -126,11 +126,9 @@ class CutPlanController extends Controller
                 left join marker_input_detail on b.id = marker_input_detail.marker_id
                 left join master_size_new on marker_input_detail.size = master_size_new.size
                 left join users on users.id = a.no_meja
-                left join cutting_plan on cutting_plan.no_form_cut_input = a.no_form
                 where
                     a.status = 'SPREADING' and
-                    b.cancel = 'N' and
-                    cutting_plan.no_form_cut_input is null
+                    b.cancel = 'N'
                     " . $additionalQuery . "
                     " . $keywordQuery . "
                 GROUP BY a.id
