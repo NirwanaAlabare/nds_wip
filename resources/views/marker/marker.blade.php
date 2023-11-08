@@ -91,7 +91,7 @@
                             <th>PO</th>
                             <th>Urutan</th>
                             <th>Tot Form</th>
-                            <th>Catatan</th>
+                            <th>Ket.</th>
                             <th class="align-bottom">Act</th>
                         </tr>
                     </thead>

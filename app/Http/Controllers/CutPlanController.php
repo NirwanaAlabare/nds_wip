@@ -221,11 +221,11 @@ class CutPlanController extends Controller
                 left join (select no_form_cut_input,sum(lembar_gelaran) tot_lembar_akt from form_cut_input_detail
                 group by no_form_cut_input) c on a.no_form = c.no_form_cut_input
                 where
-                    b.cancel = 'N'
+                    a.id is not null
                     " . $additionalQuery . "
                     " . $keywordQuery . "
                 GROUP BY a.id
-                ORDER BY b.cancel asc, a.tgl_form_cut desc, panel asc
+                ORDER BY b.cancel desc, FIELD(a.status, 'PENGERJAAN FORM CUTTING', 'PENGERJAAN MARKER', 'PENGERJAAN FORM CUTTING DETAIL', 'PENGERJAAN FORM CUTTING SPREAD', 'SPREADING', 'SELESAI PENGERJAAN'), a.tgl_form_cut desc, panel asc
             ");
 
         return DataTables::of($data_spreading)->toJson();
@@ -425,7 +425,7 @@ class CutPlanController extends Controller
                     $formInfo = $formInfo."<li class='list-group-item'>Tanggal Form :<br><b>".$row->formCutInput->tgl_form_cut."</b></li>";
                     $formInfo = $formInfo."<li class='list-group-item'>No. Form :<br><b>".$row->no_form_cut_input."</b></li>";
                     $formInfo = $formInfo."<li class='list-group-item'>Qty Ply :<br><b>".$row->formCutInput->qty_ply."</b></li>";
-                    $formInfo = $formInfo."<li class='list-group-item'>Tipe Form :<br><b>".$row->formCutInput->tipe_form_cut."</b></li>";
+                    $formInfo = $formInfo."<li class='list-group-item'>Tipe Form :<br><b>".($row->formCutInput->tipe_form_cut && $row->formCutInput->tipe_form_cut != '' ? $row->formCutInput->tipe_form_cut : "NORMAL")."</b></li>";
                     $formInfo = $formInfo."<li class='list-group-item'>Status :<br><b>".$row->formCutInput->status."</b></li>";
                     $formInfo = $formInfo."</ul>";
                     return $formInfo;

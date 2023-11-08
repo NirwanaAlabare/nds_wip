@@ -90,8 +90,7 @@
                                 <p>Selected Cut Plan : <span class="fw-bold" id="selected-row-count-2">0</span></p>
                             </div>
                             <div class="col-6">
-                                <button class="btn btn-danger btn-sm float-end" onclick="removeCutPlan()"><i
-                                        class="fa fa-minus fa-sm"></i> Remove Cut Plan</button>
+                                <button class="btn btn-danger btn-sm float-end" onclick="removeCutPlan()"><i class="fa fa-minus fa-sm"></i> Remove Cut Plan</button>
                             </div>
                         </div>
                         <div class="table-responsive">
@@ -106,7 +105,7 @@
                                         <th>Style</th>
                                         <th>Color</th>
                                         <th>Panel</th>
-                                        <th>Status</th>
+                                        <th class="align-bottom">Status</th>
                                         <th>Size Ratio</th>
                                         <th>Qty Ply</th>
                                     </tr>
