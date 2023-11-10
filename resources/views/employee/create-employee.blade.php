@@ -66,7 +66,7 @@
                         <div class="mb-3">
                             <label class="form-label label-input"><small><b>Scan NIK</b></small></label>
                             <div class="input-group">
-                                <input type="text" class="form-control form-control-sm border-input" name="txtnik" readonly
+                                <input type="text" class="form-control form-control-sm border-input" name="txtnik"
                                     id="txtnik" autocomplete="off" enterkeyhint="go"
                                     onkeyup="if (event.keyCode == 13)
                                     document.getElementById('scan_nik').click()
