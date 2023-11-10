@@ -21,8 +21,7 @@
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div>
                         <label class="form-label"><small>Tgl Awal</small></label>
-                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
-                            value="{{ date('Y-m-d') }}">
+                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal">
                     </div>
                     <div>
                         <label class="form-label"><small>Tgl Akhir</small></label>
@@ -235,8 +234,12 @@
     </script>
 
     <script>
-        window.addEventListener("focus", () => {
-            $('#datatable').DataTable().ajax.reload(null, false);
+        document.addEventListener("DOMContentLoaded", () => {
+            $("#tgl-awal").val(null).trigger("change");
+
+            window.addEventListener("focus", () => {
+                $('#datatable').DataTable().ajax.reload(null, false);
+            });
         });
 
         let datatable = $("#datatable").DataTable({
