@@ -66,36 +66,37 @@ class FormCutInputController extends Controller
                     a.tgl_form_cut,
                     b.id marker_id,
                     b.act_costing_ws ws,
-                    panel,
-                    b.color,
+                    panel panel,
+                    b.color color,
                     a.status,
                     users.name nama_meja,
-                    b.panjang_marker,
+                    b.panjang_marker panjang_marker,
                     UPPER(b.unit_panjang_marker) unit_panjang_marker,
-                    b.comma_marker,
+                    b.comma_marker comma_marker,
                     UPPER(b.unit_comma_marker) unit_comma_marker,
-                    b.lebar_marker,
+                    b.lebar_marker lebar_marker,
                     UPPER(b.unit_lebar_marker) unit_lebar_marker,
                     a.qty_ply,
-                    b.gelar_qty,
-                    b.po_marker,
-                    b.urutan_marker,
-                    b.cons_marker,
+                    b.gelar_qty gelar_qty,
+                    b.po_marker po_marker,
+                    b.urutan_marker urutan_marker,
+                    b.cons_marker cons_marker,
                     cutting_plan.app,
                     a.tipe_form_cut,
+                    b.notes notes,
                     GROUP_CONCAT(DISTINCT CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC) marker_details
                 FROM cutting_plan
                 left join form_cut_input a on a.no_form = cutting_plan.no_form_cut_input
-                left join marker_input b on a.id_marker = b.kode
-                left join marker_input_detail on b.id = marker_input_detail.marker_id
+                left outer join marker_input b on a.id_marker = b.kode and b.cancel = 'N'
+                left outer join marker_input_detail on b.id = marker_input_detail.marker_id
                 left join master_size_new on marker_input_detail.size = master_size_new.size
                 left join users on users.id = a.no_meja
                 where
-                    b.cancel = 'N'
+                    a.id is not null
                     " . $additionalQuery . "
                     " . $keywordQuery . "
                 GROUP BY a.id
-                ORDER BY b.cancel asc, a.updated_at desc
+                ORDER BY b.cancel asc, FIELD(a.status, 'PENGERJAAN FORM CUTTING', 'PENGERJAAN MARKER', 'PENGERJAAN FORM CUTTING DETAIL', 'PENGERJAAN FORM CUTTING SPREAD', 'SPREADING', 'SELESAI PENGERJAAN'), a.updated_at desc
             ");
 
             return DataTables::of($data_spreading)->toJson();

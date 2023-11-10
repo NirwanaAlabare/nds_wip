@@ -93,6 +93,14 @@
                             </a>
                         </li>
                     @endmanager
+
+                    @admin
+                        <li class="nav-item">
+                            <a href="{{ route('summary') }}" class="nav-link">
+                                Summary
+                            </a>
+                        </li>
+                    @endadmin
                 @endif
 
                 @if ($page == 'dashboard-stocker')

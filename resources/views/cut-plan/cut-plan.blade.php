@@ -35,7 +35,7 @@
                                         <th>Style</th>
                                         <th>Color</th>
                                         <th>Panel</th>
-                                        <th>Status</th>
+                                        <th class="align-bottom">Status</th>
                                         <th>Size Ratio</th>
                                         <th>Qty Ply</th>
                                         <th>Qty Output</th>

@@ -17,6 +17,14 @@
 
 @section('content')
     <div  style="{{ $page ? 'height: 100%;' : 'height: 75vh;' }}">
+        @if ($page == "dashboard-cutting")
+            <div  style="height: 75vh;"></div>
+        @endif
+
+        @if ($page == "dashboard-stocker")
+            <div  style="height: 75vh;"></div>
+        @endif
+
         @if ($page == "dashboard-mut-karyawan")
             <div class="container-fluid">
                 <div class="card">
@@ -2495,6 +2503,7 @@
                             });
 
                             chart.updateSeries([{
+                                name: "Karyawan Line",
                                 data: dataArr
                             }], true);
 

@@ -14,14 +14,15 @@
 @section('content')
     <div class="card card-sb card-outline">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0">Form Cutting</h5>
+            <h5 class="card-title fw-bold mb-0">Summary</h5>
         </div>
         <div class="card-body">
-            <div class="d-flex justify-content-end align-items-end gap-3 mb-3">
-                {{-- <div class="d-flex align-items-end gap-3 mb-3">
+            <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
+                <div class="d-flex align-items-end gap-3 mb-3">
                     <div>
                         <label class="form-label"><small>Tgl Awal</small></label>
-                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal">
+                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
+                            value="{{ date('Y-m-d') }}">
                     </div>
                     <div>
                         <label class="form-label"><small>Tgl Akhir</small></label>
@@ -31,9 +32,7 @@
                     <div>
                         <button class="btn btn-primary btn-sm" onclick="dataTableReload()">Tampilkan</button>
                     </div>
-                </div> --}}
-
-                <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-dark mb-3"><i class="fas fa-clipboard-list"></i> Form Cut Manual</a>
+                </div>
             </div>
             <div class="table-responsive">
                 <table id="datatable" class="table table-bordered table-sm w-100">
@@ -234,12 +233,8 @@
     </script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            $("#tgl-awal").val(null).trigger("change");
-
-            window.addEventListener("focus", () => {
-                $('#datatable').DataTable().ajax.reload(null, false);
-            });
+        window.addEventListener("focus", () => {
+            $('#datatable').DataTable().ajax.reload(null, false);
         });
 
         let datatable = $("#datatable").DataTable({
@@ -247,7 +242,7 @@
             ordering: false,
             serverSide: true,
             ajax: {
-                url: '{{ route('form-cut-input') }}',
+                url: '{{ route('summary') }}',
                 data: function(d) {
                     d.dateFrom = $('#tgl-awal').val();
                     d.dateTo = $('#tgl-akhir').val();
@@ -393,24 +388,7 @@
                             JSON.stringify(row) +
                             ", \"detailSpreadingModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-search'></i></a>";
 
-                        let btnProcess = "";
-
-                        if (row.tipe_form_cut == 'MANUAL') {
-                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ?
-                                `<a class='btn btn-success btn-sm' href='{{ route('process-manual-form-cut') }}/` +
-                                row.id +
-                                `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>` :
-                                "";
-                        } else {
-                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ?
-                                `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` +
-                                row.id +
-                                `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>` :
-                                "";
-                        }
-
-                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnProcess +
-                            `</div>`;
+                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + `</div>`;
                     }
                 },
                 {
