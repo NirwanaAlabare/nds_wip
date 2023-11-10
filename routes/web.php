@@ -12,6 +12,7 @@ use App\Http\Controllers\LapPemakaianController;
 use App\Http\Controllers\StockerController;
 use App\Http\Controllers\ManagerController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\SummaryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -190,7 +191,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/print-numbering/{index?}', 'printNumbering')->name('print-numbering');
     });
 
-
     // Mutasi Karywawan
     Route::controller(EmployeeController::class)->prefix("mut-karyawan")->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('mut-karyawan');
@@ -206,6 +206,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/line-chart-data', 'lineChartData')->name('line-chart-data');
     });
 
+    Route::controller(SummaryController::class)->prefix("summary")->middleware('admin')->group(function () {
+        Route::get('/', 'index')->name('summary');
+    });
 
     // Manager
     Route::controller(ManagerController::class)->prefix("manager")->middleware('manager')->group(function () {
