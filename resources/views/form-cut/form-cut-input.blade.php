@@ -17,8 +17,8 @@
             <h5 class="card-title fw-bold mb-0">Form Cutting</h5>
         </div>
         <div class="card-body">
-            <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
-                <div class="d-flex align-items-end gap-3 mb-3">
+            <div class="d-flex justify-content-end align-items-end gap-3 mb-3">
+                {{-- <div class="d-flex align-items-end gap-3 mb-3">
                     <div>
                         <label class="form-label"><small>Tgl Awal</small></label>
                         <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal">
@@ -31,7 +31,7 @@
                     <div>
                         <button class="btn btn-primary btn-sm" onclick="dataTableReload()">Tampilkan</button>
                     </div>
-                </div>
+                </div> --}}
 
                 <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-dark mb-3"><i class="fas fa-clipboard-list"></i> Form Cut Manual</a>
             </div>
