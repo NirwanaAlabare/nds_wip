@@ -331,7 +331,7 @@
                                 if (row.app != 'Y') {
                                     icon = `<i class="fas fa-file fa-lg" style="color: #616161;"></i>`;
                                 } else {
-                                    icon = `<i class="fas fa-file fa-lg" style="color: #616161;"></i>`;
+                                    icon = `<i class="fas fa-file fa-lg"></i>`;
                                 }
                                 break;
                             case "PENGERJAAN MARKER":
