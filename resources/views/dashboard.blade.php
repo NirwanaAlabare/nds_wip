@@ -2422,21 +2422,9 @@
                             },
                             colors: {
                                 ranges: [{
-                                    from: 500,
-                                    to: 99999,
-                                    color: '#333'
-                                },{
-                                    from: 60,
-                                    to: 499,
-                                    color: '#d33141'
-                                },{
-                                    from: 30,
-                                    to: 59,
-                                    color: '#ff971f'
-                                },{
                                     from: 0,
-                                    to: 15,
-                                    color: '#12be60'
+                                    to: 100,
+                                    color: '#1640D6'
                                 }],
                                 backgroundBarColors: [],
                                 backgroundBarOpacity: 1,
@@ -2581,7 +2569,6 @@
                     getLineData();
                 }, 30000)
             });
-
         </script>
     @endif
 @endsection

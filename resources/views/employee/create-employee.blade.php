@@ -25,12 +25,13 @@
                         <div class="mb-3">
                             <label class="form-label label-input"><small><b>Line</b></small></label>
                             <div class="input-group">
-                                <input type="text" class="form-control form-control-sm border-input" name="txtline"
+                                <input type="text" class="form-control form-control-sm border-input" name="txtline" readonly
                                     id="txtline" autocomplete="off" enterkeyhint="go"
                                     onkeyup="if (event.keyCode == 13)
                                     document.getElementById('scan_line').click()"
                                     autofocus>
-                                <button class="btn btn-sm btn-primary" type="button" id="scan_line"
+                                    <input type="button" class="btn btn-sm btn-primary" value="Scan Line" />
+                                <button class="btn btn-sm btn-primary" type="button" id="scan_line" style="display: none;"
                                     onclick="scanline()">Scan</button>
                             </div>
                         </div>
@@ -65,13 +66,14 @@
                         <div class="mb-3">
                             <label class="form-label label-input"><small><b>Scan NIK</b></small></label>
                             <div class="input-group">
-                                <input type="text" class="form-control form-control-sm border-input" name="txtnik"
+                                <input type="text" class="form-control form-control-sm border-input" name="txtnik" readonly
                                     id="txtnik" autocomplete="off" enterkeyhint="go"
                                     onkeyup="if (event.keyCode == 13)
                                     document.getElementById('scan_nik').click()
                                 ">
-                                <button class="btn btn-sm btn-warning" type="button" id="scan_nik"
-                                    onclick="scannik();">Scan</button>
+                                 <input type="button" class="btn btn-sm btn-warning" value="Scan NIK" />
+                                <button class="btn btn-sm btn-warning" type="button" id="scan_nik" style="display: none;"
+                                onclick="scannik();">Scan</button>
                             </div>
                         </div>
                     </div>
@@ -92,7 +94,7 @@
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-sm w-100">
+                <table id="datatable" class="table table-bordered table-sm w-100 display nowrap">
                     <thead>
                         <tr>
                             <th>No</th>
@@ -101,7 +103,7 @@
                             <th>NIK</th>
                             <th>Nama</th>
                             <th>Line Asal</th>
-                            <th>Last Update</th>
+                            <th>Update Terakhir</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -280,6 +282,7 @@
             serverSide: true,
             info: false,
             paging: false,
+            scrollX: true,
             ajax: {
                 url: '{{ route('getdatalinekaryawan') }}',
                 data: function(d) {
@@ -292,7 +295,7 @@
             columns: [{
                     data: 'tgl_pindah'
                 }, {
-                    data: 'tgl_pindah'
+                    data: 'tgl_pindah_fix'
                 },
                 {
                     data: 'line'
@@ -307,7 +310,7 @@
                     data: 'line_asal'
                 },
                 {
-                    data: 'updated_at'
+                    data: 'tgl_update_fix'
                 }
             ]
         });
@@ -329,7 +332,11 @@
                     gettotal();
                     // updatelist();
                     // Reload Order Qty Datatable
-                    initScan1();
+
+                    setTimeout(() => {
+                        initScan1();
+                    }, 2000);
+
                     datatable.ajax.reload();
                 },
                 error: function(request, status, error) {
@@ -340,7 +347,9 @@
                         showCancelButton: false,
 
                     })
-                    initScan();
+                    setTimeout(() => {
+                        initScan1();
+                    }, 2000);
                     $("#txtline").val('');
                     // alert(request.responseText);
                 },
