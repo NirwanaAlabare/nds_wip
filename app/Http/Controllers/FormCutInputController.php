@@ -29,11 +29,11 @@ class FormCutInputController extends Controller
             $additionalQuery = "";
 
             if ($request->dateFrom) {
-                $additionalQuery .= "and cutting_plan.tgl_plan >= '" . $request->dateFrom . "' ";
+                $additionalQuery .= "and (cutting_plan.tgl_plan >= '" . $request->dateFrom . "' or a.updated_at >= '". $request->dateFrom ."')";
             }
 
             if ($request->dateTo) {
-                $additionalQuery .= " and cutting_plan.tgl_plan <= '" . $request->dateTo . "' ";
+                $additionalQuery .= " and (cutting_plan.tgl_plan <= '" . $request->dateTo . "' or a.updated_at <= '". $request->dateTo ."')";
             }
 
             if (Auth::user()->type == "meja") {
@@ -96,7 +96,7 @@ class FormCutInputController extends Controller
                     " . $additionalQuery . "
                     " . $keywordQuery . "
                 GROUP BY a.id
-                ORDER BY b.cancel asc, FIELD(a.status, 'PENGERJAAN FORM CUTTING', 'PENGERJAAN MARKER', 'PENGERJAAN FORM CUTTING DETAIL', 'PENGERJAAN FORM CUTTING SPREAD', 'SPREADING', 'SELESAI PENGERJAAN'), a.updated_at desc
+                ORDER BY FIELD(a.status, 'PENGERJAAN FORM CUTTING', 'PENGERJAAN MARKER', 'PENGERJAAN FORM CUTTING DETAIL', 'PENGERJAAN FORM CUTTING SPREAD', 'SPREADING', 'SELESAI PENGERJAAN'), a.updated_at desc
             ");
 
             return DataTables::of($data_spreading)->toJson();

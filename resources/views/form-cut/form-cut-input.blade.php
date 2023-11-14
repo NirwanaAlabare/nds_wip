@@ -17,8 +17,8 @@
             <h5 class="card-title fw-bold mb-0">Form Cutting</h5>
         </div>
         <div class="card-body">
-            <div class="d-flex justify-content-end align-items-end gap-3 mb-3">
-                {{-- <div class="d-flex align-items-end gap-3 mb-3">
+            <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
+                <div class="d-flex align-items-end gap-3 mb-3">
                     <div>
                         <label class="form-label"><small>Tgl Awal</small></label>
                         <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal">
@@ -31,7 +31,7 @@
                     <div>
                         <button class="btn btn-primary btn-sm" onclick="dataTableReload()">Tampilkan</button>
                     </div>
-                </div> --}}
+                </div>
 
                 <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-dark mb-3"><i class="fas fa-clipboard-list"></i> Form Cut Manual</a>
             </div>
@@ -235,7 +235,13 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            $("#tgl-awal").val(null).trigger("change");
+            let oneWeeksBefore = new Date(new Date().setDate(new Date().getDate() - 7));
+            let oneWeeksBeforeDate = ("0" + oneWeeksBefore.getDate()).slice(-2);
+            let oneWeeksBeforeMonth = ("0" + (oneWeeksBefore.getMonth() + 1)).slice(-2);
+            let oneWeeksBeforeYear = oneWeeksBefore.getFullYear();
+            let oneWeeksBeforeFull = oneWeeksBeforeYear+'-'+oneWeeksBeforeMonth+'-'+oneWeeksBeforeDate;
+
+            $("#tgl-awal").val(oneWeeksBeforeFull).trigger("change");
 
             window.addEventListener("focus", () => {
                 $('#datatable').DataTable().ajax.reload(null, false);
