@@ -498,7 +498,7 @@ class FormCutInputController extends Controller
         );
 
         if ($storeTimeRecordSummary) {
-            $itemRemain = $itemQty - floatval($validatedRequest['current_total_pemakaian_roll']);
+            $itemRemain = $itemQty - floatval($validatedRequest['current_total_pemakaian_roll']) - floatval($validatedRequest['current_kepala_kain']) - floatval($validatedRequest['current_sisa_tidak_bisa']) - floatval($validatedRequest['current_reject']) - floatval($validatedRequest['current_piping']);
 
             if ($status == 'need extension') {
                 ScannedItem::updateOrCreate(
@@ -701,7 +701,7 @@ class FormCutInputController extends Controller
         );
 
         if ($storeTimeRecordSummary) {
-            $itemRemain = $itemQty - floatval($validatedRequest['current_sambungan']);
+            $itemRemain = $itemQty - floatval($validatedRequest['current_total_pemakaian_roll']) - floatval($validatedRequest['current_kepala_kain']) - floatval($validatedRequest['current_sisa_tidak_bisa']) - floatval($validatedRequest['current_reject']) - floatval($validatedRequest['current_piping']);;
 
             ScannedItem::updateOrCreate(
                 ["id_roll" => $validatedRequest['current_id_roll']],

@@ -1855,8 +1855,7 @@
 
         // -Calculate Sambungan-
         function calculateSambungan(sisaGelaran) {
-            let sisaGelaranVar = sisaGelaran > 0 ? Number(sisaGelaran) : Number(document.getElementById(
-                "current_sisa_gelaran").value);
+            let sisaGelaranVar = sisaGelaran > 0 ? Number(sisaGelaran) : Number(document.getElementById("current_sisa_gelaran").value);
             let qtyVar = Number(document.getElementById("current_qty").value);
             let unitQtyVar = document.getElementById("current_unit").value;
             let pActualVar = Number(document.getElementById('p_act').value);
