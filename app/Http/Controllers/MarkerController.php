@@ -314,12 +314,13 @@ class MarkerController extends Controller
         $data_marker_tracking = DB::select("
         select no_form,
         DATE_FORMAT(tgl_form_cut, '%d-%m-%Y') tgl_form_cut,
-        no_meja,
+        u.name no_meja,
         DATE_FORMAT(waktu_mulai, '%d-%m-%Y %T') waktu_mulai,
         DATE_FORMAT(waktu_selesai, '%d-%m-%Y %T') waktu_selesai,
         status
         from form_cut_input a
         inner join marker_input b on  a.id_marker = b.kode
+        left join users u on a.no_meja = u.id
         where b.id = '$request->id_c'");
 
         foreach ($data_marker as $datanomarker) {
