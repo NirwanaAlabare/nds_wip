@@ -527,33 +527,30 @@
                             <div class="col-3">
                                 <div class="mb-3">
                                     <label class="form-label label-input"><small><b>Group</b></small></label>
-                                    <input type="text" class="form-control form-control-sm border-input"
-                                        id="current_group" name="current_group">
+                                    <input type="text" class="form-control form-control-sm border-input" id="current_group" name="current_group">
                                 </div>
                             </div>
                             <div class="col-3">
                                 <div class="mb-3">
-                                    <label class="form-label label-scan"><small><b>Id Item</b></small></label>
-                                    <input type="text" class="form-control form-control-sm border-scan"
-                                        id="current_id_item" name="current_id_item" readonly>
+                                    <label class="form-label label-scan" id="current_id_item_label"><small><b>Id Item</b></small></label>
+                                    <input type="text" class="form-control form-control-sm border-scan" id="current_id_item" name="current_id_item" readonly>
                                 </div>
                             </div>
                             <div class="col-3">
                                 <div class="mb-3">
-                                    <label class="form-label label-scan"><small><b>Lot</b></small></label>
-                                    <input type="text" class="form-control form-control-sm border-scan"
-                                        id="current_lot" name="current_lot" readonly>
+                                    <label class="form-label label-scan" id="current_lot_label"><small><b>Lot</b></small></label>
+                                    <input type="text" class="form-control form-control-sm border-scan" id="current_lot" name="current_lot" readonly>
                                 </div>
                             </div>
                             <div class="col-3">
                                 <div class="mb-3">
-                                    <label class="form-label label-scan"><small><b>Roll</b></small></label>
+                                    <label class="form-label label-scan" id="current_roll_label"><small><b>Roll</b></small></label>
                                     <input type="text" class="form-control form-control-sm border-scan"
                                         id="current_roll" name="current_roll" readonly>
                                 </div>
                             </div>
                             <div class="col-6">
-                                <label class="form-label label-scan"><small><b>Qty</b></small></label>
+                                <label class="form-label label-scan" id="current_qty_real_label"><small><b>Qty</b></small></label>
                                 <div class="d-flex mb-3">
                                     <div style="width: 60%">
                                         <input type="number" class="form-control form-control-sm border-scan" id="current_qty_real" name="current_qty_real" readonly
@@ -567,7 +564,7 @@
                             </div>
                             <div class="col-6">
                                 <div class="mb-3">
-                                    <label class="form-label label-calc"><small><b>Qty Konversi</b></small></label>
+                                    <label class="form-label label-calc" id="current_qty_label"><small><b>Qty Konversi</b></small></label>
                                     <div class="d-flex mb-3">
                                         <div style="width: 60%">
                                             <input type="number" class="form-control form-control-sm border-calc" id="current_qty" name="current_qty" readonly>
@@ -725,10 +722,9 @@
                             </div>
                             <div class="col-3">
                                 <div class="mb-3">
-                                    <label class="form-label label-input"><small><b>Sisa Kain</b></small></label>
+                                    <label class="form-label label-input"><small><b>Piping</b></small></label>
                                     <div class="input-group input-group-sm mb-3">
-                                        <input type="number" class="form-control form-control-sm border-input"
-                                            id="current_sisa_kain" name="current_sisa_kain" step=".01"
+                                        <input type="number" class="form-control form-control-sm border-input" id="current_piping" name="current_piping" step=".01"
                                             onkeyup="
                                                 calculateShortRoll();
                                                 calculateRemark();
@@ -764,9 +760,10 @@
                             </div>
                             <div class="col-3">
                                 <div class="mb-3">
-                                    <label class="form-label label-input"><small><b>Piping</b></small></label>
+                                    <label class="form-label label-input"><small><b>Sisa Kain</b></small></label>
                                     <div class="input-group input-group-sm mb-3">
-                                        <input type="number" class="form-control form-control-sm border-input" id="current_piping" name="current_piping" step=".01"
+                                        <input type="number" class="form-control form-control-sm border-input"
+                                            id="current_sisa_kain" name="current_sisa_kain" step=".01"
                                             onkeyup="
                                                 calculateShortRoll();
                                                 calculateRemark();
@@ -2078,9 +2075,12 @@
 
             document.getElementById("item-method").classList.remove('d-none');
             document.getElementById("to-item").classList.remove('d-none');
+
             $("#select_item").val("").trigger("change");
 
             html5QrcodeScanner.clear();
+
+            removeColorSpreading();
         }
 
         function toScanMethod() {
@@ -2094,6 +2094,38 @@
             $("#select_item").val("").trigger("change");
 
             initScan();
+
+            addColorSpreading();
+        }
+
+        function addColorSpreading() {
+            document.getElementById("current_id_item_label").classList.add("label-scan");
+            document.getElementById("current_id_item").classList.add("border-scan");
+            document.getElementById("current_lot_label").classList.add("label-scan");
+            document.getElementById("current_lot").classList.add("border-scan");
+            document.getElementById("current_roll_label").classList.add("label-scan");
+            document.getElementById("current_roll").classList.add("border-scan");
+            document.getElementById("current_qty_real_label").classList.add("label-scan");
+            document.getElementById("current_qty_real").classList.add("border-scan");
+            document.getElementById("current_unit").classList.add("border-scan");
+            document.getElementById("current_qty_label").classList.add("label-calc");
+            document.getElementById("current_qty").classList.add("border-calc");
+            document.getElementById("current_unit_convert").classList.add("border-calc");
+        }
+
+        function removeColorSpreading() {
+            document.getElementById("current_id_item_label").classList.remove("label-scan");
+            document.getElementById("current_id_item").classList.remove("border-scan");
+            document.getElementById("current_lot_label").classList.remove("label-scan");
+            document.getElementById("current_lot").classList.remove("border-scan");
+            document.getElementById("current_roll_label").classList.remove("label-scan");
+            document.getElementById("current_roll").classList.remove("border-scan");
+            document.getElementById("current_qty_real_label").classList.remove("label-scan");
+            document.getElementById("current_qty_real").classList.remove("border-scan");
+            document.getElementById("current_unit").classList.remove("border-scan");
+            document.getElementById("current_qty_label").classList.remove("label-calc");
+            document.getElementById("current_qty").classList.remove("border-calc");
+            document.getElementById("current_unit_convert").classList.remove("border-calc");
         }
 
         // Get Item List Module :
