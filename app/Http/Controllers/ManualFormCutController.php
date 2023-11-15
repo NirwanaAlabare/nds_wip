@@ -30,11 +30,11 @@ class ManualFormCutController extends Controller
             $additionalQuery = "";
 
             if ($request->dateFrom) {
-                $additionalQuery .= "and cutting_plan.tgl_plan >= '" . $request->dateFrom . "' ";
+                $additionalQuery .= "and (cutting_plan.tgl_plan >= '" . $request->dateFrom . "' or a.updated_at >= '". $request->dateFrom ."')";
             }
 
             if ($request->dateTo) {
-                $additionalQuery .= " and cutting_plan.tgl_plan <= '" . $request->dateTo . "' ";
+                $additionalQuery .= " and (cutting_plan.tgl_plan <= '" . $request->dateTo . "' or a.updated_at <= '". $request->dateTo ."')";
             }
 
             if (Auth::user()->type == "meja") {
@@ -407,6 +407,42 @@ class ManualFormCutController extends Controller
         return json_encode($item ? $item[0] : null);
     }
 
+    public function getItem(Request $request) {
+        $items = DB::connection("mysql_sb")->select("
+            SELECT
+                item.id_item,
+                item.itemdesc
+            FROM
+                jo_det jd
+                INNER JOIN so ON jd.id_so = so.id
+                INNER JOIN act_costing ac ON so.id_cost = ac.id
+                INNER JOIN (
+                SELECT
+                    mi.id_item,
+                    mi.itemdesc,
+                    k.id_jo
+                FROM
+                    bom_jo_item k
+                    INNER JOIN masteritem mi ON k.id_item = mi.id_gen
+                WHERE
+                    mi.Mattype = 'F'
+                GROUP BY
+                    k.id_jo,
+                    k.id_item
+                ) item ON item.id_jo = jd.id
+            WHERE
+                jd.cancel = 'N'
+                AND ac.id = '".$request->act_costing_id."'
+            GROUP BY
+                item.id_item,
+                id_cost
+            ORDER BY
+                jd.id_jo ASC
+        ");
+
+        return json_encode($items ? $items : null);
+    }
+
     public function startProcess(Request $request)
     {
         $date = date('Y-m-d');
@@ -661,14 +697,14 @@ class ManualFormCutController extends Controller
     public function storeTimeRecord(Request $request)
     {
         $validatedRequest = $request->validate([
-            "current_id_roll" => "required",
+            "current_id_roll" => "nullable",
             "no_form_cut_input" => "required",
             "no_meja" => "required",
-            "color_act" => "required",
+            "color_act" => "nullable",
             "current_id_item" => "required",
-            "detail_item" => "required",
+            "detail_item" => "nullable",
             "current_group" => "required",
-            "current_roll" => "required",
+            "current_roll" => "nullable",
             "current_qty" => "required",
             "current_qty_real" => "required",
             "current_unit" => "required",
@@ -685,7 +721,7 @@ class ManualFormCutController extends Controller
             "current_piping" => "required",
             "current_remark" => "required",
             "current_sambungan" => "required",
-            "p_act" => "required"
+            "p_act" => "required",
         ]);
 
         $status = 'complete';
@@ -723,11 +759,12 @@ class ManualFormCutController extends Controller
                 "piping" => $validatedRequest['current_piping'],
                 "remark" => $validatedRequest['current_remark'],
                 "status" => $status,
+                "metode" => $request->metode ? $request->metode : "scan",
             ]
         );
 
         if ($storeTimeRecordSummary) {
-            $itemRemain = $itemQty - floatval($validatedRequest['current_total_pemakaian_roll']);
+            $itemRemain = $itemQty - floatval($validatedRequest['current_total_pemakaian_roll']) - floatval($validatedRequest['current_kepala_kain']) - floatval($validatedRequest['current_sisa_tidak_bisa']) - floatval($validatedRequest['current_reject']) - floatval($validatedRequest['current_piping']);;
 
             if ($status == 'need extension') {
                 ScannedItem::updateOrCreate(
@@ -825,6 +862,7 @@ class ManualFormCutController extends Controller
                 "piping" => $request->current_piping,
                 "remark" => $request->current_remark,
                 "status" => "not complete",
+                "metode" => $request->metode ? $request->metode : "scan",
             ]
         );
 
@@ -869,14 +907,14 @@ class ManualFormCutController extends Controller
         $validatedRequest = $request->validate([
             "status_sambungan" => "required",
             "id_sambungan" => "required",
-            "current_id_roll" => "required",
+            "current_id_roll" => "nullable",
             "no_form_cut_input" => "required",
             "no_meja" => "required",
-            "color_act" => "required",
+            "color_act" => "nullable",
             "current_id_item" => "required",
-            "detail_item" => "required",
+            "detail_item" => "nullable",
             "current_group" => "required",
-            "current_roll" => "required",
+            "current_roll" => "nullable",
             "current_qty" => "required",
             "current_qty_real" => "required",
             "current_unit" => "required",
@@ -928,7 +966,7 @@ class ManualFormCutController extends Controller
         );
 
         if ($storeTimeRecordSummary) {
-            $itemRemain = $itemQty - floatval($validatedRequest['current_sambungan']);
+            $itemRemain = $itemQty - floatval($validatedRequest['current_total_pemakaian_roll']) - floatval($validatedRequest['current_kepala_kain']) - floatval($validatedRequest['current_sisa_tidak_bisa']) - floatval($validatedRequest['current_reject']) - floatval($validatedRequest['current_piping']);
 
             ScannedItem::updateOrCreate(
                 ["id_roll" => $validatedRequest['current_id_roll']],
@@ -1002,7 +1040,10 @@ class ManualFormCutController extends Controller
     {
         $formCutInputDetailData = FormCutInputDetail::selectRaw('
                 form_cut_input_detail.*
-            ')->leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->where('no_form_cut_input', $noForm)->where('no_meja', $noMeja)->orderBy('form_cut_input_detail.id', 'desc')->first();
+            ')->leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->
+            where('no_form_cut_input', $noForm)->
+            where('no_meja', $noMeja)->
+            orderBy('form_cut_input_detail.id', 'desc')->first();
 
         $formCutInputDetailCount = $formCutInputDetailData ? $formCutInputDetailData->count() : 0;
 

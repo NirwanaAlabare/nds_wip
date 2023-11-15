@@ -1,5 +1,11 @@
 @extends('layouts.index')
 
+@section('custom-link')
+    <!-- Select2 -->
+    <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+@endsection
+
 @section('content')
     <div class="row g-3">
         <div class="d-flex gap-3 align-items-center">
@@ -22,123 +28,101 @@
                     @endphp
                     <div class="row align-items-end">
                         <input type="hidden" name="id" id="id" value="{{ $id }}" readonly>
-                        <input type="hidden" name="act_costing_id" id="act_costing_id"
-                            value="{{ $formCutInputData->act_costing_id }}" readonly>
-                        <input type="hidden" name="status" id="status" value="{{ $formCutInputData->status }}"
-                            readonly>
-                        <input type="hidden" name="no_meja" id="no_meja" value="{{ $formCutInputData->no_meja }}"
-                            readonly>
+                        <input type="hidden" name="act_costing_id" id="act_costing_id" value="{{ $formCutInputData->act_costing_id }}" readonly>
+                        <input type="hidden" name="status" id="status" value="{{ $formCutInputData->status }}" readonly>
+                        <input type="hidden" name="no_meja" id="no_meja" value="{{ $formCutInputData->no_meja }}" readonly>
                         <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Start</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="start" id="start-time"
-                                    value="{{ $formCutInputData->waktu_mulai }}" readonly>
+                                <input type="text" class="form-control form-control-sm" name="start" id="start-time" value="{{ $formCutInputData->waktu_mulai }}" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Finish</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="finish" id="finish-time"
-                                    value="{{ $formCutInputData->waktu_selesai }}" readonly>
+                                <input type="text" class="form-control form-control-sm" name="finish" id="finish-time" value="{{ $formCutInputData->waktu_selesai }}" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Shell</b></small></label>
                                 <select class="form-select form-select-sm" name="shell" id="shell">
-                                    <option value="a" {{ $formCutInputData->shell == 'a' ? 'selected' : '' }}>A
-                                    </option>
-                                    <option value="b" {{ $formCutInputData->shell == 'b' ? 'selected' : '' }}>B
-                                    </option>
-                                    <option value="c" {{ $formCutInputData->shell == 'c' ? 'selected' : '' }}>C
-                                    </option>
+                                    <option value="a" {{ $formCutInputData->shell == 'a' ? 'selected' : '' }}>A</option>
+                                    <option value="b" {{ $formCutInputData->shell == 'b' ? 'selected' : '' }}>B</option>
+                                    <option value="c" {{ $formCutInputData->shell == 'c' ? 'selected' : '' }}>C</option>
                                 </select>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>No. Form</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="no_form"
-                                    id="no_form" value="{{ $formCutInputData->no_form }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="no_form" id="no_form" value="{{ $formCutInputData->no_form }}" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Tanggal</b></small></label>
-                                <input type="date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}"
-                                    readonly>
+                                <input type="date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Kode Marker</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch"
-                                    value="{{ $formCutInputData->id_marker }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" value="{{ $formCutInputData->id_marker }}" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>No. WS</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="no_ws"
-                                    value="{{ $formCutInputData->act_costing_ws }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="no_ws" value="{{ $formCutInputData->act_costing_ws }}" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Buyer</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="buyer"
-                                    value="{{ $thisActCosting->buyer }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="buyer" value="{{ $thisActCosting->buyer }}" readonly>
                             </div>
                         </div>
                         <div class="col-12 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Style</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="style"
-                                    value="{{ $thisActCosting->style }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="style" value="{{ $thisActCosting->style }}" readonly>
                             </div>
                         </div>
                         <div class="col-4 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Color</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="color"
-                                    id="color" value="{{ $formCutInputData->color }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="color" id="color" value="{{ $formCutInputData->color }}" readonly>
                             </div>
                         </div>
                         <div class="col-4 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Panel</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="panel"
-                                    id="panel" value="{{ $formCutInputData->panel }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="panel" id="panel" value="{{ $formCutInputData->panel }}" readonly>
                             </div>
                         </div>
                         <div class="col-4 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Tipe Marker</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch"
-                                    name="tipe_marker" id="tipe_marker"
-                                    value="{{ $formCutInputData->tipe_marker ? strtoupper($formCutInputData->tipe_marker) : '-' }}"
-                                    readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="tipe_marker" id="tipe_marker" value="{{ $formCutInputData->tipe_marker ? strtoupper($formCutInputData->tipe_marker) : '-' }}" readonly>
                             </div>
                         </div>
                         <div class="col-4 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>PO</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="po"
-                                    value="{{ $formCutInputData->po_marker }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="po" value="{{ $formCutInputData->po_marker }}" readonly>
                             </div>
                         </div>
                         <div class="col-4 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>QTY Gelar Marker</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="gelar_qty"
-                                    value="{{ $formCutInputData->gelar_qty }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="gelar_qty" value="{{ $formCutInputData->gelar_qty }}" readonly>
                             </div>
                         </div>
                         <div class="col-4 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>QTY Cut Ply</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" id="qty_ply"
-                                    name="qty_ply" value="{{ $formCutInputData->qty_ply }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" id="qty_ply" name="qty_ply" value="{{ $formCutInputData->qty_ply }}" readonly>
                             </div>
                         </div>
                     </div>
@@ -439,8 +423,7 @@
                 <div class="card-header">
                     <h3 class="card-title">Scan QR</h3>
                     <div class="card-tools">
-                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i
-                                class="fas fa-minus"></i></button>
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
                     </div>
                 </div>
                 <div class="card-body" style="display: block;">
@@ -451,43 +434,74 @@
                             </div>
                         </div>
                         <div class="col-md-12">
-                            <div class="mb-3">
-                                <label class="form-label label-input"><small><b>ID Roll</b></small></label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control form-control-sm border-input"
-                                        name="kode_barang" id="kode_barang">
-                                    <button class="btn btn-sm btn-success" type="button" id="get-button"
-                                        onclick="fetchScan()">Get</button>
-                                    <button class="btn btn-sm btn-primary" type="button" id="scan-button"
-                                        onclick="initScan()">Scan</button>
+                            <div class="d-flex justify-content-center mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="switch-method" checked onchange="switchMethod(this)">
+                                    <label class="form-check-label" id="to-scan">Scan Roll</label>
+                                    <label class="form-check-label d-none" id="to-item">Pilih Barang</label>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-6 col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label label-scan"><small><b>ID Item</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-scan" name="id_item"
-                                    id="id_item" readonly>
+                        <div class="col-md-12" id="scan-method">
+                            <div class="row align-items-end">
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label class="form-label label-input"><small><b>ID Roll</b></small></label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control form-control-sm border-input"
+                                                name="kode_barang" id="kode_barang">
+                                            <button class="btn btn-sm btn-success" type="button" id="get-button"
+                                                onclick="fetchScan()">Get</button>
+                                            <button class="btn btn-sm btn-primary" type="button" id="scan-button"
+                                                onclick="initScan()">Scan</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label label-scan"><small><b>ID Item</b></small></label>
+                                        <input type="text" class="form-control form-control-sm border-scan" name="id_item"
+                                            id="id_item" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label label-scan"><small><b>Detail Item</b></small></label>
+                                        <input type="text" class="form-control form-control-sm border-scan" name="detail_item"
+                                            id="detail_item" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label label-input"><small><b>Color Act</b></small></label>
+                                        <input type="text" class="form-control form-control-sm border-input" name="color_act"
+                                            id="color_act">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mt-auto mb-3">
+                                        <button class="btn btn-sb btn-sm btn-block d-none" id="next-process-3"
+                                            onclick="nextProcessThree()">START</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-6 col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label label-scan"><small><b>Detail Item</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-scan" name="detail_item"
-                                    id="detail_item" readonly>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label label-input"><small><b>Color Act</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-input" name="color_act"
-                                    id="color_act">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mt-auto mb-3">
-                                <button class="btn btn-sb btn-sm btn-block d-none" id="next-process-3"
-                                    onclick="nextProcessThree()">START</button>
+                        <div class="col-md-12 d-none" id="item-method">
+                            <div class="row align-items-end">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label label-input"><small><b>Pilih Barang</b></small></label>
+                                        <select class="form-select form-control-sm select2bs4" name="select_item" id="select_item" onchange="setSelectedItem(this)">
+                                            <option value="">Pilih Barang</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mt-auto mb-3">
+                                        <button class="btn btn-sb btn-sm btn-block" id="next-process-3-item"
+                                            onclick="nextProcessThree()">START</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -508,6 +522,7 @@
                         <input type="hidden" id="id_sambungan" name="id_sambungan" readonly>
                         <input type="hidden" id="status_sambungan" name="status_sambungan" readonly>
                         <input type="hidden" id="current_id_roll" name="current_id_roll" readonly>
+                        <input type="hidden" id="method" name="method" readonly>
                         <div class="row">
                             <div class="col-3">
                                 <div class="mb-3">
@@ -541,12 +556,12 @@
                                 <label class="form-label label-scan"><small><b>Qty</b></small></label>
                                 <div class="d-flex mb-3">
                                     <div style="width: 60%">
-                                        <input type="number" class="form-control form-control-sm border-scan"
-                                            id="current_qty_real" name="current_qty_real" readonly>
+                                        <input type="number" class="form-control form-control-sm border-scan" id="current_qty_real" name="current_qty_real" readonly
+                                        onchange="setRollQtyConversion(this.value); calculateEstAmpar();"
+                                        onkeyup="setRollQtyConversion(this.value); calculateEstAmpar();">
                                     </div>
                                     <div style="width: 40%">
-                                        <input type="text" class="form-control form-control-sm border-scan"
-                                            id="current_unit" name="current_unit" readonly>
+                                        <input type="text" class="form-control form-control-sm border-scan" id="current_unit" name="current_unit" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -555,13 +570,10 @@
                                     <label class="form-label label-calc"><small><b>Qty Konversi</b></small></label>
                                     <div class="d-flex mb-3">
                                         <div style="width: 60%">
-                                            <input type="number" class="form-control form-control-sm border-calc"
-                                                id="current_qty" name="current_qty" readonly>
+                                            <input type="number" class="form-control form-control-sm border-calc" id="current_qty" name="current_qty" readonly>
                                         </div>
                                         <div style="width: 40%">
-                                            <input type="text" class="form-control form-control-sm border-calc"
-                                                id="current_unit_convert" name="current_unit_convert" value="METER"
-                                                readonly>
+                                            <input type="text" class="form-control form-control-sm border-calc" id="current_unit_convert" name="current_unit_convert" value="METER" readonly>
                                         </div>
                                     </div>
                                 </div>
@@ -754,8 +766,7 @@
                                 <div class="mb-3">
                                     <label class="form-label label-input"><small><b>Piping</b></small></label>
                                     <div class="input-group input-group-sm mb-3">
-                                        <input type="number" class="form-control form-control-sm border-input"
-                                            id="current_piping" name="current_piping" step=".01"
+                                        <input type="number" class="form-control form-control-sm border-input" id="current_piping" name="current_piping" step=".01"
                                             onkeyup="
                                                 calculateShortRoll();
                                                 calculateRemark();
@@ -981,6 +992,21 @@
 @endsection
 
 @section('custom-script')
+    <!-- Select2 -->
+    <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+
+    <script>
+        // Select2 Autofocus
+        $(document).on('select2:open', () => {
+            document.querySelector('.select2-search__field').focus();
+        });
+
+        $('.select2').select2()
+        $('.select2bs4').select2({
+            theme: 'bootstrap4',
+        });
+    </script>
+
     <script>
         // Variable List :
         // -Form Cut Input Header Data-
@@ -1006,6 +1032,9 @@
         // -Ratio & Qty Cuy-
         var totalRatio = document.getElementById('total_ratio').value;
         var totalQtyCut = document.getElementById('total_qty_cut_ply').value;
+
+        // -Method-
+        var method = "scan";
 
         // Function List :
         // -On Load-
@@ -1053,6 +1082,9 @@
             $('#scan-qr-card').on('expanded.lte.cardwidget', function(e) {
                 initScan();
             });
+
+            // -Default Method-
+            $('#switch-method').prop('checked', true);
         });
 
         // Process :
@@ -1069,9 +1101,7 @@
             }).then(async (result) => {
                 if (result.isConfirmed) {
                     let now = new Date();
-                    startTime.value = now.getFullYear().toString() + "-" + pad(now.getMonth() + 1) + "-" + pad(
-                            now.getDate()) + " " + pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" +
-                        pad(now.getSeconds());
+                    startTime.value = now.getFullYear().toString() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate()) + " " + pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds());
 
                     updateToStartProcess();
 
@@ -1180,6 +1210,7 @@
                             nextProcessThreeButton.classList.remove("d-none");
 
                             initScan();
+                            getItemList()
                         }
                     }
                 },
@@ -1211,9 +1242,21 @@
 
         // -Process Three Transaction-
         async function updateToNextProcessThree() {
-            if (checkIfNull(document.getElementById("id_item").value) && checkIfNull(document.getElementById(
-                    "detail_item").value) && checkIfNull(document.getElementById("color_act").value) &&
-                currentScannedItem) {
+            let validation = false;
+
+            switch (method) {
+                case "scan" :
+                    validation = checkIfNull(document.getElementById("id_item").value) && checkIfNull(document.getElementById("detail_item").value) && checkIfNull(document.getElementById("color_act").value);
+                    break;
+                case "item" :
+                    validation = checkIfNull(document.getElementById("select_item").value);
+                    break;
+                default :
+                    validation = checkIfNull(document.getElementById("id_item").value) && checkIfNull(document.getElementById("detail_item").value) && checkIfNull(document.getElementById("color_act").value);
+                    break;
+            }
+
+            if (validation && currentScannedItem) {
                 nextProcessThreeButton.classList.add("d-none");
 
                 $('#scan-qr-card').CardWidget('collapse');
@@ -1239,12 +1282,14 @@
         }
 
         // -Back to Process Three-
-        function backToProcessThree() {
+        async function backToProcessThree() {
             storeTimeRecord();
         }
 
         // -Store Time Record Transaction-
-        function storeTimeRecord() {
+        async function storeTimeRecord() {
+            clearModified();
+
             let spreadingForm = new FormData(document.getElementById("spreading-form"));
 
             let dataObj = {
@@ -1255,6 +1300,7 @@
                 "no_meja": $("#no_meja").val(),
                 "color_act": $("#color_act").val(),
                 "detail_item": $("#detail_item").val(),
+                "metode": method,
             }
 
             spreadingForm.forEach((value, key) => dataObj[key] = value);
@@ -1286,8 +1332,7 @@
                                 if (res.additional.length > 1) {
                                     if (res.additional[1]) {
                                         sisaGelaran = res.additional[0].sisa_gelaran;
-                                        setSpreadingForm(res.additional[1], res.additional[
-                                            0].sisa_gelaran);
+                                        setSpreadingForm(res.additional[1], res.additional[0].sisa_gelaran);
                                         $("#scan-qr-card").CardWidget('expand');
                                         document.getElementById('kode_barang').focus();
                                         openTimeRecordCondition();
@@ -1296,6 +1341,8 @@
                                     }
                                 }
                             }
+
+                            resetTimeRecord();
                         }
                     },
                     error: function(jqXHR) {
@@ -1344,8 +1391,7 @@
                                 if (res.additional.length > 1) {
                                     if (res.additional[1]) {
                                         sisaGelaran = res.additional[0].sisa_gelaran;
-                                        setSpreadingForm(res.additional[1], res.additional[
-                                            0].sisa_gelaran);
+                                        setSpreadingForm(res.additional[1], res.additional[0].sisa_gelaran);
                                         $("#scan-qr-card").CardWidget('expand');
                                         document.getElementById('kode_barang').focus();
                                         openTimeRecordCondition();
@@ -1354,6 +1400,8 @@
                                     }
                                 }
                             }
+
+                            resetTimeRecord();
                         }
                     },
                     error: function(jqXHR) {
@@ -1387,6 +1435,7 @@
                 "color_act": $("#color_act").val(),
                 "detail_item": $("#detail_item").val(),
                 "no_meja": $("#no_meja").val(),
+                "metode": method,
                 "lap": lap
             }
 
@@ -1589,6 +1638,13 @@
             return null;
         }
 
+        function setRollQtyConversion(rollQty = 0, unitQty) {
+            let rollQtyVar = rollQty > 0 ? Number(rollQty) : Number(document.getElementById("current_qty_real"));
+            let unitQtyVar = unitQty ? unitQty : document.getElementById("current_unit");
+
+            document.getElementById("current_qty").value = rollQtyConversion(rollQtyVar, unitQtyVar);
+        }
+
         // -Restrict Sisa Gelaran-
         function restrictRemainPly() {
             let estSambungan = calculateSambungan();
@@ -1751,9 +1807,7 @@
             }
 
             // let shortRoll = pActualConverted * lembarGelaranVar + kepalaKainVar + pipingVar + sisaKainVar + rejectVar + sambunganVar - qtyVar;
-            let shortRoll = qtyVar - ((pActualConverted * lembarGelaranVar) + sisaGelaranVar +
-                sambunganVar +
-                kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar);
+            let shortRoll = qtyVar - ((pActualConverted * lembarGelaranVar) + sisaGelaranVar + sambunganVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar);
 
             document.getElementById("current_short_roll").value = shortRoll.round(2);
         }
@@ -1801,8 +1855,7 @@
 
         // -Calculate Sambungan-
         function calculateSambungan(sisaGelaran) {
-            let sisaGelaranVar = sisaGelaran > 0 ? Number(sisaGelaran) : Number(document.getElementById(
-                "current_sisa_gelaran").value);
+            let sisaGelaranVar = sisaGelaran > 0 ? Number(sisaGelaran) : Number(document.getElementById("current_sisa_gelaran").value);
             let qtyVar = Number(document.getElementById("current_qty").value);
             let unitQtyVar = document.getElementById("current_unit").value;
             let pActualVar = Number(document.getElementById('p_act').value);
@@ -1939,6 +1992,7 @@
                 $('#scan-qr-card').removeClass('d-none');
 
                 initScan();
+                getItemList();
 
                 checkSpreadingForm();
 
@@ -2007,958 +2061,1036 @@
             document.getElementById('unit_cons_actual_gelaran').setAttribute('readonly', true);
         }
 
-        // Spreading Form Module :
-        // Variable :
-        var spreadingFormData = null;
-        var sisaGelaran = null;
+        // -Switch Method-
+        function switchMethod(element) {
+            if (element.checked) {
+                toScanMethod();
+            } else {
+                toItemMethod();
+            }
+        }
 
-        // Function :
-        // -Check Spreading Form-
-        function checkSpreadingForm() {
-            let noForm = document.getElementById("no_form").value;
-            let noMeja = document.getElementById("no_meja").value;
+        function toItemMethod() {
+            method = "item";
 
-            $.ajax({
-                url: '{{ route('check-spreading-form-cut-input') }}/' + noForm + '/' + noMeja,
+            document.getElementById("scan-method").classList.add('d-none');
+            document.getElementById("to-scan").classList.add('d-none');
+
+            document.getElementById("item-method").classList.remove('d-none');
+            document.getElementById("to-item").classList.remove('d-none');
+            $("#select_item").val("").trigger("change");
+
+            html5QrcodeScanner.clear();
+        }
+
+        function toScanMethod() {
+            method = "scan";
+
+            document.getElementById("item-method").classList.add('d-none');
+            document.getElementById("to-item").classList.add('d-none');
+
+            document.getElementById("scan-method").classList.remove('d-none');
+            document.getElementById("to-scan").classList.remove('d-none');
+            $("#select_item").val("").trigger("change");
+
+            initScan();
+        }
+
+        // Get Item List Module :
+        async function getItemList() {
+            $("#select_item").prop("disabled", true);
+
+            await $.ajax({
+                url: '{{ route('get-item-form-cut-input') }}',
                 type: 'get',
+                data: {
+                    act_costing_id: $("#act_costing_id").val(),
+                },
                 dataType: 'json',
                 success: function(res) {
                     if (res) {
-                        nextProcessThreeButton.classList.remove('d-none');
+                        res.forEach((item) => {
+                            let option = document.createElement("option");
+                            option.text = item.itemdesc;
+                            option.value = item.id_item;
 
-                        firstTimeRecordCondition();
-
-                        if (res.count > 0) {
-                            spreadingFormData = res.data;
-                            sisaGelaran = res.sisaGelaran;
-
-                            setSpreadingForm(spreadingFormData, sisaGelaran);
-
-                            checkTimeRecordLap(res.data.id);
-
-                            document.getElementById("kode_barang").value = res.data.id_roll;
-                            document.getElementById("id_item").value = res.data.id_item;
-                            document.getElementById("color_act").value = res.data.color_act;
-                            document.getElementById("detail_item").value = res.data
-                                .detail_item;
-
-                            $('#spreading-form-card').CardWidget('expand');
-                            $('#spreading-form-card').removeClass("d-none");
-                        } else {
-                            $('#spreading-form-card').CardWidget('collapse');
-                        }
+                            document.getElementById("select_item").appendChild(option);
+                        })
                     }
-                }
+                },
             });
+
+            $("#select_item").prop("disabled", false);
         }
 
-        // -Set Spreading Form-
-        function setSpreadingForm(data, sisaGelaran) {
-            if (!(sisaGelaran)) {
-                clearSpreadingForm();
-            }
+        function setSelectedItem(element) {
+            currentScannedItem = null;
 
-            let convertedQty = rollQtyConversion(data.qty, data.unit);
+            if (element.value && element.value != "") {
+                document.getElementById("kode_barang").value = "";
+                document.getElementById("current_id_roll").value = "";
 
-            data.id_roll ? document.getElementById("kode_barang").value = data.id_roll : '';
-            data.id_item ? document.getElementById("id_item").value = data.id_item : '';
-            data.detail_item ? document.getElementById("detail_item").value = data.detail_item : '';
-            data.color_act ? document.getElementById("color_act").value = data.color_act : '';
-            data.id_roll ? document.getElementById("current_id_roll").value = data.id_roll : '';
-            data.group ? document.getElementById("current_group").value = data.group : '';
-            data.id_item ? document.getElementById("current_id_item").value = data.id_item : '';
-            data.lot ? document.getElementById("current_lot").value = data.lot : '';
-            data.roll ? document.getElementById("current_roll").value = data.roll : '';
-            data.qty ? document.getElementById("current_qty").value = convertedQty : '';
-            data.qty ? document.getElementById("current_qty_real").value = data.qty : '';
-            data.unit ? document.getElementById("current_unit").value = data.unit : '';
-            data.unit ? document.getElementById("current_sisa_gelaran_unit").value = (data.unit != "KGM" ? "METER" : "KGM") : '';
-            data.unit ? document.getElementById("current_sambungan_unit").value = (data.unit != "KGM" ? "METER" : "KGM") : '';
-            data.sisa_gelaran ? document.getElementById("current_sisa_gelaran").value = data .sisa_gelaran : '';
-            data.sambungan ? document.getElementById("current_sambungan").value = data.sambungan : '';
-            data.est_amparan ? document.getElementById("current_est_amparan").value = data.est_amparan : '';
-            data.lembar_gelaran ? document.getElementById("current_lembar_gelaran").value = data .lembar_gelaran : '';
-            data.average_time ? document.getElementById("current_average_time").value = data .average_time : '';
-            data.kepala_kain ? document.getElementById("current_kepala_kain").value = data.kepala_kain : '';
-            data.sisa_tidak_bisa ? document.getElementById("current_sisa_tidak_bisa").value = data .sisa_tidak_bisa : '';
-            data.reject ? document.getElementById("current_reject").value = data.reject : '';
-            data.sisa_kain ? document.getElementById("current_sisa_kain").value = data.sisa_kain : '';
-            data.total_pemakaian_roll ? document.getElementById("current_total_pemakaian_roll").value = data .total_pemakaian_roll : '';
-            data.short_roll ? document.getElementById("current_short_roll").value = data.short_roll : '';
-            data.piping ? document.getElementById("current_piping").value = data.piping : '';
-            data.remark ? document.getElementById("current_remark").value = data.remark : '';
+                document.getElementById("id_item").value = element.value;
+                document.getElementById("detail_item").value = $("#select_item option:selected").text();
 
-            let unitSimplified = data.unit != "KGM" ? "M" : "KG";
-
-            let inputGroupUnit = document.getElementsByClassName("input-group-unit");
-
-            for (var i = 0; i < inputGroupUnit.length; i++) {
-                inputGroupUnit[i].innerText = unitSimplified;
-            }
-
-            calculateEstAmpar();
-
-            updatePlyProgress();
-
-            if (sisaGelaran > 0) {
-                let estSambungan = calculateSambungan(sisaGelaran);
-
-                data.id_sambungan ? document.getElementById("id_sambungan").value = data.id_sambungan :
-                    '';
-                document.getElementById("status_sambungan").value = "extension";
-                document.getElementById("current_sambungan").value = estSambungan;
-
-                document.getElementById("current_sambungan").removeAttribute('readonly');
-                document.getElementById("current_sisa_gelaran").setAttribute('readonly', true);
-
-                document.getElementById("current_total_pemakaian_roll").value = document.getElementById(
-                        "current_sambungan")
-                    .value;
-            } else {
-                nextProcessThreeButton.classList.add("d-none");
-
-                $('#scan-qr-card').CardWidget('collapse');
-                $('#spreading-form-card').CardWidget('expand');
-
-                if ($("status_sambungan").val() != "extension") {
-                    document.getElementById("current_sambungan").setAttribute('readonly', true);
-                    document.getElementById("current_sisa_gelaran").removeAttribute('readonly');
-                }
-
-                openTimeRecordCondition();
+                currentScannedItem = {"id_item": element.value, "detail_item": $("#select_item option:selected").text(), "unit": "METER"};
             }
         }
 
-        // -Clear Spreading Form-
-        function clearSpreadingForm() {
-            $('#spreading-form-card').CardWidget('collapse');
+        // Spreading Form Module :
+            // Variable :
+            var spreadingFormData = null;
+            var sisaGelaran = null;
 
-            document.getElementById("id_sambungan").value = "";
-            document.getElementById("status_sambungan").value = "";
-            document.getElementById("current_group").value = "";
-            document.getElementById("current_id_item").value = "";
-            document.getElementById("current_lot").value = "";
-            document.getElementById("current_roll").value = "";
-            document.getElementById("current_qty").value = "";
-            document.getElementById("current_qty_real").value = "";
-            document.getElementById("current_unit").value = "";
-            document.getElementById("current_sisa_gelaran").value = 0;
-            document.getElementById("current_sisa_gelaran_unit").value = "";
-            document.getElementById("current_sambungan").value = 0;
-            document.getElementById("current_sambungan_unit").value = "";
-            document.getElementById("current_est_amparan").value = 0;
-            document.getElementById("current_lembar_gelaran").value = 0;
-            document.getElementById("current_average_time").value = "00:00";
-            document.getElementById("current_kepala_kain").value = 0;
-            document.getElementById("current_sisa_tidak_bisa").value = 0;
-            document.getElementById("current_reject").value = 0;
-            document.getElementById("current_sisa_kain").value = 0;
-            document.getElementById("current_total_pemakaian_roll").value = 0;
-            document.getElementById("current_short_roll").value = 0;
-            document.getElementById("current_piping").value = 0;
-            document.getElementById("current_remark").value = 0;
-
-            let inputGroupUnit = document.getElementsByClassName("input-group-unit");
-
-            for (var i = 0; i < inputGroupUnit.length; i++) {
-                inputGroupUnit[i].innerText = "";
-            }
-        }
-
-        // -Lock Spreading Form-
-        function lockSpreadingForm() {
-            document.getElementById("current_group").setAttribute("readonly", true);
-            document.getElementById("current_id_item").setAttribute("readonly", true);
-            document.getElementById("current_lot").setAttribute("readonly", true);
-            document.getElementById("current_roll").setAttribute("readonly", true);
-            document.getElementById("current_qty").setAttribute("readonly", true);
-            document.getElementById("current_unit").setAttribute("readonly", true);
-            document.getElementById("current_sisa_gelaran").setAttribute("readonly", true);
-            document.getElementById("current_sambungan").setAttribute("readonly", true);
-            document.getElementById("current_est_amparan").setAttribute("readonly", true);
-            document.getElementById("current_lembar_gelaran").setAttribute("readonly", true);
-            document.getElementById("current_average_time").setAttribute("readonly", true);
-            document.getElementById("current_kepala_kain").setAttribute("readonly", true);
-            document.getElementById("current_sisa_tidak_bisa").setAttribute("readonly", true);
-            document.getElementById("current_reject").setAttribute("readonly", true);
-            document.getElementById("current_sisa_kain").setAttribute("readonly", true);
-            document.getElementById("current_total_pemakaian_roll").setAttribute("readonly", true);
-            document.getElementById("current_short_roll").setAttribute("readonly", true);
-            document.getElementById("current_piping").setAttribute("readonly", true);
-            document.getElementById("current_remark").setAttribute("readonly", true);
-        }
-
-        // -Get Summary Data-
-        function getSummary() {
-            if (summaryData == null) {
+        // Function :
+            // -Check Spreading Form-
+            function checkSpreadingForm() {
                 let noForm = document.getElementById("no_form").value;
+                let noMeja = document.getElementById("no_meja").value;
 
-                return $.ajax({
-                    url: '{{ route('get-time-form-cut-input') }}/' + noForm,
+                $.ajax({
+                    url: '{{ route('check-spreading-form-cut-input') }}/' + noForm + '/' + noMeja,
                     type: 'get',
                     dataType: 'json',
                     success: function(res) {
                         if (res) {
-                            summaryData = res;
-                            setSummary(summaryData);
+                            nextProcessThreeButton.classList.remove('d-none');
+
+                            firstTimeRecordCondition();
+
+                            if (res.count > 0) {
+                                spreadingFormData = res.data;
+                                sisaGelaran = res.sisaGelaran;
+                                method = res.data.metode ? res.data.metode : "scan";
+
+                                setSpreadingForm(spreadingFormData, sisaGelaran);
+
+                                checkTimeRecordLap(res.data.id);
+
+                                document.getElementById("kode_barang").value = res.data.id_roll;
+                                document.getElementById("id_item").value = res.data.id_item;
+                                document.getElementById("color_act").value = res.data.color_act;
+                                document.getElementById("detail_item").value = res.data.detail_item;
+
+                                $('#spreading-form-card').CardWidget('expand');
+                                $('#spreading-form-card').removeClass("d-none");
+                            } else {
+                                $('#spreading-form-card').CardWidget('collapse');
+                            }
                         }
                     }
                 });
             }
-        }
 
-        // -Set Summary Data-
-        function setSummary(data) {
-            if (totalScannedItem < 1) {
-                summaryData.forEach((data) => {
-                    appendScannedItem(data)
-                });
+            // -Set Spreading Form-
+            function setSpreadingForm(data, sisaGelaran) {
+                if (!(sisaGelaran)) {
+                    clearSpreadingForm();
+                }
+
+                if (method == "item") {
+                    document.getElementById("current_id_item").removeAttribute("readonly");
+                    document.getElementById("current_lot").removeAttribute("readonly");
+                    document.getElementById("current_roll").removeAttribute("readonly");
+                    document.getElementById("current_qty").removeAttribute("readonly");
+                    document.getElementById("current_qty_real").removeAttribute("readonly");
+                    document.getElementById("current_unit").value = "METER";
+                }
+
+                let convertedQty = rollQtyConversion(data.qty, data.unit);
+
+                data.id_roll ? document.getElementById("kode_barang").value = data.id_roll : '';
+                data.id_item ? document.getElementById("id_item").value = data.id_item : '';
+                data.detail_item ? document.getElementById("detail_item").value = data.detail_item : '';
+                data.color_act ? document.getElementById("color_act").value = data.color_act : '';
+                data.id_roll ? document.getElementById("current_id_roll").value = data.id_roll : '';
+                data.group ? document.getElementById("current_group").value = data.group : '';
+                data.id_item ? document.getElementById("current_id_item").value = data.id_item : '';
+                data.lot ? document.getElementById("current_lot").value = data.lot : '';
+                data.roll ? document.getElementById("current_roll").value = data.roll : '';
+                data.qty ? document.getElementById("current_qty").value = convertedQty : '';
+                data.qty ? document.getElementById("current_qty_real").value = data.qty : '';
+                data.unit ? document.getElementById("current_unit").value = data.unit : '';
+                data.unit ? document.getElementById("current_sisa_gelaran_unit").value = (data.unit != "KGM" ? "METER" : "KGM") : '';
+                data.unit ? document.getElementById("current_sambungan_unit").value = (data.unit != "KGM" ? "METER" : "KGM") : '';
+                data.sisa_gelaran ? document.getElementById("current_sisa_gelaran").value = data .sisa_gelaran : '';
+                data.sambungan ? document.getElementById("current_sambungan").value = data.sambungan : '';
+                data.est_amparan ? document.getElementById("current_est_amparan").value = data.est_amparan : '';
+                data.lembar_gelaran ? document.getElementById("current_lembar_gelaran").value = data .lembar_gelaran : '';
+                data.average_time ? document.getElementById("current_average_time").value = data .average_time : '';
+                data.kepala_kain ? document.getElementById("current_kepala_kain").value = data.kepala_kain : '';
+                data.sisa_tidak_bisa ? document.getElementById("current_sisa_tidak_bisa").value = data .sisa_tidak_bisa : '';
+                data.reject ? document.getElementById("current_reject").value = data.reject : '';
+                data.sisa_kain ? document.getElementById("current_sisa_kain").value = data.sisa_kain : '';
+                data.total_pemakaian_roll ? document.getElementById("current_total_pemakaian_roll").value = data .total_pemakaian_roll : '';
+                data.short_roll ? document.getElementById("current_short_roll").value = data.short_roll : '';
+                data.piping ? document.getElementById("current_piping").value = data.piping : '';
+                data.remark ? document.getElementById("current_remark").value = data.remark : '';
+
+                let unitSimplified = data.unit != "KGM" ? "M" : "KG";
+
+                let inputGroupUnit = document.getElementsByClassName("input-group-unit");
+
+                for (var i = 0; i < inputGroupUnit.length; i++) {
+                    inputGroupUnit[i].innerText = unitSimplified;
+                }
+
+                calculateEstAmpar();
 
                 updatePlyProgress();
+
+                if (sisaGelaran > 0) {
+                    let estSambungan = calculateSambungan(sisaGelaran);
+
+                    data.id_sambungan ? document.getElementById("id_sambungan").value = data.id_sambungan :
+                        '';
+                    document.getElementById("status_sambungan").value = "extension";
+                    document.getElementById("current_sambungan").value = estSambungan;
+
+                    document.getElementById("current_sambungan").removeAttribute('readonly');
+                    document.getElementById("current_sisa_gelaran").setAttribute('readonly', true);
+
+                    document.getElementById("current_total_pemakaian_roll").value = document.getElementById("current_sambungan").value;
+                } else {
+                    nextProcessThreeButton.classList.add("d-none");
+
+                    $('#scan-qr-card').CardWidget('collapse');
+                    $('#spreading-form-card').CardWidget('expand');
+
+                    if ($("status_sambungan").val() != "extension") {
+                        document.getElementById("current_sambungan").setAttribute('readonly', true);
+                        document.getElementById("current_sisa_gelaran").removeAttribute('readonly');
+                    }
+
+                    openTimeRecordCondition();
+                }
             }
-        }
 
-        // -Update Ply Progress-
-        function updatePlyProgress() {
-            let currentLembar = Number($("#current_lembar_gelaran").val());
-            let qtyPly = Number($("#qty_ply").val());
+            // -Clear Spreading Form-
+            function clearSpreadingForm() {
+                $('#spreading-form-card').CardWidget('collapse');
 
-            document.getElementById("current_ply_progress_txt").innerText = (totalLembar +
-                currentLembar) + "/" + qtyPly;
-            document.getElementById("current_ply_progress").style.width = Number(qtyPly) > 0 ? (Number(
-                totalLembar +
-                currentLembar) / Number(qtyPly) * 100) + "%" : "0%";
-        }
+                document.getElementById("current_id_item").setAttribute("readonly", true);
+                document.getElementById("current_lot").setAttribute("readonly", true);
+                document.getElementById("current_roll").setAttribute("readonly", true);
+                document.getElementById("current_qty").setAttribute("readonly", true);
+                document.getElementById("current_qty_real").setAttribute("readonly", true);
 
-        // -Lock Form Cut Input-
-        function lockFormCutInput() {
-            lockProcessCondition();
+                document.getElementById("id_sambungan").value = "";
+                document.getElementById("status_sambungan").value = "";
+                document.getElementById("current_group").value = "";
+                document.getElementById("current_id_item").value = "";
+                document.getElementById("current_lot").value = "";
+                document.getElementById("current_roll").value = "";
+                document.getElementById("current_qty").value = "";
+                document.getElementById("current_qty_real").value = "";
+                document.getElementById("current_unit").value = "";
+                document.getElementById("current_sisa_gelaran").value = 0;
+                document.getElementById("current_sisa_gelaran_unit").value = "";
+                document.getElementById("current_sambungan").value = 0;
+                document.getElementById("current_sambungan_unit").value = "";
+                document.getElementById("current_est_amparan").value = 0;
+                document.getElementById("current_lembar_gelaran").value = 0;
+                document.getElementById("current_average_time").value = "00:00";
+                document.getElementById("current_kepala_kain").value = 0;
+                document.getElementById("current_sisa_tidak_bisa").value = 0;
+                document.getElementById("current_reject").value = 0;
+                document.getElementById("current_sisa_kain").value = 0;
+                document.getElementById("current_total_pemakaian_roll").value = 0;
+                document.getElementById("current_short_roll").value = 0;
+                document.getElementById("current_piping").value = 0;
+                document.getElementById("current_remark").value = 0;
 
-            lockGeneralForm();
+                let inputGroupUnit = document.getElementsByClassName("input-group-unit");
 
-            lockScanItemForm();
+                for (var i = 0; i < inputGroupUnit.length; i++) {
+                    inputGroupUnit[i].innerText = "";
+                }
+            }
 
-            lockSpreadingForm();
+            // -Lock Spreading Form-
+            function lockSpreadingForm() {
+                document.getElementById("current_group").setAttribute("readonly", true);
+                document.getElementById("current_id_item").setAttribute("readonly", true);
+                document.getElementById("current_lot").setAttribute("readonly", true);
+                document.getElementById("current_roll").setAttribute("readonly", true);
+                document.getElementById("current_qty").setAttribute("readonly", true);
+                document.getElementById("current_unit").setAttribute("readonly", true);
+                document.getElementById("current_sisa_gelaran").setAttribute("readonly", true);
+                document.getElementById("current_sambungan").setAttribute("readonly", true);
+                document.getElementById("current_est_amparan").setAttribute("readonly", true);
+                document.getElementById("current_lembar_gelaran").setAttribute("readonly", true);
+                document.getElementById("current_average_time").setAttribute("readonly", true);
+                document.getElementById("current_kepala_kain").setAttribute("readonly", true);
+                document.getElementById("current_sisa_tidak_bisa").setAttribute("readonly", true);
+                document.getElementById("current_reject").setAttribute("readonly", true);
+                document.getElementById("current_sisa_kain").setAttribute("readonly", true);
+                document.getElementById("current_total_pemakaian_roll").setAttribute("readonly", true);
+                document.getElementById("current_short_roll").setAttribute("readonly", true);
+                document.getElementById("current_piping").setAttribute("readonly", true);
+                document.getElementById("current_remark").setAttribute("readonly", true);
+            }
 
-            firstTimeRecordCondition();
+            // -Get Summary Data-
+            function getSummary() {
+                if (summaryData == null) {
+                    let noForm = document.getElementById("no_form").value;
 
-            lockTimeRecord();
+                    return $.ajax({
+                        url: '{{ route('get-time-form-cut-input') }}/' + noForm,
+                        type: 'get',
+                        dataType: 'json',
+                        success: function(res) {
+                            if (res) {
+                                summaryData = res;
+                                setSummary(summaryData);
+                            }
+                        }
+                    });
+                }
+            }
 
-            firstLostTimeCondition();
-        }
+            // -Set Summary Data-
+            function setSummary(data) {
+                if (totalScannedItem < 1) {
+                    summaryData.forEach((data) => {
+                        appendScannedItem(data)
+                    });
+
+                    updatePlyProgress();
+                }
+            }
+
+            // -Update Ply Progress-
+            function updatePlyProgress() {
+                let currentLembar = Number($("#current_lembar_gelaran").val());
+                let qtyPly = Number($("#qty_ply").val());
+
+                document.getElementById("current_ply_progress_txt").innerText = (totalLembar + currentLembar) + "/" + qtyPly;
+                document.getElementById("current_ply_progress").style.width = Number(qtyPly) > 0 ? (Number( totalLembar + currentLembar) / Number(qtyPly) * 100) + "%" : "0%";
+            }
+
+            // -Lock Form Cut Input-
+            function lockFormCutInput() {
+                lockProcessCondition();
+
+                lockGeneralForm();
+
+                lockScanItemForm();
+
+                lockSpreadingForm();
+
+                firstTimeRecordCondition();
+
+                lockTimeRecord();
+
+                firstLostTimeCondition();
+            }
 
         // Scan QR Module :
-        // Variable List :
-        var html5QrcodeScanner = null;
+            // Variable List :
+            var html5QrcodeScanner = null;
 
         // Function List :
-        // -Initialize Scanner-
-        async function initScan() {
-            if (document.getElementById("reader")) {
-                if (html5QrcodeScanner) {
-                    await html5QrcodeScanner.clear();
+            // -Initialize Scanner-
+            async function initScan() {
+                if (document.getElementById("reader")) {
+                    if (html5QrcodeScanner) {
+                        await html5QrcodeScanner.clear();
+                    }
+
+                    function onScanSuccess(decodedText, decodedResult) {
+                        // handle the scanned code as you like, for example:
+                        console.log(`Code matched = ${decodedText}`, decodedResult);
+
+                        // store to input text
+                        let breakDecodedText = decodedText.split('-');
+
+                        document.getElementById('kode_barang').value = breakDecodedText[0];
+
+                        getScannedItem(breakDecodedText[0]);
+
+                        html5QrcodeScanner.clear();
+                    }
+
+                    function onScanFailure(error) {
+                        // handle scan failure, usually better to ignore and keep scanning.
+                        // for example:
+                        console.warn(`Code scan error = ${error}`);
+                    }
+
+                    html5QrcodeScanner = new Html5QrcodeScanner(
+                        "reader", {
+                            fps: 10,
+                            qrbox: {
+                                width: 250,
+                                height: 250
+                            }
+                        },
+                        /* verbose= */
+                        false);
+
+                    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
                 }
+            }
 
-                function onScanSuccess(decodedText, decodedResult) {
-                    // handle the scanned code as you like, for example:
-                    console.log(`Code matched = ${decodedText}`, decodedResult);
+            // --Clear Scan Item Form--
+            function clearScanItemForm() {
+                $("#kode_barang").val("");
+                $("#id_item").val("");
+                $("#detail_item").val("");
+                $("#color_act").val("");
+            }
 
-                    // store to input text
-                    let breakDecodedText = decodedText.split('-');
+            // --Lock Scan Item Form then Clear Scanner--
+            function lockScanItemForm() {
+                document.getElementById("kode_barang").setAttribute("readonly", true);
+                document.getElementById("id_item").setAttribute("readonly", true);
+                document.getElementById("detail_item").setAttribute("readonly", true);
+                document.getElementById("color_act").setAttribute("disabled", true);
+                document.getElementById("scan-button").setAttribute("disabled", true);
+                document.getElementById("reader").classList.add("d-none");
 
-                    document.getElementById('kode_barang').value = breakDecodedText[0];
-
-                    getScannedItem(breakDecodedText[0]);
-
+                if (html5QrcodeScanner != null) {
                     html5QrcodeScanner.clear();
                 }
-
-                function onScanFailure(error) {
-                    // handle scan failure, usually better to ignore and keep scanning.
-                    // for example:
-                    console.warn(`Code scan error = ${error}`);
-                }
-
-                html5QrcodeScanner = new Html5QrcodeScanner(
-                    "reader", {
-                        fps: 10,
-                        qrbox: {
-                            width: 250,
-                            height: 250
-                        }
-                    },
-                    /* verbose= */
-                    false);
-
-                html5QrcodeScanner.render(onScanSuccess, onScanFailure);
             }
-        }
-
-        // --Clear Scan Item Form--
-        function clearScanItemForm() {
-            $("#kode_barang").val("");
-            $("#id_item").val("");
-            $("#detail_item").val("");
-            $("#color_act").val("");
-        }
-
-        // --Lock Scan Item Form then Clear Scanner--
-        function lockScanItemForm() {
-            document.getElementById("kode_barang").setAttribute("readonly", true);
-            document.getElementById("id_item").setAttribute("readonly", true);
-            document.getElementById("detail_item").setAttribute("readonly", true);
-            document.getElementById("color_act").setAttribute("disabled", true);
-            document.getElementById("scan-button").setAttribute("disabled", true);
-            document.getElementById("reader").classList.add("d-none");
-
-            if (html5QrcodeScanner != null) {
-                html5QrcodeScanner.clear();
-            }
-        }
 
         // Scanned Item Module :
-        // Variable List :
-        var scannedItemTable = document.getElementById("scannedItemTable");
-        var scannedItemTableTbody = scannedItemTable.getElementsByTagName("tbody")[0];
-        var totalScannedItem = 0;
-        var totalSisaGelaran = 0;
-        var totalSambungan = 0;
-        var totalEstAmparan = 0;
-        var totalAverageTime = 0;
-        var totalKepalaKain = 0;
-        var totalSisaTidakBisa = 0;
-        var totalReject = 0;
-        var totalSisaKain = 0;
-        var totalTotalPemakaian = 0;
-        var totalShortRoll = 0;
-        var totalRemark = 0;
-        var totalLembar = 0;
-        var totalPiping = 0;
-        var totalQtyFabric = 0;
-        var latestUnit = "";
+            // Variable List :
+            var scannedItemTable = document.getElementById("scannedItemTable");
+            var scannedItemTableTbody = scannedItemTable.getElementsByTagName("tbody")[0];
+            var totalScannedItem = 0;
+            var totalSisaGelaran = 0;
+            var totalSambungan = 0;
+            var totalEstAmparan = 0;
+            var totalAverageTime = 0;
+            var totalKepalaKain = 0;
+            var totalSisaTidakBisa = 0;
+            var totalReject = 0;
+            var totalSisaKain = 0;
+            var totalTotalPemakaian = 0;
+            var totalShortRoll = 0;
+            var totalRemark = 0;
+            var totalLembar = 0;
+            var totalPiping = 0;
+            var totalQtyFabric = 0;
+            var latestUnit = "";
 
         // Function List :
-        // -Fetch Scanned Item Data-
-        function fetchScan() {
-            let kodeBarang = document.getElementById('kode_barang').value;
+            // -Fetch Scanned Item Data-
+            function fetchScan() {
+                let kodeBarang = document.getElementById('kode_barang').value;
 
-            getScannedItem(kodeBarang);
-        }
+                getScannedItem(kodeBarang);
+            }
 
-        // -Get Scanned Item Data-
-        function getScannedItem(id) {
-            document.getElementById("id_item").value = "";
-            document.getElementById("detail_item").value = "";
-            document.getElementById("color_act").value = "";
+            // -Get Scanned Item Data-
+            function getScannedItem(id) {
+                document.getElementById("id_item").value = "";
+                document.getElementById("detail_item").value = "";
+                document.getElementById("color_act").value = "";
 
-            if (checkIfNull(id)) {
-                return $.ajax({
-                    url: '{{ route('get-scanned-form-cut-input') }}/' + id,
+                if (checkIfNull(id)) {
+                    return $.ajax({
+                        url: '{{ route('get-scanned-form-cut-input') }}/' + id,
+                        type: 'get',
+                        dataType: 'json',
+                        success: function(res) {
+                            if (res) {
+                                if (totalScannedItem > 0) {
+                                    // if (res.unit.toLowerCase() != ($("#unit_cons_actual_gelaran").val()).toLowerCase()) {
+                                    //     Swal.fire({
+                                    //         icon: 'error',
+                                    //         title: 'Gagal',
+                                    //         text: 'Unit tidak sesuai',
+                                    //         showCancelButton: false,
+                                    //         showConfirmButton: true,
+                                    //         confirmButtonText: 'Oke',
+                                    //     });
+                                    // } else {
+                                    //     currentScannedItem = res;
+
+                                    //     document.getElementById("id_item").value = res.id_item;
+                                    //     document.getElementById("detail_item").value = res.detail_item;
+                                    // }
+
+                                    currentScannedItem = res;
+
+                                    document.getElementById("id_item").value = res.id_item;
+                                    document.getElementById("detail_item").value = res.detail_item;
+                                } else {
+                                    currentScannedItem = res;
+
+                                    document.getElementById("id_item").value = res.id_item;
+                                    document.getElementById("detail_item").value = res.detail_item;
+                                }
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: 'Roll tidak tersedia atau sudah habis.',
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                });
+                            }
+                        }
+                    });
+                }
+
+                return Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal',
+                    text: 'Item tidak ditemukan',
+                    showCancelButton: false,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Oke',
+                });
+            }
+
+            // -Append Scanned Item to Summary Table-
+            function appendScannedItem(data) {
+                totalLembar += Number(data.lembar_gelaran);
+                totalPiping += Number(data.piping);
+                totalQtyFabric += Number(data.qty);
+                latestUnit = data.unit;
+
+                let tr = document.createElement('tr');
+                let td1 = document.createElement('td');
+                let td2 = document.createElement('td');
+                let td3 = document.createElement('td');
+                let td4 = document.createElement('td');
+                let td5 = document.createElement('td');
+                let td6 = document.createElement('td');
+                let td7 = document.createElement('td');
+                let td8 = document.createElement('td');
+                let td9 = document.createElement('td');
+                let td10 = document.createElement('td');
+                let td11 = document.createElement('td');
+                let td12 = document.createElement('td');
+                let td13 = document.createElement('td');
+                let td14 = document.createElement('td');
+                let td15 = document.createElement('td');
+                let td16 = document.createElement('td');
+                let td17 = document.createElement('td');
+                let td18 = document.createElement('td');
+                let td19 = document.createElement('td');
+                let td20 = document.createElement('td');
+                let td21 = document.createElement('td');
+                td1.innerHTML = totalScannedItem + 1;
+                td2.innerHTML = data.group ? data.group : '-';
+                td3.innerHTML = data.id_roll ? data.id_roll : '-';
+                td4.innerHTML = data.id_item ? data.id_item : '-';
+                td5.innerHTML = data.lot ? data.lot : '-';
+                td6.innerHTML = data.roll ? data.roll : '-';
+                td7.innerHTML = data.qty ? data.qty : '-';
+                td8.innerHTML = data.unit ? data.unit : '-';
+                td9.innerHTML = data.sisa_gelaran ? data.sisa_gelaran : '-';
+                td10.innerHTML = data.sambungan ? data.sambungan : '-';
+                td11.innerHTML = data.est_amparan ? data.est_amparan : '-';
+                td12.innerHTML = data.lembar_gelaran ? data.lembar_gelaran : '';
+                td13.innerHTML = data.average_time ? data.average_time : '-';
+                td14.innerHTML = data.kepala_kain ? data.kepala_kain : '-';
+                td15.innerHTML = data.sisa_tidak_bisa ? data.sisa_tidak_bisa : '-';
+                td16.innerHTML = data.reject ? data.reject : '-';
+                td17.innerHTML = data.sisa_kain ? data.sisa_kain : '-';
+                td18.innerHTML = data.total_pemakaian_roll ? data.total_pemakaian_roll : '-';
+                td19.innerHTML = data.short_roll ? data.short_roll : '-';
+                td20.innerHTML = data.piping ? data.piping : '-';
+                td21.innerHTML = data.remark ? data.remark : '-';
+                tr.appendChild(td1);
+                tr.appendChild(td2);
+                tr.appendChild(td3);
+                tr.appendChild(td4);
+                tr.appendChild(td5);
+                tr.appendChild(td6);
+                tr.appendChild(td7);
+                tr.appendChild(td8);
+                tr.appendChild(td9);
+                tr.appendChild(td10);
+                tr.appendChild(td11);
+                tr.appendChild(td12);
+                tr.appendChild(td13);
+                tr.appendChild(td14);
+                tr.appendChild(td15);
+                tr.appendChild(td16);
+                tr.appendChild(td17);
+                tr.appendChild(td18);
+                tr.appendChild(td19);
+                tr.appendChild(td20);
+                tr.appendChild(td21);
+
+                scannedItemTableTbody.appendChild(tr);
+
+                totalScannedItem++;
+
+                totalSisaGelaran += Number(data.sisa_gelaran);
+                totalSambungan += Number(data.sambungan);
+                totalEstAmparan += Number(data.est_amparan);
+                totalAverageTime += (Number(data.average_time.slice(0, 2)) * 60) + Number(data.average_time.slice(3, 5));
+                totalKepalaKain += Number(data.kepala_kain);
+                totalSisaTidakBisa += Number(data.sisa_tidak_bisa);
+                totalReject += Number(data.reject);
+                totalSisaKain += Number(data.sisa_kain);
+                totalTotalPemakaian += Number(data.total_pemakaian_roll);
+                totalShortRoll += Number(data.short_roll);
+                totalRemark += Number(data.remark);
+
+                let averageTotalAverageTime = totalAverageTime / totalScannedItem;
+                let averageTotalAverageTimeMinute = pad((averageTotalAverageTime / 60).round(0));
+                let averageTotalAverageTimeSecond = pad((averageTotalAverageTime % 60).round(0));
+
+                document.getElementById("total-sisa-gelaran").innerText = Number(totalSisaGelaran).round(2);
+                document.getElementById("total-sambungan").innerText = Number(totalSambungan).round(2);
+                document.getElementById("total-est-amparan").innerText = Number(totalEstAmparan).round(2);
+                document.getElementById("total-lembar").innerText = Number(totalLembar).round(2);
+                document.getElementById("total-average-time").innerText = averageTotalAverageTimeMinute + ":" +averageTotalAverageTimeSecond;
+                document.getElementById("total-kepala-kain").innerText = Number(totalKepalaKain).round(2);
+                document.getElementById("total-sisa-tidak-bisa").innerText = Number(totalSisaTidakBisa).round(2);
+                document.getElementById("total-reject").innerText = Number(totalReject).round(2);
+                document.getElementById("total-sisa-kain").innerText = Number(totalSisaKain).round(2);
+                document.getElementById("total-total-pemakaian").innerText = Number(totalTotalPemakaian).round(2);
+                document.getElementById("total-short-roll").innerText = Number(totalShortRoll).round(2);
+                document.getElementById("total-piping").innerText = Number(totalPiping).round(2);
+                document.getElementById("total-remark").innerText = Number(totalRemark).round(2);
+
+                calculateConsActualGelaran(unit = latestUnit, piping = totalPiping, lembar = totalLembar, totalQtyFabric, totalQtyCut, totalTotalPemakaian);
+            }
+
+        // Time Record Module :
+            // Variable List :
+                // Button Elements
+                var startLapButton = document.getElementById("startLapButton");
+                var nextLapButton = document.getElementById("nextLapButton");
+                var stopLapButton = document.getElementById("stopLapButton");
+
+                // Time Elements
+                var minutes = document.getElementById("minutes");
+                var seconds = document.getElementById("seconds");
+
+                // Table Elements
+                var timeRecordTable = document.getElementById('timeRecordTable');
+                var timeRecordTableTbody = timeRecordTable.getElementsByTagName("tbody")[0];
+
+                // Calculate Things
+                var lap = 0;
+                var totalSeconds = 0;
+                var summarySeconds = 0;
+                var averageSeconds = 0;
+                var timeRecordInterval = 0;
+
+                // Initialize Time Elements
+                seconds.value = pad(totalSeconds % 60);
+                minutes.value = pad(parseInt(totalSeconds / 60));
+
+        // Function List :
+            // -Time Record-
+            function checkTimeRecordLap(detailId) {
+                $.ajax({
+                    url: '{{ route('check-time-record-form-cut-input') }}/' + detailId,
                     type: 'get',
                     dataType: 'json',
                     success: function(res) {
-                        if (res) {
-                            if (totalScannedItem > 0) {
-                                // if (res.unit.toLowerCase() != ($("#unit_cons_actual_gelaran").val()).toLowerCase()) {
-                                //     Swal.fire({
-                                //         icon: 'error',
-                                //         title: 'Gagal',
-                                //         text: 'Unit tidak sesuai',
-                                //         showCancelButton: false,
-                                //         showConfirmButton: true,
-                                //         confirmButtonText: 'Oke',
-                                //     });
-                                // } else {
-                                //     currentScannedItem = res;
-
-                                //     document.getElementById("id_item").value = res.id_item;
-                                //     document.getElementById("detail_item").value = res.detail_item;
-                                // }
-
-                                currentScannedItem = res;
-
-                                document.getElementById("id_item").value = res.id_item;
-                                document.getElementById("detail_item").value = res
-                                    .detail_item;
-                            } else {
-                                currentScannedItem = res;
-
-                                document.getElementById("id_item").value = res.id_item;
-                                document.getElementById("detail_item").value = res
-                                    .detail_item;
-                            }
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Gagal',
-                                text: 'Roll tidak tersedia atau sudah habis.',
-                                showCancelButton: false,
-                                showConfirmButton: true,
-                                confirmButtonText: 'Oke',
-                            });
+                        if (res.count > 0) {
+                            setTimeRecordLap(res.data);
                         }
                     }
                 });
             }
 
-            return Swal.fire({
-                icon: 'error',
-                title: 'Gagal',
-                text: 'Item tidak ditemukan',
-                showCancelButton: false,
-                showConfirmButton: true,
-                confirmButtonText: 'Oke',
-            });
-        }
+            function setTimeRecordLap(data) {
+                data.forEach((element, index, array) => {
+                    let time = element.waktu.split(":");
+                    let minutesData = Number(time[0]) * 60;
+                    let secondsData = Number(time[1]);
 
-        // -Append Scanned Item to Summary Table-
-        function appendScannedItem(data) {
-            totalLembar += Number(data.lembar_gelaran);
-            totalPiping += Number(data.piping);
-            totalQtyFabric += Number(data.qty);
-            latestUnit = data.unit;
+                    summarySeconds += (minutesData + secondsData);
+                    lap++;
 
-            let tr = document.createElement('tr');
-            let td1 = document.createElement('td');
-            let td2 = document.createElement('td');
-            let td3 = document.createElement('td');
-            let td4 = document.createElement('td');
-            let td5 = document.createElement('td');
-            let td6 = document.createElement('td');
-            let td7 = document.createElement('td');
-            let td8 = document.createElement('td');
-            let td9 = document.createElement('td');
-            let td10 = document.createElement('td');
-            let td11 = document.createElement('td');
-            let td12 = document.createElement('td');
-            let td13 = document.createElement('td');
-            let td14 = document.createElement('td');
-            let td15 = document.createElement('td');
-            let td16 = document.createElement('td');
-            let td17 = document.createElement('td');
-            let td18 = document.createElement('td');
-            let td19 = document.createElement('td');
-            let td20 = document.createElement('td');
-            let td21 = document.createElement('td');
-            td1.innerHTML = totalScannedItem + 1;
-            td2.innerHTML = data.group ? data.group : '-';
-            td3.innerHTML = data.id_roll ? data.id_roll : '-';
-            td4.innerHTML = data.id_item ? data.id_item : '-';
-            td5.innerHTML = data.lot ? data.lot : '-';
-            td6.innerHTML = data.roll ? data.roll : '-';
-            td7.innerHTML = data.qty ? data.qty : '-';
-            td8.innerHTML = data.unit ? data.unit : '-';
-            td9.innerHTML = data.sisa_gelaran ? data.sisa_gelaran : '-';
-            td10.innerHTML = data.sambungan ? data.sambungan : '-';
-            td11.innerHTML = data.est_amparan ? data.est_amparan : '-';
-            td12.innerHTML = data.lembar_gelaran ? data.lembar_gelaran : '';
-            td13.innerHTML = data.average_time ? data.average_time : '-';
-            td14.innerHTML = data.kepala_kain ? data.kepala_kain : '-';
-            td15.innerHTML = data.sisa_tidak_bisa ? data.sisa_tidak_bisa : '-';
-            td16.innerHTML = data.reject ? data.reject : '-';
-            td17.innerHTML = data.sisa_kain ? data.sisa_kain : '-';
-            td18.innerHTML = data.total_pemakaian_roll ? data.total_pemakaian_roll : '-';
-            td19.innerHTML = data.short_roll ? data.short_roll : '-';
-            td20.innerHTML = data.piping ? data.piping : '-';
-            td21.innerHTML = data.remark ? data.remark : '-';
-            tr.appendChild(td1);
-            tr.appendChild(td2);
-            tr.appendChild(td3);
-            tr.appendChild(td4);
-            tr.appendChild(td5);
-            tr.appendChild(td6);
-            tr.appendChild(td7);
-            tr.appendChild(td8);
-            tr.appendChild(td9);
-            tr.appendChild(td10);
-            tr.appendChild(td11);
-            tr.appendChild(td12);
-            tr.appendChild(td13);
-            tr.appendChild(td14);
-            tr.appendChild(td15);
-            tr.appendChild(td16);
-            tr.appendChild(td17);
-            tr.appendChild(td18);
-            tr.appendChild(td19);
-            tr.appendChild(td20);
-            tr.appendChild(td21);
+                    if (index == (array.length - 1)) {
+                        averageSeconds = (parseFloat(summarySeconds) / parseFloat(lap)).round(0);
 
-            scannedItemTableTbody.appendChild(tr);
-
-            totalScannedItem++;
-
-            totalSisaGelaran += Number(data.sisa_gelaran);
-            totalSambungan += Number(data.sambungan);
-            totalEstAmparan += Number(data.est_amparan);
-            totalAverageTime += (Number(data.average_time.slice(0, 2)) * 60) + Number(data.average_time
-                .slice(3, 5));
-            totalKepalaKain += Number(data.kepala_kain);
-            totalSisaTidakBisa += Number(data.sisa_tidak_bisa);
-            totalReject += Number(data.reject);
-            totalSisaKain += Number(data.sisa_kain);
-            totalTotalPemakaian += Number(data.total_pemakaian_roll);
-            totalShortRoll += Number(data.short_roll);
-            totalRemark += Number(data.remark);
-
-            let averageTotalAverageTime = totalAverageTime / totalScannedItem;
-            let averageTotalAverageTimeMinute = pad((averageTotalAverageTime / 60).round(0));
-            let averageTotalAverageTimeSecond = pad((averageTotalAverageTime % 60).round(0));
-
-            document.getElementById("total-sisa-gelaran").innerText = Number(totalSisaGelaran).round(2);
-            document.getElementById("total-sambungan").innerText = Number(totalSambungan).round(2);
-            document.getElementById("total-est-amparan").innerText = Number(totalEstAmparan).round(2);
-            document.getElementById("total-lembar").innerText = Number(totalLembar).round(2);
-            document.getElementById("total-average-time").innerText = averageTotalAverageTimeMinute +
-                ":" +
-                averageTotalAverageTimeSecond;
-            document.getElementById("total-kepala-kain").innerText = Number(totalKepalaKain).round(2);
-            document.getElementById("total-sisa-tidak-bisa").innerText = Number(totalSisaTidakBisa)
-                .round(2);
-            document.getElementById("total-reject").innerText = Number(totalReject).round(2);
-            document.getElementById("total-sisa-kain").innerText = Number(totalSisaKain).round(2);
-            document.getElementById("total-total-pemakaian").innerText = Number(totalTotalPemakaian)
-                .round(2);
-            document.getElementById("total-short-roll").innerText = Number(totalShortRoll).round(2);
-            document.getElementById("total-piping").innerText = Number(totalPiping).round(2);
-            document.getElementById("total-remark").innerText = Number(totalRemark).round(2);
-
-            calculateConsActualGelaran(unit = latestUnit, piping = totalPiping, lembar = totalLembar,
-                totalQtyFabric,
-                totalQtyCut, totalTotalPemakaian);
-        }
-
-        // Time Record Module :
-        // Variable List :
-        // Button Elements
-        var startLapButton = document.getElementById("startLapButton");
-        var nextLapButton = document.getElementById("nextLapButton");
-        var stopLapButton = document.getElementById("stopLapButton");
-
-        // Time Elements
-        var minutes = document.getElementById("minutes");
-        var seconds = document.getElementById("seconds");
-
-        // Table Elements
-        var timeRecordTable = document.getElementById('timeRecordTable');
-        var timeRecordTableTbody = timeRecordTable.getElementsByTagName("tbody")[0];
-
-        // Calculate Things
-        var lap = 0;
-        var totalSeconds = 0;
-        var summarySeconds = 0;
-        var averageSeconds = 0;
-        var timeRecordInterval = 0;
-
-        // Initialize Time Elements
-        seconds.value = pad(totalSeconds % 60);
-        minutes.value = pad(parseInt(totalSeconds / 60));
-
-        // Function List :
-        // -Time Record-
-        function checkTimeRecordLap(detailId) {
-            $.ajax({
-                url: '{{ route('check-time-record-form-cut-input') }}/' + detailId,
-                type: 'get',
-                dataType: 'json',
-                success: function(res) {
-                    if (res.count > 0) {
-                        setTimeRecordLap(res.data);
+                        $("#current_lembar_gelaran").val(lap).trigger('change');
+                        $("#current_average_time").val((pad(parseInt(averageSeconds / 60))) + ':' + (pad(averageSeconds % 60)))
                     }
+
+                    let tr = document.createElement('tr');
+                    let td1 = document.createElement('td');
+                    let td2 = document.createElement('td');
+                    let td3 = document.createElement('td');
+                    td1.innerHTML = lap;
+                    td2.innerHTML = element.waktu;
+                    td3.classList.add('d-none');
+                    td3.innerHTML = `<input type='hidden' name="time_record[` + lap + `]" value="` + element.waktu + `" />`;
+                    tr.appendChild(td1);
+                    tr.appendChild(td2);
+                    tr.appendChild(td3);
+
+                    timeRecordTableTbody.prepend(tr);
+                });
+
+                if (data.length > 0) {
+                    stopLapButton.disabled = false;
                 }
-            });
-        }
+            }
 
-        function setTimeRecordLap(data) {
-            data.forEach((element, index, array) => {
-                let time = element.waktu.split(":");
-                let minutesData = Number(time[0]) * 60;
-                let secondsData = Number(time[1]);
+            // -Set Time-
+            function setTime() {
+                ++totalSeconds;
+                seconds.value = pad(totalSeconds % 60);
+                minutes.value = pad(parseInt(totalSeconds / 60));
+            }
 
-                summarySeconds += (minutesData + secondsData);
+            // -Start Time Record-
+            function startTimeRecord() {
+                if (lostInterval) {
+                    addNewLostTime();
+                }
+
+                pauseTimeRecordButtons();
+
+                timeRecordInterval = setInterval(setTime, 999);
+
+                startLapButton.classList.add("d-none")
+                nextLapButton.classList.remove('d-none');
+
+                openLapTimeRecordCondition();
+
+                if ($("#status_sambungan").val() != "extension") {
+                    storeThisTimeRecord();
+                }
+            }
+
+            // -Next Lap Time Record-
+            async function addNewTimeRecord(data = null) {
+                pauseTimeRecordButtons();
+
+                summarySeconds += totalSeconds;
+                totalSeconds = 0;
                 lap++;
 
-                if (index == (array.length - 1)) {
-                    averageSeconds = (parseFloat(summarySeconds) / parseFloat(lap)).round(0);
+                averageSeconds = (parseFloat(summarySeconds) / parseFloat(lap)).round(0);
 
-                    $("#current_lembar_gelaran").val(lap).trigger('change');
-                    $("#current_average_time").val((pad(parseInt(averageSeconds / 60))) + ':' +
-                        (pad(
-                            averageSeconds % 60)))
-                }
+                $("#current_lembar_gelaran").val(lap).trigger('change');
+                $("#current_average_time").val((pad(parseInt(averageSeconds / 60))) + ':' + (pad(
+                    averageSeconds % 60)))
 
                 let tr = document.createElement('tr');
                 let td1 = document.createElement('td');
                 let td2 = document.createElement('td');
                 let td3 = document.createElement('td');
                 td1.innerHTML = lap;
-                td2.innerHTML = element.waktu;
+                td2.innerHTML = minutes.value + ':' + seconds.value;
                 td3.classList.add('d-none');
-                td3.innerHTML = `<input type='hidden' name="time_record[` + lap + `]" value="` +
-                    element.waktu +
-                    `" />`;
+                td3.innerHTML = `<input type='hidden' name="time_record[` + lap + `]" value="` + minutes
+                    .value + ':' +
+                    seconds.value + `" />`;
                 tr.appendChild(td1);
                 tr.appendChild(td2);
                 tr.appendChild(td3);
 
                 timeRecordTableTbody.prepend(tr);
-            });
 
-            if (data.length > 0) {
                 stopLapButton.disabled = false;
-            }
-        }
 
-        // -Set Time-
-        function setTime() {
-            ++totalSeconds;
-            seconds.value = pad(totalSeconds % 60);
-            minutes.value = pad(parseInt(totalSeconds / 60));
-        }
+                if ($("#status_sambungan").val() == "extension") {
+                    await stopTimeRecord();
+                } else {
+                    storeThisTimeRecord();
+                }
 
-        // -Start Time Record-
-        function startTimeRecord() {
-            if (lostInterval) {
-                addNewLostTime();
+                updatePlyProgress();
             }
 
-            pauseTimeRecordButtons();
-
-            timeRecordInterval = setInterval(setTime, 999);
-
-            startLapButton.classList.add("d-none")
-            nextLapButton.classList.remove('d-none');
-
-            openLapTimeRecordCondition();
-
-            if ($("#status_sambungan").val() != "extension") {
-                storeThisTimeRecord();
-            }
-        }
-
-        // -Next Lap Time Record-
-        async function addNewTimeRecord(data = null) {
-            pauseTimeRecordButtons();
-
-            summarySeconds += totalSeconds;
-            totalSeconds = 0;
-            lap++;
-
-            averageSeconds = (parseFloat(summarySeconds) / parseFloat(lap)).round(0);
-
-            $("#current_lembar_gelaran").val(lap).trigger('change');
-            $("#current_average_time").val((pad(parseInt(averageSeconds / 60))) + ':' + (pad(
-                averageSeconds % 60)))
-
-            let tr = document.createElement('tr');
-            let td1 = document.createElement('td');
-            let td2 = document.createElement('td');
-            let td3 = document.createElement('td');
-            td1.innerHTML = lap;
-            td2.innerHTML = minutes.value + ':' + seconds.value;
-            td3.classList.add('d-none');
-            td3.innerHTML = `<input type='hidden' name="time_record[` + lap + `]" value="` + minutes
-                .value + ':' +
-                seconds.value + `" />`;
-            tr.appendChild(td1);
-            tr.appendChild(td2);
-            tr.appendChild(td3);
-
-            timeRecordTableTbody.prepend(tr);
-
-            stopLapButton.disabled = false;
-
-            if ($("#status_sambungan").val() == "extension") {
-                await stopTimeRecord();
-            } else {
-                storeThisTimeRecord();
+            // -Stop Time Record-
+            async function stopTimeRecord() {
+                backToProcessThree();
             }
 
-            updatePlyProgress();
-        }
+            // -Reset Time Record-
+            function resetTimeRecord() {
+                pauseTimeRecordButtons();
 
-        // -Stop Time Record-
-        async function stopTimeRecord() {
-            pauseTimeRecordButtons();
+                clearTimeout(timeRecordInterval);
 
-            clearTimeout(timeRecordInterval);
+                summarySeconds = 0;
+                totalSeconds = 0;
+                timeRecordInterval = 0;
 
-            summarySeconds = 0;
-            totalSeconds = 0;
-            timeRecordInterval = 0;
+                seconds.value = 00;
+                minutes.value = 00;
+                lap = 0;
 
-            seconds.value = 00;
-            minutes.value = 00;
-            lap = 0;
+                startLapButton.classList.remove('d-none');
+                nextLapButton.classList.add('d-none');
 
-            startLapButton.classList.remove('d-none');
-            nextLapButton.classList.add('d-none');
+                $("#switch-method").prop("checked", true).trigger("change");
+            }
 
-            await backToProcessThree();
-        }
+            // Pause Buttons
+            function pauseTimeRecordButtons() {
+                startLapButton.disabled = true;
+                nextLapButton.disabled = true;
+                setTimeout(function() {
+                    startLapButton.disabled = false;
+                    nextLapButton.disabled = false;
 
-        // Pause Buttons
-        function pauseTimeRecordButtons() {
-            startLapButton.disabled = true;
-            nextLapButton.disabled = true;
-            setTimeout(function() {
+                    nextLapButton.focus();
+                }, 1500);
+            }
+
+            // Conditions :
+            function firstTimeRecordCondition() {
+                startLapButton.disabled = true;
+                nextLapButton.disabled = true;
+                stopLapButton.disabled = true;
+                finishProcessButton.disabled = false;
+
+                finishProcessButton.classList.remove("d-none");
+            }
+
+            function openTimeRecordCondition() {
+                startLapButton.disabled = false;
+                nextLapButton.disabled = true;
+                stopLapButton.disabled = true;
+            }
+
+            function openLapTimeRecordCondition() {
+                startLapButton.disabled = true;
+                nextLapButton.disabled = false;
+            }
+
+            function nextTimeRecordCondition() {
+                startLapButton.disabled = true;
+                nextLapButton.disabled = true;
+                stopLapButton.disabled = true;
+                finishProcessButton.disabled = false;
+            }
+
+            function lockTimeRecord() {
+                finishProcessButton.disabled = true;
+                finishProcessButton.innerHTML = "PENGERJAAN TELAH DISELESAIKAN";
+            }
+
+            // -Disable Time Record-
+            function disableTimeRecord() {
+                startLapButton.disabled = true;
+                nextLapButton.disabled = true;
+
+                clearTimeout(timeRecordInterval);
+            }
+
+            // -Enable Time Record-
+            function enableTimeRecord() {
                 startLapButton.disabled = false;
                 nextLapButton.disabled = false;
 
-                nextLapButton.focus();
-            }, 1500);
-        }
-
-        // Conditions :
-        function firstTimeRecordCondition() {
-            startLapButton.disabled = true;
-            nextLapButton.disabled = true;
-            stopLapButton.disabled = true;
-            finishProcessButton.disabled = false;
-
-            finishProcessButton.classList.remove("d-none");
-        }
-
-        function openTimeRecordCondition() {
-            startLapButton.disabled = false;
-            nextLapButton.disabled = true;
-            stopLapButton.disabled = true;
-        }
-
-        function openLapTimeRecordCondition() {
-            startLapButton.disabled = true;
-            nextLapButton.disabled = false;
-        }
-
-        function nextTimeRecordCondition() {
-            startLapButton.disabled = true;
-            nextLapButton.disabled = true;
-            stopLapButton.disabled = true;
-            finishProcessButton.disabled = false;
-        }
-
-        function lockTimeRecord() {
-            finishProcessButton.disabled = true;
-            finishProcessButton.innerHTML = "PENGERJAAN TELAH DISELESAIKAN";
-        }
-
-        // -Disable Time Record-
-        function disableTimeRecord() {
-            startLapButton.disabled = true;
-            nextLapButton.disabled = true;
-
-            clearTimeout(timeRecordInterval);
-        }
-
-        // -Enable Time Record-
-        function enableTimeRecord() {
-            startLapButton.disabled = false;
-            nextLapButton.disabled = false;
-
-            timeRecordInterval = setInterval(setTime, 999);
-        }
+                timeRecordInterval = setInterval(setTime, 999);
+            }
 
         // Lost Time Module :
-        // Variable List :
-        // Button Elements
-        var startLostButton = document.getElementById("startLostButton");
-        var nextLostButton = document.getElementById("nextLostButton");
+            // Variable List :
+                // Button Elements
+                var startLostButton = document.getElementById("startLostButton");
+                var nextLostButton = document.getElementById("nextLostButton");
 
-        // Time Elements
-        var lostMinutes = document.getElementById("lostMinutes");
-        var lostSeconds = document.getElementById("lostSeconds");
+                // Time Elements
+                var lostMinutes = document.getElementById("lostMinutes");
+                var lostSeconds = document.getElementById("lostSeconds");
 
-        // Table Elements
-        var lostTimeTable = document.getElementById('lostTimeTable');
-        var lostTimeTableTbody = lostTimeTable.getElementsByTagName("tbody")[0];
+                // Table Elements
+                var lostTimeTable = document.getElementById('lostTimeTable');
+                var lostTimeTableTbody = lostTimeTable.getElementsByTagName("tbody")[0];
 
-        // Calculate Things
-        var lostTime = 0;
-        var totalLostSeconds = 0;
-        var summaryLostSeconds = 0;
-        var averageLostSeconds = 0;
-        var lostInterval = 0;
+                // Calculate Things
+                var lostTime = 0;
+                var totalLostSeconds = 0;
+                var summaryLostSeconds = 0;
+                var averageLostSeconds = 0;
+                var lostInterval = 0;
 
-        // Status
-        var pausedTimeRecord = false;
+                // Status
+                var pausedTimeRecord = false;
 
-        // Initialize Time Elements
-        lostSeconds.value = pad(totalLostSeconds % 60);
-        lostMinutes.value = pad(parseInt(totalLostSeconds / 60));
+                // Initialize Time Elements
+                lostSeconds.value = pad(totalLostSeconds % 60);
+                lostMinutes.value = pad(parseInt(totalLostSeconds / 60));
 
-        // Function List :
-        // -Time Record-
-        function checkLostTime(id) {
-            $.ajax({
-                url: '{{ route('check-lost-form-cut-input') }}/' + id,
-                type: 'get',
-                dataType: 'json',
-                success: function(res) {
+            // Function List :
+                // -Time Record-
+                function checkLostTime(id) {
+                    $.ajax({
+                        url: '{{ route('check-lost-form-cut-input') }}/' + id,
+                        type: 'get',
+                        dataType: 'json',
+                        success: function(res) {
+                            openLostTimeCondition();
+
+                            if (res.count > 0) {
+                                setLostTime(res.data);
+                            }
+                        }
+                    });
+                }
+
+                async function setLostTime(data) {
+                    await data.forEach((element, index, array) => {
+                        let time = element.waktu.split(":");
+                        let minutesData = Number(time[0]) * 60;
+                        let secondsData = Number(time[1]);
+
+                        lostTime++;
+
+                        let tr = document.createElement('tr');
+                        let td1 = document.createElement('td');
+                        let td2 = document.createElement('td');
+                        let td3 = document.createElement('td');
+                        td1.innerHTML = lostTime;
+                        td2.innerHTML = element.waktu;
+                        td3.classList.add('d-none');
+                        td3.innerHTML = `<input type='hidden' name="lost_time[` + lostTime +
+                            `]" value="` + element
+                            .waktu + `" />`;
+                        tr.appendChild(td1);
+                        tr.appendChild(td2);
+                        tr.appendChild(td3);
+
+                        lostTimeTableTbody.prepend(tr);
+                    });
+
+                    document.getElementById("current_lost_time").value = lostTime;
+                }
+
+                // -Set Time-
+                function setTimeLost() {
+                    ++totalLostSeconds;
+                    lostSeconds.value = pad(totalLostSeconds % 60);
+                    lostMinutes.value = pad(parseInt(totalLostSeconds / 60));
+                }
+
+                // -Start Time Record-
+                function startLostTime() {
+                    pausedTimeRecord = false;
+
+                    if (timeRecordInterval) {
+                        disableTimeRecord();
+
+                        pausedTimeRecord = true;
+                    }
+
+                    pauseLostTimeButtons();
+
+                    lostInterval = setInterval(setTimeLost, 999);
+
+                    startLostButton.classList.add("d-none")
+                    nextLostButton.classList.remove('d-none');
+                    nextLostButton.focus();
+
                     openLostTimeCondition();
-
-                    if (res.count > 0) {
-                        setLostTime(res.data);
-                    }
                 }
-            });
-        }
 
-        async function setLostTime(data) {
-            await data.forEach((element, index, array) => {
-                let time = element.waktu.split(":");
-                let minutesData = Number(time[0]) * 60;
-                let secondsData = Number(time[1]);
+                // -Next Lap Time Record-
+                async function addNewLostTime() {
+                    pauseLostTimeButtons();
 
-                lostTime++;
+                    totalLostSeconds = 0;
+                    lostTime++;
 
-                let tr = document.createElement('tr');
-                let td1 = document.createElement('td');
-                let td2 = document.createElement('td');
-                let td3 = document.createElement('td');
-                td1.innerHTML = lostTime;
-                td2.innerHTML = element.waktu;
-                td3.classList.add('d-none');
-                td3.innerHTML = `<input type='hidden' name="lost_time[` + lostTime +
-                    `]" value="` + element
-                    .waktu + `" />`;
-                tr.appendChild(td1);
-                tr.appendChild(td2);
-                tr.appendChild(td3);
+                    document.getElementById("current_lost_time").value = lostTime;
 
-                lostTimeTableTbody.prepend(tr);
-            });
+                    let tr = document.createElement('tr');
+                    let td1 = document.createElement('td');
+                    let td2 = document.createElement('td');
+                    let td3 = document.createElement('td');
+                    td1.innerHTML = lostTime;
+                    td2.innerHTML = lostMinutes.value + ':' + lostSeconds.value;
+                    td3.classList.add('d-none');
+                    td3.innerHTML = `<input type='hidden' name="lost_time[` + lostTime + `]" value="` +
+                        lostMinutes.value +
+                        ':' + lostSeconds.value + `" />`;
+                    tr.appendChild(td1);
+                    tr.appendChild(td2);
+                    tr.appendChild(td3);
 
-            document.getElementById("current_lost_time").value = lostTime;
-        }
+                    lostTimeTableTbody.prepend(tr);
 
-        // -Set Time-
-        function setTimeLost() {
-            ++totalLostSeconds;
-            lostSeconds.value = pad(totalLostSeconds % 60);
-            lostMinutes.value = pad(parseInt(totalLostSeconds / 60));
-        }
+                    console.log(lostTime);
 
-        // -Start Time Record-
-        function startLostTime() {
-            pausedTimeRecord = false;
+                    stopLostTime();
 
-            if (timeRecordInterval) {
-                disableTimeRecord();
-
-                pausedTimeRecord = true;
-            }
-
-            pauseLostTimeButtons();
-
-            lostInterval = setInterval(setTimeLost, 999);
-
-            startLostButton.classList.add("d-none")
-            nextLostButton.classList.remove('d-none');
-            nextLostButton.focus();
-
-            openLostTimeCondition();
-        }
-
-        // -Next Lap Time Record-
-        async function addNewLostTime() {
-            pauseLostTimeButtons();
-
-            totalLostSeconds = 0;
-            lostTime++;
-
-            document.getElementById("current_lost_time").value = lostTime;
-
-            let tr = document.createElement('tr');
-            let td1 = document.createElement('td');
-            let td2 = document.createElement('td');
-            let td3 = document.createElement('td');
-            td1.innerHTML = lostTime;
-            td2.innerHTML = lostMinutes.value + ':' + lostSeconds.value;
-            td3.classList.add('d-none');
-            td3.innerHTML = `<input type='hidden' name="lost_time[` + lostTime + `]" value="` +
-                lostMinutes.value +
-                ':' + lostSeconds.value + `" />`;
-            tr.appendChild(td1);
-            tr.appendChild(td2);
-            tr.appendChild(td3);
-
-            lostTimeTableTbody.prepend(tr);
-
-            console.log(lostTime);
-
-            stopLostTime();
-
-            $('#lost-time-card').CardWidget('collapse');
-        }
-
-        // -Stop Time Record-
-        async function stopLostTime() {
-            if (pausedTimeRecord) {
-                enableTimeRecord();
-            }
-
-            pauseLostTimeButtons();
-
-            clearTimeout(lostInterval);
-
-            totalLostSeconds = 0;
-            lostInterval = 0;
-
-            lostSeconds.value = "00";
-            lostMinutes.value = "00";
-
-            startLostButton.classList.remove('d-none');
-            nextLostButton.classList.add('d-none');
-
-            storeLostTime(id);
-        }
-
-        // Pause Buttons
-        function pauseLostTimeButtons(disables = []) {
-            startLostButton.disabled = true;
-            nextLostButton.disabled = true;
-            setTimeout(function() {
-                startLostButton.disabled = false;
-                nextLostButton.disabled = false;
-            }, 1500);
-        }
-
-        // Store Lost Time
-        function storeLostTime(id) {
-            let lostTimeForm = new FormData(document.getElementById('lost-time-form'));
-
-            $.ajax({
-                url: '{{ route('store-lost-form-cut-input') }}/' + id,
-                type: 'post',
-                processData: false,
-                contentType: false,
-                data: lostTimeForm,
-                success: function(res) {
-                    if (res) {
-                        console.log(res);
-                    }
+                    $('#lost-time-card').CardWidget('collapse');
                 }
-            });
-        }
 
-        // Conditions :
-        function firstLostTimeCondition() {
-            startLostButton.disabled = true;
-            nextLostButton.disabled = true;
-        }
+                // -Stop Time Record-
+                async function stopLostTime() {
+                    if (pausedTimeRecord) {
+                        enableTimeRecord();
+                    }
 
-        function openLostTimeCondition() {
-            startLostButton.disabled = false;
-            nextLostButton.disabled = true;
-        }
+                    pauseLostTimeButtons();
 
-        function openLapLostTimeCondition() {
-            startLostButton.disabled = true;
-            nextLostButton.disabled = false;
-        }
+                    clearTimeout(lostInterval);
 
-        function nextLostTimeCondition() {
-            startLostButton.disabled = true;
-            nextLostButton.disabled = true;
-        }
+                    totalLostSeconds = 0;
+                    lostInterval = 0;
+
+                    lostSeconds.value = "00";
+                    lostMinutes.value = "00";
+
+                    startLostButton.classList.remove('d-none');
+                    nextLostButton.classList.add('d-none');
+
+                    storeLostTime(id);
+                }
+
+                // Pause Buttons
+                function pauseLostTimeButtons(disables = []) {
+                    startLostButton.disabled = true;
+                    nextLostButton.disabled = true;
+                    setTimeout(function() {
+                        startLostButton.disabled = false;
+                        nextLostButton.disabled = false;
+                    }, 1500);
+                }
+
+                // Store Lost Time
+                function storeLostTime(id) {
+                    let lostTimeForm = new FormData(document.getElementById('lost-time-form'));
+
+                    $.ajax({
+                        url: '{{ route('store-lost-form-cut-input') }}/' + id,
+                        type: 'post',
+                        processData: false,
+                        contentType: false,
+                        data: lostTimeForm,
+                        success: function(res) {
+                            if (res) {
+                                console.log(res);
+                            }
+                        }
+                    });
+                }
+
+                // Conditions :
+                function firstLostTimeCondition() {
+                    startLostButton.disabled = true;
+                    nextLostButton.disabled = true;
+                }
+
+                function openLostTimeCondition() {
+                    startLostButton.disabled = false;
+                    nextLostButton.disabled = true;
+                }
+
+                function openLapLostTimeCondition() {
+                    startLostButton.disabled = true;
+                    nextLostButton.disabled = false;
+                }
+
+                function nextLostTimeCondition() {
+                    startLostButton.disabled = true;
+                    nextLostButton.disabled = true;
+                }
     </script>
 @endsection
