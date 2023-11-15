@@ -36,7 +36,7 @@
                             {{-- Form Information --}}
                             <input type="hidden" name="id" id="id" value="{{ $id }}" readonly>
                             <input type="hidden" name="status" id="status" value="{{ $formCutInputData->status }}" readonly>
-                            <input type="hidden" name="no_meja" id="no_meja" value="{{ Auth::user()->id }}" readonly>
+                            <input type="hidden" name="no_meja" id="no_meja" value="{{ $formCutInputData ? ($formCutInputData->no_meja ? $formCutInputData->no_meja : Auth::user()->id) : Auth::user()->id }}" readonly>
                             <div class="col-6 col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Start</b></small></label>
@@ -439,36 +439,74 @@
                             </div>
                         </div>
                         <div class="col-md-12">
-                            <div class="mb-3">
-                                <label class="form-label label-input"><small><b>ID Roll</b></small></label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control form-control-sm border-input" name="kode_barang" id="kode_barang">
-                                    <button class="btn btn-sm btn-success" type="button" id="get-button" onclick="fetchScan()">Get</button>
-                                    <button class="btn btn-sm btn-primary" type="button" id="scan-button" onclick="initScan()">Scan</button>
+                            <div class="d-flex justify-content-center mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="switch-method" checked onchange="switchMethod(this)">
+                                    <label class="form-check-label" id="to-scan">Scan Roll</label>
+                                    <label class="form-check-label d-none" id="to-item">Pilih Barang</label>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-6 col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label label-scan"><small><b>ID Item</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-scan" name="id_item" id="id_item" readonly>
+                        <div class="col-md-12" id="scan-method">
+                            <div class="row align-items-end">
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label class="form-label label-input"><small><b>ID Roll</b></small></label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control form-control-sm border-input"
+                                                name="kode_barang" id="kode_barang">
+                                            <button class="btn btn-sm btn-success" type="button" id="get-button"
+                                                onclick="fetchScan()">Get</button>
+                                            <button class="btn btn-sm btn-primary" type="button" id="scan-button"
+                                                onclick="initScan()">Scan</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label label-scan"><small><b>ID Item</b></small></label>
+                                        <input type="text" class="form-control form-control-sm border-scan" name="id_item"
+                                            id="id_item" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label label-scan"><small><b>Detail Item</b></small></label>
+                                        <input type="text" class="form-control form-control-sm border-scan" name="detail_item"
+                                            id="detail_item" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label label-input"><small><b>Color Act</b></small></label>
+                                        <input type="text" class="form-control form-control-sm border-input" name="color_act"
+                                            id="color_act">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mt-auto mb-3">
+                                        <button class="btn btn-sb btn-sm btn-block d-none" id="next-process-3"
+                                            onclick="nextProcessThree()">START</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-6 col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label label-scan"><small><b>Detail Item</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-scan" name="detail_item" id="detail_item" readonly>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label label-input"><small><b>Color Act</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-input" name="color_act" id="color_act">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mt-auto mb-3">
-                                <button class="btn btn-sb btn-sm btn-block d-none" id="next-process-3" onclick="nextProcessThree()">START</button>
+                        <div class="col-md-12 d-none" id="item-method">
+                            <div class="row align-items-end">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label label-input"><small><b>Pilih Barang</b></small></label>
+                                        <select class="form-select form-control-sm select2bs4" name="select_item" id="select_item" onchange="setSelectedItem(this)">
+                                            <option value="">Pilih Barang</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mt-auto mb-3">
+                                        <button class="btn btn-sb btn-sm btn-block" id="next-process-3-item"
+                                            onclick="nextProcessThree()">START</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -517,7 +555,9 @@
                                 <label class="form-label label-scan"><small><b>Qty</b></small></label>
                                 <div class="d-flex mb-3">
                                     <div style="width: 60%">
-                                        <input type="number" class="form-control form-control-sm border-scan" id="current_qty_real" name="current_qty_real" readonly>
+                                        <input type="number" class="form-control form-control-sm border-scan" id="current_qty_real" name="current_qty_real" readonly
+                                        onchange="setRollQtyConversion(this.value); calculateEstAmpar();"
+                                        onkeyup="setRollQtyConversion(this.value); calculateEstAmpar();">
                                     </div>
                                     <div style="width: 40%">
                                         <input type="text" class="form-control form-control-sm border-scan" id="current_unit" name="current_unit" readonly>
@@ -938,6 +978,9 @@
         // -Ratio & Qty Cuy-
         var totalRatio = document.getElementById('total_ratio').value;
         var totalQtyCut = document.getElementById('total_qty_cut_ply').value;
+
+        // -Method-
+        var method = "scan";
 
         // Step One (WS) on change event
         $('#act_costing_id').on('change', function(e) {
@@ -1422,6 +1465,9 @@
                 // -Select2 Prevent Step-Jump Input ( Step = WS -> Color -> Panel )-
                 $("#color").prop("disabled", true);
                 $("#panel").prop("disabled", true);
+
+                // -Default Method-
+                $('#switch-method').prop('checked', true);
             });
 
         // Process :
@@ -1579,6 +1625,7 @@
                                 nextProcessThreeButton.classList.remove("d-none");
 
                                 initScan();
+                                getItemList()
                             }
                         }
                     },
@@ -1610,7 +1657,21 @@
 
             // -Process Three Transaction-
             async function updateToNextProcessThree() {
-                if (checkIfNull(document.getElementById("id_item").value) && checkIfNull(document.getElementById("detail_item").value) && checkIfNull(document.getElementById("color_act").value) && currentScannedItem) {
+                let validation = false;
+
+                switch (method) {
+                    case "scan" :
+                        validation = checkIfNull(document.getElementById("id_item").value) && checkIfNull(document.getElementById("detail_item").value) && checkIfNull(document.getElementById("color_act").value);
+                        break;
+                    case "item" :
+                        validation = checkIfNull(document.getElementById("select_item").value);
+                        break;
+                    default :
+                        validation = checkIfNull(document.getElementById("id_item").value) && checkIfNull(document.getElementById("detail_item").value) && checkIfNull(document.getElementById("color_act").value);
+                        break;
+                }
+
+                if (validation && currentScannedItem) {
                     nextProcessThreeButton.classList.add("d-none");
 
                     $('#scan-qr-card').CardWidget('collapse');
@@ -1641,6 +1702,8 @@
 
             // -Store Time Record Transaction-
             function storeTimeRecord() {
+                clearModified();
+
                 let spreadingForm = new FormData(document.getElementById("spreading-form"));
 
                 let dataObj = {
@@ -1651,6 +1714,7 @@
                     "no_meja": $("#no_meja").val(),
                     "color_act": $("#color_act").val(),
                     "detail_item": $("#detail_item").val(),
+                    "metode": method,
                 }
 
                 spreadingForm.forEach((value, key) => dataObj[key] = value);
@@ -1691,6 +1755,8 @@
                                         }
                                     }
                                 }
+
+                                resetTimeRecord();
                             }
                         },
                         error: function(jqXHR) {
@@ -1748,6 +1814,8 @@
                                         }
                                     }
                                 }
+
+                                resetTimeRecord();
                             }
                         },
                         error: function(jqXHR) {
@@ -1781,7 +1849,8 @@
                     "color_act": $("#color_act").val(),
                     "detail_item": $("#detail_item").val(),
                     "no_meja": $("#no_meja").val(),
-                    "lap": lap
+                    "lap": lap,
+                    "metode": method,
                 }
 
                 spreadingForm.forEach((value, key) => dataObj[key] = value);
@@ -1978,6 +2047,13 @@
                 }
 
                 return null;
+            }
+
+            function setRollQtyConversion(rollQty = 0, unitQty) {
+                let rollQtyVar = rollQty > 0 ? Number(rollQty) : Number(document.getElementById("current_qty_real"));
+                let unitQtyVar = unitQty ? unitQty : document.getElementById("current_unit");
+
+                document.getElementById("current_qty").value = rollQtyConversion(rollQtyVar, unitQtyVar);
             }
 
             // -Restrict Sisa Gelaran-
@@ -2292,6 +2368,7 @@
                     $('#scan-qr-card').removeClass('d-none');
 
                     initScan();
+                    getItemList();
 
                     checkSpreadingForm();
 
@@ -2359,6 +2436,82 @@
                 document.getElementById('unit_cons_actual_gelaran').setAttribute('readonly', true);
             }
 
+            // -Switch Method-
+            function switchMethod(element) {
+                if (element.checked) {
+                    toScanMethod();
+                } else {
+                    toItemMethod();
+                }
+            }
+
+            function toItemMethod() {
+                method = "item";
+
+                document.getElementById("scan-method").classList.add('d-none');
+                document.getElementById("to-scan").classList.add('d-none');
+
+                document.getElementById("item-method").classList.remove('d-none');
+                document.getElementById("to-item").classList.remove('d-none');
+                $("#select_item").val("").trigger("change");
+
+                html5QrcodeScanner.clear();
+            }
+
+            function toScanMethod() {
+                method = "scan";
+
+                document.getElementById("item-method").classList.add('d-none');
+                document.getElementById("to-item").classList.add('d-none');
+
+                document.getElementById("scan-method").classList.remove('d-none');
+                document.getElementById("to-scan").classList.remove('d-none');
+                $("#select_item").val("").trigger("change");
+
+                initScan();
+            }
+
+            // Get Item List Module :
+            async function getItemList() {
+                $("#select_item").prop("disabled", true);
+
+                await $.ajax({
+                    url: '{{ route('get-item-manual-form-cut') }}',
+                    type: 'get',
+                    data: {
+                        act_costing_id: $("#act_costing_id").val(),
+                    },
+                    dataType: 'json',
+                    success: function(res) {
+                        if (res) {
+                            res.forEach((item) => {
+                                let option = document.createElement("option");
+                                option.text = item.itemdesc;
+                                option.value = item.id_item;
+
+                                document.getElementById("select_item").appendChild(option);
+                            })
+                        }
+                    },
+                });
+
+                $("#select_item").prop("disabled", false);
+            }
+
+            function setSelectedItem(element) {
+                currentScannedItem = null;
+
+                if (element.value && element.value != "") {
+                    document.getElementById("kode_barang").value = "";
+                    document.getElementById("current_id_roll").value = "";
+
+                    document.getElementById("id_item").value = element.value;
+                    document.getElementById("detail_item").value = $("#select_item option:selected").text();
+
+                    currentScannedItem = {"id_item": element.value, "detail_item": $("#select_item option:selected").text(), "unit": "METER"};
+                }
+            }
+
         // Spreading Form Module :
             // Variable :
                 var spreadingFormData = null;
@@ -2375,6 +2528,7 @@
                         type: 'get',
                         dataType: 'json',
                         success: function(res) {
+                            console.log(res);
                             if (res) {
                                 nextProcessThreeButton.classList.remove('d-none');
 
@@ -2383,6 +2537,7 @@
                                 if (res.count > 0) {
                                     spreadingFormData = res.data;
                                     sisaGelaran = res.sisaGelaran;
+                                    method = res.data.metode ? res.data.metode : "scan";
 
                                     setSpreadingForm(spreadingFormData, sisaGelaran);
 
@@ -2407,6 +2562,15 @@
                 function setSpreadingForm(data, sisaGelaran) {
                     if (!(sisaGelaran)) {
                         clearSpreadingForm();
+                    }
+
+                    if (method == "item") {
+                        document.getElementById("current_id_item").removeAttribute("readonly");
+                        document.getElementById("current_lot").removeAttribute("readonly");
+                        document.getElementById("current_roll").removeAttribute("readonly");
+                        document.getElementById("current_qty").removeAttribute("readonly");
+                        document.getElementById("current_qty_real").removeAttribute("readonly");
+                        document.getElementById("current_unit").value = "METER";
                     }
 
                     let convertedQty = rollQtyConversion(data.qty, data.unit);
@@ -2480,6 +2644,12 @@
                 // -Clear Spreading Form-
                 function clearSpreadingForm() {
                     $('#spreading-form-card').CardWidget('collapse');
+
+                    document.getElementById("current_id_item").setAttribute("readonly", true);
+                    document.getElementById("current_lot").setAttribute("readonly", true);
+                    document.getElementById("current_roll").setAttribute("readonly", true);
+                    document.getElementById("current_qty").setAttribute("readonly", true);
+                    document.getElementById("current_qty_real").setAttribute("readonly", true);
 
                     document.getElementById("id_sambungan").value = "";
                     document.getElementById("status_sambungan").value = "";
@@ -3007,6 +3177,11 @@
 
                 // -Stop Time Record-
                 async function stopTimeRecord() {
+                    backToProcessThree();
+                }
+
+                // -Reset Time Record-
+                function resetTimeRecord() {
                     pauseTimeRecordButtons();
 
                     clearTimeout(timeRecordInterval);
@@ -3022,7 +3197,7 @@
                     startLapButton.classList.remove('d-none');
                     nextLapButton.classList.add('d-none');
 
-                    await backToProcessThree();
+                    $("#switch-method").prop("checked", true).trigger("change");
                 }
 
                 // Pause Buttons

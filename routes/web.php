@@ -86,6 +86,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/process/{id?}', 'process')->name('process-form-cut-input');
         Route::get('/get-number-data', 'getNumberData')->name('get-number-form-cut-input');
         Route::get('/get-scanned-item/{id?}', 'getScannedItem')->name('get-scanned-form-cut-input');
+        Route::get('/get-item', 'getItem')->name('get-item-form-cut-input');
         Route::put('/start-process/{id?}', 'startProcess')->name('start-process-form-cut-input');
         Route::put('/next-process-one/{id?}', 'nextProcessOne')->name('next-process-one-form-cut-input');
         Route::put('/next-process-two/{id?}', 'nextProcessTwo')->name('next-process-two-form-cut-input');
@@ -123,6 +124,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/process/{id?}', 'process')->name('process-manual-form-cut');
         Route::get('/get-number-data', 'getNumberData')->name('get-number-manual-form-cut');
         Route::get('/get-scanned-item/{id?}', 'getScannedItem')->name('get-scanned-manual-form-cut');
+        Route::get('/get-item', 'getItem')->name('get-item-manual-form-cut');
         Route::put('/start-process', 'startProcess')->name('start-process-manual-form-cut');
         Route::post('/store-marker/{id?}', 'storeMarker')->name('store-marker-manual-form-cut');
         Route::put('/next-process-one/{id?}', 'nextProcessOne')->name('next-process-one-manual-form-cut');
