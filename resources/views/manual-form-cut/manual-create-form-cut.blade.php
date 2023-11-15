@@ -206,6 +206,7 @@
                                         calculateConsAmpar();
                                         calculateEstAmpar();
                                         calculateTotalPemakaian();
+                                        calculateSisaKain();
                                         calculateShortRoll();
                                         calculateRemark();
                                     "
@@ -214,6 +215,7 @@
                                         calculateConsAmpar();
                                         calculateEstAmpar();
                                         calculateTotalPemakaian();
+                                        calculateSisaKain();
                                         calculateShortRoll();
                                         calculateRemark();
                                     "
@@ -235,6 +237,7 @@
                                         calculateConsAmpar();
                                         calculateEstAmpar();
                                         calculateTotalPemakaian();
+                                        calculateSisaKain();
                                         calculateShortRoll();
                                         calculateRemark();
                                     "
@@ -243,6 +246,7 @@
                                         calculateConsAmpar();
                                         calculateEstAmpar();
                                         calculateTotalPemakaian();
+                                        calculateSisaKain();
                                         calculateShortRoll();
                                         calculateRemark();
                                     ">
@@ -262,6 +266,7 @@
                                         calculateConsAmpar();
                                         calculateEstAmpar();
                                         calculateTotalPemakaian();
+                                        calculateSisaKain();
                                         calculateShortRoll();
                                         calculateRemark();
                                     "
@@ -269,6 +274,7 @@
                                         calculateConsAmpar();
                                         calculateEstAmpar();
                                         calculateTotalPemakaian();
+                                        calculateSisaKain();
                                         calculateShortRoll();
                                         calculateRemark();
                                     ">
@@ -551,10 +557,12 @@
                                             <input type="number" class="form-control form-control-sm border-input" id="current_sambungan" name="current_sambungan" step=".01"
                                                 onkeyup="
                                                     calculateTotalPemakaian();
+                                                    calculateSisaKain();
                                                     calculateShortRoll();
                                                 "
                                                 onchange="
                                                     calculateTotalPemakaian();
+                                                    calculateSisaKain();
                                                     calculateShortRoll();
                                                 "
                                             >
@@ -577,12 +585,14 @@
                                     <input type="number" class="form-control form-control-sm border-sb" id="current_lembar_gelaran" name="current_lembar_gelaran" readonly
                                         onkeyup="
                                             calculateTotalPemakaian();
+                                            calculateSisaKain();
                                             calculateShortRoll();
                                             calculateRemark();
                                         "
 
                                         onchange="
                                             calculateTotalPemakaian();
+                                            calculateSisaKain();
                                             calculateShortRoll();
                                             calculateRemark();
                                         "
@@ -609,8 +619,14 @@
                                     <label class="form-label label-input"><small><b>Kepala Kain</b></small></label>
                                     <div class="input-group input-group-sm mb-3">
                                         <input type="number" class="form-control border-input" id="current_kepala_kain" name="current_kepala_kain" step=".01"
-                                            onkeyup="calculateTotalPemakaian(); calculateShortRoll();"
-                                            onchange="calculateTotalPemakaian(); calculateShortRoll();"
+                                            onkeyup="
+                                                calculateTotalPemakaian();
+                                                calculateSisaKain();
+                                                calculateShortRoll();"
+                                            onchange="
+                                                calculateTotalPemakaian();
+                                                calculateSisaKain();
+                                                calculateShortRoll();"
                                         >
                                         <span class="input-group-text input-group-unit"></span>
                                     </div>
@@ -623,11 +639,13 @@
                                         <input type="number" class="form-control border-input" id="current_sisa_tidak_bisa" name="current_sisa_tidak_bisa" step=".01"
                                             onkeyup="
                                                 calculateTotalPemakaian();
+                                                calculateSisaKain();
                                                 calculateShortRoll();
                                                 calculateRemark();
                                             "
                                             onchange="
                                                 calculateTotalPemakaian();
+                                                calculateSisaKain();
                                                 calculateShortRoll();
                                                 calculateRemark();
                                             "
@@ -643,11 +661,13 @@
                                         <input type="number" class="form-control form-control-sm border-input" id="current_reject" name="current_reject" step=".01"
                                             onkeyup="
                                                 calculateTotalPemakaian();
+                                                calculateSisaKain();
                                                 calculateShortRoll();
                                                 calculateRemark();
                                             "
                                             onchange="
                                                 calculateTotalPemakaian();
+                                                calculateSisaKain();
                                                 calculateShortRoll();
                                                 calculateRemark();
                                             "
@@ -664,11 +684,13 @@
                                             onkeyup="
                                                 calculateShortRoll();
                                                 calculateRemark();
+                                                calculateSisaKain();
                                             "
 
                                             onchange="
                                                 calculateShortRoll();
                                                 calculateRemark();
+                                                calculateSisaKain();
                                             "
                                         >
                                         <span class="input-group-text input-group-unit"></span>
@@ -2196,6 +2218,43 @@
                 let remark = ((pActualConverted * lembarGelaranVar) +  sisaGelaranVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar);
 
                 document.getElementById("current_remark").value = remark.round(2);
+            }
+
+            // -Calculate Sisa Kain-
+            function calculateSisaKain() {
+                let lembarGelaranVar = Number(document.getElementById("current_lembar_gelaran").value);
+                let kepalaKainVar = Number(document.getElementById("current_kepala_kain").value);
+                let rejectVar = Number(document.getElementById("current_reject").value);
+                let pipingVar = Number(document.getElementById("current_piping").value);
+                let sisaTidakBisaVar = Number(document.getElementById("current_sisa_tidak_bisa").value);
+
+                let pActualVar = Number(document.getElementById("p_act").value);
+                let lActualVar = Number(document.getElementById("l_act").value);
+                let unitPActualVar = document.getElementById("unit_p_act").value;
+                let commaActualVar = Number(document.getElementById("comma_act").value);
+                let gramasiVar = Number(document.getElementById("gramasi").value);
+
+                let qtyVar = Number(document.getElementById("current_qty").value);
+                let unitQtyVar = document.getElementById("current_unit").value;
+
+                let pActualConverted = 0;
+
+                if (document.getElementById("status_sambungan").value == "extension") {
+                    pActualConverted = document.getElementById("current_sambungan").value;
+                } else {
+                    if (unitQtyVar != "KGM") {
+                        pActualConverted = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
+                    } else {
+                        qtyVar = Number(document.getElementById("current_qty_real").value);
+
+                        pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                    }
+                }
+
+
+                let sisaKain = qtyVar - ((pActualConverted * lembarGelaranVar) + kepalaKainVar + sisaTidakBisaVar + rejectVar + rejectVar + pipingVar);
+
+                document.getElementById("current_sisa_kain").value = sisaKain.round(2);
             }
 
             // -Calculate Sambungan-
