@@ -799,9 +799,9 @@ class ManualFormCutController extends Controller
                 }
             } else {
                 ScannedItem::updateOrCreate(
-                    ["id_item" => $validatedRequest['current_id_item']],
+                    ["id_roll" => $validatedRequest['current_id_roll']],
                     [
-                        "id_roll" => $validatedRequest['current_id_roll'],
+                        "id_item" => $validatedRequest['current_id_item'],
                         "color" => $validatedRequest['color_act'],
                         "detail_item" => $validatedRequest['detail_item'],
                         "lot" => $request['current_lot'],
