@@ -65,7 +65,7 @@ class ExportLaporanMutasiKaryawan implements FromView, WithEvents, ShouldAutoSiz
 
         $data = DB::select("
         select * from (
-            select a.id, b.tgl_pindah,b.nik,b.nm_karyawan,b.line,b.line_asal,b.updated_at, absen_masuk_kerja,status_aktif,tanggal_berjalan,c.enroll_id from (
+            select a.id, b.tgl_pindah,b.nik,b.nm_karyawan,b.line,b.line_asal,b.updated_at, absen_masuk_kerja,status_aktif,tanggal_berjalan,b.enroll_id from (
             select * from (
             select max(id) id,tgl_pindah from mut_karyawan_input a
             where tgl_pindah <= '$this->from'
@@ -79,7 +79,7 @@ class ExportLaporanMutasiKaryawan implements FromView, WithEvents, ShouldAutoSiz
             inner join mut_karyawan_input b on a.id = b.id
             left join (select enroll_id, absen_masuk_kerja,tanggal_berjalan, status_aktif from master_data_absen_kehadiran where tanggal_berjalan >= '$this->from' and tanggal_berjalan <= '$this->to' and status_aktif = 'AKTIF' group by tanggal_berjalan, enroll_id) c on b.enroll_id = c.enroll_id
             )master_karyawan
-            where status_aktif = 'AKTIF'
+            where status_aktif = 'AKTIF' or status_aktif is null
             group by enroll_id,tanggal_berjalan
             order by tanggal_berjalan asc,cast(right(line,2) as UNSIGNED) asc, nm_karyawan asc
         ");

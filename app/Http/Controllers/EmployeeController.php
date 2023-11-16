@@ -73,7 +73,7 @@ class EmployeeController extends Controller
                 inner join mut_karyawan_input b on a.id = b.id
 				left join (select enroll_id, absen_masuk_kerja, status_aktif from master_data_absen_kehadiran where tanggal_berjalan = '".$tglskrg."' and status_aktif = 'AKTIF') c on b.enroll_id = c.enroll_id
             ) master_karyawan
-            where status_aktif = 'AKTIF'
+            where status_aktif = 'AKTIF' or status_aktif is null
             group by line
             order by cast(right(line,2) as UNSIGNED) asc
             ");
@@ -92,7 +92,7 @@ class EmployeeController extends Controller
 
     public function lineChartData()
     {
-        $data_line = DB::select("
+        $data_line =  DB::connection('mysql_hris')->select("
             SELECT
                 line,
                 count(id) tot_orang,
@@ -138,7 +138,7 @@ class EmployeeController extends Controller
 
     public function gettotal(Request $request)
     {
-        $total = DB::select(
+        $total =  DB::connection('mysql_hris')->select(
             "
         select count(nik) total from
         (select max(id) id from mut_karyawan_input a
@@ -168,7 +168,7 @@ class EmployeeController extends Controller
         // ");
         // return DataTables::of($det_karyawan_line)->toJson();
 
-        $det_karyawan_line = DB::select("
+        $det_karyawan_line =  DB::connection('mysql_hris')->select("
         select a.id, b.*,
         c.absen_masuk_kerja,
         DATE_FORMAT(tgl_pindah, '%d-%m-%Y') tgl_pindah_fix,
@@ -179,8 +179,7 @@ class EmployeeController extends Controller
         group by nik)a
         inner join mut_karyawan_input b on a.id = b.id
         left join (select enroll_id, absen_masuk_kerja, status_aktif from master_data_absen_kehadiran where tanggal_berjalan = '" . $tglskrg . "') c on b.enroll_id = c.enroll_id
-        where line ='" . $request->nm_line . "'
-        and status_aktif = 'AKTIF'
+        where status_aktif = 'AKTIF' or status_aktif is null and line ='" . $request->nm_line . "'
         order by updated_at desc
         ");
         return DataTables::of($det_karyawan_line)->toJson();
@@ -203,7 +202,7 @@ class EmployeeController extends Controller
         $timestamp = Carbon::now();
         $enroll_id = $request->txtenroll_id;
 
-        $line_asal = DB::select("
+        $line_asal =  DB::connection('mysql_hris')->select("
         select line,nik,enroll_id, nm_karyawan from (
             select a.id, b.tgl_pindah,b.enroll_id,b.nik,b.nm_karyawan,b.line from
             (select max(id) id from mut_karyawan_input a
