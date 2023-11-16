@@ -12,7 +12,7 @@
     <thead>
         <tr>
             <td>No</td>
-            <td>Tgl. Pindah</td>
+            <td>Tanggal</td>
             <td>Line Sekarang</td>
             <td>NIK</td>
             <td>Nama Karyawan</td>
@@ -27,7 +27,7 @@
         @foreach ($data as $item)
             <tr>
                 <td>{{ $no++ }}.</td>
-                <td>{{ $item->tgl_pindah }}</td>
+                <td>{{ $item->tanggal_berjalan}}</td>
                 <td>{{ $item->line }}</td>
                 <td>{{ $item->nik }}</td>
                 <td>{{ $item->nm_karyawan }}</td>
