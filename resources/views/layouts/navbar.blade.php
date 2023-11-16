@@ -115,7 +115,7 @@
                                 </li> --}}
                                 <li>
                                     <a href="{{ route('stocker') }}" class="dropdown-item">
-                                        Stocker <i class="fas fa-tags fa-sm"></i>
+                                        Stocker <i class="fas fa-receipt fa-sm"></i>
                                     </a>
                                 </li>
                             @endstocker
@@ -136,7 +136,7 @@
                                 </li> --}}
                                 <li>
                                     <a href="{{ route('stocker') }}" class="dropdown-item">
-                                        Stocker <i class="fas fa-tags fa-sm"></i>
+                                        Stocker <i class="fas fa-receipt fa-sm"></i>
                                     </a>
                                 </li>
                             @enddc
@@ -152,7 +152,7 @@
                             @stocker
                                 <li>
                                     <a href="{{ route('mut-karyawan') }}" class="dropdown-item">
-                                        Mutasi Karyawan
+                                        Mutasi Karyawan <i class="fas fa-users-cog fa-sm"></i>
                                     </a>
                                 </li>
                             @endstocker
