@@ -25,13 +25,14 @@
                         <div class="mb-3">
                             <label class="form-label label-input"><small><b>Line</b></small></label>
                             <div class="input-group">
-                                <input type="text" class="form-control form-control-sm border-input" name="txtline" readonly
+                                <input type="text" class="form-control form-control-sm border-input" name="txtline"
                                     id="txtline" autocomplete="off" enterkeyhint="go"
                                     onkeyup="if (event.keyCode == 13)
                                     document.getElementById('scan_line').click()"
                                     autofocus>
-                                    <input type="button" class="btn btn-sm btn-primary" value="Scan Line" />
-                                <button class="btn btn-sm btn-primary" type="button" id="scan_line" style="display: none;"
+                                    {{-- <input type="button" class="btn btn-sm btn-primary" value="Scan Line" /> --}}
+                                    {{-- style="display: none;" --}}
+                                <button class="btn btn-sm btn-primary" type="button" id="scan_line"
                                     onclick="scanline()">Scan</button>
                             </div>
                         </div>
@@ -49,8 +50,6 @@
                             <label class="form-label label-scan"><small><b>Nama Line</b></small></label>
                             <input type="text" class="form-control form-control-sm border-scan" name="nm_line"
                                 id="nm_line" readonly>
-                            <input type="hidden" class="form-control form-control-sm border-scan" name="nik"
-                                id="nik" readonly>
                         </div>
                     </div>
                     <div class="col-6 col-md-6">
@@ -64,16 +63,19 @@
                     </div>
                     <div class="col-md-12">
                         <div class="mb-3">
-                            <label class="form-label label-input"><small><b>Scan NIK</b></small></label>
+                            <label class="form-label label-input"><small><b>Scan QR</b></small></label>
                             <div class="input-group">
-                                <input type="text" class="form-control form-control-sm border-input" name="txtnik"
-                                    id="txtnik" autocomplete="off" enterkeyhint="go"
+                                <input type="text" class="form-control form-control-sm border-input" name="txtenroll_id"
+                                    id="txtenroll_id" autocomplete="off" enterkeyhint="go"
                                     onkeyup="if (event.keyCode == 13)
                                     document.getElementById('scan_nik').click()
                                 ">
-                                 <input type="button" class="btn btn-sm btn-warning" value="Scan NIK" />
-                                <button class="btn btn-sm btn-warning" type="button" id="scan_nik" style="display: none;"
+                                 {{-- <input type="button" class="btn btn-sm btn-warning" value="Scan NIK" /> --}}
+                                 {{-- #style="display: none;" --}}
+                                <button class="btn btn-sm btn-warning" type="button" id="scan_nik"
                                 onclick="scannik();">Scan</button>
+                                <input type="hidden" class="form-control form-control-sm border-scan" name="nik"
+                                id="nik" readonly>
                             </div>
                         </div>
                     </div>
@@ -100,6 +102,7 @@
                             <th>No</th>
                             <th>Tgl</th>
                             <th>Line</th>
+                            <th>Jam Absen</th>
                             <th>NIK</th>
                             <th>Nama</th>
                             <th>Line Asal</th>
@@ -203,7 +206,7 @@
                     // store to input text
                     // let breakDecodedText = decodedText.split('-');
 
-                    document.getElementById('txtnik').value = decodedText;
+                    document.getElementById('txtenroll_id').value = decodedText;
 
                     scannik();
 
@@ -301,6 +304,9 @@
                     data: 'line'
                 },
                 {
+                    data: 'absen_masuk_kerja'
+                },
+                {
                     data: 'nik'
                 },
                 {
@@ -312,8 +318,24 @@
                 {
                     data: 'tgl_update_fix'
                 }
-            ]
-        });
+            ],
+            columnDefs: [
+                {
+                    targets: '_all',
+                    render: (data, type, row, meta) => {
+                        var color = 'black';
+                        if (row.absen_masuk_kerja == null ) {
+                            color = 'red';
+                        } else{
+                            color = 'green';
+                        }
+                        return '<span style="color:' + color + '">' + data + '</span>';
+                    }
+                }
+            ],
+
+        }
+            );
 
         function scanline() {
             let txtline = document.form.txtline.value;
@@ -328,7 +350,7 @@
                     document.getElementById('nm_line').value = response.nm_line;
                     // document.getElementById('jml_org').value = response.urutan;
                     $("#txtline").prop("readonly", true);
-                    document.getElementById('txtnik').focus();
+                    document.getElementById('txtenroll_id').focus();
                     gettotal();
                     // updatelist();
                     // Reload Order Qty Datatable
@@ -377,31 +399,33 @@
 
         function scannik() {
             let nm_line = $("#nm_line").val();
-            let txtnik = document.form.txtnik.value;
+            let txtenroll_id = document.form.txtenroll_id.value;
             let html = $.ajax({
                 type: "get",
                 url: '{{ route('getdatanik') }}',
                 data: {
-                    txtnik: txtnik
+                    txtenroll_id: txtenroll_id
                 },
                 dataType: 'json',
                 success: function(response) {
-                    document.getElementById('nik').value = response.employee_id;
+                    document.getElementById('nik').value = response.nik;
                     document.getElementById('nm_karyawan').value = response.employee_name;
                     let nm_karyawan = $("#nm_karyawan").val();
+                    let nik = $("#nik").val();
                     $.ajax({
                         type: "post",
                         url: '{{ route('store-mut-karyawan') }}',
                         data: {
-                            txtnik: txtnik,
+                            txtenroll_id: txtenroll_id,
                             nm_line: nm_line,
+                            nik: nik,
                             nm_karyawan: nm_karyawan
                         },
                         success: async function(res) {
                             await Swal.fire({
                                 icon: res.icon,
                                 title: res.msg,
-                                html: "NIK : " + txtnik + "<br/>" +
+                                html: "NIK : " + response.nik + "<br/>" +
                                     "Nama :" + response.employee_name,
                                 // html: "NIK :" + $("#txtnik").val(),
                                 showCancelButton: false,
@@ -409,13 +433,12 @@
                                 timer: res.timer,
                                 timerProgressBar: res.prog
                             })
-
-                            document.getElementById('txtnik').focus();
+                            document.getElementById('txtenroll_id').focus();
                             datatable.ajax.reload();
                             gettotal();
                             $("#nik").val('');
                             $("#nm_karyawan").val('');
-                            $("#txtnik").val('');
+                            $("#txtenroll_id").val('');
                             initScan1();
                         }
                     });
@@ -427,10 +450,10 @@
                         title: 'Data NIK Tidak Terdaftar Silahkan hubungi Department HRD',
                         showConfirmButton: true,
                     })
-                    document.getElementById('txtnik').focus();
+                    document.getElementById('txtenroll_id').focus();
                     $("#nik").val('');
                     $("#nm_karyawan").val('');
-                    $("#txtnik").val('');
+                    $("#txtenroll_id").val('');
                     initScan1();
 
                 },

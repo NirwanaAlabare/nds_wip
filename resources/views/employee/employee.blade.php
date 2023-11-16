@@ -12,6 +12,40 @@
 @endsection
 
 @section('content')
+
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable" style="max-width: 75%;">
+        <div class="modal-content">
+            <div class="modal-header bg-sb text-light">
+                <h1 class="modal-title fs-5" id="exampleModalLabel"></h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="detail">
+                <div class="col-md-12 table-responsive">
+                    <table id="datatable-modal" class="table table-bordered table-striped table-sm w-100">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Tgl</th>
+                                <th>Line</th>
+                                <th>Jam Absen</th>
+                                <th>NIK</th>
+                                <th>Nama</th>
+                                <th>Line Asal</th>
+                                <th>Update Terakhir</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
     <a href="{{ route('create-mut-karyawan') }}" class="btn btn-primary btn-sm mb-3">
         <i class="fas fa-qrcode fa-spin fa-lg"></i>
         Scan Perpindahan
@@ -59,7 +93,10 @@
                         <tr>
                             <th>No</th>
                             <th>Line</th>
-                            <th>Total</th>
+                            <th>Total Karyawan</th>
+                            <th>Total Karyawan Absen</th>
+                            <th>Selisih</th>
+                            <th>Act</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -102,6 +139,7 @@
             ordering: false,
             processing: true,
             serverSide: true,
+            paging:false,
             ajax: {
                 url: '{{ route('mut-karyawan') }}',
                 data: function(d) {
@@ -121,8 +159,91 @@
                 {
                     data: 'tot_orang'
                 },
-            ]
+                {
+                    data: 'tot_absen'
+                },
+                {
+                    data: 'selisih'
+                },
+            ],
+            columnDefs: [{
+                targets: [5],
+                render: (data, type, row, meta) => {
+                    return `
+                        <div class='d-flex gap-1 justify-content-center'>
+                            <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="getdetail('`+row.line+`');">
+                                        <i class='fa fa-search'></i>
+                            </a>
+                        </div>
+                    `
+                }
+            } ]
         });
+
+        function getdetail(id_c) {
+            $("#exampleModalLabel").html('List Data Karyawan');
+
+         datatable = $("#datatable-modal").DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            info: false,
+            paging: false,
+            scrollX: true,
+            destroy: true,
+            ajax: {
+                url: '{{ route('getdatalinekaryawan') }}',
+                method: 'GET',
+                data: function(d) {
+                    d.nm_line = id_c
+                },
+            },
+            "fnCreatedRow": function(row, data, index) {
+                $('td', row).eq(0).html(index + 1);
+            },
+            columns: [{
+                    data: 'tgl_pindah'
+                }, {
+                    data: 'tgl_pindah_fix'
+                },
+                {
+                    data: 'line'
+                },
+                {
+                    data: 'absen_masuk_kerja'
+                },
+                {
+                    data: 'nik'
+                },
+                {
+                    data: 'nm_karyawan'
+                },
+                {
+                    data: 'line_asal'
+                },
+                {
+                    data: 'tgl_update_fix'
+                }
+            ],
+            columnDefs: [
+                {
+                    targets: '_all',
+                    render: (data, type, row, meta) => {
+                        var color = 'black';
+                        if (row.absen_masuk_kerja == null ) {
+                            color = 'red';
+                        } else{
+                            color = 'green';
+                        }
+                        return '<span style="color:' + color + '">' + data + '</span>';
+                    }
+                }
+            ],
+
+        }
+        );
+        };
+
 
         let datatableRatio = $("#datatable-ratio").DataTable({
             ordering: false,
