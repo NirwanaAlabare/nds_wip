@@ -90,7 +90,7 @@
                             <th>Gelar QTYs</th>
                             <th>PO</th>
                             <th>Urutan</th>
-                            <th>Tot Form</th>
+                            <th>Total Form</th>
                             <th>Ket.</th>
                             <th class="align-bottom">Act</th>
                         </tr>
@@ -218,15 +218,15 @@
                 {
                     targets: '_all',
                     render: (data, type, row, meta) => {
-                        var color = 'black';
+                        var color = '#2b2f3a';
                         if (row.tot_form != '0' && row.cancel == 'N') {
-                            color = 'green';
+                            color = '#087521';
                         } else if (row.tot_form == '0' && row.cancel == 'N') {
-                            color = 'blue';
+                            color = '#2243d6';
                         } else if (row.cancel == 'Y') {
-                            color = 'red';
+                            color = '#d33141';
                         }
-                        return '<span style="color:' + color + '">' + data + '</span>';
+                        return '<span style="font-weight: 600; color:' + color + '">' + data + '</span>';
                     }
                 }
             ],

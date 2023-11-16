@@ -321,7 +321,7 @@
                             color = '#2243d6';
                         }
 
-                        return data ? "<span style='color: "+ color + "' >" + data.toUpperCase() + "</span>" : "<span style=' color: " + color + "'>-</span>"
+                        return data ? "<span style='font-weight: 600; color: "+ color + "' >" + data.toUpperCase() + "</span>" : "<span style=' color: " + color + "'>-</span>"
                     }
                 },
                 {
@@ -388,7 +388,7 @@
                             color = '#2243d6';
                         }
 
-                        return  "<span style='color: "+ color + "' >" + (data ? data : '-') + "</span>"
+                        return  "<span style='font-weight: 600; color: "+ color + "' >" + (data ? data : '-') + "</span>"
                     }
                 }
             ],

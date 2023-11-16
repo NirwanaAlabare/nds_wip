@@ -24,8 +24,7 @@
                 </li> --}}
                 @if ($page == 'dashboard-cutting')
                     <li class="nav-item dropdown">
-                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
-                            aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @marker
                                 <li>
@@ -109,6 +108,11 @@
                             aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @stocker
+                                {{-- <li>
+                                    <a href="{{ route('part') }}" class="dropdown-item">
+                                        Part
+                                    </a>
+                                </li> --}}
                                 <li>
                                     <a href="{{ route('stocker') }}" class="dropdown-item">
                                         Stocker
@@ -118,7 +122,6 @@
                         </ul>
                     </li>
                 @endif
-
 
                 @if ($page == 'dashboard-mut-karyawan')
                     <li class="nav-item dropdown">

@@ -322,8 +322,7 @@
                             }
                         }
 
-                        return data ? "<span style='color: " + color + "'>" + data.toUpperCase() +
-                            "</span>" : "<span style='color: " + color + "'>-</span>"
+                        return data ? "<span style='font-weight: 600; color: " + color + "'>" + data.toUpperCase() + "</span>" : "<span style='font-weight: 600; color: " + color + "'>-</span>"
                     }
                 },
                 {
@@ -402,17 +401,13 @@
                         let btnProcess = "";
 
                         if (row.tipe_form_cut == 'MANUAL') {
-                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ?
-                                `<a class='btn btn-success btn-sm' href='{{ route('process-manual-form-cut') }}/` +
-                                row.id +
-                                `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>` :
-                                "";
+                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING'
+                                ? `<a class='btn btn-success btn-sm' href='{{ route('process-manual-form-cut') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>`
+                                : "";
                         } else {
-                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ?
-                                `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` +
-                                row.id +
-                                `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>` :
-                                "";
+                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING'
+                                ?  `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>`
+                                : "";
                         }
 
                         return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnProcess +
@@ -440,7 +435,7 @@
                             }
                         }
 
-                        return '<span style="color:' + color + ';">' + (data ? data : "-") + '</span>';
+                        return '<span style="font-weight: 600; color:' + color + ';">' + (data ? data : "-") + '</span>';
                     }
                 }
             ],

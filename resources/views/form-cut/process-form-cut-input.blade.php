@@ -211,7 +211,7 @@
                                         calculateTotalPemakaian();
                                         calculateShortRoll();
                                         calculateRemark();
-                                        calculateSisaKain();
+                                        // calculateSisaKain();
                                     "
                                     onchange="
                                         calculateConsAct();
@@ -220,7 +220,7 @@
                                         calculateTotalPemakaian();
                                         calculateShortRoll();
                                         calculateRemark();
-                                        calculateSisaKain();
+                                        // calculateSisaKain();
                                     ">
                             </div>
                         </div>
@@ -258,7 +258,7 @@
                                         calculateTotalPemakaian();
                                         calculateShortRoll();
                                         calculateRemark();
-                                        calculateSisaKain();
+                                        // calculateSisaKain();
                                     "
                                     onchange="
                                         calculateConsAct();
@@ -267,7 +267,7 @@
                                         calculateTotalPemakaian();
                                         calculateShortRoll();
                                         calculateRemark();
-                                        calculateSisaKain();
+                                        // calculateSisaKain();
                                     ">
                             </div>
                         </div>
@@ -304,7 +304,7 @@
                                         calculateTotalPemakaian();
                                         calculateShortRoll();
                                         calculateRemark();
-                                        calculateSisaKain();
+                                        // calculateSisaKain();
                                     "
                                     onchange="
                                         calculateConsAmpar();
@@ -312,7 +312,7 @@
                                         calculateTotalPemakaian();
                                         calculateShortRoll();
                                         calculateRemark();
-                                        calculateSisaKain();
+                                        // calculateSisaKain();
                                     ">
                             </div>
                         </div>
@@ -617,12 +617,12 @@
                                                 onkeyup="
                                                     calculateTotalPemakaian();
                                                     calculateShortRoll();
-                                                    calculateSisaKain();
+                                                    // calculateSisaKain();
                                                 "
                                                 onchange="
                                                     calculateTotalPemakaian();
                                                     calculateShortRoll();
-                                                    calculateSisaKain();
+                                                    // calculateSisaKain();
                                                 ">
                                         </div>
                                         <div style="width: 40%">
@@ -649,13 +649,13 @@
                                             calculateTotalPemakaian();
                                             calculateShortRoll();
                                             calculateRemark();
-                                            calculateSisaKain();
+                                            // calculateSisaKain();
                                         "
                                         onchange="
                                             calculateTotalPemakaian();
                                             calculateShortRoll();
                                             calculateRemark();
-                                            calculateSisaKain();
+                                            // calculateSisaKain();
                                         ">
                                 </div>
                             </div>
@@ -684,8 +684,16 @@
                                     <div class="input-group input-group-sm mb-3">
                                         <input type="number" class="form-control border-input" id="current_kepala_kain"
                                             name="current_kepala_kain" step=".01"
-                                            onkeyup="calculateTotalPemakaian(); calculateShortRoll(); calculateSisaKain();"
-                                            onchange="calculateTotalPemakaian(); calculateShortRoll(); calculateSisaKain();">
+                                            onkeyup="
+                                                calculateTotalPemakaian();
+                                                calculateShortRoll();
+                                                // calculateSisaKain();
+                                            "
+                                            onchange="
+                                                calculateTotalPemakaian();
+                                                calculateShortRoll();
+                                                // calculateSisaKain();
+                                            ">
                                         <span class="input-group-text input-group-unit"></span>
                                     </div>
                                 </div>
@@ -700,13 +708,13 @@
                                                 calculateTotalPemakaian();
                                                 calculateShortRoll();
                                                 calculateRemark();
-                                                calculateSisaKain();
+                                                // calculateSisaKain();
                                             "
                                             onchange="
                                                 calculateTotalPemakaian();
                                                 calculateShortRoll();
                                                 calculateRemark();
-                                                calculateSisaKain();
+                                                // calculateSisaKain();
                                             ">
                                         <span class="input-group-text input-group-unit"></span>
                                     </div>
@@ -722,13 +730,13 @@
                                                 calculateTotalPemakaian();
                                                 calculateShortRoll();
                                                 calculateRemark();
-                                                calculateSisaKain();
+                                                // calculateSisaKain();
                                             "
                                             onchange="
                                                 calculateTotalPemakaian();
                                                 calculateShortRoll();
                                                 calculateRemark();
-                                                calculateSisaKain();
+                                                // calculateSisaKain();
                                             ">
                                         <span class="input-group-text input-group-unit"></span>
                                     </div>
@@ -742,12 +750,12 @@
                                             onkeyup="
                                                 calculateShortRoll();
                                                 calculateRemark();
-                                                calculateSisaKain();
+                                                // calculateSisaKain();
                                             "
                                             onchange="
                                                 calculateShortRoll();
                                                 calculateRemark();
-                                                calculateSisaKain();
+                                                // calculateSisaKain();
                                             ">
                                         <span class="input-group-text input-group-unit"></span>
                                     </div>
@@ -1014,9 +1022,11 @@
             document.querySelector('.select2-search__field').focus();
         });
 
-        $('.select2').select2()
+        $('.select2').select2();
+
         $('.select2bs4').select2({
             theme: 'bootstrap4',
+            containerCssClass: 'form-control-sm'
         });
     </script>
 
@@ -1275,7 +1285,6 @@
                 $('#scan-qr-card').CardWidget('collapse');
 
                 setSpreadingForm(currentScannedItem, sisaGelaran);
-                openTimeRecordCondition();
                 getSummary();
 
                 $('#spreading-form-card').removeClass('d-none');
@@ -1283,7 +1292,6 @@
                 $('#summary-card').removeClass('d-none');
             } else {
                 Swal.fire({
-
                     icon: 'error',
                     title: 'Gagal',
                     text: 'Pastikan item yang di scan tersedia dan color actual sudah diisi',
@@ -1300,7 +1308,7 @@
         }
 
         // -Store Time Record Transaction-
-        async function storeTimeRecord() {
+        function storeTimeRecord() {
             clearModified();
 
             let spreadingForm = new FormData(document.getElementById("spreading-form"));
@@ -1320,9 +1328,8 @@
 
             if ($("#status_sambungan").val() != "extension") {
                 // Not an Extension :
-
                 return $.ajax({
-                    url: '{{ route('store-time-form-cut-input') }}',
+                    url: '{{ route('store-time-manual-form-cut') }}',
                     type: 'post',
                     dataType: 'json',
                     data: dataObj,
@@ -1330,8 +1337,8 @@
                         if (res) {
                             timeRecordTableTbody.innerHTML = "";
 
-                            initScan();
                             clearScanItemForm();
+                            openScanItemForm();
                             clearSpreadingForm();
                             firstTimeRecordCondition();
 
@@ -1346,9 +1353,6 @@
                                     if (res.additional[1]) {
                                         sisaGelaran = res.additional[0].sisa_gelaran;
                                         setSpreadingForm(res.additional[1], res.additional[0].sisa_gelaran);
-                                        $("#scan-qr-card").CardWidget('expand');
-                                        document.getElementById('kode_barang').focus();
-                                        openTimeRecordCondition();
                                     } else {
                                         checkStatus();
                                     }
@@ -1381,7 +1385,7 @@
                 // An Extension :
 
                 return $.ajax({
-                    url: '{{ route('store-time-ext-form-cut-input') }}',
+                    url: '{{ route('store-time-ext-manual-form-cut') }}',
                     type: 'post',
                     dataType: 'json',
                     data: dataObj,
@@ -1389,8 +1393,8 @@
                         if (res) {
                             timeRecordTableTbody.innerHTML = "";
 
-                            initScan();
                             clearScanItemForm();
+                            openScanItemForm();
                             clearSpreadingForm();
                             firstTimeRecordCondition();
 
@@ -1405,9 +1409,6 @@
                                     if (res.additional[1]) {
                                         sisaGelaran = res.additional[0].sisa_gelaran;
                                         setSpreadingForm(res.additional[1], res.additional[0].sisa_gelaran);
-                                        $("#scan-qr-card").CardWidget('expand');
-                                        document.getElementById('kode_barang').focus();
-                                        openTimeRecordCondition();
                                     } else {
                                         checkStatus();
                                     }
@@ -2265,19 +2266,19 @@
 
             // -Set Spreading Form-
             function setSpreadingForm(data, sisaGelaran) {
+                // if not an extension
                 if (!(sisaGelaran)) {
                     clearSpreadingForm();
                 }
 
+                // if the roll method is item
                 if (method == "item") {
-                    document.getElementById("current_id_item").removeAttribute("readonly");
-                    document.getElementById("current_lot").removeAttribute("readonly");
-                    document.getElementById("current_roll").removeAttribute("readonly");
-                    document.getElementById("current_qty").removeAttribute("readonly");
-                    document.getElementById("current_qty_real").removeAttribute("readonly");
+                    openItemSpreading();
+
                     document.getElementById("current_unit").value = "METER";
                 }
 
+                // spreading form data set
                 let convertedQty = rollQtyConversion(data.qty, data.unit);
 
                 data.id_roll ? document.getElementById("kode_barang").value = data.id_roll : '';
@@ -2294,20 +2295,21 @@
                 data.unit ? document.getElementById("current_unit").value = data.unit : '';
                 data.unit ? document.getElementById("current_sisa_gelaran_unit").value = (data.unit != "KGM" ? "METER" : "KGM") : '';
                 data.unit ? document.getElementById("current_sambungan_unit").value = (data.unit != "KGM" ? "METER" : "KGM") : '';
-                data.sisa_gelaran ? document.getElementById("current_sisa_gelaran").value = data .sisa_gelaran : '';
+                data.sisa_gelaran ? document.getElementById("current_sisa_gelaran").value = data.sisa_gelaran : '';
                 data.sambungan ? document.getElementById("current_sambungan").value = data.sambungan : '';
                 data.est_amparan ? document.getElementById("current_est_amparan").value = data.est_amparan : '';
-                data.lembar_gelaran ? document.getElementById("current_lembar_gelaran").value = data .lembar_gelaran : '';
-                data.average_time ? document.getElementById("current_average_time").value = data .average_time : '';
+                data.lembar_gelaran ? document.getElementById("current_lembar_gelaran").value = data.lembar_gelaran : '';
+                data.average_time ? document.getElementById("current_average_time").value = data.average_time : '';
                 data.kepala_kain ? document.getElementById("current_kepala_kain").value = data.kepala_kain : '';
-                data.sisa_tidak_bisa ? document.getElementById("current_sisa_tidak_bisa").value = data .sisa_tidak_bisa : '';
+                data.sisa_tidak_bisa ? document.getElementById("current_sisa_tidak_bisa").value = data.sisa_tidak_bisa : '';
                 data.reject ? document.getElementById("current_reject").value = data.reject : '';
                 data.sisa_kain ? document.getElementById("current_sisa_kain").value = data.sisa_kain : '';
-                data.total_pemakaian_roll ? document.getElementById("current_total_pemakaian_roll").value = data .total_pemakaian_roll : '';
+                data.total_pemakaian_roll ? document.getElementById("current_total_pemakaian_roll").value = data.total_pemakaian_roll : '';
                 data.short_roll ? document.getElementById("current_short_roll").value = data.short_roll : '';
                 data.piping ? document.getElementById("current_piping").value = data.piping : '';
                 data.remark ? document.getElementById("current_remark").value = data.remark : '';
 
+                // simplified unit name
                 let unitSimplified = data.unit != "KGM" ? "M" : "KG";
 
                 let inputGroupUnit = document.getElementsByClassName("input-group-unit");
@@ -2316,33 +2318,55 @@
                     inputGroupUnit[i].innerText = unitSimplified;
                 }
 
+                // updating est ampar & ply progress bar
                 calculateEstAmpar();
 
                 updatePlyProgress();
 
+                // if is an extension
                 if (sisaGelaran > 0) {
+                    // extension things
                     let estSambungan = calculateSambungan(sisaGelaran);
 
-                    data.id_sambungan ? document.getElementById("id_sambungan").value = data.id_sambungan :
-                        '';
+                    data.id_sambungan ? document.getElementById("id_sambungan").value = data.id_sambungan : '';
                     document.getElementById("status_sambungan").value = "extension";
                     document.getElementById("current_sambungan").value = estSambungan;
 
-                    document.getElementById("current_sambungan").removeAttribute('readonly');
-                    document.getElementById("current_sisa_gelaran").setAttribute('readonly', true);
+                    openExtension();
 
+                    // set total pemakaian
                     document.getElementById("current_total_pemakaian_roll").value = document.getElementById("current_sambungan").value;
+
+                // if not an extension
                 } else {
                     nextProcessThreeButton.classList.add("d-none");
 
+                    if ($("status_sambungan").val() != "extension") {
+                        lockExtension();
+                    }
+                }
+
+                // if item is not yet scanned/selected
+                if (!(data.id_item)) {
+                    openScanItemForm();
+
+                    // scan qr
+                    $('#scan-qr-card').CardWidget('expand');
+                    $('#spreading-form-card').CardWidget('collapse');
+                    document.getElementById('kode_barang').focus();
+
+                    // time record
+                    firstTimeRecordCondition();
+
+                // if item scanned/selected
+                } else {
+                    lockScanItemForm();
+
+                    // scan qr
                     $('#scan-qr-card').CardWidget('collapse');
                     $('#spreading-form-card').CardWidget('expand');
 
-                    if ($("status_sambungan").val() != "extension") {
-                        document.getElementById("current_sambungan").setAttribute('readonly', true);
-                        document.getElementById("current_sisa_gelaran").removeAttribute('readonly');
-                    }
-
+                    // time record
                     openTimeRecordCondition();
                 }
             }
@@ -2350,6 +2374,8 @@
             // -Clear Spreading Form-
             function clearSpreadingForm() {
                 $('#spreading-form-card').CardWidget('collapse');
+
+                lockItemSpreading();
 
                 document.getElementById("current_id_item").setAttribute("readonly", true);
                 document.getElementById("current_lot").setAttribute("readonly", true);
@@ -2376,7 +2402,7 @@
                 document.getElementById("current_kepala_kain").value = 0;
                 document.getElementById("current_sisa_tidak_bisa").value = 0;
                 document.getElementById("current_reject").value = 0;
-                document.getElementById("current_sisa_kain").value = 0;
+                document.getElementById("current_sisa_kain").value = "";
                 document.getElementById("current_total_pemakaian_roll").value = 0;
                 document.getElementById("current_short_roll").value = 0;
                 document.getElementById("current_piping").value = 0;
@@ -2387,6 +2413,36 @@
                 for (var i = 0; i < inputGroupUnit.length; i++) {
                     inputGroupUnit[i].innerText = "";
                 }
+            }
+
+            // -Lock Extension input on Spreading Form-
+            function lockExtension() {
+                document.getElementById("current_sambungan").setAttribute('readonly', true);
+                document.getElementById("current_sisa_gelaran").removeAttribute('readonly');
+            }
+
+            // -Open Extension input on Spreading Form-
+            function openExtension() {
+                document.getElementById("current_sambungan").removeAttribute('readonly');
+                document.getElementById("current_sisa_gelaran").setAttribute('readonly', true);
+            }
+
+            // -Lock Item input on Spreading Form-
+            function lockItemSpreading() {
+                document.getElementById("current_id_item").setAttribute("readonly", true);
+                document.getElementById("current_lot").setAttribute("readonly", true);
+                document.getElementById("current_roll").setAttribute("readonly", true);
+                document.getElementById("current_qty").setAttribute("readonly", true);
+                document.getElementById("current_qty_real").setAttribute("readonly", true);
+            }
+
+            // -Open Item input on Spreading Form-
+            function openItemSpreading() {
+                document.getElementById("current_id_item").removeAttribute("readonly");
+                document.getElementById("current_lot").removeAttribute("readonly");
+                document.getElementById("current_roll").removeAttribute("readonly");
+                document.getElementById("current_qty").removeAttribute("readonly");
+                document.getElementById("current_qty_real").removeAttribute("readonly");
             }
 
             // -Lock Spreading Form-
@@ -2526,15 +2582,27 @@
             // --Lock Scan Item Form then Clear Scanner--
             function lockScanItemForm() {
                 document.getElementById("kode_barang").setAttribute("readonly", true);
-                document.getElementById("id_item").setAttribute("readonly", true);
-                document.getElementById("detail_item").setAttribute("readonly", true);
                 document.getElementById("color_act").setAttribute("disabled", true);
+                document.getElementById("get-button").setAttribute("disabled", true);
                 document.getElementById("scan-button").setAttribute("disabled", true);
+                document.getElementById("switch-method").setAttribute("disabled", true);
                 document.getElementById("reader").classList.add("d-none");
 
                 if (html5QrcodeScanner != null) {
                     html5QrcodeScanner.clear();
                 }
+            }
+
+            // --Open Scan Item Form then Open Scanner--
+            function openScanItemForm() {
+                document.getElementById("kode_barang").removeAttribute("readonly");
+                document.getElementById("color_act").removeAttribute("disabled");
+                document.getElementById("get-button").removeAttribute("disabled");
+                document.getElementById("scan-button").removeAttribute("disabled");
+                document.getElementById("switch-method").removeAttribute("disabled");
+                document.getElementById("reader").classList.remove("d-none");
+
+                initScan();
             }
 
         // Scanned Item Module :
@@ -2889,8 +2957,6 @@
 
             // -Reset Time Record-
             function resetTimeRecord() {
-                pauseTimeRecordButtons();
-
                 clearTimeout(timeRecordInterval);
 
                 summarySeconds = 0;
@@ -2927,12 +2993,16 @@
                 finishProcessButton.disabled = false;
 
                 finishProcessButton.classList.remove("d-none");
+
+                openScanItemForm();
             }
 
             function openTimeRecordCondition() {
                 startLapButton.disabled = false;
                 nextLapButton.disabled = true;
                 stopLapButton.disabled = true;
+
+                lockScanItemForm();
             }
 
             function openLapTimeRecordCondition() {

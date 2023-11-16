@@ -1,4 +1,8 @@
 /* MyCustom Styles */
+@font-face {
+    font-family: Nunito;
+    src: url(/nds_wip_local/public/assets/fonts/Nunito/Nunito-VariableFont_wght.ttf);
+}
 
 /* General */
 :root {
@@ -15,6 +19,11 @@
     --pale-color: #ebebeb;
     --light-color: #fbfbfb;
     --dark-color: #2b2f3a;
+}
+
+body {
+    font-family: 'Nunito', 'sans-serif';
+    font-size: 15px;
 }
 
 th {
