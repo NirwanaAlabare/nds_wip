@@ -114,7 +114,7 @@
                                     </a>
                                 </li> --}}
                                 <li>
-                                    <a href="#" class="dropdown-item">
+                                    <a href="{{ route('master-part') }}" class="dropdown-item">
                                         Master Part <i class="fas fa-plus-square fa-sm"></i>
                                     </a>
                                 </li>
@@ -134,12 +134,12 @@
                                 </li> --}}
                                 <li>
                                     <a href="{{ route('stocker') }}" class="dropdown-item">
-                                        Stocker <i class="fas fa-receipt fa-sm"></i>
+                                        Part <i class="fas fa-th fa-sm"></i>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="{{ route('stocker') }}" class="dropdown-item">
-                                        Part <i class="fas fa-th fa-sm"></i>
+                                        Stocker <i class="fas fa-receipt fa-sm"></i>
                                     </a>
                                 </li>
                             @endstocker

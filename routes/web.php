@@ -9,6 +9,8 @@ use App\Http\Controllers\SpreadingController;
 use App\Http\Controllers\FormCutInputController;
 use App\Http\Controllers\ManualFormCutController;
 use App\Http\Controllers\LapPemakaianController;
+use App\Http\Controllers\MasterPartController;
+use App\Http\Controllers\PartController;
 use App\Http\Controllers\StockerController;
 use App\Http\Controllers\ManagerController;
 use App\Http\Controllers\EmployeeController;
@@ -183,6 +185,14 @@ Route::middleware('auth')->group(function () {
         // export excel
         Route::get('/export_excel', 'export_excel')->name('export_excel');
         Route::get('/export', 'export')->name('export');
+    });
+
+    // Master Part
+    Route::controller(MasterPartController::class)->prefix("master-part")->middleware('stocker')->group(function () {
+        Route::get('/', 'index')->name('master-part');
+        Route::post('/store', 'store')->name('store-master-part');
+        Route::put('/update/{id?}', 'update')->name('update-master-part');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-master-part');
     });
 
     // Stocker
