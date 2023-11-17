@@ -11,5 +11,7 @@ class MutKaryawan extends Model
 
     protected $table = "mut_karyawan_input";
 
+    protected $connection = 'mysql_hris';
+
     protected $guarded = [];
 }

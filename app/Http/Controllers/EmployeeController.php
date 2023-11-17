@@ -172,7 +172,7 @@ class EmployeeController extends Controller
         select a.id, b.*,
         c.absen_masuk_kerja,
         DATE_FORMAT(tgl_pindah, '%d-%m-%Y') tgl_pindah_fix,
-        DATE_FORMAT (b.updated_at, '%d-%m-%Y %H:%i:%s') tgl_update_fix,
+        DATE_FORMAT(b.updated_at, '%d-%m-%Y %H:%i:%s') tgl_update_fix,
         c.status_aktif
         from
         (select max(id) id from mut_karyawan_input a
