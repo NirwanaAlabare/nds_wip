@@ -105,6 +105,25 @@
                 @if ($page == 'dashboard-stocker')
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle">Master</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @stocker
+                                {{-- <li>
+                                    <a href="{{ route('part') }}" class="dropdown-item">
+                                        Part
+                                    </a>
+                                </li> --}}
+                                <li>
+                                    <a href="#" class="dropdown-item">
+                                        Master Part <i class="fas fa-plus-square fa-sm"></i>
+                                    </a>
+                                </li>
+                            @endstocker
+                        </ul>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
                             aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @stocker
@@ -116,6 +135,11 @@
                                 <li>
                                     <a href="{{ route('stocker') }}" class="dropdown-item">
                                         Stocker <i class="fas fa-receipt fa-sm"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('stocker') }}" class="dropdown-item">
+                                        Part <i class="fas fa-th fa-sm"></i>
                                     </a>
                                 </li>
                             @endstocker

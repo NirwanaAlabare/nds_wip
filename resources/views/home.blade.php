@@ -23,6 +23,22 @@
                         </div>
                     @endif
 
+                    @stocker
+                        <div class="col-md-2 col-3">
+                            <a href="{{ route('dashboard-stocker') }}" class="home-item">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex h-100 flex-column justify-content-between">
+                                            <img src="{{ asset('dist/img/stocker.png') }}" class="img-fluid p-3"
+                                                alt="qr code image">
+                                            <p class="text-center">Stocker</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    @endstocker
+
                     @dc
                         <div class="col-md-2 col-3">
                             <a href="{{ route('dashboard-dc') }}" class="home-item">
