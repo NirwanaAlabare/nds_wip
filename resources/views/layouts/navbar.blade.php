@@ -24,13 +24,12 @@
                 </li> --}}
                 @if ($page == 'dashboard-cutting')
                     <li class="nav-item dropdown">
-                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
-                            aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @marker
                                 <li>
                                     <a href="{{ route('marker') }}" class="dropdown-item">
-                                        Marker
+                                        Marker <i class="fas fa-marker fa-sm"></i>
                                     </a>
                                 </li>
                             @endmarker
@@ -38,7 +37,7 @@
                             @spreading
                                 <li>
                                     <a href="{{ route('spreading') }}" class="dropdown-item">
-                                        Spreading
+                                        Spreading <i class="fas fa-scroll fa-sm"></i>
                                     </a>
                                 </li>
                             @endspreading
@@ -46,7 +45,7 @@
                             @meja
                                 <li>
                                     <a href="{{ route('form-cut-input') }}" class="dropdown-item">
-                                        Form Cutting
+                                        Form Cutting <i class="fas fa-cut fa-sm"></i>
                                     </a>
                                 </li>
                             @endmeja
@@ -68,7 +67,7 @@
                             <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
                                 <li>
                                     <a href="{{ route('cut-plan') }}" class="dropdown-item">
-                                        Cutting Plan
+                                        Cutting Plan <i class="fas fa-map fa-sm"></i>
                                     </a>
                                 </li>
                             </ul>
@@ -79,7 +78,7 @@
                             <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
                                 <li>
                                     <a href="{{ route('lap_pemakaian') }}" class="dropdown-item">
-                                        Laporan Pemakaian
+                                        Laporan Pemakaian <i class="fas fa-file-alt fa-sm"></i>
                                     </a>
                                 </li>
                             </ul>
@@ -89,7 +88,7 @@
                     @manager
                         <li class="nav-item">
                             <a href="{{ route('manage-cutting') }}" class="nav-link">
-                                Generate
+                                Generate <i class="fas fa-file-archive fa-sm"></i>
                             </a>
                         </li>
                     @endmanager
@@ -97,7 +96,7 @@
                     @admin
                         <li class="nav-item">
                             <a href="{{ route('summary') }}" class="nav-link">
-                                Summary
+                                Summary <i class="fas fa-tasks fa-sm"></i>
                             </a>
                         </li>
                     @endadmin
@@ -109,9 +108,14 @@
                             aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @stocker
+                                {{-- <li>
+                                    <a href="{{ route('part') }}" class="dropdown-item">
+                                        Part
+                                    </a>
+                                </li> --}}
                                 <li>
                                     <a href="{{ route('stocker') }}" class="dropdown-item">
-                                        Stocker
+                                        Stocker <i class="fas fa-receipt fa-sm"></i>
                                     </a>
                                 </li>
                             @endstocker
@@ -119,6 +123,26 @@
                     </li>
                 @endif
 
+                @if ($page == 'dashboard-dc')
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @dc
+                                {{-- <li>
+                                    <a href="{{ route('part') }}" class="dropdown-item">
+                                        Part
+                                    </a>
+                                </li> --}}
+                                <li>
+                                    <a href="{{ route('stocker') }}" class="dropdown-item">
+                                        Stocker <i class="fas fa-receipt fa-sm"></i>
+                                    </a>
+                                </li>
+                            @enddc
+                        </ul>
+                    </li>
+                @endif
 
                 @if ($page == 'dashboard-mut-karyawan')
                     <li class="nav-item dropdown">
@@ -128,7 +152,7 @@
                             @stocker
                                 <li>
                                     <a href="{{ route('mut-karyawan') }}" class="dropdown-item">
-                                        Mutasi Karyawan
+                                        Mutasi Karyawan <i class="fas fa-users-cog fa-sm"></i>
                                     </a>
                                 </li>
                             @endstocker

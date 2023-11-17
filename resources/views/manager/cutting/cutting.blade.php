@@ -248,7 +248,8 @@
                     d.dateTo = $('#tgl-akhir').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'no_form'
                 },
                 {
@@ -285,7 +286,8 @@
                     data: 'id'
                 },
             ],
-            columnDefs: [{
+            columnDefs: [
+                {
                     targets: [2],
                     render: (data, type, row, meta) => {
                         let color = "";
@@ -294,7 +296,7 @@
                             color = '#087521';
                         }
 
-                        return data ? "<span style='color: "+ color + "' >" + data.toUpperCase() + "</span>" : "<span style=' color: " + color + "'>-</span>"
+                        return data ? "<span style='font-weight: 600; color: "+ color + "' >" + data.toUpperCase() + "</span>" : "<span style=' color: " + color + "'>-</span>"
                     }
                 },
                 {
@@ -329,10 +331,16 @@
                             color = '#087521';
                         }
 
-                        return data ? "<span style='color: "+ color + "' >" + data + "</span>" : "<span style=' color: " + color + "'>-</span>"
+                        return data ? "<span style='font-weight: 600; color: "+ color + "' >" + data + "</span>" : "<span style=' color: " + color + "'>-</span>"
                     }
                 }
-            ]
+            ],
+            rowCallback: function( row, data, index ) {
+                if (data['tipe_form_cut'] == 'MANUAL') {
+                    $('td', row).css('background-color', '#e7dcf7');
+                    $('td', row).css('border', '0.15px solid #d0d0d0');
+                }
+            }
         });
 
         let datatableRatio = $("#datatable-ratio").DataTable({

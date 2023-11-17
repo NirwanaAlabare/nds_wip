@@ -79,6 +79,7 @@ class ManagerController extends Controller
                     b.urutan_marker,
                     b.cons_marker,
                     a.generated,
+                    a.tipe_form_cut,
                     manager.name generated_by,
                     GROUP_CONCAT(CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC) marker_details
                 FROM `form_cut_input` a
@@ -94,7 +95,11 @@ class ManagerController extends Controller
                     " . $additionalQuery . "
                     " . $keywordQuery . "
                 GROUP BY a.id
-                ORDER BY b.cancel asc, a.updated_at desc
+                ORDER BY
+                    FIELD(a.generated, 'N', 'Y'),
+                    FIELD(a.tipe_form_cut, null, 'NORMAL', 'MANUAL'),
+                    a.no_form desc,
+                    a.updated_at desc
             ");
 
             return DataTables::of($data_spreading)->toJson();

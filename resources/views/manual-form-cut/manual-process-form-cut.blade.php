@@ -265,7 +265,7 @@
                                         calculateConsAmpar();
                                         calculateEstAmpar();
                                         calculateTotalPemakaian();
-                                        calculateSisaKain();
+                                        // calculateSisaKain();
                                         calculateShortRoll();
                                         calculateRemark();
                                     "
@@ -274,7 +274,7 @@
                                         calculateConsAmpar();
                                         calculateEstAmpar();
                                         calculateTotalPemakaian();
-                                        calculateSisaKain();
+                                        // calculateSisaKain();
                                         calculateShortRoll();
                                         calculateRemark();
                                     "
@@ -296,7 +296,7 @@
                                         calculateConsAmpar();
                                         calculateEstAmpar();
                                         calculateTotalPemakaian();
-                                        calculateSisaKain();
+                                        // calculateSisaKain();
                                         calculateShortRoll();
                                         calculateRemark();
                                     "
@@ -305,7 +305,7 @@
                                         calculateConsAmpar();
                                         calculateEstAmpar();
                                         calculateTotalPemakaian();
-                                        calculateSisaKain();
+                                        // calculateSisaKain();
                                         calculateShortRoll();
                                         calculateRemark();
                                     ">
@@ -325,7 +325,7 @@
                                         calculateConsAmpar();
                                         calculateEstAmpar();
                                         calculateTotalPemakaian();
-                                        calculateSisaKain();
+                                        // calculateSisaKain();
                                         calculateShortRoll();
                                         calculateRemark();
                                     "
@@ -333,7 +333,7 @@
                                         calculateConsAmpar();
                                         calculateEstAmpar();
                                         calculateTotalPemakaian();
-                                        calculateSisaKain();
+                                        // calculateSisaKain();
                                         calculateShortRoll();
                                         calculateRemark();
                                     ">
@@ -502,7 +502,7 @@
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label label-input"><small><b>Pilih Barang</b></small></label>
-                                        <select class="form-select form-control-sm select2bs4" name="select_item" id="select_item" onchange="setSelectedItem(this)">
+                                        <select class="form-select select2bs4" name="select_item" id="select_item" onchange="setSelectedItem(this)">
                                             <option value="">Pilih Barang</option>
                                         </select>
                                     </div>
@@ -616,12 +616,12 @@
                                             <input type="number" class="form-control form-control-sm border-input" id="current_sambungan" name="current_sambungan" step=".01"
                                                 onkeyup="
                                                     calculateTotalPemakaian();
-                                                    calculateSisaKain();
+                                                    // calculateSisaKain();
                                                     calculateShortRoll();
                                                 "
                                                 onchange="
                                                     calculateTotalPemakaian();
-                                                    calculateSisaKain();
+                                                    // calculateSisaKain();
                                                     calculateShortRoll();
                                                 "
                                             >
@@ -644,14 +644,14 @@
                                     <input type="number" class="form-control form-control-sm border-sb" id="current_lembar_gelaran" name="current_lembar_gelaran" readonly
                                         onkeyup="
                                             calculateTotalPemakaian();
-                                            calculateSisaKain();
+                                            // calculateSisaKain();
                                             calculateShortRoll();
                                             calculateRemark();
                                         "
 
                                         onchange="
                                             calculateTotalPemakaian();
-                                            calculateSisaKain();
+                                            // calculateSisaKain();
                                             calculateShortRoll();
                                             calculateRemark();
                                         "
@@ -678,8 +678,16 @@
                                     <label class="form-label label-input"><small><b>Kepala Kain</b></small></label>
                                     <div class="input-group input-group-sm mb-3">
                                         <input type="number" class="form-control border-input" id="current_kepala_kain" name="current_kepala_kain" step=".01"
-                                            onkeyup="calculateTotalPemakaian(); calculateSisaKain(); calculateShortRoll();"
-                                            onchange="calculateTotalPemakaian(); calculateSisaKain(); calculateShortRoll();"
+                                            onkeyup="
+                                                calculateTotalPemakaian();
+                                                calculateShortRoll();
+                                                // calculateSisaKain();
+                                            "
+                                            onchange="
+                                                calculateTotalPemakaian();
+                                                calculateShortRoll();
+                                                // calculateSisaKain();
+                                            "
                                         >
                                         <span class="input-group-text input-group-unit"></span>
                                     </div>
@@ -692,13 +700,13 @@
                                         <input type="number" class="form-control border-input" id="current_sisa_tidak_bisa" name="current_sisa_tidak_bisa" step=".01"
                                             onkeyup="
                                                 calculateTotalPemakaian();
-                                                calculateSisaKain();
+                                                // calculateSisaKain();
                                                 calculateShortRoll();
                                                 calculateRemark();
                                             "
                                             onchange="
                                                 calculateTotalPemakaian();
-                                                calculateSisaKain();
+                                                // calculateSisaKain();
                                                 calculateShortRoll();
                                                 calculateRemark();
                                             "
@@ -714,13 +722,13 @@
                                         <input type="number" class="form-control form-control-sm border-input" id="current_reject" name="current_reject" step=".01"
                                             onkeyup="
                                                 calculateTotalPemakaian();
-                                                calculateSisaKain();
+                                                // calculateSisaKain();
                                                 calculateShortRoll();
                                                 calculateRemark();
                                             "
                                             onchange="
                                                 calculateTotalPemakaian();
-                                                calculateSisaKain();
+                                                // calculateSisaKain();
                                                 calculateShortRoll();
                                                 calculateRemark();
                                             "
@@ -737,12 +745,12 @@
                                             onkeyup="
                                                 calculateShortRoll();
                                                 calculateRemark();
-                                                calculateSisaKain();
+                                                // calculateSisaKain();
                                             "
                                             onchange="
                                                 calculateShortRoll();
                                                 calculateRemark();
-                                                calculateSisaKain();
+                                                // calculateSisaKain();
                                             "
                                         >
                                         <span class="input-group-text input-group-unit"></span>
@@ -1693,7 +1701,6 @@
                     $('#scan-qr-card').CardWidget('collapse');
 
                     setSpreadingForm(currentScannedItem, sisaGelaran);
-                    openTimeRecordCondition();
                     getSummary();
 
                     $('#spreading-form-card').removeClass('d-none');
@@ -1737,7 +1744,6 @@
 
                 if ($("#status_sambungan").val() != "extension") {
                     // Not an Extension :
-
                     return $.ajax({
                         url: '{{ route('store-time-manual-form-cut') }}',
                         type: 'post',
@@ -1747,8 +1753,8 @@
                             if (res) {
                                 timeRecordTableTbody.innerHTML = "";
 
-                                initScan();
                                 clearScanItemForm();
+                                openScanItemForm();
                                 clearSpreadingForm();
                                 firstTimeRecordCondition();
 
@@ -1763,9 +1769,6 @@
                                         if (res.additional[1]) {
                                             sisaGelaran = res.additional[0].sisa_gelaran;
                                             setSpreadingForm(res.additional[1], res.additional[0].sisa_gelaran);
-                                            $("#scan-qr-card").CardWidget('expand');
-                                            document.getElementById('kode_barang').focus();
-                                            openTimeRecordCondition();
                                         } else {
                                             checkStatus();
                                         }
@@ -1806,8 +1809,8 @@
                             if (res) {
                                 timeRecordTableTbody.innerHTML = "";
 
-                                initScan();
                                 clearScanItemForm();
+                                openScanItemForm();
                                 clearSpreadingForm();
                                 firstTimeRecordCondition();
 
@@ -1822,9 +1825,6 @@
                                         if (res.additional[1]) {
                                             sisaGelaran = res.additional[0].sisa_gelaran;
                                             setSpreadingForm(res.additional[1], res.additional[0].sisa_gelaran);
-                                            $("#scan-qr-card").CardWidget('expand');
-                                            document.getElementById('kode_barang').focus();
-                                            openTimeRecordCondition();
                                         } else {
                                             checkStatus();
                                         }
@@ -2389,7 +2389,6 @@
                 }
 
                 if (status == "PENGERJAAN FORM CUTTING DETAIL") {
-                    console.log(status);
                     updateSizeList();
 
                     document.getElementById("lost-time-card").classList.remove("d-none");
@@ -2647,19 +2646,19 @@
 
                 // -Set Spreading Form-
                 function setSpreadingForm(data, sisaGelaran) {
+                    // if not an extension
                     if (!(sisaGelaran)) {
                         clearSpreadingForm();
                     }
 
+                    // if the roll method is item
                     if (method == "item") {
-                        document.getElementById("current_id_item").removeAttribute("readonly");
-                        document.getElementById("current_lot").removeAttribute("readonly");
-                        document.getElementById("current_roll").removeAttribute("readonly");
-                        document.getElementById("current_qty").removeAttribute("readonly");
-                        document.getElementById("current_qty_real").removeAttribute("readonly");
+                        openItemSpreading();
+
                         document.getElementById("current_unit").value = "METER";
                     }
 
+                    // spreading form data set
                     let convertedQty = rollQtyConversion(data.qty, data.unit);
 
                     data.id_roll ? document.getElementById("kode_barang").value = data.id_roll : '';
@@ -2690,6 +2689,7 @@
                     data.piping ? document.getElementById("current_piping").value = data.piping : '';
                     data.remark ? document.getElementById("current_remark").value = data.remark : '';
 
+                    // simplified unit name
                     let unitSimplified = data.unit != "KGM" ? "M" : "KG";
 
                     let inputGroupUnit = document.getElementsByClassName("input-group-unit");
@@ -2698,32 +2698,55 @@
                         inputGroupUnit[i].innerText = unitSimplified;
                     }
 
+                    // updating est ampar & ply progress bar
                     calculateEstAmpar();
 
                     updatePlyProgress();
 
+                    // if is an extension
                     if (sisaGelaran > 0) {
+                        // extension things
                         let estSambungan = calculateSambungan(sisaGelaran);
 
                         data.id_sambungan ? document.getElementById("id_sambungan").value = data.id_sambungan : '';
                         document.getElementById("status_sambungan").value = "extension";
                         document.getElementById("current_sambungan").value = estSambungan;
 
-                        document.getElementById("current_sambungan").removeAttribute('readonly');
-                        document.getElementById("current_sisa_gelaran").setAttribute('readonly', true);
+                        openExtension();
 
+                        // set total pemakaian
                         document.getElementById("current_total_pemakaian_roll").value = document.getElementById("current_sambungan").value;
+
+                    // if not an extension
                     } else {
                         nextProcessThreeButton.classList.add("d-none");
 
+                        if ($("status_sambungan").val() != "extension") {
+                            lockExtension();
+                        }
+                    }
+
+                    // if item is not yet scanned/selected
+                    if (!(data.id_item)) {
+                        openScanItemForm();
+
+                        // scan qr
+                        $('#scan-qr-card').CardWidget('expand');
+                        $('#spreading-form-card').CardWidget('collapse');
+                        document.getElementById('kode_barang').focus();
+
+                        // time record
+                        firstTimeRecordCondition();
+
+                    // if item scanned/selected
+                    } else {
+                        lockScanItemForm();
+
+                        // scan qr
                         $('#scan-qr-card').CardWidget('collapse');
                         $('#spreading-form-card').CardWidget('expand');
 
-                        if ($("status_sambungan").val() != "extension") {
-                            document.getElementById("current_sambungan").setAttribute('readonly', true);
-                            document.getElementById("current_sisa_gelaran").removeAttribute('readonly');
-                        }
-
+                        // time record
                         openTimeRecordCondition();
                     }
                 }
@@ -2732,11 +2755,7 @@
                 function clearSpreadingForm() {
                     $('#spreading-form-card').CardWidget('collapse');
 
-                    document.getElementById("current_id_item").setAttribute("readonly", true);
-                    document.getElementById("current_lot").setAttribute("readonly", true);
-                    document.getElementById("current_roll").setAttribute("readonly", true);
-                    document.getElementById("current_qty").setAttribute("readonly", true);
-                    document.getElementById("current_qty_real").setAttribute("readonly", true);
+                    lockItemSpreading();
 
                     document.getElementById("id_sambungan").value = "";
                     document.getElementById("status_sambungan").value = "";
@@ -2757,7 +2776,7 @@
                     document.getElementById("current_kepala_kain").value = 0;
                     document.getElementById("current_sisa_tidak_bisa").value = 0;
                     document.getElementById("current_reject").value = 0;
-                    document.getElementById("current_sisa_kain").value = 0;
+                    document.getElementById("current_sisa_kain").value = "";
                     document.getElementById("current_total_pemakaian_roll").value = 0;
                     document.getElementById("current_short_roll").value = 0;
                     document.getElementById("current_piping").value = 0;
@@ -2768,6 +2787,36 @@
                     for (var i = 0; i < inputGroupUnit.length; i++) {
                         inputGroupUnit[i].innerText = "";
                     }
+                }
+
+                // -Lock Extension input on Spreading Form-
+                function lockExtension() {
+                    document.getElementById("current_sambungan").setAttribute('readonly', true);
+                    document.getElementById("current_sisa_gelaran").removeAttribute('readonly');
+                }
+
+                // -Open Extension input on Spreading Form-
+                function openExtension() {
+                    document.getElementById("current_sambungan").removeAttribute('readonly');
+                    document.getElementById("current_sisa_gelaran").setAttribute('readonly', true);
+                }
+
+                // -Lock Item input on Spreading Form-
+                function lockItemSpreading() {
+                    document.getElementById("current_id_item").setAttribute("readonly", true);
+                    document.getElementById("current_lot").setAttribute("readonly", true);
+                    document.getElementById("current_roll").setAttribute("readonly", true);
+                    document.getElementById("current_qty").setAttribute("readonly", true);
+                    document.getElementById("current_qty_real").setAttribute("readonly", true);
+                }
+
+                // -Open Item input on Spreading Form-
+                function openItemSpreading() {
+                    document.getElementById("current_id_item").removeAttribute("readonly");
+                    document.getElementById("current_lot").removeAttribute("readonly");
+                    document.getElementById("current_roll").removeAttribute("readonly");
+                    document.getElementById("current_qty").removeAttribute("readonly");
+                    document.getElementById("current_qty_real").removeAttribute("readonly");
                 }
 
                 // -Lock Spreading Form-
@@ -2907,15 +2956,27 @@
                 // --Lock Scan Item Form then Clear Scanner--
                 function lockScanItemForm() {
                     document.getElementById("kode_barang").setAttribute("readonly", true);
-                    document.getElementById("id_item").setAttribute("readonly", true);
-                    document.getElementById("detail_item").setAttribute("readonly", true);
                     document.getElementById("color_act").setAttribute("disabled", true);
+                    document.getElementById("get-button").setAttribute("disabled", true);
                     document.getElementById("scan-button").setAttribute("disabled", true);
+                    document.getElementById("switch-method").setAttribute("disabled", true);
                     document.getElementById("reader").classList.add("d-none");
 
                     if (html5QrcodeScanner != null) {
                         html5QrcodeScanner.clear();
                     }
+                }
+
+                // --Open Scan Item Form then Open Scanner--
+                function openScanItemForm() {
+                    document.getElementById("kode_barang").removeAttribute("readonly");
+                    document.getElementById("color_act").removeAttribute("disabled");
+                    document.getElementById("get-button").removeAttribute("disabled");
+                    document.getElementById("scan-button").removeAttribute("disabled");
+                    document.getElementById("switch-method").removeAttribute("disabled");
+                    document.getElementById("reader").classList.remove("d-none");
+
+                    initScan();
                 }
 
         // Scanned Item Module :
@@ -3269,8 +3330,6 @@
 
                 // -Reset Time Record-
                 function resetTimeRecord() {
-                    pauseTimeRecordButtons();
-
                     clearTimeout(timeRecordInterval);
 
                     summarySeconds = 0;
@@ -3307,12 +3366,16 @@
                     finishProcessButton.disabled = false;
 
                     finishProcessButton.classList.remove("d-none");
+
+                    openScanItemForm();
                 }
 
                 function openTimeRecordCondition() {
                     startLapButton.disabled = false;
                     nextLapButton.disabled = true;
                     stopLapButton.disabled = true;
+
+                    lockScanItemForm();
                 }
 
                 function openLapTimeRecordCondition() {

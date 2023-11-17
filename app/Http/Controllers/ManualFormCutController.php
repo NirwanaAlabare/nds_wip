@@ -764,7 +764,8 @@ class ManualFormCutController extends Controller
         );
 
         if ($storeTimeRecordSummary) {
-            $itemRemain = $itemQty - floatval($validatedRequest['current_total_pemakaian_roll']) - floatval($validatedRequest['current_kepala_kain']) - floatval($validatedRequest['current_sisa_tidak_bisa']) - floatval($validatedRequest['current_reject']) - floatval($validatedRequest['current_piping']);;
+            // $itemRemain = $itemQty - floatval($validatedRequest['current_total_pemakaian_roll']) - floatval($validatedRequest['current_kepala_kain']) - floatval($validatedRequest['current_sisa_tidak_bisa']) - floatval($validatedRequest['current_reject']) - floatval($validatedRequest['current_piping']);;
+            $itemRemain = $validatedRequest['current_sisa_kain'];
 
             if ($status == 'need extension') {
                 ScannedItem::updateOrCreate(
@@ -925,7 +926,7 @@ class ManualFormCutController extends Controller
             "current_kepala_kain" => "required",
             "current_sisa_tidak_bisa" => "required",
             "current_reject" => "required",
-            "current_sisa_kain" => "required",
+            "current_sisa_kain" => "nullable",
             "current_total_pemakaian_roll" => "required",
             "current_short_roll" => "required",
             "current_piping" => "required",
@@ -956,7 +957,7 @@ class ManualFormCutController extends Controller
                 "kepala_kain" => $validatedRequest['current_kepala_kain'],
                 "sisa_tidak_bisa" => $validatedRequest['current_sisa_tidak_bisa'],
                 "reject" => $validatedRequest['current_reject'],
-                "sisa_kain" => $validatedRequest['current_sisa_kain'],
+                "sisa_kain" => ($validatedRequest['current_sisa_kain'] ? $validatedRequest['current_sisa_kain'] : 0),
                 "total_pemakaian_roll" => $validatedRequest['current_total_pemakaian_roll'],
                 "short_roll" => $validatedRequest['current_short_roll'],
                 "piping" => $validatedRequest['current_piping'],
@@ -967,6 +968,7 @@ class ManualFormCutController extends Controller
 
         if ($storeTimeRecordSummary) {
             $itemRemain = $itemQty - floatval($validatedRequest['current_total_pemakaian_roll']) - floatval($validatedRequest['current_kepala_kain']) - floatval($validatedRequest['current_sisa_tidak_bisa']) - floatval($validatedRequest['current_reject']) - floatval($validatedRequest['current_piping']);
+            // $itemRemain = $validatedRequest['current_sisa_kain'];
 
             ScannedItem::updateOrCreate(
                 ["id_roll" => $validatedRequest['current_id_roll']],

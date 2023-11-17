@@ -284,7 +284,8 @@
                     data: 'id'
                 },
             ],
-            columnDefs: [{
+            columnDefs: [
+                {
                     targets: [2],
                     render: (data, type, row, meta) => {
                         let color = "";

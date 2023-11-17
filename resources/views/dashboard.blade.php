@@ -25,6 +25,10 @@
             <div  style="height: 75vh;"></div>
         @endif
 
+        @if ($page == "dashboard-dc")
+            <div  style="height: 75vh;"></div>
+        @endif
+
         @if ($page == "dashboard-mut-karyawan")
             <div class="container-fluid">
                 <div class="card">

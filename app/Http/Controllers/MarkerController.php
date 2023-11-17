@@ -101,7 +101,8 @@ class MarkerController extends Controller
 
     public function getColorList(Request $request)
     {
-        $colors = DB::connection('mysql_sb')->select("select sd.color from so_det sd
+        $colors = DB::connection('mysql_sb')->select("
+            select sd.color from so_det sd
             inner join so on sd.id_so = so.id
             inner join act_costing ac on so.id_cost = ac.id
             where ac.id = '" . $request->act_costing_id . "' and sd.cancel = 'N'
@@ -124,7 +125,12 @@ class MarkerController extends Controller
                 master_sb_ws.color,
                 master_sb_ws.size,
                 sum(master_sb_ws.qty) order_qty
-            ")->where("id_act_cost", $request->act_costing_id)->where("color", $request->color)->join("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->groupBy("id_act_cost", "color", "size")->orderBy("master_size_new.urutan")->get();
+            ")->
+            where("id_act_cost", $request->act_costing_id)->
+            where("color", $request->color)->
+            leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
+            groupBy("id_act_cost", "color", "size")->
+            orderBy("master_size_new.urutan")->get();
 
         return json_encode([
             "draw" => intval($request->input('draw')),

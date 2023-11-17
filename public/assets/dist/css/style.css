@@ -1,4 +1,8 @@
 /* MyCustom Styles */
+@font-face {
+    font-family: Nunito;
+    src: url(/nds_wip/public/assets/fonts/Nunito/Nunito-VariableFont_wght.ttf);
+}
 
 /* General */
 :root {
@@ -17,12 +21,17 @@
     --dark-color: #2b2f3a;
 }
 
+body {
+    font-family: 'Nunito', 'sans-serif';
+    font-size: 15px;
+}
+
 th {
     vertical-align: bottom !important;
 }
 
 td, th {
-    font-size: 14px !important;
+    font-size: 13.5px !important;
 }
 
 table tr.selected {
@@ -47,6 +56,10 @@ table tr.selected {
 .list-group-item {
     padding: 3px 5px !important;
     font-size: 13px !important;
+}
+
+.dropdown-item {
+    font-size: 15px !important;
 }
 
 /* Loading */

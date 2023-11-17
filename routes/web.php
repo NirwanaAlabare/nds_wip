@@ -229,6 +229,10 @@ Route::get('/dashboard-stocker', function () {
     return view('dashboard', ['page' => 'dashboard-stocker']);
 })->middleware('auth')->name('dashboard-stocker');
 
+Route::get('/dashboard-dc', function () {
+    return view('dashboard', ['page' => 'dashboard-dc']);
+})->middleware('auth')->name('dashboard-dc');
+
 Route::get('/dashboard-mut-karyawan', function () {
     return view('dashboard', ['page' => 'dashboard-mut-karyawan']);
 })->middleware('auth')->name('dashboard-mut-karyawan');
