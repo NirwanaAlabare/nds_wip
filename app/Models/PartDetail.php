@@ -9,7 +9,7 @@ class PartDetail extends Model
 {
     use HasFactory;
 
-    protected $table = 'marker_input_detail';
+    protected $table = 'part_detail';
 
     protected $guarded = [];
 

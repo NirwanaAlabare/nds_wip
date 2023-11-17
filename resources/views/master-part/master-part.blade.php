@@ -10,7 +10,7 @@
 @section('content')
     <div class="card">
         <div class="card-header bg-sb text-light">
-            <h5 class="card-title">Master Part</h5>
+            <h5 class="card-title fw-bold mb-0">Master Part</h5>
         </div>
         <div class="card-body">
             <button type="button" class="btn btn-success btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#createMasterPartModal">
@@ -119,7 +119,7 @@
             },
             columns: [
                 {
-                    data: 'kode_part',
+                    data: 'kode_master_part',
                 },
                 {
                     data: 'nama_part',

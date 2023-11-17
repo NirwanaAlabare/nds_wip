@@ -10,13 +10,13 @@
 @section('content')
     <div class="card">
         <div class="card-header bg-sb text-light">
-            <h5 class="card-title">Part</h5>
+            <h5 class="card-title fw-bold mb-0">Part</h5>
         </div>
         <div class="card-body">
-            <button type="button" class="btn btn-success btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#createMasterPartModal">
+            <a href="{{ route('create-part') }}" class="btn btn-success btn-sm mb-3">
                 <i class="fas fa-plus"></i>
                 Baru
-            </button>
+            </a>
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Awal</small></label>
@@ -31,12 +31,15 @@
                 </div>
             </div>
             <div class="table-responsive">
-                <table id="datatable-master-part" class="table table-bordered table-sm w-100">
+                <table id="datatable-part" class="table table-bordered table-sm w-100">
                     <thead>
                         <tr>
-                            <th>Kode Part</th>
-                            <th>Nama Part</th>
-                            <th>Bag</th>
+                            <th>No. WS</th>
+                            <th>Buyer</th>
+                            <th>Style</th>
+                            <th>Color</th>
+                            <th>Panel</th>
+                            <th>Part</th>
                             <th class="align-bottom">Action</th>
                         </tr>
                     </thead>
@@ -53,14 +56,41 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="hidden" name="edit_id" id="edit_id">
-                    <div class="mb-3">
-                        <label class="form-label">Nama Part</label>
-                        <input type="text" class="form-control" name="edit_nama_part" id="edit_nama_part" value="">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Bag</label>
-                        <input type="text" class="form-control" name="edit_bag" id="edit_bag" value="">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">No. WS</label>
+                                <input type="text" class="form-control" name="edit_no_ws" id="edit_no_ws" value="">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Style</label>
+                                <input type="text" class="form-control" name="edit_style" id="edit_style" value="">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Color</label>
+                                <input type="text" class="form-control" name="edit_color" id="edit_color" value="">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Panel</label>
+                                <input type="text" class="form-control" name="edit_panel" id="edit_panel" value="">
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="table-responsive mb-3">
+                                <table class="table table-sm" id="datatable-part-detail">
+                                    <tr>
+                                        <th>No.</th>
+                                        <th>Part</th>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -80,143 +110,61 @@
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
 
     <script>
-        // let datatableMasterPart = $("#datatable-master-part").DataTable({
-        //     ordering: false,
-        //     processing: true,
-        //     serverSide: true,
-        //     ajax: {
-        //         url: '{{ route('master-part') }}',
-        //     },
-        //     columns: [
-        //         {
-        //             data: 'kode_part',
-        //         },
-        //         {
-        //             data: 'nama_part',
-        //         },
-        //         {
-        //             data: 'bag'
-        //         },
-        //         {
-        //             data: 'id'
-        //         },
-        //     ],
-        //     columnDefs: [
-        //         {
-        //             targets: [3],
-        //             className: "align-middle",
-        //             render: (data, type, row, meta) => {
-        //                 return `
-        //                     <div class='d-flex gap-1 justify-content-center'>
-        //                         <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editMasterPartModal" onclick='editData(` + JSON.stringify(row) + `, "editMasterPartModal", [{"function" : "datatableMasterPartReload()"}]);'>
-        //                             <i class='fa fa-edit'></i>
-        //                         </a>
-        //                         <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-master-part') }}/`+row['id']+`' onclick='deleteData(this)'>
-        //                             <i class='fa fa-trash'></i>
-        //                         </a>
-        //                     </div>
-        //                 `;
-        //             }
-        //         }
-        //     ],
-        // });
+        let datatablePart = $("#datatable-part").DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '{{ route('part') }}',
+            },
+            columns: [
+                {
+                    data: 'act_costing_ws',
+                },
+                {
+                    data: 'kode'
+                },
+                {
+                    data: 'style',
+                },
+                {
+                    data: 'color'
+                },
+                {
+                    data: 'panel'
+                },
+                {
+                    data: 'part_details'
+                },
+                {
+                    data: 'id'
+                },
+            ],
+            columnDefs: [
+                {
+                    targets: [3],
+                    className: "align-middle",
+                    render: (data, type, row, meta) => {
+                        return `
+                            <div class='d-flex gap-1 justify-content-center'>
+                                <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#detailPartModal" onclick='editData(` + JSON.stringify(row) + `, "detailPartModal", [{"function" : "datatablePartReload()"}]);'>
+                                    <i class='fa fa-search'></i>
+                                </a>
+                                <a class='btn btn-primary btn-sm'>
+                                    <i class='fa fa-edit'></i>
+                                </a>
+                                <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part') }}/`+row['id']+`' onclick='deleteData(this)'>
+                                    <i class='fa fa-trash'></i>
+                                </a>
+                            </div>
+                        `;
+                    }
+                }
+            ],
+        });
 
-        // function datatableMasterPartReload() {
-        //     datatableMasterPart.ajax.reload()
-        // }
-
-        // // Submit Marker Form
-        // function submitMasterPartForm(e, evt) {
-        //     evt.preventDefault();
-
-        //     clearModified();
-
-        //     $.ajax({
-        //         url: e.getAttribute('action'),
-        //         type: e.getAttribute('method'),
-        //         data: new FormData(e),
-        //         processData: false,
-        //         contentType: false,
-        //         success: async function(res) {
-        //             // Success Response
-
-        //             if (res.status == 200) {
-        //                 // When Actually Success :
-
-        //                 // Hide Modal
-        //                 $('.modal').modal('hide');
-
-        //                 // Reset This Form
-        //                 e.reset();
-
-        //                 // Success Alert
-        //                 Swal.fire({
-        //                     icon: 'success',
-        //                     title: 'Data Master Part berhasil disimpan',
-        //                     text: res.message,
-        //                     showCancelButton: false,
-        //                     showConfirmButton: true,
-        //                     confirmButtonText: 'Oke',
-        //                     timer: 5000,
-        //                     timerProgressBar: true
-        //                 })
-
-        //                 datatableMasterPartReload();
-        //             } else {
-        //                 // When Actually Error :
-
-        //                 // Error Alert
-        //                 iziToast.error({
-        //                     title: 'Error',
-        //                     message: res.message,
-        //                     position: 'topCenter'
-        //                 });
-        //             }
-
-        //             // If There Are Some Additional Error
-        //             if (Object.keys(res.additional).length > 0 ) {
-        //                 for (let key in res.additional) {
-        //                     if (document.getElementById(key)) {
-        //                         document.getElementById(key).classList.add('is-invalid');
-
-        //                         if (res.additional[key].hasOwnProperty('message')) {
-        //                             document.getElementById(key+'_error').classList.remove('d-none');
-        //                             document.getElementById(key+'_error').innerHTML = res.additional[key]['message'];
-        //                         }
-
-        //                         if (res.additional[key].hasOwnProperty('value')) {
-        //                             document.getElementById(key).value = res.additional[key]['value'];
-        //                         }
-
-        //                         modified.push(
-        //                             [key, '.classList', '.remove(', "'is-invalid')"],
-        //                             [key+'_error', '.classList', '.add(', "'d-none')"],
-        //                             [key+'_error', '.innerHTML = ', "''"],
-        //                         )
-        //                     }
-        //                 }
-        //             }
-        //         }, error: function (jqXHR) {
-        //             // Error Response
-
-        //             let res = jqXHR.responseJSON;
-        //             let message = '';
-        //             let i = 0;
-
-        //             for (let key in res.errors) {
-        //                 message = res.errors[key];
-        //                 document.getElementById(key).classList.add('is-invalid');
-        //                 modified.push(
-        //                     [key, '.classList', '.remove(', "'is-invalid')"],
-        //                 )
-
-        //                 if (i == 0) {
-        //                     document.getElementById(key).focus();
-        //                     i++;
-        //                 }
-        //             };
-        //         }
-        //     });
-        // }
+        function datatablePartReload() {
+            datatablePart.ajax.reload()
+        }
     </script>
 @endsection

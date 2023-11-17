@@ -21,14 +21,14 @@ class MasterPartController extends Controller
             $masterPartsQuery = MasterPart::query();
 
             return DataTables::eloquent($masterPartsQuery)->
-                filterColumn('kode_part', function ($query, $keyword) {
-                    $query->whereRaw("LOWER(kode_part) LIKE LOWER('%" . $keyword . "%')");
+                filterColumn('kode_master_part', function ($query, $keyword) {
+                    $query->whereRaw("LOWER(kode_master_part) LIKE LOWER('%" . $keyword . "%')");
                 })->filterColumn('nama_part', function ($query, $keyword) {
                     $query->whereRaw("LOWER(nama_part) LIKE LOWER('%" . $keyword . "%')");
                 })->filterColumn('bag', function ($query, $keyword) {
                     $query->whereRaw("LOWER(bag) LIKE LOWER('%" . $keyword . "%')");
                 })->order(function ($query) {
-                    $query->orderBy('cancel', 'asc')->orderBy('updated_at', 'desc')->orderBy('kode_part', 'desc');
+                    $query->orderBy('cancel', 'asc')->orderBy('updated_at', 'desc')->orderBy('kode_master_part', 'desc');
                 })->toJson();
         }
 
@@ -63,7 +63,7 @@ class MasterPartController extends Controller
         $masterPartCode = 'MP' . sprintf('%05s', $masterPartNumber);
 
         $masterPartStore = MasterPart::create([
-            "kode_part" => $masterPartCode,
+            "kode_master_part" => $masterPartCode,
             "nama_part" => $validatedRequest["nama_part"],
             "bag" => $validatedRequest["bag"],
         ]);

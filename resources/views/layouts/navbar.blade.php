@@ -133,7 +133,7 @@
                                     </a>
                                 </li> --}}
                                 <li>
-                                    <a href="{{ route('stocker') }}" class="dropdown-item">
+                                    <a href="{{ route('part') }}" class="dropdown-item">
                                         Part <i class="fas fa-th fa-sm"></i>
                                     </a>
                                 </li>

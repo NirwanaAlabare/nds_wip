@@ -195,6 +195,23 @@ Route::middleware('auth')->group(function () {
         Route::delete('/destroy/{id?}', 'destroy')->name('destroy-master-part');
     });
 
+    // Part
+    Route::controller(PartController::class)->prefix("part")->middleware('stocker')->group(function () {
+        Route::get('/', 'index')->name('part');
+        Route::get('/create', 'create')->name('create-part');
+        Route::post('/store', 'store')->name('store-part');
+        Route::get('/edit', 'edit')->name('edit-part');
+        Route::put('/update', 'update')->name('update-part');
+        Route::delete('/destroy', 'destroy')->name('destroy-part');
+
+        // get order
+        Route::get('/get-order', 'getOrderInfo')->name('get-part-order');
+        // get colors
+        Route::get('/get-colors', 'getColorList')->name('get-part-colors');
+        // get panels
+        Route::get('/get-panels', 'getPanelList')->name('get-part-panels');
+    });
+
     // Stocker
     Route::controller(StockerController::class)->prefix("stocker")->middleware('stocker')->group(function () {
         Route::get('/', 'index')->name('stocker');
