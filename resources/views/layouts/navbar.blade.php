@@ -129,11 +129,71 @@
                             aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @dc
-                                {{-- <li>
-                                    <a href="{{ route('part') }}" class="dropdown-item">
-                                        Part
+                                <li>
+                                    <a href="{{ route('stocker') }}" class="dropdown-item">
+                                        Stocker <i class="fas fa-receipt fa-sm"></i>
                                     </a>
-                                </li> --}}
+                                </li>
+                            @enddc
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle">DC In</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @dc
+                                <li>
+                                    <a href="{{ route('dc-in') }}" class="dropdown-item">
+                                        DC In <i class="fas fa-receipt fa-sm"></i>
+                                    </a>
+                                </li>
+                            @enddc
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle">Secondary</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @dc
+                                <li>
+                                    <a href="{{ route('stocker') }}" class="dropdown-item">
+                                        Stocker <i class="fas fa-receipt fa-sm"></i>
+                                    </a>
+                                </li>
+                            @enddc
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle">Rak</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @dc
+                                <li>
+                                    <a href="{{ route('stocker') }}" class="dropdown-item">
+                                        Stocker <i class="fas fa-receipt fa-sm"></i>
+                                    </a>
+                                </li>
+                            @enddc
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle">Stok DC</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @dc
+                                <li>
+                                    <a href="{{ route('stocker') }}" class="dropdown-item">
+                                        Stocker <i class="fas fa-receipt fa-sm"></i>
+                                    </a>
+                                </li>
+                            @enddc
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle">Trolley</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @dc
                                 <li>
                                     <a href="{{ route('stocker') }}" class="dropdown-item">
                                         Stocker <i class="fas fa-receipt fa-sm"></i>

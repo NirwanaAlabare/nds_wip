@@ -193,6 +193,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/print-numbering/{index?}', 'printNumbering')->name('print-numbering');
     });
 
+    // DC IN
+    Route::controller(StockerController::class)->prefix("dc-in")->middleware('dc')->group(function () {
+        Route::get('/', 'index')->name('dc-in');
+    });
+
     // Mutasi Karywawan
     Route::controller(EmployeeController::class)->prefix("mut-karyawan")->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('mut-karyawan');
