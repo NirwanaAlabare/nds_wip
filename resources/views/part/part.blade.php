@@ -142,12 +142,12 @@
             ],
             columnDefs: [
                 {
-                    targets: [3],
+                    targets: [6],
                     className: "align-middle",
                     render: (data, type, row, meta) => {
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
-                                <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#detailPartModal" onclick='editData(` + JSON.stringify(row) + `, "detailPartModal", [{"function" : "datatablePartReload()"}]);'>
+                                <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#detailPartModal" onclick='editData(` + JSON.stringify(row) + `, "detailPartModal", [{"function" : "datatablePartReload()"}]);'>
                                     <i class='fa fa-search'></i>
                                 </a>
                                 <a class='btn btn-primary btn-sm'>
