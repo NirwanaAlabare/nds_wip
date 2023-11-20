@@ -61,15 +61,19 @@
                 </div>
                 <div class="row">
                     <div class="col-12 col-md-6">
-                        <div class="d-flex gap-3">
-                            <input type="hidden" class="form-control" id="ws" name="ws" readonly>
-                            <div class="mb-1">
-                                <label class="form-label"><small>Buyer</small></label>
-                                <input type="text" class="form-control" id="buyer" name="buyer" readonly>
+                        <input type="hidden" class="form-control" id="ws" name="ws" readonly>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="mb-1">
+                                    <label class="form-label"><small>Buyer</small></label>
+                                    <input type="text" class="form-control" id="buyer" name="buyer" readonly>
+                                </div>
                             </div>
-                            <div class="mb-1">
-                                <label class="form-label"><small>Style</small></label>
-                                <input type="text" class="form-control" id="style" name="style" readonly>
+                            <div class="col-6">
+                                <div class="mb-1">
+                                    <label class="form-label"><small>Style</small></label>
+                                    <input type="text" class="form-control" id="style" name="style" readonly>
+                                </div>
                             </div>
                         </div>
                     </div>
