@@ -15,6 +15,8 @@ use App\Http\Controllers\StockerController;
 use App\Http\Controllers\ManagerController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\SummaryController;
+use App\Http\Controllers\DCInController;
+use App\Http\Controllers\SecondaryInController;
 
 /*
 |--------------------------------------------------------------------------
@@ -221,8 +223,15 @@ Route::middleware('auth')->group(function () {
     });
 
     // DC IN
-    Route::controller(StockerController::class)->prefix("dc-in")->middleware('dc')->group(function () {
+    Route::controller(DCInController::class)->prefix("dc-in")->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('dc-in');
+        Route::get('/create', 'create')->name('create-dc-in');
+    });
+
+    // Secondary IN
+    Route::controller(SecondaryInController::class)->prefix("secondary-in")->middleware('admin')->group(function () {
+        Route::get('/', 'index')->name('secondary-in');
+        Route::get('/create', 'create')->name('create-secondary-in');
     });
 
     // Mutasi Karywawan
