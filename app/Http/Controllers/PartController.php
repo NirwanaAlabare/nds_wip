@@ -253,11 +253,12 @@ class PartController extends Controller
                     form_cut_input.id_marker,
                     form_cut_input.no_form,
                     form_cut_input.tgl_form_cut,
-                    users.name meja,
+                    users.name nama_meja,
                     marker_input.act_costing_ws,
                     marker_input.buyer,
                     marker_input.urutan_marker,
                     marker_input.style,
+                    marker_input.color,
                     marker_input.panel,
                     GROUP_CONCAT(DISTINCT CONCAT(master_size_new.size, '(', marker_input_detail.ratio, ')') SEPARATOR ', ') marker_details,
                     form_cut_input.qty_ply
@@ -357,9 +358,6 @@ class PartController extends Controller
     }
 
     public function storePartForm(Request $request) {
-        $urutanPartForm = PartForm::count() + 1;
-        $kodePartForm = "PFM" . sprintf('%05s', $urutanPartForm);
-
         $success = [];
         $fail = [];
         $exist = [];
@@ -368,6 +366,9 @@ class PartController extends Controller
             $isExist = PartForm::where("part_id", $request->part_id)->where("form_id", $partForm['no_form'])->count();
 
             if ($isExist < 1) {
+                $urutanPartForm = PartForm::count() + 1;
+                $kodePartForm = "PFM" . sprintf('%05s', $urutanPartForm);
+
                 $addToCutPlan = PartForm::create([
                     "kode" => $kodePartForm,
                     "part_id" => $request->part_id,

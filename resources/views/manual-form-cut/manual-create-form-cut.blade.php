@@ -2617,12 +2617,14 @@
                     }
                 }
 
-                let sambungan = calculateSambungan(sisaGelaran, unitSisaGelaran);
+                if (sisaGelaran > 0) {
+                    let sambungan = calculateSambungan(sisaGelaran, unitSisaGelaran);
 
-                document.getElementById("current_sambungan").value = sambungan;
-                document.getElementById("current_total_pemakaian_roll").value = sambungan;
+                    document.getElementById("current_sambungan").value = sambungan;
+                    document.getElementById("current_total_pemakaian_roll").value = sambungan;
 
-                console.log(sisaGelaran, unitSisaGelaran);
+                    console.log(sisaGelaran, unitSisaGelaran);
+                }
             }
 
         // Spreading Form Module :

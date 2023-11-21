@@ -70,14 +70,14 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="row mb-3">
+                    {{-- <div class="row mb-3">
                         <div class="col-6">
                             <p>Form yang dipilih : <span class="fw-bold" id="selected-row-count-1">0</span></p>
                         </div>
                         <div class="col-6">
                             <button class="btn btn-danger btn-sm float-end" onclick="removePartForm()"><i class="fa fa-minus fa-sm"></i> Singkirkan Form</button>
                         </div>
-                    </div>
+                    </div> --}}
                     <div class="table-responsive">
                         <table id="datatable-selected" class="table table-bordered table-sm w-100">
                             <thead>
@@ -113,7 +113,7 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="d-flex gap-3">
+                    {{-- <div class="d-flex gap-3">
                         <div class="mb-3">
                             <label><small><b>Tgl Awal</b></small></label>
                             <input type="date" class="form-control form-control-sm w-auto" id="tgl_awal" name="tgl_awal" value="{{ date('Y-m-d') }}">
@@ -122,7 +122,7 @@
                             <label><small><b>Tgl Akhir</b></small></label>
                             <input type="date" class="form-control form-control-sm w-auto" id="tgl_akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}">
                         </div>
-                    </div>
+                    </div> --}}
                     <div class="row justify-content-between mb-3">
                         <div class="col-6">
                             <p>Form yang dipilih : <span class="fw-bold" id="selected-row-count-2">0</span></p>
@@ -212,7 +212,7 @@
                     data: 'id_marker'
                 },
                 {
-                    data: 'ws'
+                    data: 'act_costing_ws'
                 },
                 {
                     data: 'style'

@@ -856,13 +856,22 @@ group by id_cost, k.id_item
 
     public function finishProcess($id = 0, Request $request)
     {
-        $formCutInputData = FormCutInput::where("id", $id)->first();
+        $formCutInputData = FormCutInput::find($id);
+
+        $formCutInputSimilarCount = FormCutInput::leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+            where("marker_input.act_costing_ws", $formCutInput->marker->act_costing_ws)->
+            where("marker_input.color", $formCutInput->marker->color)->
+            where("marker_input.panel", $formCutInput->marker->panel)->
+            where("form_cut_input.status", "SELESAI PENGERJAAN")->
+            count();
+
         $updateFormCutInput = FormCutInput::where("id", $id)->update([
             "status" => "SELESAI PENGERJAAN",
             "waktu_selesai" => $request->finishTime,
             "cons_act" => $request->consAct,
             "unit_cons_act" => $request->unitConsAct,
             "total_lembar" => $request->totalLembar,
+            "no_cut" => $formCutInputSimilarCount + 1,
             "operator" => $request->operator,
         ]);
 
