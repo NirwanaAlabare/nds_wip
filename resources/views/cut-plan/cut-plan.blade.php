@@ -56,7 +56,8 @@
         </div>
     </div>
 
-    <div class="modal fade" id="manageCutPlanModal" tabindex="-1" role="dialog" aria-labelledby="manageCutPlanModalLabel" aria-hidden="true">
+    <div class="modal fade" id="manageCutPlanModal" tabindex="-1" role="dialog" aria-labelledby="manageCutPlanModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-light">
@@ -70,13 +71,15 @@
                             <div class='col-sm-6'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Tgl. Plan</small></label>
-                                    <input type='text' class='form-control' id='manage_tgl_plan' name='manage_tgl_plan' readonly>
+                                    <input type='text' class='form-control' id='manage_tgl_plan' name='manage_tgl_plan'
+                                        readonly>
                                 </div>
                             </div>
                             <div class='col-sm-6'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>No. Cut Plan</small></label>
-                                    <input type='text' class='form-control' id='manage_no_cut_plan' name='manage_no_cut_plan' onchange="datatableManageFormReload();" readonly>
+                                    <input type='text' class='form-control' id='manage_no_cut_plan'
+                                        name='manage_no_cut_plan' onchange="datatableManageFormReload();" readonly>
                                 </div>
                             </div>
                         </div>
@@ -84,25 +87,29 @@
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Total Form</small></label>
-                                    <input type='text' class='form-control' id='manage_total_form' name='manage_total_form' value = '' readonly>
+                                    <input type='text' class='form-control' id='manage_total_form'
+                                        name='manage_total_form' value = '' readonly>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Form Tersedia</small></label>
-                                    <input type='text' class='form-control' id='manage_total_belum' name='manage_total_belum' value = '' readonly>
+                                    <input type='text' class='form-control' id='manage_total_belum'
+                                        name='manage_total_belum' value = '' readonly>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Form On Progress</small></label>
-                                    <input type='text' class='form-control' id='manage_total_on_progress' name='manage_total_on_progress' value = '' readonly>
+                                    <input type='text' class='form-control' id='manage_total_on_progress'
+                                        name='manage_total_on_progress' value = '' readonly>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Form Selesai</small></label>
-                                    <input type='text' class='form-control' id='manage_total_beres' name='manage_total_beres' value = '' readonly>
+                                    <input type='text' class='form-control' id='manage_total_beres'
+                                        name='manage_total_beres' value = '' readonly>
                                 </div>
                             </div>
                         </div>
@@ -124,8 +131,10 @@
                             </table>
                         </div>
                         <div class="my-3">
-                            <button type="button" class="btn btn-sb btn-block fw-bold mb-3" onclick="submitManageForm();">SIMPAN</button>
-                            <button type="button" class="btn btn-no btn-block fw-bold mb-3" data-bs-dismiss="modal">BATAL</button>
+                            <button type="button" class="btn btn-sb btn-block fw-bold mb-3"
+                                onclick="submitManageForm();">SIMPAN</button>
+                            <button type="button" class="btn btn-no btn-block fw-bold mb-3"
+                                data-bs-dismiss="modal">BATAL</button>
                         </div>
                     </form>
                 </div>
@@ -146,8 +155,7 @@
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
-                        value="{{ date('Y-m-d') }}">
+                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal">
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Akhir</small></label>
@@ -183,6 +191,21 @@
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
     <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            let oneWeeksBefore = new Date(new Date().setDate(new Date().getDate() - 7));
+            let oneWeeksBeforeDate = ("0" + oneWeeksBefore.getDate()).slice(-2);
+            let oneWeeksBeforeMonth = ("0" + (oneWeeksBefore.getMonth() + 1)).slice(-2);
+            let oneWeeksBeforeYear = oneWeeksBefore.getFullYear();
+            let oneWeeksBeforeFull = oneWeeksBeforeYear + '-' + oneWeeksBeforeMonth + '-' + oneWeeksBeforeDate;
+
+            $("#tgl-awal").val(oneWeeksBeforeFull).trigger("change");
+
+            window.addEventListener("focus", () => {
+                $('#datatable').DataTable().ajax.reload(null, false);
+            });
+        });
+
+
         let datatable = $("#datatable").DataTable({
             ordering: false,
             processing: true,
@@ -194,8 +217,7 @@
                     d.tgl_akhir = $('#tgl-akhir').val();
                 },
             },
-            columns: [
-                {
+            columns: [{
                     data: 'tgl_plan_fix',
                 },
                 {
@@ -245,8 +267,7 @@
                     d.tgl_plan = $('#edit_tgl_plan').val();
                 },
             },
-            columns: [
-                {
+            columns: [{
                     data: 'no_form'
                 },
                 {
@@ -357,12 +378,13 @@
 
         function manageCutPlan(data) {
             for (let key in data) {
-                if (document.getElementById('manage_'+key)) {
-                    $('#manage_'+key).val(data[key]).trigger("change");
-                    document.getElementById('manage_'+key).setAttribute('value', data[key]);
+                if (document.getElementById('manage_' + key)) {
+                    $('#manage_' + key).val(data[key]).trigger("change");
+                    document.getElementById('manage_' + key).setAttribute('value', data[key]);
 
-                    if (document.getElementById('manage_'+key).classList.contains('select2bs4') || document.getElementById('manage_'+key).classList.contains('select2')) {
-                        $('#manage_'+key).val(data[key]).trigger('change.select2');
+                    if (document.getElementById('manage_' + key).classList.contains('select2bs4') || document
+                        .getElementById('manage_' + key).classList.contains('select2')) {
+                        $('#manage_' + key).val(data[key]).trigger('change.select2');
                     }
                 }
             }
@@ -379,8 +401,7 @@
                     d.no_cut_plan = $('#manage_no_cut_plan').val();
                 },
             },
-            columns: [
-                {
+            columns: [{
                     data: 'form_info',
                     sortable: false
                 },
@@ -414,9 +435,8 @@
                     sortable: false
                 },
             ],
-            columnDefs: [
-                {
-                    targets: [0,1,2,3,5,6],
+            columnDefs: [{
+                    targets: [0, 1, 2, 3, 5, 6],
                     className: 'w-auto',
                 },
                 {
@@ -431,7 +451,7 @@
         }
 
         function approve(id) {
-            document.getElementById('approve_'+id).value = 'Y';
+            document.getElementById('approve_' + id).value = 'Y';
         }
 
         function submitManageForm() {
@@ -458,23 +478,24 @@
 
                             if (res.additional['success'].length > 0) {
                                 res.additional['success'].forEach(element => {
-                                    message += element+" - Berhasil <br>";
+                                    message += element + " - Berhasil <br>";
                                 });
                             }
 
                             if (res.additional['fail'].length > 0) {
                                 res.additional['fail'].forEach(element => {
-                                    message += element+" - Gagal <br>";
+                                    message += element + " - Gagal <br>";
                                 });
                             }
 
                             if (res.additional['exist'].length > 0) {
                                 res.additional['exist'].forEach(element => {
-                                    message += element+" - Sudah Ada <br>";
+                                    message += element + " - Sudah Ada <br>";
                                 });
                             }
 
-                            if (res.additional['success'].length+res.additional['fail'].length+res.additional['exist'].length > 1) {
+                            if (res.additional['success'].length + res.additional['fail'].length + res
+                                .additional['exist'].length > 1) {
                                 Swal.fire({
                                     icon: 'info',
                                     title: 'Hasil Ubah Data Form',
@@ -493,7 +514,7 @@
                         });
                     }
                 },
-                error: function (jqXHR) {
+                error: function(jqXHR) {
                     iziToast.error({
                         title: 'Error',
                         message: 'Terjadi kesalahan.',
@@ -502,6 +523,5 @@
                 }
             })
         }
-
     </script>
 @endsection
