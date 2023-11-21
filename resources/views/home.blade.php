@@ -45,7 +45,7 @@
                                 <div class="card h-100">
                                     <div class="card-body">
                                         <div class="d-flex h-100 flex-column justify-content-between">
-                                            <img src="{{ asset('dist/img/distribution.png') }}" class="img-fluid p-3"
+                                            <img src="{{ asset('dist/img/distribution.jpeg') }}" class="img-fluid p-3"
                                                 alt="qr code image">
                                             <p class="text-center">DC</p>
                                         </div>

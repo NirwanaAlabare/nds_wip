@@ -204,6 +204,12 @@ Route::middleware('auth')->group(function () {
         Route::put('/update', 'update')->name('update-part');
         Route::delete('/destroy', 'destroy')->name('destroy-part');
 
+        // part form
+        Route::get('/manage-part-form/{id?}', 'managePartForm')->name('manage-part-form');
+        Route::get('/get-form-cut/{id?}', 'getFormCut')->name('get-part-form-cut');
+        Route::post('/store-part-form', 'storePartForm')->name('store-part-form');
+        Route::delete('/destroy-part-form', 'destroyPartForm')->name('destroy-part-form');
+
         // get order
         Route::get('/get-order', 'getOrderInfo')->name('get-part-order');
         // get colors

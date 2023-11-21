@@ -12,4 +12,12 @@ class StockerDetail extends Model
     protected $table = 'stocker_input_detail';
 
     protected $guarded = [];
+
+    /**
+     * Get the stocker that own the detail.
+     */
+    public function stocker()
+    {
+        return $this->belongsTo(Stocker::class, 'stocker_id', 'id');
+    }
 }

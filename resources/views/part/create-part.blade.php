@@ -40,10 +40,7 @@
                         <div class="mb-1">
                             <div class="form-group">
                                 <label><small>Color</small></label>
-                                <select class="form-control select2bs4" id="color" name="color" style="width: 100%;">
-                                    <option selected="selected" value="">Pilih Color</option>
-                                    {{-- select 2 option --}}
-                                </select>
+                                <input type="text" class="form-control" name="color" id="color" readonly>
                             </div>
                         </div>
                     </div>
@@ -81,9 +78,8 @@
                         <div class="mb-3">
                             <label class="form-label"><small>Part</small></label>
                             <select class="form-control select2bs4" name="part_details[]" id="part_details" multiple="multiple">
-                                <option value="" disabled>Pilih Part</option>
                                 @foreach ($masterParts as $masterPart)
-                                    <option value="{{ $masterPart->id }}">{{ $masterPart->nama_part }}</option>
+                                    <option value="{{ $masterPart->id }}">{{ $masterPart->nama_part }} - {{ $masterPart->bag }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -116,10 +112,10 @@
                 document.getElementById('store-part').reset();
 
                 $("#ws_id").val(null).trigger("change");
+                $('#part_details').val(null).trigger('change');
             }
 
-            // Select2 Prevent Step-Jump Input ( Step = WS -> Color -> Panel )
-            $("#color").prop("disabled", true);
+            // Select2 Prevent Step-Jump Input ( Step = WS -> Panel )
             $("#panel").prop("disabled", true);
         });
 
@@ -136,21 +132,14 @@
             theme: 'bootstrap4',
         });
 
-        $('.select2bs4').on('select2:close', function() {
+        $('#part_details').on('change', function() {
             $("#jumlah_part_detail").val($(this).select2('data').length);
         });
 
         // Step One (WS) on change event
         $('#ws_id').on('change', function(e) {
             if (this.value) {
-                updateColorList();
                 updateOrderInfo();
-            }
-        });
-
-        // Step Two (Color) on change event
-        $('#color').on('change', function(e) {
-            if (this.value) {
                 updatePanelList();
             }
         });
@@ -162,7 +151,6 @@
                 type: 'get',
                 data: {
                     act_costing_id: $('#ws_id').val(),
-                    color: $('#color').val(),
                 },
                 dataType: 'json',
                 success: function (res) {
@@ -170,35 +158,7 @@
                         document.getElementById('ws').value = res.kpno;
                         document.getElementById('buyer').value = res.buyer;
                         document.getElementById('style').value = res.styleno;
-                    }
-                },
-            });
-        }
-
-        // Update Color Select Option Based on Order WS
-        function updateColorList() {
-            document.getElementById('color').value = null;
-
-            return $.ajax({
-                url: '{{ route("get-part-colors") }}',
-                type: 'get',
-                data: {
-                    act_costing_id: $('#ws_id').val(),
-                },
-                success: function (res) {
-                    if (res) {
-                        // Update this step
-                        document.getElementById('color').innerHTML = res;
-
-                        // Reset next step
-                        document.getElementById('panel').innerHTML = null;
-                        document.getElementById('panel').value = null;
-
-                        // Open this step
-                        $("#color").prop("disabled", false);
-
-                        // Close next step
-                        $("#panel").prop("disabled", true);
+                        document.getElementById('color').value = res.colors;
                     }
                 },
             });
@@ -208,7 +168,7 @@
         function updatePanelList() {
             document.getElementById('panel').value = null;
             return $.ajax({
-                url: '{{ route("get-marker-panels") }}',
+                url: '{{ route("get-part-panels") }}',
                 type: 'get',
                 data: {
                     act_costing_id: $('#ws_id').val(),
@@ -328,10 +288,9 @@
 
         // Reset Step
         async function resetStep() {
+            $('#part_details').val(null).trigger('change');
             await $("#ws_id").val(null).trigger("change");
-            await $("#color").val(null).trigger("change");
             await $("#panel").val(null).trigger("change");
-            await $("#color").prop("disabled", true);
             await $("#panel").prop("disabled", true);
         }
     </script>

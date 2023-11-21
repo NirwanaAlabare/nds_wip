@@ -12,4 +12,20 @@ class Stocker extends Model
     protected $table = 'stocker_input';
 
     protected $guarded = [];
+
+    /**
+     * Get the part.
+     */
+    public function part()
+    {
+        return $this->belongsTo(Part::class, 'part_id', 'id');
+    }
+
+    /**
+     * Get the stocker details.
+     */
+    public function stockerDetails()
+    {
+        return $this->hasMany(StockerDetail::class, 'stocker_id', 'id');
+    }
 }

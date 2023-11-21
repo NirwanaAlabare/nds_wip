@@ -25,80 +25,61 @@ class StockerController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $additionalQuery = "";
+            $formCutInputs = PartDetail::selectRaw("
+                    form_cut_input.id,
+                    form_cut_input.id_marker,
+                    form_cut_input.no_form,
+                    form_cut_input.tgl_form_cut,
+                    users.name meja,
+                    marker_input.act_costing_ws,
+                    marker_input.buyer,
+                    marker_input.urutan_marker,
+                    marker_input.style,
+                    marker_input.panel,
+                    GROUP_CONCAT(DISTINCT CONCAT(master_size_new.size, '(', marker_input_detail.ratio, ')') SEPARATOR ', ') marker_details,
+                    form_cut_input.qty_ply,
+                    part_form.kode kode_part_form,
+                    part.kode kode_part
+                ")->
+                leftJoin("part", "part.id", "=", "part_detail.part_id")->
+                leftJoin("part_form", "part_form.part_id", "=", "part.id")->
+                leftJoin("form_cut_input", "form_cut_input.id", "=", "part_form.form_id")->
+                leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+                leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
+                leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->
+                leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
+                whereRaw("part_form.id is not null")->
+                groupBy("form_cut_input.id");
 
-            if ($request->dateFrom) {
-                $additionalQuery .= " and DATE(a.generated_at) >= '" . $request->dateFrom . "' ";
-            }
+                return Datatables::eloquent($formCutInputs)->
+                    filter(function ($query) {
+                        if (request()->has('tgl_awal')) {
+                            $query->where('form_cut_input.tgl_form', '>=', request('tgl_awal'));
+                        }
 
-            if ($request->dateTo) {
-                $additionalQuery .= " and DATE(a.generated_at) <= '" . $request->dateTo . "' ";
-            }
-
-            $keywordQuery = "";
-            if ($request->search["value"]) {
-                $keywordQuery = "
-                    and (
-                        a.id_marker like '%" . $request->search["value"] . "%' OR
-                        a.no_meja like '%" . $request->search["value"] . "%' OR
-                        a.no_form like '%" . $request->search["value"] . "%' OR
-                        a.tgl_form_cut like '%" . $request->search["value"] . "%' OR
-                        a.generated_at like '%" . $request->search["value"] . "%' OR
-                        b.act_costing_ws like '%" . $request->search["value"] . "%' OR
-                        panel like '%" . $request->search["value"] . "%' OR
-                        b.color like '%" . $request->search["value"] . "%' OR
-                        a.status like '%" . $request->search["value"] . "%' OR
-                        users.name like '%" . $request->search["value"] . "%'
-                    )
-                ";
-            }
-
-            $data_spreading = DB::select("
-                SELECT
-                    a.id,
-                    a.no_meja,
-                    a.id_marker,
-                    a.no_form,
-                    a.tgl_form_cut,
-                    b.id marker_id,
-                    b.act_costing_ws ws,
-                    panel,
-                    b.color,
-                    a.status,
-                    users.name nama_meja,
-                    b.panjang_marker,
-                    UPPER(b.unit_panjang_marker) unit_panjang_marker,
-                    b.comma_marker,
-                    UPPER(b.unit_comma_marker) unit_comma_marker,
-                    b.lebar_marker,
-                    UPPER(b.unit_lebar_marker) unit_lebar_marker,
-                    a.qty_ply,
-                    b.gelar_qty,
-                    b.po_marker,
-                    b.urutan_marker,
-                    b.cons_marker,
-                    a.total_lembar,
-                    GROUP_CONCAT(CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio * a.total_lembar, ')') ORDER BY master_size_new.urutan ASC) marker_details
-                FROM `form_cut_input` a
-                left join marker_input b on a.id_marker = b.kode
-                left join marker_input_detail on b.id = marker_input_detail.marker_id
-                left join master_size_new on marker_input_detail.size = master_size_new.size
-                left join users on users.id = a.no_meja
-                where
-                    a.status = 'SELESAI PENGERJAAN' and
-                    a.app = 'Y'
-                    " . $additionalQuery . "
-                    " . $keywordQuery . "
-                GROUP BY a.id
-                ORDER BY a.generated_at desc
-            ");
-
-            return json_encode([
-                "draw" => intval($request->input('draw')),
-                "recordsTotal" => intval(count($data_spreading)),
-                "recordsFiltered" => intval(count($data_spreading)),
-                "data" => $data_spreading
-            ]);
+                        if (request()->has('tgl_akhir')) {
+                            $query->where('form_cut_input.tgl_form', '<=', request('tgl_akhir'));
+                        }
+                    })->
+                    filterColumn('act_costing_ws', function ($query, $keyword) {
+                        $query->whereRaw("LOWER(act_costing_ws) LIKE LOWER('%" . $keyword . "%')");
+                    })->filterColumn('buyer', function ($query, $keyword) {
+                        $query->whereRaw("LOWER(buyer) LIKE LOWER('%" . $keyword . "%')");
+                    })->filterColumn('style', function ($query, $keyword) {
+                        $query->whereRaw("LOWER(style) LIKE LOWER('%" . $keyword . "%')");
+                    })->filterColumn('color', function ($query, $keyword) {
+                        $query->whereRaw("LOWER(color) LIKE LOWER('%" . $keyword . "%')");
+                    })->filterColumn('panel', function ($query, $keyword) {
+                        $query->whereRaw("LOWER(panel) LIKE LOWER('%" . $keyword . "%')");
+                    })->filterColumn('kode_part_form', function ($query, $keyword) {
+                        $query->whereRaw("LOWER(part_form.kode) LIKE LOWER('%" . $keyword . "%')");
+                    })->filterColumn('kode_part', function ($query, $keyword) {
+                        $query->whereRaw("LOWER(part.kode) LIKE LOWER('%" . $keyword . "%')");
+                    })->order(function ($query) {
+                        $query->
+                            orderBy('form_cut_input.updated_at', 'desc')->
+                            orderByRaw('FIELD(form_cut_input.tipe_form_cut, null, "NORMAL", "MANUAL")');
+                    })->toJson();
         }
 
         return view("stocker.stocker", ["page" => "dashboard-stocker"]);

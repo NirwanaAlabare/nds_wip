@@ -34,6 +34,7 @@
                 <table id="datatable-part" class="table table-bordered table-sm w-100">
                     <thead>
                         <tr>
+                            <th>Kode Part</th>
                             <th>No. WS</th>
                             <th>Buyer</th>
                             <th>Style</th>
@@ -119,10 +120,13 @@
             },
             columns: [
                 {
-                    data: 'act_costing_ws',
+                    data: 'kode',
                 },
                 {
-                    data: 'kode'
+                    data: 'ws',
+                },
+                {
+                    data: 'buyer'
                 },
                 {
                     data: 'style',
@@ -142,16 +146,13 @@
             ],
             columnDefs: [
                 {
-                    targets: [6],
+                    targets: [7],
                     className: "align-middle",
                     render: (data, type, row, meta) => {
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
-                                <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#detailPartModal" onclick='editData(` + JSON.stringify(row) + `, "detailPartModal", [{"function" : "datatablePartReload()"}]);'>
-                                    <i class='fa fa-search'></i>
-                                </a>
-                                <a class='btn btn-primary btn-sm'>
-                                    <i class='fa fa-edit'></i>
+                                <a href='{{ route('manage-part-form') }}/`+row['id']+`' class='btn btn-success btn-sm'>
+                                    <i class='fa fa-plus'></i>
                                 </a>
                                 <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part') }}/`+row['id']+`' onclick='deleteData(this)'>
                                     <i class='fa fa-trash'></i>
