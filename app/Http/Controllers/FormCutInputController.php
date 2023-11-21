@@ -795,18 +795,20 @@ group by id_cost, k.id_item
 
         if ($formCutInputDetailCount > 0) {
             if ($formCutInputDetailData->status == 'extension') {
-                $sisaGelaran = FormCutInputDetail::where('id', $formCutInputDetailData->id_sambungan)->first()->sisa_gelaran;
+                $thisFormCutInputDetail = FormCutInputDetail::select("sisa_gelaran", "unit")->where('id', $formCutInputDetailData->id_sambungan)->first();
 
                 return array(
                     "count" => $formCutInputDetailCount,
                     "data" => $formCutInputDetailData,
-                    "sisaGelaran" => $sisaGelaran
+                    "sisaGelaran" => $thisFormCutInputDetail->sisa_gelaran,
+                    "unitSisaGelaran" => $thisFormCutInputDetail->unit,
                 );
             } else if ($formCutInputDetailData->status == 'not complete') {
                 return array(
                     "count" => $formCutInputDetailCount,
                     "data" => $formCutInputDetailData,
-                    "sisaGelaran" => 0
+                    "sisaGelaran" => 0,
+                    "unitSisaGelaran" => null,
                 );
             }
         }

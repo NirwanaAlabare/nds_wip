@@ -565,6 +565,11 @@
                                     </div>
                                     <div style="width: 40%">
                                         <input type="text" class="form-control form-control-sm border-scan" id="current_unit" name="current_unit" readonly>
+                                        <select class="form-select form-select-sm d-none rounded-0" name="current_custom_unit" id="current_custom_unit" onchange="setCustomUnit(this.value); setRollQtyConversion(); calculateEstAmpar()">
+                                            <option value="METER">METER</option>
+                                            <option value="KGM">KGM</option>
+                                            <option value="YARD">YARD</option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
@@ -1284,7 +1289,7 @@
 
                 $('#scan-qr-card').CardWidget('collapse');
 
-                setSpreadingForm(currentScannedItem, sisaGelaran);
+                setSpreadingForm(currentScannedItem, sisaGelaran, unitSisaGelaran);
                 getSummary();
 
                 $('#spreading-form-card').removeClass('d-none');
@@ -1352,7 +1357,8 @@
                                 if (res.additional.length > 1) {
                                     if (res.additional[1]) {
                                         sisaGelaran = res.additional[0].sisa_gelaran;
-                                        setSpreadingForm(res.additional[1], res.additional[0].sisa_gelaran);
+                                        unitSisaGelaran = res.additional[0].unit;
+                                        setSpreadingForm(res.additional[1], sisaGelaran, unitSisaGelaran);
                                     } else {
                                         checkStatus();
                                     }
@@ -1408,7 +1414,8 @@
                                 if (res.additional.length > 1) {
                                     if (res.additional[1]) {
                                         sisaGelaran = res.additional[0].sisa_gelaran;
-                                        setSpreadingForm(res.additional[1], res.additional[0].sisa_gelaran);
+                                        unitSisaGelaran = res.additional[0].unit;
+                                        setSpreadingForm(res.additional[1], sisaGelaran, unitSisaGelaran);
                                     } else {
                                         checkStatus();
                                     }
@@ -1653,10 +1660,45 @@
         }
 
         function setRollQtyConversion(rollQty = 0, unitQty) {
-            let rollQtyVar = rollQty > 0 ? Number(rollQty) : Number(document.getElementById("current_qty_real"));
-            let unitQtyVar = unitQty ? unitQty : document.getElementById("current_unit");
+            let rollQtyVar = rollQty > 0 ? Number(rollQty) : Number(document.getElementById("current_qty_real").value);
+            let unitQtyVar = unitQty ? unitQty : document.getElementById("current_unit").value;
 
             document.getElementById("current_qty").value = rollQtyConversion(rollQtyVar, unitQtyVar);
+        }
+
+        function conversion(qty, unit, unitBefore) {
+            console.log("convert", qty, unitBefore, unit);
+
+            let gramasiVar = Number(document.getElementById("gramasi").value);
+            let pActualVar = Number(document.getElementById("p_act").value);
+            let lActualVar = Number(document.getElementById("l_act").value);
+            let commaActualVar = Number(document.getElementById("comma_act").value);
+
+            let qtyConverted = 0;
+
+            if (qty && unit && unitBefore) {
+                if (unit == unitBefore) {
+                    qtyConverted = qty;
+                } else {
+                    if (unitBefore == "KGM" && unit == "METER") {
+                        // KGM
+                        let gramasiConverted = gramasiVar / 1000;
+                        let lActualConverted = lActualVar / 100;
+
+                        qtyConverted = qty / (gramasiConverted * lActualConverted);
+                    } else if (unitBefore == "METER" && unit == "KGM") {
+                        let gramasiInch = gramasiVar / 1550;
+                        let qtyInch = qty * 39.3701;
+                        let lActualInch = lActualVar / 2.54;
+
+                        qtyConverted = (gramasiInch * (qtyInch * lActualInch)) / 1000;
+                    }
+                }
+
+                return Number(qtyConverted).round(2);
+            }
+
+            return null;
         }
 
         // -Restrict Sisa Gelaran-
@@ -1741,9 +1783,7 @@
             } else {
                 qtyVar = Number(document.getElementById("current_qty_real").value);
 
-                pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar,
-                    lActualVar, gramasiVar,
-                    unitQtyVar);
+                pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
             }
 
             let estAmpar = pActualConverted > 0 ? qtyVar / pActualConverted : 0;
@@ -1774,9 +1814,7 @@
                 } else {
                     qtyVar = Number(document.getElementById("current_qty_real").value);
 
-                    pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar,
-                        lActualVar, gramasiVar,
-                        unitQtyVar);
+                    pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
                 }
             }
 
@@ -1814,9 +1852,7 @@
                 } else {
                     qtyVar = Number(document.getElementById("current_qty_real").value);
 
-                    pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar,
-                        lActualVar, gramasiVar,
-                        unitQtyVar);
+                    pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
                 }
             }
 
@@ -1854,9 +1890,7 @@
                 } else {
                     qtyVar = Number(document.getElementById("current_qty_real").value);
 
-                    pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar,
-                        lActualVar, gramasiVar,
-                        unitQtyVar);
+                    pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
                 }
             }
 
@@ -1896,15 +1930,15 @@
                 }
             }
 
-
             let sisaKain = qtyVar - ((pActualConverted * lembarGelaranVar) + kepalaKainVar + sisaTidakBisaVar + rejectVar + rejectVar + pipingVar);
 
             document.getElementById("current_sisa_kain").value = sisaKain.round(2);
         }
 
         // -Calculate Sambungan-
-        function calculateSambungan(sisaGelaran) {
+        function calculateSambungan(sisaGelaran, unitSisaGelaran) {
             let sisaGelaranVar = sisaGelaran > 0 ? Number(sisaGelaran) : Number(document.getElementById("current_sisa_gelaran").value);
+            let unitSisaGelaranVar = unitSisaGelaran > 0 ? Number(sisaGelaran) : Number(document.getElementById("current_sisa_gelaran").value);
             let qtyVar = Number(document.getElementById("current_qty").value);
             let unitQtyVar = document.getElementById("current_unit").value;
             let pActualVar = Number(document.getElementById('p_act').value);
@@ -1914,14 +1948,27 @@
             let gramasiVar = Number(document.getElementById('gramasi').value);
 
             let pActualConverted = 0;
+            let sisaGelaranConverted = 0;
 
+            // Convert P Actual
             if (unitQtyVar != "KGM") {
                 pActualConverted = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
             } else {
                 pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
             }
 
-            let estSambungan = pActualConverted - sisaGelaranVar;
+            // Convert Sisa Gelaran
+            if (unitSisaGelaranVar == unitQtyVar) {
+                sisaGelaranConverted = sisaGelaran;
+            } else {
+                if (unitQtyVar == "YARD") {
+                    unitQtyVar = "METER";
+                }
+
+                sisaGelaranConverted = conversion(sisaGelaran, unitQtyVar, unitSisaGelaran);
+            }
+
+            let estSambungan = pActualConverted - sisaGelaranConverted;
 
             return estSambungan.round(2);
         }
@@ -2125,7 +2172,6 @@
 
             document.getElementById("item-method").classList.remove('d-none');
             document.getElementById("to-item").classList.remove('d-none');
-
             $("#select_item").val("").trigger("change");
 
             html5QrcodeScanner.clear();
@@ -2219,10 +2265,41 @@
             }
         }
 
+        function setCustomUnit(unit) {
+            document.getElementById("current_unit").value = unit;
+
+            let inputGroupUnit = document.getElementsByClassName("input-group-unit");
+            let unitSimplified = unit != "KGM" ? "M" : "KG";
+
+            if (unit == "KGM") {
+                document.getElementById("current_sisa_gelaran_unit").value = unit;
+                document.getElementById("current_sambungan_unit").value = unit;
+
+                for (var i = 0; i < inputGroupUnit.length; i++) {
+                    inputGroupUnit[i].innerText = unitSimplified;
+                }
+            } else {
+                document.getElementById("current_sisa_gelaran_unit").value = "METER";
+                document.getElementById("current_sambungan_unit").value = "METER";
+
+                for (var i = 0; i < inputGroupUnit.length; i++) {
+                    inputGroupUnit[i].innerText = unitSimplified;
+                }
+            }
+
+            let sambungan = calculateSambungan(sisaGelaran, unitSisaGelaran);
+
+            document.getElementById("current_sambungan").value = sambungan;
+            document.getElementById("current_total_pemakaian_roll").value = sambungan;
+
+            console.log(sisaGelaran, unitSisaGelaran);
+        }
+
         // Spreading Form Module :
             // Variable :
             var spreadingFormData = null;
             var sisaGelaran = null;
+            var unitSisaGelaran = null;
 
         // Function :
             // -Check Spreading Form-
@@ -2243,9 +2320,10 @@
                             if (res.count > 0) {
                                 spreadingFormData = res.data;
                                 sisaGelaran = res.sisaGelaran;
+                                unitSisaGelaran = res.unitSisaGelaran;
                                 method = res.data.metode ? res.data.metode : "scan";
 
-                                setSpreadingForm(spreadingFormData, sisaGelaran);
+                                setSpreadingForm(spreadingFormData, sisaGelaran, unitSisaGelaran);
 
                                 checkTimeRecordLap(res.data.id);
 
@@ -2265,7 +2343,7 @@
             }
 
             // -Set Spreading Form-
-            function setSpreadingForm(data, sisaGelaran) {
+            function setSpreadingForm(data, sisaGelaran, unitSisaGelaran) {
                 // if not an extension
                 if (!(sisaGelaran)) {
                     clearSpreadingForm();
@@ -2276,6 +2354,7 @@
                     openItemSpreading();
 
                     document.getElementById("current_unit").value = "METER";
+                    document.getElementById("current_custom_unit").value = "METER";
                 }
 
                 // spreading form data set
@@ -2326,7 +2405,7 @@
                 // if is an extension
                 if (sisaGelaran > 0) {
                     // extension things
-                    let estSambungan = calculateSambungan(sisaGelaran);
+                    let estSambungan = calculateSambungan(sisaGelaran, unitSisaGelaran);
 
                     data.id_sambungan ? document.getElementById("id_sambungan").value = data.id_sambungan : '';
                     document.getElementById("status_sambungan").value = "extension";
@@ -2434,6 +2513,9 @@
                 document.getElementById("current_roll").setAttribute("readonly", true);
                 document.getElementById("current_qty").setAttribute("readonly", true);
                 document.getElementById("current_qty_real").setAttribute("readonly", true);
+
+                document.getElementById("current_unit").classList.remove("d-none");
+                document.getElementById("current_custom_unit").classList.add("d-none");
             }
 
             // -Open Item input on Spreading Form-
@@ -2443,6 +2525,9 @@
                 document.getElementById("current_roll").removeAttribute("readonly");
                 document.getElementById("current_qty").removeAttribute("readonly");
                 document.getElementById("current_qty_real").removeAttribute("readonly");
+
+                document.getElementById("current_unit").classList.add("d-none");
+                document.getElementById("current_custom_unit").classList.remove("d-none");
             }
 
             // -Lock Spreading Form-
