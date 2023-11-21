@@ -326,22 +326,19 @@ class CutPlanController extends Controller
         $approvedAt = $now;
 
         if (count($request['no_form_cut']) > 0) {
-            foreach($request['no_form_cut'] as $noFormId => $noFormVal) {
-                $updateCutPlan = CutPlan::where('no_cut_plan', $request['manage_no_cut_plan'])->
-                    where('no_form_cut_input', $request['no_form_cut'][$noFormId])->
-                    update([
-                        'app' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $request['approve'][$noFormId] : 'N') : 'N',
-                        'app_by' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $approvedBy : null) : 'N',
-                        'app_at' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $approvedAt : null) : 'N',
-                    ]);
+            foreach ($request['no_form_cut'] as $noFormId => $noFormVal) {
+                $updateCutPlan = CutPlan::where('no_cut_plan', $request['manage_no_cut_plan'])->where('no_form_cut_input', $request['no_form_cut'][$noFormId])->update([
+                    'app' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $request['approve'][$noFormId] : 'N') : 'N',
+                    'app_by' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $approvedBy : null) : 'N',
+                    'app_at' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $approvedAt : null) : 'N',
+                ]);
 
-                $updateForm = FormCutInput::where('no_form', $request['no_form_cut'][$noFormId])->
-                    update([
-                        'no_meja' => (array_key_exists($noFormId, $request['no_meja'])) ? $request['no_meja'][$noFormId] : null,
-                        'app' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $request['approve'][$noFormId] : 'N') : 'N',
-                        'app_by' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $approvedBy : null) : 'N',
-                        'app_at' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $approvedAt : null) : 'N',
-                    ]);
+                $updateForm = FormCutInput::where('no_form', $request['no_form_cut'][$noFormId])->update([
+                    'no_meja' => (array_key_exists($noFormId, $request['no_meja'])) ? $request['no_meja'][$noFormId] : null,
+                    'app' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $request['approve'][$noFormId] : 'N') : 'N',
+                    'app_by' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $approvedBy : null) : 'N',
+                    'app_at' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $approvedAt : null) : 'N',
+                ]);
 
                 if ($updateCutPlan) {
                     array_push($success, $noFormVal);
@@ -412,58 +409,55 @@ class CutPlanController extends Controller
         }
     }
 
-    public function getCutPlanForm(Request $request) {
+    public function getCutPlanForm(Request $request)
+    {
         if ($request->ajax()) {
             $additionalQuery = "";
 
             $cutPlanForm = CutPlan::with('formCutInput')->where("no_cut_plan", $request->no_cut_plan)->groupBy("no_form_cut_input");
 
-            return DataTables::eloquent($cutPlanForm)->
-                addIndexColumn()->
-                addColumn('form_info', function($row) {
-                    $formInfo = "<ul class='list-group'>";
-                    $formInfo = $formInfo."<li class='list-group-item'>Tanggal Form :<br><b>".$row->formCutInput->tgl_form_cut."</b></li>";
-                    $formInfo = $formInfo."<li class='list-group-item'>No. Form :<br><b>".$row->no_form_cut_input."</b></li>";
-                    $formInfo = $formInfo."<li class='list-group-item'>Qty Ply :<br><b>".$row->formCutInput->qty_ply."</b></li>";
-                    $formInfo = $formInfo."<li class='list-group-item'>Tipe Form :<br><b>".($row->formCutInput->tipe_form_cut && $row->formCutInput->tipe_form_cut != '' ? $row->formCutInput->tipe_form_cut : "NORMAL")."</b></li>";
-                    $formInfo = $formInfo."<li class='list-group-item'>Status :<br><b>".$row->formCutInput->status."</b></li>";
-                    $formInfo = $formInfo."</ul>";
-                    return $formInfo;
-                })->
-                addColumn('marker_info', function($row) {
-                    $markerData = $row->formCutInput->marker;
+            return DataTables::eloquent($cutPlanForm)->addIndexColumn()->addColumn('form_info', function ($row) {
+                $formInfo = "<ul class='list-group'>";
+                $formInfo = $formInfo . "<li class='list-group-item'>Tanggal Form :<br><b>" . $row->formCutInput->tgl_form_cut . "</b></li>";
+                $formInfo = $formInfo . "<li class='list-group-item'>No. Form :<br><b>" . $row->no_form_cut_input . "</b></li>";
+                $formInfo = $formInfo . "<li class='list-group-item'>Qty Ply :<br><b>" . $row->formCutInput->qty_ply . "</b></li>";
+                $formInfo = $formInfo . "<li class='list-group-item'>Tipe Form :<br><b>" . ($row->formCutInput->tipe_form_cut && $row->formCutInput->tipe_form_cut != '' ? $row->formCutInput->tipe_form_cut : "NORMAL") . "</b></li>";
+                $formInfo = $formInfo . "<li class='list-group-item'>Status :<br><b>" . $row->formCutInput->status . "</b></li>";
+                $formInfo = $formInfo . "</ul>";
+                return $formInfo;
+            })->addColumn('marker_info', function ($row) {
+                $markerData = $row->formCutInput->marker;
 
-                    $markerInfo = "<ul class='list-group'>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Kode Marker :<br><b>".($markerData ? $markerData->kode : "-")."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>WS Number :<br><b>".($markerData ? $markerData->act_costing_ws : "-")."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Buyer :<br><b>".($markerData ? $markerData->buyer : "-")."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Style :<br><b>".($markerData ? $markerData->style : "-")."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Color :<br><b>".($markerData ? $markerData->color : "-")."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Panel :<br><b>".($markerData ? $markerData->panel.' - '.$markerData->urutan_marker : "-")."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Tipe Marker :<br><b>".($markerData ? strtoupper($markerData->tipe_marker) : "-")."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>PO :<br><b>".($markerData ? ($markerData->po ? $markerData->po : '-') : '-')."</b></li>";
-                    $markerInfo = $markerInfo."</ul>";
-                    return $markerInfo;
-                })->
-                addColumn('marker_detail_info', function($row) {
-                    $markerData = $row->formCutInput->marker;
+                $markerInfo = "<ul class='list-group'>";
+                $markerInfo = $markerInfo . "<li class='list-group-item'>Kode Marker :<br><b>" . ($markerData ? $markerData->kode : "-") . "</b></li>";
+                $markerInfo = $markerInfo . "<li class='list-group-item'>WS Number :<br><b>" . ($markerData ? $markerData->act_costing_ws : "-") . "</b></li>";
+                $markerInfo = $markerInfo . "<li class='list-group-item'>Buyer :<br><b>" . ($markerData ? $markerData->buyer : "-") . "</b></li>";
+                $markerInfo = $markerInfo . "<li class='list-group-item'>Style :<br><b>" . ($markerData ? $markerData->style : "-") . "</b></li>";
+                $markerInfo = $markerInfo . "<li class='list-group-item'>Color :<br><b>" . ($markerData ? $markerData->color : "-") . "</b></li>";
+                $markerInfo = $markerInfo . "<li class='list-group-item'>Panel :<br><b>" . ($markerData ? $markerData->panel . ' - ' . $markerData->urutan_marker : "-") . "</b></li>";
+                $markerInfo = $markerInfo . "<li class='list-group-item'>Tipe Marker :<br><b>" . ($markerData ? strtoupper($markerData->tipe_marker) : "-") . "</b></li>";
+                $markerInfo = $markerInfo . "<li class='list-group-item'>PO :<br><b>" . ($markerData ? ($markerData->po ? $markerData->po : '-') : '-') . "</b></li>";
+                $markerInfo = $markerInfo . "<li class='list-group-item'>Keterangan :<br><b>" . ($markerData ? ($markerData->notes ? $markerData->notes : '-') : '-') . "</b></li>";
+                $markerInfo = $markerInfo . "</ul>";
+                return $markerInfo;
+            })->addColumn('marker_detail_info', function ($row) {
+                $markerData = $row->formCutInput->marker;
 
-                    $markerInfo = "<ul class='list-group'>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Panjang : <br><b>". ($markerData ? $markerData->panjang_marker." ". $markerData->unit_panjang_marker." ". $markerData->comma_marker." ". $markerData->unit_comma_marker : "-")."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Lebar : <br><b>".($markerData ? $markerData->lebar_marker." ". $markerData->unit_lebar_marker : "-")."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Gelar Qty : <br><b>". ($markerData ? $markerData->gelar_qty : "-")."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Urutan : <br><b>". ($markerData ? $markerData->urutan_marker : "-")."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Cons WS : <br><b>". ($markerData ? $markerData->cons_ws : "-")."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Cons Marker : <br><b>". ($markerData ? $markerData->cons_marker : "-")."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Cons Piping : <br><b>". ($markerData ? $markerData->cons_piping : "-")."</b></li>";
-                    $markerInfo = $markerInfo."<li class='list-group-item'>Gramasi : <br><b>". ($markerData ? $markerData->gramasi : "-")."</b></li>";
-                    $markerInfo = $markerInfo."</ul>";
-                    return $markerInfo;
-                })->
-                addColumn('ratio_info', function($row) {
-                    $markerDetailData = $row->formCutInput->marker ? $row->formCutInput->marker->markerDetails : null;
+                $markerInfo = "<ul class='list-group'>";
+                $markerInfo = $markerInfo . "<li class='list-group-item'>Panjang : <br><b>" . ($markerData ? $markerData->panjang_marker . " " . $markerData->unit_panjang_marker . " " . $markerData->comma_marker . " " . $markerData->unit_comma_marker : "-") . "</b></li>";
+                $markerInfo = $markerInfo . "<li class='list-group-item'>Lebar : <br><b>" . ($markerData ? $markerData->lebar_marker . " " . $markerData->unit_lebar_marker : "-") . "</b></li>";
+                $markerInfo = $markerInfo . "<li class='list-group-item'>Gelar Qty : <br><b>" . ($markerData ? $markerData->gelar_qty : "-") . "</b></li>";
+                $markerInfo = $markerInfo . "<li class='list-group-item'>Urutan : <br><b>" . ($markerData ? $markerData->urutan_marker : "-") . "</b></li>";
+                $markerInfo = $markerInfo . "<li class='list-group-item'>Cons WS : <br><b>" . ($markerData ? $markerData->cons_ws : "-") . "</b></li>";
+                $markerInfo = $markerInfo . "<li class='list-group-item'>Cons Marker : <br><b>" . ($markerData ? $markerData->cons_marker : "-") . "</b></li>";
+                $markerInfo = $markerInfo . "<li class='list-group-item'>Cons Piping : <br><b>" . ($markerData ? $markerData->cons_piping : "-") . "</b></li>";
+                $markerInfo = $markerInfo . "<li class='list-group-item'>Gramasi : <br><b>" . ($markerData ? $markerData->gramasi : "-") . "</b></li>";
+                $markerInfo = $markerInfo . "</ul>";
+                return $markerInfo;
+            })->addColumn('ratio_info', function ($row) {
+                $markerDetailData = $row->formCutInput->marker ? $row->formCutInput->marker->markerDetails : null;
 
-                    $markerDetailInfo = "
+                $markerDetailInfo = "
                         <table class='table table-bordered table-sm w-auto'>
                             <thead>
                                 <tr>
@@ -476,88 +470,80 @@ class CutPlanController extends Controller
                             <tbody>
                     ";
 
-                    if ($markerDetailData) {
-                        foreach ($markerDetailData as $markerDetail) {
-                            $markerDetailInfo .= "
+                if ($markerDetailData) {
+                    foreach ($markerDetailData as $markerDetail) {
+                        $markerDetailInfo .= "
                                 <tr>
-                                    <td>".$markerDetail->size."</td>
-                                    <td>".$markerDetail->ratio."</td>
-                                    <td>".$markerDetail->cut_qty."</td>
-                                    <td>".($markerDetail->ratio * $row->formCutInput->qty_ply)."</td>
+                                    <td>" . $markerDetail->size . "</td>
+                                    <td>" . $markerDetail->ratio . "</td>
+                                    <td>" . $markerDetail->cut_qty . "</td>
+                                    <td>" . ($markerDetail->ratio * $row->formCutInput->qty_ply) . "</td>
                                 </tr>
                             ";
-                        }
                     }
+                }
 
-                    $markerDetailInfo .= "
+                $markerDetailInfo .= "
                             </tbody>
                         </table>
                     ";
 
-                    return $markerDetailInfo;
-                })->
-                addColumn('input_no_form', function($row) {
-                    $input = "<input type='hidden' class='form-control' id='no_form_cut_".$row->id."' name='no_form_cut[".$row->id."]' value='".$row->no_form_cut_input."'>";
+                return $markerDetailInfo;
+            })->addColumn('input_no_form', function ($row) {
+                $input = "<input type='hidden' class='form-control' id='no_form_cut_" . $row->id . "' name='no_form_cut[" . $row->id . "]' value='" . $row->no_form_cut_input . "'>";
 
-                    return $input;
-                })->
-                addColumn('meja', function($row) {
-                    $meja = User::where('type', 'meja')->get();
+                return $input;
+            })->addColumn('meja', function ($row) {
+                $meja = User::where('type', 'meja')->get();
 
-                    $input = "
-                        <select class='form-select' id='no_meja_".$row->id."' name='no_meja[".$row->id."]'>
+                $input = "
+                        <select class='form-select' id='no_meja_" . $row->id . "' name='no_meja[" . $row->id . "]'>
                             <option value=''>Pilih Meja</option>
                     ";
-                    foreach ($meja as $m) {
-                        $input .= "<option value='".$m->id."' ".($m->id == $row->formCutInput->no_meja ? 'class="fw-bold" selected' : '').">".strtoupper($m->name)."</option>";
-                    }
+                foreach ($meja as $m) {
+                    $input .= "<option value='" . $m->id . "' " . ($m->id == $row->formCutInput->no_meja ? 'class="fw-bold" selected' : '') . ">" . strtoupper($m->name) . "</option>";
+                }
 
-                    $input .= "
+                $input .= "
                         </select>
                     ";
 
-                    if ($row->formCutInput->status != 'SPREADING') {
-                        $input = "
-                            <input class='form-control' type='hidden' id='no_meja_".$row->id."' name='no_meja[".$row->id."]' value='".$row->formCutInput->no_meja."' readonly>
-                            <input class='form-control' type='text' value='".strtoupper($row->formCutInput->alokasiMeja ? $row->formCutInput->alokasiMeja->name : '')."' readonly>
-                        ";
-                    }
-
-                    return $input;
-                })->
-                addColumn('approve', function($row) {
+                if ($row->formCutInput->status != 'SPREADING') {
                     $input = "
-                        <div class='form-check w-100 text-center'><input type='checkbox' class='form-check-input border-success' id='approve_".$row->id."' name='approve[".$row->id."]' value='Y' ".($row->app == 'Y' ? 'checked' : '')." ".($row->formCutInput->status != 'SPREADING' ? 'disabled' : '')."></div>
-                        ".($row->formCutInput->status != 'SPREADING' ? '<input type="hidden" class="form-control" id="approve_'.$row->id.'" name="approve['.$row->id.']" value="'.$row->formCutInput->app.'">' : '');
+                            <input class='form-control' type='hidden' id='no_meja_" . $row->id . "' name='no_meja[" . $row->id . "]' value='" . $row->formCutInput->no_meja . "' readonly>
+                            <input class='form-control' type='text' value='" . strtoupper($row->formCutInput->alokasiMeja ? $row->formCutInput->alokasiMeja->name : '') . "' readonly>
+                        ";
+                }
 
-                    return $input;
-                })->
-                rawColumns(['form_info', 'marker_info', 'marker_detail_info', 'ratio_info', 'input_no_form', 'meja', 'approve'])->
-                filterColumn('marker_info', function($query, $keyword) {
-                    $query->whereHas('formCutInput', function($query) use ($keyword) {
-                        $query->whereHas('marker', function($query) use ($keyword) {
-                            $query->whereRaw("(
-                                marker_input.kode LIKE '%".$keyword."%' OR
-                                marker_input.act_costing_ws LIKE '%".$keyword."%' OR
-                                marker_input.style LIKE '%".$keyword."%' OR
-                                marker_input.color LIKE '%".$keyword."%' OR
-                                marker_input.panel LIKE '%".$keyword."%'
-                            )");
-                        });
-                    });
-                })->
-                filterColumn('form_info', function($query, $keyword) {
-                    $query->whereHas('formCutInput', function($query) use ($keyword) {
+                return $input;
+            })->addColumn('approve', function ($row) {
+                $input = "
+                        <div class='form-check w-100 text-center'><input type='checkbox' class='form-check-input border-success' id='approve_" . $row->id . "' name='approve[" . $row->id . "]' value='Y' " . ($row->app == 'Y' ? 'checked' : '') . " " . ($row->formCutInput->status != 'SPREADING' ? 'disabled' : '') . "></div>
+                        " . ($row->formCutInput->status != 'SPREADING' ? '<input type="hidden" class="form-control" id="approve_' . $row->id . '" name="approve[' . $row->id . ']" value="' . $row->formCutInput->app . '">' : '');
+
+                return $input;
+            })->rawColumns(['form_info', 'marker_info', 'marker_detail_info', 'ratio_info', 'input_no_form', 'meja', 'approve'])->filterColumn('marker_info', function ($query, $keyword) {
+                $query->whereHas('formCutInput', function ($query) use ($keyword) {
+                    $query->whereHas('marker', function ($query) use ($keyword) {
                         $query->whereRaw("(
-                            form_cut_input.no_form LIKE '%".$keyword."%' OR
-                            form_cut_input.tgl_form_cut LIKE '%".$keyword."%'
-                        )");
+                                marker_input.kode LIKE '%" . $keyword . "%' OR
+                                marker_input.act_costing_ws LIKE '%" . $keyword . "%' OR
+                                marker_input.style LIKE '%" . $keyword . "%' OR
+                                marker_input.color LIKE '%" . $keyword . "%' OR
+                                marker_input.panel LIKE '%" . $keyword . "%'
+                            )");
                     });
-                })->
-                order(function ($query) {
-                    $query->orderByRaw('FIELD(app, "N", "Y")')->orderBy('no_form_cut_input', 'desc');
-                })->
-                toJson();
+                });
+            })->filterColumn('form_info', function ($query, $keyword) {
+                $query->whereHas('formCutInput', function ($query) use ($keyword) {
+                    $query->whereRaw("(
+                            form_cut_input.no_form LIKE '%" . $keyword . "%' OR
+                            form_cut_input.tgl_form_cut LIKE '%" . $keyword . "%'
+                        )");
+                });
+            })->order(function ($query) {
+                $query->orderByRaw('FIELD(app, "N", "Y")')->orderBy('no_form_cut_input', 'desc');
+            })->toJson();
         }
     }
 }
