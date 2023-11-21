@@ -236,6 +236,24 @@
         window.addEventListener("focus", () => {
             $('#datatable').DataTable().ajax.reload(null, false);
         });
+        $('#datatable thead tr').clone(true).appendTo('#datatable thead');
+        $('#datatable thead tr:eq(1) th').each(function(i) {
+            if (i == 0 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6) {
+                var title = $(this).text();
+                $(this).html('<input type="text"  style="width:100%"/>');
+
+                $('input', this).on('keyup change', function() {
+                    if (datatable.column(i).search() !== this.value) {
+                        datatable
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            } else {
+                $(this).empty();
+            }
+        });
 
         let datatable = $("#datatable").DataTable({
             processing: true,
