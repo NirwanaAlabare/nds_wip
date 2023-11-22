@@ -118,6 +118,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-count', 'getCount')->name('form-cut-get-marker-count');
         // get number
         Route::get('/get-number', 'getNumber')->name('form-cut-get-marker-number');
+
+        // no cut update
+        Route::put('/update-no-cut', 'updateNoCut')->name('form-cut-update-no-cut');
     });
 
     // Manual Form Cut Input
@@ -203,8 +206,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/create', 'create')->name('create-part');
         Route::post('/store', 'store')->name('store-part');
         Route::get('/edit', 'edit')->name('edit-part');
-        Route::put('/update', 'update')->name('update-part');
-        Route::delete('/destroy', 'destroy')->name('destroy-part');
+        Route::put('/update/{id?}', 'update')->name('update-part');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-part');
 
         // part form
         Route::get('/manage-part-form/{id?}', 'managePartForm')->name('manage-part-form');
@@ -223,7 +226,7 @@ Route::middleware('auth')->group(function () {
     // Stocker
     Route::controller(StockerController::class)->prefix("stocker")->middleware('stocker')->group(function () {
         Route::get('/', 'index')->name('stocker');
-        Route::get('/show/{id?}', 'show')->name('show-stocker');
+        Route::get('/show/{partDetailId?}/{formCutId?}', 'show')->name('show-stocker');
         Route::post('/print-stocker/{index?}', 'printStocker')->name('print-stocker');
         Route::post('/print-numbering/{index?}', 'printNumbering')->name('print-numbering');
     });
