@@ -19,45 +19,52 @@
         <div class="card-body">
             <form action="#" method="post" id="stocker-form">
                 <div class="row mb-3">
-                    <div class="col-4">
+                    <div class="col-6 col-md-3">
                         <div class="mb-1">
                             <label class="form-label"><small>WS Number</small></label>
                             <input type="text" class="form-control form-control-sm" id="no_ws" name="no_ws" value="{{ $dataSpreading->ws }}" readonly>
                         </div>
                     </div>
-                    <div class="col-4">
+                    <div class="col-6 col-md-3">
                         <div class="mb-1">
                             <label class="form-label"><small>Buyer</small></label>
                             <input type="text" class="form-control form-control-sm" id="buyer" name="buyer" value="{{ $dataSpreading->buyer }}" readonly>
                         </div>
                     </div>
-                    <div class="col-4">
+                    <div class="col-6 col-md-3">
                         <div class="mb-1">
                             <label class="form-label"><small>Style</small></label>
                             <input type="text" class="form-control form-control-sm" id="style" name="style" value="{{ $dataSpreading->style }}" readonly>
                         </div>
                     </div>
-                    <div class="col-4">
+                    <div class="col-6 col-md-3">
                         <div class="mb-1">
                             <label class="form-label"><small>Color</small></label>
                             <input type="text" class="form-control form-control-sm" id="color" name="color" value="{{ $dataSpreading->color }}" readonly>
                         </div>
                     </div>
-                    <div class="col-4">
+                    <div class="col-6 col-md-3">
                         <div class="mb-1">
                             <label class="form-label"><small>Size</small></label>
                             <input type="text" class="form-control form-control-sm" id="size" name="size" value="{{ $dataSpreading->sizes }}" readonly>
                         </div>
                     </div>
-                    <div class="col-4">
+                    <div class="col-6 col-md-3">
+                        <div class="mb-1">
+                            <label class="form-label"><small>Panel</small></label>
+                            <input type="text" class="form-control form-control-sm" id="panel" name="panel" value="{{ $dataSpreading->panel }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-6">
                         <div class="row">
-                            <div class="col-7">
+                            <div class="col-6 col-md-6">
                                 <div class="mb-1">
-                                    <label class="form-label"><small>Panel</small></label>
-                                    <input type="text" class="form-control form-control-sm" id="panel" name="panel" value="{{ $dataSpreading->panel }}" readonly>
+                                    <label class="form-label"><small>Part</small></label>
+                                    <input type="hidden" id="part_detail_id" name="part_detail_id" value="{{ $dataSpreading->part_detail_id }}">
+                                    <input type="text" class="form-control form-control-sm" id="part" name="part" value="{{ $dataSpreading->part }}" readonly>
                                 </div>
                             </div>
-                            <div class="col-5">
+                            <div class="col-6 col-md-6">
                                 <div class="mb-1">
                                     <label class="form-label"><small>Shade</small></label>
                                     <input type="text" class="form-control form-control-sm" id="shade" name="shade" value="{{ $dataSpreading->shell }}">
@@ -65,15 +72,16 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-4">
+                    <div class="col-6 col-md-6">
                         <div class="row">
-                            <div class="col-6">
+                            <div class="col-6 col-md-6">
                                 <div class="mb-1">
                                     <label class="form-label"><small>Form Cut</small></label>
+                                    <input type="hidden" id="form_cut_id" name="form_cut_id" value="{{ $dataSpreading->form_cut_id }}">
                                     <input type="text" class="form-control form-control-sm" id="no_form_cut" name="no_form_cut" value="{{ $dataSpreading->no_form }}" readonly>
                                 </div>
                             </div>
-                            <div class="col-6">
+                            <div class="col-6 col-md-6">
                                 <div class="mb-1">
                                     <label class="form-label"><small>Total Lembar</small></label>
                                     <input type="text" class="form-control form-control-sm" id="qty_ply" name="qty_ply" value="{{ $dataSpreading->total_lembar }}" readonly>
@@ -81,13 +89,13 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-4">
+                    <div class="col-6 col-md-3">
                         <div class="mb-1">
                             <label class="form-label"><small>Tanggal Cutting</small></label>
                             <input type="date" class="form-control form-control-sm" id="tgl_form_cut" name="tgl_form_cut" value="{{ $dataSpreading->tgl_form_cut }}" readonly>
                         </div>
                     </div>
-                    <div class="col-4">
+                    <div class="col-6 col-md-3">
                         <div class="mb-1">
                             <label class="form-label"><small>Note</small></label>
                             <textarea class="form-control form-control-sm" id="note" name="note" rows="2"></textarea>

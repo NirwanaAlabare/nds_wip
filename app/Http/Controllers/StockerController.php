@@ -9,8 +9,10 @@ use App\Models\FormCutInputDetail;
 use App\Models\FormCutInputDetailLap;
 use App\Models\Marker;
 use App\Models\MarkerDetail;
+use App\Models\PartDetail;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Yajra\DataTables\Facades\DataTables;
 use DB;
 use QrCode;
 use PDF;
@@ -26,21 +28,26 @@ class StockerController extends Controller
     {
         if ($request->ajax()) {
             $formCutInputs = PartDetail::selectRaw("
-                    form_cut_input.id,
+                    part_detail.id part_detail_id,
+                    form_cut_input.id form_cut_id,
                     form_cut_input.id_marker,
                     form_cut_input.no_form,
                     form_cut_input.tgl_form_cut,
-                    users.name meja,
+                    users.name nama_meja,
                     marker_input.act_costing_ws,
                     marker_input.buyer,
                     marker_input.urutan_marker,
                     marker_input.style,
+                    marker_input.color,
                     marker_input.panel,
                     GROUP_CONCAT(DISTINCT CONCAT(master_size_new.size, '(', marker_input_detail.ratio, ')') SEPARATOR ', ') marker_details,
-                    form_cut_input.qty_ply,
+                    form_cut_input.no_cut,
+                    form_cut_input.qty_ply total_lembar,
                     part_form.kode kode_part_form,
-                    part.kode kode_part
+                    part.kode kode_part,
+                    master_part.nama_part
                 ")->
+                leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
                 leftJoin("part", "part.id", "=", "part_detail.part_id")->
                 leftJoin("part_form", "part_form.part_id", "=", "part.id")->
                 leftJoin("form_cut_input", "form_cut_input.id", "=", "part_form.form_id")->
@@ -49,16 +56,17 @@ class StockerController extends Controller
                 leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->
                 leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
                 whereRaw("part_form.id is not null")->
-                groupBy("form_cut_input.id");
+                groupBy("part_detail.id", "form_cut_input.id")->
+                orderBy("no_form", "desc");
 
                 return Datatables::eloquent($formCutInputs)->
                     filter(function ($query) {
-                        if (request()->has('tgl_awal')) {
-                            $query->where('form_cut_input.tgl_form', '>=', request('tgl_awal'));
+                        if (request()->has('dateFrom')) {
+                            $query->where('form_cut_input.tgl_form_cut', '>=', request('dateFrom'));
                         }
 
-                        if (request()->has('tgl_akhir')) {
-                            $query->where('form_cut_input.tgl_form', '<=', request('tgl_akhir'));
+                        if (request()->has('dateTo')) {
+                            $query->where('form_cut_input.tgl_form_cut', '<=', request('dateTo'));
                         }
                     })->
                     filterColumn('act_costing_ws', function ($query, $keyword) {
@@ -112,10 +120,11 @@ class StockerController extends Controller
      * @param  \App\Models\Stocker  $stocker
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show($partDetailId = 0, $formCutId = 0)
     {
-        $dataSpreading = FormCutInput::selectRaw("
-                form_cut_input.id,
+        $dataSpreading = PartDetail::selectRaw("
+                part_detail.id part_detail_id,
+                form_cut_input.id form_cut_id,
                 form_cut_input.no_meja,
                 form_cut_input.id_marker,
                 form_cut_input.no_form,
@@ -123,7 +132,7 @@ class StockerController extends Controller
                 marker_input.id marker_id,
                 marker_input.act_costing_ws ws,
                 marker_input.buyer,
-                panel,
+                marker_input.panel,
                 marker_input.color,
                 marker_input.style,
                 form_cut_input.status,
@@ -142,16 +151,19 @@ class StockerController extends Controller
                 form_cut_input.total_lembar,
                 UPPER(form_cut_input.shell) shell,
                 GROUP_CONCAT(CONCAT(master_size_new.size, ' ') ORDER BY master_size_new.urutan ASC) sizes,
-                GROUP_CONCAT(CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio * form_cut_input.total_lembar, ')') ORDER BY master_size_new.urutan ASC) marker_details
+                GROUP_CONCAT(CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio * form_cut_input.total_lembar, ')') ORDER BY master_size_new.urutan ASC) marker_details,
+                master_part.nama_part part
             ")->
+            leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+            leftJoin("part", "part.id", "=", "part_detail.part_id")->
+            leftJoin("part_form", "part_form.part_id", "=", "part.id")->
+            leftJoin("form_cut_input", "form_cut_input.id", "=", "part_form.form_id")->
             leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
             leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
             leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->
             leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
-            where("form_cut_input.status", "SELESAI PENGERJAAN")->
-            where("form_cut_input.app", "Y")->
-            where("form_cut_input.id", $id)->
-            where("marker_input_detail.ratio", ">", "0")->
+            where("part_detail.id", $partDetailId)->
+            where("form_cut_input.id", $formCutId)->
             groupBy("form_cut_input.id")->
             first();
 
@@ -199,8 +211,8 @@ class StockerController extends Controller
         $stockerCount = Stocker::count() + 1;
 
         $checkStocker = Stocker::select("id_qr_stocker")->whereRaw("
-                no_form_cut_input = '".$request['no_form_cut']."' AND
-                tgl_form_cut_input = '".$request['tgl_form_cut']."' AND
+                part_detail_id = '".$request['part_detail_id']."' AND
+                form_cut_id = '".$request['form_cut_id']."' AND
                 so_det_id = '".$request['so_det_id'][$index]."' AND
                 color = '".$request['color']."' AND
                 panel = '".$request['panel']."' AND
@@ -212,8 +224,8 @@ class StockerController extends Controller
 
         $storeItem = Stocker::updateOrCreate(
             [
-                'no_form_cut_input' => $request['no_form_cut'],
-                'tgl_form_cut_input' => $request['tgl_form_cut'],
+                'part_detail_id' => $request['part_detail_id'],
+                'form_cut_id' => $request['form_cut_id'],
                 'so_det_id' => $request['so_det_id'][$index],
                 'color' => $request['color'],
                 'panel' => $request['panel'],
@@ -232,7 +244,7 @@ class StockerController extends Controller
         );
 
         if ($storeItem) {
-            $dataSpreading = Stocker::selectRaw("
+            $dataStocker = Stocker::selectRaw("
                     stocker_input.qty_cut bundle_qty,
                     stocker_input.size,
                     stocker_input.range_awal,
@@ -244,13 +256,18 @@ class StockerController extends Controller
                     marker_input.color,
                     stocker_input.shade
                 ")->
-                leftJoin("form_cut_input", "form_cut_input.no_form", "=", "stocker_input.no_form_cut_input")->
+                leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+                leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+                leftJoin("part", "part.id", "=", "part_detail.part_id")->
+                leftJoin("part_form", "part_form.part_id", "=", "part.id")->
+                leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
                 leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
                 leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
                 leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->
                 leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
                 where("form_cut_input.status", "SELESAI PENGERJAAN")->
-                where("form_cut_input.no_form", $storeItem->no_form_cut_input)->
+                where("part_detail.id", $storeItem->part_detail_id)->
+                where("form_cut_input.id", $storeItem->form_cut_id)->
                 where("stocker_input.id", $storeItem->id)->
                 where("marker_input_detail.size", $storeItem->size)->
                 groupBy("form_cut_input.id")->
@@ -261,7 +278,7 @@ class StockerController extends Controller
 
             // generate pdf
             PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
-            $pdf = PDF::loadView('stocker.pdf.print-stocker', ["dataSpreading" => $dataSpreading, "qrCode" => $qrCodeDecode])->setPaper('a7', 'landscape');
+            $pdf = PDF::loadView('stocker.pdf.print-stocker', ["dataStocker" => $dataStocker, "qrCode" => $qrCodeDecode])->setPaper('a7', 'landscape');
 
             $path = public_path('pdf/');
             $fileName = 'stocker-'.$storeItem->id.'.pdf';
@@ -277,8 +294,8 @@ class StockerController extends Controller
         $stockerCount = Stocker::count() + 1;
 
         $checkStocker = Stocker::whereRaw("
-                no_form_cut_input = '".$request['no_form_cut']."' AND
-                tgl_form_cut_input = '".$request['tgl_form_cut']."' AND
+                part_detail_id = '".$request['part_detail_id']."' AND
+                form_cut_id = '".$request['form_cut_id']."' AND
                 so_det_id = '".$request['so_det_id'][$index]."' AND
                 panel = '".$request['panel']."' AND
                 shade = '".$request['shade']."' AND
@@ -299,8 +316,8 @@ class StockerController extends Controller
             $colorStocker = $checkStocker->color;
         } else {
             $storeItem = Stocker::create([
-                'no_form_cut_input' => $request['no_form_cut'],
-                'tgl_form_cut_input' => $request['tgl_form_cut'],
+                'part_detail_id' => $request['part_detail_id'],
+                'form_cut_id' => $request['form_cut_id'],
                 'so_det_id' => $request['so_det_id'][$index],
                 'color' => $request['color'],
                 'panel' => $request['panel'],

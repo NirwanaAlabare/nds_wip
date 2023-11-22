@@ -46,13 +46,13 @@
             <td rowspan="3" style="vertical-align: middle; text-align: center; width: 35%;">
                 <img src="data:image/png;base64, {!! $qrCode !!}">
             </td>
-            <td>Bundle Qty : {{ $dataSpreading->bundle_qty }}</td>
+            <td>Bundle Qty : {{ $dataStocker->bundle_qty }}</td>
         </tr>
         <tr>
-            <td>Size : {{ $dataSpreading->size }}</td>
+            <td>Size : {{ $dataStocker->size }}</td>
         </tr>
         <tr>
-            <td>Range : {{ $dataSpreading->range_awal." - ".$dataSpreading->range_akhir }}</td>
+            <td>Range : {{ $dataStocker->range_awal." - ".$dataStocker->range_akhir }}</td>
         </tr>
     </table>
     <table style="margin-top: -0.5px;">
@@ -62,32 +62,32 @@
         <tr>
             <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;white-space: nowrap;">Kode Stocker</td>
             <td style="border: none;border-left: none; border-top: 1px solid; border-bottom: 1px solid;text-align: center;width: auto;">:</td>
-            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataSpreading->id_qr_stocker }}</td>
+            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataStocker->id_qr_stocker }}</td>
         </tr>
         <tr>
             <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;white-space: nowrap;">Worksheet</td>
             <td style="border: none;border-left: none; border-top: 1px solid; border-bottom: 1px solid;text-align: center;width: auto;">:</td>
-            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataSpreading->act_costing_ws }}</td>
+            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataStocker->act_costing_ws }}</td>
         </tr>
         <tr>
             <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;white-space: nowrap;">Buyer</td>
             <td style="border: none;border-left: none; border-top: 1px solid; border-bottom: 1px solid;text-align: center;width: auto;">:</td>
-            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataSpreading->buyer }}</td>
+            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataStocker->buyer }}</td>
         </tr>
         <tr>
             <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;white-space: nowrap;">Style</td>
             <td style="border: none;border-left: none; border-top: 1px solid; border-bottom: 1px solid;text-align: center;width: auto;">:</td>
-            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataSpreading->style }}</td>
+            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataStocker->style }}</td>
         </tr>
         <tr>
             <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;white-space: nowrap;">Color</td>
             <td style="border: none;border-left: none; border-top: 1px solid; border-bottom: 1px solid;text-align: center;width: auto;">:</td>
-            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataSpreading->color }}</td>
+            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataStocker->color }}</td>
         </tr>
         <tr>
             <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;white-space: nowrap;">Shade</td>
             <td style="border: none;border-left: none; border-top: 1px solid; border-bottom: 1px solid;text-align: center;width: auto;">:</td>
-            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataSpreading->shade }}</td>
+            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataStocker->shade }}</td>
         </tr>
     </table>
 </body>

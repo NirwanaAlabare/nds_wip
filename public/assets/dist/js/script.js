@@ -258,7 +258,7 @@ function deleteData(e) {
 
                             $('.modal').modal('hide');
                         } else {
-                            iziToast.success({
+                            iziToast.error({
                                 title: 'Error',
                                 message: res.message,
                                 position: 'topCenter'

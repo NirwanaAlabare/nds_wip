@@ -14,19 +14,17 @@
 @section('content')
     <div class="card card-sb card-outline">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0">Data Stocker</h5>
+            <h5 class="card-title fw-bold mb-0">Stocker</h5>
         </div>
         <div class="card-body">
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
-                        value="{{ date('Y-m-d') }}">
+                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="dataTableReload()" value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                        value="{{ date('Y-m-d') }}">
+                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" onchange="dataTableReload()" value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
                     <button class="btn btn-primary btn-sm" onclick="dataTableReload()">Tampilkan</button>
@@ -36,13 +34,16 @@
                 <table id="datatable" class="table table-bordered table-striped table-sm w-100">
                     <thead>
                         <tr>
-                            <th>No Form</th>
-                            <th>Tgl Form</th>
-                            <th>No. Meja</th>
-                            <th>Marker</th>
+                            <th>No. Marker</th>
+                            <th>No. Form</th>
+                            <th>Tgl Spreading</th>
+                            <th>Meja</th>
                             <th>WS</th>
+                            <th>Buyer</th>
+                            <th>No. Cut</th>
+                            <th>Style</th>
                             <th>Color</th>
-                            <th>Panel</th>
+                            <th>Part</th>
                             <th>Size Ratio</th>
                             <th>Total Lembar</th>
                             <th>Act</th>
@@ -74,11 +75,20 @@
     </script>
 
     <script>
+        $(document).ready(() => {
+            let oneWeeksBefore = new Date(new Date().setDate(new Date().getDate() - 7));
+            let oneWeeksBeforeDate = ("0" + oneWeeksBefore.getDate()).slice(-2);
+            let oneWeeksBeforeMonth = ("0" + (oneWeeksBefore.getMonth() + 1)).slice(-2);
+            let oneWeeksBeforeYear = oneWeeksBefore.getFullYear();
+            let oneWeeksBeforeFull = oneWeeksBeforeYear + '-' + oneWeeksBeforeMonth + '-' + oneWeeksBeforeDate;
+
+            $("#tgl-awal").val(oneWeeksBeforeFull).trigger("change");
+        });
+
         let datatable = $("#datatable").DataTable({
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: false,
             ajax: {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -93,6 +103,9 @@
             },
             columns: [
                 {
+                    data: 'id_marker'
+                },
+                {
                     data: 'no_form'
                 },
                 {
@@ -102,16 +115,22 @@
                     data: 'nama_meja'
                 },
                 {
-                    data: 'id_marker'
+                    data: 'act_costing_ws'
                 },
                 {
-                    data: 'ws'
+                    data: 'buyer'
+                },
+                {
+                    data: 'no_cut'
+                },
+                {
+                    data: 'style'
                 },
                 {
                     data: 'color'
                 },
                 {
-                    data: 'panel'
+                    data: 'nama_part'
                 },
                 {
                     data: 'marker_details'
@@ -120,17 +139,20 @@
                     data: 'total_lembar'
                 },
                 {
-                    data: 'id'
+                    data: null
                 },
             ],
-            columnDefs: [{
-                    targets: [2],
+            columnDefs: [
+                // Nama Meja
+                {
+                    targets: [3],
                     render: (data, type, row, meta) => data ? data.toUpperCase() : "-"
                 },
+                // Last Column
                 {
-                    targets: [9],
+                    targets: [12],
                     render: (data, type, row, meta) => {
-                        return `<div class='d-flex gap-1 justify-content-center'> <a class='btn btn-info btn-sm' href='{{ route("show-stocker") }}/`+data+`' data-bs-toggle='tooltip'><i class='fa fa-eye'></i></a> </div>`;
+                        return `<div class='d-flex gap-1 justify-content-center'> <a class='btn btn-info btn-sm' href='{{ route("show-stocker") }}/`+row.partDetailId+`/`+row.formCutId+`' data-bs-toggle='tooltip'><i class='fa fa-eye'></i></a> </div>`;
                     }
                 }
             ]
