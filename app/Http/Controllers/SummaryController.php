@@ -90,7 +90,11 @@ class SummaryController extends Controller
                     " . $additionalQuery . "
                     " . $keywordQuery . "
                 GROUP BY a.id
-                ORDER BY b.cancel asc, FIELD(a.status, 'PENGERJAAN FORM CUTTING', 'PENGERJAAN MARKER', 'PENGERJAAN FORM CUTTING DETAIL', 'PENGERJAAN FORM CUTTING SPREAD', 'SPREADING', 'SELESAI PENGERJAAN'), a.updated_at desc
+                ORDER BY
+                    FIELD(a.status, 'PENGERJAAN FORM CUTTING', 'PENGERJAAN MARKER', 'PENGERJAAN FORM CUTTING DETAIL', 'PENGERJAAN FORM CUTTING SPREAD', 'SPREADING', 'SELESAI PENGERJAAN'),
+                    FIELD(a.tipe_form_cut, null, 'NORMAL', 'MANUAL'),
+                    a.no_form desc,
+                    a.updated_at desc
             ");
 
             return DataTables::of($data_spreading)->toJson();

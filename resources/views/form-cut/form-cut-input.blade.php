@@ -35,7 +35,6 @@
 
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-dark mb-3"><i class="fas fa-clipboard-list"></i> Form Cut Manual</a>
-                    <button type="button" onclick="updateNoCut()" class="btn btn-sm btn-yes mb-3"><i class="fas fa-sync-alt"></i> Update No Cut</button>
                 </div>
             </div>
             <div class="table-responsive">

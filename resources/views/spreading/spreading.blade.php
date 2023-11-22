@@ -21,19 +21,25 @@
                 <i class="fas fa-plus"></i>
                 Baru
             </a>
-            <div class="d-flex align-items-end gap-3 mb-3">
-                <div class="mb-3">
-                    <label class="form-label"><small>Tgl Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
-                        value="{{ date('Y-m-d') }}">
+            <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
+                <div class="d-flex align-items-end gap-3 mb-3">
+                    <div>
+                        <label class="form-label"><small>Tgl Awal</small></label>
+                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal">
+                    </div>
+                    <div>
+                        <label class="form-label"><small>Tgl Akhir</small></label>
+                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
+                            value="{{ date('Y-m-d') }}">
+                    </div>
+                    <div>
+                        <button class="btn btn-primary btn-sm" onclick="dataTableReload()">Tampilkan</button>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label"><small>Tgl Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                        value="{{ date('Y-m-d') }}">
-                </div>
-                <div class="mb-3">
-                    <button class="btn btn-primary btn-sm" onclick="dataTableReload()">Tampilkan</button>
+
+                <div class="d-flex align-items-end gap-3 mb-3">
+                    <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-dark"><i class="fas fa-clipboard-list"></i> Form Cut Manual</a>
+                    <button type="button" onclick="updateNoCut()" class="btn btn-sm btn-yes"><i class="fas fa-sync-alt"></i> Update No Cut</button>
                 </div>
             </div>
             <div class="table-responsive">
@@ -429,6 +435,19 @@
 
         function dataTableRatioReload() {
             datatableRatio.ajax.reload();
+        }
+
+        function updateNoCut() {
+            $.ajax({
+                url: '{{ route('form-cut-update-no-cut') }}',
+                type: "put",
+                success: function(res) {
+                    console.log("success", res);
+                },
+                error: function(jqXHR) {
+                    console.log("error", jqXHR);
+                }
+            });
         }
     </script>
 @endsection
