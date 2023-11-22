@@ -99,6 +99,7 @@ class FormCutInputController extends Controller
                 ORDER BY
                     FIELD(a.status, 'PENGERJAAN MARKER', 'PENGERJAAN FORM CUTTING', 'PENGERJAAN FORM CUTTING DETAIL', 'PENGERJAAN FORM CUTTING SPREAD', 'SPREADING', 'SELESAI PENGERJAAN'),
                     FIELD(a.tipe_form_cut, null, 'NORMAL', 'MANUAL'),
+                    FIELD(cutting_plan.app, 'Y', 'N', null),
                     a.no_form desc,
                     a.updated_at desc
             ");
