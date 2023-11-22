@@ -86,7 +86,7 @@ class SpreadingController extends Controller
                     " . $keywordQuery . "
                 GROUP BY a.id
                 ORDER BY
-                    FIELD(a.status, 'PENGERJAAN FORM CUTTING', 'PENGERJAAN MARKER', 'PENGERJAAN FORM CUTTING DETAIL', 'PENGERJAAN FORM CUTTING SPREAD', 'SPREADING', 'SELESAI PENGERJAAN'),
+                    FIELD(a.status, 'PENGERJAAN MARKER', 'PENGERJAAN FORM CUTTING', 'PENGERJAAN FORM CUTTING DETAIL', 'PENGERJAAN FORM CUTTING SPREAD', 'SPREADING', 'SELESAI PENGERJAAN'),
                     FIELD(a.tipe_form_cut, null, 'NORMAL', 'MANUAL'),
                     a.no_form desc,
                     a.updated_at desc

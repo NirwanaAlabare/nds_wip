@@ -25,11 +25,11 @@
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div>
                         <label class="form-label"><small>Tgl Awal</small></label>
-                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal">
+                        <input type="date" class="form-control form-control-sm" onchange="dataTableReload()" id="tgl-awal" name="tgl_awal">
                     </div>
                     <div>
                         <label class="form-label"><small>Tgl Akhir</small></label>
-                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
+                        <input type="date" class="form-control form-control-sm" onchange="dataTableReload()" id="tgl-akhir" name="tgl_akhir"
                             value="{{ date('Y-m-d') }}">
                     </div>
                     <div>
@@ -247,12 +247,20 @@
             document.querySelector('.select2-search__field').focus();
         });
 
-        $('.select2').select2()
+        $('.select2').select2();
 
         $('.select2bs4').select2({
             theme: 'bootstrap4',
             dropdownParent: $("#editMejaModal")
-        })
+        });
+
+        let oneWeeksBefore = new Date(new Date().setDate(new Date().getDate() - 7));
+        let oneWeeksBeforeDate = ("0" + oneWeeksBefore.getDate()).slice(-2);
+        let oneWeeksBeforeMonth = ("0" + (oneWeeksBefore.getMonth() + 1)).slice(-2);
+        let oneWeeksBeforeYear = oneWeeksBefore.getFullYear();
+        let oneWeeksBeforeFull = oneWeeksBeforeYear + '-' + oneWeeksBeforeMonth + '-' + oneWeeksBeforeDate;
+
+        $("#tgl-awal").val(oneWeeksBeforeFull).trigger("change");
     </script>
 
     <script>
