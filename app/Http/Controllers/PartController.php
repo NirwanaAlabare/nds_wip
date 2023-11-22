@@ -62,7 +62,17 @@ class PartController extends Controller
      */
     public function create()
     {
-        $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
+        $orders = DB::connection('mysql_sb')->
+            table('act_costing')->
+            select('id', 'kpno')->
+            where('status', '!=', 'CANCEL')->
+            where('cost_date', '>=', '2023-01-01')->
+            where('type_ws', 'STD')->
+            orderBy('cost_date', 'desc')->
+            orderBy('kpno', 'asc')->
+            groupBy('kpno')->
+            get();
+
         $masterParts = MasterPart::all();
 
         return view('part.create-part', ['orders' => $orders, 'masterParts' => $masterParts, 'page' => 'dashboard-stocker']);
@@ -104,6 +114,21 @@ class PartController extends Controller
 
     public function getPanelList(Request $request)
     {
+        $notInclude = "";
+        $existParts = Part::where("act_costing_id", $request->act_costing_id)->get();
+
+        if ($existParts->count() > 0){
+            $i = 0;
+            $notInclude = "not in (";
+
+            foreach ($existParts as $existPart) {
+                $notInclude .= ($i == 0 ? "'".$existPart->panel."'" : ", '".$existPart->panel."'");
+                $i++;
+            }
+
+            $notInclude .= ")";
+        }
+
         $panels = DB::connection('mysql_sb')->select("
                 select nama_panel panel from
                     (select id_panel from bom_jo_item k
@@ -112,6 +137,7 @@ class PartController extends Controller
                         inner join act_costing ac on so.id_cost = ac.id
                         inner join masteritem mi on k.id_item = mi.id_gen
                         where ac.id = '" . $request->act_costing_id . "' and k.status = 'M'
+                        ".$notInclude."
                         and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and ac.status = 'confirm' and mi.mattype = 'F'
                         group by id_panel
                     ) a
@@ -230,7 +256,7 @@ class PartController extends Controller
      * @param  \App\Models\Part  $part
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Part $part)
+    public function update(Request $request, Part $part, $id = 0)
     {
         //
     }
@@ -241,9 +267,31 @@ class PartController extends Controller
      * @param  \App\Models\Part  $part
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Part $part)
+    public function destroy(Part $part, $id = 0)
     {
-        //
+        $countPartForm = PartForm::where("part_id", $id)->count();
+
+        if ($countPartForm < 1) {
+            $deletePart = Part::where("id", $id)->delete();
+
+            if ($deletePart) {
+                return array(
+                    'status' => 200,
+                    'message' => 'Part berhasil dihapus',
+                    'redirect' => '',
+                    'table' => 'datatable-part',
+                    'additional' => [],
+                );
+            }
+        }
+
+        return array(
+            'status' => 400,
+            'message' => 'Part ini tidak dapat dihapus',
+            'redirect' => '',
+            'table' => 'datatable-part',
+            'additional' => [],
+        );
     }
 
     public function managePartForm(Request $request, $id = 0) {
@@ -261,7 +309,8 @@ class PartController extends Controller
                     marker_input.color,
                     marker_input.panel,
                     GROUP_CONCAT(DISTINCT CONCAT(master_size_new.size, '(', marker_input_detail.ratio, ')') SEPARATOR ', ') marker_details,
-                    form_cut_input.qty_ply
+                    form_cut_input.qty_ply,
+                    form_cut_input.no_cut
                 ")->
                 leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
                 leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
@@ -288,7 +337,7 @@ class PartController extends Controller
                         $query->whereRaw("LOWER(panel) LIKE LOWER('%" . $keyword . "%')");
                     })->order(function ($query) {
                         $query->
-                            orderBy('form_cut_input.updated_at', 'desc')->
+                            orderBy('form_cut_input.waktu_selesai', 'desc')->
                             orderByRaw('FIELD(form_cut_input.tipe_form_cut, null, "NORMAL", "MANUAL")');
                     })->toJson();
         }
@@ -326,7 +375,8 @@ class PartController extends Controller
                 marker_input.style,
                 marker_input.panel,
                 GROUP_CONCAT(DISTINCT CONCAT(master_size_new.size, '(', marker_input_detail.ratio, ')') SEPARATOR ', ') marker_details,
-                form_cut_input.qty_ply
+                form_cut_input.qty_ply,
+                form_cut_input.no_cut
             ")->
             leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
             leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
@@ -352,7 +402,7 @@ class PartController extends Controller
                 $query->whereRaw("LOWER(panel) LIKE LOWER('%" . $keyword . "%')");
             })->order(function ($query) {
                 $query->
-                    orderBy('form_cut_input.updated_at', 'desc')->
+                    orderBy('form_cut_input.waktu_selesai', 'desc')->
                     orderByRaw('FIELD(form_cut_input.tipe_form_cut, null, "NORMAL", "MANUAL")');
             })->toJson();
     }

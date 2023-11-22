@@ -82,7 +82,7 @@
                         <table id="datatable-selected" class="table table-bordered table-sm w-100">
                             <thead>
                                 <tr>
-                                    <th>No Form</th>
+                                    <th>No. Form</th>
                                     <th>Tgl Spreading</th>
                                     <th>No. Meja</th>
                                     <th>Marker</th>
@@ -90,6 +90,7 @@
                                     <th>Style</th>
                                     <th>Color</th>
                                     <th>Panel</th>
+                                    <th>No. Cut</th>
                                     <th>Size Ratio</th>
                                     <th>Qty Ply</th>
                                 </tr>
@@ -137,7 +138,7 @@
                         <table id="datatable-select" class="table table-bordered table-sm w-100">
                             <thead>
                                 <tr>
-                                    <th>No Form</th>
+                                    <th>No. Form</th>
                                     <th>Tgl Spreading</th>
                                     <th>No. Meja</th>
                                     <th>Marker</th>
@@ -145,6 +146,7 @@
                                     <th>Style</th>
                                     <th>Color</th>
                                     <th>Panel</th>
+                                    <th>No. Cut</th>
                                     <th>Size Ratio</th>
                                     <th>Qty Ply</th>
                                 </tr>
@@ -222,6 +224,9 @@
                 },
                 {
                     data: 'panel'
+                },
+                {
+                    data: 'no_cut'
                 },
                 {
                     data: 'marker_details'
@@ -418,6 +423,9 @@
                 },
                 {
                     data: 'panel'
+                },
+                {
+                    data: 'no_cut'
                 },
                 {
                     data: 'marker_details'
