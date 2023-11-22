@@ -152,7 +152,7 @@
                 {
                     targets: [12],
                     render: (data, type, row, meta) => {
-                        return `<div class='d-flex gap-1 justify-content-center'> <a class='btn btn-info btn-sm' href='{{ route("show-stocker") }}/`+row.partDetailId+`/`+row.formCutId+`' data-bs-toggle='tooltip'><i class='fa fa-eye'></i></a> </div>`;
+                        return `<div class='d-flex gap-1 justify-content-center'> <a class='btn btn-info btn-sm' href='{{ route("show-stocker") }}/`+row.part_detail_id+`/`+row.form_cut_id+`' data-bs-toggle='tooltip'><i class='fa fa-eye'></i></a> </div>`;
                     }
                 }
             ]

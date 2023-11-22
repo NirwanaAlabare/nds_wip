@@ -14,7 +14,12 @@
 @section('content')
     <div class="card card-sb card-outline">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0">Detail Stocker</h5>
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title fw-bold mb-0">Detail Stocker</h5>
+                <button type="button" class="btn btn-dark btn-sm" onclick="countStockerUpdate()">
+                    <i class="fa fa-sync"></i> Update No. Stocker
+                </button>
+            </div>
         </div>
         <div class="card-body">
             <form action="#" method="post" id="stocker-form">
@@ -276,6 +281,24 @@
                     }
 
                     swal.close();
+                }
+            });
+        }
+
+        function countStockerUpdate() {
+            let stockerForm = new FormData(document.getElementById("stocker-form"));
+
+            $.ajax({
+                url: '{{ route('count-stocker-update') }}',
+                type: 'put',
+                data: stockerForm,
+                processData: false,
+                contentType: false,
+                success: function(res) {
+                    console.log("successs", res);
+                },
+                error: function(jqXHR) {
+                    console.log("error", jqXHR);
                 }
             });
         }

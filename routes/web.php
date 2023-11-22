@@ -229,6 +229,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/show/{partDetailId?}/{formCutId?}', 'show')->name('show-stocker');
         Route::post('/print-stocker/{index?}', 'printStocker')->name('print-stocker');
         Route::post('/print-numbering/{index?}', 'printNumbering')->name('print-numbering');
+
+        Route::put('/count-stocker-update', 'countStockerUpdate')->name('count-stocker-update');
     });
 
     // DC IN

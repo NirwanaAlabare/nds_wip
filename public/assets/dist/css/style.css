@@ -22,7 +22,7 @@
 }
 
 body {
-    font-family: 'Nunito', 'sans-serif';
+    font-family: 'Nunito', inherit;
     font-size: 15px;
 }
 
