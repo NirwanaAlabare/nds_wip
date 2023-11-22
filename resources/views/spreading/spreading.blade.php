@@ -253,19 +253,21 @@
             theme: 'bootstrap4',
             dropdownParent: $("#editMejaModal")
         });
-
-        let oneWeeksBefore = new Date(new Date().setDate(new Date().getDate() - 7));
-        let oneWeeksBeforeDate = ("0" + oneWeeksBefore.getDate()).slice(-2);
-        let oneWeeksBeforeMonth = ("0" + (oneWeeksBefore.getMonth() + 1)).slice(-2);
-        let oneWeeksBeforeYear = oneWeeksBefore.getFullYear();
-        let oneWeeksBeforeFull = oneWeeksBeforeYear + '-' + oneWeeksBeforeMonth + '-' + oneWeeksBeforeDate;
-
-        $("#tgl-awal").val(oneWeeksBeforeFull).trigger("change");
     </script>
 
     <script>
-        window.addEventListener("focus", () => {
-            dataTableReload();
+        $(document).ready(() => {
+            let oneWeeksBefore = new Date(new Date().setDate(new Date().getDate() - 7));
+            let oneWeeksBeforeDate = ("0" + oneWeeksBefore.getDate()).slice(-2);
+            let oneWeeksBeforeMonth = ("0" + (oneWeeksBefore.getMonth() + 1)).slice(-2);
+            let oneWeeksBeforeYear = oneWeeksBefore.getFullYear();
+            let oneWeeksBeforeFull = oneWeeksBeforeYear + '-' + oneWeeksBeforeMonth + '-' + oneWeeksBeforeDate;
+
+            $("#tgl-awal").val(oneWeeksBeforeFull).trigger("change");
+
+            window.addEventListener("focus", () => {
+                dataTableReload();
+            });
         });
 
         let datatable = $("#datatable").DataTable({
