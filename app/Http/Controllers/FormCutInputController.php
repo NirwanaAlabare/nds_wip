@@ -883,4 +883,37 @@ group by id_cost, k.id_item
 
         return $updateFormCutInput;
     }
+
+    public function updateNoCut(Request $request) {
+        $updatedForm = [];
+
+        $markerGroups = Marker::select("act_costing_ws", "color", "panel")->groupBy("act_costing_ws", "color", "panel")->get();
+
+        foreach ($markerGroups as $markerGroup) {
+            $i = 0;
+
+            $formCuts = FormCutInput::selectRaw("form_cut_input.id as id, form_cut_input.no_form, form_cut_input.status")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+                where("marker_input.act_costing_ws", $markerGroup->act_costing_ws)->
+                where("marker_input.color", $markerGroup->color)->
+                where("marker_input.panel", $markerGroup->panel)->
+                where("form_cut_input.status", "SELESAI PENGERJAAN")->
+                orderBy("form_cut_input.waktu_selesai", "asc")->
+                get();
+
+            foreach ($formCuts as $formCut) {
+                $i++;
+
+                $updateFormCut = FormCutInput::where("id", $formCut->id)->
+                    update([
+                        "no_cut" => $i
+                    ]);
+
+                if ($updateFormCut) {
+                    array_push($updatedForm, ["ws_no_form" => $markerGroup->act_costing_ws."-".$markerGroup->color."-".$markerGroup->panel."-".$formCut->no_form."-".$formCut->status."-".$i]);
+                }
+            }
+        }
+
+        return $updatedForm;
+    }
 }

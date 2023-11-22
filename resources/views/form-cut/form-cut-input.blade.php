@@ -33,8 +33,10 @@
                     </div>
                 </div>
 
-                <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-dark mb-3"><i
-                        class="fas fa-clipboard-list"></i> Form Cut Manual</a>
+                <div class="d-flex align-items-end gap-3 mb-3">
+                    <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-dark mb-3"><i class="fas fa-clipboard-list"></i> Form Cut Manual</a>
+                    <button type="button" onclick="updateNoCut()" class="btn btn-sm btn-yes mb-3"><i class="fas fa-sync-alt"></i> Update No Cut</button>
+                </div>
             </div>
             <div class="table-responsive">
                 <table id="datatable" class="table table-bordered table-sm w-100">
@@ -267,6 +269,7 @@
                 $(this).empty();
             }
         });
+
         let datatable = $("#datatable").DataTable({
             processing: true,
             ordering: false,
@@ -278,7 +281,8 @@
                     d.dateTo = $('#tgl-akhir').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'no_form'
                 },
                 {
@@ -318,7 +322,8 @@
                     data: 'id'
                 },
             ],
-            columnDefs: [{
+            columnDefs: [
+                {
                     targets: [2],
                     render: (data, type, row, meta) => {
                         let color = "";
@@ -487,7 +492,8 @@
                     d.cbomarker = $('#edit_marker_id').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'size'
                 },
                 {
@@ -505,6 +511,19 @@
 
         function dataTableRatioReload() {
             datatableRatio.ajax.reload();
+        }
+
+        function updateNoCut() {
+            $.ajax({
+                url: '{{ route('form-cut-update-no-cut') }}',
+                type: "put",
+                success: function(res) {
+                    console.log("success", res);
+                },
+                error: function(jqXHR) {
+                    console.log("error", jqXHR);
+                }
+            });
         }
     </script>
 @endsection
