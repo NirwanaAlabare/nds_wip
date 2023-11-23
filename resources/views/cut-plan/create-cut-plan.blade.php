@@ -27,7 +27,7 @@
             </form>
         </div>
     </div>
-    <div class="row flex-column-reverse mb-3">
+    <div class="row mb-3">
         <div class="col-12 mb-3">
             <div class="card card-primary h-100">
                 <div class="card-header">
@@ -474,7 +474,7 @@
                     if (result.isConfirmed) {
                         $.ajax({
                             type: "DELETE",
-                            url: '{!! route('destroy-part') !!}',
+                            url: '{!! route('destroy-cut-plan') !!}',
                             data: {
                                 tgl_plan: tglPlan,
                                 formCutPlan: formCutPlan
