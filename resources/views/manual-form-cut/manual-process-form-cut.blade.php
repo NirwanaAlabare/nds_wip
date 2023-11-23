@@ -1487,7 +1487,7 @@
 
                 // -On Scan Card Collapse-
                 $('#scan-qr-card').on('collapsed.lte.cardwidget', function(e) {
-                    html5QrcodeScanner.clear();
+                    html5QrcodeScanner.clearQrCodeScanner;
                 });
 
                 // -On Scan Card Expand-
@@ -2567,7 +2567,7 @@
                 document.getElementById("to-item").classList.remove('d-none');
                 $("#select_item").val("").trigger("change");
 
-                html5QrcodeScanner.clear();
+                html5QrcodeScanner.clearQrCodeScanner;
 
                 removeColorSpreading();
             }
@@ -3006,42 +3006,49 @@
                 // -Initialize Scanner-
                 async function initScan() {
                     if (document.getElementById("reader")) {
-                        if (html5QrcodeScanner) {
-                            await html5QrcodeScanner.clear();
+                        if (document.getElementById("reader").style.length < 1) {
+                            await clearQrCodeScanner();
+
+                            function onScanSuccess(decodedText, decodedResult) {
+                                // handle the scanned code as you like, for example:
+                                console.log(`Code matched = ${decodedText}`, decodedResult);
+
+                                // store to input text
+                                let breakDecodedText = decodedText.split('-');
+
+                                document.getElementById('kode_barang').value = breakDecodedText[0];
+
+                                getScannedItem(breakDecodedText[0]);
+
+                                clearQrCodeScanner();
+                            }
+
+                            function onScanFailure(error) {
+                                // handle scan failure, usually better to ignore and keep scanning.
+                                // for example:
+                                console.warn(`Code scan error = ${error}`);
+                            }
+
+                            html5QrcodeScanner = new Html5QrcodeScanner(
+                                "reader", {
+                                    fps: 10,
+                                    qrbox: {
+                                        width: 250,
+                                        height: 250
+                                    }
+                                },
+                                /* verbose= */
+                                false);
+
+                            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
                         }
+                    }
+                }
 
-                        function onScanSuccess(decodedText, decodedResult) {
-                            // handle the scanned code as you like, for example:
-                            console.log(`Code matched = ${decodedText}`, decodedResult);
-
-                            // store to input text
-                            let breakDecodedText = decodedText.split('-');
-
-                            document.getElementById('kode_barang').value = breakDecodedText[0];
-
-                            getScannedItem(breakDecodedText[0]);
-
-                            html5QrcodeScanner.clear();
-                        }
-
-                        function onScanFailure(error) {
-                            // handle scan failure, usually better to ignore and keep scanning.
-                            // for example:
-                            console.warn(`Code scan error = ${error}`);
-                        }
-
-                        html5QrcodeScanner = new Html5QrcodeScanner(
-                            "reader", {
-                                fps: 10,
-                                qrbox: {
-                                    width: 250,
-                                    height: 250
-                                }
-                            },
-                            /* verbose= */
-                            false);
-
-                        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+                async function clearQrCodeScanner() {
+                    if (html5QrcodeScanner) {
+                        await html5QrcodeScanner.clear();
+                        document.getElementById("reader").removeAttribute("style");
                     }
                 }
 
@@ -3063,7 +3070,7 @@
                     document.getElementById("reader").classList.add("d-none");
 
                     if (html5QrcodeScanner != null) {
-                        html5QrcodeScanner.clear();
+                        html5QrcodeScanner.clearQrCodeScanner;
                     }
                 }
 
