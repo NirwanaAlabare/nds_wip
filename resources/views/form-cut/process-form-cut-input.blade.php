@@ -1069,11 +1069,11 @@
             $(document).ready(async () => {
                 document.getElementById("loading").classList.remove("d-none");
 
-                await checkStatus();
                 await getNumberData();
                 await clearGeneralForm();
                 await clearScanItemForm();
                 await clearSpreadingForm();
+                await checkStatus();
 
                 document.getElementById("loading").classList.add("d-none");
 
