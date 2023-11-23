@@ -1037,778 +1037,751 @@
 
     <script>
         // Variable List :
-        // -Form Cut Input Header Data-
-        var id = document.getElementById("id").value;
-        var status = document.getElementById("status").value;
-        var startTime = document.getElementById("start-time");
-        var finishTime = document.getElementById("finish-time");
+            // -Form Cut Input Header Data-
+            var id = document.getElementById("id").value;
+            var status = document.getElementById("status").value;
+            var startTime = document.getElementById("start-time");
+            var finishTime = document.getElementById("finish-time");
 
-        // -Process Button Elements-
-        var startProcessButton = document.getElementById("start-process");
-        var nextProcessOneButton = document.getElementById("next-process-1");
-        var nextProcessTwoButton = document.getElementById("next-process-2");
-        var nextProcessThreeButton = document.getElementById("next-process-3");
-        var finishProcessButton = document.getElementById("finish-process");
+            // -Process Button Elements-
+            var startProcessButton = document.getElementById("start-process");
+            var nextProcessOneButton = document.getElementById("next-process-1");
+            var nextProcessTwoButton = document.getElementById("next-process-2");
+            var nextProcessThreeButton = document.getElementById("next-process-3");
+            var finishProcessButton = document.getElementById("finish-process");
 
-        // -Current Scanned Item-
-        var currentScannedItem = null;
-        var currentSisaGelaran = null;
+            // -Current Scanned Item-
+            var currentScannedItem = null;
+            var currentSisaGelaran = null;
 
-        // -Summary Data-
-        var summaryData = null;
+            // -Summary Data-
+            var summaryData = null;
 
-        // -Ratio & Qty Cuy-
-        var totalRatio = document.getElementById('total_ratio').value;
-        var totalQtyCut = document.getElementById('total_qty_cut_ply').value;
+            // -Ratio & Qty Cuy-
+            var totalRatio = document.getElementById('total_ratio').value;
+            var totalQtyCut = document.getElementById('total_qty_cut_ply').value;
 
-        // -Method-
-        var method = "scan";
+            // -Method-
+            var method = "scan";
 
         // Function List :
-        // -On Load-
-        $(document).ready(() => {
-            checkStatus();
-            getNumberData();
-            clearGeneralForm();
-            clearScanItemForm();
-            clearSpreadingForm();
+            // -On Load-
+            $(document).ready(async () => {
+                document.getElementById("loading").classList.remove("d-none");
 
-            // -Global Key Event-
-            $(document).keyup(function(e) {
-                if (e.key === "Escape") {
-                    e.preventDefault();
+                await checkStatus();
+                await getNumberData();
+                await clearGeneralForm();
+                await clearScanItemForm();
+                await clearSpreadingForm();
 
-                    // stopTimeRecord()
-                }
+                document.getElementById("loading").classList.add("d-none");
+
+                // -Global Key Event-
+                $(document).keyup(function(e) {
+                    if (e.key === "Escape") {
+                        e.preventDefault();
+
+                        // stopTimeRecord()
+                    }
+                });
+
+                // -Kode Barang Manual Input Event-
+                $('#kode_barang').keyup(function(e) {
+                    if (e.key === "Enter") {
+                        e.preventDefault();
+
+                        getScannedItem(this.value);
+                    }
+                });
+
+                // -Trigger Next Lap Button on Key Up 'Enter'-
+                nextLapButton.addEventListener("keyup", function(evt) {
+                    if (evt.key === "Enter") {
+                        // Cancel the default action, if needed
+                        event.preventDefault();
+                        // Trigger the button element with a click
+                        nextLapButton.click();
+                    }
+                });
+
+                // -On Scan Card Collapse-
+                $('#scan-qr-card').on('collapsed.lte.cardwidget', function(e) {
+                    clearQrCodeScanner();
+                });
+
+                // -On Scan Card Expand-
+                $('#scan-qr-card').on('expanded.lte.cardwidget', function(e) {
+                    initScan();
+                });
+
+                // -Default Method-
+                await $('#switch-method').prop('checked', true);
             });
-
-            // -Kode Barang Manual Input Event-
-            $('#kode_barang').keyup(function(e) {
-                if (e.key === "Enter") {
-                    e.preventDefault();
-
-                    getScannedItem(this.value);
-                }
-            });
-
-            // -Trigger Next Lap Button on Key Up 'Enter'-
-            nextLapButton.addEventListener("keyup", function(evt) {
-                if (evt.key === "Enter") {
-                    // Cancel the default action, if needed
-                    event.preventDefault();
-                    // Trigger the button element with a click
-                    nextLapButton.click();
-                }
-            });
-
-            // -On Scan Card Collapse-
-            $('#scan-qr-card').on('collapsed.lte.cardwidget', function(e) {
-                clearQrCodeScanner();
-            });
-
-            // -On Scan Card Expand-
-            $('#scan-qr-card').on('expanded.lte.cardwidget', function(e) {
-                initScan();
-            });
-
-            // -Default Method-
-            $('#switch-method').prop('checked', true);
-        });
 
         // Process :
-        // -Start Process-
-        function startProcess() {
-            Swal.fire({
-                icon: 'info',
-                title: 'Approve Pengerjaan Form Cut?',
-                text: 'Yakin akan approve proses pengerjaan?',
-                showCancelButton: true,
-                showConfirmButton: true,
-                confirmButtonText: 'Approve',
-                confirmButtonColor: "#6531a0",
-            }).then(async (result) => {
-                if (result.isConfirmed) {
-                    let now = new Date();
-                    startTime.value = now.getFullYear().toString() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate()) + " " + pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds());
-
-                    updateToStartProcess();
-
-                    startProcessButton.classList.add("d-none");
-                    nextProcessOneButton.classList.remove("d-none");
-                    document.getElementById("lost-time-card").classList.remove("d-none");
-                }
-            });
-        }
-
-        // -Start Process Transaction-
-        function updateToStartProcess() {
-            return $.ajax({
-                url: '{{ route('start-process-form-cut-input') }}/' + id,
-                type: 'put',
-                dataType: 'json',
-                data: {
-                    startTime: startTime.value,
-                },
-                success: function(res) {
-                    if (res) {
-                        console.log(res);
-                    }
-                }
-            });
-        }
-
-        // -Process One-
-        function nextProcessOne() {
-            updateToNextProcessOne();
-
-            $('#header-data-card').CardWidget('collapse');
-            $('#detail-data-card').removeClass('d-none');
-
-            nextProcessOneButton.classList.add("d-none");
-            nextProcessTwoButton.classList.remove("d-none");
-        }
-
-        // -Process One Transaction-
-        function updateToNextProcessOne() {
-            return $.ajax({
-                url: '{{ route('next-process-one-form-cut-input') }}/' + id,
-                type: 'put',
-                dataType: 'json',
-                data: {
-                    shell: $("#shell").val()
-                },
-                success: function(res) {
-                    if (res) {
-                        console.log(res);
-                    }
-                }
-            });
-        }
-
-        // -Process Two-
-        function nextProcessTwo() {
-            updateToNextProcessTwo();
-        }
-
-        // -Process Two Transaction-
-        function updateToNextProcessTwo() {
-            var pActual = document.getElementById('p_act').value;
-            var pUnitActual = document.getElementById('unit_p_act').value;
-            var commaActual = document.getElementById('comma_act').value;
-            var commaUnitActual = document.getElementById('unit_comma_act').value;
-            var lActual = document.getElementById('l_act').value;
-            var lUnitActual = document.getElementById('unit_l_act').value;
-            var consActual = document.getElementById('cons_act').value;
-            var consPipping = document.getElementById('cons_pipping').value;
-            var consAmpar = document.getElementById('cons_ampar').value;
-            var estPipping = document.getElementById('est_pipping').value;
-            var estPippingUnit = document.getElementById('est_pipping_unit').value;
-            var estKain = document.getElementById('est_kain').value;
-            var estKainUnit = document.getElementById('est_kain_unit').value;
-
-            clearModified();
-
-            return $.ajax({
-                url: '{{ route('next-process-two-form-cut-input') }}/' + id,
-                type: 'put',
-                dataType: 'json',
-                data: {
-                    p_act: pActual,
-                    unit_p_act: pUnitActual,
-                    comma_act: commaActual,
-                    unit_comma_act: commaUnitActual,
-                    l_act: lActual,
-                    unit_l_act: lUnitActual,
-                    cons_act: consActual,
-                    cons_pipping: consPipping,
-                    cons_ampar: consAmpar,
-                    est_pipping: estPipping,
-                    est_pipping_unit: estPippingUnit,
-                    est_kain: estKain,
-                    est_kain_unit: estKainUnit,
-                },
-                success: function(res) {
-                    if (res) {
-                        if (res.status == 200) {
-                            $('#header-data-card').CardWidget('collapse');
-                            $('#detail-data-card').CardWidget('collapse');
-                            $('#scan-qr-card').removeClass('d-none');
-
-                            nextProcessTwoButton.classList.add("d-none");
-                            nextProcessThreeButton.classList.remove("d-none");
-
-                            initScan();
-                            getItemList()
-                        }
-                    }
-                },
-                error: function(jqXHR) {
-                    let res = jqXHR.responseJSON;
-                    let message = '';
-                    let i = 0;
-
-                    for (let key in res.errors) {
-                        message = res.errors[key];
-                        document.getElementById(key).classList.add('is-invalid');
-                        modified.push(
-                            [key, '.classList', '.remove(', "'is-invalid')"],
-                        )
-
-                        if (i == 0) {
-                            document.getElementById(key).focus();
-                            i++;
-                        }
-                    };
-                }
-            });
-        }
-
-        // -Process Three-
-        function nextProcessThree() {
-            updateToNextProcessThree();
-        }
-
-        // -Process Three Transaction-
-        async function updateToNextProcessThree() {
-            let validation = false;
-
-            switch (method) {
-                case "scan" :
-                    validation = checkIfNull(document.getElementById("id_item").value) && checkIfNull(document.getElementById("detail_item").value) && checkIfNull(document.getElementById("color_act").value);
-                    break;
-                case "item" :
-                    validation = checkIfNull(document.getElementById("select_item").value);
-                    break;
-                default :
-                    validation = checkIfNull(document.getElementById("id_item").value) && checkIfNull(document.getElementById("detail_item").value) && checkIfNull(document.getElementById("color_act").value);
-                    break;
-            }
-
-            if (validation && currentScannedItem) {
-                nextProcessThreeButton.classList.add("d-none");
-
-                $('#scan-qr-card').CardWidget('collapse');
-
-                setSpreadingForm(currentScannedItem, sisaGelaran, unitSisaGelaran);
-                getSummary();
-
-                $('#spreading-form-card').removeClass('d-none');
-                $('#spreading-form-card').CardWidget('expand');
-                $('#summary-card').removeClass('d-none');
-            } else {
+            // -Start Process-
+            function startProcess() {
                 Swal.fire({
-                    icon: 'error',
-                    title: 'Gagal',
-                    text: 'Pastikan item yang di scan tersedia dan color actual sudah diisi',
-                    showCancelButton: false,
+                    icon: 'info',
+                    title: 'Approve Pengerjaan Form Cut?',
+                    text: 'Yakin akan approve proses pengerjaan?',
+                    showCancelButton: true,
                     showConfirmButton: true,
-                    confirmButtonText: 'Oke',
-                })
-            }
-        }
-
-        // -Back to Process Three-
-        async function backToProcessThree() {
-            storeTimeRecord();
-        }
-
-        // -Store Time Record Transaction-
-        function storeTimeRecord() {
-            clearModified();
-
-            let spreadingForm = new FormData(document.getElementById("spreading-form"));
-
-            let dataObj = {
-                "p_act": $("#p_act").val(),
-                "unit_p_act": $("#unit_p_act").val(),
-                "comma_act": $("#comma_act").val(),
-                "no_form_cut_input": $("#no_form").val(),
-                "no_meja": $("#no_meja").val(),
-                "color_act": $("#color_act").val(),
-                "detail_item": $("#detail_item").val(),
-                "metode": method,
-            }
-
-            spreadingForm.forEach((value, key) => dataObj[key] = value);
-
-            if ($("#status_sambungan").val() != "extension") {
-                // Not an Extension :
-                return $.ajax({
-                    url: '{{ route('store-time-manual-form-cut') }}',
-                    type: 'post',
-                    dataType: 'json',
-                    data: dataObj,
-                    success: function(res) {
-                        if (res) {
-                            timeRecordTableTbody.innerHTML = "";
-
-                            clearScanItemForm();
-                            openScanItemForm();
-                            clearSpreadingForm();
-                            firstTimeRecordCondition();
-
-                            nextProcessThreeButton.classList.remove('d-none');
-
-                            if (res.additional.length > 0) {
-                                $('#summary-card').removeClass('d-none');
-
-                                appendScannedItem(res.additional[0]);
-
-                                if (res.additional.length > 1) {
-                                    if (res.additional[1]) {
-                                        sisaGelaran = res.additional[0].sisa_gelaran;
-                                        unitSisaGelaran = res.additional[0].unit;
-                                        setSpreadingForm(res.additional[1], sisaGelaran, unitSisaGelaran);
-                                    } else {
-                                        checkStatus();
-                                    }
-                                }
-                            }
-
-                            resetTimeRecord();
-                        }
-                    },
-                    error: function(jqXHR) {
-                        let res = jqXHR.responseJSON;
-                        let message = '';
-                        let i = 0;
-
-                        for (let key in res.errors) {
-                            message = res.errors[key];
-                            document.getElementById(key).classList.add('is-invalid');
-                            modified.push(
-                                [key, '.classList', '.remove(', "'is-invalid')"],
-                            )
-
-                            if (i == 0) {
-                                document.getElementById(key).focus();
-                                i++;
-                            }
-                        };
-                    }
-                });
-            } else {
-                // An Extension :
-
-                return $.ajax({
-                    url: '{{ route('store-time-ext-manual-form-cut') }}',
-                    type: 'post',
-                    dataType: 'json',
-                    data: dataObj,
-                    success: function(res) {
-                        if (res) {
-                            timeRecordTableTbody.innerHTML = "";
-
-                            clearScanItemForm();
-                            openScanItemForm();
-                            clearSpreadingForm();
-                            firstTimeRecordCondition();
-
-                            nextProcessThreeButton.classList.remove('d-none');
-
-                            if (res.additional.length > 0) {
-                                $('#summary-card').removeClass('d-none');
-
-                                appendScannedItem(res.additional[0]);
-
-                                if (res.additional.length > 1) {
-                                    if (res.additional[1]) {
-                                        sisaGelaran = res.additional[0].sisa_gelaran;
-                                        unitSisaGelaran = res.additional[0].unit;
-                                        setSpreadingForm(res.additional[1], sisaGelaran, unitSisaGelaran);
-                                    } else {
-                                        checkStatus();
-                                    }
-                                }
-                            }
-
-                            resetTimeRecord();
-                        }
-                    },
-                    error: function(jqXHR) {
-                        let res = jqXHR.responseJSON;
-                        let message = '';
-                        let i = 0;
-
-                        for (let key in res.errors) {
-                            message = res.errors[key];
-                            document.getElementById(key).classList.add('is-invalid');
-                            modified.push(
-                                [key, '.classList', '.remove(', "'is-invalid')"],
-                            )
-
-                            if (i == 0) {
-                                document.getElementById(key).focus();
-                                i++;
-                            }
-                        };
-                    }
-                });
-            }
-        }
-
-        // -Store This Time Record Transaction-
-        function storeThisTimeRecord() {
-            let spreadingForm = new FormData(document.getElementById("spreading-form"));
-
-            let dataObj = {
-                "no_form_cut_input": $("#no_form").val(),
-                "color_act": $("#color_act").val(),
-                "detail_item": $("#detail_item").val(),
-                "no_meja": $("#no_meja").val(),
-                "metode": method,
-                "lap": lap
-            }
-
-            spreadingForm.forEach((value, key) => dataObj[key] = value);
-
-            return $.ajax({
-                url: '{{ route('store-this-time-form-cut-input') }}',
-                type: 'post',
-                dataType: 'json',
-                data: dataObj,
-                success: function(res) {
-                    if (res) {
-                        console.log(res);
-                    }
-                }
-            });
-        }
-
-        // -Finish Process-
-        function finishProcess() {
-            let now = new Date();
-            finishTime.value = now.getFullYear().toString() + "-" + pad(now.getMonth() + 1) + "-" + pad(
-                    now.getDate()) +
-                " " + pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds());
-
-            if ($("#operator").val() == "" || $("#cons_actual_gelaran").val() == "") {
-                return Swal.fire({
-                    icon: 'error',
-                    title: 'Tidak Dapat Menyelesaikan Proses',
-                    text: 'Harap pastikan data "Operator" dan "Cons. Actual 1 Gelaran" telah terisi',
-                    showConfirmButton: true,
-                    confirmButtonText: 'Oke',
+                    confirmButtonText: 'Approve',
                     confirmButtonColor: "#6531a0",
+                }).then(async (result) => {
+                    if (result.isConfirmed) {
+                        let now = new Date();
+                        startTime.value = now.getFullYear().toString() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate()) + " " + pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds());
+
+                        updateToStartProcess();
+
+                        startProcessButton.classList.add("d-none");
+                        nextProcessOneButton.classList.remove("d-none");
+                        document.getElementById("lost-time-card").classList.remove("d-none");
+                    }
                 });
             }
 
-            updateToFinishProcess();
-        }
+            // -Start Process Transaction-
+            function updateToStartProcess() {
+                return $.ajax({
+                    url: '{{ route('start-process-form-cut-input') }}/' + id,
+                    type: 'put',
+                    dataType: 'json',
+                    data: {
+                        startTime: startTime.value,
+                    },
+                    success: function(res) {
+                        if (res) {
+                            console.log(res);
+                        }
+                    }
+                });
+            }
 
-        // -Finish Process Transaction-
-        function updateToFinishProcess() {
-            Swal.fire({
-                icon: 'info',
-                title: 'Selesaikan Pengerjaan?',
-                text: 'Yakin akan menyelesaikan proses pengerjaan?',
-                showCancelButton: true,
-                showConfirmButton: true,
-                confirmButtonText: 'Selesaikan',
-                confirmButtonColor: "#6531a0",
-            }).then(async (result) => {
-                if (result.isConfirmed) {
-                    await updateToNextProcessOne();
-                    await updateToNextProcessTwo();
+            // -Process One-
+            function nextProcessOne() {
+                updateToNextProcessOne();
 
-                    $.ajax({
-                        url: '{{ route('finish-process-form-cut-input') }}/' + id,
-                        type: 'put',
+                $('#header-data-card').CardWidget('collapse');
+                $('#detail-data-card').removeClass('d-none');
+
+                nextProcessOneButton.classList.add("d-none");
+                nextProcessTwoButton.classList.remove("d-none");
+            }
+
+            // -Process One Transaction-
+            function updateToNextProcessOne() {
+                return $.ajax({
+                    url: '{{ route('next-process-one-form-cut-input') }}/' + id,
+                    type: 'put',
+                    dataType: 'json',
+                    data: {
+                        shell: $("#shell").val()
+                    },
+                    success: function(res) {
+                        if (res) {
+                            console.log(res);
+                        }
+                    }
+                });
+            }
+
+            // -Process Two-
+            function nextProcessTwo() {
+                updateToNextProcessTwo();
+            }
+
+            // -Process Two Transaction-
+            function updateToNextProcessTwo() {
+                var pActual = document.getElementById('p_act').value;
+                var pUnitActual = document.getElementById('unit_p_act').value;
+                var commaActual = document.getElementById('comma_act').value;
+                var commaUnitActual = document.getElementById('unit_comma_act').value;
+                var lActual = document.getElementById('l_act').value;
+                var lUnitActual = document.getElementById('unit_l_act').value;
+                var consActual = document.getElementById('cons_act').value;
+                var consPipping = document.getElementById('cons_pipping').value;
+                var consAmpar = document.getElementById('cons_ampar').value;
+                var estPipping = document.getElementById('est_pipping').value;
+                var estPippingUnit = document.getElementById('est_pipping_unit').value;
+                var estKain = document.getElementById('est_kain').value;
+                var estKainUnit = document.getElementById('est_kain_unit').value;
+
+                clearModified();
+
+                return $.ajax({
+                    url: '{{ route('next-process-two-form-cut-input') }}/' + id,
+                    type: 'put',
+                    dataType: 'json',
+                    data: {
+                        p_act: pActual,
+                        unit_p_act: pUnitActual,
+                        comma_act: commaActual,
+                        unit_comma_act: commaUnitActual,
+                        l_act: lActual,
+                        unit_l_act: lUnitActual,
+                        cons_act: consActual,
+                        cons_pipping: consPipping,
+                        cons_ampar: consAmpar,
+                        est_pipping: estPipping,
+                        est_pipping_unit: estPippingUnit,
+                        est_kain: estKain,
+                        est_kain_unit: estKainUnit,
+                    },
+                    success: function(res) {
+                        if (res) {
+                            if (res.status == 200) {
+                                $('#header-data-card').CardWidget('collapse');
+                                $('#detail-data-card').CardWidget('collapse');
+                                $('#scan-qr-card').removeClass('d-none');
+
+                                nextProcessTwoButton.classList.add("d-none");
+                                nextProcessThreeButton.classList.remove("d-none");
+
+                                initScan();
+                                getItemList()
+                            }
+                        }
+                    },
+                    error: function(jqXHR) {
+                        let res = jqXHR.responseJSON;
+                        let message = '';
+                        let i = 0;
+
+                        for (let key in res.errors) {
+                            message = res.errors[key];
+                            document.getElementById(key).classList.add('is-invalid');
+                            modified.push(
+                                [key, '.classList', '.remove(', "'is-invalid')"],
+                            )
+
+                            if (i == 0) {
+                                document.getElementById(key).focus();
+                                i++;
+                            }
+                        };
+                    }
+                });
+            }
+
+            // -Process Three-
+            function nextProcessThree() {
+                updateToNextProcessThree();
+            }
+
+            // -Process Three Transaction-
+            async function updateToNextProcessThree() {
+                let validation = false;
+
+                switch (method) {
+                    case "scan" :
+                        validation = checkIfNull(document.getElementById("id_item").value) && checkIfNull(document.getElementById("detail_item").value) && checkIfNull(document.getElementById("color_act").value);
+                        break;
+                    case "item" :
+                        validation = checkIfNull(document.getElementById("select_item").value);
+                        break;
+                    default :
+                        validation = checkIfNull(document.getElementById("id_item").value) && checkIfNull(document.getElementById("detail_item").value) && checkIfNull(document.getElementById("color_act").value);
+                        break;
+                }
+
+                if (validation && currentScannedItem) {
+                    nextProcessThreeButton.classList.add("d-none");
+
+                    $('#scan-qr-card').CardWidget('collapse');
+
+                    setSpreadingForm(currentScannedItem, sisaGelaran, unitSisaGelaran);
+                    getSummary();
+
+                    $('#spreading-form-card').removeClass('d-none');
+                    $('#spreading-form-card').CardWidget('expand');
+                    $('#summary-card').removeClass('d-none');
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Pastikan item yang di scan tersedia dan color actual sudah diisi',
+                        showCancelButton: false,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Oke',
+                    })
+                }
+            }
+
+            // -Back to Process Three-
+            async function backToProcessThree() {
+                storeTimeRecord();
+            }
+
+            // -Store Time Record Transaction-
+            function storeTimeRecord() {
+                clearModified();
+
+                let spreadingForm = new FormData(document.getElementById("spreading-form"));
+
+                let dataObj = {
+                    "p_act": $("#p_act").val(),
+                    "unit_p_act": $("#unit_p_act").val(),
+                    "comma_act": $("#comma_act").val(),
+                    "no_form_cut_input": $("#no_form").val(),
+                    "no_meja": $("#no_meja").val(),
+                    "color_act": $("#color_act").val(),
+                    "detail_item": $("#detail_item").val(),
+                    "metode": method,
+                }
+
+                spreadingForm.forEach((value, key) => dataObj[key] = value);
+
+                if ($("#status_sambungan").val() != "extension") {
+                    // Not an Extension :
+                    return $.ajax({
+                        url: '{{ route('store-time-manual-form-cut') }}',
+                        type: 'post',
                         dataType: 'json',
-                        data: {
-                            finishTime: finishTime.value,
-                            operator: $('#operator').val(),
-                            consAct: $('#cons_actual_gelaran').val(),
-                            unitConsAct: $('#unit_cons_actual_gelaran').val(),
-                            totalLembar: totalLembar
-                        },
+                        data: dataObj,
                         success: function(res) {
                             if (res) {
-                                lockFormCutInput();
+                                timeRecordTableTbody.innerHTML = "";
 
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Berhasil',
-                                    text: 'Proses telah berhasil diselesaikan (Laman akan ditutup)',
-                                    showCancelButton: false,
-                                    showConfirmButton: true,
-                                    confirmButtonText: 'Oke',
-                                    timer: 3000,
-                                    timerProgressBar: true
-                                }).then((result) => {
-                                    window.close();
-                                })
+                                clearScanItemForm();
+                                openScanItemForm();
+                                clearSpreadingForm();
+                                firstTimeRecordCondition();
+
+                                nextProcessThreeButton.classList.remove('d-none');
+
+                                if (res.additional.length > 0) {
+                                    $('#summary-card').removeClass('d-none');
+
+                                    appendScannedItem(res.additional[0]);
+
+                                    if (res.additional.length > 1) {
+                                        if (res.additional[1]) {
+                                            sisaGelaran = res.additional[0].sisa_gelaran;
+                                            unitSisaGelaran = res.additional[0].unit;
+                                            setSpreadingForm(res.additional[1], sisaGelaran, unitSisaGelaran);
+                                        } else {
+                                            checkStatus();
+                                        }
+                                    }
+                                }
+
+                                resetTimeRecord();
                             }
                         },
                         error: function(jqXHR) {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Gagal',
-                                text: 'Terjadi kesalahan',
-                                showCancelButton: false,
-                                showConfirmButton: true,
-                                confirmButtonText: 'Oke',
-                            });
+                            let res = jqXHR.responseJSON;
+                            let message = '';
+                            let i = 0;
+
+                            for (let key in res.errors) {
+                                message = res.errors[key];
+                                document.getElementById(key).classList.add('is-invalid');
+                                modified.push(
+                                    [key, '.classList', '.remove(', "'is-invalid')"],
+                                )
+
+                                if (i == 0) {
+                                    document.getElementById(key).focus();
+                                    i++;
+                                }
+                            };
+                        }
+                    });
+                } else {
+                    // An Extension :
+
+                    return $.ajax({
+                        url: '{{ route('store-time-ext-manual-form-cut') }}',
+                        type: 'post',
+                        dataType: 'json',
+                        data: dataObj,
+                        success: function(res) {
+                            if (res) {
+                                timeRecordTableTbody.innerHTML = "";
+
+                                clearScanItemForm();
+                                openScanItemForm();
+                                clearSpreadingForm();
+                                firstTimeRecordCondition();
+
+                                nextProcessThreeButton.classList.remove('d-none');
+
+                                if (res.additional.length > 0) {
+                                    $('#summary-card').removeClass('d-none');
+
+                                    appendScannedItem(res.additional[0]);
+
+                                    if (res.additional.length > 1) {
+                                        if (res.additional[1]) {
+                                            sisaGelaran = res.additional[0].sisa_gelaran;
+                                            unitSisaGelaran = res.additional[0].unit;
+                                            setSpreadingForm(res.additional[1], sisaGelaran, unitSisaGelaran);
+                                        } else {
+                                            checkStatus();
+                                        }
+                                    }
+                                }
+
+                                resetTimeRecord();
+                            }
+                        },
+                        error: function(jqXHR) {
+                            let res = jqXHR.responseJSON;
+                            let message = '';
+                            let i = 0;
+
+                            for (let key in res.errors) {
+                                message = res.errors[key];
+                                document.getElementById(key).classList.add('is-invalid');
+                                modified.push(
+                                    [key, '.classList', '.remove(', "'is-invalid')"],
+                                )
+
+                                if (i == 0) {
+                                    document.getElementById(key).focus();
+                                    i++;
+                                }
+                            };
                         }
                     });
                 }
-            });
-        }
-
-        // -Lock Process-
-        function lockProcessCondition() {
-            startProcessButton.disabled = true;
-            nextProcessOneButton.disabled = true;
-            nextProcessTwoButton.disabled = true;
-            nextProcessThreeButton.disabled = true;
-            finishProcessButton.disabled = true;
-        }
-
-        // -Calculate P. Actual + Comma Actual-
-        function pActualCommaActual(pActualVar, unitPActualVar, commaActualVar) {
-            let pActualFinal = 0;
-
-            if (unitPActualVar == "YARD" || unitPActualVar == "YRD") {
-                let commaMeter = commaActualVar / 36;
-
-                pActualFinal = (pActualVar + commaMeter);
-            } else if (unitPActualVar == "METER") {
-                let commaMeter = commaActualVar / 100;
-
-                pActualFinal = (pActualVar + commaMeter);
             }
 
-            return pActualFinal;
-        }
+            // -Store This Time Record Transaction-
+            function storeThisTimeRecord() {
+                let spreadingForm = new FormData(document.getElementById("spreading-form"));
 
-        // -Convert P. Actual-
-        function pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar,
-            unitQtyVar) {
-            let pActualConverted = 0;
-
-            if (unitQtyVar == unitPActualVar) {
-                if (unitPActualVar == "YARD" || unitPActualVar == "YRD") {
-                    pActualConverted = pActualVar + (commaActualVar / 36);
-                } else if (unitPActualVar == "METER") {
-                    pActualConverted = pActualVar + (commaActualVar / 100);
+                let dataObj = {
+                    "no_form_cut_input": $("#no_form").val(),
+                    "color_act": $("#color_act").val(),
+                    "detail_item": $("#detail_item").val(),
+                    "no_meja": $("#no_meja").val(),
+                    "metode": method,
+                    "lap": lap
                 }
-            } else {
-                // YARD
-                if (unitPActualVar == "YARD" || unitPActualVar == "YRD") {
-                    let pActualInch = ((pActualVar * 36 / 1) + commaActualVar)
 
-                    if (unitQtyVar == "METER") {
-                        pActualConverted = pActualInch * 0.0254;
-                    } else if (unitQtyVar == "KGM") {
-                        let gramasiInch = gramasiVar / 1550;
+                spreadingForm.forEach((value, key) => dataObj[key] = value);
 
-                        pActualConverted = ((gramasiInch * (pActualInch * lActualVar)) / 1000);
-                    } else {
-                        pActualConverted = pActualVar + (commaActualVar / 36);
+                return $.ajax({
+                    url: '{{ route('store-this-time-form-cut-input') }}',
+                    type: 'post',
+                    dataType: 'json',
+                    data: dataObj,
+                    success: function(res) {
+                        if (res) {
+                            console.log(res);
+                        }
                     }
+                });
+            }
 
-                    // METER
+            // -Finish Process-
+            function finishProcess() {
+                let now = new Date();
+                finishTime.value = now.getFullYear().toString() + "-" + pad(now.getMonth() + 1) + "-" + pad(
+                        now.getDate()) +
+                    " " + pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds());
+
+                if ($("#operator").val() == "" || $("#cons_actual_gelaran").val() == "") {
+                    return Swal.fire({
+                        icon: 'error',
+                        title: 'Tidak Dapat Menyelesaikan Proses',
+                        text: 'Harap pastikan data "Operator" dan "Cons. Actual 1 Gelaran" telah terisi',
+                        showConfirmButton: true,
+                        confirmButtonText: 'Oke',
+                        confirmButtonColor: "#6531a0",
+                    });
+                }
+
+                updateToFinishProcess();
+            }
+
+            // -Finish Process Transaction-
+            function updateToFinishProcess() {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Selesaikan Pengerjaan?',
+                    text: 'Yakin akan menyelesaikan proses pengerjaan?',
+                    showCancelButton: true,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Selesaikan',
+                    confirmButtonColor: "#6531a0",
+                }).then(async (result) => {
+                    if (result.isConfirmed) {
+                        await updateToNextProcessOne();
+                        await updateToNextProcessTwo();
+
+                        $.ajax({
+                            url: '{{ route('finish-process-form-cut-input') }}/' + id,
+                            type: 'put',
+                            dataType: 'json',
+                            data: {
+                                finishTime: finishTime.value,
+                                operator: $('#operator').val(),
+                                consAct: $('#cons_actual_gelaran').val(),
+                                unitConsAct: $('#unit_cons_actual_gelaran').val(),
+                                totalLembar: totalLembar
+                            },
+                            success: function(res) {
+                                if (res) {
+                                    lockFormCutInput();
+
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Berhasil',
+                                        text: 'Proses telah berhasil diselesaikan (Laman akan ditutup)',
+                                        showCancelButton: false,
+                                        showConfirmButton: true,
+                                        confirmButtonText: 'Oke',
+                                        timer: 3000,
+                                        timerProgressBar: true
+                                    }).then((result) => {
+                                        window.close();
+                                    })
+                                }
+                            },
+                            error: function(jqXHR) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: 'Terjadi kesalahan',
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+
+            // -Lock Process-
+            function lockProcessCondition() {
+                startProcessButton.disabled = true;
+                nextProcessOneButton.disabled = true;
+                nextProcessTwoButton.disabled = true;
+                nextProcessThreeButton.disabled = true;
+                finishProcessButton.disabled = true;
+            }
+
+            // -Calculate P. Actual + Comma Actual-
+            function pActualCommaActual(pActualVar, unitPActualVar, commaActualVar) {
+                let pActualFinal = 0;
+
+                if (unitPActualVar == "YARD" || unitPActualVar == "YRD") {
+                    let commaMeter = commaActualVar / 36;
+
+                    pActualFinal = (pActualVar + commaMeter);
                 } else if (unitPActualVar == "METER") {
-                    let pActualInch = ((pActualVar * 39.3701) + (commaActualVar / 2.54));
-                    let lActualInch = lActualVar / 2.54;
+                    let commaMeter = commaActualVar / 100;
 
-                    if (unitQtyVar == "YARD" || unitQtyVar == "YRD") {
-                        pActualConverted = pActualInch / 36;
-                    } else if (unitQtyVar == "KGM") {
-                        let gramasiInch = gramasiVar / 1550;
+                    pActualFinal = (pActualVar + commaMeter);
+                }
 
-                        pActualConverted = ((gramasiInch * (pActualInch * lActualInch)) / 1000);
-                    } else {
+                return pActualFinal;
+            }
+
+            // -Convert P. Actual-
+            function pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar,
+                unitQtyVar) {
+                let pActualConverted = 0;
+
+                if (unitQtyVar == unitPActualVar) {
+                    if (unitPActualVar == "YARD" || unitPActualVar == "YRD") {
+                        pActualConverted = pActualVar + (commaActualVar / 36);
+                    } else if (unitPActualVar == "METER") {
                         pActualConverted = pActualVar + (commaActualVar / 100);
                     }
-                }
-            }
-
-            return pActualConverted;
-        }
-
-        // -Convert Roll Qty Actual-
-        function rollQtyConversion(rollQtyVar, unitQtyVar, gramasi = 0, pActual = 0, lActual = 0, commaActual = 0) {
-            let rollQtyConverted = 0;
-            let gramasiVar = gramasi > 0 ? Number(gramasi) : Number(document.getElementById("gramasi").value);
-            let pActualVar = pActual > 0 ? Number(pActual) : Number(document.getElementById("p_act").value);
-            let lActualVar = lActual > 0 ? Number(lActual) : Number(document.getElementById("l_act").value);
-            let commaActualVar = commaActual > 0 ? Number(commaActual) : Number(document.getElementById("comma_act").value);
-
-            if (rollQtyVar && unitQtyVar) {
-                if (unitQtyVar == "YARD" || unitQtyVar == "YRD") {
+                } else {
                     // YARD
-                    rollQtyConverted = rollQtyVar / 1.094;
+                    if (unitPActualVar == "YARD" || unitPActualVar == "YRD") {
+                        let pActualInch = ((pActualVar * 36 / 1) + commaActualVar)
 
-                } else if (unitQtyVar == "KGM") {
-                    // KGM
-                    let gramasiConverted = gramasiVar / 1000;
-                    let lActualConverted = lActualVar / 100;
+                        if (unitQtyVar == "METER") {
+                            pActualConverted = pActualInch * 0.0254;
+                        } else if (unitQtyVar == "KGM") {
+                            let gramasiInch = gramasiVar / 1550;
 
-                    rollQtyConverted = rollQtyVar / (gramasiConverted * lActualConverted);
+                            pActualConverted = ((gramasiInch * (pActualInch * lActualVar)) / 1000);
+                        } else {
+                            pActualConverted = pActualVar + (commaActualVar / 36);
+                        }
 
-                } else {
-                    // METER
+                        // METER
+                    } else if (unitPActualVar == "METER") {
+                        let pActualInch = ((pActualVar * 39.3701) + (commaActualVar / 2.54));
+                        let lActualInch = lActualVar / 2.54;
 
-                    rollQtyConverted = rollQtyVar;
+                        if (unitQtyVar == "YARD" || unitQtyVar == "YRD") {
+                            pActualConverted = pActualInch / 36;
+                        } else if (unitQtyVar == "KGM") {
+                            let gramasiInch = gramasiVar / 1550;
+
+                            pActualConverted = ((gramasiInch * (pActualInch * lActualInch)) / 1000);
+                        } else {
+                            pActualConverted = pActualVar + (commaActualVar / 100);
+                        }
+                    }
                 }
 
-                return Number(rollQtyConverted).round(2);
+                return pActualConverted;
             }
 
-            return null;
-        }
+            // -Convert Roll Qty Actual-
+            function rollQtyConversion(rollQtyVar, unitQtyVar, gramasi = 0, pActual = 0, lActual = 0, commaActual = 0) {
+                let rollQtyConverted = 0;
+                let gramasiVar = gramasi > 0 ? Number(gramasi) : Number(document.getElementById("gramasi").value);
+                let pActualVar = pActual > 0 ? Number(pActual) : Number(document.getElementById("p_act").value);
+                let lActualVar = lActual > 0 ? Number(lActual) : Number(document.getElementById("l_act").value);
+                let commaActualVar = commaActual > 0 ? Number(commaActual) : Number(document.getElementById("comma_act").value);
 
-        function setRollQtyConversion(rollQty = 0, unitQty) {
-            let rollQtyVar = rollQty > 0 ? Number(rollQty) : Number(document.getElementById("current_qty_real").value);
-            let unitQtyVar = unitQty ? unitQty : document.getElementById("current_unit").value;
+                if (rollQtyVar && unitQtyVar) {
+                    if (unitQtyVar == "YARD" || unitQtyVar == "YRD") {
+                        // YARD
+                        rollQtyConverted = rollQtyVar / 1.094;
 
-            document.getElementById("current_qty").value = rollQtyConversion(rollQtyVar, unitQtyVar);
-        }
-
-        function conversion(qty, unit, unitBefore) {
-            console.log("convert", qty, unitBefore, unit);
-
-            let gramasiVar = Number(document.getElementById("gramasi").value);
-            let pActualVar = Number(document.getElementById("p_act").value);
-            let lActualVar = Number(document.getElementById("l_act").value);
-            let commaActualVar = Number(document.getElementById("comma_act").value);
-
-            let qtyConverted = 0;
-
-            if (qty && unit && unitBefore) {
-                if (unit == unitBefore) {
-                    qtyConverted = qty;
-                } else {
-                    if (unitBefore == "KGM" && unit == "METER") {
+                    } else if (unitQtyVar == "KGM") {
                         // KGM
                         let gramasiConverted = gramasiVar / 1000;
                         let lActualConverted = lActualVar / 100;
 
-                        qtyConverted = qty / (gramasiConverted * lActualConverted);
-                    } else if (unitBefore == "METER" && unit == "KGM") {
-                        let gramasiInch = gramasiVar / 1550;
-                        let qtyInch = qty * 39.3701;
-                        let lActualInch = lActualVar / 2.54;
+                        rollQtyConverted = rollQtyVar / (gramasiConverted * lActualConverted);
 
-                        qtyConverted = (gramasiInch * (qtyInch * lActualInch)) / 1000;
+                    } else {
+                        // METER
+
+                        rollQtyConverted = rollQtyVar;
                     }
+
+                    return Number(rollQtyConverted).round(2);
                 }
 
-                return Number(qtyConverted).round(2);
+                return null;
             }
 
-            return null;
-        }
+            function setRollQtyConversion(rollQty = 0, unitQty) {
+                let rollQtyVar = rollQty > 0 ? Number(rollQty) : Number(document.getElementById("current_qty_real").value);
+                let unitQtyVar = unitQty ? unitQty : document.getElementById("current_unit").value;
 
-        // -Restrict Sisa Gelaran-
-        function restrictRemainPly() {
-            let estSambungan = calculateSambungan();
-
-            if (estSambungan <= 0) {
-                // document.getElementById('current_sisa_gelaran').value = 0;
-
-                iziToast.warning({
-                    title: 'Warning',
-                    message: 'Sisa gelaran telah melebihi Panjang actual',
-                    position: 'topCenter'
-                });
-            }
-        }
-
-        // -Calculate Cons Ampar-
-        function calculateConsAmpar() {
-            let pActualVar = Number(document.getElementById("p_act").value);
-            let unitPActualVar = document.getElementById("unit_p_act").value;
-            let commaActualVar = Number(document.getElementById("comma_act").value);
-            let lActualVar = Number(document.getElementById("l_act").value);
-            let gramasiVar = Number(document.getElementById("gramasi").value);
-            let lActualMeter = lActualVar / 100;
-
-            let pActualFinal = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
-
-            consAmpar = totalRatio > 0 ? (gramasiVar * pActualFinal * lActualMeter) / 1000 : 0;
-
-            document.getElementById('cons_ampar').value = consAmpar.round(2);
-        }
-
-        // -Calculate Cons Act-
-        function calculateConsAct() {
-            let pActualVar = Number(document.getElementById("p_act").value);
-            let unitPActualVar = document.getElementById("unit_p_act").value;
-            let commaActualVar = Number(document.getElementById("comma_act").value);
-
-            let consActual = 0;
-
-            let pActualFinal = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
-
-            consActual = totalQtyCut > 0 ? pActualFinal / totalQtyCut : 0;
-
-            document.getElementById('cons_act').value = consActual.round(2);
-        }
-
-        // -Calculate Est. Piping-
-        function calculateEstPipping(consPipping = 0) {
-            let consPippingVar = consPipping;
-
-            let estPipping = consPippingVar * totalQtyCut;
-
-            document.getElementById('est_pipping').value = estPipping.round(2);
-        }
-
-        // -Calculate Est. Kain-
-        function calculateEstKain(consMarker = 0) {
-            let consMarkerVar = consMarker;
-
-            let estKain = consMarkerVar * totalQtyCut
-
-            document.getElementById('est_kain').value = estKain.round(2);
-        }
-
-        // -Calculate Est. Ampar-
-        function calculateEstAmpar() {
-            let qtyVar = Number(document.getElementById("current_qty").value);
-            let pActualVar = Number(document.getElementById("p_act").value);
-            let lActualVar = Number(document.getElementById("l_act").value);
-            let commaActualVar = Number(document.getElementById("comma_act").value);
-            let unitQtyVar = document.getElementById("current_unit").value;
-            let unitPActualVar = document.getElementById("unit_p_act").value;
-            let unitCommaActualVar = document.getElementById("unit_comma_act").value;
-            let gramasiVar = Number(document.getElementById("gramasi").value);
-
-            let pActualConverted = 0;
-
-            if (unitQtyVar != "KGM") {
-                pActualConverted = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
-            } else {
-                qtyVar = Number(document.getElementById("current_qty_real").value);
-
-                pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                document.getElementById("current_qty").value = rollQtyConversion(rollQtyVar, unitQtyVar);
             }
 
-            let estAmpar = pActualConverted > 0 ? qtyVar / pActualConverted : 0;
+            function conversion(qty, unit, unitBefore) {
+                console.log("convert", qty, unitBefore, unit);
 
-            document.getElementById("current_est_amparan").value = estAmpar.round(2);
-        }
+                let gramasiVar = Number(document.getElementById("gramasi").value);
+                let pActualVar = Number(document.getElementById("p_act").value);
+                let lActualVar = Number(document.getElementById("l_act").value);
+                let commaActualVar = Number(document.getElementById("comma_act").value);
 
-        // -Calculate Total Pemakaian Roll-
-        function calculateTotalPemakaian() {
-            let lembarGelaranVar = Number(document.getElementById("current_lembar_gelaran").value);
-            let pActualVar = Number(document.getElementById("p_act").value);
-            let kepalaKainVar = Number(document.getElementById("current_kepala_kain").value);
-            let sisaTidakBisaVar = Number(document.getElementById("current_sisa_tidak_bisa").value);
-            let rejectVar = Number(document.getElementById("current_reject").value);
-            let lActualVar = Number(document.getElementById("l_act").value);
-            let gramasiVar = Number(document.getElementById("gramasi").value);
-            let unitQtyVar = document.getElementById("current_unit").value;
-            let unitPActualVar = document.getElementById("unit_p_act").value;
-            let commaActualVar = Number(document.getElementById("comma_act").value);
+                let qtyConverted = 0;
 
-            let pActualConverted = 0;
+                if (qty && unit && unitBefore) {
+                    if (unit == unitBefore) {
+                        qtyConverted = qty;
+                    } else {
+                        if (unitBefore == "KGM" && unit == "METER") {
+                            // KGM
+                            let gramasiConverted = gramasiVar / 1000;
+                            let lActualConverted = lActualVar / 100;
 
-            if (document.getElementById("status_sambungan").value == "extension") {
-                pActualConverted = document.getElementById("current_sambungan").value;
-            } else {
+                            qtyConverted = qty / (gramasiConverted * lActualConverted);
+                        } else if (unitBefore == "METER" && unit == "KGM") {
+                            let gramasiInch = gramasiVar / 1550;
+                            let qtyInch = qty * 39.3701;
+                            let lActualInch = lActualVar / 2.54;
+
+                            qtyConverted = (gramasiInch * (qtyInch * lActualInch)) / 1000;
+                        }
+                    }
+
+                    return Number(qtyConverted).round(2);
+                }
+
+                return null;
+            }
+
+            // -Restrict Sisa Gelaran-
+            function restrictRemainPly() {
+                let estSambungan = calculateSambungan();
+
+                if (estSambungan <= 0) {
+                    // document.getElementById('current_sisa_gelaran').value = 0;
+
+                    iziToast.warning({
+                        title: 'Warning',
+                        message: 'Sisa gelaran telah melebihi Panjang actual',
+                        position: 'topCenter'
+                    });
+                }
+            }
+
+            // -Calculate Cons Ampar-
+            function calculateConsAmpar() {
+                let pActualVar = Number(document.getElementById("p_act").value);
+                let unitPActualVar = document.getElementById("unit_p_act").value;
+                let commaActualVar = Number(document.getElementById("comma_act").value);
+                let lActualVar = Number(document.getElementById("l_act").value);
+                let gramasiVar = Number(document.getElementById("gramasi").value);
+                let lActualMeter = lActualVar / 100;
+
+                let pActualFinal = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
+
+                consAmpar = totalRatio > 0 ? (gramasiVar * pActualFinal * lActualMeter) / 1000 : 0;
+
+                document.getElementById('cons_ampar').value = consAmpar.round(2);
+            }
+
+            // -Calculate Cons Act-
+            function calculateConsAct() {
+                let pActualVar = Number(document.getElementById("p_act").value);
+                let unitPActualVar = document.getElementById("unit_p_act").value;
+                let commaActualVar = Number(document.getElementById("comma_act").value);
+
+                let consActual = 0;
+
+                let pActualFinal = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
+
+                consActual = totalQtyCut > 0 ? pActualFinal / totalQtyCut : 0;
+
+                document.getElementById('cons_act').value = consActual.round(2);
+            }
+
+            // -Calculate Est. Piping-
+            function calculateEstPipping(consPipping = 0) {
+                let consPippingVar = consPipping;
+
+                let estPipping = consPippingVar * totalQtyCut;
+
+                document.getElementById('est_pipping').value = estPipping.round(2);
+            }
+
+            // -Calculate Est. Kain-
+            function calculateEstKain(consMarker = 0) {
+                let consMarkerVar = consMarker;
+
+                let estKain = consMarkerVar * totalQtyCut
+
+                document.getElementById('est_kain').value = estKain.round(2);
+            }
+
+            // -Calculate Est. Ampar-
+            function calculateEstAmpar() {
+                let qtyVar = Number(document.getElementById("current_qty").value);
+                let pActualVar = Number(document.getElementById("p_act").value);
+                let lActualVar = Number(document.getElementById("l_act").value);
+                let commaActualVar = Number(document.getElementById("comma_act").value);
+                let unitQtyVar = document.getElementById("current_unit").value;
+                let unitPActualVar = document.getElementById("unit_p_act").value;
+                let unitCommaActualVar = document.getElementById("unit_comma_act").value;
+                let gramasiVar = Number(document.getElementById("gramasi").value);
+
+                let pActualConverted = 0;
+
                 if (unitQtyVar != "KGM") {
                     pActualConverted = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
                 } else {
@@ -1816,486 +1789,517 @@
 
                     pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
                 }
+
+                let estAmpar = pActualConverted > 0 ? qtyVar / pActualConverted : 0;
+
+                document.getElementById("current_est_amparan").value = estAmpar.round(2);
             }
 
-            // let totalPemakaian = lembarGelaranVar * pActualConverted + kepalaKainVar + sisaTidakBisaVar + rejectVar;
-            let totalPemakaian = lembarGelaranVar * pActualConverted;
-
-            document.getElementById("current_total_pemakaian_roll").value = totalPemakaian.round(2);
-        }
-
-        // -Calculate Short Roll-
-        function calculateShortRoll() {
-            let lembarGelaranVar = Number(document.getElementById("current_lembar_gelaran").value);
-            let pActualVar = Number(document.getElementById("p_act").value);
-            let kepalaKainVar = Number(document.getElementById("current_kepala_kain").value);
-            let pipingVar = Number(document.getElementById("current_piping").value);
-            let sisaKainVar = Number(document.getElementById("current_sisa_kain").value);
-            let rejectVar = Number(document.getElementById("current_reject").value);
-            let sambunganVar = Number(document.getElementById("current_sambungan").value);
-            let qtyVar = Number(document.getElementById("current_qty").value);
-            let unitQtyVar = document.getElementById("current_unit").value;
-            let gramasiVar = Number(document.getElementById("gramasi").value);
-            let unitPActualVar = document.getElementById("unit_p_act").value;
-            let lActualVar = Number(document.getElementById("l_act").value);
-            let commaActualVar = Number(document.getElementById("comma_act").value);
-            let sisaGelaranVar = Number(document.getElementById("current_sisa_gelaran").value);
-            let sisaTidakBisaVar = Number(document.getElementById("current_sisa_tidak_bisa").value);
-
-            let pActualConverted = 0;
-
-            if (document.getElementById("status_sambungan").value == "extension") {
-                pActualConverted = document.getElementById("current_sambungan").value;
-            } else {
-                if (unitQtyVar != "KGM") {
-                    pActualConverted = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
-                } else {
-                    qtyVar = Number(document.getElementById("current_qty_real").value);
-
-                    pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
-                }
-            }
-
-            // let shortRoll = pActualConverted * lembarGelaranVar + kepalaKainVar + pipingVar + sisaKainVar + rejectVar + sambunganVar - qtyVar;
-            let shortRoll = qtyVar - ((pActualConverted * lembarGelaranVar) + sisaGelaranVar + sambunganVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar);
-
-            document.getElementById("current_short_roll").value = shortRoll.round(2);
-        }
-
-        // -Calculate Remark-
-        function calculateRemark() {
-            let lembarGelaranVar = Number(document.getElementById("current_lembar_gelaran").value);
-            let pActualVar = Number(document.getElementById("p_act").value);
-            let kepalaKainVar = Number(document.getElementById("current_kepala_kain").value);
-            let pipingVar = Number(document.getElementById("current_piping").value);
-            let sisaKainVar = Number(document.getElementById("current_sisa_kain").value);
-            let rejectVar = Number(document.getElementById("current_reject").value);
-            let sambunganVar = Number(document.getElementById("current_sambungan").value);
-            let qtyVar = Number(document.getElementById("current_qty").value);
-            let unitQtyVar = document.getElementById("current_unit").value;
-            let gramasiVar = Number(document.getElementById("gramasi").value);
-            let unitPActualVar = document.getElementById("unit_p_act").value;
-            let lActualVar = Number(document.getElementById("l_act").value);
-            let commaActualVar = Number(document.getElementById("comma_act").value);
-            let sisaGelaranVar = Number(document.getElementById("current_sisa_gelaran").value);
-            let sisaTidakBisaVar = Number(document.getElementById("current_sisa_tidak_bisa").value);
-
-            let pActualConverted = 0;
-
-            if (document.getElementById("status_sambungan").value == "extension") {
-                pActualConverted = document.getElementById("current_sambungan").value;
-            } else {
-                if (unitQtyVar != "KGM") {
-                    pActualConverted = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
-                } else {
-                    qtyVar = Number(document.getElementById("current_qty_real").value);
-
-                    pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
-                }
-            }
-
-            let remark = ((pActualConverted * lembarGelaranVar) + sisaGelaranVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar);
-
-            document.getElementById("current_remark").value = remark.round(2);
-        }
-
-        // -Calculate Sisa Kain-
-        function calculateSisaKain() {
-            let lembarGelaranVar = Number(document.getElementById("current_lembar_gelaran").value);
-            let kepalaKainVar = Number(document.getElementById("current_kepala_kain").value);
-            let rejectVar = Number(document.getElementById("current_reject").value);
-            let pipingVar = Number(document.getElementById("current_piping").value);
-            let sisaTidakBisaVar = Number(document.getElementById("current_sisa_tidak_bisa").value);
-
-            let pActualVar = Number(document.getElementById("p_act").value);
-            let lActualVar = Number(document.getElementById("l_act").value);
-            let unitPActualVar = document.getElementById("unit_p_act").value;
-            let commaActualVar = Number(document.getElementById("comma_act").value);
-            let gramasiVar = Number(document.getElementById("gramasi").value);
-
-            let qtyVar = Number(document.getElementById("current_qty").value);
-            let unitQtyVar = document.getElementById("current_unit").value;
-
-            let pActualConverted = 0;
-
-            if (document.getElementById("status_sambungan").value == "extension") {
-                pActualConverted = document.getElementById("current_sambungan").value;
-            } else {
-                if (unitQtyVar != "KGM") {
-                    pActualConverted = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
-                } else {
-                    qtyVar = Number(document.getElementById("current_qty_real").value);
-
-                    pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
-                }
-            }
-
-            let sisaKain = qtyVar - ((pActualConverted * lembarGelaranVar) + kepalaKainVar + sisaTidakBisaVar + rejectVar + rejectVar + pipingVar);
-
-            document.getElementById("current_sisa_kain").value = sisaKain.round(2);
-        }
-
-        // -Calculate Sambungan-
-        function calculateSambungan(sisaGelaran, unitSisaGelaran) {
-            let sisaGelaranVar = sisaGelaran > 0 ? Number(sisaGelaran) : Number(document.getElementById("current_sisa_gelaran").value);
-            let unitSisaGelaranVar = unitSisaGelaran > 0 ? Number(sisaGelaran) : Number(document.getElementById("current_sisa_gelaran").value);
-            let qtyVar = Number(document.getElementById("current_qty").value);
-            let unitQtyVar = document.getElementById("current_unit").value;
-            let pActualVar = Number(document.getElementById('p_act').value);
-            let unitPActualVar = document.getElementById('unit_p_act').value;
-            let commaActualVar = Number(document.getElementById('comma_act').value);
-            let lActualVar = Number(document.getElementById('l_act').value);
-            let gramasiVar = Number(document.getElementById('gramasi').value);
-
-            let pActualConverted = 0;
-            let sisaGelaranConverted = 0;
-
-            // Convert P Actual
-            if (unitQtyVar != "KGM") {
-                pActualConverted = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
-            } else {
-                pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
-            }
-
-            // Convert Sisa Gelaran
-            if (unitSisaGelaranVar == unitQtyVar) {
-                sisaGelaranConverted = sisaGelaran;
-            } else {
-                if (unitQtyVar == "YARD") {
-                    unitQtyVar = "METER";
-                }
-
-                sisaGelaranConverted = conversion(sisaGelaran, unitQtyVar, unitSisaGelaran);
-            }
-
-            let estSambungan = pActualConverted - sisaGelaranConverted;
-
-            return estSambungan.round(2);
-        }
-
-        // -Calculate Cons. Actual 1 Gelaran-
-        function calculateConsActualGelaran(unit = 0, piping = 0, lembar = 0, totalQtyFabric = 0,
-            totalQtyCut = 0,
-            totalPemakaian) {
-            let unitVar = unit;
-            let pipingVar = Number(piping);
-            let lembarVar = Number(lembar);
-            let totalQtyFabricVar = Number(totalQtyFabric);
-            let totalQtyCutVar = Number(totalQtyCut);
-            let totalPemakaianVar = Number(totalPemakaian);
-            let pActualVar = Number(document.getElementById('p_act').value);
-            let unitPActualVar = document.getElementById("unit_p_act").value;
-            let lActualVar = Number(document.getElementById("l_act").value);
-            let commaActualVar = Number(document.getElementById("comma_act").value);
-            let gramasiVar = Number(document.getElementById("gramasi").value);
-
-            if (checkIfNull(unitVar) && checkIfNull(pipingVar) && checkIfNull(lembarVar) && checkIfNull(
-                    pActualVar) &&
-                checkIfNull(totalQtyCutVar)) {
-                let consActualGelaran = 0;
-
-                let commaMeter = commaActualVar / 100;
+            // -Calculate Total Pemakaian Roll-
+            function calculateTotalPemakaian() {
+                let lembarGelaranVar = Number(document.getElementById("current_lembar_gelaran").value);
+                let pActualVar = Number(document.getElementById("p_act").value);
+                let kepalaKainVar = Number(document.getElementById("current_kepala_kain").value);
+                let sisaTidakBisaVar = Number(document.getElementById("current_sisa_tidak_bisa").value);
+                let rejectVar = Number(document.getElementById("current_reject").value);
+                let lActualVar = Number(document.getElementById("l_act").value);
+                let gramasiVar = Number(document.getElementById("gramasi").value);
+                let unitQtyVar = document.getElementById("current_unit").value;
+                let unitPActualVar = document.getElementById("unit_p_act").value;
+                let commaActualVar = Number(document.getElementById("comma_act").value);
 
                 let pActualConverted = 0;
 
                 if (document.getElementById("status_sambungan").value == "extension") {
                     pActualConverted = document.getElementById("current_sambungan").value;
                 } else {
-                    if (unitVar != "KGM") {
-                        pActualConverted = pActualCommaActual(pActualVar, unitPActualVar,
-                            commaActualVar);
+                    if (unitQtyVar != "KGM") {
+                        pActualConverted = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
                     } else {
-                        pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar,
-                            lActualVar,
-                            gramasiVar, unitVar);
+                        qtyVar = Number(document.getElementById("current_qty_real").value);
+
+                        pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
                     }
                 }
 
-                // consActualGelaran = totalQtyCutVar > 0 ? (lembarVar * pActualConverted) / totalQtyCutVar : 0;
-                consActualGelaran = totalPemakaianVar / lembarVar;
+                // let totalPemakaian = lembarGelaranVar * pActualConverted + kepalaKainVar + sisaTidakBisaVar + rejectVar;
+                let totalPemakaian = lembarGelaranVar * pActualConverted;
 
-                document.getElementById("cons_actual_gelaran").value = consActualGelaran.round(2);
-                document.getElementById("unit_cons_actual_gelaran").value = unitVar.toLowerCase();
-                // document.getElementById("unit_cons_ampar").value = unitVar.toUpperCase();
-
-                calculateConsAmpar();
+                document.getElementById("current_total_pemakaian_roll").value = totalPemakaian.round(2);
             }
-        }
 
-        // -Get Cons. WS Data-
-        function getNumberData() {
-            return $.ajax({
-                url: '{{ route('get-number-form-cut-input') }}',
-                type: 'get',
-                data: {
-                    act_costing_id: $("#act_costing_id").val(),
-                    color: $("#color").val(),
-                    panel: $("#panel").val(),
-                },
-                dataType: 'json',
-                success: function(res) {
-                    if (res) {
-                        let consWs = res.cons_ws;
+            // -Calculate Short Roll-
+            function calculateShortRoll() {
+                let lembarGelaranVar = Number(document.getElementById("current_lembar_gelaran").value);
+                let pActualVar = Number(document.getElementById("p_act").value);
+                let kepalaKainVar = Number(document.getElementById("current_kepala_kain").value);
+                let pipingVar = Number(document.getElementById("current_piping").value);
+                let sisaKainVar = Number(document.getElementById("current_sisa_kain").value);
+                let rejectVar = Number(document.getElementById("current_reject").value);
+                let sambunganVar = Number(document.getElementById("current_sambungan").value);
+                let qtyVar = Number(document.getElementById("current_qty").value);
+                let unitQtyVar = document.getElementById("current_unit").value;
+                let gramasiVar = Number(document.getElementById("gramasi").value);
+                let unitPActualVar = document.getElementById("unit_p_act").value;
+                let lActualVar = Number(document.getElementById("l_act").value);
+                let commaActualVar = Number(document.getElementById("comma_act").value);
+                let sisaGelaranVar = Number(document.getElementById("current_sisa_gelaran").value);
+                let sisaTidakBisaVar = Number(document.getElementById("current_sisa_tidak_bisa").value);
 
-                        document.getElementById("cons_ws").value = consWs;
+                let pActualConverted = 0;
+
+                if (document.getElementById("status_sambungan").value == "extension") {
+                    pActualConverted = document.getElementById("current_sambungan").value;
+                } else {
+                    if (unitQtyVar != "KGM") {
+                        pActualConverted = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
+                    } else {
+                        qtyVar = Number(document.getElementById("current_qty_real").value);
+
+                        pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
                     }
                 }
-            });
-        }
 
-        // -Check Form Cut Input Status-
-        async function checkStatus() {
-            $('#lost-time-card').CardWidget('collapse');
+                // let shortRoll = pActualConverted * lembarGelaranVar + kepalaKainVar + pipingVar + sisaKainVar + rejectVar + sambunganVar - qtyVar;
+                let shortRoll = qtyVar - ((pActualConverted * lembarGelaranVar) + sisaGelaranVar + sambunganVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar);
 
-            checkLostTime(id);
-
-            if (status == "PENGERJAAN FORM CUTTING") {
-                startProcessButton.classList.add("d-none");
-                nextProcessOneButton.classList.remove("d-none");
-
-                document.getElementById("lost-time-card").classList.remove("d-none");
+                document.getElementById("current_short_roll").value = shortRoll.round(2);
             }
 
-            if (status == "PENGERJAAN FORM CUTTING DETAIL") {
-                document.getElementById("lost-time-card").classList.remove("d-none");
+            // -Calculate Remark-
+            function calculateRemark() {
+                let lembarGelaranVar = Number(document.getElementById("current_lembar_gelaran").value);
+                let pActualVar = Number(document.getElementById("p_act").value);
+                let kepalaKainVar = Number(document.getElementById("current_kepala_kain").value);
+                let pipingVar = Number(document.getElementById("current_piping").value);
+                let sisaKainVar = Number(document.getElementById("current_sisa_kain").value);
+                let rejectVar = Number(document.getElementById("current_reject").value);
+                let sambunganVar = Number(document.getElementById("current_sambungan").value);
+                let qtyVar = Number(document.getElementById("current_qty").value);
+                let unitQtyVar = document.getElementById("current_unit").value;
+                let gramasiVar = Number(document.getElementById("gramasi").value);
+                let unitPActualVar = document.getElementById("unit_p_act").value;
+                let lActualVar = Number(document.getElementById("l_act").value);
+                let commaActualVar = Number(document.getElementById("comma_act").value);
+                let sisaGelaranVar = Number(document.getElementById("current_sisa_gelaran").value);
+                let sisaTidakBisaVar = Number(document.getElementById("current_sisa_tidak_bisa").value);
 
-                startProcessButton.classList.add("d-none");
-                nextProcessOneButton.classList.add("d-none");
+                let pActualConverted = 0;
 
-                $('#header-data-card').CardWidget('collapse');
-                $('#detail-data-card').removeClass('d-none');
-                nextProcessTwoButton.classList.remove("d-none");
-            }
+                if (document.getElementById("status_sambungan").value == "extension") {
+                    pActualConverted = document.getElementById("current_sambungan").value;
+                } else {
+                    if (unitQtyVar != "KGM") {
+                        pActualConverted = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
+                    } else {
+                        qtyVar = Number(document.getElementById("current_qty_real").value);
 
-            if (status == "PENGERJAAN FORM CUTTING SPREAD") {
-                document.getElementById("lost-time-card").classList.remove("d-none");
-
-                if ($("status_sambungan").val() != "extension") {
-                    document.getElementById("current_sambungan").setAttribute('readonly', true);
-                    document.getElementById("current_sisa_gelaran").removeAttribute('readonly');
+                        pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                    }
                 }
 
-                startProcessButton.classList.add("d-none");
-                nextProcessOneButton.classList.add("d-none");
-                nextProcessTwoButton.classList.add("d-none");
-                nextProcessThreeButton.classList.remove("d-none");
+                let remark = ((pActualConverted * lembarGelaranVar) + sisaGelaranVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar);
 
-                $('#header-data-card').CardWidget('collapse');
-                $('#detail-data-card').removeClass('d-none');
-                $('#detail-data-card').CardWidget('collapse');
-                $('#scan-qr-card').removeClass('d-none');
+                document.getElementById("current_remark").value = remark.round(2);
+            }
+
+            // -Calculate Sisa Kain-
+            function calculateSisaKain() {
+                let lembarGelaranVar = Number(document.getElementById("current_lembar_gelaran").value);
+                let kepalaKainVar = Number(document.getElementById("current_kepala_kain").value);
+                let rejectVar = Number(document.getElementById("current_reject").value);
+                let pipingVar = Number(document.getElementById("current_piping").value);
+                let sisaTidakBisaVar = Number(document.getElementById("current_sisa_tidak_bisa").value);
+
+                let pActualVar = Number(document.getElementById("p_act").value);
+                let lActualVar = Number(document.getElementById("l_act").value);
+                let unitPActualVar = document.getElementById("unit_p_act").value;
+                let commaActualVar = Number(document.getElementById("comma_act").value);
+                let gramasiVar = Number(document.getElementById("gramasi").value);
+
+                let qtyVar = Number(document.getElementById("current_qty").value);
+                let unitQtyVar = document.getElementById("current_unit").value;
+
+                let pActualConverted = 0;
+
+                if (document.getElementById("status_sambungan").value == "extension") {
+                    pActualConverted = document.getElementById("current_sambungan").value;
+                } else {
+                    if (unitQtyVar != "KGM") {
+                        pActualConverted = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
+                    } else {
+                        qtyVar = Number(document.getElementById("current_qty_real").value);
+
+                        pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                    }
+                }
+
+                let sisaKain = qtyVar - ((pActualConverted * lembarGelaranVar) + kepalaKainVar + sisaTidakBisaVar + rejectVar + rejectVar + pipingVar);
+
+                document.getElementById("current_sisa_kain").value = sisaKain.round(2);
+            }
+
+            // -Calculate Sambungan-
+            function calculateSambungan(sisaGelaran, unitSisaGelaran) {
+                let sisaGelaranVar = sisaGelaran > 0 ? Number(sisaGelaran) : Number(document.getElementById("current_sisa_gelaran").value);
+                let unitSisaGelaranVar = unitSisaGelaran > 0 ? Number(sisaGelaran) : Number(document.getElementById("current_sisa_gelaran").value);
+                let qtyVar = Number(document.getElementById("current_qty").value);
+                let unitQtyVar = document.getElementById("current_unit").value;
+                let pActualVar = Number(document.getElementById('p_act').value);
+                let unitPActualVar = document.getElementById('unit_p_act').value;
+                let commaActualVar = Number(document.getElementById('comma_act').value);
+                let lActualVar = Number(document.getElementById('l_act').value);
+                let gramasiVar = Number(document.getElementById('gramasi').value);
+
+                let pActualConverted = 0;
+                let sisaGelaranConverted = 0;
+
+                // Convert P Actual
+                if (unitQtyVar != "KGM") {
+                    pActualConverted = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
+                } else {
+                    pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                }
+
+                // Convert Sisa Gelaran
+                if (unitSisaGelaranVar == unitQtyVar) {
+                    sisaGelaranConverted = sisaGelaran;
+                } else {
+                    if (unitQtyVar == "YARD") {
+                        unitQtyVar = "METER";
+                    }
+
+                    sisaGelaranConverted = conversion(sisaGelaran, unitQtyVar, unitSisaGelaran);
+                }
+
+                let estSambungan = pActualConverted - sisaGelaranConverted;
+
+                return estSambungan.round(2);
+            }
+
+            // -Calculate Cons. Actual 1 Gelaran-
+            function calculateConsActualGelaran(unit = 0, piping = 0, lembar = 0, totalQtyFabric = 0,
+                totalQtyCut = 0,
+                totalPemakaian) {
+                let unitVar = unit;
+                let pipingVar = Number(piping);
+                let lembarVar = Number(lembar);
+                let totalQtyFabricVar = Number(totalQtyFabric);
+                let totalQtyCutVar = Number(totalQtyCut);
+                let totalPemakaianVar = Number(totalPemakaian);
+                let pActualVar = Number(document.getElementById('p_act').value);
+                let unitPActualVar = document.getElementById("unit_p_act").value;
+                let lActualVar = Number(document.getElementById("l_act").value);
+                let commaActualVar = Number(document.getElementById("comma_act").value);
+                let gramasiVar = Number(document.getElementById("gramasi").value);
+
+                if (checkIfNull(unitVar) && checkIfNull(pipingVar) && checkIfNull(lembarVar) && checkIfNull(
+                        pActualVar) &&
+                    checkIfNull(totalQtyCutVar)) {
+                    let consActualGelaran = 0;
+
+                    let commaMeter = commaActualVar / 100;
+
+                    let pActualConverted = 0;
+
+                    if (document.getElementById("status_sambungan").value == "extension") {
+                        pActualConverted = document.getElementById("current_sambungan").value;
+                    } else {
+                        if (unitVar != "KGM") {
+                            pActualConverted = pActualCommaActual(pActualVar, unitPActualVar,
+                                commaActualVar);
+                        } else {
+                            pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar,
+                                lActualVar,
+                                gramasiVar, unitVar);
+                        }
+                    }
+
+                    // consActualGelaran = totalQtyCutVar > 0 ? (lembarVar * pActualConverted) / totalQtyCutVar : 0;
+                    consActualGelaran = totalPemakaianVar / lembarVar;
+
+                    document.getElementById("cons_actual_gelaran").value = consActualGelaran.round(2);
+                    document.getElementById("unit_cons_actual_gelaran").value = unitVar.toLowerCase();
+                    // document.getElementById("unit_cons_ampar").value = unitVar.toUpperCase();
+
+                    calculateConsAmpar();
+                }
+            }
+
+            // -Get Cons. WS Data-
+            function getNumberData() {
+                return $.ajax({
+                    url: '{{ route('get-number-form-cut-input') }}',
+                    type: 'get',
+                    data: {
+                        act_costing_id: $("#act_costing_id").val(),
+                        color: $("#color").val(),
+                        panel: $("#panel").val(),
+                    },
+                    dataType: 'json',
+                    success: function(res) {
+                        if (res) {
+                            let consWs = res.cons_ws;
+
+                            document.getElementById("cons_ws").value = consWs;
+                        }
+                    }
+                });
+            }
+
+            // -Check Form Cut Input Status-
+            async function checkStatus() {
+                $('#lost-time-card').CardWidget('collapse');
+
+                checkLostTime(id);
+
+                if (status == "PENGERJAAN FORM CUTTING") {
+                    startProcessButton.classList.add("d-none");
+                    nextProcessOneButton.classList.remove("d-none");
+
+                    document.getElementById("lost-time-card").classList.remove("d-none");
+                }
+
+                if (status == "PENGERJAAN FORM CUTTING DETAIL") {
+                    document.getElementById("lost-time-card").classList.remove("d-none");
+
+                    startProcessButton.classList.add("d-none");
+                    nextProcessOneButton.classList.add("d-none");
+
+                    $('#header-data-card').CardWidget('collapse');
+                    $('#detail-data-card').removeClass('d-none');
+                    nextProcessTwoButton.classList.remove("d-none");
+                }
+
+                if (status == "PENGERJAAN FORM CUTTING SPREAD") {
+                    document.getElementById("lost-time-card").classList.remove("d-none");
+
+                    if ($("status_sambungan").val() != "extension") {
+                        document.getElementById("current_sambungan").setAttribute('readonly', true);
+                        document.getElementById("current_sisa_gelaran").removeAttribute('readonly');
+                    }
+
+                    startProcessButton.classList.add("d-none");
+                    nextProcessOneButton.classList.add("d-none");
+                    nextProcessTwoButton.classList.add("d-none");
+                    nextProcessThreeButton.classList.remove("d-none");
+
+                    $('#header-data-card').CardWidget('collapse');
+                    $('#detail-data-card').removeClass('d-none');
+                    $('#detail-data-card').CardWidget('collapse');
+                    $('#scan-qr-card').removeClass('d-none');
+
+                    initScan();
+                    getItemList();
+
+                    checkSpreadingForm();
+
+                    await getSummary()
+                    if (summaryData != null && summaryData.length > 0) {
+                        $('#spreading-form-card').removeClass("d-none");
+                        $('#summary-card').removeClass("d-none");
+
+                        finishProcessButton.classList.remove("d-none");
+                    }
+                }
+
+                if (status == "SELESAI PENGERJAAN") {
+                    document.getElementById("lost-time-card").classList.remove("d-none");
+
+                    startProcessButton.classList.add("d-none");
+                    nextProcessOneButton.classList.add("d-none");
+                    nextProcessTwoButton.classList.add("d-none");
+                    nextProcessThreeButton.classList.add("d-none");
+
+                    $('#header-data-card').CardWidget('collapse');
+                    $('#detail-data-card').removeClass('d-none');
+                    $('#detail-data-card').CardWidget('collapse');
+                    $('#scan-qr-card').removeClass('d-none');
+                    $('#scan-qr-card').CardWidget('collapse');
+
+                    nextProcessThreeButton.setAttribute("disabled", true);
+
+                    await getSummary();
+                    if (summaryData != null && summaryData.length > 0) {
+                        $('#spreading-form-card').CardWidget("collapse");
+                        $('#spreading-form-card').removeClass("d-none");
+                        $('#summary-card').removeClass("d-none");
+
+                        finishProcessButton.classList.remove("d-none");
+                    }
+
+                    lockFormCutInput();
+                }
+            }
+
+            // -Clear General Form Value-
+            function clearGeneralForm() {
+                if (startTime.value == "" || startTime.value == null) {
+                    startTime.value = "";
+                }
+
+                if (finishTime.value == "" || finishTime.value == null) {
+                    finishTime.value = "";
+                }
+            }
+
+            // -Lock General Form-
+            function lockGeneralForm() {
+                document.getElementById('shell').setAttribute('disabled', true);
+                document.getElementById('p_act').setAttribute('readonly', true);
+                document.getElementById('comma_act').setAttribute('readonly', true);
+                document.getElementById('l_act').setAttribute('readonly', true);
+                document.getElementById('cons_ws').setAttribute('readonly', true);
+                document.getElementById('cons_act').setAttribute('readonly', true);
+                document.getElementById('cons_pipping').setAttribute('readonly', true);
+                document.getElementById('cons_ampar').setAttribute('readonly', true);
+                document.getElementById('est_pipping').setAttribute('readonly', true);
+                document.getElementById('est_kain').setAttribute('readonly', true);
+                document.getElementById('operator').setAttribute('readonly', true);
+                document.getElementById('unit_cons_actual_gelaran').setAttribute('readonly', true);
+            }
+
+            // -Switch Method-
+            function switchMethod(element) {
+                if (element.checked) {
+                    toScanMethod();
+                } else {
+                    toItemMethod();
+                }
+            }
+
+            function toItemMethod() {
+                method = "item";
+
+                document.getElementById("scan-method").classList.add('d-none');
+                document.getElementById("to-scan").classList.add('d-none');
+
+                document.getElementById("item-method").classList.remove('d-none');
+                document.getElementById("to-item").classList.remove('d-none');
+                $("#select_item").val("").trigger("change");
+
+                clearQrCodeScanner();
+
+                removeColorSpreading();
+            }
+
+            function toScanMethod() {
+                method = "scan";
+
+                document.getElementById("item-method").classList.add('d-none');
+                document.getElementById("to-item").classList.add('d-none');
+
+                document.getElementById("scan-method").classList.remove('d-none');
+                document.getElementById("to-scan").classList.remove('d-none');
+                $("#select_item").val("").trigger("change");
 
                 initScan();
-                getItemList();
 
-                checkSpreadingForm();
+                addColorSpreading();
+            }
 
-                await getSummary()
-                if (summaryData != null && summaryData.length > 0) {
-                    $('#spreading-form-card').removeClass("d-none");
-                    $('#summary-card').removeClass("d-none");
+            function addColorSpreading() {
+                document.getElementById("current_id_item_label").classList.add("label-scan");
+                document.getElementById("current_id_item").classList.add("border-scan");
+                document.getElementById("current_lot_label").classList.add("label-scan");
+                document.getElementById("current_lot").classList.add("border-scan");
+                document.getElementById("current_roll_label").classList.add("label-scan");
+                document.getElementById("current_roll").classList.add("border-scan");
+                document.getElementById("current_qty_real_label").classList.add("label-scan");
+                document.getElementById("current_qty_real").classList.add("border-scan");
+                document.getElementById("current_unit").classList.add("border-scan");
+                document.getElementById("current_qty_label").classList.add("label-calc");
+                document.getElementById("current_qty").classList.add("border-calc");
+                document.getElementById("current_unit_convert").classList.add("border-calc");
+            }
 
-                    finishProcessButton.classList.remove("d-none");
+            function removeColorSpreading() {
+                document.getElementById("current_id_item_label").classList.remove("label-scan");
+                document.getElementById("current_id_item").classList.remove("border-scan");
+                document.getElementById("current_lot_label").classList.remove("label-scan");
+                document.getElementById("current_lot").classList.remove("border-scan");
+                document.getElementById("current_roll_label").classList.remove("label-scan");
+                document.getElementById("current_roll").classList.remove("border-scan");
+                document.getElementById("current_qty_real_label").classList.remove("label-scan");
+                document.getElementById("current_qty_real").classList.remove("border-scan");
+                document.getElementById("current_unit").classList.remove("border-scan");
+                document.getElementById("current_qty_label").classList.remove("label-calc");
+                document.getElementById("current_qty").classList.remove("border-calc");
+                document.getElementById("current_unit_convert").classList.remove("border-calc");
+            }
+
+            // Get Item List Module :
+            async function getItemList() {
+                $("#select_item").prop("disabled", true);
+
+                await $.ajax({
+                    url: '{{ route('get-item-form-cut-input') }}',
+                    type: 'get',
+                    data: {
+                        act_costing_id: $("#act_costing_id").val(),
+                    },
+                    dataType: 'json',
+                    success: function(res) {
+                        if (res) {
+                            res.forEach((item) => {
+                                let option = document.createElement("option");
+                                option.text = item.itemdesc;
+                                option.value = item.id_item;
+
+                                document.getElementById("select_item").appendChild(option);
+                            })
+                        }
+                    },
+                });
+
+                $("#select_item").prop("disabled", false);
+            }
+
+            function setSelectedItem(element) {
+                currentScannedItem = null;
+
+                if (element.value && element.value != "") {
+                    document.getElementById("kode_barang").value = "";
+                    document.getElementById("current_id_roll").value = "";
+
+                    document.getElementById("id_item").value = element.value;
+                    document.getElementById("detail_item").value = $("#select_item option:selected").text();
+
+                    currentScannedItem = {"id_item": element.value, "detail_item": $("#select_item option:selected").text(), "unit": "METER"};
                 }
             }
 
-            if (status == "SELESAI PENGERJAAN") {
-                document.getElementById("lost-time-card").classList.remove("d-none");
+            function setCustomUnit(unit) {
+                document.getElementById("current_unit").value = unit;
 
-                startProcessButton.classList.add("d-none");
-                nextProcessOneButton.classList.add("d-none");
-                nextProcessTwoButton.classList.add("d-none");
-                nextProcessThreeButton.classList.add("d-none");
+                let inputGroupUnit = document.getElementsByClassName("input-group-unit");
+                let unitSimplified = unit != "KGM" ? "M" : "KG";
 
-                $('#header-data-card').CardWidget('collapse');
-                $('#detail-data-card').removeClass('d-none');
-                $('#detail-data-card').CardWidget('collapse');
-                $('#scan-qr-card').removeClass('d-none');
-                $('#scan-qr-card').CardWidget('collapse');
+                if (unit == "KGM") {
+                    document.getElementById("current_sisa_gelaran_unit").value = unit;
+                    document.getElementById("current_sambungan_unit").value = unit;
 
-                nextProcessThreeButton.setAttribute("disabled", true);
-
-                await getSummary();
-                if (summaryData != null && summaryData.length > 0) {
-                    $('#spreading-form-card').CardWidget("collapse");
-                    $('#spreading-form-card').removeClass("d-none");
-                    $('#summary-card').removeClass("d-none");
-
-                    finishProcessButton.classList.remove("d-none");
-                }
-
-                lockFormCutInput();
-            }
-        }
-
-        // -Clear General Form Value-
-        function clearGeneralForm() {
-            if (startTime.value == "" || startTime.value == null) {
-                startTime.value = "";
-            }
-
-            if (finishTime.value == "" || finishTime.value == null) {
-                finishTime.value = "";
-            }
-        }
-
-        // -Lock General Form-
-        function lockGeneralForm() {
-            document.getElementById('shell').setAttribute('disabled', true);
-            document.getElementById('p_act').setAttribute('readonly', true);
-            document.getElementById('comma_act').setAttribute('readonly', true);
-            document.getElementById('l_act').setAttribute('readonly', true);
-            document.getElementById('cons_ws').setAttribute('readonly', true);
-            document.getElementById('cons_act').setAttribute('readonly', true);
-            document.getElementById('cons_pipping').setAttribute('readonly', true);
-            document.getElementById('cons_ampar').setAttribute('readonly', true);
-            document.getElementById('est_pipping').setAttribute('readonly', true);
-            document.getElementById('est_kain').setAttribute('readonly', true);
-            document.getElementById('operator').setAttribute('readonly', true);
-            document.getElementById('unit_cons_actual_gelaran').setAttribute('readonly', true);
-        }
-
-        // -Switch Method-
-        function switchMethod(element) {
-            if (element.checked) {
-                toScanMethod();
-            } else {
-                toItemMethod();
-            }
-        }
-
-        function toItemMethod() {
-            method = "item";
-
-            document.getElementById("scan-method").classList.add('d-none');
-            document.getElementById("to-scan").classList.add('d-none');
-
-            document.getElementById("item-method").classList.remove('d-none');
-            document.getElementById("to-item").classList.remove('d-none');
-            $("#select_item").val("").trigger("change");
-
-            clearQrCodeScanner();
-
-            removeColorSpreading();
-        }
-
-        function toScanMethod() {
-            method = "scan";
-
-            document.getElementById("item-method").classList.add('d-none');
-            document.getElementById("to-item").classList.add('d-none');
-
-            document.getElementById("scan-method").classList.remove('d-none');
-            document.getElementById("to-scan").classList.remove('d-none');
-            $("#select_item").val("").trigger("change");
-
-            initScan();
-
-            addColorSpreading();
-        }
-
-        function addColorSpreading() {
-            document.getElementById("current_id_item_label").classList.add("label-scan");
-            document.getElementById("current_id_item").classList.add("border-scan");
-            document.getElementById("current_lot_label").classList.add("label-scan");
-            document.getElementById("current_lot").classList.add("border-scan");
-            document.getElementById("current_roll_label").classList.add("label-scan");
-            document.getElementById("current_roll").classList.add("border-scan");
-            document.getElementById("current_qty_real_label").classList.add("label-scan");
-            document.getElementById("current_qty_real").classList.add("border-scan");
-            document.getElementById("current_unit").classList.add("border-scan");
-            document.getElementById("current_qty_label").classList.add("label-calc");
-            document.getElementById("current_qty").classList.add("border-calc");
-            document.getElementById("current_unit_convert").classList.add("border-calc");
-        }
-
-        function removeColorSpreading() {
-            document.getElementById("current_id_item_label").classList.remove("label-scan");
-            document.getElementById("current_id_item").classList.remove("border-scan");
-            document.getElementById("current_lot_label").classList.remove("label-scan");
-            document.getElementById("current_lot").classList.remove("border-scan");
-            document.getElementById("current_roll_label").classList.remove("label-scan");
-            document.getElementById("current_roll").classList.remove("border-scan");
-            document.getElementById("current_qty_real_label").classList.remove("label-scan");
-            document.getElementById("current_qty_real").classList.remove("border-scan");
-            document.getElementById("current_unit").classList.remove("border-scan");
-            document.getElementById("current_qty_label").classList.remove("label-calc");
-            document.getElementById("current_qty").classList.remove("border-calc");
-            document.getElementById("current_unit_convert").classList.remove("border-calc");
-        }
-
-        // Get Item List Module :
-        async function getItemList() {
-            $("#select_item").prop("disabled", true);
-
-            await $.ajax({
-                url: '{{ route('get-item-form-cut-input') }}',
-                type: 'get',
-                data: {
-                    act_costing_id: $("#act_costing_id").val(),
-                },
-                dataType: 'json',
-                success: function(res) {
-                    if (res) {
-                        res.forEach((item) => {
-                            let option = document.createElement("option");
-                            option.text = item.itemdesc;
-                            option.value = item.id_item;
-
-                            document.getElementById("select_item").appendChild(option);
-                        })
+                    for (var i = 0; i < inputGroupUnit.length; i++) {
+                        inputGroupUnit[i].innerText = unitSimplified;
                     }
-                },
-            });
+                } else {
+                    document.getElementById("current_sisa_gelaran_unit").value = "METER";
+                    document.getElementById("current_sambungan_unit").value = "METER";
 
-            $("#select_item").prop("disabled", false);
-        }
-
-        function setSelectedItem(element) {
-            currentScannedItem = null;
-
-            if (element.value && element.value != "") {
-                document.getElementById("kode_barang").value = "";
-                document.getElementById("current_id_roll").value = "";
-
-                document.getElementById("id_item").value = element.value;
-                document.getElementById("detail_item").value = $("#select_item option:selected").text();
-
-                currentScannedItem = {"id_item": element.value, "detail_item": $("#select_item option:selected").text(), "unit": "METER"};
-            }
-        }
-
-        function setCustomUnit(unit) {
-            document.getElementById("current_unit").value = unit;
-
-            let inputGroupUnit = document.getElementsByClassName("input-group-unit");
-            let unitSimplified = unit != "KGM" ? "M" : "KG";
-
-            if (unit == "KGM") {
-                document.getElementById("current_sisa_gelaran_unit").value = unit;
-                document.getElementById("current_sambungan_unit").value = unit;
-
-                for (var i = 0; i < inputGroupUnit.length; i++) {
-                    inputGroupUnit[i].innerText = unitSimplified;
+                    for (var i = 0; i < inputGroupUnit.length; i++) {
+                        inputGroupUnit[i].innerText = unitSimplified;
+                    }
                 }
-            } else {
-                document.getElementById("current_sisa_gelaran_unit").value = "METER";
-                document.getElementById("current_sambungan_unit").value = "METER";
 
-                for (var i = 0; i < inputGroupUnit.length; i++) {
-                    inputGroupUnit[i].innerText = unitSimplified;
+                if (sisaGelaran > 0) {
+                    let sambungan = calculateSambungan(sisaGelaran, unitSisaGelaran);
+
+                    document.getElementById("current_sambungan").value = sambungan;
+                    document.getElementById("current_total_pemakaian_roll").value = sambungan;
+
+                    console.log(sisaGelaran, unitSisaGelaran);
                 }
             }
-
-            if (sisaGelaran > 0) {
-                let sambungan = calculateSambungan(sisaGelaran, unitSisaGelaran);
-
-                document.getElementById("current_sambungan").value = sambungan;
-                document.getElementById("current_total_pemakaian_roll").value = sambungan;
-
-                console.log(sisaGelaran, unitSisaGelaran);
-            }
-        }
 
         // Spreading Form Module :
             // Variable :

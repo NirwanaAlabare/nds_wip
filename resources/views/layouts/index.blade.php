@@ -33,6 +33,12 @@
 
         @include('layouts.offcanvas')
 
+        <div class="loading-container-fullscreen d-none" id="loading">
+            <div class="loading-container">
+                <div class="loading"></div>
+            </div>
+        </div>
+
         <!-- Content Wrapper. Contains page content -->
         <div class="content-wrapper pt-3">
             <!-- Content Header (Page header) -->

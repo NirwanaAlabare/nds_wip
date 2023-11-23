@@ -1456,11 +1456,15 @@
 
         // Function List :
             // -On Load-
-            $(document).ready(() => {
-                checkStatus();
-                clearGeneralForm();
-                clearScanItemForm();
-                clearSpreadingForm();
+            $(document).ready(async () => {
+                document.getElementById("loading").classList.remove("d-none");
+
+                await checkStatus();
+                await clearGeneralForm();
+                await clearScanItemForm();
+                await clearSpreadingForm();
+
+                document.getElementById("loading").classList.add("d-none");
 
                 // -Kode Barang Manual Input Event-
                 $('#kode_barang').keyup(function(e) {
