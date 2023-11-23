@@ -217,20 +217,25 @@
                     d.tgl_akhir = $('#tgl-akhir').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'tgl_plan_fix',
                 },
                 {
-                    data: 'total_form'
+                    data: 'total_form',
+                    searchable: false
                 },
                 {
-                    data: 'total_belum'
+                    data: 'total_belum',
+                    searchable: false
                 },
                 {
-                    data: 'total_on_progress'
+                    data: 'total_on_progress',
+                    searchable: false
                 },
                 {
-                    data: 'total_beres'
+                    data: 'total_beres',
+                    searchable: false
                 },
                 {
                     data: 'no_cut_plan'

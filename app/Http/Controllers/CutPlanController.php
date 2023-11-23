@@ -51,6 +51,8 @@ class CutPlanController extends Controller
                 }
             }, true)->filterColumn('no_cut_plan', function ($query, $keyword) {
                 $query->whereRaw("LOWER(no_cut_plan) LIKE LOWER('%" . $keyword . "%')");
+            })->filterColumn('tgl_plan_fix', function ($query, $keyword) {
+                $query->whereRaw("LOWER(DATE_FORMAT(tgl_plan, '%d-%m-%Y')) LIKE LOWER('%" . $keyword . "%')");
             })->order(function ($query) {
                 $query->orderBy('cutting_plan.updated_at', 'desc');
             })->toJson();
