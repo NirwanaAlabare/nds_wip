@@ -14,7 +14,7 @@
     <div class="card card-sb card-outline">
         <div class="card-header">
             <h5 class="card-title fw-bold">
-                Atur Cutting Plan
+                <i class="fa fa-cog fa-sm"></i> Atur Cutting Plan
             </h5>
         </div>
         <div class="card-body">
@@ -27,14 +27,14 @@
             </form>
         </div>
     </div>
-    <div class="row mb-3">
+    <div class="row flex-column-reverse mb-3">
         <div class="col-12 mb-3">
-            <div class="card card-danger h-100">
+            <div class="card card-primary h-100">
                 <div class="card-header">
                     <div class="row align-items-center">
                         <div class="col-6">
                             <h5 class="card-title fw-bold">
-                                Pilih Form Cut :
+                                Tambah Form Cut :
                             </h5>
                         </div>
                         {{-- <div class="col-6">
@@ -49,7 +49,7 @@
                         </div>
                         <div class="col-6">
                             <button class="btn btn-success btn-sm float-end" onclick="addToCutPlan()"><i
-                                    class="fa fa-plus fa-sm"></i> Add To Cut Plan</button>
+                                    class="fa fa-plus fa-sm"></i> Tambahkan ke Cut Plan</button>
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -76,19 +76,19 @@
             </div>
         </div>
         <div class="col-12 mb-3">
-            <div class="card card-success h-100">
+            <div class="card card-primary h-100">
                 <div class="card-header">
-                    <h5 class="card-title mb-2 fw-bold" style="padding-bottom: 2px">
-                        Cut Plan Form :
+                    <h5 class="card-title fw-bold" style="padding-bottom: 2px">
+                        Cut Plan Form Cut :
                     </h5>
                 </div>
                 <div class="card-body">
                     <div class="row mb-3">
                         <div class="col-6">
-                            <p>Selected Cut Plan : <span class="fw-bold" id="selected-row-count-2">0</span></p>
+                            <p>Selected Form : <span class="fw-bold" id="selected-row-count-2">0</span></p>
                         </div>
                         <div class="col-6">
-                            <button class="btn btn-danger btn-sm float-end" onclick="removeCutPlan()"><i class="fa fa-minus fa-sm"></i> Remove Cut Plan</button>
+                            <button class="btn btn-danger btn-sm float-end" onclick="removeCutPlan()"><i class="fa fa-minus fa-sm"></i> Singkirkan dari Cut Plan</button>
                         </div>
                     </div>
                     <div class="table-responsive">

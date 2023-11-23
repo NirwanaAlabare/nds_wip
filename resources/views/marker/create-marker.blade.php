@@ -11,6 +11,7 @@
 @endsection
 
 @section('content')
+    <h5 class="fw-bold text-sb mb-3">Tambah Data Marker</h5>
     <form action="{{ route('store-marker') }}" method="post" id="store-marker" onsubmit="submitMarkerForm(this, event)">
         @csrf
         <div class="card card-sb card-outline">
@@ -23,7 +24,7 @@
                 <div class="row">
                     <div class="col-6 col-md-3">
                         <div class="mb-1">
-                            <label class="form-label"><small>Tgl Cutting</small></label>
+                            <label class="form-label"><small>Tanggal</small></label>
                             <input type="date" class="form-control" id="tgl_cutting" name="tgl_cutting" value="{{ date('Y-m-d') }}">
                         </div>
                     </div>
@@ -193,7 +194,7 @@
         <div class="card card-sb card-outline">
             <div class="card-header">
                 <h5 class="card-title fw-bold">
-                    Data Ratio :
+                    Data Ratio
                 </h5>
             </div>
             <div class="card-body table-responsive">

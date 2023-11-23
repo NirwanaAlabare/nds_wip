@@ -16,7 +16,7 @@
         <div class="card card-sb card-outline">
             <div class="card-header">
                 <h5 class="card-title fw-bold">
-                    Tambah Part
+                    Tambah Data Part
                 </h5>
             </div>
             <div class="card-body">

@@ -145,20 +145,20 @@
 
     <div class="card card-sb card-outline">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0">Data Cutting Plan</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-map fa-sm"></i> Cutting Plan</h5>
         </div>
         <div class="card-body">
             <a href="{{ route('create-cut-plan') }}" class="btn btn-success btn-sm mb-3">
                 <i class="fa fa-cog"></i>
-                Atur Cutting Plan
+                Atur
             </a>
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
-                    <label class="form-label"><small>Tgl Awal</small></label>
+                    <label class="form-label"><small>Tanggal Awal</small></label>
                     <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal">
                 </div>
                 <div class="mb-3">
-                    <label class="form-label"><small>Tgl Akhir</small></label>
+                    <label class="form-label"><small>Tanggal Akhir</small></label>
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
                         value="{{ date('Y-m-d') }}">
                 </div>

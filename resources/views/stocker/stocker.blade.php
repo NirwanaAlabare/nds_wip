@@ -14,7 +14,7 @@
 @section('content')
     <div class="card card-sb card-outline">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0">Stocker</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-ticket-alt"></i> Stocker</h5>
         </div>
         <div class="card-body">
             <div class="d-flex align-items-end gap-3 mb-3">

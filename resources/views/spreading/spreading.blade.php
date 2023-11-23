@@ -14,32 +14,36 @@
 @section('content')
     <div class="card card-sb card-outline">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0">Data Spreading</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-scroll fa-sm"></i> Spreading</h5>
         </div>
         <div class="card-body">
             <a href="{{ route('create-spreading') }}" class="btn btn-success btn-sm mb-3">
                 <i class="fas fa-plus"></i>
                 Baru
             </a>
-            <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
-                <div class="d-flex align-items-end gap-3 mb-3">
-                    <div>
-                        <label class="form-label"><small>Tgl Awal</small></label>
-                        <input type="date" class="form-control form-control-sm" onchange="dataTableReload()" id="tgl-awal" name="tgl_awal">
-                    </div>
-                    <div>
-                        <label class="form-label"><small>Tgl Akhir</small></label>
-                        <input type="date" class="form-control form-control-sm" onchange="dataTableReload()" id="tgl-akhir" name="tgl_akhir"
-                            value="{{ date('Y-m-d') }}">
-                    </div>
-                    <div>
-                        <button class="btn btn-primary btn-sm" onclick="dataTableReload()">Tampilkan</button>
+            <div class="row justify-content-between align-items-end g-3 mb-3">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-end gap-3 mb-3">
+                        <div>
+                            <label class="form-label"><small>Tanggal Awal</small></label>
+                            <input type="date" class="form-control form-control-sm" onchange="dataTableReload()" id="tgl-awal" name="tgl_awal">
+                        </div>
+                        <div>
+                            <label class="form-label"><small>Tanggal Akhir</small></label>
+                            <input type="date" class="form-control form-control-sm" onchange="dataTableReload()" id="tgl-akhir" name="tgl_akhir"
+                                value="{{ date('Y-m-d') }}">
+                        </div>
+                        <div>
+                            <button class="btn btn-primary btn-sm" onclick="dataTableReload()">Tampilkan</button>
+                        </div>
                     </div>
                 </div>
 
-                <div class="d-flex align-items-end gap-3 mb-3">
-                    <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-dark"><i class="fas fa-clipboard-list"></i> Form Cut Manual</a>
-                    <button type="button" onclick="updateNoCut()" class="btn btn-sm btn-yes"><i class="fas fa-sync-alt"></i> Update No Cut</button>
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-end align-items-end gap-3 mb-3">
+                        <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-dark"><i class="fas fa-clipboard-list"></i> Form Cut Manual</a>
+                        <button type="button" onclick="updateNoCut()" class="btn btn-sm btn-yes"><i class="fas fa-sync-alt"></i> Generate No. Cut</button>
+                    </div>
                 </div>
             </div>
             <div class="table-responsive">
@@ -88,7 +92,7 @@
                                 </div>
                                 <div class="col-6 col-md-4">
                                     <div class="mb-3">
-                                        <label class="form-label"><small>Tgl Form</small></label>
+                                        <label class="form-label"><small>Tanggal Form</small></label>
                                         <input type="text" class="form-control" id="edit_tgl_form_cut"
                                             name="edit_tgl_form_cut" value="" readonly />
                                     </div>
@@ -201,7 +205,7 @@
                                 <div class="col-12 col-md-12">
                                     <div class="mb-3">
                                         <label class="form-label"><small>No. Meja</small></label>
-                                        <select class="form-select form-select-sm select2bs4" aria-label="Default select example" id="edit_no_meja" name="edit_no_meja" disabled>
+                                        <select class="form-select form-select-sm select2bs4" aria-label="Default select example" id="edit_no_meja" name="edit_no_meja">
                                             <option value="">-</option>
                                             @foreach ($meja as $m)
                                                 <option value="{{ $m->id }}">{{ strtoupper($m->name) }}</option>
@@ -224,7 +228,7 @@
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                            {{-- <button type="submit" class="btn btn-sb">Simpan</button> --}}
+                            <button type="submit" class="btn btn-sb">Simpan</button>
                         </div>
                     </div>
                 </div>
@@ -367,7 +371,7 @@
                 {
                     targets: [11],
                     render: (data, type, row, meta) => {
-                        let btnEdit = row.status == 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"editMejaModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-search'></i></a>" : "";
+                        let btnEdit = row.status == 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"editMejaModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-edit'></i></a>" : "";
                         let btnProcess = "";
 
                         if (row.tipe_form_cut == 'MANUAL') {

@@ -11,19 +11,16 @@
 @endsection
 
 @section('content')
+    <h5 class="text-sb fw-bold mb-3">
+        Tambah Data Spreading
+    </h5>
     <form action="{{ route('store-spreading') }}" method="post" id="store-spreading" name='form' onsubmit="submitSpreadingForm(this, event)">
         @csrf
-        <div class="card card-outline">
-            <div class="card-header">
-                <h5 class="card-title fw-bold">
-                    Create Spreading
-                </h5>
-            </div>
             <div class='row'>
                 <div class="col-md-6">
                     <div class="card card-primary">
                         <div class="card-header">
-                            <h3 class="card-title">Filter Data :</h3>
+                            <h3 class="fw-bold card-title">Filter Data :</h3>
                             <div class="card-tools">
                                 <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
                             </div>
@@ -61,9 +58,9 @@
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="card card-success">
+                    <div class="card card-info">
                         <div class="card-header">
-                            <h3 class="card-title">Hasil Data</h3>
+                            <h3 class="fw-bold card-title">Hasil Data</h3>
                             <div class="card-tools">
                                 <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
                             </div>
@@ -105,7 +102,7 @@
                 <div class="col-md-6">
                     <div class="card card-primary">
                         <div class="card-header">
-                            <h3 class="card-title">Detail Data :</h3>
+                            <h3 class="fw-bold card-title">Detail Data :</h3>
                             <div class="card-tools">
                                 <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
                             </div>
@@ -224,9 +221,9 @@
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="card card-warning">
+                    <div class="card card-info">
                         <div class="card-header">
-                            <h3 class="card-title">Ratio</h3>
+                            <h3 class="fw-bold card-title">Ratio</h3>
                             <div class="card-tools">
                                 <button type="button" class="btn btn-tool" data-card-widget="collapse">
                                     <i class="fas fa-minus"></i>

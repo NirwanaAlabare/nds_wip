@@ -14,7 +14,7 @@
 @section('content')
     <div class="card card-sb card-outline">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0">Form Cutting</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-cut fa-sm"></i> Form Cutting</h5>
         </div>
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
@@ -34,7 +34,7 @@
                 </div>
 
                 <div class="d-flex align-items-end gap-3 mb-3">
-                    <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-dark mb-3"><i class="fas fa-clipboard-list"></i> Form Cut Manual</a>
+                    <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-dark"><i class="fas fa-clipboard-list"></i> Form Cut Manual</a>
                 </div>
             </div>
             <div class="table-responsive">

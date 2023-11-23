@@ -14,28 +14,33 @@
 @section('content')
     <div class="card card-sb card-outline">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0">Summary</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-tasks fa-sm"></i> Summary</h5>
         </div>
         <div class="card-body">
-            <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
-                <div class="d-flex align-items-end gap-3 mb-3">
-                    <div>
-                        <label class="form-label"><small>Tgl Awal</small></label>
-                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal">
-                    </div>
-                    <div>
-                        <label class="form-label"><small>Tgl Akhir</small></label>
-                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                            value="{{ date('Y-m-d') }}">
-                    </div>
-                    <div>
-                        <button class="btn btn-primary btn-sm" onclick="dataTableReload()">Tampilkan</button>
+            <div class="row justify-content-between align-items-end g-3 mb-3">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-end gap-3 mb-3">
+                        <div>
+                            <label class="form-label"><small>Tanggal Awal</small></label>
+                            <input type="date" class="form-control form-control-sm" onchange="dataTableReload()" id="tgl-awal" name="tgl_awal"
+                                value="{{ date('Y-m-d') }}">
+                        </div>
+                        <div>
+                            <label class="form-label"><small>Tanggal Akhir</small></label>
+                            <input type="date" class="form-control form-control-sm" onchange="dataTableReload()" id="tgl-akhir" name="tgl_akhir"
+                                value="{{ date('Y-m-d') }}">
+                        </div>
+                        <div>
+                            <button class="btn btn-primary btn-sm" onclick="dataTableReload()">Tampilkan</button>
+                        </div>
                     </div>
                 </div>
 
-                <div class="d-flex align-items-end gap-3 mb-3">
-                    <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-dark"><i class="fas fa-clipboard-list"></i> Form Cut Manual</a>
-                    <button type="button" onclick="updateNoCut()" class="btn btn-sm btn-yes"><i class="fas fa-sync-alt"></i> Update No Cut</button>
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-end align-items-end gap-3 mb-3">
+                        <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-dark"><i class="fas fa-clipboard-list"></i> Form Cut Manual</a>
+                        <button type="button" onclick="updateNoCut()" class="btn btn-sm btn-yes"><i class="fas fa-sync-alt"></i> Generate No. Cut</button>
+                    </div>
                 </div>
             </div>
             <div class="table-responsive">

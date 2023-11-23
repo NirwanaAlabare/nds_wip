@@ -64,7 +64,7 @@
                     @admin
                         <li class="nav-item dropdown">
                             <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
-                                aria-expanded="false" class="nav-link dropdown-toggle">Cut Plan</a>
+                                aria-expanded="false" class="nav-link dropdown-toggle">Cutting Plan</a>
                             <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
                                 <li>
                                     <a href="{{ route('cut-plan') }}" class="dropdown-item">
@@ -86,13 +86,13 @@
                         </li>
                     @endadmin
 
-                    @manager
+                    {{-- @manager
                         <li class="nav-item">
                             <a href="{{ route('manage-cutting') }}" class="nav-link">
                                 Generate <i class="fas fa-file-archive fa-sm"></i>
                             </a>
                         </li>
-                    @endmanager
+                    @endmanager --}}
 
                     @admin
                         <li class="nav-item">
@@ -124,8 +124,7 @@
                     </li>
 
                     <li class="nav-item dropdown">
-                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
-                            aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @stocker
                                 {{-- <li>
@@ -140,7 +139,7 @@
                                 </li>
                                 <li>
                                     <a href="{{ route('stocker') }}" class="dropdown-item">
-                                        Stocker <i class="fas fa-receipt fa-sm"></i>
+                                        Stocker <i class="fas fa-ticket-alt"></i>
                                     </a>
                                 </li>
                             @endstocker

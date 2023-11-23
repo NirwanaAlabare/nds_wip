@@ -14,7 +14,7 @@
     <div class="card card-sb card-outline">
         <div class="card-header">
             <h5 class="card-title fw-bold">
-                Atur Form Part
+                <i class="fa fa-cog fa-sm"></i> Atur Part Form Cut
             </h5>
         </div>
         <div class="card-body">
@@ -66,7 +66,7 @@
             <div class="card card-primary h-100">
                 <div class="card-header">
                     <h5 class="card-title mb-0 fw-bold" style="padding-bottom: 2px">
-                        Form Part :
+                        Part Form Cut :
                     </h5>
                 </div>
                 <div class="card-body">
@@ -103,12 +103,12 @@
             </div>
         </div>
         <div class="col-12 mb-3">
-            <div class="card card-danger h-100">
+            <div class="card card-info h-100">
                 <div class="card-header">
                     <div class="row align-items-center">
                         <div class="col-6">
                             <h5 class="card-title fw-bold">
-                                Pilih Form Cut :
+                                Form Cut :
                             </h5>
                         </div>
                     </div>

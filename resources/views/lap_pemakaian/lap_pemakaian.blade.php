@@ -15,17 +15,17 @@
     <form action="{{ route('export_excel') }}" method="get">
         <div class="card card-sb card-outline">
             <div class="card-header">
-                <h5 class="card-title fw-bold mb-0">Laporan Pemakaian</h5>
+                <h5 class="card-title fw-bold mb-0"><i class="fas fa-file-alt fa-sm"></i> Laporan Pemakaian</h5>
             </div>
             <div class="card-body">
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div class="mb-3">
-                        <label class="form-label"><small>Tgl Awal</small></label>
+                        <label class="form-label"><small>Tanggal Awal</small></label>
                         <input type="date" class="form-control form-control-sm" id="from" name="from"
                             value="{{ date('Y-m-d') }}">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label"><small>Tgl Akhir</small></label>
+                        <label class="form-label"><small>Tanggal Akhir</small></label>
                         <input type="date" class="form-control form-control-sm" id="to" name="to"
                             value="{{ date('Y-m-d') }}">
                     </div>
