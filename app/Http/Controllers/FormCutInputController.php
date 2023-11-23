@@ -860,9 +860,9 @@ group by id_cost, k.id_item
         $formCutInputData = FormCutInput::find($id);
 
         $formCutInputSimilarCount = FormCutInput::leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
-            where("marker_input.act_costing_ws", $formCutInput->marker->act_costing_ws)->
-            where("marker_input.color", $formCutInput->marker->color)->
-            where("marker_input.panel", $formCutInput->marker->panel)->
+            where("marker_input.act_costing_ws", $formCutInputData->marker->act_costing_ws)->
+            where("marker_input.color", $formCutInputData->marker->color)->
+            where("marker_input.panel", $formCutInputData->marker->panel)->
             where("form_cut_input.status", "SELESAI PENGERJAAN")->
             count();
 
