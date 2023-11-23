@@ -134,8 +134,8 @@
                                     <td>{{ $ratio->size }}</td>
                                     <td>{{ $ratio->ratio }}</td>
                                     <td>{{ $qty }}</td>
-                                    <td>1</td>
-                                    <td>{{ $qty }}</td>
+                                    <td>{{ ($dataStocker ? ($dataStocker->where("so_det_id", $ratio->so_det_id)->first() ? $dataStocker->where("so_det_id", $ratio->so_det_id)->first()->range_awal : "-") : "-") }}</td>
+                                    <td>{{ ($dataStocker ? ($dataStocker->where("so_det_id", $ratio->so_det_id)->first() ? $dataStocker->where("so_det_id", $ratio->so_det_id)->first()->range_akhir : "-") : "-") }}</td>
                                     <td>
                                         <button type="button" class="btn btn-sm btn-danger" onclick="printStocker({{ $loop->index }});">
                                             <i class="fa fa-print fa-s"></i>

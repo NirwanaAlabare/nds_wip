@@ -131,6 +131,7 @@
                 $(this).empty();
             }
         });
+
         let datatable = $("#datatable").DataTable({
             ordering: false,
             processing: true,

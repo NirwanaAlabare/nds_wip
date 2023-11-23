@@ -59,7 +59,7 @@ class StockerController extends Controller
                 groupBy("part_detail.id", "form_cut_input.id")->
                 orderBy("no_form", "desc");
 
-                return Datatables::eloquent($formCutInputs)->
+                return Datatables::of($formCutInputs)->
                     filter(function ($query) {
                         if (request()->has('dateFrom')) {
                             $query->where('form_cut_input.tgl_form_cut', '>=', request('dateFrom'));
@@ -68,24 +68,36 @@ class StockerController extends Controller
                         if (request()->has('dateTo')) {
                             $query->where('form_cut_input.tgl_form_cut', '<=', request('dateTo'));
                         }
-                    })->
-                    filterColumn('act_costing_ws', function ($query, $keyword) {
-                        $query->whereRaw("LOWER(act_costing_ws) LIKE LOWER('%" . $keyword . "%')");
+                    }, true)->filterColumn('id_marker', function ($query, $keyword) {
+                        $query->whereRaw("LOWER(form_cut_input.id_marker) LIKE LOWER('%" . $keyword . "%')");
+                    })->filterColumn('no_form', function ($query, $keyword) {
+                        $query->whereRaw("LOWER(form_cut_input.no_form) LIKE LOWER('%" . $keyword . "%')");
+                    })->filterColumn('nama_meja', function ($query, $keyword) {
+                        $query->whereRaw("LOWER(users.name) LIKE LOWER('%" . $keyword . "%')");
+                    })->filterColumn('act_costing_ws', function ($query, $keyword) {
+                        $query->whereRaw("LOWER(marker_input.act_costing_ws) LIKE LOWER('%" . $keyword . "%')");
                     })->filterColumn('buyer', function ($query, $keyword) {
-                        $query->whereRaw("LOWER(buyer) LIKE LOWER('%" . $keyword . "%')");
+                        $query->whereRaw("LOWER(marker_input.buyer) LIKE LOWER('%" . $keyword . "%')");
                     })->filterColumn('style', function ($query, $keyword) {
-                        $query->whereRaw("LOWER(style) LIKE LOWER('%" . $keyword . "%')");
+                        $query->whereRaw("LOWER(marker_input.style) LIKE LOWER('%" . $keyword . "%')");
                     })->filterColumn('color', function ($query, $keyword) {
-                        $query->whereRaw("LOWER(color) LIKE LOWER('%" . $keyword . "%')");
+                        $query->whereRaw("LOWER(marker_input.color) LIKE LOWER('%" . $keyword . "%')");
                     })->filterColumn('panel', function ($query, $keyword) {
-                        $query->whereRaw("LOWER(panel) LIKE LOWER('%" . $keyword . "%')");
+                        $query->whereRaw("LOWER(marker_input.panel) LIKE LOWER('%" . $keyword . "%')");
                     })->filterColumn('kode_part_form', function ($query, $keyword) {
                         $query->whereRaw("LOWER(part_form.kode) LIKE LOWER('%" . $keyword . "%')");
                     })->filterColumn('kode_part', function ($query, $keyword) {
                         $query->whereRaw("LOWER(part.kode) LIKE LOWER('%" . $keyword . "%')");
+                    })->filterColumn('nama_part', function ($query, $keyword) {
+                        $query->whereRaw("LOWER(master_part.nama_part) LIKE LOWER('%" . $keyword . "%')");
+                    })->filterColumn('no_cut', function ($query, $keyword) {
+                        $query->whereRaw("LOWER(form_cut_input.no_cut) LIKE LOWER('%" . $keyword . "%')");
+                    })->filterColumn('total_lembar', function ($query, $keyword) {
+                        $query->whereRaw("LOWER(form_cut_input.total_lembar) LIKE LOWER('%" . $keyword . "%')");
                     })->order(function ($query) {
                         $query->
                             orderBy('form_cut_input.updated_at', 'desc')->
+                            orderBy('form_cut_input.no_cut', 'asc')->
                             orderByRaw('FIELD(form_cut_input.tipe_form_cut, null, "NORMAL", "MANUAL")');
                     })->toJson();
         }
@@ -167,9 +179,16 @@ class StockerController extends Controller
             groupBy("form_cut_input.id")->
             first();
 
-        $dataRatio = MarkerDetail::where("marker_id", $dataSpreading->marker_id)->where("ratio", ">", "0")->orderBy("id", "asc")->get();
+        $dataRatio = MarkerDetail::where("marker_id", $dataSpreading->marker_id)->
+            where("ratio", ">", "0")->
+            orderBy("id", "asc")->
+            get();
 
-        return view("stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataRatio" => $dataRatio, "page" => "dashboard-stocker"]);
+        $dataStocker = Stocker::where("part_detail_id", $partDetailId)->
+            where("form_cut_id", $formCutId)->
+            get();
+
+        return view("stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "page" => "dashboard-stocker"]);
     }
 
     /**
@@ -270,7 +289,7 @@ class StockerController extends Controller
 
         $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-".$stockerCount;
         $rangeAwal = $checkStocker ? $checkStocker->range_awal : ($continueStocker ? $continueStocker->range_akhir + 1 : 1);
-        $rangeAkhir = $checkStocker ? $checkStocker->range_akhir : ($continueStocker ? $continueStocker->range_akhir + 1 : 1);
+        $rangeAkhir = $checkStocker ? $checkStocker->range_akhir : ($continueStocker ? $continueStocker->range_akhir + $request['qty_cut'][$index] : $request['qty_cut'][$index]);
 
         $storeItem = Stocker::updateOrCreate(
             [

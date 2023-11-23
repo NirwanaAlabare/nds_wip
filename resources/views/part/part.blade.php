@@ -164,6 +164,25 @@
             ],
         });
 
+        $('#datatable-part thead tr').clone(true).appendTo('#datatable-part thead');
+        $('#datatable-part thead tr:eq(1) th').each(function(i) {
+            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 5) {
+                var title = $(this).text();
+                $(this).html('<input type="text" class="form-control form-control-sm" />');
+
+                $('input', this).on('keyup change', function() {
+                    if (datatablePart.column(i).search() !== this.value) {
+                        datatablePart
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            } else {
+                $(this).empty();
+            }
+        });
+
         function datatablePartReload() {
             datatablePart.ajax.reload()
         }

@@ -109,7 +109,8 @@
                     data: 'no_form'
                 },
                 {
-                    data: 'tgl_form_cut'
+                    data: 'tgl_form_cut',
+                    searchable: false
                 },
                 {
                     data: 'nama_meja'
@@ -121,7 +122,7 @@
                     data: 'buyer'
                 },
                 {
-                    data: 'no_cut'
+                    data: 'no_cut',
                 },
                 {
                     data: 'style'
@@ -133,13 +134,16 @@
                     data: 'nama_part'
                 },
                 {
-                    data: 'marker_details'
+                    data: 'marker_details',
+                    searchable: false
                 },
                 {
-                    data: 'total_lembar'
+                    data: 'total_lembar',
+                    searchable: false
                 },
                 {
-                    data: null
+                    data: null,
+                    searchable: false
                 },
             ],
             columnDefs: [
@@ -156,6 +160,25 @@
                     }
                 }
             ]
+        });
+
+        $('#datatable thead tr').clone(true).appendTo('#datatable thead');
+        $('#datatable thead tr:eq(1) th').each(function(i) {
+            if (i == 1 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8 || i == 9 || i == 11) {
+                var title = $(this).text();
+                $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%"/>');
+
+                $('input', this).on('keyup change', function() {
+                    if (datatable.column(i).search() !== this.value) {
+                        datatable
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            } else {
+                $(this).empty();
+            }
         });
 
         function dataTableReload() {
