@@ -857,7 +857,7 @@ group by id_cost, k.id_item
 
     public function finishProcess($id = 0, Request $request)
     {
-        $formCutInputData = FormCutInput::find($id);
+        $formCutInputData = FormCutInput::where("id", $id);
 
         $formCutInputSimilarCount = FormCutInput::leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
             where("marker_input.act_costing_ws", $formCutInputData->marker->act_costing_ws)->
