@@ -236,7 +236,10 @@ Route::middleware('auth')->group(function () {
     // DC IN
     Route::controller(DCInController::class)->prefix("dc-in")->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('dc-in');
-        Route::get('/create', 'create')->name('create-dc-in');
+        Route::get('/create/{no_form?}', 'create')->name('create-dc-in');
+        Route::get('/getdata_stocker_info', 'getdata_stocker_info')->name('getdata_stocker_info');
+        Route::get('/getdata_dc_in', 'getdata_dc_in')->name('getdata_dc_in');
+        Route::post('/store', 'store')->name('store_dc_in');
     });
 
     // Secondary IN

@@ -8,6 +8,7 @@ use App\Models\MutKaryawan;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 use App\Exports\ExportLaporanMutasiKaryawan;
+use App\Models\DCIn;
 use Maatwebsite\Excel\Facades\Excel;
 use DB;
 
@@ -41,83 +42,68 @@ class DCInController extends Controller
                 ";
             }
 
-            $data_line = DB::select("
-            SELECT
-                line,
-                count(id) tot_orang,
-				count(absen_masuk_kerja is not null or absen_masuk_kerja != '') tot_absen,
-				count(id) - count(absen_masuk_kerja is not null or absen_masuk_kerja != '') selisih,
-                cast(right(line,2) as UNSIGNED) urutan,
-                status_aktif
-            from
+            $dc_in_index_group = DB::select("
+            select a.no_form,a.no_cut,p.*,b.list_part from part p
+            inner join part_form pf on p.id = pf.part_id
+            inner join form_cut_input a on pf.form_id = a.id
+            inner join
             (
-                select a.id, b.tgl_pindah,b.nik,b.nm_karyawan,b.line, absen_masuk_kerja,status_aktif from
-                (select max(id) id from mut_karyawan_input a
-                group by nik)a
-                inner join mut_karyawan_input b on a.id = b.id
-				left join (select enroll_id, absen_masuk_kerja, status_aktif from master_data_absen_kehadiran where tanggal_berjalan = '".$tglskrg."' and status_aktif = 'AKTIF') c on b.enroll_id = c.enroll_id
-            ) master_karyawan
-            where status_aktif = 'AKTIF' or status_aktif is null
-            group by line
-            order by cast(right(line,2) as UNSIGNED) asc
+            select part_id,group_concat(mp.nama_part ORDER BY mp.id ASC) list_part from part_detail a
+            inner join master_part mp on a.master_part_id = mp.id
+            group by part_id
+            ) b on p.id = b.part_id
+            order by act_costing_ws asc, no_cut asc
             ");
 
 
-            return DataTables::of($data_line)->toJson();
+            return DataTables::of($dc_in_index_group)->toJson();
         }
-
-        // if ($request->ajax()) {
-        //     $employeeQuery = Employee::get();
-
-        //     return DataTables::eloquent($employeeQuery)->toJson();;
-        // }
         return view('dc-in.dc-in', ['page' => 'dashboard-dc'], ['tgl_skrg' => $tgl_skrg]);
     }
 
-    public function lineChartData()
-    {
-        $data_line =  DB::connection('mysql_hris')->select("
-            SELECT
-                line,
-                count(id) tot_orang,
-                cast(right(line,2) as UNSIGNED) urutan
-            from
-            (
-                select a.id, b.tgl_pindah,b.nik,b.nm_karyawan,b.line from
-                (select max(id) id from mut_karyawan_input a
-                group by nik)a
-                inner join mut_karyawan_input b on a.id = b.id
-            ) master_karyawan
-            group by line
-            order by cast(right(line,2) as UNSIGNED) asc
-            ");
+    public function create(Request $request, $no_form = 0)
 
-        return json_encode($data_line);
+    {
+        $header_data = DB::select("
+        select a.no_form,a.no_cut,p.*,b.list_part from part p
+        inner join part_form pf on p.id = pf.part_id
+        inner join form_cut_input a on pf.form_id = a.id
+        inner join
+        (
+        select part_id,group_concat(mp.nama_part ORDER BY mp.id ASC) list_part from part_detail a
+        inner join master_part mp on a.master_part_id = mp.id
+        group by part_id
+        ) b on p.id = b.part_id
+        where a.no_form = '" . $no_form . "'
+        order by act_costing_ws asc, no_cut asc
+        ");
+
+        return view('dc-in.create-dc-in', ['page' => 'dashboard-dc', 'header' => $header_data[0]],);
     }
 
-    public function create()
-    {
-        return view('dc-in.create-dc-in', ['page' => 'dashboard-dc']);
-    }
 
-    public function getdataline(Request $request)
+    public function getdata_stocker_info(Request $request)
     {
-        $master_line = DB::connection('mysql_hris')->select(
-            "SELECT cast(right(sub_dept_name,2) as unsigned) urutan,
-            sub_dept_name nm_line
-            from department_all
-            where sub_dept_name like '" .
-                $request->txtline .
-                "%'
-            group by sub_dept_name
-            order by cast(right(sub_dept_name,2) as unsigned) asc",
+        $det_dc_in = DB::select(
+            "SELECT a.no_form,mp.nama_part,mp.id,s.* FROM `stocker_input` s
+            inner join form_cut_input a on s.form_cut_id = a.id
+            inner join part_detail p on s.part_detail_id = p.id
+            inner join master_part mp on p.master_part_id = mp.id
+            where no_form = '" . $request->no_form . "'
+            order by color asc, size asc "
         );
 
-        // '%" . $request->txtline . "%'
-        // $data_marker = DB::select("select a.* from marker_input a
-        // where a.id = '" . $request->cri_item . "'");
+        return DataTables::of($det_dc_in)->toJson();
+    }
 
-        return json_encode($master_line[0]);
+    public function getdata_dc_in(Request $request)
+    {
+        $det_dc_in = DB::select(
+            "select * from dc_in_input a
+            inner join stocker_input b on a.id_qr_stocker = b.id_qr_stocker"
+        );
+
+        return DataTables::of($det_dc_in)->toJson();
     }
 
     public function gettotal(Request $request)
@@ -128,9 +114,7 @@ class DCInController extends Controller
         (select max(id) id from mut_karyawan_input a
         group by nik)a
         inner join mut_karyawan_input b on a.id = b.id
-        where line ='" .
-                $request->nm_line .
-                "'
+        where line ='" . $request->nm_line . "'
         ",
         );
         return json_encode($total[0]);
@@ -167,64 +151,25 @@ class DCInController extends Controller
         order by updated_at desc
         ");
         return DataTables::of($det_karyawan_line)->toJson();
-
-
     }
 
     public function getdatanik(Request $request)
     {
         $master_karyawan = DB::connection('mysql_hris')->select(
             "select enroll_id,ifnull(nik,nik_new) nik, employee_name from employee_atribut
-            where enroll_id ='" .$request->txtenroll_id ."' and status_aktif = 'AKTIF'",
+            where enroll_id ='" . $request->txtenroll_id . "' and status_aktif = 'AKTIF'",
         );
         return json_encode($master_karyawan[0]);
     }
 
     public function store(Request $request)
     {
-        $tglpindah = date('Y-m-d');
         $timestamp = Carbon::now();
-        $enroll_id = $request->txtenroll_id;
-
-        $line_asal =  DB::connection('mysql_hris')->select("
-        select line,nik,enroll_id, nm_karyawan from (
-            select a.id, b.tgl_pindah,b.enroll_id,b.nik,b.nm_karyawan,b.line from
-            (select max(id) id from mut_karyawan_input a
-            group by nik)a
-            inner join mut_karyawan_input b on a.id = b.id
-            ) master_karyawan
-        where enroll_id ='$enroll_id'
-        ");
-        $line_asal_data = $line_asal ? $line_asal[0]->line : null;
-
-        if ($line_asal_data == $request->nm_line) {
-            return [
-                'icon' => 'error',
-                'msg' => 'Data Sudah Ada',
-                'timer' => false,
-                'prog' => true,
-            ];
-        } else {
-            $savemutasi = MutKaryawan::create([
-                'tgl_pindah' => $tglpindah,
-                'enroll_id' => $request['txtenroll_id'],
-                'nik' => $request['nik'],
-                'nm_karyawan' => $request['nm_karyawan'],
-                'line' => $request['nm_line'],
-                'line_asal' => $line_asal_data,
-                'created_at' => $timestamp,
-                'updated_at' => $timestamp,
-            ]);
-            // dd($savemutasi);
-            // $message .= "$tglpindah <br>";
-        }
-
-        return [
-            'icon' => 'success',
-            'msg' => 'Data Sudah Tersimpan',
-            'timer' => 1500,
-            'prog' => false,
-        ];
+        $savemutasi = DCIn::create([
+            'id_qr_stocker' => $request['txtqrstocker'],
+            'created_at' => $timestamp,
+            'updated_at' => $timestamp,
+        ]);
     }
 
     public function export_excel_mut_karyawan(Request $request)
