@@ -8,8 +8,7 @@
 @endsection
 
 @section('content')
-    <div class="modal fade" id="cutPlanDetailModal" tabindex="-1" role="dialog" aria-labelledby="cutPlanDetailModalLabel"
-        aria-hidden="true">
+    <div class="modal fade" id="cutPlanDetailModal" tabindex="-1" role="dialog" aria-labelledby="cutPlanDetailModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable" style="max-width: 75%;">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-light">
@@ -205,7 +204,6 @@
             });
         });
 
-
         let datatable = $("#datatable").DataTable({
             ordering: false,
             processing: true,
@@ -262,6 +260,25 @@
             datatable.ajax.reload();
         }
 
+        $('#datatable-form thead tr').clone(true).appendTo('#datatable-form thead');
+        $('#datatable-form thead tr:eq(1) th').each(function(i) {
+            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 9 || i == 10 || i == 11 || i == 12) {
+                var title = $(this).text();
+                $(this).html('<input type="text"  style="width:100%"/>');
+
+                $('input', this).on('keyup change', function() {
+                    if (datatableForm.column(i).search() !== this.value) {
+                        datatableForm
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            } else {
+                $(this).empty();
+            }
+        });
+
         let datatableForm = $("#datatable-form").DataTable({
             ordering: false,
             processing: true,
@@ -272,7 +289,8 @@
                     d.tgl_plan = $('#edit_tgl_plan').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'no_form'
                 },
                 {
@@ -406,7 +424,8 @@
                     d.no_cut_plan = $('#manage_no_cut_plan').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'form_info',
                     sortable: false
                 },
@@ -440,7 +459,8 @@
                     sortable: false
                 },
             ],
-            columnDefs: [{
+            columnDefs: [
+                {
                     targets: [0, 1, 2, 3, 5, 6],
                     className: 'w-auto',
                 },

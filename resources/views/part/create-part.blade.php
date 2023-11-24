@@ -218,14 +218,22 @@
                         // Success Alert
                         Swal.fire({
                             icon: 'success',
-                            title: 'Data Part berhasil disimpan',
+                            title: 'Data Part Berhasil disimpan',
                             text: res.message,
                             showCancelButton: false,
                             showConfirmButton: true,
                             confirmButtonText: 'Oke',
                             timer: 5000,
                             timerProgressBar: true
-                        });
+                        }).then(() => {
+                            if (res.redirect != '') {
+                                if (res.redirect != 'reload') {
+                                    location.href = res.redirect;
+                                } else {
+                                    location.reload();
+                                }
+                            }
+                        })
 
                         // Reset Step ( back to step one )
                         resetStep();

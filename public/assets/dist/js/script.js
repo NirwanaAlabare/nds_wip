@@ -107,14 +107,6 @@ function submitForm(e, evt) {
             if (res.status == 200) {
                 $('.modal').modal('hide');
 
-                if (res.redirect != '') {
-                    if (res.redirect != 'reload') {
-                        location.href = res.redirect;
-                    } else {
-                        location.reload();
-                    }
-                }
-
                 Swal.fire({
                     icon: 'success',
                     title: res.message,
@@ -124,6 +116,14 @@ function submitForm(e, evt) {
                     confirmButtonText: 'Oke',
                     timer: 5000,
                     timerProgressBar: true
+                }).then(() => {
+                    if (res.redirect != '') {
+                        if (res.redirect != 'reload') {
+                            location.href = res.redirect;
+                        } else {
+                            location.reload();
+                        }
+                    }
                 })
 
                 e.reset();

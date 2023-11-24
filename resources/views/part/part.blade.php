@@ -41,6 +41,7 @@
                             <th>Color</th>
                             <th>Panel</th>
                             <th>Part</th>
+                            <th>Total Form</th>
                             <th class="align-bottom">Action</th>
                         </tr>
                     </thead>
@@ -100,7 +101,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div   >
 @endsection
 
 @section('custom-script')
@@ -138,7 +139,12 @@
                     data: 'panel'
                 },
                 {
-                    data: 'part_details'
+                    data: 'part_details',
+                    searchable: false
+                },
+                {
+                    data: 'total_form',
+                    searchable: false
                 },
                 {
                     data: 'id'
@@ -146,10 +152,13 @@
             ],
             columnDefs: [
                 {
-                    targets: [7],
+                    targets: [8],
                     render: (data, type, row, meta) => {
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
+                                <buton type="button" onclick="showPartForm(`+row['id']+`)" class='btn btn-primary btn-sm'>
+                                    <i class='fa fa-search'></i>
+                                </buton>
                                 <a href='{{ route('manage-part-form') }}/`+row['id']+`' class='btn btn-success btn-sm'>
                                     <i class='fa fa-plus'></i>
                                 </a>
@@ -162,6 +171,10 @@
                 }
             ],
         });
+
+        function datatablePartReload() {
+            datatablePart.ajax.reload()
+        }
 
         $('#datatable-part thead tr').clone(true).appendTo('#datatable-part thead');
         $('#datatable-part thead tr:eq(1) th').each(function(i) {
@@ -182,8 +195,104 @@
             }
         });
 
-        function datatablePartReload() {
-            datatablePart.ajax.reload()
+        function showPartForm(parameter) {
+            dataTablePartFormReload();
         }
+
+        // let datatablePartForm = $("#datatable-part-form").DataTable({
+        //     ordering: false,
+        //     processing: true,
+        //     serverSide: true,
+        //     ajax: {
+        //         headers: {
+        //             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        //         },
+        //         url: '{{ route('show-part-form') }}',
+        //         dataType: 'json',
+        //         dataSrc: 'data',
+        //     },
+        //     columns: [
+        //         {
+        //             data: 'id_marker'
+        //         },
+        //         {
+        //             data: 'no_form'
+        //         },
+        //         {
+        //             data: 'tgl_form_cut',
+        //             searchable: false
+        //         },
+        //         {
+        //             data: 'nama_meja'
+        //         },
+        //         {
+        //             data: 'act_costing_ws'
+        //         },
+        //         {
+        //             data: 'buyer'
+        //         },
+        //         {
+        //             data: 'no_cut',
+        //         },
+        //         {
+        //             data: 'style'
+        //         },
+        //         {
+        //             data: 'color'
+        //         },
+        //         {
+        //             data: 'nama_part'
+        //         },
+        //         {
+        //             data: 'marker_details',
+        //             searchable: false
+        //         },
+        //         {
+        //             data: 'total_lembar',
+        //             searchable: false
+        //         },
+        //         {
+        //             data: null,
+        //             searchable: false
+        //         },
+        //     ],
+        //     columnDefs: [
+        //         // Nama Meja
+        //         {
+        //             targets: [3],
+        //             render: (data, type, row, meta) => data ? data.toUpperCase() : "-"
+        //         },
+        //         // Last Column
+        //         {
+        //             targets: [12],
+        //             render: (data, type, row, meta) => {
+        //                 return `<div class='d-flex gap-1 justify-content-center'> <a class='btn btn-info btn-sm' href='{{ route("show-stocker") }}/`+row.part_detail_id+`/`+row.form_cut_id+`' data-bs-toggle='tooltip'><i class='fa fa-eye'></i></a> </div>`;
+        //             }
+        //         }
+        //     ]
+        // });
+
+        // $('#datatable-part-form thead tr').clone(true).appendTo('#datatable-part-form thead');
+        // $('#datatable-part-form thead tr:eq(1) th').each(function(i) {
+        //     if (i == 1 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8 || i == 9 || i == 11) {
+        //         var title = $(this).text();
+        //         $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%"/>');
+
+        //         $('input', this).on('keyup change', function() {
+        //             if (datatablePartForm.column(i).search() !== this.value) {
+        //                 datatablePartForm
+        //                     .column(i)
+        //                     .search(this.value)
+        //                     .draw();
+        //             }
+        //         });
+        //     } else {
+        //         $(this).empty();
+        //     }
+        // });
+
+        // function dataTablePartFormReload() {
+        //     datatablePartForm.ajax.reload();
+        // }
     </script>
 @endsection

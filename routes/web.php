@@ -214,6 +214,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-form-cut/{id?}', 'getFormCut')->name('get-part-form-cut');
         Route::post('/store-part-form', 'storePartForm')->name('store-part-form');
         Route::delete('/destroy-part-form', 'destroyPartForm')->name('destroy-part-form');
+        Route::get('/show-part-form', 'showPartForm')->name('show-part-form');
 
         // get order
         Route::get('/get-order', 'getOrderInfo')->name('get-part-order');

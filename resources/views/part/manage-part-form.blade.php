@@ -21,40 +21,46 @@
             <form action="#" method="post">
                 <div class="row">
                     <input type="hidden" class="form-control form-control-sm" name="id" id="id" value="{{ $part->id }}" readonly>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="mb-3">
                             <label><small><b>Kode Part</b></small></label>
                             <input type="text" class="form-control form-control-sm" name="kode" id="kode" value="{{ $part->kode }}" readonly>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="mb-3">
                             <label><small><b>No. WS</b></small></label>
                             <input type="text" class="form-control form-control-sm" name="ws" id="ws" value="{{ $part->act_costing_ws }}" readonly>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="mb-3">
                             <label><small><b>Buyer</b></small></label>
                             <input type="text" class="form-control form-control-sm" name="buyer" id="buyer" value="{{ $part->buyer }}" readonly>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="mb-3">
                             <label><small><b>Style</b></small></label>
                             <input type="text" class="form-control form-control-sm" name="style" id="style" value="{{ $part->style }}" readonly>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="mb-3">
                             <label><small><b>Color</b></small></label>
                             <input type="text" class="form-control form-control-sm" name="color" id="color" value="{{ $part->color }}" readonly>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="mb-3">
                             <label><small><b>Panel</b></small></label>
                             <input type="text" class="form-control form-control-sm" name="panel" id="panel" value="{{ $part->panel }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label><small><b>Parts</b></small></label>
+                            <input type="text" class="form-control form-control-sm" name="part_details" id="part_details" value="{{ $part->part_details }}" readonly>
                         </div>
                     </div>
                 </div>
@@ -282,6 +288,25 @@
             document.getElementById('selected-row-count-1').innerText = $('#datatable-selected').DataTable().rows('.selected').data().length;
         });
 
+        $('#datatable-selected thead tr').clone(true).appendTo('#datatable-selected thead');
+        $('#datatable-selected thead tr:eq(1) th').each(function(i) {
+            if (i == 0 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8 || i == 10) {
+                var title = $(this).text();
+                $(this).html('<input type="text" class="form-control form-control-sm" />');
+
+                $('input', this).on('keyup change', function() {
+                    if (datatableSelected.column(i).search() !== this.value) {
+                        datatableSelected
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            } else {
+                $(this).empty();
+            }
+        });
+
         function addToPartForm() {
             let selectedForm = $('#datatable-select').DataTable().rows('.selected').data();
             let partForms = [];
@@ -449,6 +474,25 @@
         datatableSelect.on('click', 'tbody tr', function(e) {
             e.currentTarget.classList.toggle('selected');
             document.getElementById('selected-row-count-2').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
+        });
+
+        $('#datatable-select thead tr').clone(true).appendTo('#datatable-select thead');
+        $('#datatable-select thead tr:eq(1) th').each(function(i) {
+            if (i == 0 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8 || i == 10) {
+                var title = $(this).text();
+                $(this).html('<input type="text" class="form-control form-control-sm" />');
+
+                $('input', this).on('keyup change', function() {
+                    if (datatableSelect.column(i).search() !== this.value) {
+                        datatableSelect
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            } else {
+                $(this).empty();
+            }
         });
 
         function removePartForm() {
