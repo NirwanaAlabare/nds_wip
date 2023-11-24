@@ -27,8 +27,7 @@ class StockerController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $formCutInputs = PartDetail::selectRaw("
-                    part_detail.id part_detail_id,
+            $formCutInputs = FormCutInput::selectRaw("
                     form_cut_input.id form_cut_id,
                     form_cut_input.id_marker,
                     form_cut_input.no_form,
@@ -45,19 +44,18 @@ class StockerController extends Controller
                     form_cut_input.total_lembar,
                     part_form.kode kode_part_form,
                     part.kode kode_part,
-                    master_part.nama_part
+                    GROUP_CONCAT(DISTINCT master_part.nama_part) nama_part
                 ")->
+                leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
+                leftJoin("part", "part.id", "=", "part_form.part_id")->
+                leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
                 leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
-                leftJoin("part", "part.id", "=", "part_detail.part_id")->
-                leftJoin("part_form", "part_form.part_id", "=", "part.id")->
-                leftJoin("form_cut_input", "form_cut_input.id", "=", "part_form.form_id")->
                 leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
                 leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
                 leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->
                 leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
                 whereRaw("part_form.id is not null")->
-                groupBy("part_detail.id", "form_cut_input.id")->
-                orderBy("no_form", "desc");
+                groupBy("form_cut_input.id");
 
                 return Datatables::of($formCutInputs)->
                     filter(function ($query) {
@@ -96,8 +94,9 @@ class StockerController extends Controller
                         $query->whereRaw("LOWER(form_cut_input.total_lembar) LIKE LOWER('%" . $keyword . "%')");
                     })->order(function ($query) {
                         $query->
-                            orderBy('form_cut_input.updated_at', 'desc')->
+                            orderBy('marker_input.act_costing_ws', 'desc')->
                             orderBy('form_cut_input.no_cut', 'asc')->
+                            orderBy('form_cut_input.waktu_selesai', 'asc')->
                             orderByRaw('FIELD(form_cut_input.tipe_form_cut, null, "NORMAL", "MANUAL")');
                     })->toJson();
         }
@@ -134,7 +133,7 @@ class StockerController extends Controller
      */
     public function show($partDetailId = 0, $formCutId = 0)
     {
-        $dataSpreading = PartDetail::selectRaw("
+        $dataSpreading = FormCutInput::selectRaw("
                 part_detail.id part_detail_id,
                 form_cut_input.id form_cut_id,
                 form_cut_input.no_meja,
@@ -161,34 +160,67 @@ class StockerController extends Controller
                 marker_input.urutan_marker,
                 marker_input.cons_marker,
                 form_cut_input.total_lembar,
+                form_cut_input.no_cut,
                 UPPER(form_cut_input.shell) shell,
-                GROUP_CONCAT(CONCAT(master_size_new.size, ' ') ORDER BY master_size_new.urutan ASC) sizes,
-                GROUP_CONCAT(CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio * form_cut_input.total_lembar, ')') ORDER BY master_size_new.urutan ASC) marker_details,
-                master_part.nama_part part
+                GROUP_CONCAT(DISTINCT master_size_new.size ORDER BY master_size_new.urutan ASC SEPARATOR ', ') sizes,
+                GROUP_CONCAT(DISTINCT CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio * form_cut_input.total_lembar, ')') ORDER BY master_size_new.urutan ASC) marker_details,
+                GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') part
             ")->
+            leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
+            leftJoin("part", "part.id", "=", "part_form.part_id")->
+            leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
             leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
-            leftJoin("part", "part.id", "=", "part_detail.part_id")->
-            leftJoin("part_form", "part_form.part_id", "=", "part.id")->
-            leftJoin("form_cut_input", "form_cut_input.id", "=", "part_form.form_id")->
             leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
             leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
             leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->
             leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
-            where("part_detail.id", $partDetailId)->
             where("form_cut_input.id", $formCutId)->
             groupBy("form_cut_input.id")->
             first();
+
+        $dataPartDetail = PartDetail::select("part_detail.id", "master_part.nama_part")->leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+            leftJoin("part", "part.id", "part_detail.part_id")->
+            leftJoin("part_form", "part_form.part_id", "part.id")->
+            leftJoin("form_cut_input", "form_cut_input.id", "part_form.form_id")->
+            where("form_cut_input.id", $formCutId)->
+            get();
 
         $dataRatio = MarkerDetail::where("marker_id", $dataSpreading->marker_id)->
             where("ratio", ">", "0")->
             orderBy("id", "asc")->
             get();
 
-        $dataStocker = Stocker::where("part_detail_id", $partDetailId)->
-            where("form_cut_id", $formCutId)->
+        $dataStocker = MarkerDetail::selectRaw("
+                marker_input_detail.so_det_id,
+                marker_input_detail.ratio,
+                part_detail.id part_detail_id,
+                form_cut_input.no_cut,
+                stocker_input.id stocker_id,
+                stocker_input.range_awal,
+                stocker_input.range_akhir
+            ")->
+            leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->
+            leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
+            leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
+            leftJoin("part", "part.id", "=", "part_form.part_id")->
+            leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
+            leftJoin("stocker_input", function($join) {
+                $join->on("stocker_input.form_cut_id", "=", "form_cut_input.id");
+                $join->on("stocker_input.part_detail_id", "=", "part_detail.id");
+                $join->on("stocker_input.so_det_id", "=", "marker_input_detail.so_det_id");
+            })->
+            where("marker_input.act_costing_ws", $dataSpreading->ws)->
+            where("marker_input.color", $dataSpreading->color)->
+            where("marker_input.panel", $dataSpreading->panel)->
+            where("form_cut_input.no_cut", "<", $dataSpreading->no_cut)->
+            groupBy("no_cut", "marker_input_detail.so_det_id", "part_detail.id")->
             get();
 
-        return view("stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "page" => "dashboard-stocker"]);
+        // dd($dataStocker, $dataSpreading->ws, $dataSpreading->color, $dataSpreading->panel, $dataSpreading->no_cut);
+
+        // dd($dataStocker, $dataSpreading->ws, $dataSpreading->color, $dataSpreading->panel, $dataSpreading->no_cut);
+
+        return view("stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataPartDetail" => $dataPartDetail,"dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "page" => "dashboard-stocker"]);
     }
 
     /**
@@ -273,12 +305,10 @@ class StockerController extends Controller
 
     public function printStocker(Request $request, $index)
     {
-        $continueStocker = Stocker::where("so_det_id", $request['so_det_id'])->where("color", $request['color'])->where("panel", $request['panel'])->where("part_detail_id", $request['part_detail_id'])->where("form_cut_id", "!=", $request['form_cut_id'])->orderBy('id_qr_stocker', 'desc')->first();
-
         $stockerCount = Stocker::count() + 1;
 
         $checkStocker = Stocker::select("id_qr_stocker", "range_awal", "range_akhir")->whereRaw("
-                part_detail_id = '".$request['part_detail_id']."' AND
+                part_detail_id = '".$request['part_detail_id'][$index]."' AND
                 form_cut_id = '".$request['form_cut_id']."' AND
                 so_det_id = '".$request['so_det_id'][$index]."' AND
                 color = '".$request['color']."' AND
@@ -288,12 +318,12 @@ class StockerController extends Controller
             ")->first();
 
         $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-".$stockerCount;
-        $rangeAwal = $checkStocker ? $checkStocker->range_awal : ($continueStocker ? $continueStocker->range_akhir + 1 : 1);
-        $rangeAkhir = $checkStocker ? $checkStocker->range_akhir : ($continueStocker ? $continueStocker->range_akhir + $request['qty_cut'][$index] : $request['qty_cut'][$index]);
+        $rangeAwal = $checkStocker ? $checkStocker->range_awal :  $request['range_awal'][$index];
+        $rangeAkhir = $checkStocker ? $checkStocker->range_akhir : $request['range_akhir'][$index];
 
         $storeItem = Stocker::updateOrCreate(
             [
-                'part_detail_id' => $request['part_detail_id'],
+                'part_detail_id' => $request['part_detail_id'][$index],
                 'form_cut_id' => $request['form_cut_id'],
                 'so_det_id' => $request['so_det_id'][$index],
                 'color' => $request['color'],

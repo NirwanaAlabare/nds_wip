@@ -1993,9 +1993,7 @@
                 let commaActualVar = Number(document.getElementById("comma_act").value);
                 let gramasiVar = Number(document.getElementById("gramasi").value);
 
-                if (checkIfNull(unitVar) && checkIfNull(pipingVar) && checkIfNull(lembarVar) && checkIfNull(
-                        pActualVar) &&
-                    checkIfNull(totalQtyCutVar)) {
+                if (checkIfNull(unitVar) && checkIfNull(pipingVar) && checkIfNull(lembarVar) && checkIfNull(pActualVar) && checkIfNull(totalQtyCutVar)) {
                     let consActualGelaran = 0;
 
                     let commaMeter = commaActualVar / 100;
@@ -2647,17 +2645,18 @@
                         }
 
                         html5QrcodeScanner = new Html5QrcodeScanner(
-                            "reader", {
+                            "reader",
+                            {
                                 fps: 10,
                                 qrbox: {
                                     width: 250,
                                     height: 250
                                 }
-                            },
-                            /* verbose= */
-                            false);
+                            }
+                        );
 
                         html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+                        // html5QrCode.start({ facingMode: { exact: "environment"}}, config, onScanSuccess, onScanFailure);
                     }
                 }
             }

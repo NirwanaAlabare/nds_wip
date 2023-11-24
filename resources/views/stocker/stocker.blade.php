@@ -19,11 +19,11 @@
         <div class="card-body">
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
-                    <label class="form-label"><small>Tgl Awal</small></label>
+                    <label class="form-label"><small>Tanggall Awal</small></label>
                     <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="dataTableReload()" value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
-                    <label class="form-label"><small>Tgl Akhir</small></label>
+                    <label class="form-label"><small>Tanggall Akhir</small></label>
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" onchange="dataTableReload()" value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">

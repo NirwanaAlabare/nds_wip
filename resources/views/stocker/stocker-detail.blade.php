@@ -65,7 +65,6 @@
                             <div class="col-6 col-md-6">
                                 <div class="mb-1">
                                     <label class="form-label"><small>Part</small></label>
-                                    <input type="hidden" id="part_detail_id" name="part_detail_id" value="{{ $dataSpreading->part_detail_id }}">
                                     <input type="text" class="form-control form-control-sm" id="part" name="part" value="{{ $dataSpreading->part }}" readonly>
                                 </div>
                             </div>
@@ -107,49 +106,76 @@
                         </div>
                     </div>
                 </div>
-                <div class="table-responsive">
-                    <table id="datatable" class="table table-bordered table-striped table-sm text-center w-100">
-                        <thead>
-                            <tr>
-                                <th>Size</th>
-                                <th>Ratio</th>
-                                <th>Qty Cut</th>
-                                <th>Range Awal</th>
-                                <th>Range Akhir</th>
-                                <th>Print Stocker</th>
-                                <th>Print Numbering</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($dataRatio as $ratio)
-                                @php
-                                    $qty = intval($ratio->ratio) * intval($dataSpreading->total_lembar);
-                                @endphp
-                                <tr>
-                                    <input type="hidden" name="ratio[{{ $loop->index }}]" id="ratio_{{ $loop->index }}" value="{{ $ratio->ratio }}">
-                                    <input type="hidden" name="so_det_id[{{ $loop->index }}]" id="so_det_id_{{ $loop->index }}" value="{{ $ratio->so_det_id }}">
-                                    <input type="hidden" name="size[{{ $loop->index }}]" id="size_{{ $loop->index }}" value="{{ $ratio->size }}">
-                                    <input type="hidden" name="qty_cut[{{ $loop->index }}]" id="qty_cut_{{ $loop->index }}" value="{{ $qty }}">
+                <div class="mb-5">
+                    <div class="accordion" id="accordionPanelsStayOpenExample">
+                        @php
+                            $index = 0;
+                        @endphp
+                        @foreach ($dataPartDetail as $partDetail)
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-{{ $index }}" aria-expanded="false" aria-controls="panelsStayOpen-collapseTwo">
+                                        {{ $partDetail->nama_part }}
+                                    </button>
+                                </h2>
+                                <div id="panelsStayOpen-{{ $index }}" class="accordion-collapse collapse">
+                                    <div class="accordion-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered table-sm" id="table-ratio-{{ $index }}">
+                                                <thead>
+                                                    <th>Size</th>
+                                                    <th>Ratio</th>
+                                                    <th>Qty Cut</th>
+                                                    <th>Range Awal</th>
+                                                    <th>Range Akhir</th>
+                                                    <th>Print Stocker</th>
+                                                    <th>Print Numbering</th>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach ($dataRatio as $ratio)
+                                                        @php
+                                                            $qty = intval($ratio->ratio) * intval($dataSpreading->total_lembar);
+                                                            $stockerBefore = $dataStocker ? $dataStocker->where("part_detail_id", $partDetail->id)->where("so_det_id", $ratio->so_det_id)->where("ratio", ">", "0")->sortByDesc('no_cut')->first() : null;
+                                                            $rangeAwal = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + 1 : "-") : "-") : 1);
+                                                            $rangeAkhir = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + $qty : "-") : "-") : $qty);
+                                                        @endphp
+                                                        <tr>
+                                                            <input type="hidden" name="part_detail_id[{{ $index }}]" id="part_detail_id_{{ $index }}" value="{{ $partDetail->id }}">
+                                                            <input type="hidden" name="ratio[{{ $index }}]" id="ratio_{{ $index }}" value="{{ $ratio->ratio }}">
+                                                            <input type="hidden" name="so_det_id[{{ $index }}]" id="so_det_id_{{ $index }}" value="{{ $ratio->so_det_id }}">
+                                                            <input type="hidden" name="size[{{ $index }}]" id="size_{{ $index }}" value="{{ $ratio->size }}">
+                                                            <input type="hidden" name="qty_cut[{{ $index }}]" id="qty_cut_{{ $index }}" value="{{ $qty }}">
+                                                            <input type="hidden" name="range_awal[{{ $index }}]" id="range_awal_{{ $index }}" value="{{ $rangeAwal }}">
+                                                            <input type="hidden" name="range_akhir[{{ $index }}]" id="range_akhir_{{ $index }}" value="{{ $rangeAkhir }}">
 
-                                    <td>{{ $ratio->size }}</td>
-                                    <td>{{ $ratio->ratio }}</td>
-                                    <td>{{ $qty }}</td>
-                                    <td>{{ ($dataStocker ? ($dataStocker->where("so_det_id", $ratio->so_det_id)->first() ? $dataStocker->where("so_det_id", $ratio->so_det_id)->first()->range_awal : "-") : "-") }}</td>
-                                    <td>{{ ($dataStocker ? ($dataStocker->where("so_det_id", $ratio->so_det_id)->first() ? $dataStocker->where("so_det_id", $ratio->so_det_id)->first()->range_akhir : "-") : "-") }}</td>
-                                    <td>
-                                        <button type="button" class="btn btn-sm btn-danger" onclick="printStocker({{ $loop->index }});">
-                                            <i class="fa fa-print fa-s"></i>
-                                        </button>
-                                    </td>
-                                    <td>
-                                        <button type="button" class="btn btn-sm btn-danger" onclick="printNumbering({{ $loop->index }});">
-                                            <i class="fa fa-print fa-s"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                                                            <td>{{ $ratio->size}}</td>
+                                                            <td>{{ $ratio->ratio }}</td>
+                                                            <td>{{ $qty }}</td>
+                                                            <td>{{ $rangeAwal }}</td>
+                                                            <td>{{ $rangeAkhir }}</td>
+                                                            <td>
+                                                                <button type="button" class="btn btn-sm btn-danger" onclick="printStocker({{ $index }});" {{ ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? "" : "disabled") : "") : "") }}>
+                                                                    <i class="fa fa-print fa-s"></i>
+                                                                </button>
+                                                            </td>
+                                                            <td>
+                                                                <button type="button" class="btn btn-sm btn-danger" onclick="printNumbering({{ $index }});" {{ ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? "" : "disabled") : "") : "") }}>
+                                                                    <i class="fa fa-print fa-s"></i>
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                        @php
+                                                            $index++;
+                                                        @endphp
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
             </form>
         </div>

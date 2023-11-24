@@ -39,6 +39,23 @@ table tr.selected {
     color: var(--pale-color);
 }
 
+/* Vertical Table */
+table.vertical thead {
+    float: left;
+}
+
+table.vertical thead th {
+    display: block;
+}
+
+table.vertical tbody {
+    float: right;
+}
+
+table.vertical tbody td {
+    display: block;
+}
+
 .fa-solid {
     transform: translateY(0.5px) !important;
 }
@@ -325,6 +342,26 @@ table tr.selected {
     margin-top: 0.1em!important;
     margin-right: 0!important;
     border-radius: 0.3px;
+}
+
+/* Accordion Button */
+.accordion-button {
+    background-color: var(--sb-color) !important;
+    color: var(--light-color) !important;
+    font-weight: 600;
+}
+
+.accordion-button.collapsed {
+    background-color: var(--light-color) !important;
+    color: var(--sb-color) !important;
+    font-weight: 600;
+}
+
+.accordion-button:focus {
+    z-index: 3;
+    border-color: none !important;
+    outline: 0;
+    box-shadow: none !important;
 }
 
 @media only screen and (max-width: 768px) {
