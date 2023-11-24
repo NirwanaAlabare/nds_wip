@@ -61,6 +61,7 @@
                             <th>Size Ratio</th>
                             <th>Qty Ply</th>
                             <th>Ket.</th>
+                            <th>Plan</th>
                             <th>Act</th>
                         </tr>
                     </thead>
@@ -320,6 +321,9 @@
                     data: 'notes'
                 },
                 {
+                    data: 'tgl_plan'
+                },
+                {
                     data: 'id'
                 },
             ],
@@ -369,7 +373,7 @@
                     }
                 },
                 {
-                    targets: [11],
+                    targets: [12],
                     render: (data, type, row, meta) => {
                         let btnEdit = row.status == 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"editMejaModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-edit'></i></a>" : "";
                         let btnProcess = "";

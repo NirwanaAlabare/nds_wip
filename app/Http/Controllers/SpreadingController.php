@@ -74,12 +74,14 @@ class SpreadingController extends Controller
                     b.cons_marker,
                     a.tipe_form_cut,
                     COALESCE(b.notes, '-') notes,
-                    GROUP_CONCAT(DISTINCT CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC) marker_details
+                    GROUP_CONCAT(DISTINCT CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC) marker_details,
+                    cutting_plan.tgl_plan
                 FROM `form_cut_input` a
                 left join marker_input b on a.id_marker = b.kode and b.cancel = 'N'
                 left join marker_input_detail on b.id = marker_input_detail.marker_id
                 left join master_size_new on marker_input_detail.size = master_size_new.size
                 left join users on users.id = a.no_meja
+                left join cutting_plan on cutting_plan.no_form_cut_input = a.no_form
                 where
                     a.id is not null
                     " . $additionalQuery . "
