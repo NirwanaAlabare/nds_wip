@@ -57,7 +57,7 @@ class EmployeeController extends Controller
             // order by cast(right(line,2) as UNSIGNED) asc
             // ");
 
-            $data_line = DB::select("
+            $data_line = DB::connection('mysql_hris')->select("
             SELECT
                 line,
                 count(id) tot_orang,
@@ -71,7 +71,7 @@ class EmployeeController extends Controller
                 (select max(id) id from mut_karyawan_input a
                 group by nik)a
                 inner join mut_karyawan_input b on a.id = b.id
-				left join (select enroll_id, absen_masuk_kerja, status_aktif from master_data_absen_kehadiran where tanggal_berjalan = '".$tglskrg."' and status_aktif = 'AKTIF') c on b.enroll_id = c.enroll_id
+				left join (select enroll_id, absen_masuk_kerja, status_aktif from master_data_absen_kehadiran where tanggal_berjalan = '" . $tglskrg . "' and status_aktif = 'AKTIF') c on b.enroll_id = c.enroll_id
             ) master_karyawan
             where status_aktif = 'AKTIF' or status_aktif is null
             group by line
@@ -183,15 +183,13 @@ class EmployeeController extends Controller
         order by updated_at desc
         ");
         return DataTables::of($det_karyawan_line)->toJson();
-
-
     }
 
     public function getdatanik(Request $request)
     {
         $master_karyawan = DB::connection('mysql_hris')->select(
             "select enroll_id,ifnull(nik,nik_new) nik, employee_name from employee_atribut
-            where enroll_id ='" .$request->txtenroll_id ."' and status_aktif = 'AKTIF'",
+            where enroll_id ='" . $request->txtenroll_id . "' and status_aktif = 'AKTIF'",
         );
         return json_encode($master_karyawan[0]);
     }

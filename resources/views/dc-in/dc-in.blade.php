@@ -14,13 +14,9 @@
 @section('content')
     <div class="card card-sb card-outline">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0">Data DC In</h5>
+            <h5 class="card-title fw-bold mb-0">List Data DC In</h5>
         </div>
         <div class="card-body">
-            <a href="{{ route('create-dc-in') }}" class="btn btn-success btn-sm mb-3">
-                <i class="fas fa-plus"></i>
-                Baru
-            </a>
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Awal</small></label>
@@ -37,19 +33,17 @@
                 </div>
             </div>
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped table-sm w-100">
+                <table id="datatable" class="table table-bordered table-sm w-100">
                     <thead>
                         <tr>
-                            <th>No Form</th>
-                            <th>Tgl Form</th>
-                            <th>No. Meja</th>
-                            <th>Marker</th>
+                            <th>No. Form</th>
+                            <th>No. Cut</th>
                             <th>WS</th>
+                            <th>Buyer</th>
+                            <th>Style</th>
                             <th>Color</th>
-                            <th>Panel</th>
-                            <th>Size Ratio</th>
-                            <th>Total Lembar</th>
-                            <th>Act</th>
+                            <th>List Part</th>
+                            <th class="align-bottom">Act</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -60,7 +54,7 @@
     </div>
 @endsection
 
-{{-- @section('custom-script')
+@section('custom-script')
     <!-- DataTables & Plugins -->
     <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
@@ -71,13 +65,31 @@
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
         $('.select2').select2()
-        $('.select2bs4').select2({
-            theme: 'bootstrap4',
-            dropdownParent: $("#editMejaModal")
-        })
+        // $('.select2bs4').select2({
+        //     theme: 'bootstrap4',
+        //     dropdownParent: $("#editMejaModal")
+        // })
     </script>
 
     <script>
+        $('#datatable thead tr').clone(true).appendTo('#datatable thead');
+        $('#datatable thead tr:eq(1) th').each(function(i) {
+            if (i == 7) {
+                $(this).empty();
+            } else {
+                var title = $(this).text();
+                $(this).html('<input type="text"  style="width:100%"/>');
+
+                $('input', this).on('keyup change', function() {
+                    if (datatable.column(i).search() !== this.value) {
+                        datatable
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            }
+        });
         let datatable = $("#datatable").DataTable({
             ordering: false,
             processing: true,
@@ -87,7 +99,7 @@
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                url: '{{ route('stocker') }}',
+                url: '{{ route('dc-in') }}',
                 dataType: 'json',
                 dataSrc: 'data',
                 data: function(d) {
@@ -95,53 +107,43 @@
                     d.dateTo = $('#tgl-akhir').val();
                 },
             },
-            columns: [
-                {
+            columns: [{
                     data: 'no_form'
                 },
                 {
-                    data: 'tgl_form_cut'
+                    data: 'no_cut'
                 },
                 {
-                    data: 'nama_meja'
+                    data: 'act_costing_ws'
                 },
                 {
-                    data: 'id_marker'
+                    data: 'buyer'
                 },
                 {
-                    data: 'ws'
+                    data: 'style'
                 },
                 {
                     data: 'color'
                 },
                 {
-                    data: 'panel'
-                },
-                {
-                    data: 'marker_details'
-                },
-                {
-                    data: 'total_lembar'
+                    data: 'list_part'
                 },
                 {
                     data: 'id'
                 },
             ],
             columnDefs: [{
-                    targets: [2],
-                    render: (data, type, row, meta) => data ? data.toUpperCase() : "-"
-                },
-                {
-                    targets: [9],
-                    render: (data, type, row, meta) => {
-                        return `<div class='d-flex gap-1 justify-content-center'> <a class='btn btn-info btn-sm' href='{{ route("show-stocker") }}/`+data+`' data-bs-toggle='tooltip'><i class='fa fa-eye'></i></a> </div>`;
-                    }
+                targets: [7],
+                render: (data, type, row, meta) => {
+                    return `<div class='d-flex gap-1 justify-content-center'> <a class='btn btn-warning btn-sm' href='{{ route('create-dc-in') }}/` +
+                        row.no_form +
+                        `' data-bs-toggle='tooltip'><i class='fas fa-qrcode'></i></a> </div>`;
                 }
-            ]
+            }]
         });
 
         function dataTableReload() {
             datatable.ajax.reload();
         }
     </script>
-@endsection --}}
+@endsection
