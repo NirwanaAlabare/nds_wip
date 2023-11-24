@@ -43,15 +43,25 @@ class DCInController extends Controller
             }
 
             $dc_in_index_group = DB::select("
-            select a.no_form,a.no_cut,p.*,b.list_part from part p
+            select a.no_form,
+            a.no_cut,
+            p.act_costing_ws,
+            p.buyer,
+            p.style,
+            mi.color,
+            b.list_part
+            from part p
             inner join part_form pf on p.id = pf.part_id
             inner join form_cut_input a on pf.form_id = a.id
+            inner join marker_input mi on a.id_marker = mi.kode
             inner join
             (
             select part_id,group_concat(mp.nama_part ORDER BY mp.id ASC) list_part from part_detail a
             inner join master_part mp on a.master_part_id = mp.id
             group by part_id
             ) b on p.id = b.part_id
+            inner join stocker_input c on a.id = c.form_cut_id
+            group by no_form
             order by act_costing_ws asc, no_cut asc
             ");
 
