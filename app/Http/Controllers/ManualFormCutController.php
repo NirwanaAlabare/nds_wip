@@ -1110,7 +1110,7 @@ class ManualFormCutController extends Controller
 
     public function finishProcess($id = 0, Request $request)
     {
-        $formCutInputData = FormCutInput::where("id", $id);
+        $formCutInputData = FormCutInput::where("id", $id)->first();
 
         $formCutInputSimilarCount = FormCutInput::leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
             where("marker_input.act_costing_ws", $formCutInputData->marker->act_costing_ws)->
