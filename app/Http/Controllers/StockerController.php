@@ -185,9 +185,27 @@ class StockerController extends Controller
             where("form_cut_input.id", $formCutId)->
             get();
 
-        $dataRatio = MarkerDetail::where("marker_id", $dataSpreading->marker_id)->
-            where("ratio", ">", "0")->
-            orderBy("id", "asc")->
+        $dataRatio = MarkerDetail::selectRaw("
+                marker_input_detail.id marker_detail_id,
+                marker_input_detail.so_det_id,
+                marker_input_detail.size,
+                marker_input_detail.ratio,
+                stocker_input.id stocker_id
+            ")->
+            leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->
+            leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
+            leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
+            leftJoin("part", "part.id", "=", "part_form.part_id")->
+            leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
+            leftJoin("stocker_input", function($join) {
+                $join->on("stocker_input.form_cut_id", "=", "form_cut_input.id");
+                $join->on("stocker_input.part_detail_id", "=", "part_detail.id");
+                $join->on("stocker_input.so_det_id", "=", "marker_input_detail.so_det_id");
+            })->
+            where("marker_id", $dataSpreading->marker_id)->
+            where("marker_input_detail.ratio", ">", "0")->
+            orderBy("marker_input_detail.id", "asc")->
+            groupBy("marker_input_detail.id")->
             get();
 
         $dataStocker = MarkerDetail::selectRaw("
@@ -212,13 +230,9 @@ class StockerController extends Controller
             where("marker_input.act_costing_ws", $dataSpreading->ws)->
             where("marker_input.color", $dataSpreading->color)->
             where("marker_input.panel", $dataSpreading->panel)->
-            where("form_cut_input.no_cut", "<", $dataSpreading->no_cut)->
+            where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
             groupBy("no_cut", "marker_input_detail.so_det_id", "part_detail.id")->
             get();
-
-        // dd($dataStocker, $dataSpreading->ws, $dataSpreading->color, $dataSpreading->panel, $dataSpreading->no_cut);
-
-        // dd($dataStocker, $dataSpreading->ws, $dataSpreading->color, $dataSpreading->panel, $dataSpreading->no_cut);
 
         return view("stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataPartDetail" => $dataPartDetail,"dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "page" => "dashboard-stocker"]);
     }

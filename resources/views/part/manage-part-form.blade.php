@@ -71,46 +71,6 @@
         <div class="col-12 mb-3">
             <div class="card card-primary h-100">
                 <div class="card-header">
-                    <h5 class="card-title mb-0 fw-bold" style="padding-bottom: 2px">
-                        Part Form Cut :
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {{-- <div class="row mb-3">
-                        <div class="col-6">
-                            <p>Form yang dipilih : <span class="fw-bold" id="selected-row-count-1">0</span></p>
-                        </div>
-                        <div class="col-6">
-                            <button class="btn btn-danger btn-sm float-end" onclick="removePartForm()"><i class="fa fa-minus fa-sm"></i> Singkirkan Form</button>
-                        </div>
-                    </div> --}}
-                    <div class="table-responsive">
-                        <table id="datatable-selected" class="table table-bordered table-sm w-100">
-                            <thead>
-                                <tr>
-                                    <th>No. Form</th>
-                                    <th>Tgl Spreading</th>
-                                    <th>No. Meja</th>
-                                    <th>Marker</th>
-                                    <th>WS</th>
-                                    <th>Style</th>
-                                    <th>Color</th>
-                                    <th>Panel</th>
-                                    <th>No. Cut</th>
-                                    <th>Size Ratio</th>
-                                    <th>Qty Ply</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 mb-3">
-            <div class="card card-info h-100">
-                <div class="card-header">
                     <div class="row align-items-center">
                         <div class="col-6">
                             <h5 class="card-title fw-bold">
@@ -142,6 +102,46 @@
                     </div>
                     <div class="table-responsive">
                         <table id="datatable-select" class="table table-bordered table-sm w-100">
+                            <thead>
+                                <tr>
+                                    <th>No. Form</th>
+                                    <th>Tgl Spreading</th>
+                                    <th>No. Meja</th>
+                                    <th>Marker</th>
+                                    <th>WS</th>
+                                    <th>Style</th>
+                                    <th>Color</th>
+                                    <th>Panel</th>
+                                    <th>No. Cut</th>
+                                    <th>Size Ratio</th>
+                                    <th>Qty Ply</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 mb-3">
+            <div class="card card-info h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0 fw-bold" style="padding-bottom: 2px">
+                        Part Form Cut :
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {{-- <div class="row mb-3">
+                        <div class="col-6">
+                            <p>Form yang dipilih : <span class="fw-bold" id="selected-row-count-1">0</span></p>
+                        </div>
+                        <div class="col-6">
+                            <button class="btn btn-danger btn-sm float-end" onclick="removePartForm()"><i class="fa fa-minus fa-sm"></i> Singkirkan Form</button>
+                        </div>
+                    </div> --}}
+                    <div class="table-responsive">
+                        <table id="datatable-selected" class="table table-bordered table-sm w-100">
                             <thead>
                                 <tr>
                                     <th>No. Form</th>

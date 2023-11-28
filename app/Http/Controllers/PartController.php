@@ -177,8 +177,8 @@ class PartController extends Controller
      */
     public function store(Request $request)
     {
-        $partCount = Part::count();
-        $partNumber = intval($partCount) + 1;
+        $part = Part::select("kode")->orderBy("kode", "desc")->first();
+        $partNumber = intval(substr($part->kode, -5)) + 1;
         $partCode = 'PRT' . sprintf('%05s', $partNumber);
         $totalPartDetail = intval($request["jumlah_part_detail"]);
 
@@ -507,8 +507,9 @@ class PartController extends Controller
         }
     }
 
-    public function showPartForm(Request $request, $id = 0) {
+    public function showPartForm(Request $request) {
         $formCutInputs = FormCutInput::selectRaw("
+                part_detail.id part_detail_id,
                 form_cut_input.id form_cut_id,
                 form_cut_input.id_marker,
                 form_cut_input.no_form,
@@ -536,19 +537,10 @@ class PartController extends Controller
             leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->
             leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
             whereRaw("part_form.id is not null")->
-            where("part.id", $id)->
+            where("part.id", $request->id)->
             groupBy("form_cut_input.id");
 
-            return Datatables::of($formCutInputs)->
-                filter(function ($query) {
-                    if (request()->has('dateFrom')) {
-                        $query->where('form_cut_input.tgl_form_cut', '>=', request('dateFrom'));
-                    }
-
-                    if (request()->has('dateTo')) {
-                        $query->where('form_cut_input.tgl_form_cut', '<=', request('dateTo'));
-                    }
-                }, true)->filterColumn('id_marker', function ($query, $keyword) {
+            return Datatables::of($formCutInputs)->filterColumn('id_marker', function ($query, $keyword) {
                     $query->whereRaw("LOWER(form_cut_input.id_marker) LIKE LOWER('%" . $keyword . "%')");
                 })->filterColumn('no_form', function ($query, $keyword) {
                     $query->whereRaw("LOWER(form_cut_input.no_form) LIKE LOWER('%" . $keyword . "%')");

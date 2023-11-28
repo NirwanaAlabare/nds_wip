@@ -16,7 +16,7 @@
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="card-title fw-bold mb-0"><i class="fas fa-receipt fa-sm"></i> Detail Stocker</h5>
-                <button type="button" class="btn btn-dark btn-sm" onclick="countStockerUpdate()">
+                <button type="button" class="btn btn-dark btn-sm d-none" onclick="countStockerUpdate()">
                     <i class="fa fa-sync"></i> Update No. Stocker
                 </button>
             </div>
@@ -128,6 +128,7 @@
                                                     <th>Qty Cut</th>
                                                     <th>Range Awal</th>
                                                     <th>Range Akhir</th>
+                                                    <th>Generated</th>
                                                     <th>Print Stocker</th>
                                                     <th>Print Numbering</th>
                                                 </thead>
@@ -135,7 +136,8 @@
                                                     @foreach ($dataRatio as $ratio)
                                                         @php
                                                             $qty = intval($ratio->ratio) * intval($dataSpreading->total_lembar);
-                                                            $stockerBefore = $dataStocker ? $dataStocker->where("part_detail_id", $partDetail->id)->where("so_det_id", $ratio->so_det_id)->where("ratio", ">", "0")->sortByDesc('no_cut')->first() : null;
+                                                            $stockerThis = $dataStocker ? $dataStocker->where("part_detail_id", $partDetail->id)->where("so_det_id", $ratio->so_det_id)->where("no_cut", $dataSpreading->no_cut)->where("ratio", ">", "0")->first() : null;
+                                                            $stockerBefore = $dataStocker ? $dataStocker->where("part_detail_id", $partDetail->id)->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->where("ratio", ">", "0")->sortByDesc('no_cut')->first() : null;
                                                             $rangeAwal = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + 1 : "-") : "-") : 1);
                                                             $rangeAkhir = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + $qty : "-") : "-") : $qty);
                                                         @endphp
@@ -153,6 +155,28 @@
                                                             <td>{{ $qty }}</td>
                                                             <td>{{ $rangeAwal }}</td>
                                                             <td>{{ $rangeAkhir }}</td>
+                                                            <td>
+                                                                @if ($dataSpreading->no_cut > 1)
+                                                                    @if ($stockerBefore)
+                                                                        @if ($stockerBefore->stocker_id != null)
+                                                                            @if ($stockerThis->stocker_id != null)
+                                                                                <i class="fa fa-check"></i>
+                                                                            @else
+                                                                                <i class="fa fa-times"></i>
+                                                                            @endif
+                                                                        @else
+                                                                            <i class="fa fa-minus"></i>
+                                                                        @endif
+                                                                    @else
+                                                                        <i class="fa fa-minus"></i>
+                                                                    @endif
+                                                                @else
+                                                                    @if ($stockerThis->stocker_id != null)
+                                                                        <i class="fa fa-check"></i>
+                                                                    @else
+                                                                        <i class="fa fa-times"></i>
+                                                                    @endif
+                                                                @endif
                                                             <td>
                                                                 <button type="button" class="btn btn-sm btn-danger" onclick="printStocker({{ $index }});" {{ ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? "" : "disabled") : "") : "") }}>
                                                                     <i class="fa fa-print fa-s"></i>
@@ -252,6 +276,8 @@
                         link.click();
 
                         swal.close();
+
+                        window.location.reload();
                     }
                 }
             });
@@ -306,7 +332,7 @@
                         link.click();
                     }
 
-                    swal.close();
+                    window.location.reload();
                 }
             });
         }

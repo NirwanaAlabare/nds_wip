@@ -77,8 +77,7 @@
                             <div class='col-sm-6'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>No. Cut Plan</small></label>
-                                    <input type='text' class='form-control' id='manage_no_cut_plan'
-                                        name='manage_no_cut_plan' onchange="datatableManageFormReload();" readonly>
+                                    <input type='text' class='form-control' id='manage_no_cut_plan' name='manage_no_cut_plan' onchange="datatableManageFormReload();" readonly>
                                 </div>
                             </div>
                         </div>

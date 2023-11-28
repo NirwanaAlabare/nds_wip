@@ -18,15 +18,15 @@
                 Baru
             </a>
             <div class="d-flex align-items-end gap-3 mb-3">
-                <div class="mb-3">
-                    <label class="form-label"><small>Tanggal Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-d') }}">
+                <div>
+                    <label class="form-label"><small>Tgl Awal</small></label>
+                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="datatablePartReload()">
                 </div>
-                <div class="mb-3">
-                    <label class="form-label"><small>Tanggal Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}">
+                <div>
+                    <label class="form-label"><small>Tgl Akhir</small></label>
+                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="datatablePartReload()">
                 </div>
-                <div class="mb-3">
+                <div>
                     <button class="btn btn-primary btn-sm" onclick="datatablePartReload()">Tampilkan</button>
                 </div>
             </div>
@@ -51,7 +51,7 @@
     </div>
 
     <div class="modal fade" id="detailPartModal" tabindex="-1" aria-labelledby="detailPartLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-light">
                     <h1 class="modal-title fs-5" id="detailPartLabel">Detail Part</h1>
@@ -59,45 +59,67 @@
                 </div>
                 <div class="modal-body">
                     <div class="row">
-                        <div class="col-md-6">
+                        <input type="hidden" name="detail_id" id="detail_id" onchange="dataTablePartFormReload()">
+                        <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label">No. WS</label>
-                                <input type="text" class="form-control" name="edit_no_ws" id="edit_no_ws" value="">
+                                <input type="text" class="form-control" name="detail_ws" id="detail_ws" value="" readonly>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label">Style</label>
-                                <input type="text" class="form-control" name="edit_style" id="edit_style" value="">
+                                <input type="text" class="form-control" name="detail_style" id="detail_style" value="" readonly>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label">Color</label>
-                                <input type="text" class="form-control" name="edit_color" id="edit_color" value="">
+                                <input type="text" class="form-control" name="detail_color" id="detail_color" value="" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Panel</label>
-                                <input type="text" class="form-control" name="edit_panel" id="edit_panel" value="">
+                                <input type="text" class="form-control" name="detail_panel" id="detail_panel" value="" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Part</label>
+                                <input type="text" class="form-control" name="detail_part" id="detail_part_details" value="" readonly>
                             </div>
                         </div>
                         <div class="col-md-12">
                             <div class="table-responsive mb-3">
-                                <table class="table table-sm" id="datatable-part-detail">
-                                    <tr>
-                                        <th>No.</th>
-                                        <th>Part</th>
-                                    </tr>
+                                <table class="table table-bordered table-sm w-100" id="datatable-part-form">
+                                    <thead>
+                                        <tr>
+                                            <th>No. Marker</th>
+                                            <th>No. Form</th>
+                                            <th>Tgl Spreading</th>
+                                            <th>Meja</th>
+                                            <th>WS</th>
+                                            <th>Buyer</th>
+                                            <th>No. Cut</th>
+                                            <th>Style</th>
+                                            <th>Color</th>
+                                            <th>Part</th>
+                                            <th>Size Ratio</th>
+                                            <th>Total Lembar</th>
+                                            <th>Act</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">Simpan</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    {{-- <button type="button" class="btn btn-primary">Simpan</button> --}}
                 </div>
             </div>
         </div>
@@ -112,12 +134,29 @@
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
 
     <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            let oneWeeksBefore = new Date(new Date().setDate(new Date().getDate() - 7));
+            let oneWeeksBeforeDate = ("0" + oneWeeksBefore.getDate()).slice(-2);
+            let oneWeeksBeforeMonth = ("0" + (oneWeeksBefore.getMonth() + 1)).slice(-2);
+            let oneWeeksBeforeYear = oneWeeksBefore.getFullYear();
+            let oneWeeksBeforeFull = oneWeeksBeforeYear + '-' + oneWeeksBeforeMonth + '-' + oneWeeksBeforeDate;
+
+            $("#tgl-awal").val(oneWeeksBeforeFull).trigger("change");
+
+            window.addEventListener("focus", () => {
+                $('#datatable').DataTable().ajax.reload(null, false);
+            });
+        });
+
         let datatablePart = $("#datatable-part").DataTable({
             ordering: false,
             processing: true,
             serverSide: true,
             ajax: {
                 url: '{{ route('part') }}',
+                data: function (d) {
+                    d.id = $("detail_id").val();
+                }
             },
             columns: [
                 {
@@ -156,7 +195,7 @@
                     render: (data, type, row, meta) => {
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
-                                <buton type="button" onclick="showPartForm(`+row['id']+`)" class='btn btn-primary btn-sm'>
+                                <buton type="button" onclick='showPartForm(`+JSON.stringify(row)+`)' class='btn btn-primary btn-sm'>
                                     <i class='fa fa-search'></i>
                                 </buton>
                                 <a href='{{ route('manage-part-form') }}/`+row['id']+`' class='btn btn-success btn-sm'>
@@ -195,104 +234,117 @@
             }
         });
 
-        function showPartForm(parameter) {
-            dataTablePartFormReload();
+        function showPartForm(data) {
+            for (let key in data) {
+                console.log(document.getElementById('detail_' + key));
+                if (document.getElementById('detail_' + key)) {
+                    $('#detail_' + key).val(data[key]).trigger("change");
+                    document.getElementById('detail_' + key).setAttribute('value', data[key]);
+
+                    if (document.getElementById('detail_' + key).classList.contains('select2bs4') || document
+                        .getElementById('detail_' + key).classList.contains('select2')) {
+                        $('#detail_' + key).val(data[key]).trigger('change.select2');
+                    }
+                }
+            }
+
+            $("#detailPartModal").modal('show');
+        };
+
+        let datatablePartForm = $("#datatable-part-form").DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '{{ route('show-part-form') }}',
+                dataType: 'json',
+                dataSrc: 'data',
+                data: function(d) {
+                    d.id = $('#detail_id').val();
+                },
+            },
+            columns: [
+                {
+                    data: 'id_marker'
+                },
+                {
+                    data: 'no_form'
+                },
+                {
+                    data: 'tgl_form_cut',
+                    searchable: false
+                },
+                {
+                    data: 'nama_meja'
+                },
+                {
+                    data: 'act_costing_ws'
+                },
+                {
+                    data: 'buyer'
+                },
+                {
+                    data: 'no_cut',
+                },
+                {
+                    data: 'style'
+                },
+                {
+                    data: 'color'
+                },
+                {
+                    data: 'nama_part'
+                },
+                {
+                    data: 'marker_details',
+                    searchable: false
+                },
+                {
+                    data: 'total_lembar',
+                    searchable: false
+                },
+                {
+                    data: null,
+                    searchable: false
+                },
+            ],
+            columnDefs: [
+                // Nama Meja
+                {
+                    targets: [3],
+                    render: (data, type, row, meta) => data ? data.toUpperCase() : "-"
+                },
+                // Last Column
+                {
+                    targets: [12],
+                    render: (data, type, row, meta) => {
+                        return `<div class='d-flex gap-1 justify-content-center'> <a class='btn btn-info btn-sm' href='{{ route("show-stocker") }}/`+row.part_detail_id+`/`+row.form_cut_id+`' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-eye'></i></a> </div>`;
+                    }
+                }
+            ]
+        });
+
+        $('#datatable-part-form thead tr').clone(true).appendTo('#datatable-part-form thead');
+        $('#datatable-part-form thead tr:eq(1) th').each(function(i) {
+            if (i == 1 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8 || i == 9 || i == 11) {
+                var title = $(this).text();
+                $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%"/>');
+
+                $('input', this).on('keyup change', function() {
+                    if (datatablePartForm.column(i).search() !== this.value) {
+                        datatablePartForm
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            } else {
+                $(this).empty();
+            }
+        });
+
+        function dataTablePartFormReload() {
+            datatablePartForm.ajax.reload();
         }
-
-        // let datatablePartForm = $("#datatable-part-form").DataTable({
-        //     ordering: false,
-        //     processing: true,
-        //     serverSide: true,
-        //     ajax: {
-        //         headers: {
-        //             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        //         },
-        //         url: '{{ route('show-part-form') }}',
-        //         dataType: 'json',
-        //         dataSrc: 'data',
-        //     },
-        //     columns: [
-        //         {
-        //             data: 'id_marker'
-        //         },
-        //         {
-        //             data: 'no_form'
-        //         },
-        //         {
-        //             data: 'tgl_form_cut',
-        //             searchable: false
-        //         },
-        //         {
-        //             data: 'nama_meja'
-        //         },
-        //         {
-        //             data: 'act_costing_ws'
-        //         },
-        //         {
-        //             data: 'buyer'
-        //         },
-        //         {
-        //             data: 'no_cut',
-        //         },
-        //         {
-        //             data: 'style'
-        //         },
-        //         {
-        //             data: 'color'
-        //         },
-        //         {
-        //             data: 'nama_part'
-        //         },
-        //         {
-        //             data: 'marker_details',
-        //             searchable: false
-        //         },
-        //         {
-        //             data: 'total_lembar',
-        //             searchable: false
-        //         },
-        //         {
-        //             data: null,
-        //             searchable: false
-        //         },
-        //     ],
-        //     columnDefs: [
-        //         // Nama Meja
-        //         {
-        //             targets: [3],
-        //             render: (data, type, row, meta) => data ? data.toUpperCase() : "-"
-        //         },
-        //         // Last Column
-        //         {
-        //             targets: [12],
-        //             render: (data, type, row, meta) => {
-        //                 return `<div class='d-flex gap-1 justify-content-center'> <a class='btn btn-info btn-sm' href='{{ route("show-stocker") }}/`+row.part_detail_id+`/`+row.form_cut_id+`' data-bs-toggle='tooltip'><i class='fa fa-eye'></i></a> </div>`;
-        //             }
-        //         }
-        //     ]
-        // });
-
-        // $('#datatable-part-form thead tr').clone(true).appendTo('#datatable-part-form thead');
-        // $('#datatable-part-form thead tr:eq(1) th').each(function(i) {
-        //     if (i == 1 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8 || i == 9 || i == 11) {
-        //         var title = $(this).text();
-        //         $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%"/>');
-
-        //         $('input', this).on('keyup change', function() {
-        //             if (datatablePartForm.column(i).search() !== this.value) {
-        //                 datatablePartForm
-        //                     .column(i)
-        //                     .search(this.value)
-        //                     .draw();
-        //             }
-        //         });
-        //     } else {
-        //         $(this).empty();
-        //     }
-        // });
-
-        // function dataTablePartFormReload() {
-        //     datatablePartForm.ajax.reload();
-        // }
     </script>
 @endsection
