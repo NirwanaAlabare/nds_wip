@@ -178,7 +178,7 @@ class PartController extends Controller
     public function store(Request $request)
     {
         $part = Part::select("kode")->orderBy("kode", "desc")->first();
-        $partNumber = intval(substr($part->kode, -5)) + 1;
+        $partNumber = $part ? intval(substr($part->kode, -5)) + 1 : 1;
         $partCode = 'PRT' . sprintf('%05s', $partNumber);
         $totalPartDetail = intval($request["jumlah_part_detail"]);
 
@@ -424,7 +424,8 @@ class PartController extends Controller
             $isExist = PartForm::where("part_id", $request->part_id)->where("form_id", $partForm['no_form'])->count();
 
             if ($isExist < 1) {
-                $urutanPartForm = PartForm::count() + 1;
+                $partForm = PartForm::select("kode")->orderBy("kode", "desc")->first();
+                $partFormNumber = $partForm ? intval(substr($partForm->kode, -5)) + 1 : 1;
                 $kodePartForm = "PFM" . sprintf('%05s', $urutanPartForm);
 
                 $addToCutPlan = PartForm::create([
