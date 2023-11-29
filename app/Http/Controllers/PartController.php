@@ -426,7 +426,7 @@ class PartController extends Controller
             if ($isExist < 1) {
                 $partForm = PartForm::select("kode")->orderBy("kode", "desc")->first();
                 $partFormNumber = $partForm ? intval(substr($partForm->kode, -5)) + 1 : 1;
-                $kodePartForm = "PFM" . sprintf('%05s', $urutanPartForm);
+                $kodePartForm = "PFM" . sprintf('%05s', $partFormNumber);
 
                 $addToCutPlan = PartForm::create([
                     "kode" => $kodePartForm,
