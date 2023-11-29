@@ -424,9 +424,9 @@ class PartController extends Controller
             $isExist = PartForm::where("part_id", $request->part_id)->where("form_id", $partForm['no_form'])->count();
 
             if ($isExist < 1) {
-                $partForm = PartForm::select("kode")->orderBy("kode", "desc")->first();
-                $partFormNumber = $partForm ? intval(substr($partForm->kode, -5)) + 1 : 1;
-                $kodePartForm = "PFM" . sprintf('%05s', $partFormNumber);
+                $lastPartForm = PartForm::select("kode")->orderBy("kode", "desc")->first();
+                $urutanPartForm = $lastPartForm ? intval(substr($lastPartForm->kode, -5)) + 1 : 1;
+                $kodePartForm = "PFM" . sprintf('%05s', $urutanPartForm);
 
                 $addToCutPlan = PartForm::create([
                     "kode" => $kodePartForm,

@@ -285,7 +285,7 @@
         // Datatable row selection
         datatableSelected.on('click', 'tbody tr', function(e) {
             e.currentTarget.classList.toggle('selected');
-            document.getElementById('selected-row-count-1').innerText = $('#datatable-selected').DataTable().rows('.selected').data().length;
+            // document.getElementById('selected-row-count-1').innerText = $('#datatable-selected').DataTable().rows('.selected').data().length;
         });
 
         $('#datatable-selected thead tr').clone(true).appendTo('#datatable-selected thead');
@@ -348,7 +348,7 @@
                             });
 
                             $('#datatable-select').DataTable().ajax.reload(() => {
-                                document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
+                                // document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
                             });
                         }
 
@@ -546,7 +546,7 @@
                                     });
 
                                     $('#datatable-select').DataTable().ajax.reload(() => {
-                                        document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
+                                        // document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
                                     });
                                 }
 
