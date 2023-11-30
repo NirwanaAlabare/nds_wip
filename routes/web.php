@@ -16,6 +16,7 @@ use App\Http\Controllers\ManagerController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\SummaryController;
 use App\Http\Controllers\DCInController;
+use App\Http\Controllers\RackController;
 use App\Http\Controllers\SecondaryInController;
 
 /*
@@ -235,7 +236,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // DC IN
-    Route::controller(DCInController::class)->prefix("dc-in")->middleware('admin')->group(function () {
+    Route::controller(DCInController::class)->prefix("dc-in")->middleware('dc')->group(function () {
         Route::get('/', 'index')->name('dc-in');
         Route::get('/create/{no_form?}', 'create')->name('create-dc-in');
         Route::get('/getdata_stocker_info', 'getdata_stocker_info')->name('getdata_stocker_info');
@@ -244,9 +245,18 @@ Route::middleware('auth')->group(function () {
     });
 
     // Secondary IN
-    Route::controller(SecondaryInController::class)->prefix("secondary-in")->middleware('admin')->group(function () {
+    Route::controller(SecondaryInController::class)->prefix("secondary-in")->middleware('dc')->group(function () {
         Route::get('/', 'index')->name('secondary-in');
         Route::get('/create', 'create')->name('create-secondary-in');
+    });
+
+    // Rack
+    Route::controller(RackController::class)->prefix("rack")->middleware('dc')->group(function () {
+        Route::get('/', 'index')->name('rack');
+        Route::get('/create', 'create')->name('create-rack');
+        Route::post('/store', 'store')->name('store-rack');
+
+        Route::get('/rack-detail', 'rackDetail')->name('rack-detail');
     });
 
     // Mutasi Karywawan
