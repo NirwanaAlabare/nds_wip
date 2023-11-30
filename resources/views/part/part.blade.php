@@ -123,7 +123,7 @@
                 </div>
             </div>
         </div>
-    </div   >
+    </div>
 @endsection
 
 @section('custom-script')

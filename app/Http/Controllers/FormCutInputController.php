@@ -9,6 +9,8 @@ use App\Models\FormCutInputDetail;
 use App\Models\FormCutInputDetailLap;
 use App\Models\FormCutInputLostTime;
 use App\Models\ScannedItem;
+use App\Models\Part;
+use App\Models\PartForm;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
@@ -880,6 +882,29 @@ group by id_cost, k.id_item
         if ($notCompleted) {
             FormCutInputDetailLap::where("form_cut_input_detail_id", $notCompleted->id)->delete();
             FormCutInputDetail::where("no_form_cut_input", $formCutInputData->no_form)->where("status", "not complete")->delete();
+        }
+
+        // store to part form
+        $partData = Part::select('part.id')->
+            where("act_costing_id", $formCutInputData->marker->act_costing_id)->
+            where("act_costing_ws", $formCutInputData->marker->act_costing_ws)->
+            where("panel", $formCutInputData->marker->panel)->
+            where("buyer", $formCutInputData->marker->buyer)->
+            where("style", $formCutInputData->marker->style)->
+            first();
+
+        if ($partData) {
+            $lastPartForm = PartForm::select("kode")->orderBy("kode", "desc")->first();
+            $urutanPartForm = $lastPartForm ? intval(substr($lastPartForm->kode, -5)) + 1 : 1;
+            $kodePartForm = "PFM" . sprintf('%05s', $urutanPartForm);
+
+            $addToPartForm = PartForm::create([
+                "kode" => $kodePartForm,
+                "part_id" => $partData->id,
+                "form_id" => $formCutInputData->id,
+                "created_at" => Carbon::now(),
+                "updated_at" => Carbon::now(),
+            ]);
         }
 
         return $updateFormCutInput;

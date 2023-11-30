@@ -1135,6 +1135,29 @@ class ManualFormCutController extends Controller
             FormCutInputDetail::where("no_form_cut_input", $formCutInputData->no_form)->where("status", "not complete")->delete();
         }
 
+        // store to part form
+        $partData = Part::select('part.id')->
+            where("act_costing_id", $formCutInputData->marker->act_costing_id)->
+            where("act_costing_ws", $formCutInputData->marker->act_costing_ws)->
+            where("panel", $formCutInputData->marker->panel)->
+            where("buyer", $formCutInputData->marker->buyer)->
+            where("style", $formCutInputData->marker->style)->
+            first();
+
+        if ($partData) {
+            $lastPartForm = PartForm::select("kode")->orderBy("kode", "desc")->first();
+            $urutanPartForm = $lastPartForm ? intval(substr($lastPartForm->kode, -5)) + 1 : 1;
+            $kodePartForm = "PFM" . sprintf('%05s', $urutanPartForm);
+
+            $addToPartForm = PartForm::create([
+                "kode" => $kodePartForm,
+                "part_id" => $partData->id,
+                "form_id" => $formCutInputData->id,
+                "created_at" => Carbon::now(),
+                "updated_at" => Carbon::now(),
+            ]);
+        }
+
         return $updateFormCutInput;
     }
 }

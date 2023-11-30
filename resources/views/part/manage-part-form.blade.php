@@ -74,7 +74,7 @@
                     <div class="row align-items-center">
                         <div class="col-6">
                             <h5 class="card-title fw-bold">
-                                Form Cut :
+                                Form Cut yang belum ditambahkan :
                             </h5>
                         </div>
                     </div>
@@ -128,7 +128,7 @@
             <div class="card card-info h-100">
                 <div class="card-header">
                     <h5 class="card-title mb-0 fw-bold" style="padding-bottom: 2px">
-                        Part Form Cut :
+                        Form Cut yang sudah ditambahkan :
                     </h5>
                 </div>
                 <div class="card-body">

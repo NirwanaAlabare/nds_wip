@@ -60,25 +60,24 @@
                     @yield('content')
                 </div>
             </div>
-
-            @if (!isset($footer))
-                @php
-                    $footer = true;
-                @endphp
-            @endif
-
-            @if ($footer)
-                <footer class="main-footer mt-3">
-                    <strong>
-                        <a href="https://nirwanagroup.co.id/en/service/nirwana-alabare-santosa/" class="text-dark"
-                            target="_blank">
-                            Nirwana Digital Solution
-                        </a> &copy; {{ date('Y') }}
-                    </strong>
-                </footer>
-            @endif
         </div>
 
+        @if (!isset($footer))
+            @php
+                $footer = true;
+            @endphp
+        @endif
+
+        @if ($footer)
+            <footer class="main-footer">
+                <strong>
+                    <a href="https://nirwanagroup.co.id/en/service/nirwana-alabare-santosa/" class="text-dark"
+                        target="_blank">
+                        Nirwana Digital Solution
+                    </a> &copy; {{ date('Y') }}
+                </strong>
+            </footer>
+        @endif
     </div>
 
     @include('layouts.script')

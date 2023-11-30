@@ -2081,6 +2081,8 @@
                 let unitQtyVar = unitQty ? unitQty : document.getElementById("current_unit").value;
 
                 document.getElementById("current_qty").value = rollQtyConversion(rollQtyVar, unitQtyVar);
+
+                calculateEstAmpar();
             }
 
             function conversion(qty, unit, unitBefore) {
@@ -2592,7 +2594,7 @@
                 document.getElementById("current_id_item").classList.add("border-scan");
                 document.getElementById("current_lot_label").classList.add("label-scan");
                 document.getElementById("current_lot").classList.add("border-scan");
-                document.getElementById("current_roll_label").classList.add("label-scan");
+                document.getElementById("current_roll_label").classpreadingsList.add("label-scan");
                 document.getElementById("current_roll").classList.add("border-scan");
                 document.getElementById("current_qty_real_label").classList.add("label-scan");
                 document.getElementById("current_qty_real").classList.add("border-scan");
