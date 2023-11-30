@@ -21,12 +21,11 @@
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div>
                         <label class="form-label"><small>Tgl Awal</small></label>
-                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal">
+                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="dataTableReload()">
                     </div>
                     <div>
                         <label class="form-label"><small>Tgl Akhir</small></label>
-                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                            value="{{ date('Y-m-d') }}">
+                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="dataTableReload()">
                     </div>
                     <div>
                         <button class="btn btn-primary btn-sm" onclick="dataTableReload()">Tampilkan</button>
@@ -252,7 +251,7 @@
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i == 0 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 10) {
+            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 9 || i == 10) {
                 var title = $(this).text();
                 $(this).html('<input type="text"  style="width:100%"/>');
 

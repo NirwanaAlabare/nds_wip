@@ -55,6 +55,7 @@
                             <th>No. Meja</th>
                             <th>Marker</th>
                             <th>WS</th>
+                            <th>Style</th>
                             <th>Color</th>
                             <th>Panel</th>
                             <th class="align-bottom">Status</th>
@@ -303,6 +304,9 @@
                     data: 'ws'
                 },
                 {
+                    data: 'style'
+                },
+                {
                     data: 'color'
                 },
                 {
@@ -349,7 +353,7 @@
                     }
                 },
                 {
-                    targets: [7],
+                    targets: [8],
                     className: "text-center align-middle",
                     render: (data, type, row, meta) => {
                         icon = "";
@@ -373,7 +377,7 @@
                     }
                 },
                 {
-                    targets: [12],
+                    targets: [13],
                     render: (data, type, row, meta) => {
                         let btnEdit = row.status == 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"editMejaModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-edit'></i></a>" : "";
                         let btnProcess = "";
@@ -454,6 +458,25 @@
         function dataTableRatioReload() {
             datatableRatio.ajax.reload();
         }
+
+        $('#datatable thead tr').clone(true).appendTo('#datatable thead');
+        $('#datatable thead tr:eq(1) th').each(function(i) {
+            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 10 || i == 11 || i == 12) {
+                var title = $(this).text();
+                $(this).html('<input type="text"  style="width:100%"/>');
+
+                $('input', this).on('keyup change', function() {
+                    if (datatable.column(i).search() !== this.value) {
+                        datatable
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            } else {
+                $(this).empty();
+            }
+        });
 
         function updateNoCut() {
             $.ajax({

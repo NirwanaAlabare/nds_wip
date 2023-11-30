@@ -66,7 +66,7 @@ body {
   line-height: 1.5;
   color: #212529;
   text-align: left;
-  background-color: #fff;
+  background-color: #f4f6f9;
 }
 
 [tabindex="-1"]:focus:not(:focus-visible) {
@@ -10686,7 +10686,7 @@ body,
 }
 
 .wrapper .content-wrapper {
-  min-height: calc(100vh - calc(3.5rem + 1px) - calc(3.5rem + 1px));
+  min-height: calc(100vh);
 }
 
 .layout-boxed .wrapper {
@@ -11505,8 +11505,8 @@ body:not(.layout-fixed).layout-navbar-fixed.text-sm .wrapper .main-sidebar .side
 .layout-footer-fixed .wrapper .main-footer {
   bottom: 0;
   left: 0;
-  position: fixed;
   right: 0;
+  position: fixed;
   z-index: 1032;
 }
 

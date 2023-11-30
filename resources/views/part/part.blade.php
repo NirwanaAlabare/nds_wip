@@ -19,11 +19,11 @@
             </a>
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div>
-                    <label class="form-label"><small>Tgl Awal</small></label>
+                    <label class="form-label"><small>Tanggal Awal</small></label>
                     <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="datatablePartReload()">
                 </div>
                 <div>
-                    <label class="form-label"><small>Tgl Akhir</small></label>
+                    <label class="form-label"><small>Tanggal Akhir</small></label>
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="datatablePartReload()">
                 </div>
                 <div>
@@ -217,7 +217,7 @@
 
         $('#datatable-part thead tr').clone(true).appendTo('#datatable-part thead');
         $('#datatable-part thead tr:eq(1) th').each(function(i) {
-            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 5) {
+            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" />');
 

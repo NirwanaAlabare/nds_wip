@@ -66,6 +66,7 @@ class Kernel extends HttpKernel
         'marker' => \App\Http\Middleware\IsMarker::class,
         'spreading' => \App\Http\Middleware\IsSpreading::class,
         'stocker' => \App\Http\Middleware\IsStocker::class,
+        'dc' => \App\Http\Middleware\IsDc::class,
         'meja' => \App\Http\Middleware\IsMeja::class,
         'manager' => \App\Http\Middleware\IsManager::class,
     ];

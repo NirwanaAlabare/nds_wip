@@ -87,6 +87,7 @@
                             <th>Tanggal</th>
                             <th>No. Marker</th>
                             <th>No. WS</th>
+                            <th>Style</th>
                             <th>Color</th>
                             <th>Panel</th>
                             <th>Panjang Marker</th>
@@ -115,7 +116,7 @@
     <script>
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i == 1 || i == 2 || i == 3 || i == 4) {
+            if (i != 14) {
                 var title = $(this).text();
                 $(this).html('<input type="text"  style="width:100%"/>');
 
@@ -143,7 +144,8 @@
                     d.tgl_akhir = $('#tgl-akhir').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'tgl_cut_fix',
                     searchable: false
                 },
@@ -152,6 +154,9 @@
                 },
                 {
                     data: 'act_costing_ws'
+                },
+                {
+                    data: 'style'
                 },
                 {
                     data: 'color'
@@ -189,8 +194,9 @@
                     data: 'id'
                 },
             ],
-            columnDefs: [{
-                    targets: [13],
+            columnDefs: [
+                {
+                    targets: [14],
                     className: "align-middle",
                     render: (data, type, row, meta) => {
                         let exportBtn = `

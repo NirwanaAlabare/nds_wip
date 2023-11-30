@@ -18,8 +18,7 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label>Tanggal Plan</label>
-                        <input type="date" class="form-control form-control" name="edit_tgl_plan" id="edit_tgl_plan"
-                            readonly>
+                        <input type="date" class="form-control form-control" name="edit_tgl_plan" id="edit_tgl_plan" readonly>
                     </div>
                     <div class="mb-3">
                         <div class="table-responsive">
@@ -153,12 +152,11 @@
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small>Tanggal Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal">
+                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="filterTable()">
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small>Tanggal Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                        value="{{ date('Y-m-d') }}">
+                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="filterTable()">
                 </div>
                 <div class="mb-3">
                     <button class="btn btn-primary btn-sm" onclick="filterTable()">Tampilkan</button>

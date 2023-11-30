@@ -193,8 +193,13 @@
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @dc
                                 <li>
-                                    <a href="{{ route('stocker') }}" class="dropdown-item">
-                                        Stocker <i class="fas fa-receipt fa-sm"></i>
+                                    <a href="{{ route('rack') }}" class="dropdown-item">
+                                        Master Rak <i class="fas fa-plus-square fa-sm"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('rack-detail') }}" class="dropdown-item">
+                                        Detail Rak <i class="fas fa-table fa-sm"></i>
                                     </a>
                                 </li>
                             @enddc

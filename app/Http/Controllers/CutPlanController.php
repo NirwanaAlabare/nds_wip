@@ -106,7 +106,7 @@ class CutPlanController extends Controller
                     b.id marker_id,
                     b.act_costing_ws ws,
                     b.style,
-                    panel,
+                    b.panel,
                     b.color,
                     a.status,
                     users.name nama_meja,

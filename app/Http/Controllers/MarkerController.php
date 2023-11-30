@@ -26,6 +26,7 @@ class MarkerController extends Controller
                 DATE_FORMAT(tgl_cutting, '%d-%m-%Y') tgl_cut_fix,
                 kode,
                 act_costing_ws,
+                style,
                 color,
                 panel,
                 CONCAT(panjang_marker, ' ', UPPER(unit_panjang_marker)) panjang_marker,
