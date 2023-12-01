@@ -439,11 +439,11 @@ class CutPlanController extends Controller
                 if ($formInfoFilter) {
                     $query->whereHas('formCutInput', function ($query) use ($formInfoFilter) {
                         $query->whereRaw("(
-                                form_cut_input.tgl_form_cut LIKE '%" . $formInfoFilter . "%' OR
-                                form_cut_input.no_form LIKE '%" . $formInfoFilter . "%' OR
-                                form_cut_input.qty_ply LIKE '%" . $formInfoFilter . "%' OR
-                                form_cut_input.tipe_form_cut LIKE '%" . $formInfoFilter . "%' OR
-                                form_cut_input.status LIKE '%" . $formInfoFilter . "%'
+                                LOWER(form_cut_input.tgl_form_cut) LIKE LOWER('%" . $formInfoFilter . "%') OR
+                                LOWER(form_cut_input.no_form) LIKE LOWER('%" . $formInfoFilter . "%') OR
+                                LOWER(form_cut_input.qty_ply) LIKE LOWER('%" . $formInfoFilter . "%') OR
+                                LOWER(form_cut_input.tipe_form_cut) LIKE LOWER('%" . $formInfoFilter . "%') OR
+                                LOWER(form_cut_input.status) LIKE LOWER('%" . $formInfoFilter . "%')
                             )");
                     });
                 }
@@ -452,11 +452,12 @@ class CutPlanController extends Controller
                     $query->whereHas('formCutInput', function ($query) use ($markerInfoFilter) {
                         $query->whereHas('marker', function ($query) use ($markerInfoFilter) {
                             $query->whereRaw("(
-                                    marker_input.kode LIKE '%" . $markerInfoFilter . "%' OR
-                                    marker_input.act_costing_ws LIKE '%" . $markerInfoFilter . "%' OR
-                                    marker_input.style LIKE '%" . $markerInfoFilter . "%' OR
-                                    marker_input.color LIKE '%" . $markerInfoFilter . "%' OR
-                                    marker_input.panel LIKE '%" . $markerInfoFilter . "%'
+                                    LOWER(marker_input.kode) LIKE LOWER('%" . $markerInfoFilter . "%') OR
+                                    LOWER(marker_input.buyer) LIKE LOWER('%" . $markerInfoFilter . "%') OR
+                                    LOWER(marker_input.act_costing_ws) LIKE LOWER('%" . $markerInfoFilter . "%') OR
+                                    LOWER(marker_input.style) LIKE LOWER('%" . $markerInfoFilter . "%') OR
+                                    LOWER(marker_input.color) LIKE LOWER('%" . $markerInfoFilter . "%') OR
+                                    LOWER(marker_input.panel) LIKE LOWER('%" . $markerInfoFilter . "%')
                                 )");
                         });
                     });
@@ -466,8 +467,8 @@ class CutPlanController extends Controller
                     $query->whereHas('formCutInput', function ($query) use ($mejaFilter) {
                         $query->whereHas('alokasiMeja', function ($query) use ($mejaFilter) {
                             $query->whereRaw("(
-                                    users.name LIKE '%" . $mejaFilter . "%' OR
-                                    users.username LIKE '%" . $mejaFilter . "%'
+                                    LOWER(users.name) LIKE LOWER('%" . $mejaFilter . "%') OR
+                                    LOWER(users.username) LIKE LOWER('%" . $mejaFilter . "%')
                                 )");
                         });
                     });
