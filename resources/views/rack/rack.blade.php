@@ -46,6 +46,41 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="editMasterRackModal" tabindex="-1" aria-labelledby="editMasterRackLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{{ route('update-rack') }}" method="post" onsubmit="submitForm(this, event)">
+                    @method('PUT')
+                    <div class="modal-header bg-sb text-light">
+                        <h1 class="modal-title fs-5" id="editMasterRackLabel">Ubah Data Master Rack</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="edit_id" id="edit_id">
+                        <div class="mb-3">
+                            <label class="form-label">Kode Rak</label>
+                            <input type="text" class="form-control" name="edit_kode" id="edit_kode" value="" readonly>
+                            <div class="form-text text-danger d-none" id="edit_kode_error"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nama Rak</label>
+                            <input type="text" class="form-control" name="edit_nama_rak" id="edit_nama_rak" value="">
+                            <div class="form-text text-danger d-none" id="edit_nama_rak_error"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Jumlah Ruang</label>
+                            <input type="number" class="form-control" name="edit_total_ruang" id="edit_total_ruang" value="">
+                            <div class="form-text text-danger d-none" id="edit_total_ruang_error"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('custom-script')
@@ -84,7 +119,7 @@
                     render: (data, type, row, meta) => {
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
-                                <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editMasterRakModal" onclick='editData(` + JSON.stringify(row) + `, "editMasterRakModal", [{"function" : "datatableRakReload()"}]);'>
+                                <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editMasterRackModal" onclick='editData(` + JSON.stringify(row) + `, "editMasterRackModal", [{"function" : "datatableRakReload()"}]);'>
                                     <i class='fa fa-edit'></i>
                                 </a>
                                 <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='`+row['id']+`' onclick='deleteData(this)'>

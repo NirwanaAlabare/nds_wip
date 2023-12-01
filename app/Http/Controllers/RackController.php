@@ -144,9 +144,85 @@ class RackController extends Controller
      * @param  \App\Models\Rack  $rack
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Rack $rack)
+    public function update(Request $request)
     {
-        //
+        $validatedRequest = $request->validate([
+            "edit_id" => "required",
+            "edit_nama_rak" => "required|unique:rack,nama_rak,".$request['edit_id'],
+            "edit_total_ruang" => "required|min:1",
+
+        ],[
+            'edit_nama_rak.required' => 'Harap tentukan nama rak',
+            'edit_nama_rak.unique' => 'Nama rak sudah ada',
+            'edit_total_ruang' => "Jumlah ruang tidak bisa nol",
+        ]);
+
+        $updateRack = Rack::where('id', $validatedRequest['edit_id'])->update([
+            "nama_rak" => $validatedRequest['edit_nama_rak'],
+        ]);
+
+        if ($updateRack) {
+            // Rack Detail
+            $rackData = Rack::where('id', $validatedRequest['edit_id'])->first();
+            $rackDetailCount = $rackData->rackDetails->count();
+
+            if ($validatedRequest['edit_total_ruang'] > $rackDetailCount) {
+                // Rack Detail if fewer
+                $lastRackDetail = RackDetail::select('kode')->orderBy('updated_at', 'desc')->first();
+                $rackDetailNumber = $lastRackDetail ? intval(substr($lastRackDetail->kode, -5)) + 1 : 1;
+
+                $rackDetailData = [];
+                for ($i = 0; $i < $validatedRequest['edit_total_ruang'] - $rackDetailCount; $i++) {
+                    array_push($rackDetailData, [
+                        "kode" => 'DRK' . sprintf('%05s', $rackDetailNumber + $i),
+                        "rack_id" => $validatedRequest['edit_id'],
+                        "nama_detail_rak" => $validatedRequest['edit_nama_rak'].".".($i+($rackDetailCount+1)),
+                        "created_at" => Carbon::now(),
+                        "updated_at" => Carbon::now(),
+                    ]);
+                }
+
+                $storeRackDetail = RackDetail::insert($rackDetailData);
+
+            } else if ($validatedRequest['edit_total_ruang'] < $rackDetailCount) {
+                // Rack Detail if more
+                $rackDetails = $rackData->rackDetails->sortByDesc('id')->take(($rackDetailCount - $validatedRequest['edit_total_ruang']));
+
+                $rackDetailIds = [];
+                foreach ($rackDetails as $rackDetail) {
+                    array_push($rackDetailIds, $rackDetail->id);
+                }
+
+                $deleteRackDetail = RackDetail::whereIn('id', $rackDetailIds)->delete();
+            }
+
+            // Rack Detail Name
+            $i = 0;
+            $rackDetailData = RackDetail::where('rack_id', $validatedRequest['edit_id'])->orderBy('id', 'asc')->get();
+            foreach ($rackDetailData as $rackDetail) {
+                RackDetail::where('id', $rackDetail->id)->update([
+                    "nama_detail_rak" => $validatedRequest['edit_nama_rak'].".".($i+1),
+                    "updated_at" => Carbon::now(),
+                ]);
+
+                $i++;
+            }
+
+            return array(
+                "status" => 200,
+                "message" => "Rak '".$rackData->kode."' Berhasil Di Ubah",
+                "additional" => [],
+                "table" => "datatable-rack",
+                "redirect" => ""
+            );
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Terjadi kesalahan",
+            "additional" => [],
+            "redirect" => ""
+        );
     }
 
     /**

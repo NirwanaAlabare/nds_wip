@@ -255,6 +255,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('rack');
         Route::get('/create', 'create')->name('create-rack');
         Route::post('/store', 'store')->name('store-rack');
+        Route::put('/update', 'update')->name('update-rack');
 
         Route::get('/rack-detail', 'rackDetail')->name('rack-detail');
     });
