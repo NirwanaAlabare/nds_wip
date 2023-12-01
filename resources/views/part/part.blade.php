@@ -326,7 +326,7 @@
 
         $('#datatable-part-form thead tr').clone(true).appendTo('#datatable-part-form thead');
         $('#datatable-part-form thead tr:eq(1) th').each(function(i) {
-            if (i == 1 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8 || i == 9 || i == 11) {
+            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8 || i == 9 || i == 11) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%"/>');
 
