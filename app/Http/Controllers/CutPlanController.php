@@ -467,7 +467,7 @@ class CutPlanController extends Controller
                         $query->whereHas('alokasiMeja', function ($query) use ($mejaFilter) {
                             $query->whereRaw("(
                                     users.name LIKE '%" . $mejaFilter . "%' OR
-                                    users.username LIKE '%" . $mejaFilter . "%' OR
+                                    users.username LIKE '%" . $mejaFilter . "%'
                                 )");
                         });
                     });
