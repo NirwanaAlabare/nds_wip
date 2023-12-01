@@ -15,9 +15,14 @@
         @csrf
         <div class="card card-sb card-outline">
             <div class="card-header">
-                <h5 class="card-title fw-bold">
-                    Tambah Data Part
-                </h5>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title fw-bold">
+                        Tambah Data Part
+                    </h5>
+                    <a href="{{ route('part') }}" class="btn btn-sm btn-primary">
+                        <i class="fa fa-reply"></i> Kembali ke Part
+                    </a>
+                </div>
             </div>
             <div class="card-body">
                 <div class="row">

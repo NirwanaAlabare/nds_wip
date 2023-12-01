@@ -13,9 +13,14 @@
 @section('content')
     <div class="card card-sb card-outline">
         <div class="card-header">
-            <h5 class="card-title fw-bold">
-                <i class="fa fa-cog fa-sm"></i> Atur Part Form Cut
-            </h5>
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title fw-bold">
+                    <i class="fa fa-cog fa-sm"></i> Atur Part Form Cut
+                </h5>
+                <a href="{{ route('part') }}" class="btn btn-sm btn-primary">
+                    <i class="fa fa-reply"></i> Kembali ke Part
+                </a>
+            </div>
         </div>
         <div class="card-body">
             <form action="#" method="post">

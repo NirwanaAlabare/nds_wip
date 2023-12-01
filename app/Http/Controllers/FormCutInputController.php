@@ -109,7 +109,7 @@ class FormCutInputController extends Controller
             return DataTables::of($data_spreading)->toJson();
         }
 
-        return view('form-cut.form-cut-input', ["page" => "dashboard-cutting"]);
+        return view('form-cut.form-cut-input', ["page" => "dashboard-cutting", "subPageGroup" => "proses-cutting", "subPage" => "form-cut-input"]);
     }
 
     public function getRatio(Request $request)
@@ -226,7 +226,9 @@ class FormCutInputController extends Controller
             'formCutInputData' => $formCutInputData,
             'actCostingData' => $actCostingData,
             'markerDetailData' => $markerDetailData,
-            'page' => 'dashboard-cutting'
+            'page' => 'dashboard-cutting',
+            "subPageGroup" => "proses-cutting",
+            "subPage" => "form-cut-input"
         ]);
     }
 

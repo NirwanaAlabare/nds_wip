@@ -99,7 +99,7 @@ class StockerController extends Controller
                     })->toJson();
         }
 
-        return view("stocker.stocker", ["page" => "dashboard-stocker"]);
+        return view("stocker.stocker", ["page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "stocker"]);
     }
 
     /**
@@ -232,7 +232,7 @@ class StockerController extends Controller
             groupBy("no_cut", "marker_input_detail.so_det_id", "part_detail.id")->
             get();
 
-        return view("stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataPartDetail" => $dataPartDetail,"dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "page" => "dashboard-stocker"]);
+        return view("stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataPartDetail" => $dataPartDetail,"dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "page" => "dashboard-stocker", "subPageGroup" => "proses-stocker", "subPage" => "stocker"]);
     }
 
     /**

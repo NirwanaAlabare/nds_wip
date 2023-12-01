@@ -8,9 +8,8 @@
 @endsection
 
 @section('content')
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable" style="max-width: 55%;">
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 65%;">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-light">
                     <h1 class="modal-title fs-5" id="exampleModalLabel"></h1>
@@ -29,7 +28,7 @@
         aria-hidden="true">
         <form action="{{ route('update_marker') }}" method="post" onsubmit="submitForm(this, event)">
             @method('PUT')
-            <div class="modal-dialog modal-lg modal-dialog-scrollable" style="max-width: 55%;">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 25%;">
                 <div class="modal-content">
                     <div class="modal-header bg-sb text-light">
                         <h1 class="modal-title fs-5" id="exampleModalEditLabel"></h1>
@@ -37,11 +36,10 @@
                     </div>
                     <div class="modal-body">
                         <div class='row'>
-                            <div class='col-sm-3'>
+                            <div class='col-sm-12'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Gramasi</small></label>
-                                    <input type='text' class='form-control' id='txt_gramasi' name='txt_gramasi'
-                                        value = ''>
+                                    <input type='number' class='form-control' id='txt_gramasi' name='txt_gramasi' value = ''>
                                     <input type='hidden' class='form-control' id='id_c' name='id_c' value = ''>
                                 </div>
                             </div>

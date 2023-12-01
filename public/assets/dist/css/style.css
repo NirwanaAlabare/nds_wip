@@ -80,6 +80,18 @@ table.vertical tbody td {
     font-size: 15px !important;
 }
 
+.dropdown-item.active {
+    background-color: rgba(251, 251, 251, 0.05) !important;
+    color: var(--sb-color) !important;
+    font-weight: bold;
+}
+
+.dropdown-item:focus {
+    background-color: rgba(251, 251, 251, 0.05) !important;
+    color: var(--sb-color) !important;
+    font-weight: bold;
+}
+
 /* Loading */
 .loading {
     border: 16px solid #f3f3f3;

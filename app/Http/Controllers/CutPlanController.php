@@ -58,7 +58,7 @@ class CutPlanController extends Controller
             })->toJson();
         }
 
-        return view('cut-plan.cut-plan', ["page" => "dashboard-cutting"]);
+        return view('cut-plan.cut-plan', ["page" => "dashboard-cutting", "subPageGroup" => "cuttingplan-cutting", "subPage" => "cut-plan"]);
     }
 
     /**
@@ -140,7 +140,7 @@ class CutPlanController extends Controller
             return DataTables::of($data_spreading)->toJson();
         }
 
-        return view('cut-plan.create-cut-plan', ["page" => "dashboard-cutting"]);
+        return view('cut-plan.create-cut-plan', ["page" => "dashboard-cutting", "subPageGroup" => "cuttingplan-cutting", "subPage" => "cut-plan"]);
     }
 
     public function getSelectedForm(Request $request, $noCutPlan = 0)

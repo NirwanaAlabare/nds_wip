@@ -10,7 +10,12 @@
 @section('content')
     <div class="card">
         <div class="card-header bg-sb text-light">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-plus-square fa-sm"></i> Tambahkan Rak</h5>
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title fw-bold mb-0">Tambahkan Rak</h5>
+                <a href="{{ route('rack') }}" class="btn btn-sm btn-primary">
+                    <i class="fa fa-reply"></i> Kembali ke Master Rak
+                </a>
+            </div>
         </div>
         <div class="card-body">
             <form action="{{ route('store-rack') }}" method="post" onsubmit="submitRackForm(this, event)">

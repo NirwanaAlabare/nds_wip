@@ -40,7 +40,7 @@ class RackController extends Controller
                 })->toJson();
         }
 
-        return view("rack.rack", ["page" => "dashboard-dc"]);
+        return view("rack.rack", ["page" => "dashboard-dc", "subPageGroup" => "rak-dc", "subPage" => "rack"]);
     }
 
     /**
@@ -50,7 +50,7 @@ class RackController extends Controller
      */
     public function create()
     {
-        return view('rack.create-rack', ["page" => "dashboard-dc"]);
+        return view('rack.create-rack', ["page" => "dashboard-dc", "subPageGroup" => "rak-dc", "subPage" => "rack"]);
     }
 
     /**
@@ -163,6 +163,6 @@ class RackController extends Controller
     public function rackDetail(Request $request) {
         $racks = Rack::all();
 
-        return view('rack.rack-detail', ['page' => 'dashboard-dc', 'racks' => $racks]);
+        return view('rack.rack-detail', ['page' => 'dashboard-dc', "subPageGroup" => "rak-dc", "subPage" => "rack-detail", 'racks' => $racks]);
     }
 }

@@ -102,7 +102,7 @@ class ManualFormCutController extends Controller
             return DataTables::of($data_spreading)->toJson();
         }
 
-        return view('manual-form-cut.manual-form-cut', ["page" => "dashboard-cutting"]);
+        return view('manual-form-cut.manual-form-cut', ['page' => 'dashboard-cutting', "subPageGroup" => "proses-cutting", "subPage" => "form-cut-input"]);
     }
 
     public function getRatio(Request $request)
@@ -134,7 +134,10 @@ class ManualFormCutController extends Controller
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
         return view("manual-form-cut.manual-create-form-cut", [
-            "orders" => $orders
+            "orders" => $orders,
+            'page' => 'dashboard-cutting',
+            "subPageGroup" => "proses-cutting",
+            "subPage" => "form-cut-input"
         ]);
     }
 
@@ -335,7 +338,9 @@ class ManualFormCutController extends Controller
             'actCostingData' => $actCostingData,
             'markerDetailData' => $markerDetailData,
             'orders' => $orders,
-            'page' => 'dashboard-cutting'
+            'page' => 'dashboard-cutting',
+            "subPageGroup" => "proses-cutting",
+            "subPage" => "form-cut-input"
         ]);
     }
 

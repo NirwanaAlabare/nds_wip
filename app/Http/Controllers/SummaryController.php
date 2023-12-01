@@ -98,7 +98,7 @@ class SummaryController extends Controller
             return DataTables::of($data_spreading)->toJson();
         }
 
-        return view('summary', ["page" => "dashboard-cutting"]);
+        return view('summary', ["page" => "dashboard-cutting", "subPage" => "summary-cutting"]);
     }
 
     /**

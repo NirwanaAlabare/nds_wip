@@ -101,7 +101,7 @@ class SpreadingController extends Controller
 
         $meja = User::select("id", "name", "username")->where('type', 'meja')->get();
 
-        return view('spreading.spreading', ['meja' => $meja, 'page' => 'dashboard-cutting']);
+        return view('spreading.spreading', ['meja' => $meja, 'page' => 'dashboard-cutting', "subPageGroup" => "proses-cutting", "subPage" => "spreading"]);
     }
 
     /**
@@ -122,7 +122,7 @@ class SpreadingController extends Controller
         group by act_costing_id");
 
 
-        return view('spreading.create-spreading', ['data_ws' => $data_ws, 'page' => 'dashboard-cutting']);
+        return view('spreading.create-spreading', ['data_ws' => $data_ws, 'page' => 'dashboard-cutting', "subPageGroup" => "proses-cutting", "subPage" => "spreading"]);
     }
 
     public function getOrderInfo(Request $request)

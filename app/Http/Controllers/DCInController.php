@@ -68,7 +68,7 @@ class DCInController extends Controller
 
             return DataTables::of($dc_in_index_group)->toJson();
         }
-        return view('dc-in.dc-in', ['page' => 'dashboard-dc'], ['tgl_skrg' => $tgl_skrg]);
+        return view('dc-in.dc-in', ['page' => 'dashboard-dc', "subPageGroup" => "dcin-dc", "subPage" => "dc-in"], ['tgl_skrg' => $tgl_skrg]);
     }
 
     public function create(Request $request, $no_form = 0)
@@ -88,7 +88,7 @@ class DCInController extends Controller
         order by act_costing_ws asc, no_cut asc
         ");
 
-        return view('dc-in.create-dc-in', ['page' => 'dashboard-dc', 'header' => $header_data[0]],);
+        return view('dc-in.create-dc-in', ['page' => 'dashboard-dc', "subPageGroup" => "dcin-dc", "subPage" => "dc-in",'header' => $header_data[0]],);
     }
 
 

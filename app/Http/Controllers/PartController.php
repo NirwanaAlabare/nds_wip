@@ -55,7 +55,7 @@ class PartController extends Controller
                 })->toJson();
         }
 
-        return view("part.part", ["page" => "dashboard-stocker"]);
+        return view("part.part", ["page" => "dashboard-stocker", "subPageGroup" => "proses-stocker", "subPage" => "part"]);
     }
 
     /**
@@ -78,7 +78,7 @@ class PartController extends Controller
 
         $masterParts = MasterPart::all();
 
-        return view('part.create-part', ['orders' => $orders, 'masterParts' => $masterParts, 'page' => 'dashboard-stocker']);
+        return view('part.create-part', ['orders' => $orders, 'masterParts' => $masterParts, 'page' => 'dashboard-stocker',  "subPageGroup" => "proses-stocker", "subPage" => "part"]);
     }
 
     public function getOrderInfo(Request $request)
@@ -391,7 +391,7 @@ class PartController extends Controller
             groupBy("part.id")->
             first();
 
-        return view("part.manage-part-form", ["part" => $part, "page" => "dashboard-stocker"]);
+        return view("part.manage-part-form", ["part" => $part, "page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "part"]);
     }
 
     public function getFormCut(Request $request, $id = 0) {

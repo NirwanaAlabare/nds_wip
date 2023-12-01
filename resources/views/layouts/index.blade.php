@@ -4,6 +4,18 @@
     @endphp
 @endif
 
+@if (!isset($subPage))
+    @php
+        $subPage = '';
+    @endphp
+@endif
+
+@if (!isset($subPageGroup))
+    @php
+        $subPageGroup = '';
+    @endphp
+@endif
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -28,7 +40,7 @@
         @endif
 
         @if ($navbar)
-            @include('layouts.navbar', ['page' => $page])
+            @include('layouts.navbar', ['page' => $page, 'subPage' => $subPage])
         @endif
 
         @include('layouts.offcanvas')

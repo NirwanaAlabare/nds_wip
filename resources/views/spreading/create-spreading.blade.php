@@ -11,9 +11,10 @@
 @endsection
 
 @section('content')
-    <h5 class="text-sb fw-bold mb-3">
-        Tambah Data Spreading
-    </h5>
+    <div class="d-flex justify-content-between mb-3">
+        <h5 class="fw-bold text-sb">Tambah Data Spreading</h5>
+        <a href="{{ route('spreading') }}" class="btn btn-primary btn-sm px-1 py-1"><i class="fas fa-reply"></i> Kembali ke Spreading</a>
+    </div>
     <form action="{{ route('store-spreading') }}" method="post" id="store-spreading" name='form' onsubmit="submitSpreadingForm(this, event)">
         @csrf
             <div class='row'>
