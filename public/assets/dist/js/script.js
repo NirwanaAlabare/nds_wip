@@ -110,7 +110,6 @@ function submitForm(e, evt) {
                 Swal.fire({
                     icon: 'success',
                     title: res.message,
-                    text: res.message,
                     showCancelButton: false,
                     showConfirmButton: true,
                     confirmButtonText: 'Oke',
@@ -124,7 +123,7 @@ function submitForm(e, evt) {
                             location.reload();
                         }
                     }
-                })
+                });
 
                 e.reset();
 
