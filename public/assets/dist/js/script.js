@@ -131,7 +131,22 @@ function submitForm(e, evt) {
                 if (document.getElementsByClassName('select2')) {
                     $(".select2").val('').trigger('change');
                 }
-            } else {
+            }
+          else if (res.status == 300) {
+            $('.modal').modal('hide');
+
+            iziToast.success({
+                title: 'success',
+                message: res.message,
+                position: 'topCenter'
+            });
+
+            e.reset();
+
+            if (document.getElementsByClassName('select2')) {
+                $(".select2").val('').trigger('change');
+            }
+        } else {
                 for(let i = 0;i < res.errors; i++) {
                     document.getElementById(res.errors[i]).classList.add('is-invalid');
                     modified.push([res.errors[i], 'classList', 'remove(', "'is-invalid')"])

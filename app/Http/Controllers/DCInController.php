@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 use App\Exports\ExportLaporanMutasiKaryawan;
 use App\Models\DCIn;
+use App\Models\Tmp_Dc_in;
 use Maatwebsite\Excel\Facades\Excel;
 use DB;
 
@@ -88,23 +89,59 @@ class DCInController extends Controller
         order by act_costing_ws asc, no_cut asc
         ");
 
-        return view('dc-in.create-dc-in', ['page' => 'dashboard-dc', 'header' => $header_data[0]],);
+
+        $data_tujuan = DB::select("select 'NON SECONDARY' as tujuan, 'Non Secondary'alokasi
+        union
+        select 'SECONDARY DALAM', 'Secondary Dalam' alokasi
+        union
+        select 'SECONDARY LUAR', 'Secondary Luar' alokasi");
+
+        return view('dc-in.create-dc-in', ['page' => 'dashboard-dc', 'data_tujuan' => $data_tujuan, 'header' => $header_data[0]],);
     }
 
 
     public function getdata_stocker_info(Request $request)
     {
-        $det_dc_in = DB::select(
-            "SELECT a.no_form,mp.nama_part,mp.id,s.* FROM `stocker_input` s
+        $det_dc_info = DB::select(
+            "SELECT ifnull(tmp.id_qr_stocker,'x'),a.no_form,mp.nama_part,mp.id,s.* FROM `stocker_input` s
             inner join form_cut_input a on s.form_cut_id = a.id
             inner join part_detail p on s.part_detail_id = p.id
             inner join master_part mp on p.master_part_id = mp.id
-            where no_form = '" . $request->no_form . "'
+            left join tmp_dc_in_input tmp on s.id_qr_stocker = tmp.id_qr_stocker
+            where a.no_form = '" . $request->no_form . "' and ifnull(tmp.id_qr_stocker,'x') = 'x'
             order by color asc, size asc "
         );
 
-        return DataTables::of($det_dc_in)->toJson();
+        return DataTables::of($det_dc_info)->toJson();
     }
+
+    public function getdata_stocker_input(Request $request)
+    {
+        $det_dc_input = DB::select(
+            "SELECT
+            tmp.no_form,
+            mp.nama_part,
+            mp.id,
+            s.id_qr_stocker,
+            s.shade,
+            s.color,
+            s.size,
+            s.qty_ply,
+            tmp.qty_reject,
+            tmp.qty_replace
+            from tmp_dc_in_input tmp
+            inner join stocker_input s on tmp.id_qr_stocker = s.id_qr_stocker
+            inner join form_cut_input a on s.form_cut_id = a.id
+            inner join part_detail p on s.part_detail_id = p.id
+            inner join master_part mp on p.master_part_id = mp.id
+            where tmp.no_form = '" . $request->no_form . "'
+            order by color asc, size asc "
+        );
+
+        return DataTables::of($det_dc_input)->toJson();
+    }
+
+
 
     public function getdata_dc_in(Request $request)
     {
@@ -116,67 +153,86 @@ class DCInController extends Controller
         return DataTables::of($det_dc_in)->toJson();
     }
 
-    public function gettotal(Request $request)
+    public function show_tmp_dc_in(Request $request)
     {
-        $total =  DB::connection('mysql_hris')->select(
-            "
-        select count(nik) total from
-        (select max(id) id from mut_karyawan_input a
-        group by nik)a
-        inner join mut_karyawan_input b on a.id = b.id
-        where line ='" . $request->nm_line . "'
-        ",
+        $data_tmp_dc_in = DB::select("
+        SELECT a.id_qr_stocker,
+        tujuan,
+        alokasi,
+        qty_ply,
+        qty_reject,
+        qty_replace
+        FROM `tmp_dc_in_input`a
+        inner join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+        where a.id_qr_stocker = '$request->id_c'");
+        return json_encode($data_tmp_dc_in[0]);
+    }
+
+    public function get_alokasi(Request $request)
+    {
+        $data_tujuan = $request->tujuan;
+
+        if ($data_tujuan == 'NON SECONDARY') {
+            $data_alokasi = DB::select("select nama_detail_rak isi, nama_detail_rak tampil from rack_detail");
+            $html = "<option value=''>Pilih Rak</option>";
+        } else if ($data_tujuan == 'SECONDARY DALAM') {
+            $data_alokasi = DB::select("select kode isi, proses tampil from master_secondary where jenis = 'DALAM'");
+            $html = "<option value=''>Pilih Proses Secondary Dalam</option>";
+        } else if ($data_tujuan == 'SECONDARY LUAR') {
+            $data_alokasi = DB::select("select kode isi, proses tampil from master_secondary where jenis = 'LUAR'");
+            $html = "<option value=''>Pilih Proses Secondary Luar</option>";
+        }
+
+        // $datano_marker = DB::select("select *,  concat(kode,' - ',color, ' - (',panel, ' - ',urutan_marker, ' )') tampil  from marker_input a
+        // left join (select id_marker from form_cut_input group by id_marker ) b on a.kode = b.id_marker
+        // where act_costing_id = '" . $request->cbows . "' and b.id_marker is null and a.cancel = 'N' order by urutan_marker asc");
+        // $html = "<option value=''>Pilih No Marker</option>";
+
+        foreach ($data_alokasi as $dataalokasi) {
+            $html .= " <option value='" . $dataalokasi->tampil . "'>" . $dataalokasi->tampil . "</option> ";
+        }
+
+        return $html;
+    }
+
+
+    public function update_tmp_dc_in(Request $request)
+    {
+        $update_tmp_dc_in = DB::update("
+        update tmp_dc_in_input
+        set qty_reject = '$request->txtqtyreject',
+        qty_replace = '$request->txtqtyreplace',
+        tujuan = '$request->cbotuj',
+        alokasi = '$request->cboalokasi'
+        where id_qr_stocker = '$request->id_c'");
+
+        if ($update_tmp_dc_in) {
+            return array(
+                'status' => 300,
+                'message' => 'Data Stocker "' . $request->id_c . '" berhasil diubah',
+                'redirect' => '',
+                'table' => 'datatable-input',
+                'additional' => [],
+            );
+        }
+        return array(
+            'status' => 400,
+            'message' => 'Data produksi gagal diubah',
+            'redirect' => '',
+            'table' => 'datatable-input',
+            'additional' => [],
         );
-        return json_encode($total[0]);
     }
 
-    public function getdatalinekaryawan(Request $request)
-    {
-        $tglskrg = date('Y-m-d');
-        // $det_karyawan_line = DB::select("
-        // select a.id, b.*,
-        // DATE_FORMAT(tgl_pindah, '%d-%m-%Y') tgl_pindah_fix,
-        // DATE_FORMAT (updated_at, '%d-%m-%Y %H:%i:%s') tgl_update_fix
-        // from
-        // (select max(id) id from mut_karyawan_input a
-        // group by nik)a
-        // inner join mut_karyawan_input b on a.id = b.id
-        // where line ='" . $request->nm_line . "'
-        // order by updated_at desc
-        // ");
-        // return DataTables::of($det_karyawan_line)->toJson();
-
-        $det_karyawan_line =  DB::connection('mysql_hris')->select("
-        select a.id, b.*,
-        c.absen_masuk_kerja,
-        DATE_FORMAT(tgl_pindah, '%d-%m-%Y') tgl_pindah_fix,
-        DATE_FORMAT(b.updated_at, '%d-%m-%Y %H:%i:%s') tgl_update_fix,
-        c.status_aktif
-        from
-        (select max(id) id from mut_karyawan_input a
-        group by nik)a
-        inner join mut_karyawan_input b on a.id = b.id
-        left join (select enroll_id, absen_masuk_kerja, status_aktif from master_data_absen_kehadiran where tanggal_berjalan = '" . $tglskrg . "') c on b.enroll_id = c.enroll_id
-        where status_aktif = 'AKTIF' or status_aktif is null and line ='" . $request->nm_line . "'
-        order by updated_at desc
-        ");
-        return DataTables::of($det_karyawan_line)->toJson();
-    }
-
-    public function getdatanik(Request $request)
-    {
-        $master_karyawan = DB::connection('mysql_hris')->select(
-            "select enroll_id,ifnull(nik,nik_new) nik, employee_name from employee_atribut
-            where enroll_id ='" . $request->txtenroll_id . "' and status_aktif = 'AKTIF'",
-        );
-        return json_encode($master_karyawan[0]);
-    }
 
     public function store(Request $request)
     {
         $timestamp = Carbon::now();
-        $savemutasi = DCIn::create([
+        $savemutasi = Tmp_Dc_in::create([
             'id_qr_stocker' => $request['txtqrstocker'],
+            'no_form' => $request['no_form'],
+            'qty_reject' => '0',
+            'qty_replace' => '0',
             'created_at' => $timestamp,
             'updated_at' => $timestamp,
         ]);

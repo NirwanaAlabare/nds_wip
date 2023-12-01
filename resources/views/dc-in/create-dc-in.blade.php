@@ -12,13 +12,94 @@
 @endsection
 
 @section('content')
+    <div class="modal fade" id="exampleModalEdit" tabindex="-1" role="dialog" aria-labelledby="exampleModalEditLabel"
+        aria-hidden="true">
+        <form action="{{ route('update_tmp_dc_in') }}" method="post" onsubmit="submitForm(this, event)">
+            @method('PUT')
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header bg-sb text-light">
+                        <h1 class="modal-title fs-5" id="exampleModalEditLabel"></h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class='row'>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Qty</small></label>
+                                    <input type='text' class='form-control' id='txtqty' name='txtqty' value = ''
+                                        readonly>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Reject</small></label>
+                                    <input type='number' class='form-control' id='txtqtyreject' name='txtqtyreject'
+                                        oninput='sum();' autocomplete='off'>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Replacement</small></label>
+                                    <input type='number' class='form-control' id='txtqtyreplace' name='txtqtyreplace'>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Qty In</small></label>
+                                    <input type='number' class='form-control' id='txtqtyin' name='txtqtyin' value = ''
+                                        readonly>
+                                    <input type='hidden' class='form-control' id='id_c' name='id_c' value = ''>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='row'>
+                            <div class='col-sm-12'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Tujuan</small></label>
+                                    <select class="form-control select2bs4" id="cbotuj" name="cbotuj"
+                                        onchange='getalokasi();' style="width: 100%;">
+                                        <option selected="selected" value="">Pilih Tujuan</option>
+                                        @foreach ($data_tujuan as $datatujuan)
+                                            <option value="{{ $datatujuan->tujuan }}">
+                                                {{ $datatujuan->alokasi }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class='row'>
+                            <div class='col-sm-12'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Alokasi</small></label>
+                                    <select class='form-control select2bs4' style='width: 100%;' name='cboalokasi'
+                                        id='cboalokasi'></select>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                        <button type="submit" class="btn btn-sb">Simpan </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+
+
+
     <form action="{{ route('store_dc_in') }}" method="post" id="store_dc_in" name='form'
         onsubmit="submitDCInForm(this, event)">
 
         <div class="card card-outline">
             <div class="card-header">
-                <h5 class="card-title fw-bold  mb-0">
-                    Scan DC IN
+                <h5 style="text-align:center;">
+                    <b>Scan DC IN </b>
                 </h5>
             </div>
             <div class='row'>
@@ -141,8 +222,10 @@
                                     <th>Color</th>
                                     <th>Shade</th>
                                     <th>Nama Part</th>
-                                    <th>Range Awal</th>
-                                    <th>Range Akhir</th>
+                                    <th>Qty</th>
+                                    <th>Reject</th>
+                                    <th>Replace</th>
+                                    <th>Act</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -183,6 +266,10 @@
             </div>
         </div>
     </div>
+    <a href="{{ route('create-mut-karyawan') }}" class="btn btn-success btn-sm mb-3">
+        <i class="fas fa-qrcode fa-spin fa-lg"></i>
+        Simpan
+    </a>
     </div>
 @endsection
 
@@ -230,6 +317,8 @@
                     scan_qr();
 
                     html5QrcodeScanner.clear();
+                    initScan();
+
                 }
 
                 function onScanFailure(error) {
@@ -259,6 +348,7 @@
             // $("#jml_org").val('');
             initScan();
             getinfo();
+            gettmp();
 
         })
 
@@ -277,6 +367,7 @@
             let no_form = document.form.no_form.value;
             let datatable = $("#datatable-info").DataTable({
                 ordering: false,
+                destroy: true,
                 processing: true,
                 serverSide: true,
                 info: false,
@@ -313,10 +404,7 @@
                 ],
             });
         };
-
-
-
-        let datatable = $("#datatable").DataTable({
+        let datatable_info = $("#datatable_info").DataTable({
             ordering: false,
             processing: true,
             serverSide: true,
@@ -338,16 +426,93 @@
             ],
         });
 
+        function gettmp() {
+            let no_form = document.form.no_form.value;
+            let datatable_input = $("#datatable-input").DataTable({
+                ordering: false,
+                destroy: true,
+                processing: true,
+                serverSide: true,
+                info: false,
+                paging: false,
+                scrollX: true,
+                searching: false,
+                ajax: {
+                    url: '{{ route('getdata_stocker_input') }}',
+                    data: {
+                        no_form: no_form
+                    },
+                },
+                columns: [{
+                        data: 'id_qr_stocker'
+                    },
+                    {
+                        data: 'size'
+                    },
+                    {
+                        data: 'color'
+                    },
+                    {
+                        data: 'shade'
+                    },
+                    {
+                        data: 'nama_part'
+                    },
+                    {
+                        data: 'qty_ply'
+                    },
+                    {
+                        data: 'qty_reject'
+                    },
+                    {
+                        data: 'qty_replace'
+                    }
+                ],
+                columnDefs: [{
+                    targets: [8],
+                    className: "align-middle",
+                    render: (data, type, row, meta) => {
+                        return `
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModalEdit"
+                                    onclick="getdetail('` + row.id_qr_stocker + `');">
+                                        <i class='fa fa-search'></i>
+                                    </a>
+                                </div>
+                            `;
+                    }
+                }],
+            });
+        };
+
+        let datatable_input = $("#datatable_input").DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            info: false,
+            paging: false,
+            scrollX: true,
+            ajax: {
+                url: '{{ route('getdata_stocker_input') }}'
+            }
+        });
+
+
         function scan_qr() {
             let txtqrstocker = document.form.txtqrstocker.value;
+            let no_form = document.form.no_form.value;
             $.ajax({
                 type: "post",
                 url: '{{ route('store_dc_in') }}',
                 data: {
-                    txtqrstocker: txtqrstocker
+                    txtqrstocker: txtqrstocker,
+                    no_form: no_form
                 },
                 success: function(response) {
-                    datatable.ajax.reload();
+                    $("#txtqrstocker").val('');
+                    getinfo();
+                    gettmp();
+                    initScan();
                 },
                 error: function(request, status, error) {
                     alert(request.responseText);
@@ -355,9 +520,64 @@
             });
         };
 
+        function getdetail(id_c) {
+            $("#exampleModalEditLabel").html(id_c);
+            jQuery.ajax({
+                url: '{{ route('show_tmp_dc_in') }}',
+                method: 'POST',
+                data: {
+                    id_c: id_c
+                },
+                dataType: 'json',
+                success: async function(response) {
+                    sum();
+                    document.getElementById('txtqty').value = response.qty_ply;
+                    document.getElementById('id_c').value = response.id_qr_stocker;
+                    document.getElementById('txtqtyreject').value = response.qty_reject;
+                    document.getElementById('txtqtyreplace').value = response.qty_replace;
+                    // document.getElementById('cbotuj').value = response.tujuan;
+                    $("#cbotuj").val(response.tujuan).trigger('change');
+                    document.getElementById('cboalokasi').value = response.alokasi;
+
+                },
+                error: function(request, status, error) {
+                    alert(request.responseText);
+                },
+            });
+        };
+
+        function sum() {
+            let txtqty = document.getElementById('txtqty').value;
+            let txtqtyreject = document.getElementById('txtqtyreject').value;
+            document.getElementById("txtqtyin").value = +txtqty;
+            let result = parseFloat(txtqty) - parseFloat(txtqtyreject);
+            let result_fix = Math.ceil(result)
+            if (!isNaN(result_fix)) {
+                document.getElementById("txtqtyin").value = result_fix;
+            }
+        }
+
+
+        function getalokasi() {
+            let tujuan = document.getElementById('cbotuj').value;
+            let html = $.ajax({
+                type: "POST",
+                url: '{{ route('get_alokasi') }}',
+                data: {
+                    tujuan: tujuan
+                },
+                async: false
+            }).responseText;
+
+            console.log(html != "");
+
+            if (html != "") {
+                $("#cboalokasi").html(html);
+            }
+        };
 
         function dataTableReload() {
-            datatable.ajax.reload();
+            datatable_info.ajax.reload();
         }
     </script>
 @endsection
