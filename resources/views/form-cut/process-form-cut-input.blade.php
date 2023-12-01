@@ -2179,6 +2179,8 @@
                 clearQrCodeScanner();
 
                 removeColorSpreading();
+
+                location.href = "#scan-qr-card";
             }
 
             function toScanMethod() {
@@ -2194,6 +2196,8 @@
                 initScan();
 
                 addColorSpreading();
+
+                location.href = "#scan-qr-card";
             }
 
             function addColorSpreading() {
