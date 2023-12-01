@@ -11,7 +11,10 @@
 @endsection
 
 @section('content')
-    <h5 class="fw-bold text-sb mb-3">Tambah Data Marker</h5>
+    <div class="d-flex justify-content-between mb-3">
+        <h5 class="fw-bold text-sb">Tambah Data Marker</h5>
+        <a href="{{ route('marker') }}" class="btn btn-primary btn-sm px-1 py-1"><i class="fas fa-reply"></i> Kembali ke Marker</a>
+    </div>
     <form action="{{ route('store-marker') }}" method="post" id="store-marker" onsubmit="submitMarkerForm(this, event)">
         @csrf
         <div class="card card-sb card-outline">

@@ -18,8 +18,7 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label>Tanggal Plan</label>
-                        <input type="date" class="form-control form-control" name="edit_tgl_plan" id="edit_tgl_plan"
-                            readonly>
+                        <input type="date" class="form-control form-control" name="edit_tgl_plan" id="edit_tgl_plan" readonly>
                     </div>
                     <div class="mb-3">
                         <div class="table-responsive">
@@ -153,12 +152,11 @@
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small>Tanggal Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal">
+                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="filterTable()">
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small>Tanggal Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                        value="{{ date('Y-m-d') }}">
+                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="filterTable()">
                 </div>
                 <div class="mb-3">
                     <button class="btn btn-primary btn-sm" onclick="filterTable()">Tampilkan</button>
@@ -421,6 +419,10 @@
                 url: '{{ route('get-cut-plan-form') }}',
                 data: function(d) {
                     d.no_cut_plan = $('#manage_no_cut_plan').val();
+                    d.form_info_filter = $('#form_info_filter').val();
+                    d.marker_info_filter = $('#marker_info_filter').val();
+                    d.meja_filter = $('#meja_filter').val();
+                    d.approve_filter = $('#approve_filter').val();
                 },
             },
             columns: [
@@ -473,6 +475,41 @@
         function datatableManageFormReload() {
             manageFormDatatable.ajax.reload();
         }
+
+        $('#manage-form-datatable thead tr').clone(true).appendTo('#manage-form-datatable thead');
+        $('#manage-form-datatable thead tr:eq(1) th').each(function(i) {
+            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 5 || i == 6) {
+                let elementId = '';
+
+                console.log(i);
+
+                switch (i) {
+                    case 0 :
+                        elementId = 'form_info_filter';
+                        break;
+                    case 1 :
+                        elementId = 'marker_info_filter';
+                        break;
+                    case 5 :
+                        elementId = 'meja_filter';
+                        break;
+                    case 6 :
+                        elementId = 'approve_filter';
+                        break;
+                }
+
+                let title = $(this).text();
+                $(this).html('<input type="text" style="width:100%; '+(elementId == "" ? "visibility: hidden;" : "")+'" id="'+elementId+'"/>');
+
+                console.log(elementId);
+
+                $('input', this).on('keyup change', function() {
+                    datatableManageFormReload();
+                });
+            } else {
+                $(this).empty();
+            }
+        });
 
         function approve(id) {
             document.getElementById('approve_' + id).value = 'Y';

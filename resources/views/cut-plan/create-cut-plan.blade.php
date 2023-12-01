@@ -13,16 +13,20 @@
 @section('content')
     <div class="card card-sb card-outline">
         <div class="card-header">
-            <h5 class="card-title fw-bold">
-                <i class="fa fa-cog fa-sm"></i> Atur Cutting Plan
-            </h5>
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title fw-bold">
+                    <i class="fa fa-cog fa-sm"></i> Atur Cutting Plan
+                </h5>
+                <a href="{{ route('cut-plan') }}" class="btn btn-primary btn-sm">
+                    <i class="fa fa-reply fa-sm"></i> Kembali ke Cut Plan
+                </a>
+            </div>
         </div>
         <div class="card-body">
             <form action="#" method="post">
                 <div class="mb-3">
                     <label>Tgl Plan</label>
-                    <input type="date" class="form-control" name="tgl_plan" id="tgl_plan" min='{{ date('Y-m-d') }}'
-                        value="{{ date('Y-m-d') }}">
+                    <input type="date" class="form-control" name="tgl_plan" id="tgl_plan" min='{{ date('Y-m-d') }}' value="{{ date('Y-m-d') }}">
                 </div>
             </form>
         </div>
@@ -76,7 +80,7 @@
             </div>
         </div>
         <div class="col-12 mb-3">
-            <div class="card card-primary h-100">
+            <div class="card card-info h-100">
                 <div class="card-header">
                     <h5 class="card-title fw-bold" style="padding-bottom: 2px">
                         Cut Plan Form Cut :
@@ -175,7 +179,7 @@
 
         $('#datatable-select thead tr').clone(true).appendTo('#datatable-select thead');
         $('#datatable-select thead tr:eq(1) th').each(function(i) {
-            if (i == 0 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 9 || i == 10) {
+            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 9 || i == 10) {
                 var title = $(this).text();
                 $(this).html('<input type="text"  style="width:100%"/>');
 
@@ -359,7 +363,7 @@
 
         $('#datatable-selected thead tr').clone(true).appendTo('#datatable-selected thead');
         $('#datatable-selected thead tr:eq(1) th').each(function(i) {
-            if (i == 0 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 9 || i == 10) {
+            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 10) {
                 var title = $(this).text();
                 $(this).html('<input type="text"  style="width:100%"/>');
 

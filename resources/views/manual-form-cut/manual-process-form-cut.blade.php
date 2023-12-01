@@ -2081,6 +2081,8 @@
                 let unitQtyVar = unitQty ? unitQty : document.getElementById("current_unit").value;
 
                 document.getElementById("current_qty").value = rollQtyConversion(rollQtyVar, unitQtyVar);
+
+                calculateEstAmpar();
             }
 
             function conversion(qty, unit, unitBefore) {
@@ -2570,6 +2572,8 @@
                 html5QrcodeScanner.clearQrCodeScanner;
 
                 removeColorSpreading();
+
+                location.href = "#scan-qr-card";
             }
 
             function toScanMethod() {
@@ -2585,6 +2589,8 @@
                 initScan();
 
                 addColorSpreading();
+
+                location.href = "#scan-qr-card";
             }
 
             function addColorSpreading() {
@@ -2592,7 +2598,7 @@
                 document.getElementById("current_id_item").classList.add("border-scan");
                 document.getElementById("current_lot_label").classList.add("label-scan");
                 document.getElementById("current_lot").classList.add("border-scan");
-                document.getElementById("current_roll_label").classList.add("label-scan");
+                document.getElementById("current_roll_label").classpreadingsList.add("label-scan");
                 document.getElementById("current_roll").classList.add("border-scan");
                 document.getElementById("current_qty_real_label").classList.add("label-scan");
                 document.getElementById("current_qty_real").classList.add("border-scan");
@@ -3007,10 +3013,13 @@
                 async function initScan() {
                     if (document.getElementById("reader")) {
                         if (document.getElementById("reader").style.length < 1) {
-                            await clearQrCodeScanner();
+                            if (html5QrcodeScanner) {
+                                await clearQrCodeScanner();
+                            }
 
-                            function onScanSuccess(decodedText, decodedResult) {
-                                // handle the scanned code as you like, for example:
+                            html5QrcodeScanner = new Html5Qrcode("reader");
+                            const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+                                    // handle the scanned code as you like, for example:
                                 console.log(`Code matched = ${decodedText}`, decodedResult);
 
                                 // store to input text
@@ -3021,36 +3030,67 @@
                                 getScannedItem(breakDecodedText[0]);
 
                                 clearQrCodeScanner();
-                            }
+                            };
+                            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
-                            function onScanFailure(error) {
-                                // handle scan failure, usually better to ignore and keep scanning.
-                                // for example:
-                                console.warn(`Code scan error = ${error}`);
-                            }
+                            // If you want to prefer front camera
+                            html5QrcodeScanner.start({ facingMode: "environment" }, config, qrCodeSuccessCallback);
 
-                            html5QrcodeScanner = new Html5QrcodeScanner(
-                                "reader", {
-                                    fps: 10,
-                                    qrbox: {
-                                        width: 250,
-                                        height: 250
-                                    }
-                                },
-                                /* verbose= */
-                                false);
+                            // function onScanSuccess(decodedText, decodedResult) {
+                            //     // handle the scanned code as you like, for example:
+                            //     console.log(`Code matched = ${decodedText}`, decodedResult);
 
-                            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+                            //     // store to input text
+                            //     let breakDecodedText = decodedText.split('-');
+
+                            //     document.getElementById('kode_barang').value = breakDecodedText[0];
+
+                            //     getScannedItem(breakDecodedText[0]);
+
+                            //     clearQrCodeScanner();
+                            // }
+
+                            // function onScanFailure(error) {
+                            //     // handle scan failure, usually better to ignore and keep scanning.
+                            //     // for example:
+                            //     console.warn(`Code scan error = ${error}`);
+                            // }
+
+                            // html5QrcodeScanner = new Html5QrcodeScanner(
+                            //     "reader",
+                            //     {
+                            //         fps: 10,
+                            //         qrbox: {
+                            //             width: 250,
+                            //             height: 250
+                            //         }
+                            //     }
+                            // );
+
+                            // html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+                            // html5QrCode.start({ facingMode: { exact: "environment"}}, config, onScanSuccess, onScanFailure);
                         }
                     }
                 }
 
                 async function clearQrCodeScanner() {
                     if (html5QrcodeScanner) {
+                        await html5QrcodeScanner.stop();
                         await html5QrcodeScanner.clear();
                         document.getElementById("reader").removeAttribute("style");
+
+                        html5QrcodeScanner = null;
                     }
                 }
+
+                // --Clear Scan Item Form--
+                function clearScanItemForm() {
+                    $("#kode_barang").val("");
+                    $("#id_item").val("");
+                    $("#detail_item").val("");
+                    $("#color_act").val("");
+                }
+
 
                 // --Clear Scan Item Form--
                 function clearScanItemForm() {

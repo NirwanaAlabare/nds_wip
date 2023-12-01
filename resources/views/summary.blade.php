@@ -21,14 +21,8 @@
                 <div class="col-md-6">
                     <div class="d-flex align-items-end gap-3 mb-3">
                         <div>
-                            <label class="form-label"><small>Tanggal Awal</small></label>
-                            <input type="date" class="form-control form-control-sm" onchange="dataTableReload()" id="tgl-awal" name="tgl_awal"
-                                value="{{ date('Y-m-d') }}">
-                        </div>
-                        <div>
-                            <label class="form-label"><small>Tanggal Akhir</small></label>
-                            <input type="date" class="form-control form-control-sm" onchange="dataTableReload()" id="tgl-akhir" name="tgl_akhir"
-                                value="{{ date('Y-m-d') }}">
+                            <label class="form-label"><small>Tanggal</small></label>
+                            <input type="date" class="form-control form-control-sm" onchange="dataTableReload()" id="tanggal" name="tanggal" value="{{ date('Y-m-d') }}">
                         </div>
                         <div>
                             <button class="btn btn-primary btn-sm" onclick="dataTableReload()">Tampilkan</button>
@@ -52,6 +46,7 @@
                             <th>No. Meja</th>
                             <th>Marker</th>
                             <th>WS</th>
+                            <th>Style</th>
                             <th>Color</th>
                             <th>Panel</th>
                             <th class="align-bottom">Status</th>
@@ -247,7 +242,7 @@
         });
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i == 0 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6) {
+            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 6 || i == 10 || i == 11) {
                 var title = $(this).text();
                 $(this).html('<input type="text"  style="width:100%"/>');
 
@@ -271,11 +266,11 @@
             ajax: {
                 url: '{{ route('summary') }}',
                 data: function(d) {
-                    d.dateFrom = $('#tgl-awal').val();
-                    d.dateTo = $('#tgl-akhir').val();
+                    d.date = $('#tanggal').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'no_form'
                 },
                 {
@@ -289,6 +284,9 @@
                 },
                 {
                     data: 'ws'
+                },
+                {
+                    data: 'style'
                 },
                 {
                     data: 'color'
@@ -315,7 +313,8 @@
                     data: 'id'
                 },
             ],
-            columnDefs: [{
+            columnDefs: [
+                {
                     targets: [2],
                     render: (data, type, row, meta) => {
                         let color = "";
@@ -341,7 +340,7 @@
                     }
                 },
                 {
-                    targets: [7],
+                    targets: [8],
                     className: "text-center align-middle",
                     render: (data, type, row, meta) => {
                         icon = "";
@@ -370,7 +369,7 @@
                     }
                 },
                 {
-                    targets: [11],
+                    targets: [12],
                     className: "text-center align-middle",
                     render: (data, type, row, meta) => {
                         icon = "";
@@ -408,7 +407,7 @@
                     }
                 },
                 {
-                    targets: [12],
+                    targets: [13],
                     render: (data, type, row, meta) => {
                         let btnEdit =
                             "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" +

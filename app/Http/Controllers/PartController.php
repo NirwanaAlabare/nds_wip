@@ -55,7 +55,7 @@ class PartController extends Controller
                 })->toJson();
         }
 
-        return view("part.part", ["page" => "dashboard-stocker"]);
+        return view("part.part", ["page" => "dashboard-stocker", "subPageGroup" => "proses-stocker", "subPage" => "part"]);
     }
 
     /**
@@ -78,7 +78,7 @@ class PartController extends Controller
 
         $masterParts = MasterPart::all();
 
-        return view('part.create-part', ['orders' => $orders, 'masterParts' => $masterParts, 'page' => 'dashboard-stocker']);
+        return view('part.create-part', ['orders' => $orders, 'masterParts' => $masterParts, 'page' => 'dashboard-stocker',  "subPageGroup" => "proses-stocker", "subPage" => "part"]);
     }
 
     public function getOrderInfo(Request $request)
@@ -216,6 +216,35 @@ class PartController extends Controller
 
             $partDetailStore = PartDetail::insert($partDetailData);
 
+            $formCutData = FormCutInput::select('form_cut_input.id')->
+                leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')->
+                where("marker_input.act_costing_id", $partStore->act_costing_id)->
+                where("marker_input.act_costing_ws", $partStore->act_costing_ws)->
+                where("marker_input.panel", $partStore->panel)->
+                where("marker_input.buyer", $partStore->buyer)->
+                where("marker_input.style", $partStore->style)->
+                where("form_cut_input.status", "SELESAI PENGERJAAN")->
+                orderBy("no_cut", "asc")->
+                get();
+
+            foreach ($formCutData as $formCut) {
+                $isExist = PartForm::where("part_id", $partId)->where("form_id", $formCut->id)->count();
+
+                if ($isExist < 1) {
+                    $lastPartForm = PartForm::select("kode")->orderBy("kode", "desc")->first();
+                    $urutanPartForm = $lastPartForm ? intval(substr($lastPartForm->kode, -5)) + 1 : 1;
+                    $kodePartForm = "PFM" . sprintf('%05s', $urutanPartForm);
+
+                    $addToPartForm = PartForm::create([
+                        "kode" => $kodePartForm,
+                        "part_id" => $partId,
+                        "form_id" => $formCut->id,
+                        "created_at" => Carbon::now(),
+                        "updated_at" => Carbon::now(),
+                    ]);
+                }
+            }
+
             return array(
                 "status" => 200,
                 "message" => $partCode,
@@ -342,9 +371,7 @@ class PartController extends Controller
                     })->filterColumn('nama_meja', function ($query, $keyword) {
                         $query->whereRaw("LOWER(users.name) LIKE LOWER('%" . $keyword . "%')");
                     })->order(function ($query) {
-                        $query->
-                            orderBy('form_cut_input.waktu_selesai', 'desc')->
-                            orderByRaw('FIELD(form_cut_input.tipe_form_cut, null, "NORMAL", "MANUAL")');
+                        $query->orderBy('form_cut_input.no_cut', 'asc');
                     })->toJson();
         }
 
@@ -364,7 +391,7 @@ class PartController extends Controller
             groupBy("part.id")->
             first();
 
-        return view("part.manage-part-form", ["part" => $part, "page" => "dashboard-stocker"]);
+        return view("part.manage-part-form", ["part" => $part, "page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "part"]);
     }
 
     public function getFormCut(Request $request, $id = 0) {
@@ -409,9 +436,7 @@ class PartController extends Controller
             })->filterColumn('nama_meja', function ($query, $keyword) {
                 $query->whereRaw("LOWER(users.name) LIKE LOWER('%" . $keyword . "%')");
             })->order(function ($query) {
-                $query->
-                    orderBy('form_cut_input.waktu_selesai', 'desc')->
-                    orderByRaw('FIELD(form_cut_input.tipe_form_cut, null, "NORMAL", "MANUAL")');
+                $query->orderBy('form_cut_input.no_cut', 'asc');
             })->toJson();
     }
 
@@ -428,7 +453,7 @@ class PartController extends Controller
                 $urutanPartForm = $lastPartForm ? intval(substr($lastPartForm->kode, -5)) + 1 : 1;
                 $kodePartForm = "PFM" . sprintf('%05s', $urutanPartForm);
 
-                $addToCutPlan = PartForm::create([
+                $addToPartForm = PartForm::create([
                     "kode" => $kodePartForm,
                     "part_id" => $request->part_id,
                     "form_id" => $partForm['form_id'],
@@ -436,7 +461,7 @@ class PartController extends Controller
                     "updated_at" => Carbon::now(),
                 ]);
 
-                if ($addToCutPlan) {
+                if ($addToPartForm) {
                     array_push($success, ['no_form' => $partForm['no_form']]);
                 } else {
                     array_push($fail, ['no_form' => $partForm['no_form']]);

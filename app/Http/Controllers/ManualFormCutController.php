@@ -102,7 +102,7 @@ class ManualFormCutController extends Controller
             return DataTables::of($data_spreading)->toJson();
         }
 
-        return view('manual-form-cut.manual-form-cut', ["page" => "dashboard-cutting"]);
+        return view('manual-form-cut.manual-form-cut', ['page' => 'dashboard-cutting', "subPageGroup" => "proses-cutting", "subPage" => "form-cut-input"]);
     }
 
     public function getRatio(Request $request)
@@ -134,7 +134,10 @@ class ManualFormCutController extends Controller
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
         return view("manual-form-cut.manual-create-form-cut", [
-            "orders" => $orders
+            "orders" => $orders,
+            'page' => 'dashboard-cutting',
+            "subPageGroup" => "proses-cutting",
+            "subPage" => "form-cut-input"
         ]);
     }
 
@@ -335,7 +338,9 @@ class ManualFormCutController extends Controller
             'actCostingData' => $actCostingData,
             'markerDetailData' => $markerDetailData,
             'orders' => $orders,
-            'page' => 'dashboard-cutting'
+            'page' => 'dashboard-cutting',
+            "subPageGroup" => "proses-cutting",
+            "subPage" => "form-cut-input"
         ]);
     }
 
@@ -1133,6 +1138,29 @@ class ManualFormCutController extends Controller
         if ($notCompleted) {
             FormCutInputDetailLap::where("form_cut_input_detail_id", $notCompleted->id)->delete();
             FormCutInputDetail::where("no_form_cut_input", $formCutInputData->no_form)->where("status", "not complete")->delete();
+        }
+
+        // store to part form
+        $partData = Part::select('part.id')->
+            where("act_costing_id", $formCutInputData->marker->act_costing_id)->
+            where("act_costing_ws", $formCutInputData->marker->act_costing_ws)->
+            where("panel", $formCutInputData->marker->panel)->
+            where("buyer", $formCutInputData->marker->buyer)->
+            where("style", $formCutInputData->marker->style)->
+            first();
+
+        if ($partData) {
+            $lastPartForm = PartForm::select("kode")->orderBy("kode", "desc")->first();
+            $urutanPartForm = $lastPartForm ? intval(substr($lastPartForm->kode, -5)) + 1 : 1;
+            $kodePartForm = "PFM" . sprintf('%05s', $urutanPartForm);
+
+            $addToPartForm = PartForm::create([
+                "kode" => $kodePartForm,
+                "part_id" => $partData->id,
+                "form_id" => $formCutInputData->id,
+                "created_at" => Carbon::now(),
+                "updated_at" => Carbon::now(),
+            ]);
         }
 
         return $updateFormCutInput;

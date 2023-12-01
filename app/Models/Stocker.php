@@ -22,6 +22,14 @@ class Stocker extends Model
     }
 
     /**
+     * Get the form.
+     */
+    public function formCut()
+    {
+        return $this->belongsTo(FormCutInput::class, 'form_cut_id', 'id');
+    }
+
+    /**
      * Get the stocker details.
      */
     public function stockerDetails()

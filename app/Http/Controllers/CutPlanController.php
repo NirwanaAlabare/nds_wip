@@ -58,7 +58,7 @@ class CutPlanController extends Controller
             })->toJson();
         }
 
-        return view('cut-plan.cut-plan', ["page" => "dashboard-cutting"]);
+        return view('cut-plan.cut-plan', ["page" => "dashboard-cutting", "subPageGroup" => "cuttingplan-cutting", "subPage" => "cut-plan"]);
     }
 
     /**
@@ -106,7 +106,7 @@ class CutPlanController extends Controller
                     b.id marker_id,
                     b.act_costing_ws ws,
                     b.style,
-                    panel,
+                    b.panel,
                     b.color,
                     a.status,
                     users.name nama_meja,
@@ -140,7 +140,7 @@ class CutPlanController extends Controller
             return DataTables::of($data_spreading)->toJson();
         }
 
-        return view('cut-plan.create-cut-plan', ["page" => "dashboard-cutting"]);
+        return view('cut-plan.create-cut-plan', ["page" => "dashboard-cutting", "subPageGroup" => "cuttingplan-cutting", "subPage" => "cut-plan"]);
     }
 
     public function getSelectedForm(Request $request, $noCutPlan = 0)
@@ -418,7 +418,66 @@ class CutPlanController extends Controller
 
             $cutPlanForm = CutPlan::with('formCutInput')->where("no_cut_plan", $request->no_cut_plan)->groupBy("no_form_cut_input");
 
-            return DataTables::eloquent($cutPlanForm)->addIndexColumn()->addColumn('form_info', function ($row) {
+            return DataTables::eloquent($cutPlanForm)->filter(function ($query) {
+                $tglAwal = request('tgl_awal');
+                $tglAkhir = request('tgl_akhir');
+                $formInfoFilter = request('form_info_filter');
+                $markerInfoFilter = request('marker_info_filter');
+                $mejaFilter = request('meja_filter');
+                $approveFilter = request('approve_filter');
+
+                if ($tglAwal) {
+                    $query->whereRaw("tgl_cutting >= '" . $tglAwal . "'");
+                }
+
+                if ($tglAkhir) {
+                    $query->whereRaw("tgl_cutting <= '" . $tglAkhir . "'");
+                }
+
+                // dd($formInfoFilter, $markerInfoFilter, $mejaFilter, $approveFilter);
+
+                if ($formInfoFilter) {
+                    $query->whereHas('formCutInput', function ($query) use ($formInfoFilter) {
+                        $query->whereRaw("(
+                                LOWER(form_cut_input.tgl_form_cut) LIKE LOWER('%" . $formInfoFilter . "%') OR
+                                LOWER(form_cut_input.no_form) LIKE LOWER('%" . $formInfoFilter . "%') OR
+                                LOWER(form_cut_input.qty_ply) LIKE LOWER('%" . $formInfoFilter . "%') OR
+                                LOWER(form_cut_input.tipe_form_cut) LIKE LOWER('%" . $formInfoFilter . "%') OR
+                                LOWER(form_cut_input.status) LIKE LOWER('%" . $formInfoFilter . "%')
+                            )");
+                    });
+                }
+
+                if ($markerInfoFilter) {
+                    $query->whereHas('formCutInput', function ($query) use ($markerInfoFilter) {
+                        $query->whereHas('marker', function ($query) use ($markerInfoFilter) {
+                            $query->whereRaw("(
+                                    LOWER(marker_input.kode) LIKE LOWER('%" . $markerInfoFilter . "%') OR
+                                    LOWER(marker_input.buyer) LIKE LOWER('%" . $markerInfoFilter . "%') OR
+                                    LOWER(marker_input.act_costing_ws) LIKE LOWER('%" . $markerInfoFilter . "%') OR
+                                    LOWER(marker_input.style) LIKE LOWER('%" . $markerInfoFilter . "%') OR
+                                    LOWER(marker_input.color) LIKE LOWER('%" . $markerInfoFilter . "%') OR
+                                    LOWER(marker_input.panel) LIKE LOWER('%" . $markerInfoFilter . "%')
+                                )");
+                        });
+                    });
+                }
+
+                if ($mejaFilter) {
+                    $query->whereHas('formCutInput', function ($query) use ($mejaFilter) {
+                        $query->whereHas('alokasiMeja', function ($query) use ($mejaFilter) {
+                            $query->whereRaw("(
+                                    LOWER(users.name) LIKE LOWER('%" . $mejaFilter . "%') OR
+                                    LOWER(users.username) LIKE LOWER('%" . $mejaFilter . "%')
+                                )");
+                        });
+                    });
+                }
+
+                if ($approveFilter) {
+                    $query->whereRaw("app = '" . $approveFilter . "'");
+                }
+            })->addIndexColumn()->addColumn('form_info', function ($row) {
                 $formInfo = "<ul class='list-group'>";
                 $formInfo = $formInfo . "<li class='list-group-item'>Tanggal Form :<br><b>" . $row->formCutInput->tgl_form_cut . "</b></li>";
                 $formInfo = $formInfo . "<li class='list-group-item'>No. Form :<br><b>" . $row->no_form_cut_input . "</b></li>";
@@ -524,7 +583,9 @@ class CutPlanController extends Controller
                         " . ($row->formCutInput->status != 'SPREADING' ? '<input type="hidden" class="form-control" id="approve_' . $row->id . '" name="approve[' . $row->id . ']" value="' . $row->formCutInput->app . '">' : '');
 
                 return $input;
-            })->rawColumns(['form_info', 'marker_info', 'marker_detail_info', 'ratio_info', 'input_no_form', 'meja', 'approve'])->filterColumn('marker_info', function ($query, $keyword) {
+            })
+            ->rawColumns(['form_info', 'marker_info', 'marker_detail_info', 'ratio_info', 'input_no_form', 'meja', 'approve'])
+            ->filterColumn('marker_info', function ($query, $keyword) {
                 $query->whereHas('formCutInput', function ($query) use ($keyword) {
                     $query->whereHas('marker', function ($query) use ($keyword) {
                         $query->whereRaw("(

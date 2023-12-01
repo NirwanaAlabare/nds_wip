@@ -21,12 +21,8 @@ class SummaryController extends Controller
         if ($request->ajax()) {
             $additionalQuery = "";
 
-            if ($request->dateFrom) {
-                $additionalQuery .= "and date(a.updated_at) >= '" . $request->dateFrom . "' ";
-            }
-
-            if ($request->dateTo) {
-                $additionalQuery .= " and date(a.updated_at) <= '" . $request->dateTo . "' ";
+            if ($request->date) {
+                $additionalQuery .= "and date(a.updated_at) = '" . $request->date . "' ";
             }
 
             if (Auth::user()->type == "meja") {
@@ -59,7 +55,8 @@ class SummaryController extends Controller
                     a.tgl_form_cut,
                     b.id marker_id,
                     b.act_costing_ws ws,
-                    panel panel,
+                    b.style,
+                    b.panel,
                     b.color color,
                     a.status,
                     users.name nama_meja,
@@ -101,7 +98,7 @@ class SummaryController extends Controller
             return DataTables::of($data_spreading)->toJson();
         }
 
-        return view('summary', ["page" => "dashboard-cutting"]);
+        return view('summary', ["page" => "dashboard-cutting", "subPage" => "summary-cutting"]);
     }
 
     /**

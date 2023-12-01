@@ -8,9 +8,8 @@
 @endsection
 
 @section('content')
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable" style="max-width: 55%;">
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 65%;">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-light">
                     <h1 class="modal-title fs-5" id="exampleModalLabel"></h1>
@@ -29,7 +28,7 @@
         aria-hidden="true">
         <form action="{{ route('update_marker') }}" method="post" onsubmit="submitForm(this, event)">
             @method('PUT')
-            <div class="modal-dialog modal-lg modal-dialog-scrollable" style="max-width: 55%;">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 25%;">
                 <div class="modal-content">
                     <div class="modal-header bg-sb text-light">
                         <h1 class="modal-title fs-5" id="exampleModalEditLabel"></h1>
@@ -37,11 +36,10 @@
                     </div>
                     <div class="modal-body">
                         <div class='row'>
-                            <div class='col-sm-3'>
+                            <div class='col-sm-12'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Gramasi</small></label>
-                                    <input type='text' class='form-control' id='txt_gramasi' name='txt_gramasi'
-                                        value = ''>
+                                    <input type='number' class='form-control' id='txt_gramasi' name='txt_gramasi' value = ''>
                                     <input type='hidden' class='form-control' id='id_c' name='id_c' value = ''>
                                 </div>
                             </div>
@@ -87,6 +85,7 @@
                             <th>Tanggal</th>
                             <th>No. Marker</th>
                             <th>No. WS</th>
+                            <th>Style</th>
                             <th>Color</th>
                             <th>Panel</th>
                             <th>Panjang Marker</th>
@@ -115,7 +114,7 @@
     <script>
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i == 1 || i == 2 || i == 3 || i == 4) {
+            if (i != 14) {
                 var title = $(this).text();
                 $(this).html('<input type="text"  style="width:100%"/>');
 
@@ -143,7 +142,8 @@
                     d.tgl_akhir = $('#tgl-akhir').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'tgl_cut_fix',
                     searchable: false
                 },
@@ -152,6 +152,9 @@
                 },
                 {
                     data: 'act_costing_ws'
+                },
+                {
+                    data: 'style'
                 },
                 {
                     data: 'color'
@@ -189,8 +192,9 @@
                     data: 'id'
                 },
             ],
-            columnDefs: [{
-                    targets: [13],
+            columnDefs: [
+                {
+                    targets: [14],
                     className: "align-middle",
                     render: (data, type, row, meta) => {
                         let exportBtn = `

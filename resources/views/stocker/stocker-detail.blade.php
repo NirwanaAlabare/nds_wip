@@ -16,9 +16,14 @@
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="card-title fw-bold mb-0"><i class="fas fa-receipt fa-sm"></i> Detail Stocker</h5>
-                <button type="button" class="btn btn-dark btn-sm d-none" onclick="countStockerUpdate()">
-                    <i class="fa fa-sync"></i> Update No. Stocker
-                </button>
+                <div>
+                    <button type="button" class="btn btn-dark btn-sm d-none" onclick="countStockerUpdate()">
+                        <i class="fa fa-sync"></i> Update No. Stocker
+                    </button>
+                    <a href="{{ route('stocker') }}" class="btn btn-primary btn-sm">
+                        <i class="fa fa-reply"></i> Kembali ke Stocker
+                    </a>
+                </div>
             </div>
         </div>
         <div class="card-body">
@@ -114,7 +119,7 @@
                         @foreach ($dataPartDetail as $partDetail)
                             <div class="accordion-item">
                                 <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-{{ $index }}" aria-expanded="false" aria-controls="panelsStayOpen-collapseTwo">
+                                    <button class="accordion-button accordion-sb collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-{{ $index }}" aria-expanded="false" aria-controls="panelsStayOpen-collapseTwo">
                                         {{ $partDetail->nama_part }}
                                     </button>
                                 </h2>

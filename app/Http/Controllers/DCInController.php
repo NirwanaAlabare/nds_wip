@@ -69,7 +69,7 @@ class DCInController extends Controller
 
             return DataTables::of($dc_in_index_group)->toJson();
         }
-        return view('dc-in.dc-in', ['page' => 'dashboard-dc'], ['tgl_skrg' => $tgl_skrg]);
+        return view('dc-in.dc-in', ['page' => 'dashboard-dc', "subPageGroup" => "dcin-dc", "subPage" => "dc-in"], ['tgl_skrg' => $tgl_skrg]);
     }
 
     public function create(Request $request, $no_form = 0)
@@ -96,7 +96,8 @@ class DCInController extends Controller
         union
         select 'SECONDARY LUAR', 'Secondary Luar' alokasi");
 
-        return view('dc-in.create-dc-in', ['page' => 'dashboard-dc', 'data_tujuan' => $data_tujuan, 'header' => $header_data[0]],);
+        // return view('dc-in.create-dc-in', ['page' => 'dashboard-dc', 'data_tujuan' => $data_tujuan, 'header' => $header_data[0]],);
+        return view('dc-in.create-dc-in', ['page' => 'dashboard-dc', "subPageGroup" => "dcin-dc", "subPage" => "dc-in", 'data_tujuan' => $data_tujuan, 'header' => $header_data[0]],);
     }
 
 

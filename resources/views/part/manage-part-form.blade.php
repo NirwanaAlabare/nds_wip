@@ -13,9 +13,14 @@
 @section('content')
     <div class="card card-sb card-outline">
         <div class="card-header">
-            <h5 class="card-title fw-bold">
-                <i class="fa fa-cog fa-sm"></i> Atur Part Form Cut
-            </h5>
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title fw-bold">
+                    <i class="fa fa-cog fa-sm"></i> Atur Part Form Cut
+                </h5>
+                <a href="{{ route('part') }}" class="btn btn-sm btn-primary">
+                    <i class="fa fa-reply"></i> Kembali ke Part
+                </a>
+            </div>
         </div>
         <div class="card-body">
             <form action="#" method="post">
@@ -74,7 +79,7 @@
                     <div class="row align-items-center">
                         <div class="col-6">
                             <h5 class="card-title fw-bold">
-                                Form Cut :
+                                Form Cut yang belum ditambahkan :
                             </h5>
                         </div>
                     </div>
@@ -128,7 +133,7 @@
             <div class="card card-info h-100">
                 <div class="card-header">
                     <h5 class="card-title mb-0 fw-bold" style="padding-bottom: 2px">
-                        Part Form Cut :
+                        Form Cut yang sudah ditambahkan :
                     </h5>
                 </div>
                 <div class="card-body">
@@ -290,7 +295,7 @@
 
         $('#datatable-selected thead tr').clone(true).appendTo('#datatable-selected thead');
         $('#datatable-selected thead tr:eq(1) th').each(function(i) {
-            if (i == 0 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8 || i == 10) {
+            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8 || i == 10) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" />');
 
@@ -478,7 +483,7 @@
 
         $('#datatable-select thead tr').clone(true).appendTo('#datatable-select thead');
         $('#datatable-select thead tr:eq(1) th').each(function(i) {
-            if (i == 0 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8 || i == 10) {
+            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8 || i == 10) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" />');
 

@@ -63,7 +63,7 @@ class LapPemakaianController extends Controller
             return DataTables::of($data_pemakaian)->toJson();
         }
 
-        return view('lap_pemakaian.lap_pemakaian', ['page' => 'dashboard-cutting']);
+        return view('lap_pemakaian.lap_pemakaian', ['page' => 'dashboard-cutting', "subPageGroup" => "laporan-cutting", "subPage" => "lap-pemakaian"]);
     }
     /**
      * Show the form for creating a new resource.

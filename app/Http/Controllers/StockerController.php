@@ -94,14 +94,12 @@ class StockerController extends Controller
                         $query->whereRaw("LOWER(form_cut_input.total_lembar) LIKE LOWER('%" . $keyword . "%')");
                     })->order(function ($query) {
                         $query->
-                            orderBy('marker_input.act_costing_ws', 'desc')->
-                            orderBy('form_cut_input.no_cut', 'asc')->
-                            orderBy('form_cut_input.waktu_selesai', 'asc')->
-                            orderByRaw('FIELD(form_cut_input.tipe_form_cut, null, "NORMAL", "MANUAL")');
+                            orderBy('marker_input.act_costing_ws', 'asc')->
+                            orderBy('form_cut_input.no_cut', 'asc');
                     })->toJson();
         }
 
-        return view("stocker.stocker", ["page" => "dashboard-stocker"]);
+        return view("stocker.stocker", ["page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "stocker"]);
     }
 
     /**
@@ -234,7 +232,7 @@ class StockerController extends Controller
             groupBy("no_cut", "marker_input_detail.so_det_id", "part_detail.id")->
             get();
 
-        return view("stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataPartDetail" => $dataPartDetail,"dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "page" => "dashboard-stocker"]);
+        return view("stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataPartDetail" => $dataPartDetail,"dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "page" => "dashboard-stocker", "subPageGroup" => "proses-stocker", "subPage" => "stocker"]);
     }
 
     /**

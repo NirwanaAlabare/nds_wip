@@ -26,6 +26,7 @@ class MarkerController extends Controller
                 DATE_FORMAT(tgl_cutting, '%d-%m-%Y') tgl_cut_fix,
                 kode,
                 act_costing_ws,
+                style,
                 color,
                 panel,
                 CONCAT(panjang_marker, ' ', UPPER(unit_panjang_marker)) panjang_marker,
@@ -67,7 +68,7 @@ class MarkerController extends Controller
             })->toJson();
         }
 
-        return view('marker.marker', ["page" => "dashboard-cutting"]);
+        return view('marker.marker', ["page" => "dashboard-cutting", "subPageGroup" => "proses-cutting", "subPage" => "marker"]);
     }
 
     /**
@@ -89,7 +90,7 @@ class MarkerController extends Controller
 
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
-        return view('marker.create-marker', ['orders' => $orders, 'page' => 'dashboard-cutting']);
+        return view('marker.create-marker', ['orders' => $orders, 'page' => 'dashboard-cutting', "subPageGroup" => "proses-cutting", "subPage" => "marker"]);
     }
 
     public function getOrderInfo(Request $request)
