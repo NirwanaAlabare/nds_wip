@@ -371,9 +371,7 @@ class PartController extends Controller
                     })->filterColumn('nama_meja', function ($query, $keyword) {
                         $query->whereRaw("LOWER(users.name) LIKE LOWER('%" . $keyword . "%')");
                     })->order(function ($query) {
-                        $query->
-                            orderBy('form_cut_input.waktu_selesai', 'desc')->
-                            orderByRaw('FIELD(form_cut_input.tipe_form_cut, null, "NORMAL", "MANUAL")');
+                        $query->orderBy('form_cut_input.no_cut', 'asc');
                     })->toJson();
         }
 
@@ -438,9 +436,7 @@ class PartController extends Controller
             })->filterColumn('nama_meja', function ($query, $keyword) {
                 $query->whereRaw("LOWER(users.name) LIKE LOWER('%" . $keyword . "%')");
             })->order(function ($query) {
-                $query->
-                    orderBy('form_cut_input.waktu_selesai', 'desc')->
-                    orderByRaw('FIELD(form_cut_input.tipe_form_cut, null, "NORMAL", "MANUAL")');
+                $query->orderBy('form_cut_input.no_cut', 'asc');
             })->toJson();
     }
 

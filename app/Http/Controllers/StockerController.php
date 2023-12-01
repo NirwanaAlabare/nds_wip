@@ -94,10 +94,8 @@ class StockerController extends Controller
                         $query->whereRaw("LOWER(form_cut_input.total_lembar) LIKE LOWER('%" . $keyword . "%')");
                     })->order(function ($query) {
                         $query->
-                            orderBy('marker_input.act_costing_ws', 'desc')->
-                            orderBy('form_cut_input.no_cut', 'asc')->
-                            orderBy('form_cut_input.waktu_selesai', 'asc')->
-                            orderByRaw('FIELD(form_cut_input.tipe_form_cut, null, "NORMAL", "MANUAL")');
+                            orderBy('marker_input.act_costing_ws', 'asc')->
+                            orderBy('form_cut_input.no_cut', 'asc');
                     })->toJson();
         }
 
