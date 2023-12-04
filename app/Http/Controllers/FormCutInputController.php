@@ -9,6 +9,7 @@ use App\Models\FormCutInputDetail;
 use App\Models\FormCutInputDetailLap;
 use App\Models\FormCutInputLostTime;
 use App\Models\ScannedItem;
+use App\Models\CutPlan;
 use App\Models\Part;
 use App\Models\PartForm;
 use Illuminate\Http\Request;
