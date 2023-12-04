@@ -240,7 +240,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('dc-in');
         Route::get('/create/{no_form?}', 'create')->name('create-dc-in');
         Route::get('/getdata_stocker_info', 'getdata_stocker_info')->name('getdata_stocker_info');
+        Route::get('/getdata_stocker_input', 'getdata_stocker_input')->name('getdata_stocker_input');
         Route::get('/getdata_dc_in', 'getdata_dc_in')->name('getdata_dc_in');
+        Route::post('/show_tmp_dc_in', 'show_tmp_dc_in')->name('show_tmp_dc_in');
+        Route::post('/get_alokasi', 'get_alokasi')->name('get_alokasi');
+        Route::put('/update_tmp_dc_in', 'update_tmp_dc_in')->name('update_tmp_dc_in');
         Route::post('/store', 'store')->name('store_dc_in');
     });
 
