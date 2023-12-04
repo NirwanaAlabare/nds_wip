@@ -368,3 +368,7 @@ Route::get('/general-form', function () {
 Route::get('/validation-form', function () {
     return view('component.forms.validation');
 })->middleware('auth');
+
+Route::get('/bon-mutasi', function () {
+    return view('bon-mutasi');
+})->middleware('auth');
