@@ -2712,6 +2712,7 @@
                     data.qty ? document.getElementById("current_qty").value = convertedQty : '';
                     data.qty ? document.getElementById("current_qty_real").value = data.qty : '';
                     data.unit ? document.getElementById("current_unit").value = data.unit : '';
+                    data.unit ? document.getElementById("current_custom_unit").value = data.unit : '';
                     data.unit ? document.getElementById("current_sisa_gelaran_unit").value = (data.unit != "KGM" ? "METER" : "KGM") : '';
                     data.unit ? document.getElementById("current_sambungan_unit").value = (data.unit != "KGM" ? "METER" : "KGM") : '';
                     data.sisa_gelaran ? document.getElementById("current_sisa_gelaran").value = data.sisa_gelaran : '';
