@@ -56,7 +56,7 @@ class SummaryController extends Controller
                     b.id marker_id,
                     b.act_costing_ws ws,
                     b.style,
-                    b.panel,
+                    CONCAT(b.panel, ' - ', b.urutan_marker) panel,
                     b.color color,
                     a.status,
                     users.name nama_meja,
