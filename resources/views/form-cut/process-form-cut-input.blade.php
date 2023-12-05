@@ -1110,10 +1110,10 @@
                 //     clearQrCodeScanner();
                 // });
 
-                // // -On Scan Card Expand-
-                // $('#scan-qr-card').on('expanded.lte.cardwidget', function(e) {
-                //     initScan();
-                // });
+                // -On Scan Card Expand-
+                $('#scan-qr-card').on('expanded.lte.cardwidget', function(e) {
+                    refreshScan();
+                });
 
                 // -Default Method-
                 await $('#switch-method').prop('checked', true);
@@ -2724,21 +2724,22 @@
                 document.getElementById("switch-method").setAttribute("disabled", true);
                 document.getElementById("reader").classList.add("d-none");
 
-                if (html5QrcodeScanner != null) {
-                    clearQrCodeScanner();
-                }
+                clearQrCodeScanner();
             }
 
             // --Open Scan Item Form then Open Scanner--
             function openScanItemForm() {
-                document.getElementById("kode_barang").removeAttribute("readonly");
-                document.getElementById("color_act").removeAttribute("disabled");
-                document.getElementById("get-button").removeAttribute("disabled");
-                document.getElementById("scan-button").removeAttribute("disabled");
-                document.getElementById("switch-method").removeAttribute("disabled");
-                document.getElementById("reader").classList.remove("d-none");
+                if (status != "SELESAI PENGERJAAN") {
 
-                initScan();
+                    document.getElementById("kode_barang").removeAttribute("readonly");
+                    document.getElementById("color_act").removeAttribute("disabled");
+                    document.getElementById("get-button").removeAttribute("disabled");
+                    document.getElementById("scan-button").removeAttribute("disabled");
+                    document.getElementById("switch-method").removeAttribute("disabled");
+                    document.getElementById("reader").classList.remove("d-none");
+
+                    initScan();
+                }
             }
 
         // Scanned Item Module :
