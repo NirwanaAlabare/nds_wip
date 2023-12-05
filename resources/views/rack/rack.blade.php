@@ -122,9 +122,12 @@
                                 <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editMasterRackModal" onclick='editData(` + JSON.stringify(row) + `, "editMasterRackModal", [{"function" : "datatableRakReload()"}]);'>
                                     <i class='fa fa-edit'></i>
                                 </a>
-                                <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='`+row['id']+`' onclick='deleteData(this)'>
+                                <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route("destroy-rack") }}/`+row['id']+`' onclick='deleteData(this);'>
                                     <i class='fa fa-trash'></i>
                                 </a>
+                                <button type="button" class="btn btn-sm btn-secondary" data='`+JSON.stringify(row)+`' data-url='{{ route("print-rack") }}/`+row['id']+`' onclick="printRack(this);">
+                                    <i class="fa fa-print fa-s"></i>
+                                </button>
                             </div>
                         `;
                     }
@@ -134,6 +137,46 @@
 
         function datatableRakReload() {
             datatableRak.ajax.reload()
+        }
+
+        function printRack(e) {
+            let data = JSON.parse(e.getAttribute('data'));
+
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                url: e.getAttribute('data-url'),
+                type: 'post',
+                processData: false,
+                contentType: false,
+                data: data,
+                xhrFields:
+                {
+                    responseType: 'blob'
+                },
+                success: function(res) {
+                    if (res) {
+                        console.log(res);
+
+                        var blob = new Blob([res], {type: 'application/pdf'});
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = data.nama_rak+".pdf";
+                        link.click();
+
+                        swal.close();
+
+                        // window.location.reload();
+                    }
+                }
+            });
         }
     </script>
 @endsection

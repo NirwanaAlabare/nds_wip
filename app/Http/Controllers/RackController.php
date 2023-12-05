@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
+use QrCode;
+use PDF;
 
 class RackController extends Controller
 {
@@ -63,7 +65,7 @@ class RackController extends Controller
     {
         $validatedRequest = $request->validate([
             "nama_rak" => "required|unique:rack,nama_rak,except,id",
-            "jumlah_ruang" => "required|min:1",
+            "jumlah_ruang" => "required|numeric|min:1",
         ]);
 
         $lastRack = Rack::select('kode')->orderBy('updated_at', 'desc')->first();
@@ -76,13 +78,13 @@ class RackController extends Controller
         ]);
 
         if ($validatedRequest['jumlah_ruang'] > 0) {
-            $lastRackDetail = RackDetail::select('kode')->orderBy('updated_at', 'desc')->first();
+            $lastRackDetail = RackDetail::select('kode')->orderBy('id', 'desc')->first();
             $rackDetailNumber = $lastRackDetail ? intval(substr($lastRackDetail->kode, -5)) + 1 : 1;
 
             $rackDetailData = [];
             for ($i = 0; $i < $validatedRequest['jumlah_ruang']; $i++) {
                 array_push($rackDetailData, [
-                    "kode" => 'DRK' . sprintf('%05s', $rackNumber + $i),
+                    "kode" => 'DRK' . sprintf('%05s', $rackDetailNumber + $i),
                     "rack_id" => $storeRack->id,
                     "nama_detail_rak" => $validatedRequest['nama_rak'].".".($i+1),
                     "created_at" => Carbon::now(),
@@ -231,9 +233,56 @@ class RackController extends Controller
      * @param  \App\Models\Rack  $rack
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Rack $rack)
+    public function destroy(Rack $rack, $id = 0)
     {
-        //
+        $thisRack = Rack::selectRaw("
+                rack.nama_rak,
+                COUNT(rack_detail_stocker.id) stocker_rack
+            ")->
+            leftJoin("rack_detail", "rack_detail.rack_id", "rack.id")->
+            leftJoin("rack_detail_stocker", "detail_rack.rack_id", "rack_detail.id")->
+            where('rack.id', $id)->
+            groupBy('rack.id')->
+            first();
+
+        if ($thisRack->stocker_rack < 1) {
+            $deleteRack = Rack::where('id', $id)->delete();
+
+            if ($deleteRack) {
+                $deleteRackDetail = RackDetail::where('rack_id', $id)->delete();
+            }
+
+            return array(
+                "status" => 200,
+                "message" => "Rak '".$rackData->kode."' Berhasil Di Hapus",
+                "additional" => [],
+                "table" => "datatable-rack",
+                "redirect" => ""
+            );
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Rak '".$rackData->kode."' sudah terisi",
+            "additional" => [],
+            "redirect" => ""
+        );
+    }
+
+    public function printRack(Request $request, $id = 0) {
+        $dataRack = Rack::where('id', $id)->first();
+
+        if ($dataRack) {
+            PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
+            $pdf = PDF::loadView('rack.pdf.print-rack', ["dataRack" => $dataRack])->setPaper('a4', 'landscape');
+
+            $path = public_path('pdf/');
+            $fileName = 'rack-'.$dataRack->nama_rak.'.pdf';
+            $pdf->save($path . '/' . $fileName);
+            $generatedFilePath = public_path('pdf/'.$fileName);
+
+            return response()->download($generatedFilePath);
+        }
     }
 
     public function rackDetail(Request $request) {

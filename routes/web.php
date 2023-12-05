@@ -260,6 +260,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/create', 'create')->name('create-rack');
         Route::post('/store', 'store')->name('store-rack');
         Route::put('/update', 'update')->name('update-rack');
+        Route::delete('/destroy', 'destroy')->name('destroy-rack');
+        Route::post('/print-rack/{id?}', 'printRack')->name('print-rack');
 
         Route::get('/rack-detail', 'rackDetail')->name('rack-detail');
     });
