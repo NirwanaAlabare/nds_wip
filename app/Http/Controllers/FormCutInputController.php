@@ -69,7 +69,7 @@ class FormCutInputController extends Controller
                     a.tgl_form_cut,
                     b.id marker_id,
                     b.act_costing_ws ws,
-                    panel panel,
+                    CONCAT(b.panel, ' - ', b.urutan_marker) panel,
                     b.color color,
                     a.status,
                     users.name nama_meja,
@@ -303,13 +303,13 @@ class FormCutInputController extends Controller
 
     public function getItem(Request $request) {
         $items = DB::connection("mysql_sb")->select("
-        select ac.id,ac.id_buyer,ac.styleno,jd.id_jo, ac.kpno, mi.id_item, mi.itemdesc from jo_det jd
-        inner join (select * from so where so_date >= '2023-01-01') so on jd.id_so = so.id
-        inner join act_costing ac on so.id_cost = ac.id
+            select ac.id,ac.id_buyer,ac.styleno,jd.id_jo, ac.kpno, mi.id_item, mi.itemdesc from jo_det jd
+            inner join (select * from so where so_date >= '2023-01-01') so on jd.id_so = so.id
+            inner join act_costing ac on so.id_cost = ac.id
                 inner join bom_jo_item k on jd.id_jo = k.id_jo
                 inner join masteritem mi on k.id_item = mi.id_gen
-        where jd.cancel = 'N' and k.cancel = 'N' and mi.Mattype = 'F' and ac.id = '".$request->act_costing_id."'
-group by id_cost, k.id_item
+            where jd.cancel = 'N' and k.cancel = 'N' and mi.Mattype = 'F' and ac.id = '".$request->act_costing_id."'
+            group by id_cost, k.id_item
         ");
 
         return json_encode($items ? $items : null);
