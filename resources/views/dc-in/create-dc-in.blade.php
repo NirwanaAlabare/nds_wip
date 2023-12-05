@@ -41,7 +41,8 @@
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Replacement</small></label>
-                                    <input type='number' class='form-control' id='txtqtyreplace' name='txtqtyreplace'>
+                                    <input type='number' class='form-control' id='txtqtyreplace' name='txtqtyreplace'
+                                        oninput='sum();' autocomplete='off'>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
@@ -90,9 +91,6 @@
         </form>
     </div>
 
-
-
-
     <form action="{{ route('store_dc_in') }}" method="post" id="store_dc_in" name='form'
         onsubmit="submitDCInForm(this, event)">
 
@@ -104,12 +102,12 @@
             </div>
             <div class='row'>
                 <div class="col-md-12">
-                    <div class="card card-primary collapsed-card">
+                    <div class="card card-primary ">
                         <div class="card-header">
                             <h3 class="card-title">Header Data :</h3>
                             <div class="card-tools">
                                 <button type="button" class="btn btn-tool" data-card-widget="collapse"><i
-                                        class="fas fa-plus"></i></button>
+                                        class="fas fa-minus"></i></button>
                             </div>
                         </div>
                         <div class="card-body">
@@ -171,6 +169,10 @@
             <div class="card card-sb card-outline">
                 <div class="card-header">
                     <h5 class="card-title fw-bold mb-0">Scan QR Stocker DC In</h5>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i
+                                class="fas fa-minus"></i></button>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="row justify-content-center align-items-end">
@@ -206,7 +208,7 @@
         <div class="col-md-6">
             <div class="card card-info ">
                 <div class="card-header">
-                    <h3 class="card-title">Input QR :</h3>
+                    <h3 class="card-title">Input QR Temporary :</h3>
                     <div class="card-tools">
                         <button type="button" class="btn btn-tool" data-card-widget="collapse"><i
                                 class="fas fa-minus"></i></button>
@@ -225,6 +227,9 @@
                                     <th>Qty</th>
                                     <th>Reject</th>
                                     <th>Replace</th>
+                                    <th>Qty In</th>
+                                    <th>Tujuan</th>
+                                    <th>Alokasi</th>
                                     <th>Act</th>
                                 </tr>
                             </thead>
@@ -238,7 +243,7 @@
         <div class="col-md-6">
             <div class="card card-primary ">
                 <div class="card-header">
-                    <h3 class="card-title">Stocker Info :</h3>
+                    <h3 class="card-title">Stocker Tersedia :</h3>
                     <div class="card-tools">
                         <button type="button" class="btn btn-tool" data-card-widget="collapse"><i
                                 class="fas fa-minus"></i></button>
@@ -266,10 +271,47 @@
             </div>
         </div>
     </div>
-    <a href="{{ route('create-mut-karyawan') }}" class="btn btn-success btn-sm mb-3">
-        <i class="fas fa-qrcode fa-spin fa-lg"></i>
-        Simpan
-    </a>
+    <button class="btn btn-sm btn-success btn-sm mb-3" type="button" id="simpan-final-dc-in"
+        onclick="simpan_final_dc_in()">
+        <i class="far fa-save">
+        </i> Simpan</button>
+
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card card-info ">
+                <div class="card-header">
+                    <h3 class="card-title">History Transaksi :</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="datatable-history" class="table table-bordered table-sm w-100 display nowrap">
+                            <thead>
+                                <tr>
+                                    <th>ID QR</th>
+                                    <th>Size</th>
+                                    <th>Color</th>
+                                    <th>Shade</th>
+                                    <th>Nama Part</th>
+                                    <th>Range Awal</th>
+                                    <th>Range Akhir</th>
+                                    <th>Qty</th>
+                                    <th>Reject</th>
+                                    <th>Replace</th>
+                                    <th>Qty In</th>
+                                    <th>User</th>
+                                    <th>Tgl. Transaksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     </div>
 @endsection
 
@@ -349,7 +391,7 @@
             initScan();
             getinfo();
             gettmp();
-
+            gethistory();
         })
 
         $(document).ready(function() {
@@ -359,9 +401,9 @@
         });
 
 
-        window.addEventListener("focus", () => {
-            dataTableReload();
-        });
+        // window.addEventListener("focus", () => {
+        //     dataTableReload();
+        // });
 
         function getinfo() {
             let no_form = document.form.no_form.value;
@@ -402,6 +444,14 @@
                         data: 'range_akhir'
                     }
                 ],
+                columnDefs: [{
+                    targets: '_all',
+                    render: (data, type, row, meta) => {
+                        var color = '#000000';
+                        return '<span style="font-weight: 600; color:' + color + '">' + data +
+                            '</span>';
+                    }
+                }],
             });
         };
         let datatable_info = $("#datatable_info").DataTable({
@@ -442,6 +492,7 @@
                     data: {
                         no_form: no_form
                     },
+                    async: false
                 },
                 columns: [{
                         data: 'id_qr_stocker'
@@ -466,13 +517,22 @@
                     },
                     {
                         data: 'qty_replace'
+                    },
+                    {
+                        data: 'qty_in'
+                    },
+                    {
+                        data: 'tujuan'
+                    },
+                    {
+                        data: 'alokasi'
                     }
                 ],
                 columnDefs: [{
-                    targets: [8],
-                    className: "align-middle",
-                    render: (data, type, row, meta) => {
-                        return `
+                        targets: [11],
+                        className: "align-middle",
+                        render: (data, type, row, meta) => {
+                            return `
                                 <div class='d-flex gap-1 justify-content-center'>
                                     <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModalEdit"
                                     onclick="getdetail('` + row.id_qr_stocker + `');">
@@ -480,8 +540,22 @@
                                     </a>
                                 </div>
                             `;
+                        }
+                    },
+                    {
+                        targets: '_all',
+                        render: (data, type, row, meta) => {
+                            var color = '#000000';
+                            if (row.tujuan == null) {
+                                color = '#d33141';
+                            } else {
+                                color = '#000000';
+                            }
+                            return '<span style="font-weight: 600; color:' + color + '">' + data +
+                                '</span>';
+                        }
                     }
-                }],
+                ],
             });
         };
 
@@ -509,6 +583,18 @@
                     no_form: no_form
                 },
                 success: function(response) {
+                    if (response.icon == 'salah') {
+                        iziToast.warning({
+                            message: response.msg,
+                            position: 'topCenter'
+                        });
+                    } else {
+                        iziToast.success({
+                            message: response.msg,
+                            position: 'topCenter'
+                        });
+                    }
+                    document.getElementById('txtqrstocker').focus();
                     $("#txtqrstocker").val('');
                     getinfo();
                     gettmp();
@@ -535,6 +621,7 @@
                     document.getElementById('id_c').value = response.id_qr_stocker;
                     document.getElementById('txtqtyreject').value = response.qty_reject;
                     document.getElementById('txtqtyreplace').value = response.qty_replace;
+                    document.getElementById('txtqtyin').value = response.qty_in;
                     // document.getElementById('cbotuj').value = response.tujuan;
                     $("#cbotuj").val(response.tujuan).trigger('change');
                     document.getElementById('cboalokasi').value = response.alokasi;
@@ -549,8 +636,9 @@
         function sum() {
             let txtqty = document.getElementById('txtqty').value;
             let txtqtyreject = document.getElementById('txtqtyreject').value;
+            let txtqtyreplace = document.getElementById('txtqtyreplace').value;
             document.getElementById("txtqtyin").value = +txtqty;
-            let result = parseFloat(txtqty) - parseFloat(txtqtyreject);
+            let result = parseFloat(txtqty) - parseFloat(txtqtyreject) + parseFloat(txtqtyreplace);
             let result_fix = Math.ceil(result)
             if (!isNaN(result_fix)) {
                 document.getElementById("txtqtyin").value = result_fix;
@@ -575,6 +663,105 @@
                 $("#cboalokasi").html(html);
             }
         };
+
+        function simpan_final_dc_in() {
+            let no_form = document.form.no_form.value;
+            $.ajax({
+                type: "post",
+                url: '{{ route('simpan_final_dc_in') }}',
+                data: {
+                    no_form: no_form
+                },
+                success: function(response) {
+                    Swal.fire({
+                        icon: response.icon,
+                        title: response.msg,
+                        showCancelButton: false,
+                        showConfirmButton: true,
+                        timer: response.timer,
+                        timerProgressBar: response.prog
+                    })
+                    getinfo();
+                    gettmp();
+                    gethistory();
+                },
+                error: function(request, status, error) {
+                    alert(request.responseText);
+                },
+            });
+        };
+
+        function gethistory() {
+            let no_form = document.form.no_form.value;
+            let datatable = $("#datatable-history").DataTable({
+                ordering: false,
+                destroy: true,
+                processing: true,
+                serverSide: true,
+                info: false,
+                paging: false,
+                scrollX: true,
+                searching: false,
+                ajax: {
+                    url: '{{ route('getdata_stocker_history') }}',
+                    data: {
+                        no_form: no_form
+                    },
+                },
+                columns: [{
+                        data: 'id_qr_stocker'
+                    },
+                    {
+                        data: 'size'
+                    },
+                    {
+                        data: 'color'
+                    },
+                    {
+                        data: 'shade'
+                    },
+                    {
+                        data: 'nama_part'
+                    },
+                    {
+                        data: 'range_awal'
+                    },
+                    {
+                        data: 'range_akhir'
+                    },
+                    {
+                        data: 'qty_ply'
+                    },
+                    {
+                        data: 'qty_reject'
+                    },
+                    {
+                        data: 'qty_replace'
+                    },
+                    {
+                        data: 'qty_in'
+                    },
+                    {
+                        data: 'name'
+                    },
+                    {
+                        data: 'tgl_create_fix'
+                    }
+
+                ],
+                columnDefs: [{
+                    targets: '_all',
+                    render: (data, type, row, meta) => {
+                        var color = '#000000';
+                        return '<span style="font-weight: 600; color:' + color + '">' + data +
+                            '</span>';
+                    }
+                }],
+            });
+        };
+
+
+
 
         function dataTableReload() {
             datatable_info.ajax.reload();
