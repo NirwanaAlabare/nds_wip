@@ -272,6 +272,7 @@
             processing: true,
             ordering: false,
             serverSide: true,
+            scrollY: "500px",
             ajax: {
                 url: '{{ route('form-cut-input') }}',
                 data: function(d) {

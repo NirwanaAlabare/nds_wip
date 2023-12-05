@@ -10,6 +10,8 @@ use App\Models\FormCutInputDetailLap;
 use App\Models\FormCutInputLostTime;
 use App\Models\ScannedItem;
 use App\Models\CutPlan;
+use App\Models\Part;
+use App\Models\PartForm;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
@@ -413,36 +415,14 @@ class ManualFormCutController extends Controller
     }
 
     public function getItem(Request $request) {
-        $items = DB::connection("mysql_sb")->select("
-            SELECT
-                item.id_item,
-                item.itemdesc
-            FROM
-                jo_det jd
-                INNER JOIN so ON jd.id_so = so.id
-                INNER JOIN act_costing ac ON so.id_cost = ac.id
-                INNER JOIN (
-                SELECT
-                    mi.id_item,
-                    mi.itemdesc,
-                    k.id_jo
-                FROM
-                    bom_jo_item k
-                    INNER JOIN masteritem mi ON k.id_item = mi.id_gen
-                WHERE
-                    mi.Mattype = 'F'
-                GROUP BY
-                    k.id_jo,
-                    k.id_item
-                ) item ON item.id_jo = jd.id
-            WHERE
-                jd.cancel = 'N'
-                AND ac.id = '".$request->act_costing_id."'
-            GROUP BY
-                item.id_item,
-                id_cost
-            ORDER BY
-                jd.id_jo ASC
+        $items = $items = DB::connection("mysql_sb")->select("
+            select ac.id,ac.id_buyer,ac.styleno,jd.id_jo, ac.kpno, mi.id_item, mi.itemdesc from jo_det jd
+            inner join (select * from so where so_date >= '2023-01-01') so on jd.id_so = so.id
+            inner join act_costing ac on so.id_cost = ac.id
+                inner join bom_jo_item k on jd.id_jo = k.id_jo
+                inner join masteritem mi on k.id_item = mi.id_gen
+            where jd.cancel = 'N' and k.cancel = 'N' and mi.Mattype = 'F' and ac.id = '".$request->act_costing_id."'
+            group by id_cost, k.id_item
         ");
 
         return json_encode($items ? $items : null);

@@ -54,11 +54,12 @@ class SpreadingController extends Controller
                     a.no_meja,
                     a.id_marker,
                     a.no_form,
+                    a.no_cut,
                     a.tgl_form_cut,
                     b.id marker_id,
                     b.act_costing_ws ws,
                     b.style,
-                    b.panel,
+                    CONCAT(b.panel, ' - ', b.urutan_marker) panel,
                     b.color,
                     a.status,
                     users.name nama_meja,
@@ -75,7 +76,7 @@ class SpreadingController extends Controller
                     b.cons_marker,
                     a.tipe_form_cut,
                     COALESCE(b.notes, '-') notes,
-                    GROUP_CONCAT(DISTINCT CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC) marker_details,
+                    GROUP_CONCAT(DISTINCT CONCAT(master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ', ') marker_details,
                     cutting_plan.tgl_plan
                 FROM `form_cut_input` a
                 left join marker_input b on a.id_marker = b.kode and b.cancel = 'N'

@@ -207,6 +207,7 @@ class StockerController extends Controller
             get();
 
         $dataStocker = MarkerDetail::selectRaw("
+                marker_input.color,
                 marker_input_detail.so_det_id,
                 marker_input_detail.ratio,
                 part_detail.id part_detail_id,
@@ -229,7 +230,7 @@ class StockerController extends Controller
             where("marker_input.color", $dataSpreading->color)->
             where("marker_input.panel", $dataSpreading->panel)->
             where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
-            groupBy("no_cut", "marker_input_detail.so_det_id", "part_detail.id")->
+            groupBy("no_cut", "marker_input.color", "marker_input_detail.so_det_id", "part_detail.id", "stocker_input.id")->
             get();
 
         return view("stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataPartDetail" => $dataPartDetail,"dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "page" => "dashboard-stocker", "subPageGroup" => "proses-stocker", "subPage" => "stocker"]);
@@ -319,44 +320,52 @@ class StockerController extends Controller
     {
         $stockerCount = Stocker::count() + 1;
 
-        $checkStocker = Stocker::select("id_qr_stocker", "range_awal", "range_akhir")->whereRaw("
+        $rangeAwal = $request['range_awal'][$index];
+        $rangeAkhir = $request['range_akhir'][$index];
+
+        $cumRangeAwal = $rangeAwal;
+        $cumRangeAkhir = $rangeAwal - 1;
+        for ($i = 0; $i < $request['ratio'][$index]; $i++) {
+            $checkStocker = Stocker::select("id_qr_stocker", "range_awal", "range_akhir")->whereRaw("
                 part_detail_id = '".$request['part_detail_id'][$index]."' AND
                 form_cut_id = '".$request['form_cut_id']."' AND
                 so_det_id = '".$request['so_det_id'][$index]."' AND
                 color = '".$request['color']."' AND
                 panel = '".$request['panel']."' AND
                 shade = '".$request['shade']."' AND
-                ratio = '".$request['ratio'][$index]."'
+                ratio = ".($i + 1)."
             ")->first();
 
-        $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-".$stockerCount;
-        $rangeAwal = $checkStocker ? $checkStocker->range_awal :  $request['range_awal'][$index];
-        $rangeAkhir = $checkStocker ? $checkStocker->range_akhir : $request['range_akhir'][$index];
+            $ratio = $i+1;
+            $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-".($stockerCount+$i);
+            $cumRangeAwal = $cumRangeAkhir + 1;
+            $cumRangeAkhir = $cumRangeAkhir + $request['qty_ply'];
 
-        $storeItem = Stocker::updateOrCreate(
-            [
-                'part_detail_id' => $request['part_detail_id'][$index],
-                'form_cut_id' => $request['form_cut_id'],
-                'so_det_id' => $request['so_det_id'][$index],
-                'color' => $request['color'],
-                'panel' => $request['panel'],
-                'shade' => $request['shade'],
-                'ratio' => $request['ratio'][$index],
-                'id_qr_stocker' => $stockerId
-            ],
-            [
-                'act_costing_ws' => $request["no_ws"],
-                'size' => $request["size"][$index],
-                'qty_ply' => $request['qty_ply'],
-                'qty_cut' => $request['qty_cut'][$index],
-                'range_awal' => $rangeAwal,
-                'range_akhir' => $rangeAkhir
-            ]
-        );
+            $storeItem = Stocker::updateOrCreate(
+                [
+                    'part_detail_id' => $request['part_detail_id'][$index],
+                    'form_cut_id' => $request['form_cut_id'],
+                    'so_det_id' => $request['so_det_id'][$index],
+                    'color' => $request['color'],
+                    'panel' => $request['panel'],
+                    'shade' => $request['shade'],
+                    'id_qr_stocker' => $stockerId,
+                ],
+                [
+                    'ratio' => $i+1,
+                    'act_costing_ws' => $request["no_ws"],
+                    'size' => $request["size"][$index],
+                    'qty_ply' => $request['qty_ply'],
+                    'qty_cut' => $request['qty_cut'][$index],
+                    'range_awal' => $cumRangeAwal,
+                    'range_akhir' => $cumRangeAkhir
+                ]
+            );
+        }
 
-        if ($storeItem) {
-            $dataStocker = Stocker::selectRaw("
-                    stocker_input.qty_cut bundle_qty,
+        // if (count($items) > 0) {
+            $dataStockers = Stocker::selectRaw("
+                    stocker_input.qty_ply bundle_qty,
                     stocker_input.size,
                     stocker_input.range_awal,
                     stocker_input.range_akhir,
@@ -365,7 +374,8 @@ class StockerController extends Controller
                     marker_input.buyer,
                     marker_input.style,
                     marker_input.color,
-                    stocker_input.shade
+                    stocker_input.shade,
+                    form_cut_input.no_cut
                 ")->
                 leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
                 leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
@@ -377,19 +387,16 @@ class StockerController extends Controller
                 leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->
                 leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
                 where("form_cut_input.status", "SELESAI PENGERJAAN")->
-                where("part_detail.id", $storeItem->part_detail_id)->
-                where("form_cut_input.id", $storeItem->form_cut_id)->
-                where("stocker_input.id", $storeItem->id)->
-                where("marker_input_detail.size", $storeItem->size)->
-                groupBy("form_cut_input.id")->
-                first();
-
-            // decode qr code
-            $qrCodeDecode = base64_encode(QrCode::format('svg')->size(100)->generate($storeItem->id."-".$storeItem->id_qr_stocker));
+                where("part_detail.id", $request['part_detail_id'][$index])->
+                where("form_cut_input.id", $request['form_cut_id'])->
+                where("marker_input_detail.so_det_id", $request['so_det_id'][$index])->
+                where("stocker_input.so_det_id", $request['so_det_id'][$index])->
+                groupBy("form_cut_input.id", "stocker_input.id")->
+                get();
 
             // generate pdf
             PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
-            $pdf = PDF::loadView('stocker.pdf.print-stocker', ["dataStocker" => $dataStocker, "qrCode" => $qrCodeDecode])->setPaper('a7', 'landscape');
+            $pdf = PDF::loadView('stocker.pdf.print-stocker', ["dataStockers" => $dataStockers])->setPaper('a7', 'landscape');
 
             $path = public_path('pdf/');
             $fileName = 'stocker-'.$storeItem->id.'.pdf';
@@ -397,7 +404,7 @@ class StockerController extends Controller
             $generatedFilePath = public_path('pdf/'.$fileName);
 
             return response()->download($generatedFilePath);
-        }
+        // }
     }
 
     public function printNumbering(Request $request, $index)

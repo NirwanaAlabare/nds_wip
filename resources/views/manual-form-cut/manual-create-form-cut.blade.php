@@ -405,7 +405,7 @@
                                             <button class="btn btn-sm btn-success" type="button" id="get-button"
                                                 onclick="fetchScan()">Get</button>
                                             <button class="btn btn-sm btn-primary" type="button" id="scan-button"
-                                                onclick="initScan()">Scan</button>
+                                                onclick="refreshScan()">Scan</button>
                                         </div>
                                     </div>
                                 </div>
@@ -1420,14 +1420,14 @@
                     }
                 });
 
-                // -On Scan Card Collapse-
-                $('#scan-qr-card').on('collapsed.lte.cardwidget', function(e) {
-                    html5QrcodeScanner.clear();
-                });
+                // // -On Scan Card Collapse-
+                // $('#scan-qr-card').on('collapsed.lte.cardwidget', function(e) {
+                //     clearQrCodeScanner();
+                // });
 
                 // -On Scan Card Expand-
                 $('#scan-qr-card').on('expanded.lte.cardwidget', function(e) {
-                    initScan();
+                    refreshScan();
                 });
 
                 // -Select2 Prevent Step-Jump Input ( Step = WS -> Color -> Panel )-
@@ -1651,6 +1651,8 @@
                     $('#spreading-form-card').removeClass('d-none');
                     $('#spreading-form-card').CardWidget('expand');
                     $('#summary-card').removeClass('d-none');
+
+                    location.href = "#spreading-form-card";
                 } else {
                     Swal.fire({
                         icon: 'error',
@@ -2294,7 +2296,7 @@
             // -Calculate Sambungan-
             function calculateSambungan(sisaGelaran, unitSisaGelaran) {
                 let sisaGelaranVar = sisaGelaran > 0 ? Number(sisaGelaran) : Number(document.getElementById("current_sisa_gelaran").value);
-                let unitSisaGelaranVar = unitSisaGelaran > 0 ? Number(sisaGelaran) : Number(document.getElementById("current_sisa_gelaran").value);
+                let unitSisaGelaranVar = unitSisaGelaran ? unitSisaGelaran : document.getElementById("current_sisa_gelaran_unit").value;
                 let qtyVar = Number(document.getElementById("current_qty").value);
                 let unitQtyVar = document.getElementById("current_unit").value;
                 let pActualVar = Number(document.getElementById('p_act').value);
@@ -2315,13 +2317,13 @@
 
                 // Convert Sisa Gelaran
                 if (unitSisaGelaranVar == unitQtyVar) {
-                    sisaGelaranConverted = sisaGelaran;
+                    sisaGelaranConverted = sisaGelaranVar;
                 } else {
-                    if (unitQtyVar == "YARD") {
+                    if (unitQtyVar == "YARD" || unitQtyVar == "YRD") {
                         unitQtyVar = "METER";
                     }
 
-                    sisaGelaranConverted = conversion(sisaGelaran, unitQtyVar, unitSisaGelaran);
+                    sisaGelaranConverted = conversion(sisaGelaranVar, unitQtyVar, unitSisaGelaranVar);
                 }
 
                 let estSambungan = pActualConverted - sisaGelaranConverted;
@@ -2504,7 +2506,7 @@
                 document.getElementById("to-item").classList.remove('d-none');
                 $("#select_item").val("").trigger("change");
 
-                html5QrcodeScanner.clear();
+                clearQrCodeScanner()
 
                 removeColorSpreading();
 
@@ -2680,6 +2682,8 @@
 
                 // -Set Spreading Form-
                 function setSpreadingForm(data, sisaGelaran, unitSisaGelaran) {
+                    lockItemSpreading();
+
                     // if not an extension
                     if (!(sisaGelaran)) {
                         clearSpreadingForm();
@@ -2708,6 +2712,7 @@
                     data.qty ? document.getElementById("current_qty").value = convertedQty : '';
                     data.qty ? document.getElementById("current_qty_real").value = data.qty : '';
                     data.unit ? document.getElementById("current_unit").value = data.unit : '';
+                    data.unit ? document.getElementById("current_custom_unit").value = data.unit : '';
                     data.unit ? document.getElementById("current_sisa_gelaran_unit").value = (data.unit != "KGM" ? "METER" : "KGM") : '';
                     data.unit ? document.getElementById("current_sambungan_unit").value = (data.unit != "KGM" ? "METER" : "KGM") : '';
                     data.sisa_gelaran ? document.getElementById("current_sisa_gelaran").value = data.sisa_gelaran : '';
@@ -2947,81 +2952,87 @@
 
         // Scan QR Module :
             // Variable List :
-                var html5QrcodeScanner = null;
+                var html5QrcodeScanner = new Html5Qrcode("reader");
+                var scannerInitialized = false;
 
             // Function List :
                 // -Initialize Scanner-
                 async function initScan() {
                     if (document.getElementById("reader")) {
-                        if (document.getElementById("reader").style.length < 1) {
-                            if (html5QrcodeScanner) {
-                                await clearQrCodeScanner();
+                        if (scannerInitialized == false) {
+                            if (html5QrcodeScanner == null || (html5QrcodeScanner && (html5QrcodeScanner.getState() && html5QrcodeScanner.getState() != 2))) {
+                                const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+                                        // handle the scanned code as you like, for example:
+                                    console.log(`Code matched = ${decodedText}`, decodedResult);
+
+                                    // store to input text
+                                    let breakDecodedText = decodedText.split('-');
+
+                                    document.getElementById('kode_barang').value = breakDecodedText[0];
+
+                                    getScannedItem(breakDecodedText[0]);
+
+                                    clearQrCodeScanner();
+                                };
+                                const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+                                // If you want to prefer front camera
+                                await html5QrcodeScanner.start({ facingMode: "environment" }, config, qrCodeSuccessCallback);
+
+                                scannerInitialized = true;
+
+                                // function onScanSuccess(decodedText, decodedResult) {
+                                //     // handle the scanned code as you like, for example:
+                                //     console.log(`Code matched = ${decodedText}`, decodedResult);
+
+                                //     // store to input text
+                                //     let breakDecodedText = decodedText.split('-');
+
+                                //     document.getElementById('kode_barang').value = breakDecodedText[0];
+
+                                //     getScannedItem(breakDecodedText[0]);
+
+                                //     clearQrCodeScanner();
+                                // }
+
+                                // function onScanFailure(error) {
+                                //     // handle scan failure, usually better to ignore and keep scanning.
+                                //     // for example:
+                                //     console.warn(`Code scan error = ${error}`);
+                                // }
+
+                                // html5QrcodeScanner = new Html5QrcodeScanner(
+                                //     "reader",
+                                //     {
+                                //         fps: 10,
+                                //         qrbox: {
+                                //             width: 250,
+                                //             height: 250
+                                //         }
+                                //     }
+                                // );
+
+                                // html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+                                // html5QrCode.start({ facingMode: { exact: "environment"}}, config, onScanSuccess, onScanFailure);
                             }
-
-                            html5QrcodeScanner = new Html5Qrcode("reader");
-                            const qrCodeSuccessCallback = (decodedText, decodedResult) => {
-                                    // handle the scanned code as you like, for example:
-                                console.log(`Code matched = ${decodedText}`, decodedResult);
-
-                                // store to input text
-                                let breakDecodedText = decodedText.split('-');
-
-                                document.getElementById('kode_barang').value = breakDecodedText[0];
-
-                                getScannedItem(breakDecodedText[0]);
-
-                                clearQrCodeScanner();
-                            };
-                            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-
-                            // If you want to prefer front camera
-                            html5QrcodeScanner.start({ facingMode: "environment" }, config, qrCodeSuccessCallback);
-
-                            // function onScanSuccess(decodedText, decodedResult) {
-                            //     // handle the scanned code as you like, for example:
-                            //     console.log(`Code matched = ${decodedText}`, decodedResult);
-
-                            //     // store to input text
-                            //     let breakDecodedText = decodedText.split('-');
-
-                            //     document.getElementById('kode_barang').value = breakDecodedText[0];
-
-                            //     getScannedItem(breakDecodedText[0]);
-
-                            //     clearQrCodeScanner();
-                            // }
-
-                            // function onScanFailure(error) {
-                            //     // handle scan failure, usually better to ignore and keep scanning.
-                            //     // for example:
-                            //     console.warn(`Code scan error = ${error}`);
-                            // }
-
-                            // html5QrcodeScanner = new Html5QrcodeScanner(
-                            //     "reader",
-                            //     {
-                            //         fps: 10,
-                            //         qrbox: {
-                            //             width: 250,
-                            //             height: 250
-                            //         }
-                            //     }
-                            // );
-
-                            // html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-                            // html5QrCode.start({ facingMode: { exact: "environment"}}, config, onScanSuccess, onScanFailure);
                         }
                     }
                 }
 
                 async function clearQrCodeScanner() {
-                    if (html5QrcodeScanner) {
-                        await html5QrcodeScanner.stop();
-                        await html5QrcodeScanner.clear();
-                        document.getElementById("reader").removeAttribute("style");
+                    if (scannerInitialized) {
+                        if (html5QrcodeScanner && (html5QrcodeScanner.getState() && html5QrcodeScanner.getState() != 1)) {
+                            await html5QrcodeScanner.stop();
+                            await html5QrcodeScanner.clear();
+                        }
 
-                        html5QrcodeScanner = null;
+                        scannerInitialized = false;
                     }
+                }
+
+                async function refreshScan() {
+                    await clearQrCodeScanner();
+                    await initScan();
                 }
 
                 // --Clear Scan Item Form--
@@ -3041,21 +3052,22 @@
                     document.getElementById("switch-method").setAttribute("disabled", true);
                     document.getElementById("reader").classList.add("d-none");
 
-                    if (html5QrcodeScanner != null) {
-                        html5QrcodeScanner.clear();
-                    }
+                    clearQrCodeScanner();
                 }
 
                 // --Open Scan Item Form then Open Scanner--
                 function openScanItemForm() {
-                    document.getElementById("kode_barang").removeAttribute("readonly");
-                    document.getElementById("color_act").removeAttribute("disabled");
-                    document.getElementById("get-button").removeAttribute("disabled");
-                    document.getElementById("scan-button").removeAttribute("disabled");
-                    document.getElementById("switch-method").removeAttribute("disabled");
-                    document.getElementById("reader").classList.remove("d-none");
+                    if (status != "SELESAI PENGERJAAN") {
 
-                    initScan();
+                        document.getElementById("kode_barang").removeAttribute("readonly");
+                        document.getElementById("color_act").removeAttribute("disabled");
+                        document.getElementById("get-button").removeAttribute("disabled");
+                        document.getElementById("scan-button").removeAttribute("disabled");
+                        document.getElementById("switch-method").removeAttribute("disabled");
+                        document.getElementById("reader").classList.remove("d-none");
+
+                        initScan();
+                    }
                 }
 
         // Scanned Item Module :
