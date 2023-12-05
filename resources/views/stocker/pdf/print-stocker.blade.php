@@ -57,37 +57,40 @@
     </table>
     <table style="margin-top: -0.5px;">
         <tr>
-            <td colspan="3" style="text-align: center;">Deskripsi Item</td>
+            <td colspan="6" style="text-align: center;">Deskripsi Item</td>
         </tr>
         <tr>
             <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;white-space: nowrap;">Kode Stocker</td>
             <td style="border: none;border-left: none; border-top: 1px solid; border-bottom: 1px solid;text-align: center;width: auto;">:</td>
-            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataStocker->id_qr_stocker }}</td>
+            <td colspan="4" style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataStocker->id_qr_stocker }}</td>
         </tr>
         <tr>
             <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;white-space: nowrap;">Worksheet</td>
             <td style="border: none;border-left: none; border-top: 1px solid; border-bottom: 1px solid;text-align: center;width: auto;">:</td>
-            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataStocker->act_costing_ws }}</td>
+            <td colspan="4" style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataStocker->act_costing_ws }}</td>
         </tr>
         <tr>
             <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;white-space: nowrap;">Buyer</td>
             <td style="border: none;border-left: none; border-top: 1px solid; border-bottom: 1px solid;text-align: center;width: auto;">:</td>
-            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataStocker->buyer }}</td>
+            <td colspan="4" style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataStocker->buyer }}</td>
         </tr>
         <tr>
             <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;white-space: nowrap;">Style</td>
             <td style="border: none;border-left: none; border-top: 1px solid; border-bottom: 1px solid;text-align: center;width: auto;">:</td>
-            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataStocker->style }}</td>
+            <td colspan="4" style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataStocker->style }}</td>
         </tr>
         <tr>
             <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;white-space: nowrap;">Color</td>
             <td style="border: none;border-left: none; border-top: 1px solid; border-bottom: 1px solid;text-align: center;width: auto;">:</td>
-            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataStocker->color }}</td>
+            <td colspan="4" style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataStocker->color }}</td>
         </tr>
         <tr>
-            <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;white-space: nowrap;">Shade</td>
-            <td style="border: none;border-left: none; border-top: 1px solid; border-bottom: 1px solid;text-align: center;width: auto;">:</td>
-            <td style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataStocker->shade }}</td>
+            <td style="width: 16.5%; border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;white-space: nowrap;">Shade</td>
+            <td style="width: 16.5%; border: none;border-left: none; border-top: 1px solid; border-bottom: 1px solid;text-align: center;width: auto;">:</td>
+            <td style="width: 16.5%; border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataStocker->shade }}</td>
+            <td style="width: 16.5%; border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;white-space: nowrap;">No. Cut</td>
+            <td style="width: 16.5%; border: none;border-left: none; border-top: 1px solid; border-bottom: 1px solid;text-align: center;width: auto;">:</td>
+            <td style="width: auto; border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataStocker->no_cut }}</td>
         </tr>
     </table>
 </body>

@@ -207,6 +207,7 @@ class StockerController extends Controller
             get();
 
         $dataStocker = MarkerDetail::selectRaw("
+                marker_input.color,
                 marker_input_detail.so_det_id,
                 marker_input_detail.ratio,
                 part_detail.id part_detail_id,
@@ -229,7 +230,7 @@ class StockerController extends Controller
             where("marker_input.color", $dataSpreading->color)->
             where("marker_input.panel", $dataSpreading->panel)->
             where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
-            groupBy("no_cut", "marker_input_detail.so_det_id", "part_detail.id")->
+            groupBy("no_cut", "marker_input.color", "marker_input_detail.so_det_id", "part_detail.id")->
             get();
 
         return view("stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataPartDetail" => $dataPartDetail,"dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "page" => "dashboard-stocker", "subPageGroup" => "proses-stocker", "subPage" => "stocker"]);
@@ -365,7 +366,8 @@ class StockerController extends Controller
                     marker_input.buyer,
                     marker_input.style,
                     marker_input.color,
-                    stocker_input.shade
+                    stocker_input.shade,
+                    form_cut_input.no_cut
                 ")->
                 leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
                 leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
