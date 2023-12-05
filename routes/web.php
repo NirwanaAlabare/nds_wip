@@ -246,6 +246,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/get_alokasi', 'get_alokasi')->name('get_alokasi');
         Route::put('/update_tmp_dc_in', 'update_tmp_dc_in')->name('update_tmp_dc_in');
         Route::post('/store', 'store')->name('store_dc_in');
+        Route::post('/simpan_final_dc_in', 'simpan_final_dc_in')->name('simpan_final_dc_in');
+        Route::get('/getdata_stocker_history', 'getdata_stocker_history')->name('getdata_stocker_history');
     });
 
     // Secondary IN

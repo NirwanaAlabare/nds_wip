@@ -12,6 +12,7 @@ use App\Models\DCIn;
 use App\Models\Tmp_Dc_in;
 use Maatwebsite\Excel\Facades\Excel;
 use DB;
+use Illuminate\Support\Facades\Auth;
 
 class DCInController extends Controller
 {
@@ -104,13 +105,43 @@ class DCInController extends Controller
     public function getdata_stocker_info(Request $request)
     {
         $det_dc_info = DB::select(
-            "SELECT ifnull(tmp.id_qr_stocker,'x'),a.no_form,mp.nama_part,mp.id,s.* FROM `stocker_input` s
+            // "SELECT ifnull(tmp.id_qr_stocker,'x'),a.no_form,mp.nama_part,mp.id,s.* FROM `stocker_input` s
+            // inner join form_cut_input a on s.form_cut_id = a.id
+            // inner join part_detail p on s.part_detail_id = p.id
+            // inner join master_part mp on p.master_part_id = mp.id
+            // left join tmp_dc_in_input tmp on s.id_qr_stocker = tmp.id_qr_stocker
+            // where a.no_form = '" . $request->no_form . "' and ifnull(tmp.id_qr_stocker,'x') = 'x'
+            // order by color asc, size asc "
+            "select
+            ifnull(tmp.id_qr_stocker,'x'),
+            ifnull(dc.id_qr_stocker,'x'),
+            a.no_form,
+            mp.nama_part,
+            mp.id,
+            s.id_qr_stocker,
+            s.part_detail_id,
+            s.form_cut_id,
+            s.act_costing_ws,
+            s.so_det_id,
+            s.size,
+            s.color,
+            s.panel,
+            s.shade,
+            s.ratio,
+            s.qty_ply,
+            s.range_awal,
+            s.range_akhir
+            from
+            stocker_input s
             inner join form_cut_input a on s.form_cut_id = a.id
             inner join part_detail p on s.part_detail_id = p.id
             inner join master_part mp on p.master_part_id = mp.id
             left join tmp_dc_in_input tmp on s.id_qr_stocker = tmp.id_qr_stocker
-            where a.no_form = '" . $request->no_form . "' and ifnull(tmp.id_qr_stocker,'x') = 'x'
-            order by color asc, size asc "
+            left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
+            where a.no_form = '" . $request->no_form . "' and ifnull(tmp.id_qr_stocker,'x') = 'x'  and ifnull(dc.id_qr_stocker,'x') = 'x'
+            order by color asc, size asc"
+
+
         );
 
         return DataTables::of($det_dc_info)->toJson();
@@ -129,7 +160,10 @@ class DCInController extends Controller
             s.size,
             s.qty_ply,
             tmp.qty_reject,
-            tmp.qty_replace
+            tmp.qty_replace,
+            s.qty_ply - tmp.qty_reject + tmp.qty_replace qty_in,
+            tmp.tujuan,
+            tmp.alokasi
             from tmp_dc_in_input tmp
             inner join stocker_input s on tmp.id_qr_stocker = s.id_qr_stocker
             inner join form_cut_input a on s.form_cut_id = a.id
@@ -162,7 +196,8 @@ class DCInController extends Controller
         alokasi,
         qty_ply,
         qty_reject,
-        qty_replace
+        qty_replace,
+        qty_ply - qty_reject + qty_replace qty_in
         FROM `tmp_dc_in_input`a
         inner join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
         where a.id_qr_stocker = '$request->id_c'");
@@ -172,7 +207,6 @@ class DCInController extends Controller
     public function get_alokasi(Request $request)
     {
         $data_tujuan = $request->tujuan;
-
         if ($data_tujuan == 'NON SECONDARY') {
             $data_alokasi = DB::select("select nama_detail_rak isi, nama_detail_rak tampil from rack_detail");
             $html = "<option value=''>Pilih Rak</option>";
@@ -199,12 +233,17 @@ class DCInController extends Controller
 
     public function update_tmp_dc_in(Request $request)
     {
+        $validatedRequest = $request->validate([
+            "cbotuj" => "required",
+            "cboalokasi" => "required"
+        ]);
+
         $update_tmp_dc_in = DB::update("
         update tmp_dc_in_input
         set qty_reject = '$request->txtqtyreject',
         qty_replace = '$request->txtqtyreplace',
-        tujuan = '$request->cbotuj',
-        alokasi = '$request->cboalokasi'
+        tujuan =  '" . $validatedRequest['cbotuj'] . "',
+        alokasi = '" . $validatedRequest['cboalokasi'] . "'
         where id_qr_stocker = '$request->id_c'");
 
         if ($update_tmp_dc_in) {
@@ -229,15 +268,136 @@ class DCInController extends Controller
     public function store(Request $request)
     {
         $timestamp = Carbon::now();
-        $savemutasi = Tmp_Dc_in::create([
-            'id_qr_stocker' => $request['txtqrstocker'],
-            'no_form' => $request['no_form'],
-            'qty_reject' => '0',
-            'qty_replace' => '0',
-            'created_at' => $timestamp,
-            'updated_at' => $timestamp,
-        ]);
+        $cekdata =  DB::select("
+        select
+        ifnull(tmp.id_qr_stocker,'x'),
+        ifnull(dc.id_qr_stocker,'x'),
+        a.no_form,
+        mp.nama_part,
+        mp.id,
+        s.id_qr_stocker,
+        s.part_detail_id,
+        s.form_cut_id,
+        s.act_costing_ws,
+        s.so_det_id,
+        s.size,
+        s.color,
+        s.panel,
+        s.shade,
+        s.qty_ply,
+        s.ratio,
+        s.range_awal,
+        s.range_akhir
+        from
+        stocker_input	s
+        inner join form_cut_input a on s.form_cut_id = a.id
+        inner join part_detail p on s.part_detail_id = p.id
+        inner join master_part mp on p.master_part_id = mp.id
+        left join tmp_dc_in_input tmp on s.id_qr_stocker = tmp.id_qr_stocker
+        left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
+        where a.no_form = '" . $request->no_form . "' and ifnull(tmp.id_qr_stocker,'x') = 'x'
+        and ifnull(dc.id_qr_stocker,'x') = 'x' and s.id_qr_stocker = '" . $request->txtqrstocker . "'
+        order by color asc, size asc
+        ");
+        $cekdata_fix = $cekdata ? $cekdata[0]->id_qr_stocker : null;
+        if ($cekdata_fix == $request->id_qr_stocker) {
+            return [
+                'icon' => 'salah',
+                'msg' => "Stocker " . $request->txtqrstocker . " Tidak Tersedia",
+            ];
+        } else {
+            $savemutasi = Tmp_Dc_in::create([
+                'id_qr_stocker' => $request['txtqrstocker'],
+                'no_form' => $request['no_form'],
+                'qty_reject' => '0',
+                'qty_replace' => '0',
+                'user' => Auth::user()->id,
+                'created_at' => $timestamp,
+                'updated_at' => $timestamp,
+            ]);
+        }
+        return [
+            'icon' => 'benar',
+            'msg' => "Stocker " . $request->txtqrstocker . " Sudah Terinput",
+        ];
     }
+
+    public function simpan_final_dc_in(Request $request)
+    {
+        $timestamp = Carbon::now();
+
+        $cekdata =  DB::select("
+        select * from tmp_dc_in_input where '" . $request->no_form . "' and tujuan is null and alokasi is null
+        ");
+
+        $cekdata_fix = $cekdata ? $cekdata[0]->id_qr_stocker : null;
+
+        if ($cekdata_fix != '') {
+
+            return [
+                'icon' => 'warning',
+                'msg' => 'Terjadi Kesalahan',
+                'timer' => false,
+                'prog' => false,
+            ];
+        } else {
+
+            $insert_dc_in = DB::insert("
+        INSERT INTO dc_in_input
+        (no_form, id_qr_stocker, tujuan, alokasi,qty_reject,qty_replace,user, created_at, updated_at)
+        SELECT no_form, id_qr_stocker, tujuan, alokasi,qty_reject,qty_replace,user,created_at, updated_at
+        FROM tmp_dc_in_input
+        WHERE no_form = '$request->no_form'");
+            $delete_tmp = DB::delete("
+        delete from tmp_dc_in_input
+        WHERE no_form = '$request->no_form'");
+            return [
+                'icon' => 'success',
+                'msg' => 'Data Sudah Tersimpan',
+                'timer' => false,
+                'prog' => false,
+            ];
+        }
+    }
+
+
+    public function getdata_stocker_history(Request $request)
+    {
+        $history = DB::select(
+            "
+            select
+            a.no_form,
+            a.id_qr_stocker,
+            mp.nama_part,
+            s.size,
+            s.shade,
+            s.color,
+            s.range_awal,
+            s.range_akhir,
+            s.qty_ply,
+            a.qty_reject,
+            a.qty_replace,
+            s.qty_ply - a.qty_reject + a.qty_replace qty_in,
+            a.tujuan,
+            a.alokasi,
+            users.name,
+            DATE_FORMAT(a.created_at, '%d-%m-%Y %T') tgl_create_fix,
+            a.created_at,
+            a.updated_at
+            from dc_in_input a
+            inner join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+            inner join part_detail p on s.part_detail_id = p.id
+            inner join master_part mp on p.master_part_id = mp.id
+            inner join users on a.user = users.id
+            where no_form = '" . $request->no_form . "'
+            "
+        );
+
+        return DataTables::of($history)->toJson();
+    }
+
+
+
 
     public function export_excel_mut_karyawan(Request $request)
     {
