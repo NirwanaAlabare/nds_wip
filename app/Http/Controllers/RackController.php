@@ -65,34 +65,38 @@ class RackController extends Controller
     {
         $validatedRequest = $request->validate([
             "nama_rak" => "required|unique:rack,nama_rak,except,id",
+            "jumlah_baris" => "required|numeric|min:1",
             "jumlah_ruang" => "required|numeric|min:1",
         ]);
 
-        $lastRack = Rack::select('kode')->orderBy('updated_at', 'desc')->first();
+        $lastRack = Rack::select('kode')->orderBy('id', 'desc')->first();
         $rackNumber = $lastRack ? intval(substr($lastRack->kode, -5)) + 1 : 1;
-        $rackCode = 'RAK' . sprintf('%05s', $rackNumber);
 
-        $storeRack = Rack::create([
-            "kode" => $rackCode,
-            "nama_rak" => $validatedRequest['nama_rak'],
-        ]);
+        if ($validatedRequest['jumlah_baris'] > 0 && $validatedRequest['jumlah_ruang'] > 0) {
+            for ($n = 0; $n < $validatedRequest['jumlah_baris']; $n++) {
+                $rackCode = 'RAK' . sprintf('%05s', $rackNumber + $n);
 
-        if ($validatedRequest['jumlah_ruang'] > 0) {
-            $lastRackDetail = RackDetail::select('kode')->orderBy('id', 'desc')->first();
-            $rackDetailNumber = $lastRackDetail ? intval(substr($lastRackDetail->kode, -5)) + 1 : 1;
-
-            $rackDetailData = [];
-            for ($i = 0; $i < $validatedRequest['jumlah_ruang']; $i++) {
-                array_push($rackDetailData, [
-                    "kode" => 'DRK' . sprintf('%05s', $rackDetailNumber + $i),
-                    "rack_id" => $storeRack->id,
-                    "nama_detail_rak" => $validatedRequest['nama_rak'].".".($i+1),
-                    "created_at" => Carbon::now(),
-                    "updated_at" => Carbon::now(),
+                $storeRack = Rack::create([
+                    "kode" => $rackCode,
+                    "nama_rak" => $validatedRequest['nama_rak'].".".($n+1),
                 ]);
-            }
 
-            $storeRackDetail = RackDetail::insert($rackDetailData);
+                $lastRackDetail = RackDetail::select('kode')->orderBy('id', 'desc')->first();
+                $rackDetailNumber = $lastRackDetail ? intval(substr($lastRackDetail->kode, -5)) + 1 : 1;
+
+                $rackDetailData = [];
+                for ($i = 0; $i < $validatedRequest['jumlah_ruang']; $i++) {
+                    array_push($rackDetailData, [
+                        "kode" => 'DRK' . sprintf('%05s', $rackDetailNumber + $i),
+                        "rack_id" => $storeRack->id,
+                        "nama_detail_rak" => $validatedRequest['nama_rak'].".".($n+1).".".($i+1),
+                        "created_at" => Carbon::now(),
+                        "updated_at" => Carbon::now(),
+                    ]);
+                }
+
+                $storeRackDetail = RackDetail::insert($rackDetailData);
+            }
 
             return array(
                 "status" => 200,
@@ -103,7 +107,7 @@ class RackController extends Controller
         } else {
             return array(
                 "status" => 400,
-                "message" => "Jumlah ruang tidak bisa 0",
+                "message" => "Jumlah ruang dan baris tidak bisa 0",
                 "additional" => [],
                 "redirect" => ""
             );

@@ -20,10 +20,16 @@
         <div class="card-body">
             <form action="{{ route('store-rack') }}" method="post" onsubmit="submitRackForm(this, event)">
                 <div class="row">
-                    <div class="col-9">
+                    <div class="col-6">
                         <div class="mb-3">
                             <label>Nama Rak</label>
                             <input type="text" class="form-control" name="nama_rak" id="nama_rak" onchange="buildRackTable()" onkeyup="buildRackTable()">
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="mb-3">
+                            <label>Jumlah Baris</label>
+                            <input type="number" class="form-control" name="jumlah_baris" id="jumlah_baris" onchange="buildRackTable()" onkeyup="buildRackTable()">
                         </div>
                     </div>
                     <div class="col-3">
@@ -65,28 +71,31 @@
 
         function buildRackTable() {
             let rackName = document.getElementById('nama_rak').value;
+            let rackRow = document.getElementById('jumlah_baris').value;
             let rackNumber = document.getElementById('jumlah_ruang').value;
             let rackTable = document.getElementById('rack-table');
             let rackTableTbody = rackTable.getElementsByTagName("tbody")[0];
 
             rackTableTbody.innerHTML = "";
 
-            if (rackNumber > 0) {
-                let tr1 = document.createElement('tr');
-                let tr2 = document.createElement('tr');
+            if (rackRow > 0 && rackNumber > 0) {
+                for (let n = 0; n < rackRow; n++) {
+                    let tr1 = document.createElement('tr');
+                    let tr2 = document.createElement('tr');
 
-                for (let i = 0; i < rackNumber; i++) {
-                    let th1 = document.createElement('th');
-                    let th2 = document.createElement('th');
+                    for (let i = 0; i < rackNumber; i++) {
+                        let th1 = document.createElement('th');
+                        let th2 = document.createElement('th');
 
-                    th1.innerHTML = rackName+'.'+(i+1);
-                    th2.innerHTML = "&nbsp;";
+                        th1.innerHTML = rackName+'.'+(n+1)+'.'+(i+1);
+                        th2.innerHTML = "&nbsp;";
 
-                    tr1.appendChild(th1);
-                    tr2.appendChild(th2);
+                        tr1.appendChild(th1);
+                        tr2.appendChild(th2);
 
-                    rackTableTbody.appendChild(tr1);
-                    rackTableTbody.appendChild(tr2);
+                        rackTableTbody.appendChild(tr1);
+                        rackTableTbody.appendChild(tr2);
+                    }
                 }
             }
         }
