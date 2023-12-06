@@ -45,7 +45,7 @@
             <tr>
                 <td>{{ $numbering['kode'] }}</td>
                 <td rowspan="6" style="vertical-align: middle; text-align: center;">
-                    <img src="data:image/png;base64, {!! $qrCode[$loop->index] !!}">
+                    <img src="data:image/png;base64, {!! base64_encode(QrCode::format('svg')->size(100)->generate("WIP-".$numbering['kode']."-".$numbering['no_cut_size']."-".$numbering['so_det_id'])) !!}">
                 </td>
             </tr>
             <tr>
@@ -56,9 +56,6 @@
             </tr>
             <tr>
                 <td>{{ $color }}</td>
-            </tr>
-            <tr>
-                <td>{{ $kode }}</td>
             </tr>
             <tr>
                 <td>{{ $numbering['size'] }}</td>

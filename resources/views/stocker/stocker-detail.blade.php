@@ -83,17 +83,23 @@
                     </div>
                     <div class="col-6 col-md-6">
                         <div class="row">
-                            <div class="col-6 col-md-6">
+                            <div class="col-4 col-md-4">
                                 <div class="mb-1">
                                     <label class="form-label"><small>Form Cut</small></label>
                                     <input type="hidden" id="form_cut_id" name="form_cut_id" value="{{ $dataSpreading->form_cut_id }}">
                                     <input type="text" class="form-control form-control-sm" id="no_form_cut" name="no_form_cut" value="{{ $dataSpreading->no_form }}" readonly>
                                 </div>
                             </div>
-                            <div class="col-6 col-md-6">
+                            <div class="col-4 col-md-4">
                                 <div class="mb-1">
                                     <label class="form-label"><small>Total Lembar</small></label>
                                     <input type="text" class="form-control form-control-sm" id="qty_ply" name="qty_ply" value="{{ $dataSpreading->total_lembar }}" readonly>
+                                </div>
+                            </div>
+                            <div class="col-4 col-md-4">
+                                <div class="mb-1">
+                                    <label class="form-label"><small>No. Cut</small></label>
+                                    <input type="text" class="form-control form-control-sm" id="no_cut" name="no_cut" value="{{ $dataSpreading->no_cut }}" readonly>
                                 </div>
                             </div>
                         </div>
@@ -112,6 +118,7 @@
                     </div>
                 </div>
                 <div class="mb-5">
+                    <h5 class="fw-bold mb-3 ps-1">Print Stocker</h5>
                     <div class="accordion" id="accordionPanelsStayOpenExample">
                         @php
                             $index = 0;
@@ -135,7 +142,7 @@
                                                     <th>Range Akhir</th>
                                                     <th>Generated</th>
                                                     <th>Print Stocker</th>
-                                                    <th>Print Numbering</th>
+                                                    {{-- <th>Print Numbering</th> --}}
                                                 </thead>
                                                 <tbody>
                                                     @foreach ($dataRatio as $ratio)
@@ -143,7 +150,7 @@
                                                             $qty = intval($ratio->ratio) * intval($dataSpreading->total_lembar);
 
                                                             $stockerThis = $dataStocker ? $dataStocker->where("part_detail_id", $partDetail->id)->where("so_det_id", $ratio->so_det_id)->where("no_cut", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->first() : null;
-                                                            $stockerBefore = $dataStocker ? $dataStocker->where("part_detail_id", $partDetail->id)->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->sortByDesc('stocker_id')->first() : null;
+                                                            $stockerBefore = $dataStocker ? $dataStocker->where("part_detail_id", $partDetail->id)->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->sortByDesc('no_cut')->first() : null;
                                                             $rangeAwal = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + 1 : "-") : "-") : 1);
                                                             $rangeAkhir = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + $qty : "-") : "-") : $qty);
                                                         @endphp
@@ -188,11 +195,11 @@
                                                                     <i class="fa fa-print fa-s"></i>
                                                                 </button>
                                                             </td>
-                                                            <td>
+                                                            {{-- <td>
                                                                 <button type="button" class="btn btn-sm btn-danger" onclick="printNumbering({{ $index }});" {{ ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? "" : "disabled") : "") : "") }}>
                                                                     <i class="fa fa-print fa-s"></i>
                                                                 </button>
-                                                            </td>
+                                                            </td> --}}
                                                         </tr>
                                                         @php
                                                             $index++;
@@ -205,6 +212,78 @@
                                 </div>
                             </div>
                         @endforeach
+                    </div>
+                </div>
+                <div class="mb-5">
+                    <h5 class="fw-bold mb-3 ps-1">Print Numbering</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm" id="table-ratio-numbering">
+                            <thead>
+                                <th>Size</th>
+                                <th>Ratio</th>
+                                <th>Qty Cut</th>
+                                <th>Range Awal</th>
+                                <th>Range Akhir</th>
+                                <th>Generated</th>
+                                <th>Print Numbering</th>
+                            </thead>
+                            <tbody>
+                                @foreach ($dataRatio as $ratio)
+                                    @php
+                                        $qty = intval($ratio->ratio) * intval($dataSpreading->total_lembar);
+
+                                        $numberingThis = $dataNumbering ? $dataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", $dataSpreading->no_cut)->where("ratio", ">", "0")->first() : null;
+                                        $numberingBefore = $dataNumbering ? $dataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->where("ratio", ">", "0")->sortByDesc('no_cut')->first() : null;
+                                        $rangeAwal = ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? $numberingBefore->range_akhir + 1 : "-") : "-") : 1);
+                                        $rangeAkhir = ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? $numberingBefore->range_akhir + $qty : "-") : "-") : $qty);
+                                    @endphp
+                                    <tr>
+                                        <input type="hidden" name="ratio[{{ $index }}]" id="ratio_{{ $index }}" value="{{ $ratio->ratio }}">
+                                        <input type="hidden" name="so_det_id[{{ $index }}]" id="so_det_id_{{ $index }}" value="{{ $ratio->so_det_id }}">
+                                        <input type="hidden" name="size[{{ $index }}]" id="size_{{ $index }}" value="{{ $ratio->size }}">
+                                        <input type="hidden" name="qty_cut[{{ $index }}]" id="qty_cut_{{ $index }}" value="{{ $qty }}">
+                                        <input type="hidden" name="range_awal[{{ $index }}]" id="range_awal_{{ $index }}" value="{{ $rangeAwal }}">
+                                        <input type="hidden" name="range_akhir[{{ $index }}]" id="range_akhir_{{ $index }}" value="{{ $rangeAkhir }}">
+
+                                        <td>{{ $ratio->size}}</td>
+                                        <td>{{ $ratio->ratio }}</td>
+                                        <td>{{ $qty }}</td>
+                                        <td>{{ $rangeAwal }}</td>
+                                        <td>{{ $rangeAkhir }}</td>
+                                        <td>
+                                            @if ($dataSpreading->no_cut > 1)
+                                                @if ($numberingBefore)
+                                                    @if ($numberingBefore->numbering_id != null)
+                                                        @if ($numberingThis->numbering_id != null)
+                                                            <i class="fa fa-check"></i>
+                                                        @else
+                                                            <i class="fa fa-times"></i>
+                                                        @endif
+                                                    @else
+                                                        <i class="fa fa-minus"></i>
+                                                    @endif
+                                                @else
+                                                    <i class="fa fa-minus"></i>
+                                                @endif
+                                            @else
+                                                @if ($numberingThis->numbering_id != null)
+                                                    <i class="fa fa-check"></i>
+                                                @else
+                                                    <i class="fa fa-times"></i>
+                                                @endif
+                                            @endif
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-danger" onclick="printNumbering({{ $index }});" {{ ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? "" : "disabled") : "") : "") }}>
+                                                <i class="fa fa-print fa-s"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    @php
+                                        $index++;
+                                    @endphp
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </form>
