@@ -244,7 +244,7 @@ class RackController extends Controller
                 COUNT(rack_detail_stocker.id) stocker_rack
             ")->
             leftJoin("rack_detail", "rack_detail.rack_id", "rack.id")->
-            leftJoin("rack_detail_stocker", "detail_rack.rack_id", "rack_detail.id")->
+            leftJoin("rack_detail_stocker", "rack_detail_stocker.detail_rack_id", "rack_detail.id")->
             where('rack.id', $id)->
             groupBy('rack.id')->
             first();
@@ -258,7 +258,7 @@ class RackController extends Controller
 
             return array(
                 "status" => 200,
-                "message" => "Rak '".$rackData->kode."' Berhasil Di Hapus",
+                "message" => "Rak '".$thisRack->nama_rak."' Berhasil Di Hapus",
                 "additional" => [],
                 "table" => "datatable-rack",
                 "redirect" => ""
@@ -267,7 +267,7 @@ class RackController extends Controller
 
         return array(
             "status" => 400,
-            "message" => "Rak '".$rackData->kode."' sudah terisi",
+            "message" => "Rak '".$thisRack->nama_rak."' sudah terisi",
             "additional" => [],
             "redirect" => ""
         );

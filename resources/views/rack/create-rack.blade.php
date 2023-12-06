@@ -59,6 +59,7 @@
     <script>
         $(document).ready(() => {
             document.getElementById('nama_rak').value = "";
+            document.getElementById('jumlah_baris').value = 0;
             document.getElementById('jumlah_ruang').value = 0;
         });
 
