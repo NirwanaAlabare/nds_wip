@@ -363,48 +363,49 @@ class StockerController extends Controller
             );
         }
 
-        // if (count($items) > 0) {
-            $dataStockers = Stocker::selectRaw("
-                    stocker_input.qty_ply bundle_qty,
-                    stocker_input.size,
-                    stocker_input.range_awal,
-                    stocker_input.range_akhir,
-                    stocker_input.id_qr_stocker,
-                    marker_input.act_costing_ws,
-                    marker_input.buyer,
-                    marker_input.style,
-                    marker_input.color,
-                    stocker_input.shade,
-                    form_cut_input.no_cut
-                ")->
-                leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
-                leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
-                leftJoin("part", "part.id", "=", "part_detail.part_id")->
-                leftJoin("part_form", "part_form.part_id", "=", "part.id")->
-                leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
-                leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
-                leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
-                leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->
-                leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
-                where("form_cut_input.status", "SELESAI PENGERJAAN")->
-                where("part_detail.id", $request['part_detail_id'][$index])->
-                where("form_cut_input.id", $request['form_cut_id'])->
-                where("marker_input_detail.so_det_id", $request['so_det_id'][$index])->
-                where("stocker_input.so_det_id", $request['so_det_id'][$index])->
-                groupBy("form_cut_input.id", "stocker_input.id")->
-                get();
+        $dataStockers = Stocker::selectRaw("
+                stocker_input.qty_ply bundle_qty,
+                stocker_input.size,
+                stocker_input.range_awal,
+                stocker_input.range_akhir,
+                stocker_input.id_qr_stocker,
+                marker_input.act_costing_ws,
+                marker_input.buyer,
+                marker_input.style,
+                marker_input.color,
+                stocker_input.shade,
+                form_cut_input.no_cut,
+                master_part.nama_part part,
+                master_sb_ws.dest
+            ")->
+            leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+            leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+            leftJoin("part", "part.id", "=", "part_detail.part_id")->
+            leftJoin("part_form", "part_form.part_id", "=", "part.id")->
+            leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+            leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+            leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
+            leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->
+            leftJoin("master_sb_ws", "stocker_input.so_det_id", "=", "master_sb_ws.id_so_det")->
+            leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
+            where("form_cut_input.status", "SELESAI PENGERJAAN")->
+            where("part_detail.id", $request['part_detail_id'][$index])->
+            where("form_cut_input.id", $request['form_cut_id'])->
+            where("marker_input_detail.so_det_id", $request['so_det_id'][$index])->
+            where("stocker_input.so_det_id", $request['so_det_id'][$index])->
+            groupBy("form_cut_input.id", "stocker_input.id")->
+            get();
 
-            // generate pdf
-            PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
-            $pdf = PDF::loadView('stocker.pdf.print-stocker', ["dataStockers" => $dataStockers])->setPaper('a7', 'landscape');
+        // generate pdf
+        PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
+        $pdf = PDF::loadView('stocker.pdf.print-stocker', ["dataStockers" => $dataStockers])->setPaper('a7', 'landscape');
 
-            $path = public_path('pdf/');
-            $fileName = 'stocker-'.$storeItem->id.'.pdf';
-            $pdf->save($path . '/' . $fileName);
-            $generatedFilePath = public_path('pdf/'.$fileName);
+        $path = public_path('pdf/');
+        $fileName = 'stocker-'.$storeItem->id.'.pdf';
+        $pdf->save($path . '/' . $fileName);
+        $generatedFilePath = public_path('pdf/'.$fileName);
 
-            return response()->download($generatedFilePath);
-        // }
+        return response()->download($generatedFilePath);
     }
 
     public function printNumbering(Request $request, $index)
@@ -417,7 +418,7 @@ class StockerController extends Controller
                 so_det_id = '".$request['so_det_id'][$index]."' AND
                 panel = '".$request['panel']."' AND
                 shade = '".$request['shade']."' AND
-                ratio = '".$request['ratio'][$index]."'
+                ratio = '".($index + 1)."'
             ")->first();
 
         $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-".$stockerCount;
