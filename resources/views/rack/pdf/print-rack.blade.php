@@ -59,11 +59,11 @@
                         <img src="data:image/png;base64, {!! base64_encode(QrCode::format('svg')->size(100)->generate($rackDetail->kode)); !!}">
                     </td>
                 </tr>
-                <tr>
+                {{-- <tr>
                     <td style="text-align: center; font-size: 40px;">
                         {{ $rackDetail->kode }}
                     </td>
-                </tr>
+                </tr> --}}
             </tbody>
         </table>
     @endforeach
