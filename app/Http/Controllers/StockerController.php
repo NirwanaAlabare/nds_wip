@@ -394,6 +394,7 @@ class StockerController extends Controller
             where("marker_input_detail.so_det_id", $request['so_det_id'][$index])->
             where("stocker_input.so_det_id", $request['so_det_id'][$index])->
             groupBy("form_cut_input.id", "stocker_input.id")->
+            orderBy("stocker_input.ratio", "asc")->
             get();
 
         // generate pdf
