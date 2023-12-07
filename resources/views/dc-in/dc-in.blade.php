@@ -43,6 +43,9 @@
                             <th>Style</th>
                             <th>Color</th>
                             <th>List Part</th>
+                            <th>Total Stocker</th>
+                            <th>In Stocker</th>
+                            <th>Sisa Stocker</th>
                             <th class="align-bottom">Act</th>
                         </tr>
                     </thead>
@@ -74,7 +77,7 @@
     <script>
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i == 7) {
+            if (i >= 7) {
                 $(this).empty();
             } else {
                 var title = $(this).text();
@@ -129,11 +132,20 @@
                     data: 'list_part'
                 },
                 {
+                    data: 'tot_stocker'
+                },
+                {
+                    data: 'in_stocker'
+                },
+                {
+                    data: 'sisa_stocker'
+                },
+                {
                     data: 'id'
                 },
             ],
             columnDefs: [{
-                targets: [7],
+                targets: [10],
                 render: (data, type, row, meta) => {
                     return `<div class='d-flex gap-1 justify-content-center'> <a class='btn btn-warning btn-sm' href='{{ route('create-dc-in') }}/` +
                         row.no_form +

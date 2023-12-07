@@ -51,7 +51,12 @@ class DCInController extends Controller
             p.buyer,
             p.style,
             mi.color,
-            b.list_part
+			mi.po_marker,
+            b.list_part,
+			count(c.id_qr_stocker) tot_stocker,
+			count(dc.id_qr_stocker) in_stocker,
+			count(c.id_qr_stocker) - count(dc.id_qr_stocker) sisa_stocker,
+			DATE_FORMAT(a.waktu_selesai, '%d-%m-%Y %T') tgl_selesai_fix
             from part p
             inner join part_form pf on p.id = pf.part_id
             inner join form_cut_input a on pf.form_id = a.id
@@ -63,6 +68,7 @@ class DCInController extends Controller
             group by part_id
             ) b on p.id = b.part_id
             inner join stocker_input c on a.id = c.form_cut_id
+						left join dc_in_input dc on c.id_qr_stocker = dc.id_qr_stocker
             group by no_form
             order by act_costing_ws asc, no_cut asc
             ");
