@@ -152,6 +152,9 @@ table.vertical tbody td {
     100% { transform: rotate(360deg); }
 }
 
+.main-header .nav-link {
+    height: auto !important;
+}
 
 /* Background Color */
 .bg-sb {
