@@ -22,7 +22,7 @@ class SummaryController extends Controller
             $additionalQuery = "";
 
             if ($request->date) {
-                $additionalQuery .= "and date(a.updated_at) = '" . $request->date . "' ";
+                $additionalQuery .= "and date(a.waktu_selesai) = '" . $request->date . "' ";
             }
 
             if (Auth::user()->type == "meja") {
