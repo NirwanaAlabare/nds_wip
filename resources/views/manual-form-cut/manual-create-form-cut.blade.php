@@ -763,7 +763,7 @@
                                         <input type="text" class="form-control form-control-sm" id="seconds" value="00" readonly class="mx-1">
                                     </div>
                                 </div>
-                                <div class="w-100 h-100 table-responsive mt-3">
+                                <div class="w-100 h-100 table-responsive mt-3" style="max-height: 150px; overflow-y: auto;">
                                     <table class="table table-bordered table-sm" id="timeRecordTable">
                                         <thead>
                                             <tr>
@@ -811,20 +811,22 @@
                                     <input type="text" class="form-control form-control-sm" id="lostSeconds" value="00" readonly class="mx-1">
                                 </div>
                             </div>
-                            <div class="w-100 h-100 table-responsive mt-3">
+                            <div class="w-100 h-100 table-responsive mt-3" style="max-height: 150px; overflow-y: auto;">
                                 <form action="#" method="post" id="lost-time-form">
                                     <input type="hidden" id="current_lost_time" name="current_lost_time">
-                                    <table class="table table-bordered table-sm" id="lostTimeTable">
-                                        <thead>
-                                            <tr>
-                                                <th>No.</th>
-                                                <th>Waktu</th>
-                                                <th class="d-none"></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                        </tbody>
-                                    </table>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-sm" id="lostTimeTable">
+                                            <thead>
+                                                <tr>
+                                                    <th>No.</th>
+                                                    <th>Waktu</th>
+                                                    <th class="d-none"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </form>
                             </div>
                         </div>
