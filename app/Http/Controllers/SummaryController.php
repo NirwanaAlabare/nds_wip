@@ -67,6 +67,7 @@ class SummaryController extends Controller
                     b.lebar_marker lebar_marker,
                     UPPER(b.unit_lebar_marker) unit_lebar_marker,
                     a.qty_ply,
+                    a.total_lembar,
                     b.gelar_qty gelar_qty,
                     b.po_marker po_marker,
                     b.urutan_marker urutan_marker,
