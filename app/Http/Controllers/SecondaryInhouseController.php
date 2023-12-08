@@ -11,7 +11,7 @@ use App\Exports\ExportLaporanMutasiKaryawan;
 use Maatwebsite\Excel\Facades\Excel;
 use DB;
 
-class SecondaryInController extends Controller
+class SecondaryInhouseController extends Controller
 {
     public function index(Request $request)
     {
@@ -65,15 +65,34 @@ class SecondaryInController extends Controller
 
             return DataTables::of($data_line)->toJson();
         }
-
-        // if ($request->ajax()) {
-        //     $employeeQuery = Employee::get();
-
-        //     return DataTables::eloquent($employeeQuery)->toJson();;
-        // }
-        // return view('secondary-in.secondary-in', ['page' => 'dashboard-dc'], ['tgl_skrg' => $tgl_skrg]);
-        return view('secondary-in.secondary-in', ['page' => 'dashboard-dc', "subPageGroup" => "secondary-dc", "subPage" => "secondary-in"], ['tgl_skrg' => $tgl_skrg]);
+        return view('secondary-inhouse.secondary-inhouse', ['page' => 'dashboard-dc', "subPageGroup" => "secondary-dc", "subPage" => "secondary-inhouse"], ['tgl_skrg' => $tgl_skrg]);
     }
+
+    public function cek_data_stocker(Request $request)
+    {
+        $cekdata =  DB::select("
+        select dc.id_qr_stocker,
+        s.act_costing_ws,
+        buyer,
+        no_cut,
+        style,
+        s.color,
+        s.size,
+        mp.nama_part,
+        dc.tujuan,
+        dc.alokasi,
+        s.qty_ply - dc.qty_reject + dc.qty_replace qty_awal
+        from dc_in_input dc
+        inner join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
+        inner join form_cut_input a on s.form_cut_id = a.id
+        inner join part_detail p on s.part_detail_id = p.id
+        inner join master_part mp on p.master_part_id = mp.id
+        inner join marker_input mi on a.id_marker = mi.kode
+        where dc.id_qr_stocker =  '" . $request->txtqrstocker . "' and tujuan = 'SECONDARY DALAM'
+        ");
+        return json_encode($cekdata[0]);
+    }
+
 
     public function lineChartData()
     {
