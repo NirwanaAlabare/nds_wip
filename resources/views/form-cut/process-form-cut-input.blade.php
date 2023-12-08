@@ -1865,7 +1865,11 @@
                 // let shortRoll = pActualConverted * lembarGelaranVar + kepalaKainVar + pipingVar + sisaKainVar + rejectVar + sambunganVar - qtyVar;
                 let shortRoll = ((pActualConverted * lembarGelaranVar) + sisaGelaranVar + sambunganVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar) - qtyVar;
 
-                document.getElementById("current_short_roll").value = shortRoll.round(2);
+                if (sambunganVar != 0) {
+                    shortRoll = 0;
+                }
+
+                document.getElementById("current_short_roll").value = isNaN(shortRoll.round(2)) ? 0 : shortRoll.round(2);
             }
 
             // -Calculate Remark-

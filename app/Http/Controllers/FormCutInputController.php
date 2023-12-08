@@ -440,7 +440,7 @@ class FormCutInputController extends Controller
 
     public function getTimeRecord($noForm = 0)
     {
-        $timeRecordSummary = FormCutInputDetail::where("no_form_cut_input", $noForm)->where('status', '!=', 'not complete')->where('status', '!=', 'extension')->get();
+        $timeRecordSummary = FormCutInputDetail::where("no_form_cut_input", $noForm)->where('status', '!=', 'not complete')->where('status', '!=', 'extension')->orderBy('id', 'asc')->get();
 
         return json_encode($timeRecordSummary);
     }
