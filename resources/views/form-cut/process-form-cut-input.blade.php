@@ -1863,7 +1863,7 @@
                 }
 
                 // let shortRoll = pActualConverted * lembarGelaranVar + kepalaKainVar + pipingVar + sisaKainVar + rejectVar + sambunganVar - qtyVar;
-                let shortRoll = qtyVar - ((pActualConverted * lembarGelaranVar) + sisaGelaranVar + sambunganVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar);
+                let shortRoll = ((pActualConverted * lembarGelaranVar) + sisaGelaranVar + sambunganVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar) - qtyVar;
 
                 document.getElementById("current_short_roll").value = shortRoll.round(2);
             }
@@ -1900,7 +1900,7 @@
                     }
                 }
 
-                let remark = ((pActualConverted * lembarGelaranVar) + sisaGelaranVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar);
+                let remark = ((pActualConverted * lembarGelaranVar) + sisaGelaranVar + sambunganVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar);
 
                 document.getElementById("current_remark").value = remark.round(2);
             }
