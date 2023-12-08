@@ -22,7 +22,7 @@ class SummaryController extends Controller
             $additionalQuery = "";
 
             if ($request->date) {
-                $additionalQuery .= "and date(a.updated_at) = '" . $request->date . "' ";
+                $additionalQuery .= "and date(a.waktu_selesai) = '" . $request->date . "' ";
             }
 
             if (Auth::user()->type == "meja") {
@@ -67,6 +67,7 @@ class SummaryController extends Controller
                     b.lebar_marker lebar_marker,
                     UPPER(b.unit_lebar_marker) unit_lebar_marker,
                     a.qty_ply,
+                    a.total_lembar,
                     b.gelar_qty gelar_qty,
                     b.po_marker po_marker,
                     b.urutan_marker urutan_marker,

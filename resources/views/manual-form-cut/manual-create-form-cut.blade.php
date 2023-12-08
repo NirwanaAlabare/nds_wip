@@ -763,7 +763,7 @@
                                         <input type="text" class="form-control form-control-sm" id="seconds" value="00" readonly class="mx-1">
                                     </div>
                                 </div>
-                                <div class="w-100 h-100 table-responsive mt-3">
+                                <div class="w-100 h-100 table-responsive mt-3" style="max-height: 150px; overflow-y: auto;">
                                     <table class="table table-bordered table-sm" id="timeRecordTable">
                                         <thead>
                                             <tr>
@@ -811,20 +811,22 @@
                                     <input type="text" class="form-control form-control-sm" id="lostSeconds" value="00" readonly class="mx-1">
                                 </div>
                             </div>
-                            <div class="w-100 h-100 table-responsive mt-3">
+                            <div class="w-100 h-100 table-responsive mt-3" style="max-height: 150px; overflow-y: auto;">
                                 <form action="#" method="post" id="lost-time-form">
                                     <input type="hidden" id="current_lost_time" name="current_lost_time">
-                                    <table class="table table-bordered table-sm" id="lostTimeTable">
-                                        <thead>
-                                            <tr>
-                                                <th>No.</th>
-                                                <th>Waktu</th>
-                                                <th class="d-none"></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                        </tbody>
-                                    </table>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-sm" id="lostTimeTable">
+                                            <thead>
+                                                <tr>
+                                                    <th>No.</th>
+                                                    <th>Waktu</th>
+                                                    <th class="d-none"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -2214,9 +2216,13 @@
                 }
 
                 // let shortRoll = pActualConverted * lembarGelaranVar + kepalaKainVar + pipingVar + sisaKainVar + rejectVar + sambunganVar - qtyVar;
-                let shortRoll = qtyVar - ((pActualConverted * lembarGelaranVar) +  sisaGelaranVar + sambunganVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar);
+                let shortRoll = ((pActualConverted * lembarGelaranVar) + sisaGelaranVar + sambunganVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar) - qtyVar;
 
-                document.getElementById("current_short_roll").value = shortRoll.round(2);
+                if (sambunganVar != 0) {
+                    shortRoll = 0;
+                }
+
+                document.getElementById("current_short_roll").value = isNaN(shortRoll.round(2)) ? 0 : shortRoll.round(2);
             }
 
             // -Calculate Remark-
@@ -2251,7 +2257,7 @@
                     }
                 }
 
-                let remark = ((pActualConverted * lembarGelaranVar) +  sisaGelaranVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar);
+                let remark = ((pActualConverted * lembarGelaranVar) + sisaGelaranVar + sambunganVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar);
 
                 document.getElementById("current_remark").value = remark.round(2);
             }

@@ -52,6 +52,7 @@
                             <th class="align-bottom">Status</th>
                             <th>Size Ratio</th>
                             <th>Qty Ply</th>
+                            <th>Qty Actual</th>
                             <th>Ket.</th>
                             <th class="align-bottom">App</th>
                             <th>Act</th>
@@ -242,7 +243,7 @@
         });
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 6 || i == 10 || i == 11) {
+            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 10 || i == 11 || i == 12) {
                 var title = $(this).text();
                 $(this).html('<input type="text"  style="width:100%"/>');
 
@@ -302,6 +303,9 @@
                 },
                 {
                     data: 'qty_ply'
+                },
+                {
+                    data: 'total_lembar'
                 },
                 {
                     data: 'notes'
@@ -369,7 +373,7 @@
                     }
                 },
                 {
-                    targets: [12],
+                    targets: [13],
                     className: "text-center align-middle",
                     render: (data, type, row, meta) => {
                         icon = "";
@@ -407,7 +411,7 @@
                     }
                 },
                 {
-                    targets: [13],
+                    targets: [14],
                     render: (data, type, row, meta) => {
                         let btnEdit =
                             "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" +

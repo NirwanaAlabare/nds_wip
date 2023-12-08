@@ -127,6 +127,10 @@ function submitForm(e, evt) {
 
                 e.reset();
 
+                if (res.callback != '') {
+                    eval(res.callback);
+                }
+
                 if (document.getElementsByClassName('select2')) {
                     $(".select2").val('').trigger('change');
                 }

@@ -67,7 +67,7 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            <div class="row">
+                            <div class="row align-items-end">
                                 <div class="col-sm-3">
                                     <div class="form-group">
                                         <label>Qty Ply Marker</label>
@@ -88,7 +88,7 @@
                                 </div>
                                 <div class="col-sm-3">
                                     <div class="form-group">
-                                        <label>&emsp;&emsp;&emsp;</label>
+                                        {{-- <label>&emsp;&emsp;&emsp;</label> --}}
                                         <button type='submit' name='submit' class='btn btn-primary'>Simpan</button>
                                     </div>
                                 </div>

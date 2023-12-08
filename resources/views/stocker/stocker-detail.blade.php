@@ -150,7 +150,7 @@
                                                             $qty = intval($ratio->ratio) * intval($dataSpreading->total_lembar);
 
                                                             $stockerThis = $dataStocker ? $dataStocker->where("part_detail_id", $partDetail->id)->where("so_det_id", $ratio->so_det_id)->where("no_cut", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->first() : null;
-                                                            $stockerBefore = $dataStocker ? $dataStocker->where("part_detail_id", $partDetail->id)->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->sortByDesc('no_cut')->first() : null;
+                                                            $stockerBefore = $dataStocker ? $dataStocker->where("part_detail_id", $partDetail->id)->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->sortByDesc('no_cut')->sortByDesc('range_akhir')->first() : null;
                                                             $rangeAwal = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + 1 : "-") : "-") : 1);
                                                             $rangeAkhir = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + $qty : "-") : "-") : $qty);
                                                         @endphp

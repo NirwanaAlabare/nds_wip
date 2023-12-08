@@ -91,7 +91,7 @@
                     </div>
                     <input type="hidden" class="form-control" id="jumlah_part_detail" name="jumlah_part_detail" value="" readonly>
                 </div>
-                <button type="submit" class="btn btn-success btn-block fw-bold mt-3">SIMPAN</button>
+                <button type="submit" class="btn btn-success btn-block fw-bold mt-3" id="submit-button">SIMPAN</button>
             </div>
         </div>
     </form>
@@ -201,6 +201,8 @@
 
         // Submit Part Form
         function submitPartForm(e, evt) {
+            document.getElementById('submit-button').setAttribute('disabled', true);
+
             evt.preventDefault();
 
             clearModified();
@@ -240,8 +242,7 @@
                             }
                         })
 
-                        // Reset Step ( back to step one )
-                        resetStep();
+                        document.getElementById('submit-button').setAttribute('disabled', false);
                     } else {
                         // When Actually Error :
 

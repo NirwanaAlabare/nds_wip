@@ -59,11 +59,11 @@ class StockerController extends Controller
 
                 return Datatables::of($formCutInputs)->
                     filter(function ($query) {
-                        if (request()->has('dateFrom')) {
+                        if (request()->has('dateFrom') && request('dateFrom') != null && request('dateFrom') != "") {
                             $query->where('form_cut_input.tgl_form_cut', '>=', request('dateFrom'));
                         }
 
-                        if (request()->has('dateTo')) {
+                        if (request()->has('dateTo') && request('dateTo') != null && request('dateTo') != "") {
                             $query->where('form_cut_input.tgl_form_cut', '<=', request('dateTo'));
                         }
                     }, true)->filterColumn('id_marker', function ($query, $keyword) {
