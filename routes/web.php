@@ -16,8 +16,10 @@ use App\Http\Controllers\ManagerController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\SummaryController;
 use App\Http\Controllers\DCInController;
-use App\Http\Controllers\RackController;
 use App\Http\Controllers\SecondaryInController;
+use App\Http\Controllers\RackController;
+use App\Http\Controllers\TrolleyController;
+use App\Http\Controllers\TrolleyStockerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -262,10 +264,30 @@ Route::middleware('auth')->group(function () {
         Route::get('/create', 'create')->name('create-rack');
         Route::post('/store', 'store')->name('store-rack');
         Route::put('/update', 'update')->name('update-rack');
-        Route::delete('/destroy', 'destroy')->name('destroy-rack');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-rack');
         Route::post('/print-rack/{id?}', 'printRack')->name('print-rack');
 
         Route::get('/rack-detail', 'rackDetail')->name('rack-detail');
+    });
+
+    // Trolley
+    Route::controller(TrolleyController::class)->prefix("trolley")->middleware('dc')->group(function () {
+        Route::get('/', 'index')->name('trolley');
+        Route::get('/create', 'create')->name('create-trolley');
+        Route::post('/store', 'store')->name('store-trolley');
+        Route::put('/update', 'update')->name('update-trolley');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-trolley');
+        Route::post('/print-trolley/{id?}', 'printTrolley')->name('print-trolley');
+    });
+
+    // Trolley Stocker
+    Route::controller(TrolleyStockerController::class)->prefix("stock-trolley")->middleware('dc')->group(function () {
+        Route::get('/', 'index')->name('stock-trolley');
+        Route::get('/allocate', 'allocate')->name('allocate-trolley');
+        Route::post('/store', 'store')->name('store-trolley-stock');
+        Route::put('/update', 'update')->name('update-trolley-stock');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-trolley-stock');
+        Route::post('/print-bon-mutasi/{id?}', 'printBonMutasi')->name('print-trolley-stock');
     });
 
     // Mutasi Karywawan

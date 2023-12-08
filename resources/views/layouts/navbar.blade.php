@@ -227,8 +227,13 @@
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @dc
                                 <li>
-                                    <a href="{{ route('stocker') }}" class="dropdown-item {{ $subPage == "-" ? 'active' : '' }}">
-                                        Stocker <i class="fas fa-receipt fa-sm"></i>
+                                    <a href="{{ route('trolley') }}" class="dropdown-item {{ $subPage == "trolley" ? 'active' : '' }}">
+                                        Master Trolley <i class="fas fa-plus-square fa-sm"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('stock-trolley') }}" class="dropdown-item {{ $subPage == "stock-trolley" ? 'active' : '' }}">
+                                        Trolley <i class="fas fa-dolly-flatbed"></i>
                                     </a>
                                 </li>
                             @enddc
