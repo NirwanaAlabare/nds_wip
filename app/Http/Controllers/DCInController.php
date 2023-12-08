@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Employee;
-use App\Models\MutKaryawan;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 use App\Exports\ExportLaporanMutasiKaryawan;

@@ -20,6 +20,7 @@ use App\Http\Controllers\SecondaryInController;
 use App\Http\Controllers\RackController;
 use App\Http\Controllers\TrolleyController;
 use App\Http\Controllers\TrolleyStockerController;
+use App\Http\Controllers\SecondaryInhouseController;
 
 /*
 |--------------------------------------------------------------------------
@@ -257,6 +258,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('secondary-in');
         Route::get('/create', 'create')->name('create-secondary-in');
     });
+
+    // Secondary INHOUSE
+    Route::controller(SecondaryInhouseController::class)->prefix("secondary-inhouse")->middleware('dc')->group(function () {
+        Route::get('/', 'index')->name('secondary-inhouse');
+        Route::get('/cek_data_stocker', 'cek_data_stocker')->name('cek_data_stocker');
+        Route::post('/store', 'store')->name('store-secondary-inhouse');
+    });
+
 
     // Rack
     Route::controller(RackController::class)->prefix("rack")->middleware('dc')->group(function () {
