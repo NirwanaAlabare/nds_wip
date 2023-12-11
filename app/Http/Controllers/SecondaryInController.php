@@ -3,13 +3,13 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Employee;
-use App\Models\MutKaryawan;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 use App\Exports\ExportLaporanMutasiKaryawan;
+use App\Models\SecondaryIn;
 use Maatwebsite\Excel\Facades\Excel;
 use DB;
+use Illuminate\Support\Facades\Auth;
 
 class SecondaryInController extends Controller
 {
@@ -18,6 +18,8 @@ class SecondaryInController extends Controller
         $tgl_skrg = Carbon::now()->isoFormat('D MMMM Y hh:mm:ss');
         $tglskrg = date('Y-m-d');
 
+        $data_rak = DB::select("select nama_detail_rak isi, nama_detail_rak tampil from rack_detail");
+        // dd($data_rak);
         if ($request->ajax()) {
             $additionalQuery = '';
 
@@ -41,193 +43,119 @@ class SecondaryInController extends Controller
                 ";
             }
 
-            $data_line = DB::select("
-            SELECT
-                line,
-                count(id) tot_orang,
-				count(absen_masuk_kerja is not null or absen_masuk_kerja != '') tot_absen,
-				count(id) - count(absen_masuk_kerja is not null or absen_masuk_kerja != '') selisih,
-                cast(right(line,2) as UNSIGNED) urutan,
-                status_aktif
-            from
-            (
-                select a.id, b.tgl_pindah,b.nik,b.nm_karyawan,b.line, absen_masuk_kerja,status_aktif from
-                (select max(id) id from mut_karyawan_input a
-                group by nik)a
-                inner join mut_karyawan_input b on a.id = b.id
-				left join (select enroll_id, absen_masuk_kerja, status_aktif from master_data_absen_kehadiran where tanggal_berjalan = '" . $tglskrg . "' and status_aktif = 'AKTIF') c on b.enroll_id = c.enroll_id
-            ) master_karyawan
-            where status_aktif = 'AKTIF' or status_aktif is null
-            group by line
-            order by cast(right(line,2) as UNSIGNED) asc
+            $data_input = DB::select("
+            SELECT a.*,
+            DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
+            s.act_costing_ws,
+            s.color,
+            p.buyer,
+            p.style,
+            a.qty_awal,
+            a.qty_reject,
+            a.qty_replace,
+            a.qty_in,
+            a.created_at,
+            users.name
+            from secondary_in_input a
+            inner join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+            inner join part_detail pd on s.part_detail_id = pd.id
+            inner join part p on pd.part_id = p.id
+            inner join users on a.user = users.id
             ");
 
-
-            return DataTables::of($data_line)->toJson();
+            return DataTables::of($data_input)->toJson();
         }
-
-        // if ($request->ajax()) {
-        //     $employeeQuery = Employee::get();
-
-        //     return DataTables::eloquent($employeeQuery)->toJson();;
-        // }
-        // return view('secondary-in.secondary-in', ['page' => 'dashboard-dc'], ['tgl_skrg' => $tgl_skrg]);
-        return view('secondary-in.secondary-in', ['page' => 'dashboard-dc', "subPageGroup" => "secondary-dc", "subPage" => "secondary-in"], ['tgl_skrg' => $tgl_skrg]);
+        return view('secondary-in.secondary-in', ['page' => 'dashboard-dc', "subPageGroup" => "secondary-dc", "subPage" => "secondary-in", "data_rak" => $data_rak], ['tgl_skrg' => $tgl_skrg]);
     }
 
-    public function lineChartData()
+    public function cek_data_stocker_in(Request $request)
     {
-        $data_line =  DB::connection('mysql_hris')->select("
-            SELECT
-                line,
-                count(id) tot_orang,
-                cast(right(line,2) as UNSIGNED) urutan
-            from
-            (
-                select a.id, b.tgl_pindah,b.nik,b.nm_karyawan,b.line from
-                (select max(id) id from mut_karyawan_input a
-                group by nik)a
-                inner join mut_karyawan_input b on a.id = b.id
-            ) master_karyawan
-            group by line
-            order by cast(right(line,2) as UNSIGNED) asc
-            ");
-
-        return json_encode($data_line);
+        $cekdata =  DB::select("
+        select
+        sii.no_form,
+        sii.id_qr_stocker,
+        s.act_costing_ws,
+        buyer,
+        no_cut,
+        style,
+        s.color,
+        s.size,
+        dc.tujuan,
+        dc.alokasi,
+        mp.nama_part,
+        sii.qty_in qty_awal,
+        ifnull(b.id_qr_stocker,'x')
+        from secondary_inhouse_input sii
+        inner join stocker_input s on sii.id_qr_stocker = s.id_qr_stocker
+        inner join form_cut_input a on s.form_cut_id = a.id
+        inner join part_detail p on s.part_detail_id = p.id
+        inner join master_part mp on p.master_part_id = mp.id
+        inner join marker_input mi on a.id_marker = mi.kode
+		left join secondary_in_input b on sii.id_qr_stocker = b.id_qr_stocker
+        inner join dc_in_input dc on sii.id_qr_stocker = dc.id_qr_stocker
+        where sii.id_qr_stocker =  '" . $request->txtqrstocker . "' and ifnull(b.id_qr_stocker,'x') = 'x'
+        ");
+        return json_encode($cekdata[0]);
     }
+
+
+    // public function get_rak(Request $request)
+    // {
+    //     $data_rak = DB::select("select nama_detail_rak isi, nama_detail_rak tampil from rack_detail");
+    //     $html = "<option value=''>Pilih Rak</option>";
+
+    //     foreach ($data_rak as $datarak) {
+    //         $html .= " <option value='" . $datarak->isi . "'>" . $datarak->tampil . "</option> ";
+    //     }
+
+    //     return $html;
+    // }
 
     public function create()
     {
         return view('secondary-in.create-secondary-in', ['page' => 'dashboard-dc']);
     }
 
-    public function getdataline(Request $request)
-    {
-        $master_line = DB::connection('mysql_hris')->select(
-            "SELECT cast(right(sub_dept_name,2) as unsigned) urutan,
-            sub_dept_name nm_line
-            from department_all
-            where sub_dept_name like '" .
-                $request->txtline .
-                "%'
-            group by sub_dept_name
-            order by cast(right(sub_dept_name,2) as unsigned) asc",
-        );
-
-        // '%" . $request->txtline . "%'
-        // $data_marker = DB::select("select a.* from marker_input a
-        // where a.id = '" . $request->cri_item . "'");
-
-        return json_encode($master_line[0]);
-    }
-
-    public function gettotal(Request $request)
-    {
-        $total =  DB::connection('mysql_hris')->select(
-            "
-        select count(nik) total from
-        (select max(id) id from mut_karyawan_input a
-        group by nik)a
-        inner join mut_karyawan_input b on a.id = b.id
-        where line ='" .
-                $request->nm_line .
-                "'
-        ",
-        );
-        return json_encode($total[0]);
-    }
-
-    public function getdatalinekaryawan(Request $request)
-    {
-        $tglskrg = date('Y-m-d');
-        // $det_karyawan_line = DB::select("
-        // select a.id, b.*,
-        // DATE_FORMAT(tgl_pindah, '%d-%m-%Y') tgl_pindah_fix,
-        // DATE_FORMAT (updated_at, '%d-%m-%Y %H:%i:%s') tgl_update_fix
-        // from
-        // (select max(id) id from mut_karyawan_input a
-        // group by nik)a
-        // inner join mut_karyawan_input b on a.id = b.id
-        // where line ='" . $request->nm_line . "'
-        // order by updated_at desc
-        // ");
-        // return DataTables::of($det_karyawan_line)->toJson();
-
-        $det_karyawan_line =  DB::connection('mysql_hris')->select("
-        select a.id, b.*,
-        c.absen_masuk_kerja,
-        DATE_FORMAT(tgl_pindah, '%d-%m-%Y') tgl_pindah_fix,
-        DATE_FORMAT(b.updated_at, '%d-%m-%Y %H:%i:%s') tgl_update_fix,
-        c.status_aktif
-        from
-        (select max(id) id from mut_karyawan_input a
-        group by nik)a
-        inner join mut_karyawan_input b on a.id = b.id
-        left join (select enroll_id, absen_masuk_kerja, status_aktif from master_data_absen_kehadiran where tanggal_berjalan = '" . $tglskrg . "') c on b.enroll_id = c.enroll_id
-        where status_aktif = 'AKTIF' or status_aktif is null and line ='" . $request->nm_line . "'
-        order by updated_at desc
-        ");
-        return DataTables::of($det_karyawan_line)->toJson();
-    }
-
-    public function getdatanik(Request $request)
-    {
-        $master_karyawan = DB::connection('mysql_hris')->select(
-            "select enroll_id,ifnull(nik,nik_new) nik, employee_name from employee_atribut
-            where enroll_id ='" . $request->txtenroll_id . "' and status_aktif = 'AKTIF'",
-        );
-        return json_encode($master_karyawan[0]);
-    }
-
     public function store(Request $request)
     {
-        $tglpindah = date('Y-m-d');
+        $tgltrans = date('Y-m-d');
         $timestamp = Carbon::now();
-        $enroll_id = $request->txtenroll_id;
 
-        $line_asal =  DB::connection('mysql_hris')->select("
-        select line,nik,enroll_id, nm_karyawan from (
-            select a.id, b.tgl_pindah,b.enroll_id,b.nik,b.nm_karyawan,b.line from
-            (select max(id) id from mut_karyawan_input a
-            group by nik)a
-            inner join mut_karyawan_input b on a.id = b.id
-            ) master_karyawan
-        where enroll_id ='$enroll_id'
-        ");
-        $line_asal_data = $line_asal ? $line_asal[0]->line : null;
+        $validatedRequest = $request->validate([
+            "cborak" => "required",
+            "txtqtyreject" => "required"
+        ]);
 
-        if ($line_asal_data == $request->nm_line) {
-            return [
-                'icon' => 'error',
-                'msg' => 'Data Sudah Ada',
-                'timer' => false,
-                'prog' => true,
-            ];
-        } else {
-            $savemutasi = MutKaryawan::create([
-                'tgl_pindah' => $tglpindah,
-                'enroll_id' => $request['txtenroll_id'],
-                'nik' => $request['nik'],
-                'nm_karyawan' => $request['nm_karyawan'],
-                'line' => $request['nm_line'],
-                'line_asal' => $line_asal_data,
-                'created_at' => $timestamp,
-                'updated_at' => $timestamp,
-            ]);
-            // dd($savemutasi);
-            // $message .= "$tglpindah <br>";
-        }
+        $saveinhouse = SecondaryIn::create([
+            'tgl_trans' => $tgltrans,
+            'no_form' => $request['txtno_form'],
+            'id_qr_stocker' => $request['txtno_stocker'],
+            'tujuan' => 'NON SECONDARY',
+            'alokasi' => $validatedRequest['cborak'],
+            'qty_awal' => $request['txtqtyawal'],
+            'qty_reject' => $request['txtqtyreject'],
+            'qty_replace' => $request['txtqtyreplace'],
+            'qty_in' => $request['txtqtyin'],
+            'user' => Auth::user()->id,
+            'ket' => $request['txtket'],
+            'created_at' => $timestamp,
+            'updated_at' => $timestamp,
+        ]);
+        // dd($savemutasi);
+        // $message .= "$tglpindah <br>";
 
-        return [
-            'icon' => 'success',
-            'msg' => 'Data Sudah Tersimpan',
-            'timer' => 1500,
-            'prog' => false,
-        ];
+
+        return array(
+            'status' => 300,
+            'message' => 'Data Sudah Disimpan',
+            'redirect' => '',
+            'table' => 'datatable-input',
+            'additional' => [],
+        );
     }
 
-    public function export_excel_mut_karyawan(Request $request)
-    {
-        return Excel::download(new ExportLaporanMutasiKaryawan($request->from, $request->to), 'Laporan_Mutasi_Karyawan.xlsx');
-    }
+    // public function export_excel_mut_karyawan(Request $request)
+    // {
+    //     return Excel::download(new ExportLaporanMutasiKaryawan($request->from, $request->to), 'Laporan_Mutasi_Karyawan.xlsx');
+    // }
 }

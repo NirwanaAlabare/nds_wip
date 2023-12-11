@@ -63,7 +63,7 @@ class ExportLaporanMutasiKaryawan implements FromView, WithEvents, ShouldAutoSiz
         // order by tgl_pindah asc,nm_karyawan asc, urutan asc
         // ");
 
-        $data = DB::select("
+        $data = DB::connection('mysql_hris')->select("
         select * from (
             select a.id, b.tgl_pindah,b.nik,b.nm_karyawan,b.line,b.line_asal,b.updated_at, absen_masuk_kerja,status_aktif,tanggal_berjalan,b.enroll_id from (
             select * from (
