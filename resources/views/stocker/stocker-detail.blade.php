@@ -124,6 +124,9 @@
                             $index = 0;
                         @endphp
                         @foreach ($dataPartDetail as $partDetail)
+                            @php
+                                $generatable = true;
+                            @endphp
                             <div class="accordion-item">
                                 <h2 class="accordion-header">
                                     <button class="accordion-button accordion-sb collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-{{ $index }}" aria-expanded="false" aria-controls="panelsStayOpen-collapseTwo">
@@ -178,9 +181,11 @@
                                                                                 <i class="fa fa-times"></i>
                                                                             @endif
                                                                         @else
+                                                                            @php $generatable = false; @endphp
                                                                             <i class="fa fa-minus"></i>
                                                                         @endif
                                                                     @else
+                                                                        @php $generatable = false; @endphp
                                                                         <i class="fa fa-minus"></i>
                                                                     @endif
                                                                 @else
@@ -207,6 +212,7 @@
                                                     @endforeach
                                                 </tbody>
                                             </table>
+                                            <button type="button" class="btn btn-sm btn-danger fw-bold float-end mb-3" onclick="printStockerAllSize('{{ $partDetail->id }}');" {{ $generatable ? '' : 'disabled' }}>Generate All Size <i class="fas fa-print"></i></button>
                                         </div>
                                     </div>
                                 </div>
@@ -342,6 +348,63 @@
 
             $.ajax({
                 url: '{{ route('print-stocker') }}/'+index,
+                type: 'post',
+                processData: false,
+                contentType: false,
+                data: stockerForm,
+                xhrFields:
+                {
+                    responseType: 'blob'
+                },
+                success: function(res) {
+                    if (res) {
+                        console.log(res);
+
+                        var blob = new Blob([res], {type: 'application/pdf'});
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = fileName+".pdf";
+                        link.click();
+
+                        swal.close();
+
+                        window.location.reload();
+                    }
+                }
+            });
+        }
+
+        function printStockerAllSize(part) {
+            let stockerForm = new FormData(document.getElementById("stocker-form"));
+
+            let no_ws = document.getElementById("no_ws").value;
+            let style = document.getElementById("style").value;
+            let color = document.getElementById("color").value;
+            let panel = document.getElementById("panel").value;
+            let no_form_cut = document.getElementById("no_form_cut").value;
+
+            let fileName = [
+                no_ws,
+                style,
+                color,
+                panel,
+                part,
+                no_form_cut
+            ].join('-');
+
+            console.log(fileName);
+
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                url: '{{ route('print-stocker-all-size') }}/'+part,
                 type: 'post',
                 processData: false,
                 contentType: false,
