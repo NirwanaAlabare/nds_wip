@@ -225,9 +225,7 @@
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
-                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
-                            aria-haspopup="true"aria-expanded="false"
-                            class="nav-link dropdown-toggle {{ $subPageGroup == 'rak-dc' ? 'active' : '' }}">Rak</a>
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'rak-dc' ? 'active' : '' }}">Rak</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @dc
                                 <li>
@@ -237,9 +235,9 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('rack-detail') }}"
-                                        class="dropdown-item {{ $subPage == 'rack-detail' ? 'active' : '' }}">
-                                        Detail Rak <i class="fas fa-table fa-sm"></i>
+                                    <a href="{{ route('stock-rack') }}"
+                                        class="dropdown-item {{ $subPage == 'stock-rack' ? 'active' : '' }}">
+                                        Rak <i class="fas fa-table fa-sm"></i>
                                     </a>
                                 </li>
                             @enddc

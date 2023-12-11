@@ -288,10 +288,4 @@ class RackController extends Controller
             return response()->download($generatedFilePath);
         }
     }
-
-    public function rackDetail(Request $request) {
-        $racks = Rack::all();
-
-        return view('rack.rack-detail', ['page' => 'dashboard-dc', "subPageGroup" => "rak-dc", "subPage" => "rack-detail", 'racks' => $racks]);
-    }
 }

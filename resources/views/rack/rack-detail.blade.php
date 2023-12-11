@@ -14,6 +14,7 @@
         </div>
 
         <div class="card-body">
+            <a href="{{ route('allocate-rack') }}" class="btn btn-success btn-sm mb-3"><i class="fa fa-plus"></i> Alokasi Rak</a>
             <div class="accordion" id="accordionPanelsStayOpenExample">
                 @foreach ($racks as $rack)
                     <div class="accordion-item">

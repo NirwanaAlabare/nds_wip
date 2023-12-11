@@ -18,6 +18,7 @@ use App\Http\Controllers\SummaryController;
 use App\Http\Controllers\DCInController;
 use App\Http\Controllers\SecondaryInController;
 use App\Http\Controllers\RackController;
+use App\Http\Controllers\RackStockerController;
 use App\Http\Controllers\TrolleyController;
 use App\Http\Controllers\TrolleyStockerController;
 use App\Http\Controllers\SecondaryInhouseController;
@@ -267,7 +268,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-secondary-inhouse');
     });
 
-
     // Rack
     Route::controller(RackController::class)->prefix("rack")->middleware('dc')->group(function () {
         Route::get('/', 'index')->name('rack');
@@ -278,6 +278,17 @@ Route::middleware('auth')->group(function () {
         Route::post('/print-rack/{id?}', 'printRack')->name('print-rack');
 
         Route::get('/rack-detail', 'rackDetail')->name('rack-detail');
+        Route::get('/allocate-rack', 'allocate')->name('allocate-rack');
+    });
+
+    // Rack Stocker
+    Route::controller(RackStockerController::class)->prefix("stock-rack")->middleware('dc')->group(function () {
+        Route::get('/', 'index')->name('stock-rack');
+        Route::get('/allocate', 'allocate')->name('allocate-rack');
+        Route::post('/store', 'store')->name('store-rack-stock');
+        Route::put('/update', 'update')->name('update-rack-stock');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-rack-stock');
+        Route::post('/print-bon-mutasi/{id?}', 'printBonMutasi')->name('print-rack-stock');
     });
 
     // Trolley
