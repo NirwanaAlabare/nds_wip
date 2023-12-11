@@ -236,7 +236,8 @@
                     data: 'no_cut_plan'
                 },
             ],
-            columnDefs: [{
+            columnDefs: [
+                {
                 targets: [5],
                 render: (data, type, row, meta) => {
                     return `

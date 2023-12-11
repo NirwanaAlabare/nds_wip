@@ -268,9 +268,13 @@
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @dc
                                 <li>
-                                    <a href="{{ route('stocker') }}"
-                                        class="dropdown-item {{ $subPage == '-' ? 'active' : '' }}">
-                                        Stocker <i class="fas fa-receipt fa-sm"></i>
+                                    <a href="{{ route('trolley') }}" class="dropdown-item {{ $subPage == "trolley" ? 'active' : '' }}">
+                                        Master Trolley <i class="fas fa-plus-square fa-sm"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('stock-trolley') }}" class="dropdown-item {{ $subPage == "stock-trolley" ? 'active' : '' }}">
+                                        Trolley <i class="fas fa-dolly-flatbed"></i>
                                     </a>
                                 </li>
                             @enddc
@@ -284,14 +288,14 @@
                             aria-haspopup="true"aria-expanded="false"
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-karyawan' ? 'active' : '' }}">Proses</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-                            @stocker
+                            @hr
                                 <li>
                                     <a href="{{ route('mut-karyawan') }}"
-                                        class="dropdown-item {{ $subPage == 'mut-karyawany' ? 'active' : '' }}">
+                                        class="dropdown-item {{ $subPage == 'mut-karyawan' ? 'active' : '' }}">
                                         Mutasi Karyawan <i class="fas fa-users-cog fa-sm"></i>
                                     </a>
                                 </li>
-                            @endstocker
+                            @endhr
                         </ul>
                     </li>
                 @endif

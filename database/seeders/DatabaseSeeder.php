@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -30,13 +31,13 @@ class DatabaseSeeder extends Seeder
         //     'remember_token' => Str::random(10),
         // ]);
 
-        \App\Models\User::create([
-            'name' => 'userdc',
-            'username' => 'userdc',
-            'type' => 'dc',
-            'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
-            'remember_token' => Str::random(10),
-        ]);
+        // \App\Models\User::create([
+        //     'name' => 'userdc',
+        //     'username' => 'userdc',
+        //     'type' => 'dc',
+        //     'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
+        //     'remember_token' => Str::random(10),
+        // ]);
 
         // \App\Models\User::create([
         //     'name' => 'usermarker',
@@ -72,5 +73,13 @@ class DatabaseSeeder extends Seeder
         //         'remember_token' => Str::random(10)
         //     ]);
         // }
+
+        \App\Models\User::create([
+            'name' => 'user_hr',
+            'username' => 'user_hr',
+            'type' => 'hr',
+            'password' => Hash::make('123'), // password
+            'remember_token' => Str::random(10),
+        ]);
     }
 }

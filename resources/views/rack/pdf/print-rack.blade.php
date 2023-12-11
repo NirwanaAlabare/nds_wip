@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Stocker</title>
+    <title>Rack</title>
     <style>
         @page { margin: 15px; }
 
