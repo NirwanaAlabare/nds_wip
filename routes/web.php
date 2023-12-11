@@ -1,8 +1,8 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CutPlanController;
 use App\Http\Controllers\CutPlanNewController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MarkerController;
 use App\Http\Controllers\SpreadingController;
@@ -233,6 +233,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('stocker');
         Route::get('/show/{partDetailId?}/{formCutId?}', 'show')->name('show-stocker');
         Route::post('/print-stocker/{index?}', 'printStocker')->name('print-stocker');
+        Route::post('/print-stocker-all-size/{partDetailId?}', 'printStockerAllSize')->name('print-stocker-all-size');
         Route::post('/print-numbering/{index?}', 'printNumbering')->name('print-numbering');
 
         Route::put('/count-stocker-update', 'countStockerUpdate')->name('count-stocker-update');
@@ -300,7 +301,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Mutasi Karywawan
-    Route::controller(EmployeeController::class)->prefix("mut-karyawan")->middleware('admin')->group(function () {
+    Route::controller(EmployeeController::class)->prefix("mut-karyawan")->middleware('hr')->group(function () {
         Route::get('/', 'index')->name('mut-karyawan');
         Route::get('/create', 'create')->name('create-mut-karyawan');
         Route::post('/store', 'store')->name('store-mut-karyawan');

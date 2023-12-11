@@ -87,7 +87,7 @@ class EmployeeController extends Controller
 
         //     return DataTables::eloquent($employeeQuery)->toJson();;
         // }
-        return view('employee.employee', ['page' => 'dashboard-mut-karyawan'], ['tgl_skrg' => $tgl_skrg]);
+        return view('employee.employee', ['page' => 'dashboard-mut-karyawan', 'subPageGroup' => 'proses-karyawan', 'subPage' => 'mut-karyawan'], ['tgl_skrg' => $tgl_skrg]);
     }
 
     public function lineChartData()
@@ -113,7 +113,7 @@ class EmployeeController extends Controller
 
     public function create()
     {
-        return view('employee.create-employee', ['page' => 'dashboard-mut-karyawan']);
+        return view('employee.create-employee', ['page' => 'dashboard-mut-karyawan', 'subPageGroup' => 'proses-karyawan', 'subPage' => 'mut-karyawan']);
     }
 
     public function getdataline(Request $request)

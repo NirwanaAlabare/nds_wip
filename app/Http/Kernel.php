@@ -69,5 +69,6 @@ class Kernel extends HttpKernel
         'dc' => \App\Http\Middleware\IsDc::class,
         'meja' => \App\Http\Middleware\IsMeja::class,
         'manager' => \App\Http\Middleware\IsManager::class,
+        'hr' => \App\Http\Middleware\IsHr::class,
     ];
 }

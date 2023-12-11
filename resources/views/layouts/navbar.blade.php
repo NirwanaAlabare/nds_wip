@@ -288,14 +288,14 @@
                             aria-haspopup="true"aria-expanded="false"
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-karyawan' ? 'active' : '' }}">Proses</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-                            @stocker
+                            @hr
                                 <li>
                                     <a href="{{ route('mut-karyawan') }}"
-                                        class="dropdown-item {{ $subPage == 'mut-karyawany' ? 'active' : '' }}">
+                                        class="dropdown-item {{ $subPage == 'mut-karyawan' ? 'active' : '' }}">
                                         Mutasi Karyawan <i class="fas fa-users-cog fa-sm"></i>
                                     </a>
                                 </li>
-                            @endstocker
+                            @endhr
                         </ul>
                     </li>
                 @endif
