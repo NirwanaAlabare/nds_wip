@@ -251,19 +251,20 @@ Route::middleware('auth')->group(function () {
         Route::get('/getdata_stocker_history', 'getdata_stocker_history')->name('getdata_stocker_history');
     });
 
-    // Secondary IN
-    Route::controller(SecondaryInController::class)->prefix("secondary-in")->middleware('dc')->group(function () {
-        Route::get('/', 'index')->name('secondary-in');
-        Route::get('/create', 'create')->name('create-secondary-in');
-    });
-
     // Secondary INHOUSE
     Route::controller(SecondaryInhouseController::class)->prefix("secondary-inhouse")->middleware('dc')->group(function () {
         Route::get('/', 'index')->name('secondary-inhouse');
-        Route::get('/cek_data_stocker', 'cek_data_stocker')->name('cek_data_stocker');
+        Route::get('/cek_data_stocker_inhouse', 'cek_data_stocker_inhouse')->name('cek_data_stocker_inhouse');
         Route::post('/store', 'store')->name('store-secondary-inhouse');
     });
 
+
+    // Secondary IN
+    Route::controller(SecondaryInController::class)->prefix("secondary-in")->middleware('dc')->group(function () {
+        Route::get('/', 'index')->name('secondary-in');
+        Route::get('/cek_data_stocker_in', 'cek_data_stocker_in')->name('cek_data_stocker_in');
+        Route::post('/store', 'store')->name('store-secondary-in');
+    });
 
     // Rack
     Route::controller(RackController::class)->prefix("rack")->middleware('dc')->group(function () {

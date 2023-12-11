@@ -403,8 +403,8 @@ class DCInController extends Controller
 
 
 
-    public function export_excel_mut_karyawan(Request $request)
-    {
-        return Excel::download(new ExportLaporanMutasiKaryawan($request->from, $request->to), 'Laporan_Mutasi_Karyawan.xlsx');
-    }
+    // public function export_excel_mut_karyawan(Request $request)
+    // {
+    //     return Excel::download(new ExportLaporanMutasiKaryawan($request->from, $request->to), 'Laporan_Mutasi_Karyawan.xlsx');
+    // }
 }
