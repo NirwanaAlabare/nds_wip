@@ -446,6 +446,7 @@ class StockerController extends Controller
                     $checkStocker = Stocker::select("id_qr_stocker", "range_awal", "range_akhir")->whereRaw("
                         part_detail_id = '".$request['part_detail_id'][$i]."' AND
                         form_cut_id = '".$request['form_cut_id']."' AND
+                        so_det_id = '".$request['so_det_id'][$i]."' AND
                         color = '".$request['color']."' AND
                         panel = '".$request['panel']."' AND
                         shade = '".$request['shade']."' AND
