@@ -74,12 +74,14 @@ class DatabaseSeeder extends Seeder
         //     ]);
         // }
 
-        \App\Models\User::create([
-            'name' => 'user_hr',
-            'username' => 'user_hr',
-            'type' => 'hr',
-            'password' => Hash::make('123'), // password
-            'remember_token' => Str::random(10),
-        ]);
+        for ($i = 0; $i < 5; $i++) {
+            \App\Models\User::create([
+                'name' => 'userhr_'.($i+1),
+                'username' => 'userhr_'.($i+1),
+                'type' => 'hr',
+                'password' => Hash::make('123'), // password
+                'remember_token' => Str::random(10),
+            ]);
+        }
     }
 }
