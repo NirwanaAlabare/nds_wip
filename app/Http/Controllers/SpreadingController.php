@@ -183,7 +183,9 @@ class SpreadingController extends Controller
 
     public function store(Request $request)
     {
-        $txttglcut             = date('Y-m-d');
+        ini_set('max_execution_time', 3600);
+
+        $txttglcut = date('Y-m-d');
         $validatedRequest = $request->validate([
             "txtqty_ply_cut" => "required",
             "txtpanel" => "required",

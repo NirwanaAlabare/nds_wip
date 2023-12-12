@@ -371,6 +371,8 @@
         }
 
         function submitSpreadingForm(e, evt) {
+            $("input[type=submit][clicked=true]").attr('disabled', true);
+
             evt.preventDefault();
 
             clearModified();
@@ -382,6 +384,8 @@
                 processData: false,
                 contentType: false,
                 success: async function(res) {
+                    $("input[type=submit][clicked=true]").attr('disabled', false);
+
                     if (res.status == 200) {
                         console.log(res);
 

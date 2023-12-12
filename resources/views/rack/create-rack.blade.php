@@ -103,6 +103,8 @@
 
         // Submit Rak Form
         function submitRackForm(e, evt) {
+            $("input[type=submit][clicked=true]").attr('disabled', true);
+
             evt.preventDefault();
 
             clearModified();
@@ -114,6 +116,8 @@
                 processData: false,
                 contentType: false,
                 success: async function(res) {
+                    $("input[type=submit][clicked=true]").attr('disabled', false);
+
                     // Success Response
 
                     if (res.status == 200) {
@@ -170,6 +174,8 @@
                         }
                     }
                 }, error: function (jqXHR) {
+                    $("input[type=submit][clicked=true]").attr('disabled', false);
+
                     // Error Response
 
                     let res = jqXHR.responseJSON;

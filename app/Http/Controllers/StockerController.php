@@ -432,17 +432,15 @@ class StockerController extends Controller
 
     public function printStockerAllSize(Request $request, $partDetailId = 0)
     {
-        $stockerCount = Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first() ? str_replace("STK-","",Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first()->id_qr_stocker) + 1 : 1;
-
         for ($i = 0; $i < count($request['part_detail_id']); $i++) {
             if ($request['part_detail_id'][$i] == $partDetailId) {
+                $stockerCount = Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first() ? str_replace("STK-","",Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first()->id_qr_stocker) + 1 : 1;
+
                 $rangeAwal = $request['range_awal'][$i];
                 $rangeAkhir = $request['range_akhir'][$i];
 
                 $cumRangeAwal = $rangeAwal;
                 $cumRangeAkhir = $rangeAwal - 1;
-
-                \Log::info($request['ratio'][$i]);
 
                 for ($j = 0; $j < $request['ratio'][$i]; $j++) {
                     $checkStocker = Stocker::select("id_qr_stocker", "range_awal", "range_akhir")->whereRaw("
@@ -455,7 +453,7 @@ class StockerController extends Controller
                         ratio = ".($j + 1)."
                     ")->first();
 
-                    $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-".($stockerCount+$i+$j);
+                    $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-".($stockerCount+$j);
                     $cumRangeAwal = $cumRangeAkhir + 1;
                     $cumRangeAkhir = $cumRangeAkhir + $request['qty_ply'];
 
