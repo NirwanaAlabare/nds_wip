@@ -442,6 +442,8 @@ class StockerController extends Controller
                 $cumRangeAwal = $rangeAwal;
                 $cumRangeAkhir = $rangeAwal - 1;
 
+                \Log::info($request['ratio'][$i]);
+
                 for ($j = 0; $j < $request['ratio'][$i]; $j++) {
                     $checkStocker = Stocker::select("id_qr_stocker", "range_awal", "range_akhir")->whereRaw("
                         part_detail_id = '".$request['part_detail_id'][$i]."' AND
@@ -453,10 +455,11 @@ class StockerController extends Controller
                         ratio = ".($j + 1)."
                     ")->first();
 
-                    $ratio = $i+1;
-                    $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-".($stockerCount+$i);
+                    $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-".($stockerCount+$i+$j);
                     $cumRangeAwal = $cumRangeAkhir + 1;
                     $cumRangeAkhir = $cumRangeAkhir + $request['qty_ply'];
+
+                    \Log::info($request['ratio'][$i]."-".($j+1).'-'.($stockerId));
 
                     $storeItem = Stocker::updateOrCreate(
                         [
@@ -469,7 +472,7 @@ class StockerController extends Controller
                             'id_qr_stocker' => $stockerId,
                         ],
                         [
-                            'ratio' => $i+1,
+                            'ratio' => ($j + 1),
                             'act_costing_ws' => $request["no_ws"],
                             'size' => $request["size"][$i],
                             'qty_ply' => $request['qty_ply'],
@@ -511,6 +514,7 @@ class StockerController extends Controller
             where("part_detail.id", $partDetailId)->
             where("form_cut_input.id", $request['form_cut_id'])->
             groupBy("form_cut_input.id", "stocker_input.id")->
+            orderBy("stocker_input.so_det_id", "asc")->
             orderBy("stocker_input.ratio", "asc")->
             get();
 
