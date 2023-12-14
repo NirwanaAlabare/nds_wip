@@ -434,7 +434,9 @@ class ManualFormCutController extends Controller
         $hari = substr($date, 8, 2);
         $bulan = substr($date, 5, 2);
         $now = Carbon::now();
-        $urutan = FormCutInput::whereRaw("no_form LIKE '".$hari."-".$bulan."%'")->count()+1;
+
+        $lastForm = FormCutInput::select("no_form")->whereRaw("no_form LIKE '".$hari."-".$bulan."%'")->orderBy("id", "desc")->first();
+        $urutan =  str_replace($hari."-".$bulan."-", "", $lastForm->no_form) + 1;
 
         $noForm = "$hari-$bulan-$urutan";
 
