@@ -25,9 +25,13 @@
                         <div class="mb-3">
                             <label class="form-label label-input"><small><b>Line</b></small></label>
                             <div class="input-group">
-                                <input type="text" class="form-control form-control-sm border-input" name="txtline" id="txtline" autocomplete="off" enterkeyhint="go" onkeyup="if (event.keyCode == 13) document.getElementById('scan_line').click()" autofocus>
-                                    {{-- <input type="button" class="btn btn-sm btn-primary" value="Scan Line" /> --}}
-                                    {{-- style="display: none;" --}}
+                                <input type="text" class="form-control form-control-sm border-input" name="txtline"
+                                    id="txtline" autocomplete="off" enterkeyhint="go"
+                                    onkeyup="if (event.keyCode == 13)
+                                    document.getElementById('scan_line').click()"
+                                    autofocus>
+                                {{-- <input type="button" class="btn btn-sm btn-primary" value="Scan Line" /> --}}
+                                {{-- style="display: none;" --}}
                                 <button class="btn btn-sm btn-primary" type="button" id="scan_line"
                                     onclick="scanline()">Scan</button>
                             </div>
@@ -66,12 +70,12 @@
                                     onkeyup="if (event.keyCode == 13)
                                     document.getElementById('scan_nik').click()
                                 ">
-                                 {{-- <input type="button" class="btn btn-sm btn-warning" value="Scan NIK" /> --}}
-                                 {{-- #style="display: none;" --}}
+                                {{-- <input type="button" class="btn btn-sm btn-warning" value="Scan NIK" /> --}}
+                                {{-- #style="display: none;" --}}
                                 <button class="btn btn-sm btn-warning" type="button" id="scan_nik"
-                                onclick="scannik();">Scan</button>
+                                    onclick="scannik();">Scan</button>
                                 <input type="hidden" class="form-control form-control-sm border-scan" name="nik"
-                                id="nik" readonly>
+                                    id="nik" readonly>
                             </div>
                         </div>
                     </div>
@@ -315,23 +319,20 @@
                     data: 'tgl_update_fix'
                 }
             ],
-            columnDefs: [
-                {
-                    targets: '_all',
-                    render: (data, type, row, meta) => {
-                        var color = 'black';
-                        if (row.absen_masuk_kerja == null ) {
-                            color = 'red';
-                        } else{
-                            color = 'green';
-                        }
-                        return '<span style="color:' + color + '">' + data + '</span>';
+            columnDefs: [{
+                targets: '_all',
+                render: (data, type, row, meta) => {
+                    var color = 'black';
+                    if (row.absen_masuk_kerja == null) {
+                        color = 'red';
+                    } else {
+                        color = 'green';
                     }
+                    return '<span style="color:' + color + '">' + data + '</span>';
                 }
-            ],
+            }],
 
-        }
-            );
+        });
 
         function scanline() {
             let txtline = document.form.txtline.value;
