@@ -302,7 +302,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-secondary-inhouse');
     });
 
-
     // Secondary IN
     Route::controller(SecondaryInController::class)->prefix("secondary-in")->middleware('dc')->group(function () {
         Route::get('/', 'index')->name('secondary-in');
