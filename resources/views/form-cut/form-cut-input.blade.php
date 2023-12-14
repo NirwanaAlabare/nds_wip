@@ -433,6 +433,12 @@
                                     .status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) +
                                 `'></i></a>` :
                                 "";
+                        } else if (row.tipe_form_cut == 'PILOT') {
+                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ?
+                                `<a class='btn btn-success btn-sm' href='{{ route('process-pilot-form-cut') }}/` +
+                                row.id +
+                                `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>` :
+                                "";
                         } else {
                             btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row
                                     .app == 'Y') || row.status != 'SPREADING' ?
@@ -473,9 +479,12 @@
                     }
                 }
             ],
-            rowCallback: function(row, data, index) {
+            rowCallback: function( row, data, index ) {
                 if (data['tipe_form_cut'] == 'MANUAL') {
                     $('td', row).css('background-color', '#e7dcf7');
+                    $('td', row).css('border', '0.15px solid #d0d0d0');
+                } else if (data['tipe_form_cut'] == 'PILOT') {
+                    $('td', row).css('background-color', '#c5e0fa');
                     $('td', row).css('border', '0.15px solid #d0d0d0');
                 }
             }

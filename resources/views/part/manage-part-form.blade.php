@@ -335,7 +335,7 @@
                         partForms: partForms
                     },
                     success: function(res) {
-                        element.setAttribute('disabled', false);
+                        element.removeAttribute('disabled');
 
                         if (res.status == 200) {
                             iziToast.success({
@@ -395,7 +395,7 @@
                         }
                     },
                     error: function(jqXHR) {
-                        element.setAttribute('disabled', false);
+                        element.removeAttribute('disabled');
 
                         let res = jqXHR.responseJSON;
                         let message = '';
@@ -412,7 +412,7 @@
                     }
                 })
             } else {
-                element.setAttribute('disabled', false);
+                element.removeAttribute('disabled');
 
                 Swal.fire({
                     icon: 'error',

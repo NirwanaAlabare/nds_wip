@@ -214,7 +214,7 @@
                 processData: false,
                 contentType: false,
                 success: async function(res) {
-                    document.getElementById('submit-button').setAttribute('disabled', false);
+                    document.getElementById('submit-button').removeAttribute('disabled');
 
                     // Success Response
 
@@ -278,7 +278,7 @@
                         }
                     }
                 }, error: function (jqXHR) {
-                    document.getElementById('submit-button').setAttribute('disabled', false);
+                    document.getElementById('submit-button').removeAttribute('disabled');
 
                     // Error Response
 

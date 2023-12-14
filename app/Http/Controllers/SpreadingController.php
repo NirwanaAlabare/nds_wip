@@ -77,7 +77,8 @@ class SpreadingController extends Controller
                     a.tipe_form_cut,
                     COALESCE(b.notes, '-') notes,
                     GROUP_CONCAT(DISTINCT CONCAT(master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ', ') marker_details,
-                    cutting_plan.tgl_plan
+                    cutting_plan.tgl_plan,
+                    cutting_plan.app
                 FROM `form_cut_input` a
                 left join cutting_plan on cutting_plan.no_form_cut_input = a.no_form
                 left join users on users.id = a.no_meja

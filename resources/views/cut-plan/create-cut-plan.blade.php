@@ -254,8 +254,6 @@
         });
 
         function addToCutPlan(element) {
-            element.setAttribute('disabled', true);
-
             let tglPlan = $("#tgl_plan").val();
             let selectedForm = $('#datatable-select').DataTable().rows('.selected').data();
             let formCutPlan = [];
@@ -268,6 +266,8 @@
             }
 
             if (tglPlan && formCutPlan.length > 0) {
+                element.setAttribute('disabled', true);
+
                 $.ajax({
                     type: "POST",
                     url: '{!! route('store-cut-plan') !!}',
@@ -276,7 +276,7 @@
                         formCutPlan: formCutPlan
                     },
                     success: function(res) {
-                        element.setAttribute('disabled', false);
+                        element.removeAttribute('disabled');
 
                         if (res.status == 200) {
                             iziToast.success({
@@ -339,6 +339,8 @@
                         }
                     },
                     error: function(jqXHR) {
+                        element.removeAttribute('disabled');
+
                         let res = jqXHR.responseJSON;
                         let message = '';
 
@@ -519,7 +521,7 @@
                     confirmButtonText: 'Singkirkan',
                     confirmButtonColor: "#d33141",
                 }).then(async (result) => {
-                    element.setAttribute('disabled', false);
+                    element.removeAttribute('disabled');
 
                     if (result.isConfirmed) {
                         element.setAttribute('disabled', true);
@@ -532,7 +534,7 @@
                                 formCutPlan: formCutPlan
                             },
                             success: function(res) {
-                                element.setAttribute('disabled', false);
+                                element.removeAttribute('disabled');
 
                                 if (res.status == 200) {
                                     iziToast.success({

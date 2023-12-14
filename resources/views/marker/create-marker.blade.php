@@ -174,6 +174,7 @@
                             <select class="form-select rounded-0" id="tipe_marker" name="tipe_marker" style="width: 100%;">
                                 <option selected="selected" value="regular marker">Regular Marker</option>
                                 <option value="special marker">Special Marker</option>
+                                <option value="pilot marker">Pilot Marker</option>
                             </select>
                         </div>
                     </div>
@@ -678,6 +679,14 @@
             }
         }
 
+        document.getElementById("tipe_marker").onchange = function(e) {
+            if (this.value == "pilot marker") {
+                document.getElementById("notes").value = "PILOT MARKER";
+            } else {
+                document.getElementById("notes").value = "";
+            }
+        }
+
         // Submit Marker Form
         function submitMarkerForm(e, evt) {
             $("input[type=submit][clicked=true]").attr('disabled', true);
@@ -693,7 +702,7 @@
                 processData: false,
                 contentType: false,
                 success: async function(res) {
-                    $("input[type=submit][clicked=true]").attr('disabled', false);
+                    $("input[type=submit][clicked=true]").removeAttr('disabled');
 
                     // Success Response
 
