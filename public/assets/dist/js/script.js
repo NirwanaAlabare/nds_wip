@@ -106,7 +106,7 @@ function submitForm(e, evt) {
         processData: false,
         contentType: false,
         success: function(res) {
-            $("input[type=submit][clicked=true]").attr('disabled', false);
+            $("input[type=submit][clicked=true]").removeAttr('disabled');
 
             if (res.status == 200) {
                 $('.modal').modal('hide');
@@ -193,7 +193,7 @@ function submitForm(e, evt) {
                 }
             }
         }, error: function (jqXHR) {
-            $("input[type=submit][clicked=true]").attr('disabled', false);
+            $("input[type=submit][clicked=true]").removeAttr('disabled');
 
             let res = jqXHR.responseJSON;
             let message = '';
