@@ -100,7 +100,7 @@
                             <p>Form yang dipilih : <span class="fw-bold" id="selected-row-count-2">0</span></p>
                         </div>
                         <div class="col-6">
-                            <button class="btn btn-success btn-sm float-end" onclick="addToPartForm()">
+                            <button class="btn btn-success btn-sm float-end" onclick="addToPartForm(this)">
                                 <i class="fa fa-plus fa-sm"></i> Tambahkan ke Part
                             </button>
                         </div>
@@ -312,7 +312,9 @@
             }
         });
 
-        function addToPartForm() {
+        function addToPartForm(element) {
+            element.setAttribute('disabled', true);
+
             let selectedForm = $('#datatable-select').DataTable().rows('.selected').data();
             let partForms = [];
             for (let key in selectedForm) {
@@ -333,6 +335,8 @@
                         partForms: partForms
                     },
                     success: function(res) {
+                        element.setAttribute('disabled', false);
+
                         if (res.status == 200) {
                             iziToast.success({
                                 title: 'Success',
@@ -391,6 +395,8 @@
                         }
                     },
                     error: function(jqXHR) {
+                        element.setAttribute('disabled', false);
+
                         let res = jqXHR.responseJSON;
                         let message = '';
 
@@ -406,6 +412,8 @@
                     }
                 })
             } else {
+                element.setAttribute('disabled', false);
+
                 Swal.fire({
                     icon: 'error',
                     title: 'Gagal',

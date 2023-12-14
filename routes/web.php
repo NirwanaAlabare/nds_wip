@@ -278,9 +278,6 @@ Route::middleware('auth')->group(function () {
         Route::put('/update', 'update')->name('update-rack');
         Route::delete('/destroy/{id?}', 'destroy')->name('destroy-rack');
         Route::post('/print-rack/{id?}', 'printRack')->name('print-rack');
-
-        Route::get('/rack-detail', 'rackDetail')->name('rack-detail');
-        Route::get('/allocate-rack', 'allocate')->name('allocate-rack');
     });
 
     // Rack Stocker

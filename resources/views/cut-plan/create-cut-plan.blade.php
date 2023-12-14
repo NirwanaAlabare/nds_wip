@@ -52,7 +52,7 @@
                             <p>Selected Form : <span class="fw-bold" id="selected-row-count-1">0</span></p>
                         </div>
                         <div class="col-6">
-                            <button class="btn btn-success btn-sm float-end" onclick="addToCutPlan()"><i
+                            <button class="btn btn-success btn-sm float-end" onclick="addToCutPlan(this)"><i
                                     class="fa fa-plus fa-sm"></i> Tambahkan ke Cut Plan</button>
                         </div>
                     </div>
@@ -92,7 +92,7 @@
                             <p>Selected Form : <span class="fw-bold" id="selected-row-count-2">0</span></p>
                         </div>
                         <div class="col-6">
-                            <button class="btn btn-danger btn-sm float-end" onclick="removeCutPlan()"><i class="fa fa-minus fa-sm"></i> Singkirkan dari Cut Plan</button>
+                            <button class="btn btn-danger btn-sm float-end" onclick="removeCutPlan(this)"><i class="fa fa-minus fa-sm"></i> Singkirkan dari Cut Plan</button>
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -253,7 +253,9 @@
                 '.selected').data().length;
         });
 
-        function addToCutPlan() {
+        function addToCutPlan(element) {
+            element.setAttribute('disabled', true);
+
             let tglPlan = $("#tgl_plan").val();
             let selectedForm = $('#datatable-select').DataTable().rows('.selected').data();
             let formCutPlan = [];
@@ -274,6 +276,8 @@
                         formCutPlan: formCutPlan
                     },
                     success: function(res) {
+                        element.setAttribute('disabled', false);
+
                         if (res.status == 200) {
                             iziToast.success({
                                 title: 'Success',
@@ -490,7 +494,9 @@
             ]
         });
 
-        function removeCutPlan() {
+        function removeCutPlan(element) {
+            element.setAttribute('disabled', true);
+
             let tglPlan = $("#tgl_plan").val();
             let selectedForm = $('#datatable-selected').DataTable().rows('.selected').data();
             let formCutPlan = [];
@@ -513,7 +519,11 @@
                     confirmButtonText: 'Singkirkan',
                     confirmButtonColor: "#d33141",
                 }).then(async (result) => {
+                    element.setAttribute('disabled', false);
+
                     if (result.isConfirmed) {
+                        element.setAttribute('disabled', true);
+
                         $.ajax({
                             type: "DELETE",
                             url: '{!! route('destroy-cut-plan') !!}',
@@ -522,6 +532,8 @@
                                 formCutPlan: formCutPlan
                             },
                             success: function(res) {
+                                element.setAttribute('disabled', false);
+
                                 if (res.status == 200) {
                                     iziToast.success({
                                         title: 'Success',

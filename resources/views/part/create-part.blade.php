@@ -214,6 +214,8 @@
                 processData: false,
                 contentType: false,
                 success: async function(res) {
+                    document.getElementById('submit-button').setAttribute('disabled', false);
+
                     // Success Response
 
                     if (res.status == 200) {
@@ -241,8 +243,6 @@
                                 }
                             }
                         })
-
-                        document.getElementById('submit-button').setAttribute('disabled', false);
                     } else {
                         // When Actually Error :
 
@@ -278,6 +278,8 @@
                         }
                     }
                 }, error: function (jqXHR) {
+                    document.getElementById('submit-button').setAttribute('disabled', false);
+
                     // Error Response
 
                     let res = jqXHR.responseJSON;

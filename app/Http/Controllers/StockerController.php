@@ -432,10 +432,10 @@ class StockerController extends Controller
 
     public function printStockerAllSize(Request $request, $partDetailId = 0)
     {
-        $stockerCount = Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first() ? str_replace("STK-","",Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first()->id_qr_stocker) + 1 : 1;
-
         for ($i = 0; $i < count($request['part_detail_id']); $i++) {
             if ($request['part_detail_id'][$i] == $partDetailId) {
+                $stockerCount = Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first() ? str_replace("STK-","",Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first()->id_qr_stocker) + 1 : 1;
+
                 $rangeAwal = $request['range_awal'][$i];
                 $rangeAkhir = $request['range_akhir'][$i];
 
@@ -453,10 +453,11 @@ class StockerController extends Controller
                         ratio = ".($j + 1)."
                     ")->first();
 
-                    $ratio = $i+1;
-                    $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-".($stockerCount+$i);
+                    $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-".($stockerCount+$j);
                     $cumRangeAwal = $cumRangeAkhir + 1;
                     $cumRangeAkhir = $cumRangeAkhir + $request['qty_ply'];
+
+                    \Log::info($request['ratio'][$i]."-".($j+1).'-'.($stockerId));
 
                     $storeItem = Stocker::updateOrCreate(
                         [
@@ -469,7 +470,7 @@ class StockerController extends Controller
                             'id_qr_stocker' => $stockerId,
                         ],
                         [
-                            'ratio' => $i+1,
+                            'ratio' => ($j + 1),
                             'act_costing_ws' => $request["no_ws"],
                             'size' => $request["size"][$i],
                             'qty_ply' => $request['qty_ply'],
@@ -511,6 +512,7 @@ class StockerController extends Controller
             where("part_detail.id", $partDetailId)->
             where("form_cut_input.id", $request['form_cut_id'])->
             groupBy("form_cut_input.id", "stocker_input.id")->
+            orderBy("stocker_input.so_det_id", "asc")->
             orderBy("stocker_input.ratio", "asc")->
             get();
 

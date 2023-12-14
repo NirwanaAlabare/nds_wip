@@ -93,6 +93,8 @@ function clearModified() {
 
 // Form Submit
 function submitForm(e, evt) {
+    $("input[type=submit][clicked=true]").attr('disabled', true);
+
     evt.preventDefault();
 
     clearModified();
@@ -104,6 +106,8 @@ function submitForm(e, evt) {
         processData: false,
         contentType: false,
         success: function(res) {
+            $("input[type=submit][clicked=true]").attr('disabled', false);
+
             if (res.status == 200) {
                 $('.modal').modal('hide');
 
@@ -189,6 +193,8 @@ function submitForm(e, evt) {
                 }
             }
         }, error: function (jqXHR) {
+            $("input[type=submit][clicked=true]").attr('disabled', false);
+
             let res = jqXHR.responseJSON;
             let message = '';
 
