@@ -25,11 +25,7 @@
                         <div class="mb-3">
                             <label class="form-label label-input"><small><b>Line</b></small></label>
                             <div class="input-group">
-                                <input type="text" class="form-control form-control-sm border-input" name="txtline"
-                                    id="txtline" autocomplete="off" enterkeyhint="go"
-                                    onkeyup="if (event.keyCode == 13)
-                                    document.getElementById('scan_line').click()"
-                                    autofocus>
+                                <input type="text" class="form-control form-control-sm border-input" name="txtline" id="txtline" autocomplete="off" enterkeyhint="go" onkeyup="if (event.keyCode == 13) document.getElementById('scan_line').click()" autofocus>
                                     {{-- <input type="button" class="btn btn-sm btn-primary" value="Scan Line" /> --}}
                                     {{-- style="display: none;" --}}
                                 <button class="btn btn-sm btn-primary" type="button" id="scan_line"
