@@ -244,7 +244,9 @@ class DCInController extends Controller
 
         $update_tmp_dc_in = DB::update("
         update tmp_dc_in_input
-        set qty_reject = '$request->txtqtyreject',
+        set
+        qty_awal = '$request->txtqty',
+        qty_reject = '$request->txtqtyreject',
         qty_replace = '$request->txtqtyreplace',
         tujuan =  '" . $validatedRequest['cbotuj'] . "',
         alokasi = '" . $validatedRequest['cboalokasi'] . "'
@@ -313,6 +315,7 @@ class DCInController extends Controller
             $savemutasi = Tmp_Dc_in::create([
                 'id_qr_stocker' => $request['txtqrstocker'],
                 'no_form' => $request['no_form'],
+                'qty_awal' => '0',
                 'qty_reject' => '0',
                 'qty_replace' => '0',
                 'user' => Auth::user()->id,
@@ -352,6 +355,12 @@ class DCInController extends Controller
         SELECT no_form, id_qr_stocker, tujuan, alokasi,qty_reject,qty_replace,user,created_at, updated_at
         FROM tmp_dc_in_input
         WHERE no_form = '$request->no_form'");
+            $insert_rak = DB::insert("
+        INSERT INTO rack_detail_stocker
+        (detail_rack_id, stocker_id, qty, created_at, updated_at)
+        SELECT alokasi, id_qr_stocker,created_at, updated_at
+        FROM tmp_dc_in_input
+        WHERE no_form = '$request->no_form' and tujuan = 'NON SECONDARY'");
             $delete_tmp = DB::delete("
         delete from tmp_dc_in_input
         WHERE no_form = '$request->no_form'");

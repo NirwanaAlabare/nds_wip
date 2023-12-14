@@ -179,7 +179,7 @@ class EmployeeController extends Controller
         group by nik)a
         inner join mut_karyawan_input b on a.id = b.id
         left join (select enroll_id, absen_masuk_kerja, status_aktif from master_data_absen_kehadiran where tanggal_berjalan = '" . $tglskrg . "') c on b.enroll_id = c.enroll_id
-        where status_aktif = 'AKTIF' or status_aktif is null and line ='" . $request->nm_line . "'
+        where status_aktif = 'AKTIF' and line ='" . $request->nm_line . "'
         order by updated_at desc
         ");
         return DataTables::of($det_karyawan_line)->toJson();
