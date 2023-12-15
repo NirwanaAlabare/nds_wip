@@ -354,7 +354,9 @@
                         <div class="col-6 col-md-3">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Gramasi</b></small></label>
-                                <input type="text" class="form-control form-control-sm" name="gramasi" id="gramasi" value="{{ $formCutInputData->gramasi ? $formCutInputData->gramasi : 0 }}" onkeyup="calculateEstAmpar(undefined, undefined, undefined, this.value);" onchange="calculateEstAmpar(undefined, undefined, undefined, this.value);">
+                                <input type="text" class="form-control form-control-sm" name="gramasi" id="gramasi" value="{{ $formCutInputData->gramasi ? $formCutInputData->gramasi : 0 }}"
+                                onkeyup="calculateEstAmpar(undefined, undefined, undefined, this.value);"
+                                onchange="calculateEstAmpar(undefined, undefined, undefined, this.value);">
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
