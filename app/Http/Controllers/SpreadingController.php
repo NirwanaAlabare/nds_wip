@@ -210,7 +210,9 @@ class SpreadingController extends Controller
             $now = Carbon::now();
 
             $lastForm = FormCutInput::select("no_form")->whereRaw("no_form LIKE '".$hari."-".$bulan."%'")->orderBy("id", "desc")->first();
-            $urutan =  str_replace($hari."-".$bulan."-", "", $lastForm->no_form) + $i;
+            $urutan =  $lastForm ? (str_replace($hari."-".$bulan."-", "", $lastForm->no_form) + $i) : $i;
+
+            $noForm = "$hari-$bulan-$urutan";
 
             $qtyPly = $request['txtqty_ply_cut'];
 
