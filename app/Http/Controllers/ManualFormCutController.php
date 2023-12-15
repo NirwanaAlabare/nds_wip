@@ -621,9 +621,9 @@ class ManualFormCutController extends Controller
             "cons_pipping" => "required|numeric",
             "cons_ampar" => "required|numeric",
             "est_pipping" => "required|numeric",
-            "est_pipping_unit" => "required|numeric",
+            "est_pipping_unit" => "required",
             "est_kain" => "required|numeric",
-            "est_kain_unit" => "required|numeric",
+            "est_kain_unit" => "required",
             "gramasi" => "required|numeric|gt:0",
             "cons_marker" => "required|numeric|gt:0",
         ]);
