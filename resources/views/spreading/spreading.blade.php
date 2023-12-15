@@ -361,6 +361,8 @@
 
                         switch (data) {
                             case "SPREADING":
+                            case "PENGERJAAN PILOT MARKER":
+                            case "PENGERJAAN PILOT DETAIL":
                                 icon = `<i class="fas fa-file fa-lg"></i>`;
                                 break;
                             case "PENGERJAAN MARKER":
