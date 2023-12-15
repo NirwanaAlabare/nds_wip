@@ -77,7 +77,8 @@ class SpreadingController extends Controller
                     a.tipe_form_cut,
                     COALESCE(b.notes, '-') notes,
                     GROUP_CONCAT(DISTINCT CONCAT(master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ', ') marker_details,
-                    cutting_plan.tgl_plan
+                    cutting_plan.tgl_plan,
+                    cutting_plan.app
                 FROM `form_cut_input` a
                 left join cutting_plan on cutting_plan.no_form_cut_input = a.no_form
                 left join users on users.id = a.no_meja
@@ -91,7 +92,7 @@ class SpreadingController extends Controller
                 GROUP BY a.id
                 ORDER BY
                     FIELD(a.status, 'PENGERJAAN MARKER', 'PENGERJAAN FORM CUTTING', 'PENGERJAAN FORM CUTTING DETAIL', 'PENGERJAAN FORM CUTTING SPREAD', 'SPREADING', 'SELESAI PENGERJAAN'),
-                    FIELD(a.tipe_form_cut, null, 'NORMAL', 'MANUAL'),
+                    FIELD(a.tipe_form_cut, null, 'PILOT', 'NORMAL', 'MANUAL'),
                     FIELD(a.app, 'Y', 'N', null),
                     a.no_form desc,
                     a.updated_at desc
@@ -132,14 +133,6 @@ class SpreadingController extends Controller
 
         return json_encode($order);
     }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-
 
     public function getno_marker(Request $request)
     {
@@ -211,10 +204,16 @@ class SpreadingController extends Controller
         $formcutDetailData = [];
         $message = "";
         for ($i = 1; $i <= intval($request['hitungform']); $i++) {
-            $queryno_form     = DB::select("select count(id_marker) urutan from form_cut_input where tgl_form_cut = '$txttglcut'");
-            $datano_form     = $queryno_form[0];
-            $urutan          = $datano_form->urutan;
-            $urutan_fix      = $urutan + $i;
+            $date = date('Y-m-d');
+            $hari = substr($date, 8, 2);
+            $bulan = substr($date, 5, 2);
+            $now = Carbon::now();
+
+            $lastForm = FormCutInput::select("no_form")->whereRaw("no_form LIKE '".$hari."-".$bulan."%'")->orderBy("id", "desc")->first();
+            $urutan =  $lastForm ? (str_replace($hari."-".$bulan."-", "", $lastForm->no_form) + $i) : $i;
+
+            $noForm = "$hari-$bulan-$urutan";
+
             $qtyPly = $request['txtqty_ply_cut'];
 
             if (intval($request['hitungform'] > 1)) {
@@ -223,9 +222,7 @@ class SpreadingController extends Controller
                 }
             }
 
-            $hari          = substr($txttglcut, 8, 2);
-            $bulan         = substr($txttglcut, 5, 2);
-            $no_form       = "$hari-$bulan-$urutan_fix";
+            $no_form = "$hari-$bulan-$urutan";
 
             array_push($formcutDetailData, [
                 "id_marker" => $request["txtid_marker"],

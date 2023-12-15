@@ -200,7 +200,7 @@ class StockerController extends Controller
                 $join->on("stocker_input.part_detail_id", "=", "part_detail.id");
                 $join->on("stocker_input.so_det_id", "=", "marker_input_detail.so_det_id");
             })->
-            where("marker_id", $dataSpreading->marker_id)->
+            where("marker_input.id", $dataSpreading->marker_id)->
             where("marker_input_detail.ratio", ">", "0")->
             orderBy("marker_input_detail.id", "asc")->
             groupBy("marker_input_detail.id")->

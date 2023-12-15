@@ -19,7 +19,7 @@ use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
 
-class ManualFormCutController extends Controller
+class PilotFormCutController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -104,7 +104,7 @@ class ManualFormCutController extends Controller
             return DataTables::of($data_spreading)->toJson();
         }
 
-        return view('manual-form-cut.manual-form-cut', ['page' => 'dashboard-cutting', "subPageGroup" => "proses-cutting", "subPage" => "form-cut-input"]);
+        return view('pilot-form-cut.pilot-form-cut', ['page' => 'dashboard-cutting', "subPageGroup" => "proses-cutting", "subPage" => "form-cut-input"]);
     }
 
     public function getRatio(Request $request)
@@ -129,15 +129,49 @@ class ManualFormCutController extends Controller
      */
     public function create()
     {
-        if (session('currentManualForm')) {
-            return redirect()->route('process-manual-form-cut', ["id" => session('currentManualForm')]);
+        if (session('currentPilotForm')) {
+            $formCutInputData = FormCutInput::selectRaw("*, form_cut_input.id as form_id")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->where('form_cut_input.id', session('currentPilotForm'))->first();
+
+            if ($formCutInputData) {
+                $actCostingData = DB::connection("mysql_sb")->table('act_costing')->selectRaw('act_costing.id id, act_costing.styleno style, mastersupplier.Supplier buyer')->leftJoin('mastersupplier', 'mastersupplier.Id_Supplier', 'act_costing.id_buyer')->groupBy('act_costing.id')->where('act_costing.id', $formCutInputData->act_costing_id)->get();
+
+                $markerDetailData = MarkerDetail::selectRaw("
+                        marker_input.kode kode_marker,
+                        marker_input_detail.size,
+                        marker_input_detail.so_det_id,
+                        marker_input_detail.ratio,
+                        marker_input_detail.cut_qty
+                    ")->
+                    leftJoin("marker_input", "marker_input.id", "=", "marker_input_detail.marker_id")->
+                    where("marker_input.kode", $formCutInputData->kode)->
+                    where("marker_input.cancel", "N")->
+                    get();
+
+                if (Auth::user()->type == "meja" && Auth::user()->id != $formCutInputData->no_meja) {
+                    return Redirect::to('/home');
+                }
+
+                $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
+
+                return view("pilot-form-cut.pilot-create-form-cut", [
+                    'id' => session('currentPilotForm'),
+                    'formCutInputData' => $formCutInputData,
+                    'actCostingData' => $actCostingData,
+                    'markerDetailData' => $markerDetailData,
+                    'orders' => $orders,
+                    'page' => 'dashboard-cutting',
+                    "subPageGroup" => "proses-cutting",
+                    "subPage" => "form-cut-input"
+                ]);
+            }
+            // return redirect()->route('process-pilot-form-cut', ["id" => session('currentPilotForm')]);
         }
 
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
-        return view("manual-form-cut.manual-create-form-cut", [
+        return view("pilot-form-cut.pilot-create-form-cut", [
             "orders" => $orders,
-            'page' => 'dashboard-cutting',
+            "page" => "dashboard-cutting",
             "subPageGroup" => "proses-cutting",
             "subPage" => "form-cut-input"
         ]);
@@ -145,10 +179,10 @@ class ManualFormCutController extends Controller
 
     public function createNew()
     {
-        session()->forget('currentManualForm');
+        session()->forget('currentPilotForm');
 
         return array(
-            'redirect' => route('create-manual-form-cut')
+            'redirect' => route('create-pilot-form-cut')
         );
     }
 
@@ -308,10 +342,14 @@ class ManualFormCutController extends Controller
      */
     public function process($id = 0)
     {
-        $formCutInputData = FormCutInput::leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->where('form_cut_input.id', $id)->first();
+        $formCutInputData = FormCutInput::selectRaw("*, form_cut_input.id as form_id")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->where('form_cut_input.id', $id)->first();
 
         if (!$formCutInputData) {
-            return redirect()->route('create-manual-form-cut');
+            return redirect()->route('create-pilot-form-cut');
+        } else if ($formCutInputData->status == "PENGERJAAN PILOT MARKER" || $formCutInputData->status == "PENGERJAAN PILOT DETAIL") {
+            session(['currentPilotForm' => $formCutInputData->form_id]);
+
+            return redirect()->route('create-pilot-form-cut');
         }
 
         $actCostingData = DB::connection("mysql_sb")->table('act_costing')->selectRaw('act_costing.id id, act_costing.styleno style, mastersupplier.Supplier buyer')->leftJoin('mastersupplier', 'mastersupplier.Id_Supplier', 'act_costing.id_buyer')->groupBy('act_costing.id')->where('act_costing.id', $formCutInputData->act_costing_id)->get();
@@ -334,7 +372,7 @@ class ManualFormCutController extends Controller
 
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
-        return view("manual-form-cut.manual-process-form-cut", [
+        return view("pilot-form-cut.pilot-process-form-cut", [
             'id' => $id,
             'formCutInputData' => $formCutInputData,
             'actCostingData' => $actCostingData,
@@ -438,18 +476,16 @@ class ManualFormCutController extends Controller
         $lastForm = FormCutInput::select("no_form")->whereRaw("no_form LIKE '".$hari."-".$bulan."%'")->orderBy("id", "desc")->first();
         $urutan =  $lastForm ? (str_replace($hari."-".$bulan."-", "", $lastForm->no_form) + 1) : 1;
 
-        $noForm = "$hari-$bulan-$urutan";
+        $noForm = $hari."-".$bulan."-".$urutan;
 
         $storeFormCutInput = FormCutInput::create([
             "tgl_form_cut" => $date,
             "no_form" => $noForm,
-            "no_meja" => Auth::user()->id,
-            "status" => "PENGERJAAN MARKER",
-            "tipe_form_cut" => "MANUAL",
-            "waktu_mulai" => $request->startTime,
+            "status" => "PENGERJAAN PILOT MARKER",
+            "tipe_form_cut" => "PILOT",
             "app" => "Y",
             "app_by" => Auth::user()->id,
-            "app_notes" => "MANUAL FORM CUT",
+            "app_notes" => "PILOT FORM CUT",
             "app_at" => $now,
         ]);
 
@@ -467,7 +503,7 @@ class ManualFormCutController extends Controller
             ]);
 
             if ($addToCutPlan) {
-                session(['currentManualForm' => $storeFormCutInput->id]);
+                session(['currentPilotForm' => $storeFormCutInput->id]);
 
                 return array(
                     "status" => 200,
@@ -556,7 +592,7 @@ class ManualFormCutController extends Controller
 
                 $updateFormCutInput = FormCutInput::where("id", $idForm)->update([
                     "id_marker" => $markerCode,
-                    "status" => "PENGERJAAN FORM CUTTING DETAIL",
+                    "status" => "PENGERJAAN PILOT DETAIL",
                     "shell" => $request->shell,
                     "qty_ply" => $validatedRequest['gelar_qty']
                 ]);
@@ -587,7 +623,7 @@ class ManualFormCutController extends Controller
     public function nextProcessOne($id = 0, Request $request)
     {
         $updateFormCutInput = FormCutInput::where("id", $id)->update([
-            "status" => "PENGERJAAN FORM CUTTING DETAIL",
+            "status" => "PENGERJAAN PILOT DETAIL",
             "shell" => $request->shell
         ]);
 
@@ -642,7 +678,7 @@ class ManualFormCutController extends Controller
 
         if ($updateMarker) {
             $updateFormCutInput = FormCutInput::where("id", $id)->update([
-                "status" => "PENGERJAAN FORM CUTTING SPREAD",
+                "status" => "SPREADING",
                 "p_act" => $validatedRequest['p_act'],
                 "unit_p_act" => $validatedRequest['unit_p_act'],
                 "comma_p_act" => $validatedRequest['comma_act'],

@@ -8,6 +8,7 @@ use App\Http\Controllers\MarkerController;
 use App\Http\Controllers\SpreadingController;
 use App\Http\Controllers\FormCutInputController;
 use App\Http\Controllers\ManualFormCutController;
+use App\Http\Controllers\PilotFormCutController;
 use App\Http\Controllers\LapPemakaianController;
 use App\Http\Controllers\MasterPartController;
 use App\Http\Controllers\PartController;
@@ -167,6 +168,45 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-number', 'getNumber')->name('manual-form-cut-get-number');
     });
 
+    // Pilot Form Cut Input
+    Route::controller(PilotFormCutController::class)->prefix("pilot-form-cut")->middleware("meja")->group(function () {
+        Route::get('/', 'index')->name('pilot-form-cut');
+        Route::get('/create', 'create')->name('create-pilot-form-cut');
+        Route::get('/create-new', 'createNew')->name('create-new-pilot-form-cut');
+        Route::get('/process/{id?}', 'process')->name('process-pilot-form-cut');
+        Route::get('/get-number-data', 'getNumberData')->name('get-number-pilot-form-cut');
+        Route::get('/get-scanned-item/{id?}', 'getScannedItem')->name('get-scanned-pilot-form-cut');
+        Route::get('/get-item', 'getItem')->name('get-item-pilot-form-cut');
+        Route::put('/start-process', 'startProcess')->name('start-process-pilot-form-cut');
+        Route::post('/store-marker/{id?}', 'storeMarker')->name('store-marker-pilot-form-cut');
+        Route::put('/next-process-one/{id?}', 'nextProcessOne')->name('next-process-one-pilot-form-cut');
+        Route::put('/next-process-two/{id?}', 'nextProcessTwo')->name('next-process-two-pilot-form-cut');
+        Route::get('/get-time-record/{noForm?}', 'getTimeRecord')->name('get-time-pilot-form-cut');
+        Route::post('/store-scanned-item', 'storeScannedItem')->name('store-scanned-pilot-form-cut');
+        Route::post('/store-time-record', 'storeTimeRecord')->name('store-time-pilot-form-cut');
+        Route::post('/store-time-record-extension', 'storeTimeRecordExtension')->name('store-time-ext-pilot-form-cut');
+        Route::post('/store-this-time-record', 'storeThisTimeRecord')->name('store-this-time-pilot-form-cut');
+        Route::put('/finish-process/{id?}', 'finishProcess')->name('finish-process-pilot-form-cut');
+        Route::get('/check-spreading-form/{noForm?}/{noMeja?}', 'checkSpreadingForm')->name('check-spreading-pilot-form-cut');
+        Route::get('/check-time-record/{detailId?}', 'checkTimeRecordLap')->name('check-time-record-pilot-form-cut');
+        Route::post('/store-lost-time/{id?}', 'storeLostTime')->name('store-lost-pilot-form-cut');
+        Route::get('/check-lost-time/{id?}', 'checkLostTime')->name('check-lost-pilot-form-cut');
+        Route::get('/get-form-cut-ratio', 'getRatio')->name('get-pilot-form-cut-ratio');
+
+        // get order
+        Route::get('/get-order', 'getOrderInfo')->name('pilot-form-cut-get-order');
+        // get colors
+        Route::get('/get-colors', 'getColorList')->name('pilot-form-cut-get-colors');
+        // get panels
+        Route::get('/get-panels', 'getPanelList')->name('pilot-form-cut-get-panels');
+        // get sizes
+        Route::get('/get-sizes', 'getSizeList')->name('pilot-form-cut-get-sizes');
+        // get count
+        Route::get('/get-count', 'getCount')->name('pilot-form-cut-get-count');
+        // get number
+        Route::get('/get-number', 'getNumber')->name('pilot-form-cut-get-number');
+    });
+
     // Cutting Plan
     Route::controller(CutPlanController::class)->prefix("cut-plan")->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('cut-plan');
@@ -261,7 +301,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/cek_data_stocker_inhouse', 'cek_data_stocker_inhouse')->name('cek_data_stocker_inhouse');
         Route::post('/store', 'store')->name('store-secondary-inhouse');
     });
-
 
     // Secondary IN
     Route::controller(SecondaryInController::class)->prefix("secondary-in")->middleware('dc')->group(function () {

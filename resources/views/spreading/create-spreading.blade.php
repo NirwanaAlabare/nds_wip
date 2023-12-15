@@ -384,7 +384,7 @@
                 processData: false,
                 contentType: false,
                 success: async function(res) {
-                    $("input[type=submit][clicked=true]").attr('disabled', false);
+                    $("input[type=submit][clicked=true]").removeAttr('disabled');
 
                     if (res.status == 200) {
                         console.log(res);
