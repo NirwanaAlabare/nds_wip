@@ -16,7 +16,7 @@ class Part extends Model
     /**
      * Get the part details.
      */
-    public function partDetail()
+    public function partDetails()
     {
         return $this->hasMany(PartDetail::class, 'part_id', 'id');
     }

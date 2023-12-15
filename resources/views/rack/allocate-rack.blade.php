@@ -47,7 +47,7 @@
                 </button>
             </div>
         </div>
-        <div class="card-body" style="display: block" id="scan-stocker">
+        <div class="card-body" id="scan-stocker">
             <div id="stocker-reader" onclick="clearStockerScan()"></div>
             <div class="mb-3">
                 <label class="form-label">Stocker</label>
@@ -59,16 +59,16 @@
             </div>
         </div>
     </div>
-    <div class="card card-info" id="stock-trolley">
+    <div class="card card-info" id="stock-rack">
         <div class="card-header">
-            <h5 class="card-title fw-bold">Stock Trolley</h5>
+            <h5 class="card-title fw-bold">Stock Rak</h5>
             <div class="card-tools">
                 <button type="button" class="btn btn-tool" data-card-widget="collapse">
                     <i class="fas fa-minus"></i>
                 </button>
             </div>
         </div>
-        <div class="card-body" style="display: block">
+        <div class="card-body">
             <table class="table" id="rack-stock-datatable">
                 <thead>
                     <tr>
@@ -86,8 +86,8 @@
             </table>
         </div>
     </div>
-    <button class="btn btn-dark btn-block mb-3 fw-bold">
-        <i class="fas fa-undo-alt"></i> RESET
+    <button class="btn btn-success btn-block mb-3 fw-bold">
+        <i class="fas fa-save"></i> SIMPAN
     </button>
 @endsection
 
@@ -115,9 +115,14 @@
 
             await initRackScan();
             await initStockerScan();
+
+            $('#scan-stocker').CardWidget("collapse")
+            $('#stock-rack').CardWidget("collapse")
         });
 
         var step = "";
+        var currentRack = "";
+        var currentStocker = "";
 
         // Scan QR Module :
             // Variable List :
@@ -176,7 +181,7 @@
                 // -Initialize Stocker Scanner-
                     async function initStockerScan() {
                         if (document.getElementById("stocker-reader")) {
-                            if (stockerScannerInitialized == false && trolleyScannerInitialized == false) {
+                            if (stockerScannerInitialized == false && rackScannerInitialized == false) {
                                 if (stockerScanner == null || (stockerScanner && (stockerScanner.getState() && stockerScanner.getState() != 2))) {
                                     const stockerScanSuccessCallback = (decodedText, decodedResult) => {
                                             // handle the scanned code as you like, for example:

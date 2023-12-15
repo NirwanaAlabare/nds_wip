@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CutPlanController;
 use App\Http\Controllers\CutPlanNewController;
 use App\Http\Controllers\UserController;
@@ -385,9 +386,7 @@ Route::get('/dashboard-stocker', function () {
     return view('dashboard', ['page' => 'dashboard-stocker']);
 })->middleware('auth')->name('dashboard-stocker');
 
-Route::get('/dashboard-dc', function () {
-    return view('dashboard', ['page' => 'dashboard-dc']);
-})->middleware('auth')->name('dashboard-dc');
+Route::get('/dashboard-dc',[DashboardController::class, 'dc'])->middleware('auth')->name('dashboard-dc');
 
 Route::get('/dashboard-mut-karyawan', function () {
     return view('dashboard', ['page' => 'dashboard-mut-karyawan']);

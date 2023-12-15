@@ -39,7 +39,7 @@
                                                 @foreach ($rack->rackDetails as $rackDetail)
                                                     @if ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0)
                                                         @foreach ($rackDetail->rackDetailStockers as $rackDetailStocker)
-                                                            <td>{{ $rackDetailStocker->stocker->id_qr_stocker }}</td>
+                                                            <td>{{ $rackDetailStocker->stocker ? $rackDetailStocker->stocker->id_qr_stocker : "-" }}</td>
                                                         @endforeach
                                                     @else
                                                         <td>&nbsp;</td>
@@ -51,7 +51,7 @@
                                                 @foreach ($rack->rackDetails as $rackDetail)
                                                     @if ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0)
                                                         @foreach ($rackDetail->rackDetailStockers as $rackDetailStocker)
-                                                            <td>{{ $rackDetailStocker->stocker->act_costing_ws }}</td>
+                                                            <td>{{ $rackDetailStocker->stocker ? $rackDetailStocker->stocker->act_costing_ws : "-" }}</td>
                                                         @endforeach
                                                     @else
                                                         <td>&nbsp;</td>
@@ -63,7 +63,7 @@
                                                 @foreach ($rack->rackDetails as $rackDetail)
                                                     @if ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0)
                                                         @foreach ($rackDetail->rackDetailStockers as $rackDetailStocker)
-                                                            <td>{{ $rackDetailStocker->stocker->formCut->no_cut }}</td>
+                                                            <td>{{ $rackDetailStocker->stocker ? $rackDetailStocker->stocker->formCut->no_cut : "-" }}</td>
                                                         @endforeach
                                                     @else
                                                         <td>&nbsp;</td>
@@ -75,7 +75,7 @@
                                                 @foreach ($rack->rackDetails as $rackDetail)
                                                     @if ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0)
                                                         @foreach ($rackDetail->rackDetailStockers as $rackDetailStocker)
-                                                            <td>{{ $rackDetailStocker->stocker->formCut->marker->style }}</td>
+                                                            <td>{{ $rackDetailStocker->stocker ? $rackDetailStocker->stocker->formCut->marker->style : "-" }}</td>
                                                         @endforeach
                                                     @else
                                                         <td>&nbsp;</td>
@@ -87,7 +87,7 @@
                                                 @foreach ($rack->rackDetails as $rackDetail)
                                                     @if ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0)
                                                         @foreach ($rackDetail->rackDetailStockers as $rackDetailStocker)
-                                                            <td>{{ $rackDetailStocker->stocker->formCut->marker->color }}</td>
+                                                            <td>{{ $rackDetailStocker->stocker ? $rackDetailStocker->stocker->formCut->marker->color : "-" }}</td>
                                                         @endforeach
                                                     @else
                                                         <td>&nbsp;</td>
@@ -99,7 +99,7 @@
                                                 @foreach ($rack->rackDetails as $rackDetail)
                                                     @if ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0)
                                                         @foreach ($rackDetail->rackDetailStockers as $rackDetailStocker)
-                                                            <td>{{ $rackDetailStocker->stocker->size }}</td>
+                                                            <td>{{ $rackDetailStocker->stocker ? $rackDetailStocker->stocker->size : "-" }}</td>
                                                         @endforeach
                                                     @else
                                                         <td>&nbsp;</td>
@@ -111,7 +111,7 @@
                                                 @foreach ($rack->rackDetails as $rackDetail)
                                                     @if ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0)
                                                         @foreach ($rackDetail->rackDetailStockers as $rackDetailStocker)
-                                                            <td>{{ $rackDetailStocker->stocker->cut_qty }}</td>
+                                                            <td>{{ $rackDetailStocker->stocker ? $rackDetailStocker->stocker->range_awal."-".$rackDetailStocker->stocker->range_akhir : "-" }}</td>
                                                         @endforeach
                                                     @else
                                                         <td>&nbsp;</td>
@@ -123,7 +123,11 @@
                                                 @foreach ($rack->rackDetails as $rackDetail)
                                                     @if ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0)
                                                         @foreach ($rackDetail->rackDetailStockers as $rackDetailStocker)
-                                                            <td>-</td>
+                                                            <td>
+                                                                @php
+                                                                    echo $rackDetailStocker->stocker->partDetail->masterPart->nama_part;
+                                                                @endphp
+                                                            </td>
                                                         @endforeach
                                                     @else
                                                         <td>&nbsp;</td>
@@ -133,9 +137,28 @@
                                             <tr>
                                                 <th>Part Belum Lengkap</th>
                                                 @foreach ($rack->rackDetails as $rackDetail)
+                                                    @php
+                                                        $availablePart = [];
+                                                    @endphp
                                                     @if ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0)
                                                         @foreach ($rackDetail->rackDetailStockers as $rackDetailStocker)
-                                                            <td>-</td>
+                                                            @php
+                                                                if (!(in_array($rackDetailStocker->stocker->partDetail->masterPart->nama_part, $availablePart))) {
+                                                                    array_push($availablePart, $rackDetailStocker->stocker->partDetail->masterPart->nama_part);
+                                                                }
+                                                            @endphp
+                                                            <td>
+                                                                @if ($rackDetailStocker->stocker && $rackDetailStocker->stocker->partDetail && $rackDetailStocker->stocker->partDetail->part && $rackDetailStocker->stocker->partDetail->part->partDetails)
+                                                                    @foreach ($rackDetailStocker->stocker->partDetail->part->partDetails as $partDetail)
+                                                                        @php
+                                                                            if (!(in_array($partDetail->masterPart->nama_part, $availablePart))) {
+
+                                                                                echo (!($loop->last) ? $partDetail->masterPart->nama_part.", " : $partDetail->masterPart->nama_part);
+                                                                            }
+                                                                        @endphp
+                                                                    @endforeach
+                                                                @endif
+                                                            </td>
                                                         @endforeach
                                                     @else
                                                         <td>&nbsp;</td>
@@ -155,27 +178,6 @@
             </div>
         </div>
     </div>
-
-    <div class="card">
-        <div class="card-body">
-            <table class="table table-bordered bg-white">
-                @foreach ($racks as $rack)
-                    <tr>
-                        @foreach ($rack->rackDetails as $rackDetail)
-                            <th class="text-center bg-sb-secondary">{{ $rackDetail->nama_detail_rak }}</th>
-                        @endforeach
-                    </tr>
-                    <tr>
-                        @foreach ($rack->rackDetails as $rackDetail)
-                            <th class="{{ $loop->index > 1 ? 'bg-light' : 'bg-warning' }} p-3" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-custom-class="custom-tooltip" data-bs-title="This top tooltip is themed via CSS variables.">
-                                <a href="youtube.com" class="h-100 w-100">&nbsp;</a>
-                            </th>
-                        @endforeach
-                    </tr>
-                @endforeach
-            </table>
-        </div>
-    </div>
 @endsection
 
 @section('custom-script')
@@ -186,46 +188,46 @@
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
 
     <script>
-        // let datatableRack = $("#datatable-rack").DataTable({
-        //     ordering: false,
-        //     processing: true,
-        //     serverSide: true,
-        //     ajax: {
-        //         url: '{{ route('rack-detail') }}',
-        //     },
-        //     columns: [
-        //         {
-        //             data: 'kode',
-        //         },
-        //         {
-        //             data: 'act_costing_ws',
-        //         },
-        //         {
-        //             data: 'style'
-        //         },
-        //         {
-        //             data: 'color'
-        //         },
-        //         {
-        //             data: 'size'
-        //         },
-        //         {
-        //             data: 'no_cut'
-        //         },
-        //         {
-        //             data: 'part_details'
-        //         },
-        //         {
-        //             data: 'qty_cut'
-        //         },
-        //         {
-        //             data: 'part_details_unavailable'
-        //         },
-        //     ],
-        // });
+        let datatableRack = $("#datatable-rack").DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '{{ route('allocate-rack') }}',
+            },
+            columns: [
+                {
+                    data: 'kode',
+                },
+                {
+                    data: 'act_costing_ws',
+                },
+                {
+                    data: 'style'
+                },
+                {
+                    data: 'color'
+                },
+                {
+                    data: 'size'
+                },
+                {
+                    data: 'no_cut'
+                },
+                {
+                    data: 'part_details'
+                },
+                {
+                    data: 'qty_cut'
+                },
+                {
+                    data: 'part_details_unavailable'
+                },
+            ],
+        });
 
-        // function datatableRackReload() {
-        //     datatableRack.ajax.reload()
-        // }
+        function datatableRackReload() {
+            datatableRack.ajax.reload()
+        }
     </script>
 @endsection

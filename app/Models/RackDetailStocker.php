@@ -26,6 +26,6 @@ class RackDetailStocker extends Model
      */
     public function stocker()
     {
-        return $this->belongsTo(Stocker::class, 'rack_detail_id', 'id');
+        return $this->belongsTo(Stocker::class, 'stocker_id', 'id_qr_stocker');
     }
 }

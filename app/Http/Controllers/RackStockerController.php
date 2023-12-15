@@ -24,7 +24,7 @@ class RackStockerController extends Controller
     {
         $racks = Rack::all();
 
-        return view('rack.rack-detail', ['page' => 'dashboard-dc', "subPageGroup" => "rak-dc", "subPage" => "stock-rack", 'racks' => $racks]);
+        return view('rack.stock-rack', ['page' => 'dashboard-dc', "subPageGroup" => "rak-dc", "subPage" => "stock-rack", 'racks' => $racks]);
     }
 
     /**

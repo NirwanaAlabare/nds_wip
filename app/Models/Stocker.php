@@ -16,9 +16,9 @@ class Stocker extends Model
     /**
      * Get the part.
      */
-    public function part()
+    public function partDetail()
     {
-        return $this->belongsTo(Part::class, 'part_id', 'id');
+        return $this->belongsTo(PartDetail::class, 'part_detail_id', 'id');
     }
 
     /**

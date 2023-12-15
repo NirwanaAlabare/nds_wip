@@ -84,8 +84,8 @@
             </table>
         </div>
     </div>
-    <button class="btn btn-dark btn-block mb-3 fw-bold">
-        <i class="fas fa-undo-alt"></i> RESET
+    <button class="btn btn-success btn-block btn-sm mb-3 fw-bold">
+        <i class="fas fa-save"></i> SIMPAN
     </button>
 @endsection
 

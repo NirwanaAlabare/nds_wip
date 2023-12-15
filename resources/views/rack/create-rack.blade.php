@@ -116,7 +116,7 @@
                 processData: false,
                 contentType: false,
                 success: async function(res) {
-                    $("input[type=submit][clicked=true]").attr('disabled', false);
+                    $("input[type=submit][clicked=true]").removeAttr('disabled');
 
                     // Success Response
 
@@ -174,7 +174,7 @@
                         }
                     }
                 }, error: function (jqXHR) {
-                    $("input[type=submit][clicked=true]").attr('disabled', false);
+                    $("input[type=submit][clicked=true]").removeAttr('disabled');
 
                     // Error Response
 
