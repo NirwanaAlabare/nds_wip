@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 use App\Exports\ExportLaporanMutasiKaryawan;
+use App\Models\RackDetailStocker;
 use App\Models\SecondaryIn;
 use Maatwebsite\Excel\Facades\Excel;
 use DB;
@@ -18,7 +19,7 @@ class SecondaryInController extends Controller
         $tgl_skrg = Carbon::now()->isoFormat('D MMMM Y hh:mm:ss');
         $tglskrg = date('Y-m-d');
 
-        $data_rak = DB::select("select nama_detail_rak isi, nama_detail_rak tampil from rack_detail");
+        $data_rak = DB::select("select id isi, nama_detail_rak tampil from rack_detail");
         // dd($data_rak);
         if ($request->ajax()) {
             $additionalQuery = '';
@@ -126,6 +127,20 @@ class SecondaryInController extends Controller
             "txtqtyreject" => "required"
         ]);
 
+        $rak = DB::table('rack_detail')
+            ->select('nama_detail_rak')
+            ->where('id', '=', $validatedRequest['cborak'])
+            ->get();
+        $rak_data = $rak ? $rak[0]->nama_detail_rak : null;
+
+        $insert_rak = RackDetailStocker::create([
+            'detail_rack_id' => $validatedRequest['cborak'],
+            'nm_rak' => $rak_data,
+            'stocker_id' => $request['txtno_stocker'],
+            'qty_in' => $request['txtqtyin'],
+            'created_at' => $timestamp,
+            'updated_at' => $timestamp,
+        ]);
         $saveinhouse = SecondaryIn::create([
             'tgl_trans' => $tgltrans,
             'no_form' => $request['txtno_form'],

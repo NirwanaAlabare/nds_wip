@@ -351,16 +351,17 @@ class DCInController extends Controller
 
             $insert_dc_in = DB::insert("
         INSERT INTO dc_in_input
-        (no_form, id_qr_stocker, tujuan, alokasi,qty_reject,qty_replace,user, created_at, updated_at)
-        SELECT no_form, id_qr_stocker, tujuan, alokasi,qty_reject,qty_replace,user,created_at, updated_at
+        (no_form, id_qr_stocker, tujuan, alokasi,qty_awal,qty_reject,qty_replace,user, created_at, updated_at)
+        SELECT no_form, id_qr_stocker, tujuan, alokasi,qty_awal,qty_reject,qty_replace,user,created_at, updated_at
         FROM tmp_dc_in_input
         WHERE no_form = '$request->no_form'");
             $insert_rak = DB::insert("
         INSERT INTO rack_detail_stocker
-        (detail_rack_id, stocker_id, qty, created_at, updated_at)
-        SELECT alokasi, id_qr_stocker,created_at, updated_at
-        FROM tmp_dc_in_input
-        WHERE no_form = '$request->no_form' and tujuan = 'NON SECONDARY'");
+            (nm_rak, detail_rack_id, stocker_id, qty_in, created_at, updated_at)
+            SELECT alokasi, rack_detail.rack_id,id_qr_stocker, qty_awal - qty_reject + qty_replace qty_in ,tmp_dc_in_input.created_at, tmp_dc_in_input.updated_at
+            FROM tmp_dc_in_input
+            left join rack_detail on tmp_dc_in_input.alokasi = rack_detail.nama_detail_rak
+            WHERE no_form = '$request->no_form' and tujuan = 'NON SECONDARY'");
             $delete_tmp = DB::delete("
         delete from tmp_dc_in_input
         WHERE no_form = '$request->no_form'");
