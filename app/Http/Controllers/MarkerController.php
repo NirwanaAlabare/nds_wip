@@ -210,22 +210,22 @@ class MarkerController extends Controller
             "ws" => "required",
             "buyer" => "required",
             "style" => "required",
-            "cons_ws" => "required",
+            "cons_ws" => "required|numeric|min:0",
             "color" => "required",
             "panel" => "required",
-            "p_marker" => "required",
+            "p_marker" => "required|numeric|min:0",
             "p_unit" => "required",
-            "comma_marker" => "required",
+            "comma_marker" => "required|numeric|min:0",
             "comma_unit" => "required",
-            "l_marker" => "required",
+            "l_marker" => "required|numeric|min:0",
             "l_unit" => "required",
-            "gelar_marker_qty" => "required",
+            "gelar_marker_qty" => "required|numeric|gt:0",
             "po" => "required",
-            "no_urut_marker" => "required",
-            "cons_marker" => "required",
-            "gramasi" => "required",
+            "no_urut_marker" => "required|numeric|gt:0",
+            "cons_marker" => "required|numeric|gt:0",
+            "gramasi" => "required|numeric|gt:0",
             "tipe_marker" => "required",
-            "cons_piping" => "required"
+            "cons_piping" => "required|numeric|min:0"
         ]);
 
         foreach ($request["cut_qty"] as $qty) {

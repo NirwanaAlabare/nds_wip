@@ -537,11 +537,11 @@ class PilotFormCutController extends Controller
             "no_ws" => "required",
             "buyer" => "required",
             "style" => "required",
-            "cons_ws_marker" => "required",
+            "cons_ws_marker" => "required|numeric|min:0",
             "color" => "required",
             "panel" => "required",
-            "gelar_qty" => "required",
-            "urutan_marker" => "required",
+            "gelar_qty" => "required|numeric|gt:0",
+            "urutan_marker" => "required|numeric|gt:0",
             "tipe_marker" => "required"
         ]);
 
@@ -646,22 +646,22 @@ class PilotFormCutController extends Controller
     {
         $validatedRequest = $request->validate([
             "id_marker" => "required",
-            "p_act" => "required",
+            "p_act" => "required|numeric",
             "unit_p_act" => "required",
-            "comma_act" => "required",
+            "comma_act" => "required|numeric",
             "unit_comma_act" => "required",
-            "l_act" => "required",
+            "l_act" => "required|numeric",
             "unit_l_act" => "required",
-            "cons_ws" => "required",
-            "cons_act" => "required",
-            "cons_pipping" => "required",
-            "cons_ampar" => "required",
-            "est_pipping" => "required",
-            "est_pipping_unit" => "required",
-            "est_kain" => "required",
-            "est_kain_unit" => "required",
-            "gramasi" => "required",
-            "cons_marker" => "required",
+            "cons_ws" => "required|numeric",
+            "cons_act" => "required|numeric",
+            "cons_pipping" => "required|numeric",
+            "cons_ampar" => "required|numeric",
+            "est_pipping" => "required|numeric",
+            "est_pipping_unit" => "required|numeric",
+            "est_kain" => "required|numeric",
+            "est_kain_unit" => "required|numeric",
+            "gramasi" => "required|numeric|gt:0",
+            "cons_marker" => "required|numeric|gt:0",
         ]);
 
         $updateMarker = Marker::where('kode', $validatedRequest['id_marker'])->update([
