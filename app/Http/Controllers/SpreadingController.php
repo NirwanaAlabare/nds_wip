@@ -120,7 +120,7 @@ class SpreadingController extends Controller
 
         $data_ws = DB::select("select act_costing_id, act_costing_ws ws from marker_input a
         left join (select id_marker from form_cut_input group by id_marker ) b on a.kode = b.id_marker
-        where a.cancel = 'N' and b.id_marker is null and a.tipe_marker = 'regular marker'
+        where a.cancel = 'N' and b.id_marker is null
         group by act_costing_id");
 
 
