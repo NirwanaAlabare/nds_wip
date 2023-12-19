@@ -66,6 +66,12 @@ class RackStockerController extends Controller
         //
     }
 
+    public function stockRackVisual() {
+        $racks = Rack::all();
+
+        return view('rack.stock-rack-visual', ['page' => 'dashboard-dc', 'subPageGroup' => 'rak-dc', 'subPage' => 'stock-rack-visual',  'racks' => $racks]);
+    }
+
     /**
      * Show the form for editing the specified resource.
      *

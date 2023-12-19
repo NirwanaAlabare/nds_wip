@@ -240,6 +240,12 @@
                                         Rak <i class="fas fa-table fa-sm"></i>
                                     </a>
                                 </li>
+                                <li>
+                                    <a href="{{ route('stock-rack-visual') }}"
+                                        class="dropdown-item {{ $subPage == 'stock-rack-visual' ? 'active' : '' }}">
+                                        Stok Rak <i class="fas fa-th-list"></i>
+                                    </a>
+                                </li>
                             @enddc
                         </ul>
                     </li>

@@ -324,6 +324,7 @@ Route::middleware('auth')->group(function () {
     Route::controller(RackStockerController::class)->prefix("stock-rack")->middleware('dc')->group(function () {
         Route::get('/', 'index')->name('stock-rack');
         Route::get('/allocate', 'allocate')->name('allocate-rack');
+        Route::get('/stock-rack-visual', 'stockRackVisual')->name('stock-rack-visual');
         Route::post('/store', 'store')->name('store-rack-stock');
         Route::put('/update', 'update')->name('update-rack-stock');
         Route::delete('/destroy/{id?}', 'destroy')->name('destroy-rack-stock');
