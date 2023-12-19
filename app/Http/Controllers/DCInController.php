@@ -134,7 +134,8 @@ class DCInController extends Controller
             s.ratio,
             s.qty_ply,
             s.range_awal,
-            s.range_akhir
+            s.range_akhir,
+            cek.so_det_id cekdata
             from
             stocker_input s
             inner join form_cut_input a on s.form_cut_id = a.id
@@ -142,8 +143,16 @@ class DCInController extends Controller
             inner join master_part mp on p.master_part_id = mp.id
             left join tmp_dc_in_input tmp on s.id_qr_stocker = tmp.id_qr_stocker
             left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
+            left join
+            (
+                select so_det_id, no_form from tmp_dc_in_input a
+                inner join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+                where no_form = '" . $request->no_form . "'
+                group by so_det_id
+            )   cek on s.so_det_id = cek.so_det_id
             where a.no_form = '" . $request->no_form . "' and ifnull(tmp.id_qr_stocker,'x') = 'x'  and ifnull(dc.id_qr_stocker,'x') = 'x'
-            order by color asc, size asc"
+            order by color asc, size asc
+            "
 
 
         );
@@ -195,9 +204,12 @@ class DCInController extends Controller
     public function show_tmp_dc_in(Request $request)
     {
         $data_tmp_dc_in = DB::select("
-        SELECT a.id_qr_stocker,
+        SELECT
+        concat (a.id_qr_stocker, ' ', panel , ' ', size, ' ', color) nama_stocker,
+        a.id_qr_stocker,
         tujuan,
         alokasi,
+        det_alokasi,
         qty_ply,
         qty_reject,
         qty_replace,
@@ -212,7 +224,9 @@ class DCInController extends Controller
     {
         $data_tujuan = $request->tujuan;
         if ($data_tujuan == 'NON SECONDARY') {
-            $data_alokasi = DB::select("select nama_detail_rak isi, nama_detail_rak tampil from rack_detail");
+            $data_alokasi = DB::select("select 'RAK' isi, 'RAK' tampil
+            union
+            select 'TROLLEY', 'TROLLEY'");
             $html = "<option value=''>Pilih Rak</option>";
         } else if ($data_tujuan == 'SECONDARY DALAM') {
             $data_alokasi = DB::select("select kode isi, proses tampil from master_secondary where jenis = 'DALAM'");
@@ -234,6 +248,25 @@ class DCInController extends Controller
         return $html;
     }
 
+    public function get_det_alokasi(Request $request)
+    {
+        $data_alokasi = $request->alokasi;
+        if ($data_alokasi == 'RAK') {
+            $data_detail_alokasi = DB::select("select nama_detail_rak isi, nama_detail_rak tampil from rack_detail");
+            $html = "<option value=''>Pilih Penempatan</option>";
+        } else if ($data_alokasi == 'TROLLEY') {
+            $data_detail_alokasi = DB::select("select kode isi, nama_trolley tampil from trolley");
+            $html = "<option value=''>Pilih Penempatan</option>";
+        }
+
+        foreach ($data_detail_alokasi as $datadetailalokasi) {
+            $html .= " <option value='" . $datadetailalokasi->tampil . "'>" . $datadetailalokasi->tampil . "</option> ";
+        }
+
+        return $html;
+    }
+
+
 
     public function update_tmp_dc_in(Request $request)
     {
@@ -249,7 +282,8 @@ class DCInController extends Controller
         qty_reject = '$request->txtqtyreject',
         qty_replace = '$request->txtqtyreplace',
         tujuan =  '" . $validatedRequest['cbotuj'] . "',
-        alokasi = '" . $validatedRequest['cboalokasi'] . "'
+        alokasi = '" . $validatedRequest['cboalokasi'] . "',
+        det_alokasi = '$request->cbodetalokasi'
         where id_qr_stocker = '$request->id_c'");
 
         if ($update_tmp_dc_in) {
