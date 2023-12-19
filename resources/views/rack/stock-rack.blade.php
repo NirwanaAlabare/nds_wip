@@ -71,6 +71,18 @@
                                                 @endforeach
                                             </tr>
                                             <tr>
+                                                <th>Shade</th>
+                                                @foreach ($rack->rackDetails as $rackDetail)
+                                                    @if ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0)
+                                                        @foreach ($rackDetail->rackDetailStockers as $rackDetailStocker)
+                                                            <td>{{ $rackDetailStocker->stocker ? $rackDetailStocker->stocker->shade : "-" }}</td>
+                                                        @endforeach
+                                                    @else
+                                                        <td>&nbsp;</td>
+                                                    @endif
+                                                @endforeach
+                                            </tr>
+                                            <tr>
                                                 <th>Style</th>
                                                 @foreach ($rack->rackDetails as $rackDetail)
                                                     @if ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0)

@@ -8,8 +8,6 @@ use App\Models\Rack;
 class DashboardController extends Controller
 {
     public function dc() {
-        $racks = Rack::all();
-
-        return view('dashboard', ['page' => 'dashboard-dc', 'racks' => $racks]);
+        return view('dashboard', ['page' => 'dashboard-dc']);
     }
 }

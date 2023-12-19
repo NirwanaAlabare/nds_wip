@@ -481,38 +481,45 @@ class FormCutInputController extends Controller
             $status = 'need extension';
         }
 
+        $beforeData = FormCutInputDetail::select('group', 'group_stocker')->where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->orderBy('id', 'desc')->first();
+        $groupStocker = $beforeData ? ($beforeData->group  == $validatedRequest['current_group'] ? $beforeData->group_stocker : $beforeData->group_stocker + 1) : 1;
         $itemQty = ($validatedRequest["current_unit"] != "KGM" ? floatval($validatedRequest['current_qty']) : floatval($validatedRequest['current_qty_real']));
         $itemUnit = ($validatedRequest["current_unit"] != "KGM" ? "METER" : $validatedRequest['current_unit']);
 
-        $storeTimeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->where('form_cut_input.no_meja', $validatedRequest['no_meja'])->where('form_cut_input_detail.status', 'not complete')->updateOrCreate(
-            ["no_form_cut_input" => $validatedRequest['no_form_cut_input']],
-            [
-                "id_roll" => $validatedRequest['current_id_roll'],
-                "id_item" => $validatedRequest['current_id_item'],
-                "color_act" => $validatedRequest['color_act'],
-                "detail_item" => $validatedRequest['detail_item'],
-                "group" => $validatedRequest['current_group'],
-                "lot" => $request["current_lot"],
-                "roll" => $validatedRequest['current_roll'],
-                "qty" => $itemQty,
-                "unit" => $itemUnit,
-                "sisa_gelaran" => $validatedRequest['current_sisa_gelaran'],
-                "sambungan" => $validatedRequest['current_sambungan'],
-                "est_amparan" => $validatedRequest['current_est_amparan'],
-                "lembar_gelaran" => $validatedRequest['current_lembar_gelaran'],
-                "average_time" => $validatedRequest['current_average_time'],
-                "kepala_kain" => $validatedRequest['current_kepala_kain'],
-                "sisa_tidak_bisa" => $validatedRequest['current_sisa_tidak_bisa'],
-                "reject" => $validatedRequest['current_reject'],
-                "sisa_kain" => $validatedRequest['current_sisa_kain'],
-                "total_pemakaian_roll" => $validatedRequest['current_total_pemakaian_roll'],
-                "short_roll" => $validatedRequest['current_short_roll'],
-                "piping" => $validatedRequest['current_piping'],
-                "remark" => $validatedRequest['current_remark'],
-                "status" => $status,
-                "metode" => $request->metode ? $request->metode : "scan",
-            ]
-        );
+        $storeTimeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->
+            leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->
+            where('form_cut_input.no_meja', $validatedRequest['no_meja'])->
+            where('form_cut_input_detail.status', 'not complete')->
+            updateOrCreate(
+                ["no_form_cut_input" => $validatedRequest['no_form_cut_input']],
+                [
+                    "id_roll" => $validatedRequest['current_id_roll'],
+                    "id_item" => $validatedRequest['current_id_item'],
+                    "color_act" => $validatedRequest['color_act'],
+                    "detail_item" => $validatedRequest['detail_item'],
+                    "group" => $validatedRequest['current_group'],
+                    "lot" => $request["current_lot"],
+                    "roll" => $validatedRequest['current_roll'],
+                    "qty" => $itemQty,
+                    "unit" => $itemUnit,
+                    "sisa_gelaran" => $validatedRequest['current_sisa_gelaran'],
+                    "sambungan" => $validatedRequest['current_sambungan'],
+                    "est_amparan" => $validatedRequest['current_est_amparan'],
+                    "lembar_gelaran" => $validatedRequest['current_lembar_gelaran'],
+                    "average_time" => $validatedRequest['current_average_time'],
+                    "kepala_kain" => $validatedRequest['current_kepala_kain'],
+                    "sisa_tidak_bisa" => $validatedRequest['current_sisa_tidak_bisa'],
+                    "reject" => $validatedRequest['current_reject'],
+                    "sisa_kain" => $validatedRequest['current_sisa_kain'],
+                    "total_pemakaian_roll" => $validatedRequest['current_total_pemakaian_roll'],
+                    "short_roll" => $validatedRequest['current_short_roll'],
+                    "piping" => $validatedRequest['current_piping'],
+                    "remark" => $validatedRequest['current_remark'],
+                    "status" => $status,
+                    "metode" => $request->metode ? $request->metode : "scan",
+                    "group_stocker" => $groupStocker,
+                ]
+            );
 
         if ($storeTimeRecordSummary) {
             // $itemRemain = $itemQty - floatval($validatedRequest['current_total_pemakaian_roll']) - floatval($validatedRequest['current_kepala_kain']) - floatval($validatedRequest['current_sisa_tidak_bisa']) - floatval($validatedRequest['current_reject']) - floatval($validatedRequest['current_piping']);
@@ -537,6 +544,7 @@ class FormCutInputController extends Controller
                     "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
                     "id_sambungan" => $storeTimeRecordSummary->id,
                     "status" => "extension",
+                    "group_stocker" => $groupStocker
                 ]);
 
                 if ($storeTimeRecordSummaryExt) {
@@ -585,38 +593,45 @@ class FormCutInputController extends Controller
     {
         $lap = $request->lap;
 
+        $beforeData = FormCutInputDetail::select('group', 'group_stocker')->where('no_form_cut_input', $request['no_form_cut_input'])->orderBy('id', 'desc')->first();
+        $groupStocker = $beforeData ? ($beforeData->group  == $request['current_group'] ? $beforeData->group_stocker : $beforeData->group_stocker + 1) : 1;
         $itemQty = ($request["current_unit"] != "KGM" ? floatval($request['current_qty']) : floatval($request['current_qty_real']));
         $itemUnit = ($request["current_unit"] != "KGM" ? "METER" : $request['current_unit']);
 
-        $storeTimeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->where('form_cut_input.no_meja', $request->no_meja)->where('form_cut_input_detail.status', 'not complete')->updateOrCreate(
-            ["no_form_cut_input" => $request->no_form_cut_input],
-            [
-                "id_roll" => $request->current_id_roll,
-                "id_item" => $request->current_id_item,
-                "color_act" => $request->color_act,
-                "detail_item" => $request->detail_item,
-                "group" => $request->current_group,
-                "lot" => $request->current_lot,
-                "roll" => $request->current_roll,
-                "qty" => $itemQty,
-                "unit" => $itemUnit,
-                "sisa_gelaran" => $request->current_sisa_gelaran,
-                "sambungan" => $request->current_sambungan,
-                "est_amparan" => $request->current_est_amparan,
-                "lembar_gelaran" => $request->current_lembar_gelaran,
-                "average_time" => $request->current_average_time,
-                "kepala_kain" => $request->current_kepala_kain,
-                "sisa_tidak_bisa" => $request->current_sisa_tidak_bisa,
-                "reject" => $request->current_reject,
-                "sisa_kain" => $request->current_sisa_kain,
-                "total_pemakaian_roll" => $request->current_total_pemakaian_roll,
-                "short_roll" => $request->current_short_roll,
-                "piping" => $request->current_piping,
-                "remark" => $request->current_remark,
-                "status" => "not complete",
-                "metode" => $request->metode ? $request->metode : "scan",
-            ]
-        );
+        $storeTimeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->
+            leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->
+            where('form_cut_input.no_meja', $request->no_meja)->
+            where('form_cut_input_detail.status', 'not complete')->
+            updateOrCreate(
+                ["no_form_cut_input" => $request->no_form_cut_input],
+                [
+                    "id_roll" => $request->current_id_roll,
+                    "id_item" => $request->current_id_item,
+                    "color_act" => $request->color_act,
+                    "detail_item" => $request->detail_item,
+                    "group" => $request->current_group,
+                    "lot" => $request->current_lot,
+                    "roll" => $request->current_roll,
+                    "qty" => $itemQty,
+                    "unit" => $itemUnit,
+                    "sisa_gelaran" => $request->current_sisa_gelaran,
+                    "sambungan" => $request->current_sambungan,
+                    "est_amparan" => $request->current_est_amparan,
+                    "lembar_gelaran" => $request->current_lembar_gelaran,
+                    "average_time" => $request->current_average_time,
+                    "kepala_kain" => $request->current_kepala_kain,
+                    "sisa_tidak_bisa" => $request->current_sisa_tidak_bisa,
+                    "reject" => $request->current_reject,
+                    "sisa_kain" => $request->current_sisa_kain,
+                    "total_pemakaian_roll" => $request->current_total_pemakaian_roll,
+                    "short_roll" => $request->current_short_roll,
+                    "piping" => $request->current_piping,
+                    "remark" => $request->current_remark,
+                    "status" => "not complete",
+                    "metode" => $request->metode ? $request->metode : "scan",
+                    "group_stocker" => $groupStocker,
+                ]
+            );
 
         if ($storeTimeRecordSummary) {
             $now = Carbon::now();
@@ -685,6 +700,8 @@ class FormCutInputController extends Controller
             "current_sambungan" => "required"
         ]);
 
+        $beforeData = FormCutInputDetail::select('group', 'group_stocker')->where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->orderBy('id', 'desc')->first();
+        $groupStocker = $beforeData ? ($beforeData->group  == $validatedRequest['current_group'] ? $beforeData->group_stocker : $beforeData->group_stocker + 1) : 1;
         $itemQty = ($validatedRequest["current_unit"] != "KGM" ? floatval($validatedRequest['current_qty']) : floatval($validatedRequest['current_qty_real']));
         $itemUnit = ($validatedRequest["current_unit"] != "KGM" ? "METER" : $validatedRequest['current_unit']);
 
@@ -715,6 +732,7 @@ class FormCutInputController extends Controller
                 "remark" => $validatedRequest['current_remark'],
                 "status" => "extension complete",
                 "metode" => $request->metode ? $request->metode : "scan",
+                "group_stocker" => $groupStocker,
             ]
         );
 
@@ -760,6 +778,7 @@ class FormCutInputController extends Controller
                         "sambungan" => 0,
                         "status" => "not complete",
                         "metode" => $request->metode ? $request->metode : "scan",
+                        "group_stocker" => $groupStocker,
                     ]);
 
                     if ($storeTimeRecordSummaryNext) {
