@@ -310,18 +310,9 @@ class StockerController extends Controller
                     'so_det_id' => $request['so_det_id'][$index],
                     'color' => $request['color'],
                     'panel' => $request['panel'],
-<<<<<<< HEAD
-                    'shade' => $request['shade'],
-                    'id_qr_stocker' => $stockerId,
-                ],
-                [
-                    'ratio' => $i + 1,
-                    'act_costing_ws' => $request["no_ws"],
-=======
                     'shade' => $request['group'][$index],
                     'group_stocker' => $request['group_stocker'][$index],
                     'ratio' => $i+1,
->>>>>>> c9cb37b44f00dc2e3fb6427d989ce9740efdf654
                     'size' => $request["size"][$index],
                     'qty_ply' => $request['qty_ply_group'][$index],
                     'qty_cut' => $request['qty_cut'][$index],
@@ -346,9 +337,6 @@ class StockerController extends Controller
                 form_cut_input.no_cut,
                 master_part.nama_part part,
                 master_sb_ws.dest
-<<<<<<< HEAD
-            ")->leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->leftJoin("part", "part.id", "=", "part_detail.part_id")->leftJoin("part_form", "part_form.part_id", "=", "part.id")->leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->leftJoin("master_sb_ws", "stocker_input.so_det_id", "=", "master_sb_ws.id_so_det")->leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->where("form_cut_input.status", "SELESAI PENGERJAAN")->where("part_detail.id", $request['part_detail_id'][$index])->where("form_cut_input.id", $request['form_cut_id'])->where("marker_input_detail.so_det_id", $request['so_det_id'][$index])->where("stocker_input.so_det_id", $request['so_det_id'][$index])->groupBy("form_cut_input.id", "stocker_input.id")->orderBy("stocker_input.ratio", "asc")->get();
-=======
             ")->
             leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
             leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
@@ -372,7 +360,6 @@ class StockerController extends Controller
             orderBy("stocker_input.group_stocker", "asc")->
             orderBy("stocker_input.id", "asc")->
             get();
->>>>>>> c9cb37b44f00dc2e3fb6427d989ce9740efdf654
 
         // generate pdf
         PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
@@ -400,15 +387,6 @@ class StockerController extends Controller
 
                 for ($j = 0; $j < $request['ratio'][$i]; $j++) {
                     $checkStocker = Stocker::select("id_qr_stocker", "range_awal", "range_akhir")->whereRaw("
-<<<<<<< HEAD
-                        part_detail_id = '" . $request['part_detail_id'][$i] . "' AND
-                        form_cut_id = '" . $request['form_cut_id'] . "' AND
-                        so_det_id = '" . $request['so_det_id'][$i] . "' AND
-                        color = '" . $request['color'] . "' AND
-                        panel = '" . $request['panel'] . "' AND
-                        shade = '" . $request['shade'] . "' AND
-                        ratio = " . ($j + 1) . "
-=======
                         part_detail_id = '".$request['part_detail_id'][$i]."' AND
                         form_cut_id = '".$request['form_cut_id']."' AND
                         so_det_id = '".$request['so_det_id'][$i]."' AND
@@ -418,7 +396,6 @@ class StockerController extends Controller
                         ".($request['group_stocker'][$i] && $request['group_stocker'][$i] != "" ? "group_stocker = '".$request['group_stocker'][$i]."' AND" : "")."
                         qty_ply = '".$request['qty_ply_group'][$i]."' AND
                         ratio = ".($j + 1)."
->>>>>>> c9cb37b44f00dc2e3fb6427d989ce9740efdf654
                     ")->first();
 
                     $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j);
@@ -467,9 +444,6 @@ class StockerController extends Controller
                 form_cut_input.no_cut,
                 master_part.nama_part part,
                 master_sb_ws.dest
-<<<<<<< HEAD
-            ")->leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->leftJoin("part", "part.id", "=", "part_detail.part_id")->leftJoin("part_form", "part_form.part_id", "=", "part.id")->leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->leftJoin("master_sb_ws", "stocker_input.so_det_id", "=", "master_sb_ws.id_so_det")->leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->where("form_cut_input.status", "SELESAI PENGERJAAN")->where("part_detail.id", $partDetailId)->where("form_cut_input.id", $request['form_cut_id'])->groupBy("form_cut_input.id", "stocker_input.id")->orderBy("stocker_input.so_det_id", "asc")->orderBy("stocker_input.ratio", "asc")->get();
-=======
             ")->
             leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
             leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
@@ -488,7 +462,6 @@ class StockerController extends Controller
             orderBy("stocker_input.group_stocker", "asc")->
             orderBy("stocker_input.id", "asc")->
             get();
->>>>>>> c9cb37b44f00dc2e3fb6427d989ce9740efdf654
 
         // generate pdf
         PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
