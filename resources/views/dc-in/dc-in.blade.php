@@ -19,17 +19,14 @@
         <div class="card-body">
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
-                    <label class="form-label"><small>Tgl Awal</small></label>
+                    <label class="form-label"><small>Tgl Selesai Awal</small></label>
                     <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
-                        value="{{ date('Y-m-d') }}">
+                        value="{{ date('Y-m-d', strtotime('-7 days')) }}" onchange="dataTableReload()">
                 </div>
                 <div class="mb-3">
-                    <label class="form-label"><small>Tgl Akhir</small></label>
+                    <label class="form-label"><small>Tgl Selesai Akhir</small></label>
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                        value="{{ date('Y-m-d') }}">
-                </div>
-                <div class="mb-3">
-                    <button class="btn btn-primary btn-sm" onclick="dataTableReload()">Tampilkan</button>
+                        value="{{ date('Y-m-d') }}" onchange="dataTableReload()">
                 </div>
             </div>
             <div class="table-responsive">
@@ -145,13 +142,30 @@
                 },
             ],
             columnDefs: [{
-                targets: [10],
-                render: (data, type, row, meta) => {
-                    return `<div class='d-flex gap-1 justify-content-center'> <a class='btn btn-warning btn-sm' href='{{ route('create-dc-in') }}/` +
-                        row.no_form +
-                        `' data-bs-toggle='tooltip'><i class='fas fa-qrcode'></i></a> </div>`;
+                    targets: [10],
+                    render: (data, type, row, meta) => {
+                        return `<div class='d-flex gap-1 justify-content-center'> <a class='btn btn-warning btn-sm' href='{{ route('create-dc-in') }}/` +
+                            row.no_form +
+                            `' data-bs-toggle='tooltip'><i class='fas fa-qrcode'></i></a> </div>`;
+                    }
+                },
+                {
+                    targets: '_all',
+                    render: (data, type, row, meta) => {
+                        var color = '#000000';
+                        if (row.sisa_stocker == '0') {
+                            color = 'green';
+                        } else if (row.tmp_stocker != '0') {
+                            color = 'blue';
+                        } else {
+                            color = '#000000';
+                        }
+                        return '<span style="font-weight: 600; color:' + color + '">' + data +
+                            '</span>';
+                    }
                 }
-            }]
+
+            ]
         });
 
         function dataTableReload() {

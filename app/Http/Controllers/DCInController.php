@@ -22,13 +22,13 @@ class DCInController extends Controller
         if ($request->ajax()) {
             $additionalQuery = '';
 
-            // if ($request->dateFrom) {
-            //     $additionalQuery .= " and a.tgl_form_cut >= '" . $request->dateFrom . "' ";
-            // }
+            if ($request->dateFrom) {
+                $additionalQuery .= " where a.waktu_selesai >= '" . $request->dateFrom . "' ";
+            }
 
-            // if ($request->dateTo) {
-            //     $additionalQuery .= " and a.tgl_form_cut <= '" . $request->dateTo . "' ";
-            // }
+            if ($request->dateTo) {
+                $additionalQuery .= " and a.waktu_selesai <= '" . $request->dateTo . "' ";
+            }
 
             $keywordQuery = '';
             if ($request->search['value']) {
@@ -54,6 +54,7 @@ class DCInController extends Controller
 			count(c.id_qr_stocker) tot_stocker,
 			count(dc.id_qr_stocker) in_stocker,
 			count(c.id_qr_stocker) - count(dc.id_qr_stocker) sisa_stocker,
+            count(tmp.id_qr_stocker ) tmp_stocker,
 			DATE_FORMAT(a.waktu_selesai, '%d-%m-%Y %T') tgl_selesai_fix
             from part p
             inner join part_form pf on p.id = pf.part_id
@@ -66,7 +67,9 @@ class DCInController extends Controller
             group by part_id
             ) b on p.id = b.part_id
             inner join stocker_input c on a.id = c.form_cut_id
-						left join dc_in_input dc on c.id_qr_stocker = dc.id_qr_stocker
+			left join dc_in_input dc on c.id_qr_stocker = dc.id_qr_stocker
+            left join tmp_dc_in_input tmp on c.id_qr_stocker = tmp.id_qr_stocker
+            " . $additionalQuery . "
             group by no_form
             order by act_costing_ws asc, no_cut asc
             ");
@@ -453,7 +456,7 @@ class DCInController extends Controller
             $insert_rak = DB::insert("
         INSERT INTO rack_detail_stocker
             (nm_rak, detail_rack_id, stocker_id, qty_in, created_at, updated_at)
-            SELECT det_alokasi, rack_detail.rack_id,id_qr_stocker, qty_awal - qty_reject + qty_replace qty_in ,tmp_dc_in_input.created_at, tmp_dc_in_input.updated_at
+            SELECT det_alokasi, rack_detail.id,id_qr_stocker, qty_awal - qty_reject + qty_replace qty_in ,tmp_dc_in_input.created_at, tmp_dc_in_input.updated_at
             FROM tmp_dc_in_input
             left join rack_detail on tmp_dc_in_input.det_alokasi = rack_detail.nama_detail_rak
             WHERE no_form = '$request->no_form' and tujuan = 'NON SECONDARY' and alokasi = 'RAK'");
