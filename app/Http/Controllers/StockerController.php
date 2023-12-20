@@ -488,7 +488,7 @@ class StockerController extends Controller
         $pdf = PDF::loadView('stocker.pdf.print-numbering', ["ws" => $request["no_ws"], "color" => $request["color"], "no_cut" => $request["no_cut"], "dataNumbering" => $detailItemArr])->setPaper($customPaper);
 
         $path = public_path('pdf/');
-        $fileName = str_replace("/", "-", $request["no_ws"]) . '-' . $request["color"] . '-' . $request["no_cut"] . '-Numbering.pdf';
+        $fileName = str_replace("/", "-", ($request["no_ws"]. '-' . $request["color"] . '-' . $request["no_cut"] . '-Numbering.pdf'));
         $pdf->save($path . '/' . $fileName);
         $generatedFilePath = public_path('pdf/' . $fileName);
 
