@@ -195,7 +195,7 @@ class StockerController extends Controller
             ")->leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->leftJoin("stocker_numbering", function ($join) {
             $join->on("stocker_numbering.form_cut_id", "=", "form_cut_input.id");
             $join->on("stocker_numbering.so_det_id", "=", "marker_input_detail.so_det_id");
-        })->where("marker_input.act_costing_ws", $dataSpreading->ws)->where("marker_input.color", $dataSpreading->color)->where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->groupBy("no_cut", "marker_input.color", "marker_input_detail.so_det_id")->get();
+        })->where("marker_input.act_costing_ws", $dataSpreading->ws)->where("marker_input.color", $dataSpreading->color)->where("marker_input.panel", $dataSpreading->panel)->where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->groupBy("no_cut", "marker_input.color", "marker_input_detail.so_det_id")->get();
 
         return view("stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataPartDetail" => $dataPartDetail, "dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "dataNumbering" => $dataNumbering, "page" => "dashboard-stocker", "subPageGroup" => "proses-stocker", "subPage" => "stocker"]);
     }
