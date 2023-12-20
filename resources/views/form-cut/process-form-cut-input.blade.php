@@ -3038,8 +3038,6 @@
                     addNewLostTime();
                 }
 
-                pauseTimeRecordButtons();
-
                 timeRecordInterval = setInterval(setTime, 999);
 
                 startLapButton.classList.add("d-none")
@@ -3149,6 +3147,8 @@
             function openLapTimeRecordCondition() {
                 startLapButton.disabled = true;
                 nextLapButton.disabled = false;
+
+                pauseTimeRecordButtons();
             }
 
             function nextTimeRecordCondition() {
