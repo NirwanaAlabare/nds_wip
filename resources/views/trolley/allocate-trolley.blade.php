@@ -142,7 +142,7 @@
 
                                         getScannedTrolley(breakDecodedText[0]);
 
-                                        clearTrolleyScan()();
+                                        clearTrolleyScan();
                                     };
                                     const trolleyScanConfig = { fps: 10, qrbox: { width: 250, height: 250 } };
 
