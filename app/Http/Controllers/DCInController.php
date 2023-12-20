@@ -22,13 +22,13 @@ class DCInController extends Controller
         if ($request->ajax()) {
             $additionalQuery = '';
 
-            // if ($request->dateFrom) {
-            //     $additionalQuery .= " and a.tgl_form_cut >= '" . $request->dateFrom . "' ";
-            // }
+            if ($request->dateFrom) {
+                $additionalQuery .= " where a.waktu_selesai >= '" . $request->dateFrom . "' ";
+            }
 
-            // if ($request->dateTo) {
-            //     $additionalQuery .= " and a.tgl_form_cut <= '" . $request->dateTo . "' ";
-            // }
+            if ($request->dateTo) {
+                $additionalQuery .= " and a.waktu_selesai <= '" . $request->dateTo . "' ";
+            }
 
             $keywordQuery = '';
             if ($request->search['value']) {
@@ -54,6 +54,7 @@ class DCInController extends Controller
 			count(c.id_qr_stocker) tot_stocker,
 			count(dc.id_qr_stocker) in_stocker,
 			count(c.id_qr_stocker) - count(dc.id_qr_stocker) sisa_stocker,
+            count(tmp.id_qr_stocker ) tmp_stocker,
 			DATE_FORMAT(a.waktu_selesai, '%d-%m-%Y %T') tgl_selesai_fix
             from part p
             inner join part_form pf on p.id = pf.part_id
@@ -66,7 +67,9 @@ class DCInController extends Controller
             group by part_id
             ) b on p.id = b.part_id
             inner join stocker_input c on a.id = c.form_cut_id
-						left join dc_in_input dc on c.id_qr_stocker = dc.id_qr_stocker
+			left join dc_in_input dc on c.id_qr_stocker = dc.id_qr_stocker
+            left join tmp_dc_in_input tmp on c.id_qr_stocker = tmp.id_qr_stocker
+            " . $additionalQuery . "
             group by no_form
             order by act_costing_ws asc, no_cut asc
             ");
@@ -176,6 +179,7 @@ class DCInController extends Controller
             tmp.qty_replace,
             s.qty_ply - tmp.qty_reject + tmp.qty_replace qty_in,
             tmp.tujuan,
+            tmp.det_alokasi,
             tmp.alokasi
             from tmp_dc_in_input tmp
             inner join stocker_input s on tmp.id_qr_stocker = s.id_qr_stocker
@@ -270,38 +274,74 @@ class DCInController extends Controller
 
     public function update_tmp_dc_in(Request $request)
     {
-        $validatedRequest = $request->validate([
-            "cbotuj" => "required",
-            "cboalokasi" => "required"
-        ]);
+        if ($request->cbotuj != 'NON SECONDARY') {
+            $validatedRequest = $request->validate([
+                "cbotuj" => "required",
+                "cboalokasi" => "required",
+            ]);
 
-        $update_tmp_dc_in = DB::update("
-        update tmp_dc_in_input
-        set
-        qty_awal = '$request->txtqty',
-        qty_reject = '$request->txtqtyreject',
-        qty_replace = '$request->txtqtyreplace',
-        tujuan =  '" . $validatedRequest['cbotuj'] . "',
-        alokasi = '" . $validatedRequest['cboalokasi'] . "',
-        det_alokasi = '$request->cbodetalokasi'
-        where id_qr_stocker = '$request->id_c'");
+            $update_tmp_dc_in = DB::update("
+            update tmp_dc_in_input
+            set
+            qty_awal = '$request->txtqty',
+            qty_reject = '$request->txtqtyreject',
+            qty_replace = '$request->txtqtyreplace',
+            tujuan =  '" . $validatedRequest['cbotuj'] . "',
+            alokasi = '" . $validatedRequest['cboalokasi'] . "',
+            det_alokasi = '" . $validatedRequest['cboalokasi'] . "'
+            where id_qr_stocker = '$request->id_c'");
 
-        if ($update_tmp_dc_in) {
+            if ($update_tmp_dc_in) {
+                return array(
+                    'status' => 300,
+                    'message' => 'Data Stocker "' . $request->id_c . '" berhasil diubah',
+                    'redirect' => '',
+                    'table' => 'datatable-input',
+                    'additional' => [],
+                );
+            }
             return array(
-                'status' => 300,
-                'message' => 'Data Stocker "' . $request->id_c . '" berhasil diubah',
+                'status' => 400,
+                'message' => 'Data produksi gagal diubah',
+                'redirect' => '',
+                'table' => 'datatable-input',
+                'additional' => [],
+            );
+        } else {
+            $validatedRequest = $request->validate([
+                "cbotuj" => "required",
+                "cboalokasi" => "required",
+                "cbodetalokasi" => "required",
+            ]);
+
+            $update_tmp_dc_in = DB::update("
+    update tmp_dc_in_input
+    set
+    qty_awal = '$request->txtqty',
+    qty_reject = '$request->txtqtyreject',
+    qty_replace = '$request->txtqtyreplace',
+    tujuan =  '" . $validatedRequest['cbotuj'] . "',
+    alokasi = '" . $validatedRequest['cboalokasi'] . "',
+    det_alokasi = '" . $validatedRequest['cbodetalokasi'] . "'
+    where id_qr_stocker = '$request->id_c'");
+
+            if ($update_tmp_dc_in) {
+                return array(
+                    'status' => 300,
+                    'message' => 'Data Stocker "' . $request->id_c . '" berhasil diubah',
+                    'redirect' => '',
+                    'table' => 'datatable-input',
+                    'additional' => [],
+                );
+            }
+            return array(
+                'status' => 400,
+                'message' => 'Data produksi gagal diubah',
                 'redirect' => '',
                 'table' => 'datatable-input',
                 'additional' => [],
             );
         }
-        return array(
-            'status' => 400,
-            'message' => 'Data produksi gagal diubah',
-            'redirect' => '',
-            'table' => 'datatable-input',
-            'additional' => [],
-        );
     }
 
 
@@ -368,12 +408,36 @@ class DCInController extends Controller
         $timestamp = Carbon::now();
 
         $cekdata =  DB::select("
-        select * from tmp_dc_in_input where '" . $request->no_form . "' and tujuan is null and alokasi is null
+        select count(cek_stocker) -
+        COUNT(CASE cek_tmp WHEN cek_tmp = 'x' THEN 1 else null end)  cek_data
+        from
+        (
+        select
+        ifnull(a.id_qr_stocker,'x') cek_stocker,
+        ifnull(tmp.id_qr_stocker,'x') cek_tmp,
+        cek.so_det_id cekdata
+        from stocker_input	a
+        inner join form_cut_input b on a.form_cut_id = b.id
+        left join
+        (
+        select * from tmp_dc_in_input where no_form = '" . $request->no_form . "'  and tujuan is not null and alokasi is not null and det_alokasi is not null
+        )tmp on a.id_qr_stocker = tmp.id_qr_stocker
+        left join
+        (
+                        select so_det_id, no_form from tmp_dc_in_input a
+                        inner join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+                        where no_form = '" . $request->no_form . "'
+                        group by so_det_id
+        )
+        cek on a.so_det_id = cek.so_det_id
+        where b.no_form = '" . $request->no_form . "'
+        and cek.so_det_id is not null
+        ) cek_tmp
         ");
 
-        $cekdata_fix = $cekdata ? $cekdata[0]->id_qr_stocker : null;
+        $cekdata_fix = $cekdata ? $cekdata[0]->cek_data :  '0';
 
-        if ($cekdata_fix != '') {
+        if ($cekdata_fix != '0') {
 
             return [
                 'icon' => 'warning',
@@ -385,17 +449,17 @@ class DCInController extends Controller
 
             $insert_dc_in = DB::insert("
         INSERT INTO dc_in_input
-        (no_form, id_qr_stocker, tujuan, alokasi,qty_awal,qty_reject,qty_replace,user, created_at, updated_at)
-        SELECT no_form, id_qr_stocker, tujuan, alokasi,qty_awal,qty_reject,qty_replace,user,created_at, updated_at
+        (no_form, id_qr_stocker, tujuan, alokasi,det_alokasi,qty_awal,qty_reject,qty_replace,user, created_at, updated_at)
+        SELECT no_form, id_qr_stocker, tujuan, alokasi, det_alokasi,qty_awal,qty_reject,qty_replace,user,created_at, updated_at
         FROM tmp_dc_in_input
         WHERE no_form = '$request->no_form'");
             $insert_rak = DB::insert("
         INSERT INTO rack_detail_stocker
             (nm_rak, detail_rack_id, stocker_id, qty_in, created_at, updated_at)
-            SELECT alokasi, rack_detail.rack_id,id_qr_stocker, qty_awal - qty_reject + qty_replace qty_in ,tmp_dc_in_input.created_at, tmp_dc_in_input.updated_at
+            SELECT det_alokasi, rack_detail.id,id_qr_stocker, qty_awal - qty_reject + qty_replace qty_in ,tmp_dc_in_input.created_at, tmp_dc_in_input.updated_at
             FROM tmp_dc_in_input
-            left join rack_detail on tmp_dc_in_input.alokasi = rack_detail.nama_detail_rak
-            WHERE no_form = '$request->no_form' and tujuan = 'NON SECONDARY'");
+            left join rack_detail on tmp_dc_in_input.det_alokasi = rack_detail.nama_detail_rak
+            WHERE no_form = '$request->no_form' and tujuan = 'NON SECONDARY' and alokasi = 'RAK'");
             $delete_tmp = DB::delete("
         delete from tmp_dc_in_input
         WHERE no_form = '$request->no_form'");
@@ -428,6 +492,7 @@ class DCInController extends Controller
             s.qty_ply - a.qty_reject + a.qty_replace qty_in,
             a.tujuan,
             a.alokasi,
+            a.det_alokasi,
             users.name,
             DATE_FORMAT(a.created_at, '%d-%m-%Y %T') tgl_create_fix,
             a.created_at,
