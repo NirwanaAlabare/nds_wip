@@ -70,13 +70,21 @@
                                 </div>
                             </div>
                         </div>
-
                         <div class='row'>
                             <div class='col-sm-12'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Alokasi</small></label>
                                     <select class='form-control select2bs4' style='width: 100%;' name='cboalokasi'
-                                        id='cboalokasi'></select>
+                                        id='cboalokasi' onchange='getdetalokasi();'></select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='row'>
+                            <div class='col-sm-12' id = 'detail_penempatan'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Penempatan</small></label>
+                                    <select class='form-control select2bs4' style='width: 100%;' name='cbodetalokasi'
+                                        id='cbodetalokasi'></select>
                                 </div>
                             </div>
                         </div>
@@ -96,13 +104,22 @@
 
         <div class="card card-outline">
             <div class="card-header">
-                <h5 style="text-align:center;">
-                    <b>Scan DC IN </b>
-                </h5>
+                <div class='row'>
+                    <div class="col-sm-11">
+                        <h5 style="text-align:center;">
+                            <b>Scan DC IN </b>
+                        </h5>
+                    </div>
+                    <div class="col-sm-1">
+                        <a href="{{ route('dc-in') }}">
+                            <i class="fa fa-reply" style="color:green"></i>
+                        </a>
+                    </div>
+                </div>
             </div>
             <div class='row'>
                 <div class="col-md-12">
-                    <div class="card card-primary ">
+                    <div class="card card-sb ">
                         <div class="card-header">
                             <h3 class="card-title">Header Data :</h3>
                             <div class="card-tools">
@@ -392,6 +409,7 @@
             getinfo();
             gettmp();
             gethistory();
+            $("#detail_penempatan").hide();
         })
 
         $(document).ready(function() {
@@ -447,7 +465,12 @@
                 columnDefs: [{
                     targets: '_all',
                     render: (data, type, row, meta) => {
-                        var color = '#000000';
+                        var color = '';
+                        if (row.cekdata != null) {
+                            color = 'green';
+                        } else {
+                            color = '#000000';
+                        }
                         return '<span style="font-weight: 600; color:' + color + '">' + data +
                             '</span>';
                     }
@@ -607,7 +630,7 @@
         };
 
         function getdetail(id_c) {
-            $("#exampleModalEditLabel").html(id_c);
+            // $("#exampleModalEditLabel").html(id_c);
             jQuery.ajax({
                 url: '{{ route('show_tmp_dc_in') }}',
                 method: 'POST',
@@ -622,9 +645,13 @@
                     document.getElementById('txtqtyreject').value = response.qty_reject;
                     document.getElementById('txtqtyreplace').value = response.qty_replace;
                     document.getElementById('txtqtyin').value = response.qty_in;
+                    $("#exampleModalEditLabel").html(response.nama_stocker);
                     // document.getElementById('cbotuj').value = response.tujuan;
                     $("#cbotuj").val(response.tujuan).trigger('change');
-                    document.getElementById('cboalokasi').value = response.alokasi;
+                    $("#cboalokasi").val(response.alokasi).trigger('change');
+                    // document.getElementById('cboalokasi').value = response.alokasi;
+                    $("#cbodetalokasi").val(response.det_alokasi).trigger('change');
+
 
                 },
                 error: function(request, status, error) {
@@ -658,9 +685,30 @@
             }).responseText;
 
             console.log(html != "");
-
             if (html != "") {
                 $("#cboalokasi").html(html);
+            }
+            if (tujuan == 'NON SECONDARY') {
+                $("#detail_penempatan").show();
+            } else {
+                $("#detail_penempatan").hide();
+            }
+        };
+
+        function getdetalokasi() {
+            let alokasi = document.getElementById('cboalokasi').value;
+            let html = $.ajax({
+                type: "POST",
+                url: '{{ route('get_det_alokasi') }}',
+                data: {
+                    alokasi: alokasi
+                },
+                async: false
+            }).responseText;
+
+            console.log(html != "");
+            if (html != "") {
+                $("#cbodetalokasi").html(html);
             }
         };
 
