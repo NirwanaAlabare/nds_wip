@@ -247,6 +247,7 @@
                                     <th>Qty In</th>
                                     <th>Tujuan</th>
                                     <th>Alokasi</th>
+                                    <th>Penempatan</th>
                                     <th>Act</th>
                                 </tr>
                             </thead>
@@ -316,6 +317,9 @@
                                     <th>Reject</th>
                                     <th>Replace</th>
                                     <th>Qty In</th>
+                                    <th>Tujuan</th>
+                                    <th>Alokasi</th>
+                                    <th>Penempatan</th>
                                     <th>User</th>
                                     <th>Tgl. Transaksi</th>
                                 </tr>
@@ -549,10 +553,13 @@
                     },
                     {
                         data: 'alokasi'
+                    },
+                    {
+                        data: 'det_alokasi'
                     }
                 ],
                 columnDefs: [{
-                        targets: [11],
+                        targets: [12],
                         className: "align-middle",
                         render: (data, type, row, meta) => {
                             return `
@@ -563,7 +570,7 @@
                                     </a>
                                 </div>
                             `;
-                        }
+                        },
                     },
                     {
                         targets: '_all',
@@ -572,7 +579,7 @@
                             if (row.tujuan == null) {
                                 color = '#d33141';
                             } else {
-                                color = '#000000';
+                                color = 'green';
                             }
                             return '<span style="font-weight: 600; color:' + color + '">' + data +
                                 '</span>';
@@ -582,17 +589,18 @@
             });
         };
 
-        let datatable_input = $("#datatable_input").DataTable({
-            ordering: false,
-            processing: true,
-            serverSide: true,
-            info: false,
-            paging: false,
-            scrollX: true,
-            ajax: {
-                url: '{{ route('getdata_stocker_input') }}'
-            }
-        });
+
+        // let datatable_input = $("#datatable_input").DataTable({
+        //     ordering: false,
+        //     processing: true,
+        //     serverSide: true,
+        //     info: false,
+        //     paging: false,
+        //     scrollX: true,
+        //     ajax: {
+        //         url: '{{ route('getdata_stocker_input') }}'
+        //     }
+        // });
 
 
         function scan_qr() {
@@ -697,18 +705,21 @@
 
         function getdetalokasi() {
             let alokasi = document.getElementById('cboalokasi').value;
-            let html = $.ajax({
-                type: "POST",
-                url: '{{ route('get_det_alokasi') }}',
-                data: {
-                    alokasi: alokasi
-                },
-                async: false
-            }).responseText;
+            if (alokasi == 'RAK' || alokasi == 'TROLLEY') {
+                let html = $.ajax({
+                    type: "POST",
+                    url: '{{ route('get_det_alokasi') }}',
+                    data: {
+                        alokasi: alokasi
+                    },
+                    async: false
+                }).responseText;
 
-            console.log(html != "");
-            if (html != "") {
-                $("#cbodetalokasi").html(html);
+
+                console.log(html != "");
+                if (html != "") {
+                    $("#cbodetalokasi").html(html);
+                }
             }
         };
 
@@ -788,6 +799,15 @@
                     },
                     {
                         data: 'qty_in'
+                    },
+                    {
+                        data: 'tujuan'
+                    },
+                    {
+                        data: 'alokasi'
+                    },
+                    {
+                        data: 'det_alokasi'
                     },
                     {
                         data: 'name'
