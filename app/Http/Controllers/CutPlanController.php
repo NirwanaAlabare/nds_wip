@@ -558,9 +558,10 @@ class CutPlanController extends Controller
                 $meja = User::where('type', 'meja')->get();
 
                 $input = "
-                        <select class='form-select' id='no_meja_" . $row->id . "' name='no_meja[" . $row->id . "]'>
+                        <select class='form-select select2bs4' id='no_meja_" . $row->id . "' name='no_meja[" . $row->id . "]'>
                             <option value=''>Pilih Meja</option>
                     ";
+
                 foreach ($meja as $m) {
                     $input .= "<option value='" . $m->id . "' " . ($m->id == $row->formCutInput->no_meja ? 'class="fw-bold" selected' : '') . ">" . strtoupper($m->name) . "</option>";
                 }

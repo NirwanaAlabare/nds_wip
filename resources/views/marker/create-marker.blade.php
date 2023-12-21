@@ -17,7 +17,7 @@
     </div>
     <form action="{{ route('store-marker') }}" method="post" id="store-marker" onsubmit="submitMarkerForm(this, event)">
         @csrf
-        <div class="card card-sb card-outline">
+        <div class="card card-sb">
             <div class="card-header">
                 <h5 class="card-title fw-bold">
                     List Data
@@ -99,42 +99,29 @@
                     </div>
                     <div class="col-12 col-md-6">
                         <div class="row">
-                            <div class="col-6 col-md-3">
-                                <div class="mb-1">
-                                    <label class="form-label"><small>P. Marker</small></label>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label"><small>P. Marker</small></label>
+                                <div class="input-group mb-1">
                                     <input type="number" class="form-control" id="p_marker" name="p_marker" step=".001">
+                                    <span class="input-group-text">METER</span>
                                 </div>
+                                <input type="hidden" class="form-control" id="p_unit" name="p_unit" value="METER">
                             </div>
-                            <div class="col-6 col-md-3">
-                                <div class="mb-1">
-                                    <label class="form-label"><small>Unit</small></label>
-                                    <input type="text" class="form-control" id="p_unit" name="p_unit" value="METER" readonly>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="mb-1">
-                                    <label class="form-label"><small>Comma</small></label>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label"><small>Comma</small></label>
+                                <div class="input-group mb-1">
                                     <input type="number" class="form-control" id="comma_marker" name="comma_marker" step=".001">
+                                    <span class="input-group-text">CM</span>
                                 </div>
+                                <input type="hidden" class="form-control" id="comma_unit" name="comma_unit" value="CM" readonly>
                             </div>
-                            <div class="col-6 col-md-3">
-                                <div class="mb-1">
-                                    <label class="form-label"><small>Unit</small></label>
-                                    <input type="text" class="form-control" id="comma_unit" name="comma_unit"
-                                        value="CM" readonly>
-                                </div>
-                            </div>
-                            <div class="col-3 col-md-3">
-                                <div class="mb-1">
-                                    <label class="form-label"><small>L. Marker</small></label>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label"><small>L. Marker</small></label>
+                                <div class="input-group mb-1">
                                     <input type="number" class="form-control" id="l_marker" name="l_marker" step=".001">
+                                    <span class="input-group-text">CM</span>
                                 </div>
-                            </div>
-                            <div class="col-3 col-md-3">
-                                <div class="mb-1">
-                                    <label class="form-label"><small>Unit</small></label>
-                                    <input type="text" class="form-control" id="l_unit" name="l_unit" value="CM" readonly>
-                                </div>
+                                <input type="hidden" class="form-control" id="l_unit" name="l_unit" value="CM" readonly>
                             </div>
                             <div class="col-6 col-md-6">
                                 <div class="mb-1">
@@ -164,6 +151,12 @@
                     </div>
                     <div class="col-md-3">
                         <div class="mb-1">
+                            <label class="form-label"><small>No. Urut Marker</small></label>
+                            <input type="text" class="form-control" id="no_urut_marker" name="no_urut_marker" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-1">
                             <label class="form-label"><small>PO</small></label>
                             <input type="text" class="form-control" id="po" name="po">
                         </div>
@@ -171,18 +164,11 @@
                     <div class="col-md-3">
                         <div class="mb-1">
                             <label class="form-label"><small>Tipe Marker</small></label>
-                            <select class="form-select rounded-0" id="tipe_marker" name="tipe_marker" style="width: 100%;">
+                            <select class="form-select select2bs4" id="tipe_marker" name="tipe_marker" style="width: 100%;">
                                 <option selected="selected" value="regular marker">Regular Marker</option>
                                 <option value="special marker">Special Marker</option>
                                 <option value="pilot marker">Pilot Marker</option>
                             </select>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="mb-1">
-                            <label class="form-label"><small>No. Urut Marker</small></label>
-                            <input type="text" class="form-control" id="no_urut_marker" name="no_urut_marker"
-                                readonly>
                         </div>
                     </div>
                     <div class="col-md-3">
@@ -195,7 +181,7 @@
                 </div>
             </div>
         </div>
-        <div class="card card-sb card-outline">
+        <div class="card card-sb">
             <div class="card-header">
                 <h5 class="card-title fw-bold">
                     Data Ratio
@@ -466,7 +452,7 @@
                     className: "d-none",
                     render: (data, type, row, meta) => {
                         // Hidden Size Input
-                        return '<input type="hidden" id="size-' + meta.row + '" name="size['+meta.row+']" value="' + data + '" readonly />'
+                        return '<input type="hidden" class="form-control" id="size-' + meta.row + '" name="size['+meta.row+']" value="' + data + '" readonly />'
                     }
                 },
                 {

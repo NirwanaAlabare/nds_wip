@@ -12,7 +12,7 @@
 @endsection
 
 @section('content')
-    <div class="card card-sb card-outline">
+    <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-cut fa-sm"></i> Form Cutting</h5>
         </div>
@@ -28,23 +28,24 @@
                         <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="dataTableReload()">
                     </div>
                     <div>
-                        <button class="btn btn-primary btn-sm" onclick="dataTableReload()">Tampilkan</button>
+                        <button class="btn btn-primary btn-sm" onclick="dataTableReload()"><i class="fa fa-search"></i></button>
                     </div>
                 </div>
 
                 <div class="d-flex align-items-end gap-3 mb-3">
-                    <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-dark"><i class="fas fa-clipboard-list"></i> Manual</a>
+                    <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-sb"><i class="fas fa-clipboard-list"></i> Manual</a>
                 </div>
             </div>
             <div class="table-responsive">
                 <table id="datatable" class="table table-bordered table-sm w-100">
                     <thead>
                         <tr>
-                            <th>No Form</th>
-                            <th>Tgl Form</th>
+                            <th>Action</th>
+                            <th>Tanggal</th>
+                            <th>No. Form</th>
                             <th>No. Meja</th>
-                            <th>Marker</th>
-                            <th>WS</th>
+                            <th>No. Marker</th>
+                            <th>No. WS</th>
                             <th>Color</th>
                             <th>Panel</th>
                             <th class="align-bottom">Status</th>
@@ -52,7 +53,6 @@
                             <th>Qty Ply</th>
                             <th>Ket.</th>
                             <th class="align-bottom">App</th>
-                            <th>Act</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -84,7 +84,7 @@
                                 </div>
                                 <div class="col-6 col-md-4">
                                     <div class="mb-3">
-                                        <label class="form-label"><small>Tgl Form</small></label>
+                                        <label class="form-label"><small>Tanggal</small></label>
                                         <input type="text" class="form-control" id="edit_tgl_form_cut"
                                             name="edit_tgl_form_cut" value="" readonly />
                                     </div>
@@ -251,9 +251,9 @@
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 9 || i == 10) {
+            if (i != 7 && i != 8 && i != 11 && i != 12) {
                 var title = $(this).text();
-                $(this).html('<input type="text"  style="width:100%"/>');
+                $(this).html('<input type="text" class="form-control form-control-sm"/>');
 
                 $('input', this).on('keyup change', function() {
                     if (datatable.column(i).search() !== this.value) {
@@ -272,6 +272,7 @@
             processing: true,
             ordering: false,
             serverSide: true,
+            scrollX: "500px",
             scrollY: "500px",
             ajax: {
                 url: '{{ route('form-cut-input') }}',
@@ -282,10 +283,13 @@
             },
             columns: [
                 {
-                    data: 'no_form'
+                    data: 'id'
                 },
                 {
                     data: 'tgl_form_cut'
+                },
+                {
+                    data: 'no_form'
                 },
                 {
                     data: 'nama_meja'
@@ -317,13 +321,10 @@
                 {
                     data: 'app'
                 },
-                {
-                    data: 'id'
-                },
             ],
             columnDefs: [
                 {
-                    targets: [2],
+                    targets: [3],
                     render: (data, type, row, meta) => {
                         let color = "";
 
@@ -349,7 +350,7 @@
                     }
                 },
                 {
-                    targets: [7],
+                    targets: [8],
                     className: "text-center align-middle",
                     render: (data, type, row, meta) => {
                         icon = "";
@@ -378,7 +379,7 @@
                     }
                 },
                 {
-                    targets: [11],
+                    targets: [12],
                     className: "text-center align-middle",
                     render: (data, type, row, meta) => {
                         icon = "";
@@ -416,42 +417,27 @@
                     }
                 },
                 {
-                    targets: [12],
+                    targets: [0],
                     render: (data, type, row, meta) => {
                         let btnEdit =
-                            "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" +
-                            JSON.stringify(row) +
-                            ", \"detailSpreadingModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-search'></i></a>";
+                            "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"detailSpreadingModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-search'></i></a>";
 
                         let btnProcess = "";
 
                         if (row.tipe_form_cut == 'MANUAL') {
-                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row
-                                    .app == 'Y') || row.status != 'SPREADING' ?
-                                `<a class='btn btn-success btn-sm' href='{{ route('process-manual-form-cut') }}/` +
-                                row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa ` + (row
-                                    .status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) +
-                                `'></i></a>` :
-                                "";
+                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ?`<a class='btn btn-success btn-sm' href='{{ route('process-manual-form-cut') }}/` +row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa ` + (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) +`'></i></a>` :"";
                         } else if (row.tipe_form_cut == 'PILOT') {
-                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ?
-                                `<a class='btn btn-success btn-sm' href='{{ route('process-pilot-form-cut') }}/` +
-                                row.id +
-                                `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>` :
-                                "";
+                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ? `<a class='btn btn-success btn-sm' href='{{ route('process-pilot-form-cut') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>` : "";
                         } else {
-                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row
-                                    .app == 'Y') || row.status != 'SPREADING' ?
-                                `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` +
-                                row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa ` + (row
-                                    .status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) +
-                                `'></i></a>` :
-                                "";
+                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ? `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa ` + (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) + `'></i></a>` : "";
                         }
 
-                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnProcess +
-                            `</div>`;
+                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnProcess + `</div>`;
                     }
+                },
+                {
+                    targets: [0, 1, 4, 5],
+                    className: "text-nowrap"
                 },
                 {
                     targets: '_all',
@@ -474,8 +460,7 @@
                             }
                         }
 
-                        return '<span style="font-weight: 600; color:' + color + ';">' + (data ? data :
-                            "-") + '</span>';
+                        return '<span style="font-weight: 600; color:' + color + ';">' + (data ? data : "-") + '</span>';
                     }
                 }
             ],

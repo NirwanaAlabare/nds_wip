@@ -5,14 +5,19 @@
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
+
+    <!-- Select2 -->
+    <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
 @endsection
 
 @section('content')
+    {{-- Detail Cutting Plan Modal --}}
     <div class="modal fade" id="cutPlanDetailModal" tabindex="-1" role="dialog" aria-labelledby="cutPlanDetailModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable" style="max-width: 75%;">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-light">
-                    <h1 class="modal-title fs-5" id="cutPlanDetailModalLabel">Cut Plan</h1>
+                    <h1 class="modal-title fs-5" id="cutPlanDetailModalLabel">Cutting Plan</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -25,11 +30,11 @@
                             <table id="datatable-form" class="table table-bordered table-sm w-100">
                                 <thead>
                                     <tr>
-                                        <th>No Form</th>
-                                        <th>Tgl Form</th>
+                                        <th>Tanggal</th>
+                                        <th>No. Form</th>
                                         <th>No. Meja</th>
-                                        <th>Marker</th>
-                                        <th>WS</th>
+                                        <th>No. Marker</th>
+                                        <th>No. WS</th>
                                         <th>Style</th>
                                         <th>Color</th>
                                         <th>Panel</th>
@@ -54,6 +59,7 @@
         </div>
     </div>
 
+    {{-- Manage Cutting Plan Modal --}}
     <div class="modal fade" id="manageCutPlanModal" tabindex="-1" role="dialog" aria-labelledby="manageCutPlanModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
@@ -69,8 +75,7 @@
                             <div class='col-sm-6'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Tgl. Plan</small></label>
-                                    <input type='text' class='form-control' id='manage_tgl_plan' name='manage_tgl_plan'
-                                        readonly>
+                                    <input type='text' class='form-control' id='manage_tgl_plan' name='manage_tgl_plan' readonly>
                                 </div>
                             </div>
                             <div class='col-sm-6'>
@@ -84,29 +89,25 @@
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Total Form</small></label>
-                                    <input type='text' class='form-control' id='manage_total_form'
-                                        name='manage_total_form' value = '' readonly>
+                                    <input type='text' class='form-control' id='manage_total_form' name='manage_total_form' value = '' readonly>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Form Tersedia</small></label>
-                                    <input type='text' class='form-control' id='manage_total_belum'
-                                        name='manage_total_belum' value = '' readonly>
+                                    <input type='text' class='form-control' id='manage_total_belum' name='manage_total_belum' value = '' readonly>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Form On Progress</small></label>
-                                    <input type='text' class='form-control' id='manage_total_on_progress'
-                                        name='manage_total_on_progress' value = '' readonly>
+                                    <input type='text' class='form-control' id='manage_total_on_progress' name='manage_total_on_progress' value = '' readonly>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Form Selesai</small></label>
-                                    <input type='text' class='form-control' id='manage_total_beres'
-                                        name='manage_total_beres' value = '' readonly>
+                                    <input type='text' class='form-control' id='manage_total_beres' name='manage_total_beres' value = '' readonly>
                                 </div>
                             </div>
                         </div>
@@ -128,10 +129,8 @@
                             </table>
                         </div>
                         <div class="my-3">
-                            <button type="button" class="btn btn-sb btn-block fw-bold mb-3"
-                                onclick="submitManageForm();">SIMPAN</button>
-                            <button type="button" class="btn btn-no btn-block fw-bold mb-3"
-                                data-bs-dismiss="modal">BATAL</button>
+                            <button type="button" class="btn btn-success btn-block fw-bold mb-3" onclick="submitManageForm();">SIMPAN</button>
+                            <button type="button" class="btn btn-no btn-block fw-bold mb-3" data-bs-dismiss="modal">BATAL</button>
                         </div>
                     </form>
                 </div>
@@ -140,7 +139,7 @@
     </div>
 
 
-    <div class="card card-sb card-outline">
+    <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-map fa-sm"></i> Cutting Plan</h5>
         </div>
@@ -159,19 +158,19 @@
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="filterTable()">
                 </div>
                 <div class="mb-3">
-                    <button class="btn btn-primary btn-sm" onclick="filterTable()">Tampilkan</button>
+                    <button class="btn btn-primary btn-sm" onclick="filterTable()"><i class="fa fa-search"></i></button>
                 </div>
             </div>
             <div class="table-responsive">
                 <table id="datatable" class="table table-bordered table-sm w-100">
                     <thead>
                         <tr>
+                            <th>Action</th>
                             <th>Tanggal</th>
                             <th>Total Form</th>
                             <th>Belum Dikerjakan</th>
                             <th>On Progress</th>
                             <th>Selesai</th>
-                            <th>Action</th>
                         </tr>
                     </thead>
                 </table>
@@ -186,7 +185,22 @@
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+    <!-- Select2 -->
+    <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+    <!-- Page specific script -->
     <script>
+        //Initialize Select2 Elements
+        $('.select2').select2();
+
+        //Initialize Select2 Elements
+        $('.select2bs4').select2({
+            theme: 'bootstrap4'
+        });
+
+        $(document).on('select2:open', () => {
+            document.querySelector('.select2-search__field').focus();
+        });
+
         document.addEventListener("DOMContentLoaded", () => {
             let oneWeeksBefore = new Date(new Date().setDate(new Date().getDate() - 7));
             let oneWeeksBeforeDate = ("0" + oneWeeksBefore.getDate()).slice(-2);
@@ -214,6 +228,9 @@
             },
             columns: [
                 {
+                    data: 'no_cut_plan'
+                },
+                {
                     data: 'tgl_plan_fix',
                 },
                 {
@@ -232,26 +249,24 @@
                     data: 'total_beres',
                     searchable: false
                 },
-                {
-                    data: 'no_cut_plan'
-                },
             ],
             columnDefs: [
                 {
-                targets: [5],
-                render: (data, type, row, meta) => {
-                    return `
-                        <div class='d-flex gap-1 justify-content-center'>
-                            <a class='btn btn-primary btn-sm' onclick='editData(` + JSON.stringify(row) + `, \"cutPlanDetailModal\", [{\"function\" : \"datatableFormReload()\"}]);'>
-                                <i class='fa fa-search'></i>
-                            </a>
-                            <a class='btn btn-warning btn-sm' onclick='manageCutPlan(` + JSON.stringify(row) + `);'>
-                                <i class='fa fa-cog'></i>
-                            </a>
-                        </div>
-                    `;
-                }
-            }, ]
+                    targets: [0],
+                    render: (data, type, row, meta) => {
+                        return `
+                            <div class='d-flex gap-1 justify-content-center'>
+                                <a class='btn btn-primary btn-sm' onclick='editData(` + JSON.stringify(row) + `, \"cutPlanDetailModal\", [{\"function\" : \"datatableFormReload()\"}]);'>
+                                    <i class='fa fa-search'></i>
+                                </a>
+                                <a class='btn btn-warning btn-sm' onclick='manageCutPlan(` + JSON.stringify(row) + `);'>
+                                    <i class='fa fa-cog'></i>
+                                </a>
+                            </div>
+                        `;
+                    }
+                },
+            ]
         });
 
         function filterTable() {
@@ -260,9 +275,9 @@
 
         $('#datatable-form thead tr').clone(true).appendTo('#datatable-form thead');
         $('#datatable-form thead tr:eq(1) th').each(function(i) {
-            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 9 || i == 10 || i == 11 || i == 12) {
+            if (i != 8) {
                 var title = $(this).text();
-                $(this).html('<input type="text"  style="width:100%"/>');
+                $(this).html('<input type="text" class="form-control form-control-sm" />');
 
                 $('input', this).on('keyup change', function() {
                     if (datatableForm.column(i).search() !== this.value) {
@@ -289,10 +304,10 @@
             },
             columns: [
                 {
-                    data: 'no_form'
+                    data: 'tgl_form_cut'
                 },
                 {
-                    data: 'tgl_form_cut'
+                    data: 'no_form'
                 },
                 {
                     data: 'nama_meja'
@@ -328,7 +343,8 @@
                     data: 'qty_act'
                 },
             ],
-            columnDefs: [{
+            columnDefs: [
+                {
                     targets: [2],
                     render: (data, type, row, meta) => {
                         let color = "";
@@ -372,6 +388,10 @@
                     }
                 },
                 {
+                    targets: [0, 1, 3],
+                    className: "text-nowrap"
+                },
+                {
                     targets: '_all',
                     render: (data, type, row, meta) => {
                         let color = "";
@@ -386,8 +406,7 @@
                             color = '#2243d6';
                         }
 
-                        return data ? "<span style='color: " + color + "' >" + data + "</span>" :
-                            "<span style=' color: " + color + "'>-</span>"
+                        return data ? "<span style='color: " + color + "' >" + data + "</span>" : "<span style=' color: " + color + "'>-</span>"
                     }
                 }
             ]
@@ -469,8 +488,17 @@
                 {
                     targets: [4],
                     className: 'd-none',
-                }
+                },
             ],
+            rowCallback: function( row, data, index ) {
+                $("#no_meja_"+index).val(data.no_meja).trigger('change');
+            },
+            drawCallback: function( settings ) {
+                $('.select2bs4').select2({
+                    theme: 'bootstrap4',
+                    dropdownParent: $('#manageCutPlanModal')
+                });
+            }
         });
 
         function datatableManageFormReload() {
@@ -479,7 +507,7 @@
 
         $('#manage-form-datatable thead tr').clone(true).appendTo('#manage-form-datatable thead');
         $('#manage-form-datatable thead tr:eq(1) th').each(function(i) {
-            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 5 || i == 6) {
+            if (i != 2 && i != 3) {
                 let elementId = '';
 
                 console.log(i);
@@ -500,7 +528,7 @@
                 }
 
                 let title = $(this).text();
-                $(this).html('<input type="text" style="width:100%; '+(elementId == "" ? "visibility: hidden;" : "")+'" id="'+elementId+'"/>');
+                $(this).html('<input type="text" class="form-control form-control-sm" style="'+(elementId == "" ? "visibility: hidden;" : "")+'" id="'+elementId+'"/>');
 
                 console.log(elementId);
 

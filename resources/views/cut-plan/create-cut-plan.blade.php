@@ -11,21 +11,21 @@
 @endsection
 
 @section('content')
-    <div class="card card-sb card-outline">
+    <div class="card card-sb">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="card-title fw-bold">
                     <i class="fa fa-cog fa-sm"></i> Atur Cutting Plan
                 </h5>
                 <a href="{{ route('cut-plan') }}" class="btn btn-primary btn-sm">
-                    <i class="fa fa-reply fa-sm"></i> Kembali ke Cut Plan
+                    <i class="fa fa-reply fa-sm"></i> Kembali ke Daftar Cutting Plan
                 </a>
             </div>
         </div>
         <div class="card-body">
             <form action="#" method="post">
                 <div class="mb-3">
-                    <label>Tgl Plan</label>
+                    <label>Tanggal Plan</label>
                     <input type="date" class="form-control" name="tgl_plan" id="tgl_plan" min='{{ date('Y-m-d') }}' value="{{ date('Y-m-d') }}">
                 </div>
             </form>
@@ -60,11 +60,11 @@
                         <table id="datatable-select" class="table table-bordered table-sm w-100">
                             <thead>
                                 <tr>
-                                    <th>No Form</th>
-                                    <th>Tgl Form</th>
+                                    <th>Tanggal</th>
+                                    <th>No. Form</th>
                                     <th>No. Meja</th>
-                                    <th>Marker</th>
-                                    <th>WS</th>
+                                    <th>No. Marker</th>
+                                    <th>No. WS</th>
                                     <th>Style</th>
                                     <th>Color</th>
                                     <th>Panel</th>
@@ -83,7 +83,7 @@
             <div class="card card-info h-100">
                 <div class="card-header">
                     <h5 class="card-title fw-bold" style="padding-bottom: 2px">
-                        Cut Plan Form Cut :
+                        Form Cut Terdaftar :
                     </h5>
                 </div>
                 <div class="card-body">
@@ -99,11 +99,11 @@
                         <table id="datatable-selected" class="table table-bordered table-sm w-100">
                             <thead>
                                 <tr>
-                                    <th>No Form</th>
-                                    <th>Tgl Form</th>
+                                    <th>Tanggal</th>
+                                    <th>No. Form</th>
                                     <th>No. Meja</th>
-                                    <th>Marker</th>
-                                    <th>WS</th>
+                                    <th>No. Marker</th>
+                                    <th>No. WS</th>
                                     <th>Style</th>
                                     <th>Color</th>
                                     <th>Panel</th>
@@ -140,6 +140,11 @@
         $('.select2bs4').select2({
             theme: 'bootstrap4'
         })
+
+        //Focus Select2
+        $(document).on('select2:open', () => {
+            document.querySelector('.select2-search__field').focus();
+        });
 
         //Reset Form
         if (document.getElementById('store-cut-plan')) {
@@ -179,9 +184,9 @@
 
         $('#datatable-select thead tr').clone(true).appendTo('#datatable-select thead');
         $('#datatable-select thead tr:eq(1) th').each(function(i) {
-            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 9 || i == 10) {
+            if (i != 8) {
                 var title = $(this).text();
-                $(this).html('<input type="text"  style="width:100%"/>');
+                $(this).html('<input type="text" class="form-control form-control-sm" />');
 
                 $('input', this).on('keyup change', function() {
                     if (datatableSelect.column(i).search() !== this.value) {
@@ -206,11 +211,12 @@
                     d.tgl_plan = $('#tgl_plan').val();
                 },
             },
-            columns: [{
-                    data: 'no_form'
-                },
+            columns: [
                 {
                     data: 'tgl_form_cut'
+                },
+                {
+                    data: 'no_form'
                 },
                 {
                     data: 'nama_meja'
@@ -237,13 +243,19 @@
                     data: 'qty_ply'
                 },
             ],
-            columnDefs: [{
-                targets: [2],
-                render: (data, type, row, meta) => {
+            columnDefs: [
+                {
+                    targets: [2],
+                    render: (data, type, row, meta) => {
 
-                    return data ? data.toUpperCase() : "-";
-                }
-            }, ]
+                        return data ? data.toUpperCase() : "-";
+                    }
+                },
+                {
+                    targets: [0,1,3,4],
+                    className: "text-nowrap"
+                },
+            ]
         });
 
         // Datatable row selection
@@ -294,13 +306,11 @@
 
                         if (res.table != '') {
                             $('#' + res.table).DataTable().ajax.reload(() => {
-                                document.getElementById('selected-row-count-2').innerText = $('#' + res
-                                    .table).DataTable().rows('.selected').data().length;
+                                document.getElementById('selected-row-count-2').innerText = $('#' + res.table).DataTable().rows('.selected').data().length;
                             });
 
                             $('#datatable-select').DataTable().ajax.reload(() => {
-                                document.getElementById('selected-row-count-1').innerText = $(
-                                    '#datatable-select').DataTable().rows('.selected').data().length;
+                                document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
                             });
                         }
 
@@ -369,9 +379,9 @@
 
         $('#datatable-selected thead tr').clone(true).appendTo('#datatable-selected thead');
         $('#datatable-selected thead tr:eq(1) th').each(function(i) {
-            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 10) {
+            if (i != 8 && i != 9) {
                 var title = $(this).text();
-                $(this).html('<input type="text"  style="width:100%"/>');
+                $(this).html('<input type="text" class="form-control form-control-sm"/>');
 
                 $('input', this).on('keyup change', function() {
                     if (datatableSelected.column(i).search() !== this.value) {
@@ -398,10 +408,10 @@
             },
             columns: [
                 {
-                    data: 'no_form'
+                    data: 'tgl_form_cut'
                 },
                 {
-                    data: 'tgl_form_cut'
+                    data: 'no_form'
                 },
                 {
                     data: 'nama_meja'
@@ -474,6 +484,10 @@
 
                         return icon;
                     }
+                },
+                {
+                    targets: [0,1,3,4],
+                    className: "text-nowrap"
                 },
                 {
                     targets: '_all',

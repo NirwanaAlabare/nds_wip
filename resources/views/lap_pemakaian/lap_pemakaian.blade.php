@@ -13,7 +13,7 @@
 
 @section('content')
     <form action="{{ route('export_excel') }}" method="get">
-        <div class="card card-sb card-outline">
+        <div class="card card-sb">
             <div class="card-header">
                 <h5 class="card-title fw-bold mb-0"><i class="fas fa-file-alt fa-sm"></i> Laporan Pemakaian</h5>
             </div>

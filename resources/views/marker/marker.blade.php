@@ -8,30 +8,31 @@
 @endsection
 
 @section('content')
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    {{-- Show Detail Marker Modal --}}
+    <div class="modal fade" id="showMarkerModal" tabindex="-1" role="dialog" aria-labelledby="showMarkerModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 65%;">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-light">
-                    <h1 class="modal-title fs-5" id="exampleModalLabel"></h1>
+                    <h1 class="modal-title fs-5" id="showMarkerModalLabel"></h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="detail">
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Tutup</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="exampleModalEdit" tabindex="-1" role="dialog" aria-labelledby="exampleModalEditLabel"
-        aria-hidden="true">
+    {{-- Edit Marker --}}
+    <div class="modal fade" id="editMarkerModal" tabindex="-1" role="dialog" aria-labelledby="editMarkerModalLabel" aria-hidden="true">
         <form action="{{ route('update_marker') }}" method="post" onsubmit="submitForm(this, event)">
             @method('PUT')
             <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 25%;">
                 <div class="modal-content">
                     <div class="modal-header bg-sb text-light">
-                        <h1 class="modal-title fs-5" id="exampleModalEditLabel"></h1>
+                        <h1 class="modal-title fs-5" id="editMarkerModalLabel"></h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
@@ -46,15 +47,15 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                        <button type="submit" class="btn btn-sb">Simpan</button>
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Tutup</button>
+                        <button type="submit" class="btn btn-success">Simpan</button>
                     </div>
                 </div>
             </div>
         </form>
     </div>
 
-    <div class="card card-sb card-outline">
+    <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-marker fa-sm"></i> Marker</h5>
         </div>
@@ -66,22 +67,21 @@
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small>Tanggal Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
-                        value="{{ date('Y-m-d') }}">
+                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small>Tanggal Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                        value="{{ date('Y-m-d') }}">
+                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
-                    <button class="btn btn-primary btn-sm" onclick="filterTable()">Tampilkan</button>
+                    <button class="btn btn-primary btn-sm" onclick="filterTable()"><i class="fa fa-search"></i></button>
                 </div>
             </div>
             <div class="table-responsive">
                 <table id="datatable" class="table table-bordered table-sm w-100">
                     <thead>
                         <tr>
+                            <th class="align-bottom">Action</th>
                             <th>Tanggal</th>
                             <th>No. Marker</th>
                             <th>No. WS</th>
@@ -92,11 +92,10 @@
                             <th>Lebar Marker</th>
                             <th>Gramasi</th>
                             <th>Gelar QTYs</th>
-                            <th>PO</th>
                             <th>Urutan</th>
+                            <th>PO</th>
                             <th>Total Form</th>
                             <th>Ket.</th>
-                            <th class="align-bottom">Act</th>
                         </tr>
                     </thead>
                 </table>
@@ -114,9 +113,9 @@
     <script>
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i != 14) {
+            if (i != 0) {
                 var title = $(this).text();
-                $(this).html('<input type="text"  style="width:100%"/>');
+                $(this).html('<input type="text" class="form-control form-control-sm" />');
 
                 $('input', this).on('keyup change', function() {
                     if (datatable.column(i).search() !== this.value) {
@@ -143,6 +142,9 @@
                 },
             },
             columns: [
+                {
+                    data: 'id'
+                },
                 {
                     data: 'tgl_cut_fix',
                     searchable: false
@@ -176,10 +178,10 @@
                     data: 'gelar_qty'
                 },
                 {
-                    data: 'po_marker'
+                    data: 'urutan_marker'
                 },
                 {
-                    data: 'urutan_marker'
+                    data: 'po_marker'
                 },
                 {
                     data: 'tot_form',
@@ -188,14 +190,10 @@
                 {
                     data: 'notes',
                 },
-                {
-                    data: 'id'
-                },
             ],
             columnDefs: [
                 {
-                    targets: [14],
-                    className: "align-middle",
+                    targets: [0],
                     render: (data, type, row, meta) => {
                         let exportBtn = `
                             <button type="button" class="btn btn-sm btn-secondary" onclick="printMarker('` + row.kode + `');">
@@ -206,8 +204,7 @@
                         if (row.cancel != 'Y' && row.tot_form != 0) {
                             return `
                                 <div class='d-flex gap-1 justify-content-center'>
-                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModal" onclick='getdetail(` +
-                                row.id + `);'>
+                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
                                         <i class='fa fa-search'></i>
                                     </a>
                                     ` + exportBtn + `
@@ -216,16 +213,14 @@
                         } else if (row.cancel != 'Y' && row.tot_form == 0) {
                             return `
                                 <div class='d-flex gap-1 justify-content-center mb-1'>
-                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModal" onclick='getdetail(` +
-                                row.id + `);'>
+                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
                                         <i class='fa fa-search'></i>
                                     </a>
                                     ` + exportBtn +
                                 `
                                 </div>
                                 <div class='d-flex gap-1 justify-content-center'>
-                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModalEdit" onclick='edit(` +
-                                row.id + `);'>
+                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editMarkerModal" onclick='edit(` + row.id + `);'>
                                         <i class='fa fa-edit'></i>
                                     </a>
                                     <a class='btn btn-danger btn-sm' onclick='cancel(` + row.id + `);'>
@@ -236,8 +231,7 @@
                         } else if (row.cancel == 'Y') {
                             return `
                                 <div class='d-flex gap-1 justify-content-center'>
-                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModal" onclick='getdetail(` +
-                                row.id + `);'>
+                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
                                         <i class='fa fa-search'></i>
                                     </a>
                                     ` + exportBtn + `
@@ -259,7 +253,11 @@
                         }
                         return '<span style="font-weight: 600; color:' + color + '">' + data + '</span>';
                     }
-                }
+                },
+                {
+                    targets: [1,2,3],
+                    className: 'text-nowrap'
+                },
             ],
         });
 
@@ -268,7 +266,7 @@
         }
 
         function getdetail(id_c) {
-            $("#exampleModalLabel").html('Marker Detail');
+            $("#showMarkerModalLabel").html('Marker Detail');
             let html = $.ajax({
                 type: "POST",
                 url: '{{ route('show-marker') }}',
@@ -281,8 +279,8 @@
         };
 
         function edit(id_c) {
-            $("#exampleModalEditLabel").html('Marker Edit');
-            jQuery.ajax({
+            $("#editMarkerModalLabel").html('Marker Edit');
+            $.ajax({
                 url: '{{ route('show_gramasi') }}',
                 method: 'POST',
                 data: {
@@ -312,10 +310,10 @@
             swal.fire({
                 position: 'mid-end',
                 icon: 'info',
-                title: 'Data Sudah Di Rubah',
+                title: 'Data Sudah Di Ubah',
                 showConfirmButton: false,
                 timer: 1000
-            })
+            });
 
             datatable.ajax.reload();
         };
@@ -323,6 +321,7 @@
         function printMarker(kodeMarker) {
             let fileName = kodeMarker;
 
+            // Show Loading
             Swal.fire({
                 title: 'Please Wait...',
                 html: 'Exporting Data...',
@@ -342,11 +341,10 @@
                 },
                 success: function(res) {
                     if (res) {
-                        console.log(res);
-
                         var blob = new Blob([res], {
                             type: 'application/pdf'
                         });
+
                         var link = document.createElement('a');
                         link.href = window.URL.createObjectURL(blob);
                         link.download = fileName + ".pdf";

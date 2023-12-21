@@ -15,7 +15,7 @@
         <div class="d-flex gap-3 align-items-center">
             <h5 class="mb-1">Form Cut Manual - {{ strtoupper($formCutInputData->name) }}</h5>
             <button class="btn btn-sm btn-success" id="start-process" onclick="startProcess()">Mulai Pengerjaan</button>
-            <button class="btn btn-sm btn-dark" id="create-new-form" onclick="createNewForm()">Buat Form Manual Baru</button>
+            <button class="btn btn-sm btn-sb" id="create-new-form" onclick="createNewForm()">Buat Form Manual Baru</button>
         </div>
         <div class="col-md-6">
             <div class="card card-sb" id="header-data-card">
