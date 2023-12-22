@@ -121,6 +121,7 @@ class CutPlanController extends Controller
                     b.po_marker,
                     b.urutan_marker,
                     b.cons_marker,
+                    a.tipe_form_cut,
                     CONCAT(b.panel, ' - ', b.urutan_marker) panel,
                     GROUP_CONCAT(CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC) marker_details
                 FROM `form_cut_input` a
@@ -211,6 +212,7 @@ class CutPlanController extends Controller
                     b.po_marker,
                     b.urutan_marker,
                     b.cons_marker,
+                    a.tipe_form_cut,
                     CONCAT(b.panel, ' - ', b.urutan_marker) panel,
                     GROUP_CONCAT(CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC) marker_details,
                     sum(marker_input_detail.ratio) * a.qty_ply	qty_output,

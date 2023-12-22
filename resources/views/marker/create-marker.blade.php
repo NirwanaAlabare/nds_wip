@@ -125,6 +125,12 @@
                             </div>
                             <div class="col-6 col-md-6">
                                 <div class="mb-1">
+                                    <label class="form-label"><small>Cons Marker</small></label>
+                                    <input type="number" class="form-control" id="cons_marker" name="cons_marker" step=".001">
+                                </div>
+                            </div>
+                            <div class="col-4 col-md-4">
+                                <div class="mb-1">
                                     <label class="form-label"><small>Cons Piping</small></label>
                                     <input type="number" class="form-control" id="cons_piping" name="cons_piping" step=".001">
                                 </div>
@@ -133,12 +139,6 @@
                                 <div class="mb-1">
                                     <label class="form-label"><small>Gramasi</small></label>
                                     <input type="number" class="form-control" id="gramasi" name="gramasi" step=".001">
-                                </div>
-                            </div>
-                            <div class="col-4 col-md-4">
-                                <div class="mb-1">
-                                    <label class="form-label"><small>Cons Marker</small></label>
-                                    <input type="number" class="form-control" id="cons_marker" name="cons_marker" step=".001">
                                 </div>
                             </div>
                             <div class="col-4 col-md-4">
@@ -168,6 +168,7 @@
                                 <option selected="selected" value="regular marker">Regular Marker</option>
                                 <option value="special marker">Special Marker</option>
                                 <option value="pilot marker">Pilot Marker</option>
+                                <option value="bulk marker">Bulk Marker</option>
                             </select>
                         </div>
                     </div>

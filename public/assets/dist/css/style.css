@@ -36,8 +36,13 @@ td, th {
 }
 
 table tr.selected {
-    background-color: var(--sb-secondary-color);
-    color: var(--pale-color);
+    background-color: var(--sb-secondary-color) !important;
+    color: var(--pale-color) !important;
+}
+
+table tr.selected td{
+    background-color: inherit !important;
+    color: inherit !important;
 }
 
 /* Vertical Table */

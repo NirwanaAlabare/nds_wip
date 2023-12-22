@@ -266,7 +266,7 @@
                         `;
                     }
                 },
-            ]
+            ],
         });
 
         function filterTable() {
@@ -409,7 +409,16 @@
                         return data ? "<span style='color: " + color + "' >" + data + "</span>" : "<span style=' color: " + color + "'>-</span>"
                     }
                 }
-            ]
+            ],
+            rowCallback: function( row, data, index ) {
+                if (data['tipe_form_cut'] == 'MANUAL') {
+                    $('td', row).css('background-color', '#e7dcf7');
+                    $('td', row).css('border', '0.15px solid #d0d0d0');
+                } else if (data['tipe_form_cut'] == 'PILOT') {
+                    $('td', row).css('background-color', '#c5e0fa');
+                    $('td', row).css('border', '0.15px solid #d0d0d0');
+                }
+            }
         });
 
         function datatableFormReload() {
@@ -492,6 +501,14 @@
             ],
             rowCallback: function( row, data, index ) {
                 $("#no_meja_"+index).val(data.no_meja).trigger('change');
+
+                if (data['tipe_form_cut'] == 'MANUAL') {
+                    $('td', row).css('background-color', '#e7dcf7');
+                    $('td', row).css('border', '0.15px solid #d0d0d0');
+                } else if (data['tipe_form_cut'] == 'PILOT') {
+                    $('td', row).css('background-color', '#c5e0fa');
+                    $('td', row).css('border', '0.15px solid #d0d0d0');
+                }
             },
             drawCallback: function( settings ) {
                 $('.select2bs4').select2({

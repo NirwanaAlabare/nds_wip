@@ -28,7 +28,7 @@
                         </div>
                         <div class="card-body">
                             <div class="row align-items-end">
-                                <div class="col-sm-4">
+                                <div class="col-6 col-md-6">
                                     <div class="form-group">
                                         <label>No. WS</label>
                                         <select class="form-control select2bs4" id="cbows" name="cbows" onchange='getno_marker();' style="width: 100%;">
@@ -42,16 +42,22 @@
                                     </div>
                                     <input type='hidden' class='form-control' id='txtid_marker' name='txtid_marker'>
                                 </div>
-                                <div class="col-sm-5">
+                                <div class="col-6 col-md-6">
                                     <div class="form-group">
                                         <label>No. Marker</label>
                                         <select class='form-control select2bs4' style='width: 100%;' name='cbomarker' id='cbomarker' onchange='getdata_marker();'></select>
                                     </div>
                                 </div>
-                                <div class="col-sm-3">
+                                <div class="col-6 col-md-6">
                                     <div class="form-group">
                                         <label>Qty Ply Cutting</label>
                                         <input type='number' class='form-control' id='txtqty_ply_cut' name='txtqty_ply_cut' oninput='sum();' autocomplete='off'>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-6">
+                                    <div class="form-group">
+                                        <label>Total Form</label>
+                                        <input type='number' class='form-control' id='jumlah_form' name='jumlah_form' oninput='customSum();' autocomplete='off'>
                                     </div>
                                 </div>
                             </div>
@@ -87,6 +93,26 @@
                                     </div>
                                 </div>
                                 <div class="col-sm-3">
+                                    <div class="form-group">
+                                        <label>Qty Ply Form</label>
+                                        <input type='text' class='form-control' id='qty_ply_form' name='qty_ply_form' readonly>
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="form-group">
+                                        <label>Sisa Ply Marker</label>
+                                        <input type='text' class='form-control' id='sisa' name='sisa' readonly>
+                                    </div>
+                                </div>
+                                <div class="col-sm-5">
+                                    <div class="form-group">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="tarik_sisa" id="tarik_sisa" value="tarik">
+                                            <label>Tarik Sisa Form</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
                                     <div class="form-group">
                                         {{-- <label>&emsp;&emsp;&emsp;</label> --}}
                                         <button type='submit' name='submit' class='btn btn-block btn-success'>Simpan</button>
@@ -189,15 +215,13 @@
                                 <div class="col-sm-6">
                                     <div class="form-group">
                                         <label>Qty Gelar Marker</label>
-                                        <input type='text' class='form-control' id='txt_qty_gelar'
-                                            name='txt_qty_gelar' readonly>
+                                        <input type='text' class='form-control' id='txt_qty_gelar' name='txt_qty_gelar' readonly>
                                     </div>
                                 </div>
                                 <div class="col-sm-6">
                                     <div class="form-group">
                                         <label>WS</label>
-                                        <input type='text' class='form-control' id='txt_ws' name='txt_ws'
-                                            readonly>
+                                        <input type='text' class='form-control' id='txt_ws' name='txt_ws' readonly>
                                     </div>
                                 </div>
                             </div>
@@ -257,6 +281,14 @@
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
+        $(document).ready(() => {
+            document.getElementById("tarik_sisa").checked = false;
+        });
+
+        $("#tarik_sisa").on("change", () => {
+            console.log($("#tarik_sisa").val());
+        });
+
         $(document).on('select2:open', () => {
             document.querySelector('.select2-search__field').focus();
         });
@@ -294,6 +326,8 @@
         });
 
         function getno_marker() {
+            clearForm();
+
             let cbows = document.form.cbows.value;
             let html = $.ajax({
                 type: "POST",
@@ -315,6 +349,8 @@
         };
 
         function getdata_marker() {
+            clearForm();
+
             let cbomarker = document.form.cbomarker.value;
             jQuery.ajax({
                 url: '{{ route('getdata_marker') }}',
@@ -355,11 +391,46 @@
             let hitungcut = document.getElementById('txtqty_ply_cut').value;
             document.getElementById("hitungcut").value = +hitungcut;
             let result = parseFloat(hitungmarker) / parseFloat(hitungcut);
+            let modulus = Math.ceil(parseFloat(hitungmarker) % parseFloat(hitungcut))
             let result_fix = Math.ceil(result)
+            let jumlah_form = document.getElementById("jumlah_form").value;
+
             if (!isNaN(result_fix)) {
                 document.getElementById("hitungform").value = result_fix;
+                document.getElementById("sisa").value = modulus;
+                document.getElementById("jumlah_form").value = result_fix;
+                document.getElementById("qty_ply_form").value = (jumlah_form * hitungcut) > hitungmarker ? hitungmarker : (jumlah_form * hitungcut);
             }
+        }
 
+        function customSum() {
+            let qtyPlyMarker = document.getElementById("hitungmarker").value;
+
+            let qtyPly = document.getElementById("txtqty_ply_cut").value;
+            let jumlahForm = document.getElementById("jumlah_form").value;
+
+            let qtyPlyForm = qtyPly * jumlahForm;
+            let modulus = qtyPlyMarker % qtyPly;
+            let maxForm = Math.floor(qtyPlyMarker/qtyPly) + (modulus > 0 ? 1 : 0);
+
+            if (jumlahForm > maxForm) {
+                sum();
+            } else {
+                console.log(qtyPly, maxForm);
+                document.getElementById("hitungform").value = jumlahForm;
+                document.getElementById("sisa").value = modulus;
+                document.getElementById("qty_ply_form").value = (qtyPlyForm > qtyPlyMarker ? qtyPlyMarker : qtyPlyForm);
+            }
+        }
+
+        function clearForm() {
+            document.getElementById('txtqty_ply_cut').value = "";
+            document.getElementById('jumlah_form').value = "";
+            document.getElementById('hitungmarker').value = "";
+            document.getElementById('hitungcut').value = "";
+            document.getElementById('hitungform').value = "";
+            document.getElementById('qty_ply_form').value = "";
+            document.getElementById('sisa').value = "";
         }
 
         document.getElementById("store-spreading").onkeypress = function(e) {
@@ -371,6 +442,8 @@
         }
 
         function submitSpreadingForm(e, evt) {
+            evt.preventDefault();
+
             $("input[type=submit][clicked=true]").attr('disabled', true);
 
             evt.preventDefault();

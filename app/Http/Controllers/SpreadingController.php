@@ -156,7 +156,7 @@ class SpreadingController extends Controller
         $data_marker = DB::select("select a.* from marker_input a
         where a.id = '" . $request->cri_item . "'");
 
-        return json_encode($data_marker[0]);
+        return json_encode($data_marker ? $data_marker[0] : null);
     }
 
     public function getdata_ratio(Request $request)
@@ -203,6 +203,11 @@ class SpreadingController extends Controller
         $timestamp = Carbon::now();
         $formcutDetailData = [];
         $message = "";
+
+        if ($request['tarik_sisa']) {
+            $request['hitungform'] = $request['hitungform'] - 1;
+        }
+
         for ($i = 1; $i <= intval($request['hitungform']); $i++) {
             $date = date('Y-m-d');
             $hari = substr($date, 8, 2);
@@ -218,7 +223,11 @@ class SpreadingController extends Controller
 
             if (intval($request['hitungform'] > 1)) {
                 if ($i == intval($request['hitungform'])) {
-                    $qtyPly = $qtyPlyMarkerModulus > 0 ? $qtyPlyMarkerModulus : $request['txtqty_ply_cut'];
+                    if ($request['tarik_sisa']) {
+                        $qtyPly = $qtyPlyMarkerModulus > 0 ? $request['txtqty_ply_cut'] + $qtyPlyMarkerModulus : $request['txtqty_ply_cut'];
+                    } else {
+                        $qtyPly = $qtyPlyMarkerModulus > 0 ? $qtyPlyMarkerModulus : $request['txtqty_ply_cut'];
+                    }
                 }
             }
 

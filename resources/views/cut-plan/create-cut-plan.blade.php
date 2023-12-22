@@ -8,6 +8,13 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+
+    <style>
+        /* table.dataTable tbody tr.selected {
+            color: white !important;
+            background-color: #da00c8 !important;
+        } */
+    </style>
 @endsection
 
 @section('content')
@@ -255,14 +262,22 @@
                     targets: [0,1,3,4],
                     className: "text-nowrap"
                 },
-            ]
+            ],
+            rowCallback: function( row, data, index ) {
+                if (data['tipe_form_cut'] == 'MANUAL') {
+                    $('td', row).css('background-color', '#e7dcf7');
+                    $('td', row).css('border', '0.15px solid #d0d0d0');
+                } else if (data['tipe_form_cut'] == 'PILOT') {
+                    $('td', row).css('background-color', '#c5e0fa');
+                    $('td', row).css('border', '0.15px solid #d0d0d0');
+                }
+            }
         });
 
         // Datatable row selection
         datatableSelect.on('click', 'tbody tr', function(e) {
             e.currentTarget.classList.toggle('selected');
-            document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows(
-                '.selected').data().length;
+            document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
         });
 
         function addToCutPlan(element) {
@@ -507,7 +522,16 @@
                         return data ? "<span style='color: " + color + "' >" + data + "</span>" : "<span style=' color: " + color + "'>-</span>"
                     }
                 }
-            ]
+            ],
+            rowCallback: function( row, data, index ) {
+                if (data['tipe_form_cut'] == 'MANUAL') {
+                    $('td', row).css('background-color', '#e7dcf7');
+                    $('td', row).css('border', '0.15px solid #d0d0d0');
+                } else if (data['tipe_form_cut'] == 'PILOT') {
+                    $('td', row).css('background-color', '#c5e0fa');
+                    $('td', row).css('border', '0.15px solid #d0d0d0');
+                }
+            }
         });
 
         function removeCutPlan(element) {
@@ -607,6 +631,8 @@
                                 }
                             },
                             error: function(jqXHR) {
+                                element.removeAttribute('disabled');
+
                                 let res = jqXHR.responseJSON;
                                 let message = '';
 
@@ -624,6 +650,8 @@
                     }
                 });
             } else {
+                element.removeAttribute('disabled');
+
                 Swal.fire({
                     icon: 'error',
                     title: 'Gagal',
