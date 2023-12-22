@@ -58,8 +58,8 @@
                                         </tr>
                                         <tr>
                                             @foreach ($rack->rackDetails as $rackDetail)
-                                                <th class="{{ ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0) ? 'bg-warning' : '' }} w-50 p-3">
-                                                    <div class="row row-cols-1 row-cols-sm-2 align-items-start">
+                                                <th class="{{ ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0) ? 'bg-warning align-top' : '' }} w-50 p-3">
+                                                    <div class="row row-cols-1 row-cols-sm-2">
                                                         @if ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0)
                                                             @foreach ($rackDetail->rackDetailStockers as $rackDetailStocker)
                                                                 <div class="col">
