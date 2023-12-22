@@ -16,7 +16,7 @@
         <div class="d-flex gap-3 align-items-center">
             <h5 class="mb-1">Form Cut Manual - {{ strtoupper(Auth::user()->name) }}</h5>
             <button class="btn btn-sm btn-success" id="start-process" onclick="startProcess()">Mulai Pengerjaan</button>
-            <button class="btn btn-sm btn-dark d-none" id="create-new-form" onclick="createNewForm()">Buat Form Manual Baru</button>
+            <button class="btn btn-sm btn-sb d-none" id="create-new-form" onclick="createNewForm()">Buat Form Manual Baru</button>
         </div>
         <div class="col-md-6">
             <div class="card card-sb d-none" id="header-data-card">
@@ -1292,6 +1292,8 @@
                                 }
                             }
                         }
+
+                        status = "PENGERJAAN FORM CUTTING DETAIL";
                     } else {
                         // When Actually Error :
 
@@ -1519,6 +1521,8 @@
                                     }
                                 }
                             }
+
+                            status = "PENGERJAAN MARKER";
                         }
                     }
                 });
@@ -1599,6 +1603,8 @@
 
                                 initScan();
                                 getItemList()
+
+                                status = "PENGERJAAN FORM CUTTING SPREAD";
                             }
                         }
                     },
@@ -1886,6 +1892,8 @@
                                 if (res) {
                                     lockFormCutInput();
 
+                                    status = "SELESAI PENGERJAAN";
+
                                     Swal.fire({
                                         icon: 'success',
                                         title: 'Berhasil',
@@ -1997,7 +2005,7 @@
                 if (rollQtyVar && unitQtyVar) {
                     if (unitQtyVar == "YARD" || unitQtyVar == "YRD") {
                         // YARD
-                        rollQtyConverted = rollQtyVar / 1.094;
+                        rollQtyConverted = rollQtyVar * 0.9144;
 
                     } else if (unitQtyVar == "KGM") {
                         // KGM

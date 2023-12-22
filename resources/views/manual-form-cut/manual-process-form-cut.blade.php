@@ -1581,6 +1581,8 @@
                                     }
                                 }
                             }
+
+                            status = "PENGERJAAN MARKER";
                         }
                     }
                 });
@@ -1661,6 +1663,8 @@
 
                                 initScan();
                                 getItemList()
+
+                                status = "SELESAI PENGERJAAN";
                             }
                         }
                     },
@@ -2059,7 +2063,7 @@
                 if (rollQtyVar && unitQtyVar) {
                     if (unitQtyVar == "YARD" || unitQtyVar == "YRD") {
                         // YARD
-                        rollQtyConverted = rollQtyVar / 1.094;
+                        rollQtyConverted = rollQtyVar * 0.9144;
 
                     } else if (unitQtyVar == "KGM") {
                         // KGM

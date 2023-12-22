@@ -491,27 +491,15 @@ class PilotFormCutController extends Controller
 
         if ($storeFormCutInput) {
             $dateFormat = date("dmY", strtotime($date));
-            $noCutPlan = "CP-" . $dateFormat;
 
-            $addToCutPlan = CutPlan::create([
-                "no_cut_plan" => $noCutPlan,
-                "tgl_plan" => $date,
-                "no_form_cut_input" => $noForm,
-                "app" => "Y",
-                "app_by" => Auth::user()->id,
-                "app_at" => $now,
-            ]);
+            session(['currentPilotForm' => $storeFormCutInput->id]);
 
-            if ($addToCutPlan) {
-                session(['currentPilotForm' => $storeFormCutInput->id]);
-
-                return array(
-                    "status" => 200,
-                    "message" => "alright",
-                    "data" => $storeFormCutInput,
-                    "additional" => ['id' => $storeFormCutInput->id, 'no_form' => $noForm],
-                );
-            }
+            return array(
+                "status" => 200,
+                "message" => "alright",
+                "data" => $storeFormCutInput,
+                "additional" => ['id' => $storeFormCutInput->id, 'no_form' => $noForm],
+            );
         }
 
         return array(

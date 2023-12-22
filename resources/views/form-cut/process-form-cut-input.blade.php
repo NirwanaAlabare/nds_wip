@@ -1156,6 +1156,8 @@
                     success: function(res) {
                         if (res) {
                             console.log(res);
+
+                            status = "PENGERJAAN FORM CUTTING";
                         }
                     }
                 });
@@ -1184,6 +1186,7 @@
                     success: function(res) {
                         if (res) {
                             console.log(res);
+                            status = "PENGERJAAN FORM CUTTING DETAIL";
                         }
                     }
                 });
@@ -1243,6 +1246,8 @@
 
                                 initScan();
                                 getItemList()
+
+                                status = "PENGERJAAN FORM CUTTING SPREAD"
                             }
                         }
                     },
@@ -1544,6 +1549,8 @@
                                     }).then((result) => {
                                         window.close();
                                     })
+
+                                    status = "SELESAI PENGERJAAN";
                                 }
                             },
                             error: function(jqXHR) {
@@ -1644,7 +1651,7 @@
                 if (rollQtyVar && unitQtyVar) {
                     if (unitQtyVar == "YARD" || unitQtyVar == "YRD") {
                         // YARD
-                        rollQtyConverted = rollQtyVar / 1.094;
+                        rollQtyConverted = rollQtyVar * 0.9144;
 
                     } else if (unitQtyVar == "KGM") {
                         // KGM
