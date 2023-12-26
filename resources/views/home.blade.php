@@ -71,6 +71,23 @@
                         </div>
                     @endhr
 
+                    @hr
+                        <div class="col-md-2 col-3">
+                            <a href="{{ route('dashboard-mut-mesin') }}" class="home-item">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex h-100 flex-column justify-content-between">
+                                            <img src="{{ asset('dist/img/mut_mesin.png') }}" class="img-fluid p-3"
+                                                alt="qr code image">
+                                            <p class="text-center">Mutasi Mesin</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    @endhr
+
+
                     <div class="col-md-2 col-3">
                         <a href="{{ route('logout') }}"
                             onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
@@ -78,7 +95,8 @@
                             <div class="card h-100">
                                 <div class="card-body">
                                     <div class="d-flex h-100 flex-column justify-content-between">
-                                        <img src="{{ asset('dist/img/signout.png') }}" class="img-fluid p-3" alt="other">
+                                        <img src="{{ asset('dist/img/signout.png') }}" class="img-fluid p-3"
+                                            alt="other">
                                         <p class="text-center">Logout</p>
                                     </div>
                                 </div>

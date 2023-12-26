@@ -24,6 +24,7 @@ use App\Http\Controllers\RackStockerController;
 use App\Http\Controllers\TrolleyController;
 use App\Http\Controllers\TrolleyStockerController;
 use App\Http\Controllers\SecondaryInhouseController;
+use App\Http\Controllers\MutasiMesinController;
 
 /*
 |--------------------------------------------------------------------------
@@ -353,19 +354,35 @@ Route::middleware('auth')->group(function () {
     });
 
     // Mutasi Karywawan
-    Route::controller(EmployeeController::class)->prefix("mut-karyawan")->middleware('hr')->group(function () {
-        Route::get('/', 'index')->name('mut-karyawan');
-        Route::get('/create', 'create')->name('create-mut-karyawan');
-        Route::post('/store', 'store')->name('store-mut-karyawan');
-        Route::put('/update', 'update')->name('update-mut-karyawan');
-        Route::delete('/destroy', 'destroy')->name('destroy-mut-karyawan');
+    // Route::controller(EmployeeController::class)->prefix("mut-karyawan")->middleware('hr')->group(function () {
+    //     Route::get('/', 'index')->name('mut-karyawan');
+    //     Route::get('/create', 'create')->name('create-mut-karyawan');
+    //     Route::post('/store', 'store')->name('store-mut-karyawan');
+    //     Route::put('/update', 'update')->name('update-mut-karyawan');
+    //     Route::delete('/destroy', 'destroy')->name('destroy-mut-karyawan');
+    //     Route::get('/getdataline', 'getdataline')->name('getdataline');
+    //     Route::get('/gettotal', 'gettotal')->name('gettotal');
+    //     Route::get('/getdatanik', 'getdatanik')->name('getdatanik');
+    //     Route::get('/getdatalinekaryawan', 'getdatalinekaryawan')->name('getdatalinekaryawan');
+    //     Route::get('/export_excel_mut_karyawan', 'export_excel_mut_karyawan')->name('export_excel_mut_karyawan');
+    //     Route::get('/line-chart-data', 'lineChartData')->name('line-chart-data');
+    // });
+
+    // Mutasi Mesin
+    Route::controller(MutasiMesinController::class)->prefix("mut-mesin")->middleware('hr')->group(function () {
+        Route::get('/', 'index')->name('mut-mesin');
+        Route::get('/create', 'create')->name('create-mut-mesin');
+        Route::post('/store', 'store')->name('store-mut-mesin');
+        // Route::put('/update', 'update')->name('update-mut-karyawan');
+        // Route::delete('/destroy', 'destroy')->name('destroy-mut-karyawan');
         Route::get('/getdataline', 'getdataline')->name('getdataline');
         Route::get('/gettotal', 'gettotal')->name('gettotal');
-        Route::get('/getdatanik', 'getdatanik')->name('getdatanik');
-        Route::get('/getdatalinekaryawan', 'getdatalinekaryawan')->name('getdatalinekaryawan');
-        Route::get('/export_excel_mut_karyawan', 'export_excel_mut_karyawan')->name('export_excel_mut_karyawan');
+        Route::get('/getdatamesin', 'getdatamesin')->name('getdatamesin');
+        Route::get('/getdatalinemesin', 'getdatalinemesin')->name('getdatalinemesin');
+        Route::get('/export_excel_mut_mesin', 'export_excel_mut_mesin')->name('export_excel_mut_mesin');
         Route::get('/line-chart-data', 'lineChartData')->name('line-chart-data');
     });
+
 
     Route::controller(SummaryController::class)->prefix("summary")->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('summary');
@@ -393,6 +410,12 @@ Route::get('/dashboard-dc', [DashboardController::class, 'dc'])->middleware('aut
 Route::get('/dashboard-mut-karyawan', function () {
     return view('dashboard', ['page' => 'dashboard-mut-karyawan']);
 })->middleware('auth')->name('dashboard-mut-karyawan');
+
+Route::get('/dashboard-mut-mesin', function () {
+    return view('dashboard-mesin', ['page' => 'dashboard-mut-mesin']);
+})->middleware('auth')->name('dashboard-mut-mesin');
+
+
 
 // Misc
 Route::get('/timer', function () {

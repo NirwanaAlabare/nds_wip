@@ -23,11 +23,11 @@ class DCInController extends Controller
             $additionalQuery = '';
 
             if ($request->dateFrom) {
-                $additionalQuery .= " where a.waktu_selesai >= '" . $request->dateFrom . "' ";
+                $additionalQuery .= " where a.waktu_selesai >= '" . $request->dateFrom . " 00:00:00' ";
             }
 
             if ($request->dateTo) {
-                $additionalQuery .= " and a.waktu_selesai <= '" . $request->dateTo . "' ";
+                $additionalQuery .= " and a.waktu_selesai <= '" . $request->dateTo . " 23:59:59' ";
             }
 
             $keywordQuery = '';
