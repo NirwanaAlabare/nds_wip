@@ -377,11 +377,11 @@
                     document.getElementById('txt_po_marker').value = response.po_marker;
                     document.getElementById('txt_l_marker').value = response.lebar_marker;
                     document.getElementById('txt_unit_l_marker').value = response.unit_lebar_marker;
-                    document.getElementById('txt_qty_gelar').value = response.gelar_qty_balance;
+                    document.getElementById('txt_qty_gelar').value = response.gelar_qty_balance ? response.gelar_qty_balance : response.gelar_qty;
                     document.getElementById('txt_ws').value = response.act_costing_ws;
                     document.getElementById('txt_cons_ws').value = response.cons_ws;
                     document.getElementById('txt_cons_marker').value = response.cons_marker;
-                    document.getElementById('hitungmarker').value = response.gelar_qty_balance;
+                    document.getElementById('hitungmarker').value = response.gelar_qty_balance ? response.gelar_qty_balance : response.gelar_qty;
                     document.getElementById('txtid_marker').value = response.kode;
                     document.getElementById('tipe_form').value = (response.tipe_marker).replace(' marker', "");
                 },
