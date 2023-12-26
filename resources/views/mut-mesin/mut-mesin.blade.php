@@ -92,7 +92,7 @@
         </div>
         <div class="card card-info">
             <div class="card-header">
-                <h5 class="card-title fw-bold mb-0"><i class="fas fa-list-ul"></i> List Data Karyawan Hari Ini</h5>
+                <h5 class="card-title fw-bold mb-0"><i class="fas fa-list-ul"></i> List Data Mesin Hari Ini</h5>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
