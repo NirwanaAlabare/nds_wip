@@ -373,7 +373,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('mut-mesin');
         Route::get('/create', 'create')->name('create-mut-mesin');
         Route::post('/store', 'store')->name('store-mut-mesin');
-        Route::put('/update', 'update')->name('update-mut-karyawan');
+        // Route::put('/update', 'update')->name('update-mut-karyawan');
         Route::delete('/destroy', 'destroy')->name('destroy-mut-karyawan');
         Route::get('/getdataline', 'getdataline')->name('getdataline');
         Route::get('/gettotal', 'gettotal')->name('gettotal');
