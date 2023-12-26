@@ -353,7 +353,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/print-bon-mutasi/{id?}', 'printBonMutasi')->name('print-trolley-stock');
     });
 
-    // // Mutasi Karywawan
+    // Mutasi Karywawan
     // Route::controller(EmployeeController::class)->prefix("mut-karyawan")->middleware('hr')->group(function () {
     //     Route::get('/', 'index')->name('mut-karyawan');
     //     Route::get('/create', 'create')->name('create-mut-karyawan');
