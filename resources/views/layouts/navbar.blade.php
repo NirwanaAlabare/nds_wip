@@ -225,7 +225,9 @@
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
-                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'rak-dc' ? 'active' : '' }}">Rak</a>
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'rak-dc' ? 'active' : '' }}">Rak</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @dc
                                 <li>
@@ -272,12 +274,14 @@
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @dc
                                 <li>
-                                    <a href="{{ route('trolley') }}" class="dropdown-item {{ $subPage == "trolley" ? 'active' : '' }}">
+                                    <a href="{{ route('trolley') }}"
+                                        class="dropdown-item {{ $subPage == 'trolley' ? 'active' : '' }}">
                                         Master Trolley <i class="fas fa-plus-square fa-sm"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('stock-trolley') }}" class="dropdown-item {{ $subPage == "stock-trolley" ? 'active' : '' }}">
+                                    <a href="{{ route('stock-trolley') }}"
+                                        class="dropdown-item {{ $subPage == 'stock-trolley' ? 'active' : '' }}">
                                         Trolley <i class="fas fa-dolly-flatbed"></i>
                                     </a>
                                 </li>
@@ -296,7 +300,26 @@
                                 <li>
                                     <a href="{{ route('mut-karyawan') }}"
                                         class="dropdown-item {{ $subPage == 'mut-karyawan' ? 'active' : '' }}">
-                                        Mutasi Karyawan <i class="fas fa-users-cog fa-sm"></i>
+                                        Mutasi Karyawan<i class="fas fa-users-cog fa-sm"></i>
+                                    </a>
+                                </li>
+                            @endhr
+                        </ul>
+                    </li>
+                @endif
+
+
+                @if ($page == 'dashboard-mut-mesin')
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-mut-mesin' ? 'active' : '' }}">Proses</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @hr
+                                <li>
+                                    <a href="{{ route('mut-mesin') }}"
+                                        class="dropdown-item {{ $subPage == 'mut-mesin' ? 'active' : '' }}">
+                                        Mutasi Mesin <i class="fas fa-tools fa-sm"></i>
                                     </a>
                                 </li>
                             @endhr
