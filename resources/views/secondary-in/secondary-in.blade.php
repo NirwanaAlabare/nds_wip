@@ -436,7 +436,7 @@
                     // let ket = $("#txtket").val();
                     // $.ajax({
                     //     type: "post",
-                    //     url: '{{ route('store-mut-karyawan') }}',
+                    //     url: '{{-- route('store-mut-karyawan') --}}',
                     //     data: {
                     //         txtenroll_id: txtenroll_id,
                     //         nm_line: nm_line,
