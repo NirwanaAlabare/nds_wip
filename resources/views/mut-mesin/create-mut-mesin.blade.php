@@ -12,7 +12,7 @@
 @endsection
 
 @section('content')
-    <form action="{{ route('store-mut-karyawan') }}" method="post" id="store-mut-karyawan" name='form'
+    <form action="{{ route('store-mut-mesin') }}" method="post" id="store-mut-mesin" name='form'
         onsubmit="submitMutMesinForm(this, event)">
         @csrf
         <div class="card card-info">
