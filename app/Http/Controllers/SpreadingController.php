@@ -120,7 +120,7 @@ class SpreadingController extends Controller
 
         $data_ws = DB::select("select act_costing_id, act_costing_ws ws from marker_input a
         left join (select id_marker from form_cut_input group by id_marker ) b on a.kode = b.id_marker
-        where a.cancel = 'N' and b.id_marker is null
+        where a.cancel = 'N' and ((a.gelar_qty_balance is null and b.id_marker is null) or a.gelar_qty_balance > 0)
         group by act_costing_id");
 
 
@@ -141,7 +141,7 @@ class SpreadingController extends Controller
         // from marker_input where act_costing_id = '" . $request->cbows . "' and tgl_cutting = '$tgl_f' order by urutan_marker asc");
         $datano_marker = DB::select("select *,  concat(kode,' - ',color, ' - (',panel, ' - ',urutan_marker, ' )') tampil  from marker_input a
         left join (select id_marker from form_cut_input group by id_marker ) b on a.kode = b.id_marker
-        where act_costing_id = '" . $request->cbows . "' and b.id_marker is null and a.cancel = 'N' order by urutan_marker asc");
+        where act_costing_id = '" . $request->cbows . "' and ((a.gelar_qty_balance is null and b.id_marker is null) or a.gelar_qty_balance > 0) and a.cancel = 'N' order by urutan_marker asc");
         $html = "<option value=''>Pilih No Marker</option>";
 
         foreach ($datano_marker as $datanomarker) {
@@ -196,7 +196,7 @@ class SpreadingController extends Controller
             "txt_ws" => "required",
             "txt_cons_ws" => "required",
             "txt_cons_marker" => "required",
-            "txtid_marker" => "required"
+            "txtid_marker" => "required",
         ]);
 
         $qtyPlyMarkerModulus = intval($request['hitungmarker']) % intval($request['txtqty_ply_cut']);
@@ -205,9 +205,14 @@ class SpreadingController extends Controller
         $message = "";
 
         if ($request['tarik_sisa']) {
-            $request['hitungform'] = $request['hitungform'] - 1;
+            $request['hitungform'] = $request['hitungform'] > 1 ? $request['hitungform'] - 1 : $request['hitungform'];
         }
 
+        if ($request["tipe_form"] == "regular") {
+            $request["tipe_form"] = "normal";
+        }
+
+        $totalQtyPly = 0;
         for ($i = 1; $i <= intval($request['hitungform']); $i++) {
             $date = date('Y-m-d');
             $hari = substr($date, 8, 2);
@@ -217,24 +222,23 @@ class SpreadingController extends Controller
             $lastForm = FormCutInput::select("no_form")->whereRaw("no_form LIKE '".$hari."-".$bulan."%'")->orderBy("id", "desc")->first();
             $urutan =  $lastForm ? (str_replace($hari."-".$bulan."-", "", $lastForm->no_form) + $i) : $i;
 
-            $noForm = "$hari-$bulan-$urutan";
+            $no_form = "$hari-$bulan-$urutan";
 
             $qtyPly = $request['txtqty_ply_cut'];
 
-            if (intval($request['hitungform'] > 1)) {
-                if ($i == intval($request['hitungform'])) {
-                    if ($request['tarik_sisa']) {
-                        $qtyPly = $qtyPlyMarkerModulus > 0 ? $request['txtqty_ply_cut'] + $qtyPlyMarkerModulus : $request['txtqty_ply_cut'];
-                    } else {
+            if ($i == intval($request['hitungform'])) {
+                if ($request['tarik_sisa']) {
+                    $qtyPly = $qtyPlyMarkerModulus > 0 ? $request['txtqty_ply_cut'] + $qtyPlyMarkerModulus : $request['txtqty_ply_cut'];
+                } else {
+                    if (intval($request['hitungform'] > 1)) {
                         $qtyPly = $qtyPlyMarkerModulus > 0 ? $qtyPlyMarkerModulus : $request['txtqty_ply_cut'];
                     }
                 }
             }
 
-            $no_form = "$hari-$bulan-$urutan";
-
             array_push($formcutDetailData, [
                 "id_marker" => $request["txtid_marker"],
+                "tipe_form_cut" => $request["tipe_form"],
                 "no_form" => $no_form,
                 "tgl_form_cut" => $txttglcut,
                 "status" => "SPREADING",
@@ -246,10 +250,18 @@ class SpreadingController extends Controller
                 "updated_at" => $timestamp,
             ]);
 
+            $totalQtyPly += $qtyPly;
             $message .= "$no_form <br>";
         }
 
         $markerDetailStore = FormCutInput::insert($formcutDetailData);
+
+        if ($totalQtyPly > 0) {
+            $updateMarker = Marker::where("kode", $request["txtid_marker"])->
+                update([
+                    'gelar_qty_balance' => DB::raw('gelar_qty_balance - '.$totalQtyPly)
+                ]);
+        }
 
         return array(
             "status" => 200,

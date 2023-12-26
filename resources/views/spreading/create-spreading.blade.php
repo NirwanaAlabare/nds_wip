@@ -60,6 +60,12 @@
                                         <input type='number' class='form-control' id='jumlah_form' name='jumlah_form' oninput='customSum();' autocomplete='off'>
                                     </div>
                                 </div>
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label>Tipe Form</label>
+                                        <input type='text' class='form-control' id='tipe_form' name='tipe_form' autocomplete='off' readonly>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -108,7 +114,7 @@
                                     <div class="form-group">
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox" name="tarik_sisa" id="tarik_sisa" value="tarik">
-                                            <label>Tarik Sisa Form</label>
+                                            <label>Tarik Sisa Ply</label>
                                         </div>
                                     </div>
                                 </div>
@@ -371,12 +377,13 @@
                     document.getElementById('txt_po_marker').value = response.po_marker;
                     document.getElementById('txt_l_marker').value = response.lebar_marker;
                     document.getElementById('txt_unit_l_marker').value = response.unit_lebar_marker;
-                    document.getElementById('txt_qty_gelar').value = response.gelar_qty;
+                    document.getElementById('txt_qty_gelar').value = response.gelar_qty_balance;
                     document.getElementById('txt_ws').value = response.act_costing_ws;
                     document.getElementById('txt_cons_ws').value = response.cons_ws;
                     document.getElementById('txt_cons_marker').value = response.cons_marker;
-                    document.getElementById('hitungmarker').value = response.gelar_qty;
+                    document.getElementById('hitungmarker').value = response.gelar_qty_balance;
                     document.getElementById('txtid_marker').value = response.kode;
+                    document.getElementById('tipe_form').value = (response.tipe_marker).replace(' marker', "");
                 },
                 error: function(request, status, error) {
                     alert(request.responseText);

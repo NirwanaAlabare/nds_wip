@@ -83,7 +83,10 @@ class MarkerController extends Controller
                     marker_input_detail.so_det_id,
                     marker_input.panel,
                     SUM(marker_input_detail.cut_qty) total_cut_qty
-                ")->leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->where('marker_input.cancel', 'N')->groupBy("marker_input_detail.so_det_id", "marker_input.panel")->get();
+                ")->
+                leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->
+                where('marker_input.cancel', 'N')->
+                groupBy("marker_input_detail.so_det_id", "marker_input.panel")->get();
 
             return $markerDetail;
         }
@@ -250,6 +253,7 @@ class MarkerController extends Controller
                 'lebar_marker' => $validatedRequest['l_marker'],
                 'unit_lebar_marker' => $validatedRequest['l_unit'],
                 'gelar_qty' => $validatedRequest['gelar_marker_qty'],
+                'gelar_qty_balance' => $validatedRequest['gelar_marker_qty'],
                 'po_marker' => $validatedRequest['po'],
                 'urutan_marker' => $validatedRequest['no_urut_marker'],
                 'cons_marker' => $validatedRequest['cons_marker'],
@@ -336,11 +340,11 @@ class MarkerController extends Controller
 
             foreach ($data_marker_det as $item) :
                 $html_table .= "
-            <tr>
-            <td align='center' valign='center'>$item->size</td>
-            <td align='center' valign='center'>$item->ratio</td>
-            </tr>
- ";
+                    <tr>
+                        <td align='center' valign='center'>$item->size</td>
+                        <td align='center' valign='center'>$item->ratio</td>
+                    </tr>
+                ";
             endforeach;
 
 
@@ -348,17 +352,16 @@ class MarkerController extends Controller
 
             foreach ($data_marker_tracking as $track) :
                 $html_tracking .= "
-            <tr>
-            <td>$track->no_form</td>
-            <td>$track->tgl_form_cut</td>
-            <td>".($track->no_meja ? $track->no_meja : '-')."</td>
-            <td>".($track->waktu_mulai ? $track->waktu_mulai : '-')."</td>
-            <td>".($track->waktu_selesai ? $track->waktu_selesai : '-')."</td>
-            <td>$track->status</td>
-            </tr>
- ";
+                    <tr>
+                        <td>$track->no_form</td>
+                        <td>$track->tgl_form_cut</td>
+                        <td>".($track->no_meja ? $track->no_meja : '-')."</td>
+                        <td>".($track->waktu_mulai ? $track->waktu_mulai : '-')."</td>
+                        <td>".($track->waktu_selesai ? $track->waktu_selesai : '-')."</td>
+                        <td>$track->status</td>
+                    </tr>
+                ";
             endforeach;
-
 
             $html = "
 
@@ -530,8 +533,8 @@ class MarkerController extends Controller
                         <table class='table table-bordered table-striped'>
                             <thead>
                                 <tr>
+                                    <th>Tanggal Form</th>
                                     <th>No. Form</th>
-                                    <th>Tgl. Form</th>
                                     <th>No. Meja</th>
                                     <th>Waktu Mulai</th>
                                     <th>Waktu Selesai</th>

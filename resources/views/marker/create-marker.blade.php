@@ -242,7 +242,7 @@
         // Initial Window On Load Event
         $(document).ready(async function () {
             // Call Get Total Cut Qty ( set sum cut qty variable )
-            getTotalCutQty($("#ws_id").val(), $("#color").val());
+            getTotalCutQty($("#ws_id").val(), $("#color").val(), $("#panel").val());
 
             // Marker Type Default Value
             $("#tipe_marker").val("regular marker");
@@ -273,13 +273,14 @@
         })
 
         // Get & Set Total Cut Qty Based on Order WS and Order Color ( to know remaining cut qty )
-        async function getTotalCutQty(wsId, color) {
+        async function getTotalCutQty(wsId, color, panel) {
             sumCutQty = await $.ajax({
                 url: '{{ route("create-marker") }}',
                 type: 'get',
                 data: {
                     act_costing_id: wsId,
                     color: color,
+                    panel: panel,
                 },
                 dataType: 'json',
             });
@@ -394,7 +395,7 @@
         // Calculate Remaining Cut Qty
         function remainingCutQty(orderQty, soDetId) {
             // Get Total Cut Qty Based on Order WS, Order Color and Order Panel ( to know remaining cut qty )
-            let sumCutQtyData = sumCutQty.find(o => o.so_det_id == soDetId);
+            let sumCutQtyData = sumCutQty.find(o => o.so_det_id == soDetId && o.panel == $("#panel").val());
 
             // Calculate Remaining Cut Qty
             let remain = orderQty - (sumCutQtyData ? sumCutQtyData.total_cut_qty : 0);
@@ -712,7 +713,7 @@
                         })
 
                         // Call Get Total Cut Qty ( update sum cut qty variable )
-                        getTotalCutQty($("#ws_id").val(), $("#color").val());
+                        getTotalCutQty($("#ws_id").val(), $("#color").val(), $("#panel"));
 
                         // Reset Step ( back to step one )
                         resetStep();
