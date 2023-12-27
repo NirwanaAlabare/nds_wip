@@ -208,7 +208,7 @@ class SpreadingController extends Controller
             $request['hitungform'] = $request['hitungform'] > 1 ? $request['hitungform'] - 1 : $request['hitungform'];
         }
 
-        if ($request["tipe_form"] == "regular") {
+        if ($request["tipe_form"] == "regular" || $request["tipe_form"] == "bulk") {
             $request["tipe_form"] = "normal";
         }
 

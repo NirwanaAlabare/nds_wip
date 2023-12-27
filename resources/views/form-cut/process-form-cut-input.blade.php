@@ -456,10 +456,8 @@
                                         <div class="input-group">
                                             <input type="text" class="form-control form-control-sm border-input"
                                                 name="kode_barang" id="kode_barang">
-                                            <button class="btn btn-sm btn-success" type="button" id="get-button"
-                                                onclick="fetchScan()">Get</button>
-                                            <button class="btn btn-sm btn-primary" type="button" id="scan-button"
-                                                onclick="refreshScan()">Scan</button>
+                                            <button class="btn btn-sm btn-success" type="button" id="get-button" onclick="fetchScan()">Get</button>
+                                            <button class="btn btn-sm btn-primary" type="button" id="scan-button" onclick="refreshScan()">Scan</button>
                                         </div>
                                     </div>
                                 </div>
@@ -852,8 +850,7 @@
                                 </div>
                             </div>
                             <div class="col-md-12">
-                                <button type="button" class="btn btn-sb btn-sm btn-block my-3" id="stopLapButton"
-                                    onclick="stopTimeRecord()">Simpan</button>
+                                <button type="button" class="btn btn-sb btn-sm btn-block my-3" id="stopLapButton" onclick="stopTimeRecord()">Simpan</button>
                             </div>
                         </div>
                     </form>
@@ -2642,74 +2639,68 @@
             // -Initialize Scanner-
             async function initScan() {
                 if (document.getElementById("reader")) {
-                    if (scannerInitialized == false) {
-                        if (html5QrcodeScanner == null || (html5QrcodeScanner && (html5QrcodeScanner.getState() && html5QrcodeScanner.getState() != 2))) {
-                            const qrCodeSuccessCallback = (decodedText, decodedResult) => {
-                                    // handle the scanned code as you like, for example:
-                                console.log(`Code matched = ${decodedText}`, decodedResult);
+                    console.log(html5QrcodeScanner, html5QrcodeScanner.getState());
+                    if (html5QrcodeScanner == null || (html5QrcodeScanner && (html5QrcodeScanner.isScanning == false))) {
+                        const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+                            // handle the scanned code as you like, for example:
+                            console.log(`Code matched = ${decodedText}`, decodedResult);
 
-                                // store to input text
-                                let breakDecodedText = decodedText.split('-');
+                            // store to input text
+                            let breakDecodedText = decodedText.split('-');
 
-                                document.getElementById('kode_barang').value = breakDecodedText[0];
+                            document.getElementById('kode_barang').value = breakDecodedText[0];
 
-                                getScannedItem(breakDecodedText[0]);
+                            getScannedItem(breakDecodedText[0]);
 
-                                clearQrCodeScanner();
-                            };
-                            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+                            clearQrCodeScanner();
+                        };
+                        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
-                            // If you want to prefer front camera
-                            await html5QrcodeScanner.start({ facingMode: "environment" }, config, qrCodeSuccessCallback);
+                        // If you want to prefer front camera
+                        await html5QrcodeScanner.start({ facingMode: "environment" }, config, qrCodeSuccessCallback);
 
-                            scannerInitialized = true;
+                        // function onScanSuccess(decodedText, decodedResult) {
+                        //     // handle the scanned code as you like, for example:
+                        //     console.log(`Code matched = ${decodedText}`, decodedResult);
 
-                            // function onScanSuccess(decodedText, decodedResult) {
-                            //     // handle the scanned code as you like, for example:
-                            //     console.log(`Code matched = ${decodedText}`, decodedResult);
+                        //     // store to input text
+                        //     let breakDecodedText = decodedText.split('-');
 
-                            //     // store to input text
-                            //     let breakDecodedText = decodedText.split('-');
+                        //     document.getElementById('kode_barang').value = breakDecodedText[0];
 
-                            //     document.getElementById('kode_barang').value = breakDecodedText[0];
+                        //     getScannedItem(breakDecodedText[0]);
 
-                            //     getScannedItem(breakDecodedText[0]);
+                        //     clearQrCodeScanner();
+                        // }
 
-                            //     clearQrCodeScanner();
-                            // }
+                        // function onScanFailure(error) {
+                        //     // handle scan failure, usually better to ignore and keep scanning.
+                        //     // for example:
+                        //     console.warn(`Code scan error = ${error}`);
+                        // }
 
-                            // function onScanFailure(error) {
-                            //     // handle scan failure, usually better to ignore and keep scanning.
-                            //     // for example:
-                            //     console.warn(`Code scan error = ${error}`);
-                            // }
+                        // html5QrcodeScanner = new Html5QrcodeScanner(
+                        //     "reader",
+                        //     {
+                        //         fps: 10,
+                        //         qrbox: {
+                        //             width: 250,
+                        //             height: 250
+                        //         }
+                        //     }
+                        // );
 
-                            // html5QrcodeScanner = new Html5QrcodeScanner(
-                            //     "reader",
-                            //     {
-                            //         fps: 10,
-                            //         qrbox: {
-                            //             width: 250,
-                            //             height: 250
-                            //         }
-                            //     }
-                            // );
-
-                            // html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-                            // html5QrCode.start({ facingMode: { exact: "environment"}}, config, onScanSuccess, onScanFailure);
-                        }
+                        // html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+                        // html5QrCode.start({ facingMode: { exact: "environment"}}, config, onScanSuccess, onScanFailure);
                     }
                 }
             }
 
             async function clearQrCodeScanner() {
-                if (scannerInitialized) {
-                    if (html5QrcodeScanner && (html5QrcodeScanner.getState() && html5QrcodeScanner.getState() != 1)) {
-                        await html5QrcodeScanner.stop();
-                        await html5QrcodeScanner.clear();
-                    }
-
-                    scannerInitialized = false;
+                console.log(html5QrcodeScanner, html5QrcodeScanner.getState());
+                if (html5QrcodeScanner && (html5QrcodeScanner.isScanning)) {
+                    await html5QrcodeScanner.stop();
+                    await html5QrcodeScanner.clear();
                 }
             }
 
@@ -3062,31 +3053,33 @@
                 if ($("#status_sambungan").val() == "extension") {
                     pauseTimeRecordButtons();
 
-                    if (await stopTimeRecord()) {
-                        summarySeconds += totalSeconds;
-                        totalSeconds = 0;
-                        lap++;
+                    summarySeconds += totalSeconds;
+                    totalSeconds = 0;
+                    lap++;
 
-                        averageSeconds = (parseFloat(summarySeconds) / parseFloat(lap)).round(0);
+                    averageSeconds = (parseFloat(summarySeconds) / parseFloat(lap)).round(0);
 
-                        $("#current_lembar_gelaran").val(lap).trigger('change');
-                        $("#current_average_time").val((pad(parseInt(averageSeconds / 60))) + ':' + (pad(averageSeconds % 60)))
+                    $("#current_lembar_gelaran").val(lap).trigger('change');
+                    $("#current_average_time").val((pad(parseInt(averageSeconds / 60))) + ':' + (pad(averageSeconds % 60)))
 
-                        let tr = document.createElement('tr');
-                        let td1 = document.createElement('td');
-                        let td2 = document.createElement('td');
-                        let td3 = document.createElement('td');
-                        td1.innerHTML = lap;
-                        td2.innerHTML = minutes.value + ':' + seconds.value;
-                        td3.classList.add('d-none');
-                        td3.innerHTML = `<input type='hidden' name="time_record[` + lap + `]" value="` + minutes.value + ':' +seconds.value + `" />`;
-                        tr.appendChild(td1);
-                        tr.appendChild(td2);
-                        tr.appendChild(td3);
+                    let tr = document.createElement('tr');
+                    let td1 = document.createElement('td');
+                    let td2 = document.createElement('td');
+                    let td3 = document.createElement('td');
+                    td1.innerHTML = lap;
+                    td2.innerHTML = minutes.value + ':' + seconds.value;
+                    td3.classList.add('d-none');
+                    td3.innerHTML = `<input type='hidden' name="time_record[` + lap + `]" value="` + minutes.value + ':' +seconds.value + `" />`;
+                    tr.appendChild(td1);
+                    tr.appendChild(td2);
+                    tr.appendChild(td3);
 
-                        timeRecordTableTbody.prepend(tr);
+                    timeRecordTableTbody.prepend(tr);
 
-                        stopLapButton.disabled = false;
+                    stopLapButton.disabled = false;
+
+                    if (!(await stopTimeRecord())) {
+                        resetTimeRecord();
                     }
                 } else {
                     storeThisTimeRecord();

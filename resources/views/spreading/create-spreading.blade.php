@@ -382,7 +382,7 @@
                     document.getElementById('txt_cons_marker').value = response.cons_marker;
                     document.getElementById('hitungmarker').value = response.gelar_qty_balance ? response.gelar_qty_balance : response.gelar_qty;
                     document.getElementById('txtid_marker').value = response.kode;
-                    document.getElementById('tipe_form').value = capitalizeFirstLetter((response.tipe_marker).replace(' marker', ""));
+                    document.getElementById('tipe_form').value = response.tipe_marker == "bulk marker" && response.status_marker == "active" ? "Pilot to Bulk" : capitalizeFirstLetter((response.tipe_marker).replace(' marker', ""));
                 },
                 error: function(request, status, error) {
                     alert(request.responseText);

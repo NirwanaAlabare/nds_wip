@@ -578,7 +578,7 @@ class MarkerController extends Controller
     public function show_gramasi(Request $request)
     {
         $data_gramasi = DB::select("
-        select id,gramasi from marker_input
+        select id,gramasi,tipe_marker,status_marker from marker_input
         where id = '$request->id_c'");
         return json_encode($data_gramasi[0]);
     }
@@ -592,8 +592,19 @@ class MarkerController extends Controller
 
     public function update_marker(Request $request)
     {
+        $updateStatus = "";
+        if ($request->pilot_status) {
+            $updateStatus .= ", status_marker = '".$request->pilot_status."'";
+
+            if ($request->pilot_status == "active") {
+                $updateStatus .= ", tipe_marker = 'bulk marker'";
+            }
+        }
+
         $update_gramasi = DB::update("
-        update marker_input set gramasi = '$request->txt_gramasi'
+        update marker_input set
+        gramasi = '$request->txt_gramasi'
+        ".$updateStatus."
         where id = '$request->id_c'");
 
         if ($update_gramasi) {

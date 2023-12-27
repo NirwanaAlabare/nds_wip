@@ -44,6 +44,31 @@
                                     <input type='hidden' class='form-control' id='id_c' name='id_c' value = ''>
                                 </div>
                             </div>
+                            <div class='col-sm-12' id="marker_pilot">
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Marker Pilot</small></label>
+                                    <div class="d-flex gap-3 ms-1">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="pilot_status" id="idle" value="idle">
+                                            <label class="form-check-label" for="idle">
+                                                <small>Pilot</small>
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="pilot_status" id="active" value="active">
+                                            <label class="form-check-label" for="active">
+                                                <small>Pilot Sukses</small>
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="pilot_status" id="not_active" value="not active">
+                                            <label class="form-check-label" for="not_active">
+                                                <small>Pilot Gagal</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -290,6 +315,18 @@
                 success: function(response) {
                     document.getElementById('txt_gramasi').value = response.gramasi;
                     document.getElementById('id_c').value = response.id;
+
+                    if (response.tipe_marker == "pilot marker") {
+                        document.getElementById('marker_pilot').classList.remove('d-none');
+
+                        if (response.status_marker) {
+                            document.getElementById(response.status_marker).checked = true;
+                        } else {
+                            document.getElementById("idle").checked = true;
+                        }
+                    } else {
+                        document.getElementById('marker_pilot').classList.add('d-none');
+                    }
                 },
                 error: function(request, status, error) {
                     alert(request.responseText);

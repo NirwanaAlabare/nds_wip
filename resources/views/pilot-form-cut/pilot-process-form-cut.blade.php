@@ -2651,74 +2651,66 @@
             // -Initialize Scanner-
             async function initScan() {
                 if (document.getElementById("reader")) {
-                    if (scannerInitialized == false) {
-                        if (html5QrcodeScanner == null || (html5QrcodeScanner && (html5QrcodeScanner.getState() && html5QrcodeScanner.getState() != 2))) {
-                            const qrCodeSuccessCallback = (decodedText, decodedResult) => {
-                                    // handle the scanned code as you like, for example:
-                                console.log(`Code matched = ${decodedText}`, decodedResult);
+                    if (html5QrcodeScanner == null || (html5QrcodeScanner && (html5QrcodeScanner.isScanning == false))) {
+                        const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+                            // handle the scanned code as you like, for example:
+                            console.log(`Code matched = ${decodedText}`, decodedResult);
 
-                                // store to input text
-                                let breakDecodedText = decodedText.split('-');
+                            // store to input text
+                            let breakDecodedText = decodedText.split('-');
 
-                                document.getElementById('kode_barang').value = breakDecodedText[0];
+                            document.getElementById('kode_barang').value = breakDecodedText[0];
 
-                                getScannedItem(breakDecodedText[0]);
+                            getScannedItem(breakDecodedText[0]);
 
-                                clearQrCodeScanner();
-                            };
-                            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+                            clearQrCodeScanner();
+                        };
+                        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
-                            // If you want to prefer front camera
-                            await html5QrcodeScanner.start({ facingMode: "environment" }, config, qrCodeSuccessCallback);
+                        // If you want to prefer front camera
+                        await html5QrcodeScanner.start({ facingMode: "environment" }, config, qrCodeSuccessCallback);
 
-                            scannerInitialized = true;
+                        // function onScanSuccess(decodedText, decodedResult) {
+                        //     // handle the scanned code as you like, for example:
+                        //     console.log(`Code matched = ${decodedText}`, decodedResult);
 
-                            // function onScanSuccess(decodedText, decodedResult) {
-                            //     // handle the scanned code as you like, for example:
-                            //     console.log(`Code matched = ${decodedText}`, decodedResult);
+                        //     // store to input text
+                        //     let breakDecodedText = decodedText.split('-');
 
-                            //     // store to input text
-                            //     let breakDecodedText = decodedText.split('-');
+                        //     document.getElementById('kode_barang').value = breakDecodedText[0];
 
-                            //     document.getElementById('kode_barang').value = breakDecodedText[0];
+                        //     getScannedItem(breakDecodedText[0]);
 
-                            //     getScannedItem(breakDecodedText[0]);
+                        //     clearQrCodeScanner();
+                        // }
 
-                            //     clearQrCodeScanner();
-                            // }
+                        // function onScanFailure(error) {
+                        //     // handle scan failure, usually better to ignore and keep scanning.
+                        //     // for example:
+                        //     console.warn(`Code scan error = ${error}`);
+                        // }
 
-                            // function onScanFailure(error) {
-                            //     // handle scan failure, usually better to ignore and keep scanning.
-                            //     // for example:
-                            //     console.warn(`Code scan error = ${error}`);
-                            // }
+                        // html5QrcodeScanner = new Html5QrcodeScanner(
+                        //     "reader",
+                        //     {
+                        //         fps: 10,
+                        //         qrbox: {
+                        //             width: 250,
+                        //             height: 250
+                        //         }
+                        //     }
+                        // );
 
-                            // html5QrcodeScanner = new Html5QrcodeScanner(
-                            //     "reader",
-                            //     {
-                            //         fps: 10,
-                            //         qrbox: {
-                            //             width: 250,
-                            //             height: 250
-                            //         }
-                            //     }
-                            // );
-
-                            // html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-                            // html5QrCode.start({ facingMode: { exact: "environment"}}, config, onScanSuccess, onScanFailure);
-                        }
+                        // html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+                        // html5QrCode.start({ facingMode: { exact: "environment"}}, config, onScanSuccess, onScanFailure);
                     }
                 }
             }
 
             async function clearQrCodeScanner() {
-                if (scannerInitialized) {
-                    if (html5QrcodeScanner && (html5QrcodeScanner.getState() && html5QrcodeScanner.getState() != 1)) {
-                        await html5QrcodeScanner.stop();
-                        await html5QrcodeScanner.clear();
-                    }
-
-                    scannerInitialized = false;
+                if (html5QrcodeScanner && (html5QrcodeScanner.isScanning)) {
+                    await html5QrcodeScanner.stop();
+                    await html5QrcodeScanner.clear();
                 }
             }
 
