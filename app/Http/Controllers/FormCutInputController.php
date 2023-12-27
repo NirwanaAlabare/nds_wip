@@ -481,8 +481,8 @@ class FormCutInputController extends Controller
             $status = 'need extension';
         }
 
-        $beforeData = FormCutInputDetail::select('group', 'group_stocker')->where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->orderBy('id', 'desc')->first();
-        $groupStocker = $beforeData ? ($beforeData->group  == $validatedRequest['current_group'] ? $beforeData->group_stocker : $beforeData->group_stocker + 1) : 1;
+        $beforeData = FormCutInputDetail::select('group_roll', 'group_stocker')->where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->orderBy('id', 'desc')->first();
+        $groupStocker = $beforeData ? ($beforeData->group_roll  == $validatedRequest['current_group'] ? $beforeData->group_stocker : $beforeData->group_stocker + 1) : 1;
         $itemQty = ($validatedRequest["current_unit"] != "KGM" ? floatval($validatedRequest['current_qty']) : floatval($validatedRequest['current_qty_real']));
         $itemUnit = ($validatedRequest["current_unit"] != "KGM" ? "METER" : $validatedRequest['current_unit']);
 
@@ -497,7 +497,7 @@ class FormCutInputController extends Controller
                     "id_item" => $validatedRequest['current_id_item'],
                     "color_act" => $validatedRequest['color_act'],
                     "detail_item" => $validatedRequest['detail_item'],
-                    "group" => $validatedRequest['current_group'],
+                    "group_roll" => $validatedRequest['current_group'],
                     "lot" => $request["current_lot"],
                     "roll" => $validatedRequest['current_roll'],
                     "qty" => $itemQty,
@@ -540,7 +540,7 @@ class FormCutInputController extends Controller
                 );
 
                 $storeTimeRecordSummaryExt = FormCutInputDetail::create([
-                    "group" => $validatedRequest['current_group'],
+                    "group_roll" => $validatedRequest['current_group'],
                     "no_form_cut_input" => $validatedRequest['no_form_cut_input'],
                     "id_sambungan" => $storeTimeRecordSummary->id,
                     "status" => "extension",
@@ -593,8 +593,6 @@ class FormCutInputController extends Controller
     {
         $lap = $request->lap;
 
-        $beforeData = FormCutInputDetail::select('group', 'group_stocker')->where('no_form_cut_input', $request['no_form_cut_input'])->orderBy('id', 'desc')->first();
-        $groupStocker = $beforeData ? ($beforeData->group  == $request['current_group'] ? $beforeData->group_stocker : $beforeData->group_stocker + 1) : 1;
         $itemQty = ($request["current_unit"] != "KGM" ? floatval($request['current_qty']) : floatval($request['current_qty_real']));
         $itemUnit = ($request["current_unit"] != "KGM" ? "METER" : $request['current_unit']);
 
@@ -609,7 +607,7 @@ class FormCutInputController extends Controller
                     "id_item" => $request->current_id_item,
                     "color_act" => $request->color_act,
                     "detail_item" => $request->detail_item,
-                    "group" => $request->current_group,
+                    "group_roll" => $request->current_group,
                     "lot" => $request->current_lot,
                     "roll" => $request->current_roll,
                     "qty" => $itemQty,
@@ -629,7 +627,6 @@ class FormCutInputController extends Controller
                     "remark" => $request->current_remark,
                     "status" => "not complete",
                     "metode" => $request->metode ? $request->metode : "scan",
-                    "group_stocker" => $groupStocker,
                 ]
             );
 
@@ -700,8 +697,8 @@ class FormCutInputController extends Controller
             "current_sambungan" => "required"
         ]);
 
-        $beforeData = FormCutInputDetail::select('group', 'group_stocker')->where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->orderBy('id', 'desc')->first();
-        $groupStocker = $beforeData ? ($beforeData->group  == $validatedRequest['current_group'] ? $beforeData->group_stocker : $beforeData->group_stocker + 1) : 1;
+        $beforeData = FormCutInputDetail::select('group_roll', 'group_stocker')->where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->orderBy('id', 'desc')->first();
+        $groupStocker = $beforeData ? ($beforeData->group_roll  == $validatedRequest['current_group'] ? $beforeData->group_stocker : $beforeData->group_stocker + 1) : 1;
         $itemQty = ($validatedRequest["current_unit"] != "KGM" ? floatval($validatedRequest['current_qty']) : floatval($validatedRequest['current_qty_real']));
         $itemUnit = ($validatedRequest["current_unit"] != "KGM" ? "METER" : $validatedRequest['current_unit']);
 
@@ -712,7 +709,7 @@ class FormCutInputController extends Controller
                 "id_item" => $validatedRequest['current_id_item'],
                 "color_act" => $validatedRequest['color_act'],
                 "detail_item" => $validatedRequest['detail_item'],
-                "group" => $validatedRequest['current_group'],
+                "group_roll" => $validatedRequest['current_group'],
                 "lot" => $request['current_lot'],
                 "roll" => $validatedRequest['current_roll'],
                 "qty" => $itemQty,
@@ -770,7 +767,7 @@ class FormCutInputController extends Controller
                         "id_item" => $validatedRequest['current_id_item'],
                         "color_act" => $validatedRequest['color_act'],
                         "detail_item" => $validatedRequest['detail_item'],
-                        "group" => $validatedRequest['current_group'],
+                        "group_roll" => $validatedRequest['current_group'],
                         "lot" => $request['current_lot'],
                         "roll" => $validatedRequest['current_roll'],
                         "qty" => $itemRemain,
