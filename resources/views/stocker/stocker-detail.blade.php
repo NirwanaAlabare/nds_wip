@@ -129,7 +129,7 @@
                                 $currentTotal = 0;
                             @endphp
                             @foreach ($dataSpreading->formCutInputDetails as $detail)
-                                @if (!$detail->group_stocker)
+                                {{-- @if (!$detail->group_stocker)
                                     @if ($loop->first)
                                         @php
                                             $currentGroup = $detail->group;
@@ -271,7 +271,78 @@
                                             @endphp
                                         @endif
                                     @endif
-                                @endif
+                                @endif --}}
+
+                                @if ($loop->first)
+                                        @php
+                                            $currentGroup = $detail->group;
+                                            $currentGroupStocker = $detail->group_stocker;
+                                        @endphp
+                                    @endif
+
+                                    @if ($detail->group != $currentGroup)
+                                        <div class="d-flex gap-3">
+                                            <div class="mb-3">
+                                                <label><small>Group</small></label>
+                                                <input type="text" class="form-control form-control-sm" value="{{ $currentGroup }}" readonly>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label><small>Qty</small></label>
+                                                <input type="text" class="form-control form-control-sm" value="{{ $currentTotal }}" readonly>
+                                            </div>
+                                        </div>
+
+                                        @include('stocker.stocker-detail-part',['dataPartDetail' => $dataPartDetail, 'group' => $currentGroup, 'groupStocker' => $currentGroupStocker, 'qtyPly' => $currentTotal, 'index' => $index])
+                                        @php
+                                            $index += $dataRatio->count() * $dataPartDetail->count();
+                                        @endphp
+
+                                        @php
+                                            $currentGroup = $detail->group;
+                                            $currentGroupStocker = $detail->group_stocker;
+                                            $currentTotal = $detail->lembar_gelaran;
+                                        @endphp
+
+                                        @if ($loop->last)
+                                            <div class="d-flex gap-3">
+                                                <div class="mb-3">
+                                                    <label><small>Group</small></label>
+                                                    <input type="text" class="form-control form-control-sm" value="{{ $currentGroup }}" readonly>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label><small>Qty</small></label>
+                                                    <input type="text" class="form-control form-control-sm" value="{{ $currentTotal }}" readonly>
+                                                </div>
+                                            </div>
+
+                                            @include('stocker.stocker-detail-part',['dataPartDetail' => $dataPartDetail, 'group' => $currentGroup, 'groupStocker' => $currentGroupStocker, 'qtyPly' => $currentTotal, 'index' => $index])
+                                            @php
+                                                $index += $dataRatio->count() * $dataPartDetail->count();
+                                            @endphp
+                                        @endif
+                                    @else
+                                        @php
+                                            $currentTotal += $detail->lembar_gelaran;
+                                        @endphp
+
+                                        @if ($loop->last)
+                                            <div class="d-flex gap-3">
+                                                <div class="mb-3">
+                                                    <label><small>Group</small></label>
+                                                    <input type="text" class="form-control form-control-sm" value="{{ $currentGroup }}" readonly>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label><small>Qty</small></label>
+                                                    <input type="text" class="form-control form-control-sm" value="{{ $currentTotal }}" readonly>
+                                                </div>
+                                            </div>
+
+                                            @include('stocker.stocker-detail-part',['dataPartDetail' => $dataPartDetail, 'group' => $currentGroup, 'groupStocker' => $currentGroupStocker, 'qtyPly' => $currentTotal, 'index' => $index])
+                                            @php
+                                                $index += $dataRatio->count() * $dataPartDetail->count();
+                                            @endphp
+                                        @endif
+                                    @endif
                             @endforeach
                         </div>
                     </div>
@@ -373,6 +444,22 @@
             ordering: false,
             paging: false,
         });
+
+        function rearrangeGroup(noForm) {
+            $.ajax({
+                url: '{{ route('rearrange-group') }}',
+                type: 'post',
+                data: {
+                    no_form : noForm
+                },
+                success: function(res) {
+                    console.log("successs", res);
+                },
+                error: function(jqXHR) {
+                    console.log("error", jqXHR);
+                }
+            });
+        }
 
         function printStocker(index) {
             let stockerForm = new FormData(document.getElementById("stocker-form"));
