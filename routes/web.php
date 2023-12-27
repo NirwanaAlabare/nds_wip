@@ -278,6 +278,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/print-stocker/{index?}', 'printStocker')->name('print-stocker');
         Route::post('/print-stocker-all-size/{partDetailId?}', 'printStockerAllSize')->name('print-stocker-all-size');
         Route::post('/print-numbering/{index?}', 'printNumbering')->name('print-numbering');
+        Route::post('/rearrange-group', 'rearrangeGroup')->name('rearrange-group');
 
         Route::put('/count-stocker-update', 'countStockerUpdate')->name('count-stocker-update');
     });
