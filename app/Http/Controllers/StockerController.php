@@ -250,8 +250,8 @@ class StockerController extends Controller
         $currentGroup = "";
         $groupNumber = 0;
         foreach ($formCutDetails as $formCutDetail) {
-            if ($currentGroup != $formCutDetail->group) {
-                $currentGroup = $formCutDetail->group;
+            if ($currentGroup != $formCutDetail->group_roll) {
+                $currentGroup = $formCutDetail->group_roll;
                 $groupNumber += 1;
             }
 
