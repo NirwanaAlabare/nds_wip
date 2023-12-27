@@ -328,7 +328,7 @@ class MarkerController extends Controller
         u.name no_meja,
         DATE_FORMAT(waktu_mulai, '%d-%m-%Y %T') waktu_mulai,
         DATE_FORMAT(waktu_selesai, '%d-%m-%Y %T') waktu_selesai,
-        status
+        form_cut_input.status
         from form_cut_input a
         inner join marker_input b on  a.id_marker = b.kode
         left join users u on a.no_meja = u.id
@@ -353,8 +353,8 @@ class MarkerController extends Controller
             foreach ($data_marker_tracking as $track) :
                 $html_tracking .= "
                     <tr>
-                        <td>$track->no_form</td>
                         <td>$track->tgl_form_cut</td>
+                        <td>$track->no_form</td>
                         <td>".($track->no_meja ? $track->no_meja : '-')."</td>
                         <td>".($track->waktu_mulai ? $track->waktu_mulai : '-')."</td>
                         <td>".($track->waktu_selesai ? $track->waktu_selesai : '-')."</td>
