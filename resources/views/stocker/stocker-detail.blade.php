@@ -128,17 +128,18 @@
                                 $currentGroup = "";
                                 $currentGroupStocker = 0;
                                 $currentTotal = 0;
+
                             @endphp
                             @foreach ($dataSpreading->formCutInputDetails as $detail)
                                 @if (!$detail->group_stocker)
                                     @if ($loop->first)
                                         @php
-                                            $currentGroup = $detail->group;
+                                            $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
                                         @endphp
                                     @endif
 
-                                    @if ($detail->group != $currentGroup)
+                                    @if ($detail->group_roll != $currentGroup)
                                         <div class="d-flex gap-3">
                                             <div class="mb-3">
                                                 <label><small>Group</small></label>
@@ -156,7 +157,7 @@
                                         @endphp
 
                                         @php
-                                            $currentGroup = $detail->group;
+                                            $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
                                             $currentTotal = $detail->lembar_gelaran;
                                         @endphp
@@ -204,7 +205,7 @@
                                 @else
                                     @if ($loop->first)
                                         @php
-                                            $currentGroup = $detail->group;
+                                            $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
                                         @endphp
                                     @endif
@@ -227,7 +228,7 @@
                                         @endphp
 
                                         @php
-                                            $currentGroup = $detail->group;
+                                            $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
                                             $currentTotal = $detail->lembar_gelaran;
                                         @endphp
