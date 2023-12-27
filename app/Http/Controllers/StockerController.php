@@ -45,45 +45,55 @@ class StockerController extends Controller
                     part_form.kode kode_part_form,
                     part.kode kode_part,
                     GROUP_CONCAT(DISTINCT master_part.nama_part) nama_part
-                ")->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->leftJoin("part", "part.id", "=", "part_form.part_id")->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->whereRaw("part_form.id is not null")->groupBy("form_cut_input.id");
+                ")->
+                leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
+                leftJoin("part", "part.id", "=", "part_form.part_id")->
+                leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
+                leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+                leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+                leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
+                leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->
+                leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
+                whereRaw("part_form.id is not null")->
+                groupBy("form_cut_input.id");
 
             return Datatables::of($formCutInputs)->filter(function ($query) {
-                if (request()->has('dateFrom') && request('dateFrom') != null && request('dateFrom') != "") {
-                    $query->where('form_cut_input.tgl_form_cut', '>=', request('dateFrom'));
-                }
+                    if (request()->has('dateFrom') && request('dateFrom') != null && request('dateFrom') != "") {
+                        $query->where('form_cut_input.tgl_form_cut', '>=', request('dateFrom'));
+                    }
 
-                if (request()->has('dateTo') && request('dateTo') != null && request('dateTo') != "") {
-                    $query->where('form_cut_input.tgl_form_cut', '<=', request('dateTo'));
-                }
-            }, true)->filterColumn('id_marker', function ($query, $keyword) {
-                $query->whereRaw("LOWER(form_cut_input.id_marker) LIKE LOWER('%" . $keyword . "%')");
-            })->filterColumn('no_form', function ($query, $keyword) {
-                $query->whereRaw("LOWER(form_cut_input.no_form) LIKE LOWER('%" . $keyword . "%')");
-            })->filterColumn('nama_meja', function ($query, $keyword) {
-                $query->whereRaw("LOWER(users.name) LIKE LOWER('%" . $keyword . "%')");
-            })->filterColumn('act_costing_ws', function ($query, $keyword) {
-                $query->whereRaw("LOWER(marker_input.act_costing_ws) LIKE LOWER('%" . $keyword . "%')");
-            })->filterColumn('buyer', function ($query, $keyword) {
-                $query->whereRaw("LOWER(marker_input.buyer) LIKE LOWER('%" . $keyword . "%')");
-            })->filterColumn('style', function ($query, $keyword) {
-                $query->whereRaw("LOWER(marker_input.style) LIKE LOWER('%" . $keyword . "%')");
-            })->filterColumn('color', function ($query, $keyword) {
-                $query->whereRaw("LOWER(marker_input.color) LIKE LOWER('%" . $keyword . "%')");
-            })->filterColumn('panel', function ($query, $keyword) {
-                $query->whereRaw("LOWER(marker_input.panel) LIKE LOWER('%" . $keyword . "%')");
-            })->filterColumn('kode_part_form', function ($query, $keyword) {
-                $query->whereRaw("LOWER(part_form.kode) LIKE LOWER('%" . $keyword . "%')");
-            })->filterColumn('kode_part', function ($query, $keyword) {
-                $query->whereRaw("LOWER(part.kode) LIKE LOWER('%" . $keyword . "%')");
-            })->filterColumn('nama_part', function ($query, $keyword) {
-                $query->whereRaw("LOWER(master_part.nama_part) LIKE LOWER('%" . $keyword . "%')");
-            })->filterColumn('no_cut', function ($query, $keyword) {
-                $query->whereRaw("LOWER(form_cut_input.no_cut) LIKE LOWER('%" . $keyword . "%')");
-            })->filterColumn('total_lembar', function ($query, $keyword) {
-                $query->whereRaw("LOWER(form_cut_input.total_lembar) LIKE LOWER('%" . $keyword . "%')");
-            })->order(function ($query) {
-                $query->orderBy('marker_input.act_costing_ws', 'asc')->orderBy('form_cut_input.no_cut', 'asc');
-            })->toJson();
+                    if (request()->has('dateTo') && request('dateTo') != null && request('dateTo') != "") {
+                        $query->where('form_cut_input.tgl_form_cut', '<=', request('dateTo'));
+                    }
+                }, true)->filterColumn('id_marker', function ($query, $keyword) {
+                    $query->whereRaw("LOWER(form_cut_input.id_marker) LIKE LOWER('%" . $keyword . "%')");
+                })->filterColumn('no_form', function ($query, $keyword) {
+                    $query->whereRaw("LOWER(form_cut_input.no_form) LIKE LOWER('%" . $keyword . "%')");
+                })->filterColumn('nama_meja', function ($query, $keyword) {
+                    $query->whereRaw("LOWER(users.name) LIKE LOWER('%" . $keyword . "%')");
+                })->filterColumn('act_costing_ws', function ($query, $keyword) {
+                    $query->whereRaw("LOWER(marker_input.act_costing_ws) LIKE LOWER('%" . $keyword . "%')");
+                })->filterColumn('buyer', function ($query, $keyword) {
+                    $query->whereRaw("LOWER(marker_input.buyer) LIKE LOWER('%" . $keyword . "%')");
+                })->filterColumn('style', function ($query, $keyword) {
+                    $query->whereRaw("LOWER(marker_input.style) LIKE LOWER('%" . $keyword . "%')");
+                })->filterColumn('color', function ($query, $keyword) {
+                    $query->whereRaw("LOWER(marker_input.color) LIKE LOWER('%" . $keyword . "%')");
+                })->filterColumn('panel', function ($query, $keyword) {
+                    $query->whereRaw("LOWER(marker_input.panel) LIKE LOWER('%" . $keyword . "%')");
+                })->filterColumn('kode_part_form', function ($query, $keyword) {
+                    $query->whereRaw("LOWER(part_form.kode) LIKE LOWER('%" . $keyword . "%')");
+                })->filterColumn('kode_part', function ($query, $keyword) {
+                    $query->whereRaw("LOWER(part.kode) LIKE LOWER('%" . $keyword . "%')");
+                })->filterColumn('nama_part', function ($query, $keyword) {
+                    $query->whereRaw("LOWER(master_part.nama_part) LIKE LOWER('%" . $keyword . "%')");
+                })->filterColumn('no_cut', function ($query, $keyword) {
+                    $query->whereRaw("LOWER(form_cut_input.no_cut) LIKE LOWER('%" . $keyword . "%')");
+                })->filterColumn('total_lembar', function ($query, $keyword) {
+                    $query->whereRaw("LOWER(form_cut_input.total_lembar) LIKE LOWER('%" . $keyword . "%')");
+                })->order(function ($query) {
+                    $query->orderBy('marker_input.act_costing_ws', 'asc')->orderBy('form_cut_input.no_cut', 'asc');
+                })->toJson();
         }
 
         return view("stocker.stocker", ["page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "stocker"]);
@@ -232,6 +242,24 @@ class StockerController extends Controller
     public function destroy(Stocker $stocker)
     {
         //
+    }
+
+    public function rearrangeGroup(Request $request) {
+        $formCutDetails = FormCutInputDetail::where("no_form_cut_input", $request['no_form'])->orderBy("id", "asc")->get();
+
+        $currentGroup = "";
+        $groupNumber = 0;
+        foreach ($formCutDetails as $formCutDetail) {
+            if ($currentGroup != $formCutDetail->group) {
+                $currentGroup = $formCutDetail->group;
+                $groupNumber += 1;
+            }
+
+            $formCutDetail->group = $groupNumber;
+            $formCutDetail->save();
+        }
+
+        return $formCutDetails;
     }
 
     public function countStockerUpdate(Request $request)
