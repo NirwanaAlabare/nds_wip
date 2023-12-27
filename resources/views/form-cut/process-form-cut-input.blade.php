@@ -1345,7 +1345,7 @@
                 if ($("#status_sambungan").val() != "extension") {
                     // Not an Extension :
                     return $.ajax({
-                        url: '{{ route('store-time-manual-form-cut') }}',
+                        url: '{{ route('store-time-form-cut-input') }}',
                         type: 'post',
                         dataType: 'json',
                         data: dataObj,
@@ -1402,7 +1402,7 @@
                     // An Extension :
 
                     return $.ajax({
-                        url: '{{ route('store-time-ext-manual-form-cut') }}',
+                        url: '{{ route('store-time-ext-form-cut-input') }}',
                         type: 'post',
                         dataType: 'json',
                         data: dataObj,
@@ -2388,7 +2388,7 @@
                 data.detail_item ? document.getElementById("detail_item").value = data.detail_item : '';
                 data.color_act ? document.getElementById("color_act").value = data.color_act : '';
                 data.id_roll ? document.getElementById("current_id_roll").value = data.id_roll : '';
-                data.group ? document.getElementById("current_group").value = data.group : '';
+                data.group_roll ? document.getElementById("current_group").value = data.group_roll : '';
                 data.id_item ? document.getElementById("current_id_item").value = data.id_item : '';
                 data.lot ? document.getElementById("current_lot").value = data.lot : '';
                 data.roll ? document.getElementById("current_roll").value = data.roll : '';
@@ -2876,7 +2876,7 @@
                 let td20 = document.createElement('td');
                 let td21 = document.createElement('td');
                 td1.innerHTML = totalScannedItem + 1;
-                td2.innerHTML = data.group ? data.group : '-';
+                td2.innerHTML = data.group_roll ? data.group_roll : '-';
                 td3.innerHTML = data.id_roll ? data.id_roll : '-';
                 td4.innerHTML = data.id_item ? data.id_item : '-';
                 td5.innerHTML = data.lot ? data.lot : '-';
@@ -3059,38 +3059,64 @@
 
             // -Next Lap Time Record-
             async function addNewTimeRecord(data = null) {
-                pauseTimeRecordButtons();
-
-                summarySeconds += totalSeconds;
-                totalSeconds = 0;
-                lap++;
-
-                averageSeconds = (parseFloat(summarySeconds) / parseFloat(lap)).round(0);
-
-                $("#current_lembar_gelaran").val(lap).trigger('change');
-                $("#current_average_time").val((pad(parseInt(averageSeconds / 60))) + ':' + (pad(
-                    averageSeconds % 60)))
-
-                let tr = document.createElement('tr');
-                let td1 = document.createElement('td');
-                let td2 = document.createElement('td');
-                let td3 = document.createElement('td');
-                td1.innerHTML = lap;
-                td2.innerHTML = minutes.value + ':' + seconds.value;
-                td3.classList.add('d-none');
-                td3.innerHTML = `<input type='hidden' name="time_record[` + lap + `]" value="` + minutes.value + ':' +seconds.value + `" />`;
-                tr.appendChild(td1);
-                tr.appendChild(td2);
-                tr.appendChild(td3);
-
-                timeRecordTableTbody.prepend(tr);
-
-                stopLapButton.disabled = false;
-
                 if ($("#status_sambungan").val() == "extension") {
-                    await stopTimeRecord();
+                    pauseTimeRecordButtons();
+
+                    if (await stopTimeRecord()) {
+                        summarySeconds += totalSeconds;
+                        totalSeconds = 0;
+                        lap++;
+
+                        averageSeconds = (parseFloat(summarySeconds) / parseFloat(lap)).round(0);
+
+                        $("#current_lembar_gelaran").val(lap).trigger('change');
+                        $("#current_average_time").val((pad(parseInt(averageSeconds / 60))) + ':' + (pad(averageSeconds % 60)))
+
+                        let tr = document.createElement('tr');
+                        let td1 = document.createElement('td');
+                        let td2 = document.createElement('td');
+                        let td3 = document.createElement('td');
+                        td1.innerHTML = lap;
+                        td2.innerHTML = minutes.value + ':' + seconds.value;
+                        td3.classList.add('d-none');
+                        td3.innerHTML = `<input type='hidden' name="time_record[` + lap + `]" value="` + minutes.value + ':' +seconds.value + `" />`;
+                        tr.appendChild(td1);
+                        tr.appendChild(td2);
+                        tr.appendChild(td3);
+
+                        timeRecordTableTbody.prepend(tr);
+
+                        stopLapButton.disabled = false;
+                    }
                 } else {
                     storeThisTimeRecord();
+
+                    pauseTimeRecordButtons();
+
+                    summarySeconds += totalSeconds;
+                    totalSeconds = 0;
+                    lap++;
+
+                    averageSeconds = (parseFloat(summarySeconds) / parseFloat(lap)).round(0);
+
+                    $("#current_lembar_gelaran").val(lap).trigger('change');
+                    $("#current_average_time").val((pad(parseInt(averageSeconds / 60))) + ':' + (pad(averageSeconds % 60)))
+
+                    let tr = document.createElement('tr');
+                    let td1 = document.createElement('td');
+                    let td2 = document.createElement('td');
+                    let td3 = document.createElement('td');
+                    td1.innerHTML = lap;
+                    td2.innerHTML = minutes.value + ':' + seconds.value;
+                    td3.classList.add('d-none');
+                    td3.innerHTML = `<input type='hidden' name="time_record[` + lap + `]" value="` + minutes.value + ':' +seconds.value + `" />`;
+                    tr.appendChild(td1);
+                    tr.appendChild(td2);
+                    tr.appendChild(td3);
+
+                    timeRecordTableTbody.prepend(tr);
+
+                    stopLapButton.disabled = false;
                 }
 
                 updatePlyProgress();
@@ -3115,6 +3141,24 @@
 
                 startLapButton.classList.remove('d-none');
                 nextLapButton.classList.add('d-none');
+
+                timeRecordTableTbody.innerHTML = "";
+
+                $("#switch-method").prop("checked", true).trigger("change");
+            }
+
+            function failTimeRecord() {
+                clearTimeout(timeRecordInterval);
+
+                summarySeconds = 0;
+                totalSeconds = 0;
+                timeRecordInterval = 0;
+
+                seconds.value = 00;
+                minutes.value = 00;
+                lap = 0;
+
+                timeRecordTableTbody.innerHTML = "";
 
                 $("#switch-method").prop("checked", true).trigger("change");
             }
