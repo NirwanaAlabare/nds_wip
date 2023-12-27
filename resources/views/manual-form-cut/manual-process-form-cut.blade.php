@@ -3542,6 +3542,22 @@
                     $("#switch-method").prop("checked", true).trigger("change");
                 }
 
+                function failTimeRecord() {
+                    clearTimeout(timeRecordInterval);
+
+                    summarySeconds = 0;
+                    totalSeconds = 0;
+                    timeRecordInterval = 0;
+
+                    seconds.value = 00;
+                    minutes.value = 00;
+                    lap = 0;
+
+                    timeRecordTableTbody.innerHTML = "";
+
+                    $("#switch-method").prop("checked", true).trigger("change");
+                }
+
                 // Pause Buttons
                 function pauseTimeRecordButtons() {
                     startLapButton.disabled = true;
