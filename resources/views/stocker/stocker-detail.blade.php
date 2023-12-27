@@ -27,6 +27,7 @@
             </div>
         </div>
         <div class="card-body">
+            <button class="btn btn-sm btn-dark mb-3" onclick="rearrangeGroup('{{ $dataSpreading->no_form }}')">Rearrange Group</button>
             <form action="#" method="post" id="stocker-form">
                 <div class="row mb-3">
                     <div class="col-6 col-md-3">
