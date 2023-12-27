@@ -255,7 +255,7 @@ class StockerController extends Controller
                 $groupNumber += 1;
             }
 
-            $formCutDetail->group = $groupNumber;
+            $formCutDetail->group_stocker = $groupNumber;
             $formCutDetail->save();
         }
 
