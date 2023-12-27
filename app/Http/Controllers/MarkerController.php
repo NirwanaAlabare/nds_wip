@@ -328,7 +328,7 @@ class MarkerController extends Controller
         u.name no_meja,
         DATE_FORMAT(waktu_mulai, '%d-%m-%Y %T') waktu_mulai,
         DATE_FORMAT(waktu_selesai, '%d-%m-%Y %T') waktu_selesai,
-        form_cut_input.status
+        a.status
         from form_cut_input a
         inner join marker_input b on  a.id_marker = b.kode
         left join users u on a.no_meja = u.id
