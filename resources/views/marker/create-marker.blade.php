@@ -677,6 +677,7 @@
 
         // Submit Marker Form
         function submitMarkerForm(e, evt) {
+            document.getElementById("loading").classList.remove("d-none");
             $("input[type=submit][clicked=true]").attr('disabled', true);
 
             evt.preventDefault();
@@ -690,10 +691,10 @@
                 processData: false,
                 contentType: false,
                 success: async function(res) {
+                    document.getElementById("loading").classList.add("d-none");
                     $("input[type=submit][clicked=true]").removeAttr('disabled');
 
                     // Success Response
-
                     if (res.status == 200) {
                         // When Actually Success :
 
@@ -713,7 +714,7 @@
                         })
 
                         // Call Get Total Cut Qty ( update sum cut qty variable )
-                        getTotalCutQty($("#ws_id").val(), $("#color").val(), $("#panel"));
+                        getTotalCutQty($("#ws_id").val(), $("#color").val(), $("#panel").val());
 
                         // Reset Step ( back to step one )
                         resetStep();
