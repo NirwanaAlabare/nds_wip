@@ -155,7 +155,7 @@
                                                     @if ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0)
                                                         @foreach ($rackDetail->rackDetailStockers as $rackDetailStocker)
                                                             @php
-                                                                if (!(in_array($rackDetailStocker->stocker->partDetail->masterPart->nama_part, $availablePart))) {
+                                                                if ($rackDetailStocker->stocker->partDetail && !(in_array($rackDetailStocker->stocker->partDetail->masterPart->nama_part, $availablePart))) {
                                                                     array_push($availablePart, $rackDetailStocker->stocker->partDetail->masterPart->nama_part);
                                                                 }
                                                             @endphp

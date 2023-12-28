@@ -481,15 +481,14 @@ class CutPlanController extends Controller
                 }
             })->addIndexColumn()->addColumn('form_info', function ($row) {
                 $formInfo = "<ul class='list-group'>";
-                $formInfo = $formInfo . "<li class='list-group-item'>Tanggal Form :<br><b>" . $row->formCutInput->tgl_form_cut . "</b></li>";
+                $formInfo = $formInfo . "<li class='list-group-item'>Tanggal Form :<br><b>" . ($row->formCutInput ? $row->formCutInput->tgl_form_cut : '-') . "</b></li>";
                 $formInfo = $formInfo . "<li class='list-group-item'>No. Form :<br><b>" . $row->no_form_cut_input . "</b></li>";
-                $formInfo = $formInfo . "<li class='list-group-item'>Qty Ply :<br><b>" . $row->formCutInput->qty_ply . "</b></li>";
-                $formInfo = $formInfo . "<li class='list-group-item'>Tipe Form :<br><b>" . ($row->formCutInput->tipe_form_cut && $row->formCutInput->tipe_form_cut != '' ? $row->formCutInput->tipe_form_cut : "NORMAL") . "</b></li>";
-                $formInfo = $formInfo . "<li class='list-group-item'>Status :<br><b>" . $row->formCutInput->status . "</b></li>";
+                $formInfo = $formInfo . "<li class='list-group-item'>Qty Ply :<br><b>" . ($row->formCutInput ? $row->formCutInput->qty_ply : '-') . "</b></li>";
+                $formInfo = $formInfo . "<li class='list-group-item'>Status :<br><b>" . ($row->formCutInput ? $row->formCutInput->status : '-') . "</b></li>";
                 $formInfo = $formInfo . "</ul>";
                 return $formInfo;
             })->addColumn('marker_info', function ($row) {
-                $markerData = $row->formCutInput->marker;
+                $markerData = $row->formCutInput ? $row->formCutInput->marker : null;
 
                 $markerInfo = "<ul class='list-group'>";
                 $markerInfo = $markerInfo . "<li class='list-group-item'>Kode Marker :<br><b>" . ($markerData ? $markerData->kode : "-") . "</b></li>";
@@ -504,7 +503,7 @@ class CutPlanController extends Controller
                 $markerInfo = $markerInfo . "</ul>";
                 return $markerInfo;
             })->addColumn('marker_detail_info', function ($row) {
-                $markerData = $row->formCutInput->marker;
+                $markerData = $row->formCutInput ? $row->formCutInput->marker : null;
 
                 $markerInfo = "<ul class='list-group'>";
                 $markerInfo = $markerInfo . "<li class='list-group-item'>Panjang : <br><b>" . ($markerData ? $markerData->panjang_marker . " " . $markerData->unit_panjang_marker . " " . $markerData->comma_marker . " " . $markerData->unit_comma_marker : "-") . "</b></li>";
@@ -518,7 +517,7 @@ class CutPlanController extends Controller
                 $markerInfo = $markerInfo . "</ul>";
                 return $markerInfo;
             })->addColumn('ratio_info', function ($row) {
-                $markerDetailData = $row->formCutInput->marker ? $row->formCutInput->marker->markerDetails : null;
+                $markerDetailData = $row->formCutInput && $row->formCutInput->marker ? $row->formCutInput->marker->markerDetails : null;
 
                 $markerDetailInfo = "
                         <table class='table table-bordered table-sm w-auto'>
@@ -540,7 +539,7 @@ class CutPlanController extends Controller
                                     <td>" . $markerDetail->size . "</td>
                                     <td>" . $markerDetail->ratio . "</td>
                                     <td>" . $markerDetail->cut_qty . "</td>
-                                    <td>" . ($markerDetail->ratio * $row->formCutInput->qty_ply) . "</td>
+                                    <td>" . ($markerDetail->ratio * ($row->formCutInput ? $row->formCutInput->qty_ply : 1)) . "</td>
                                 </tr>
                             ";
                     }
@@ -565,25 +564,25 @@ class CutPlanController extends Controller
                     ";
 
                 foreach ($meja as $m) {
-                    $input .= "<option value='" . $m->id . "' " . ($m->id == $row->formCutInput->no_meja ? 'class="fw-bold" selected' : '') . ">" . strtoupper($m->name) . "</option>";
+                    $input .= "<option value='" . $m->id . "' " . ($row->formCutInput && $m->id == $row->formCutInput->no_meja ? 'class="fw-bold" selected' : '') . ">" . strtoupper($m->name) . "</option>";
                 }
 
                 $input .= "
                         </select>
                     ";
 
-                if ($row->formCutInput->status != 'SPREADING') {
+                if ($row->formCutInput && $row->formCutInput->status != 'SPREADING') {
                     $input = "
-                            <input class='form-control' type='hidden' id='no_meja_" . $row->id . "' name='no_meja[" . $row->id . "]' value='" . $row->formCutInput->no_meja . "' readonly>
-                            <input class='form-control' type='text' value='" . strtoupper($row->formCutInput->alokasiMeja ? $row->formCutInput->alokasiMeja->name : '') . "' readonly>
+                            <input class='form-control' type='hidden' id='no_meja_" . $row->id . "' name='no_meja[" . $row->id . "]' value='" . ($row->formCutInput ? $row->formCutInput : '-')->no_meja . "' readonly>
+                            <input class='form-control' type='text' value='" . ($row->formCutInput ? strtoupper($row->formCutInput->alokasiMeja ? $row->formCutInput->alokasiMeja->name : '') : '') . "' readonly>
                         ";
                 }
 
                 return $input;
             })->addColumn('approve', function ($row) {
                 $input = "
-                        <div class='form-check w-100 text-center'><input type='checkbox' class='form-check-input border-success' id='approve_" . $row->id . "' name='approve[" . $row->id . "]' value='Y' " . ($row->app == 'Y' ? 'checked' : '') . " " . ($row->formCutInput->status != 'SPREADING' ? 'disabled' : '') . "></div>
-                        " . ($row->formCutInput->status != 'SPREADING' ? '<input type="hidden" class="form-control" id="approve_' . $row->id . '" name="approve[' . $row->id . ']" value="' . $row->formCutInput->app . '">' : '');
+                        <div class='form-check w-100 text-center'><input type='checkbox' class='form-check-input border-success' id='approve_" . $row->id . "' name='approve[" . $row->id . "]' value='Y' " . ($row->app == 'Y' ? 'checked' : '') . " " . ($row->formCutInput ? ($row->formCutInput->status != 'SPREADING' ? 'disabled' : '') : '') . "></div>
+                        " . ($row->formCutInput ? ($row->formCutInput->status != 'SPREADING' ? '<input type="hidden" class="form-control" id="approve_' . $row->id . '" name="approve[' . $row->id . ']" value="' . $row->formCutInput->app . '">' : '') : '');
 
                 return $input;
             })
