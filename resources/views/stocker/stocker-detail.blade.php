@@ -386,7 +386,7 @@
                 success: function(res) {
                     console.log("successs", res);
 
-                    window.reload();
+                    location.reload();
                 },
                 error: function(jqXHR) {
                     console.log("error", jqXHR);
