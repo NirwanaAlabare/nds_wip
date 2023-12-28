@@ -12,7 +12,7 @@
 @endsection
 
 @section('content')
-    <div class="card card-sb card-outline">
+    <div class="card card-sb">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="card-title fw-bold mb-0"><i class="fas fa-receipt fa-sm"></i> Detail Stocker</h5>
@@ -113,7 +113,7 @@
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="mb-1">
-                            <label class="form-label"><small>Note</small></label>
+                            <label class="form-label"><small>Catatan</small></label>
                             <textarea class="form-control form-control-sm" id="note" name="note" rows="2"></textarea>
                         </div>
                     </div>
