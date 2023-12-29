@@ -141,7 +141,7 @@ class SpreadingController extends Controller
         // from marker_input where act_costing_id = '" . $request->cbows . "' and tgl_cutting = '$tgl_f' order by urutan_marker asc");
         $datano_marker = DB::select("select *,  concat(kode,' - ',color, ' - (',panel, ' - ',urutan_marker, ' )') tampil  from marker_input a
         left join (select id_marker from form_cut_input group by id_marker ) b on a.kode = b.id_marker
-        where act_costing_id = '" . $request->cbows . "' and ((a.gelar_qty_balance is null and b.id_marker is null) or a.gelar_qty_balance > 0) and a.cancel = 'N' order by urutan_marker asc");
+        where act_costing_id = '" . $request->cbows . "' and (((a.gelar_qty_balance is null or a.gelar_qty_balance = 0) and b.id_marker is null) or a.gelar_qty_balance > 0) and a.cancel = 'N' order by urutan_marker asc");
         $html = "<option value=''>Pilih No Marker</option>";
 
         foreach ($datano_marker as $datanomarker) {
