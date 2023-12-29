@@ -173,7 +173,7 @@
                             readonly>
                     </div>
                 </div>
-                <input type="hidden" class="form-control" id="jumlah_so_det" name="jumlah_so_det" readonly>
+                <input type="text" class="form-control" id="jumlah_so_det" name="jumlah_so_det" readonly>
             </div>
         </div>
     </div>
@@ -226,6 +226,10 @@
                 },
                 dataType: 'json',
             });
+        });
+
+        $(document).on('select2:open', () => {
+            document.querySelector('.select2-search__field').focus();
         });
 
         //Initialize Select2 Elements

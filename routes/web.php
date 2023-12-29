@@ -7,6 +7,12 @@ use App\Http\Controllers\SpreadingController;
 use App\Http\Controllers\FormCutInputController;
 use App\Http\Controllers\LapPemakaianController;
 use App\Http\Controllers\StockerController;
+use App\Http\Controllers\WarehouseController;
+use App\Http\Controllers\MasterLokasiController;
+use App\Http\Controllers\InMaterialController;
+use App\Http\Controllers\OutMaterialController;
+use App\Http\Controllers\MutLokasiController;
+use App\Http\Controllers\QcPassController;
 
 /*
 |--------------------------------------------------------------------------
@@ -124,6 +130,95 @@ Route::middleware('auth')->group(function () {
         Route::post('/print-stocker/{index?}', 'printStocker')->name('print-stocker');
         Route::post('/print-numbering/{index?}', 'printNumbering')->name('print-numbering');
     });
+
+    //warehouse
+    Route::controller(WarehouseController::class)->prefix("warehouse")->middleware('warehouse')->group(function () {
+        Route::get('/', 'index')->name('warehouse');
+    });
+
+    //master lokasi
+    Route::controller(MasterLokasiController::class)->prefix("master-lokasi")->middleware('master-lokasi')->group(function () {
+        Route::get('/', 'index')->name('master-lokasi');
+        Route::get('/create', 'create')->name('create-lokasi');
+        Route::post('/store', 'store')->name('store-lokasi');
+        Route::get('/update/{id?}', 'update')->name('update-lokasi');
+        Route::get('/updatestatus', 'updatestatus')->name('updatestatus');
+        Route::get('/simpanedit', 'simpanedit')->name('simpan-edit');
+        Route::post('/print-lokasi/{id?}', 'printlokasi')->name('print-lokasi');
+    });
+
+    //Penerimaan
+    Route::controller(InMaterialController::class)->prefix("in-material")->middleware('in-material')->group(function () {
+        Route::get('/', 'index')->name('in-material');
+        Route::get('/create', 'create')->name('create-inmaterial');
+        Route::get('/lokasi-material/{id?}', 'lokmaterial')->name('lokasi-inmaterial');
+        Route::get('/edit-material/{id?}', 'editmaterial')->name('edit-inmaterial');
+        Route::post('/store', 'store')->name('store-inmaterial-fabric');
+        Route::get('/updatedet', 'updatedet')->name('update-inmaterial-fabric');
+        Route::get('/get-po', 'getPOList')->name('get-po-list');
+        Route::get('/get-ws', 'getWSList')->name('get-ws-list');
+        Route::get('/get-detail', 'getDetailList')->name('get-detail-list');
+        Route::get('/get-detail-lok', 'getdetaillok')->name('get-detail-addlok');
+        Route::get('/show-detail-lok', 'showdetaillok')->name('get-detail-showlok');
+        Route::post('/save-lokasi', 'savelokasi')->name('save-lokasi');
+        Route::get('/approve-material', 'approvematerial')->name('approve-material');
+        Route::post('/print-barcode-inmaterial/{id?}', 'barcodeinmaterial')->name('print-barcode-inmaterial');
+        Route::post('/print-pdf-inmaterial/{id?}', 'pdfinmaterial')->name('print-pdf-inmaterial');
+    });
+
+    //Pengeluaran
+    Route::controller(OutMaterialController::class)->prefix("out-material")->middleware('out-material')->group(function () {
+        Route::get('/', 'index')->name('out-material');
+        Route::get('/create', 'create')->name('create-outmaterial');
+        Route::get('/get-detail_req', 'getdetailreq')->name('get-detail_req');
+        Route::get('/get-detail', 'getDetailList')->name('get-detail-item');
+        Route::get('/show-detail-item', 'showdetailitem')->name('get-detail-showitem');
+        Route::get('/get-list-barcode', 'getListbarcode')->name('get-list-barcode');
+        Route::get('/get-data-barcode', 'showdetailbarcode')->name('get-data-barcode');
+        Route::post('/save-out-manual', 'saveoutmanual')->name('save-out-manual');
+        Route::post('/save-out-scan', 'saveoutscan')->name('save-out-scan');
+        Route::post('/store', 'store')->name('store-outmaterial-fabric');
+    });
+
+ 
+    //mutasi-lokasi
+    Route::controller(MutLokasiController::class)->prefix("mutasi-lokasi")->middleware('mutasi-lokasi')->group(function () {
+        Route::get('/', 'index')->name('mutasi-lokasi');
+        Route::get('/create', 'create')->name('create-mutlokasi');
+        Route::get('/get-rak', 'getRakList')->name('get-rak-list');
+        Route::get('/get-list-roll', 'getListroll')->name('get-list-roll');
+        Route::get('/get-sum-roll', 'getSumroll')->name('get-sum-roll');
+        Route::post('/store', 'store')->name('store-mutlokasi');
+        Route::get('/approve-mutlok', 'approvemutlok')->name('approve-mutlok');
+        Route::get('/edit-mutlok/{id?}', 'editmutlok')->name('edit-mutlok');
+        Route::get('/update-mutlokasi', 'updatemutlok')->name('update-mutlokasi');
+    });
+
+    //qc pass
+    Route::controller(QcPassController::class)->prefix("qc-pass")->middleware('qc-pass')->group(function () {
+        Route::get('/', 'index')->name('qc-pass');
+        Route::post('/store', 'store')->name('store-qcpass');
+        Route::get('/get-data-item', 'getListItem')->name('get-data-item');
+        Route::get('/get-data-item2', 'getListItem2')->name('get-data-item2');
+        Route::get('/get-defect', 'getdefect')->name('get-defect');
+        Route::get('/create-qcpass/{id?}', 'create')->name('create-qcpass');
+        Route::post('/store-defect', 'storedefect')->name('store-defect');
+        Route::post('/store-qcdet-temp', 'storeQcTemp')->name('store-qcdet-temp');
+        Route::post('/store-qcdet-save', 'storeQcSave')->name('store-qcdet-save');
+        Route::get('/get-detail-defect', 'getDetailList')->name('get-detail-defect');
+        Route::get('/get-sum-data', 'getDataSum')->name('get-sum-data');
+        Route::get('/get-avg-poin', 'getavgpoin')->name('get-avg-poin');
+        Route::get('/get-poin', 'getpoin')->name('get-poin');
+        Route::get('/finish-data', 'finishdata')->name('finish-data');
+        Route::get('/finish-data-modal', 'finishdatamodal')->name('finish-data-modal');
+        Route::get('/get_data_detailqc', 'getdatadetailqc')->name('get_data_detailqc');
+        Route::get('/delete-qc-temp', 'deleteqctemp')->name('delete-qc-temp');
+        Route::get('/show-qcpass/{id?}', 'showdata')->name('show-qcpass');
+        Route::get('/export-qcpass/{id?}', 'exportdata')->name('export-qcpass');
+        Route::get('/get-no-form', 'getnoform')->name('get-no-form');
+        Route::get('/delete-qc-det', 'deleteqcdet')->name('delete-qc-det');
+    });
+
 });
 
 Route::get('/dashboard-cutting', function () {
@@ -133,6 +228,11 @@ Route::get('/dashboard-cutting', function () {
 Route::get('/dashboard-stocker', function () {
     return view('dashboard', ['page' => 'dashboard-stocker']);
 })->middleware('auth')->name('dashboard-stocker');
+
+//warehouse
+Route::get('/dashboard-warehouse', function () {
+    return view('dashboard', ['page' => 'dashboard-warehouse']);
+})->middleware('auth')->name('dashboard-warehouse');
 
 Route::get('/timer', function () {
     return view('example.timeout');

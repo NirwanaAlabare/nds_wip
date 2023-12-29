@@ -44,6 +44,11 @@ function capitalizeFirstLetter(string) {
     return "-";
 }
 
+// Round
+Number.prototype.round = function(places) {
+    return +(Math.round(this + "e+" + places)  + "e-" + places);
+}
+
 // Pad 2 Digits
 function pad(n) {
     return n < 10 ? '0' + n : n
@@ -94,13 +99,13 @@ function submitForm(e, evt) {
             if (res.status == 200) {
                 $('.modal').modal('hide');
 
-                if (res.redirect != '') {
-                    if (res.redirect != 'reload') {
-                        location.href = res.redirect;
-                    } else {
-                        location.reload();
-                    }
-                }
+                // if (res.redirect != '') {
+                //     if (res.redirect != 'reload') {
+                //         location.href = res.redirect;
+                //     } else {
+                //         location.reload();
+                //     }
+                // }
 
                 Swal.fire({
                     icon: 'success',
@@ -111,6 +116,14 @@ function submitForm(e, evt) {
                     confirmButtonText: 'Oke',
                     timer: 5000,
                     timerProgressBar: true
+                }).then((result)=>{
+                    if (res.redirect != '') {
+                        if (res.redirect != 'reload') {
+                            location.href = res.redirect;
+                        } else {
+                            location.reload();
+                        }
+                    }
                 })
 
                 e.reset();

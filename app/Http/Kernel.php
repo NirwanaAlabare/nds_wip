@@ -67,5 +67,11 @@ class Kernel extends HttpKernel
         'spreading' => \App\Http\Middleware\IsSpreading::class,
         'stocker' => \App\Http\Middleware\IsStocker::class,
         'meja' => \App\Http\Middleware\IsMeja::class,
+        'warehouse' => \App\Http\Middleware\IsWarehouse::class,
+        'master-lokasi' => \App\Http\Middleware\IsMaster::class,
+        'in-material' => \App\Http\Middleware\IsMaterial::class,
+        'out-material' => \App\Http\Middleware\IsMaterial::class,
+        'mutasi-lokasi' => \App\Http\Middleware\IsMaterial::class,
+        'qc-pass' => \App\Http\Middleware\IsQcpass::class,
     ];
 }
