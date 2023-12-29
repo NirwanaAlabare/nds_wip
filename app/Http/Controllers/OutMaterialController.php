@@ -1,0 +1,867 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Stocker;
+use App\Models\StockerDetail;
+use App\Models\FormCutInput;
+use App\Models\FormCutInputDetail;
+use App\Models\FormCutInputDetailLap;
+use App\Models\Marker;
+use App\Models\MasterLokasi;
+use App\Models\UnitLokasi;
+use App\Models\InMaterialFabric;
+use App\Models\InMaterialFabricDet;
+use App\Models\BppbDetTemp;
+use App\Models\BppbDet;
+use App\Models\BppbHeader;
+use Illuminate\Support\Facades\Auth;
+use App\Models\MarkerDetail;
+use App\Models\InMaterialLokasi;
+use Illuminate\Http\Request;
+use Yajra\DataTables\Facades\DataTables;
+use Carbon\Carbon;
+use DB;
+use QrCode;
+use DNS1D;
+use PDF;
+
+class OutMaterialController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index(Request $request)
+    {
+        if ($request->ajax()) {
+            $additionalQuery = "";
+            $keywordQuery = "";
+
+            if ($request->jns_pengeluaran != 'ALL') {
+                $where = " and jenis_pengeluaran = '" . $request->jns_pengeluaran . "' ";
+            }else{
+                $where = "";
+            }
+
+            if ($request->bc_type != 'ALL') {
+                $where2 = " and dok_bc = '" . $request->bc_type . "' ";
+            }else{
+                $where2 = "";
+            }
+
+            if ($request->buyer != 'ALL') {
+                $where3 = " and buyer = '" . $request->buyer . "' ";
+            }else{
+                $where3 = "";
+            }
+
+            if ($request->status != 'ALL') {
+                $where4 = " and status = '" . $request->status . "' ";
+            }else{
+                $where4 = "";
+            }
+
+
+            $data_inmaterial = DB::connection('mysql_sb')->select("select no_bppb,tgl_bppb,no_req,no_jo,buyer,tujuan,dok_bc,jenis_pengeluaran,no_invoice,no_daftar,tgl_daftar,CONCAT(created_by,' (',created_at, ') ') user_create,status,id from whs_bppb_h where tgl_bppb BETWEEN '".$request->tgl_awal."' and '".$request->tgl_akhir."' ".$where." ".$where2." ".$where3." ".$where4." order by no_bppb asc");
+
+
+            return DataTables::of($data_inmaterial)->toJson();
+        }
+
+        $msupplier = DB::connection('mysql_sb')->table('mastersupplier')->select('id_supplier', 'Supplier')->where('tipe_sup', '!=', 'S')->get();
+        $mtypebc = DB::connection('mysql_sb')->table('masterpilihan')->select('id', 'nama_pilihan')->where('kode_pilihan', '=', 'JENIS_DOK_IN')->get();
+        $pch_type = DB::connection('mysql_sb')->table('whs_master_pilihan')->select('id', 'nama_pilihan')->where('type_pilihan', '=', 'Purchasing_type')->where('status', '=', 'Active')->get();
+        $status = DB::connection('mysql_sb')->table('whs_master_pilihan')->select('id', 'nama_pilihan')->where('type_pilihan', '=', 'Status_material')->where('status', '=', 'Active')->get();
+        $arealok = DB::connection('mysql_sb')->table('whs_master_area')->select('id', 'area')->where('status', '=', 'active')->get();
+        $unit = DB::connection('mysql_sb')->table('whs_master_unit')->select('id', 'nama_unit')->where('status', '=', 'active')->get();
+        $jns_klr = DB::connection('mysql_sb')->select("
+            select nama_trans isi,nama_trans tampil from mastertransaksi where jenis_trans='OUT' and jns_gudang = 'FACC' order by id");
+
+        return view("outmaterial.out-material", ['jns_klr' => $jns_klr,'status' => $status,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit,"page" => "dashboard-warehouse"]);
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        $msupplier = DB::connection('mysql_sb')->table('mastersupplier')->select('id_supplier', 'Supplier')->where('tipe_sup', '=', 'S')->get();
+        $mtypebc = DB::connection('mysql_sb')->table('masterpilihan')->select('id', 'nama_pilihan')->where('kode_pilihan', '=', 'JENIS_DOK_IN')->get();
+        $pch_type = DB::connection('mysql_sb')->table('whs_master_pilihan')->select('id', 'nama_pilihan')->where('type_pilihan', '=', 'Purchasing_type')->where('status', '=', 'Active')->get();
+        $arealok = DB::connection('mysql_sb')->table('whs_master_area')->select('id', 'area')->where('status', '=', 'active')->get();
+        $unit = DB::connection('mysql_sb')->table('whs_master_unit')->select('id', 'nama_unit')->where('status', '=', 'active')->get();
+        $kode_gr = DB::connection('mysql_sb')->select("
+            select CONCAT(kode,'/',bulan,tahun,'/',nomor) kode from (select 'GK/OUT' kode, DATE_FORMAT(CURRENT_DATE(), '%m') bulan, DATE_FORMAT(CURRENT_DATE(), '%y') tahun,if(MAX(no_bppb) is null,'00001',LPAD(SUBSTR(MAX(no_bppb),13,5)+1,5,0)) nomor from whs_bppb_h where MONTH(tgl_bppb) = MONTH(CURRENT_DATE()) and YEAR(tgl_bppb) = YEAR(CURRENT_DATE())) a");
+
+        $jns_klr = DB::connection('mysql_sb')->select("
+            select nama_trans isi,nama_trans tampil from mastertransaksi where jenis_trans='OUT' and jns_gudang = 'FACC' order by id");
+
+        $no_req = DB::connection('mysql_sb')->select("
+            select a.bppbno isi,concat(a.bppbno,'|',ac.kpno,'|',ac.styleno,'|',mb.supplier) tampil from bppb_req a inner join jo_det s on a.id_jo=s.id_jo inner join so on s.id_so=so.id inner join act_costing ac on so.id_cost=ac.id inner join mastersupplier mb on ac.id_buyer=mb.id_supplier and a.cancel='N' and bppbdate >= '2023-01-01' where bppbno like 'RQ-F%' group by bppbno order by bppbdate desc");
+
+        return view('outmaterial.create-outmaterial', ['no_req' => $no_req,'kode_gr' => $kode_gr,'jns_klr' => $jns_klr,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit, 'page' => 'dashboard-warehouse']);
+    }
+
+    public function getdetailreq(Request $request)
+    {
+        $data = DB::connection('mysql_sb')->select("select a.id_jo,s.supplier,jo_no,idws_act,b.supplier buyer from bppb_req a inner join mastersupplier s on a.id_supplier=s.id_supplier inner join jo on a.id_jo=jo.id INNER JOIN act_costing ac on ac.kpno = a.idws_act inner join mastersupplier b on ac.id_buyer=b.id_supplier where bppbno='".$request->no_req."' limit 1");
+
+        return $data;
+    }
+
+    public function lokmaterial($id)
+    {
+
+        $kode_gr = DB::connection('mysql_sb')->select("select * from whs_inmaterial_fabric where id = '$id'");
+        $det_data = DB::connection('mysql_sb')->select("select *, (a.qty_good - COALESCE(b.qty_lok,0)) qty_sisa  from (select a.* from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.id = '$id' and a.status = 'Y') a left join
+(select no_dok nodok, no_ws ws,id_jo jo_id,id_item item_id,SUM(qty_aktual) qty_lok from whs_lokasi_inmaterial where status = 'Y' GROUP BY no_dok,no_ws,id_item,id_jo) b on b.nodok = a.no_dok and b.ws = a.no_ws and b.jo_id = a.id_jo and b.item_id = a.id_item");
+
+         $msupplier = DB::connection('mysql_sb')->table('mastersupplier')->select('id_supplier', 'Supplier')->where('tipe_sup', '=', 'S')->where('Supplier', '!=', $kode_gr[0]->supplier)->get();
+        $mtypebc = DB::connection('mysql_sb')->table('masterpilihan')->select('id', 'nama_pilihan')->where('kode_pilihan', '=', 'JENIS_DOK_IN')->where('nama_pilihan', '!=', $kode_gr[0]->type_bc)->get();
+        $pch_type = DB::connection('mysql_sb')->table('whs_master_pilihan')->select('id', 'nama_pilihan')->where('type_pilihan', '=', 'Purchasing_type')->where('nama_pilihan', '!=', $kode_gr[0]->type_pch)->where('status', '=', 'Active')->get();
+        $gr_type = DB::connection('mysql_sb')->table('whs_master_pilihan')->select('id', 'nama_pilihan')->where('type_pilihan', '=', 'Type_penerimaan')->where('nama_pilihan', '!=', $kode_gr[0]->type_dok)->where('status', '=', 'Active')->get();
+        $arealok = DB::connection('mysql_sb')->table('whs_master_area')->select('id', 'area')->where('status', '=', 'active')->get();
+        $unit = DB::connection('mysql_sb')->table('whs_master_unit')->select('id', 'nama_unit')->where('status', '=', 'active')->get();
+        $lokasi = DB::connection('mysql_sb')->table('whs_master_lokasi')->select('id', 'kode_lok')->where('status', '=', 'active')->get();
+
+        return view('inmaterial.lokasi-inmaterial', ['det_data' => $det_data,'kode_gr' => $kode_gr,'gr_type' => $gr_type,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit,'lokasi' => $lokasi, 'page' => 'dashboard-warehouse']);
+    }
+
+
+    public function editmaterial($id)
+    {
+
+        $kode_gr = DB::connection('mysql_sb')->select("select * from whs_inmaterial_fabric where id = '$id'");
+        $det_data = DB::connection('mysql_sb')->select("select *, (a.qty_good - COALESCE(b.qty_lok,0)) qty_sisa  from (select a.* from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.id = '$id' and a.status = 'Y') a left join
+(select no_dok nodok, no_ws ws,id_jo jo_id,id_item item_id,SUM(qty_aktual) qty_lok from whs_lokasi_inmaterial where status = 'Y' GROUP BY no_dok,no_ws,id_item,id_jo) b on b.nodok = a.no_dok and b.ws = a.no_ws and b.jo_id = a.id_jo and b.item_id = a.id_item");
+
+        $jml_det = DB::connection('mysql_sb')->select("select COUNT(no_dok) jml_dok from (select a.* from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.id = '$id' and a.status = 'Y') a");
+
+         $msupplier = DB::connection('mysql_sb')->table('mastersupplier')->select('id_supplier', 'Supplier')->where('tipe_sup', '=', 'S')->where('Supplier', '!=', $kode_gr[0]->supplier)->get();
+        $mtypebc = DB::connection('mysql_sb')->table('masterpilihan')->select('id', 'nama_pilihan')->where('kode_pilihan', '=', 'JENIS_DOK_IN')->where('nama_pilihan', '!=', $kode_gr[0]->type_bc)->get();
+        $pch_type = DB::connection('mysql_sb')->table('whs_master_pilihan')->select('id', 'nama_pilihan')->where('type_pilihan', '=', 'Purchasing_type')->where('nama_pilihan', '!=', $kode_gr[0]->type_pch)->where('status', '=', 'Active')->get();
+        $gr_type = DB::connection('mysql_sb')->table('whs_master_pilihan')->select('id', 'nama_pilihan')->where('type_pilihan', '=', 'Type_penerimaan')->where('nama_pilihan', '!=', $kode_gr[0]->type_dok)->where('status', '=', 'Active')->get();
+        $arealok = DB::connection('mysql_sb')->table('whs_master_area')->select('id', 'area')->where('status', '=', 'active')->get();
+        $unit = DB::connection('mysql_sb')->table('whs_master_unit')->select('id', 'nama_unit')->where('status', '=', 'active')->get();
+        $lokasi = DB::connection('mysql_sb')->table('whs_master_lokasi')->select('id', 'kode_lok')->where('status', '=', 'active')->get();
+
+        return view('inmaterial.edit-inmaterial', ['det_data' => $det_data,'jml_det' => $jml_det,'kode_gr' => $kode_gr,'gr_type' => $gr_type,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit,'lokasi' => $lokasi, 'page' => 'dashboard-warehouse']);
+    }
+
+    public function getPOList(Request $request)
+    {
+        $nomorpo = DB::connection('mysql_sb')->select("
+                select pono isi, pono tampil, ms.supplier
+  from po_header ph
+  inner join po_item pi on ph.id = pi.id_po
+  inner join jo_det jd on pi.id_jo = jd.id_jo
+  inner join so on jd.id_so = so.id
+  inner join act_costing ac on so.id_cost = ac.id 
+    inner join mastersupplier ms on ms.id_supplier = ph.id_supplier
+  where app = 'A' and podate >= '2022-10-01' and jenis = 'M' and ms.Supplier = '" . $request->txt_supp . "' group by ph.id
+            ");
+
+        $html = "<option value=''>Pilih PO</option>";
+
+        foreach ($nomorpo as $nopo) {
+            $html .= " <option value='" . $nopo->isi . "'>" . $nopo->tampil . "</option> ";
+        }
+
+        return $html;
+    }
+
+
+    public function getWSList(Request $request)
+    {
+        $nomorws = DB::connection('mysql_sb')->select("
+                select ac.kpno,ms.supplier from bom_jo_global_item bom INNER JOIN jo_det jd on jd.id_jo = bom.id_jo INNER JOIN so on so.id = jd.id_so INNER JOIN act_costing ac on ac.id = so.id_cost INNER JOIN mastersupplier ms on ms.id_supplier = bom.id_supplier where ms.Supplier = '" . $request->txt_supp . "' GROUP BY ac.kpno
+            ");
+
+        $html = "<option value=''>Pilih WS</option>";
+
+        foreach ($nomorws as $ws) {
+            $html .= " <option value='" . $ws->kpno . "'>" . $ws->kpno . "</option> ";
+        }
+
+        return $html;
+    }
+
+    public function getdetaillok(Request $request)
+    {
+        $kode_lok = $request->lokasi;
+        $lokasi = DB::connection('mysql_sb')->table('whs_master_lokasi')->select('id', 'kode_lok')->where('status', '=', 'active')->get();
+
+        $datanomor = DB::connection('mysql_sb')->select("select COUNT(no_roll) noroll from whs_lokasi_inmaterial where no_dok = '".$request->no_dok."' and no_lot = '".$request->lot."' and status = 'Y'");
+        $noroll = $datanomor ? $datanomor[0]->noroll : 0;
+        if ($noroll == 0) {
+            $nomor = 1;
+        }else{
+            $nomor = $noroll + 1;
+        }
+
+        $html = '<div class="table-responsive"style="max-height: 200px">
+            <table id="datatable_list" class="table table-head-fixed table-bordered table-striped table-sm w-100 text-nowrap">
+                <thead>
+                    <tr>
+                        <th class="text-center" style="font-size: 0.6rem;width: 5%;">No</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 20%;">Lot</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 15%;">Qty BPB</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 15%;">Qty Aktual</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 30%;">Lokasi</th>
+                        <th hidden></th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 15%;">No Roll</th>
+                    </tr>
+                </thead>
+                <tbody>';
+        $pilih_lokasi = '';
+        foreach ($lokasi as $lok) {
+            if ($lok->kode_lok == $kode_lok) {
+                $pilih_lokasi .= " <option selected='selected' value='" . $lok->kode_lok . "'>" . $lok->kode_lok . "</option> ";
+            }else{
+                $pilih_lokasi .= " <option value='" . $lok->kode_lok . "'>" . $lok->kode_lok . "</option> ";
+            }
+        }
+        $y = $nomor;
+        for ( $x = 1; $x <= $request->jml_baris; $x++) {
+            $html .= ' <tr>
+                        <td>' . $y . '</td>
+                        <td ><input style="width:100%;align:center;" class="form-control" type="text" id="no_lot'.$x.'" name="no_lot['.$x.']" value="'.$request->lot.'" / readonly></td>
+                        <td ><input style="width:100%;text-align:right;" class="form-control" type="text" id="qty_sj'.$x.'" name="qty_sj['.$x.']" value="" onkeyup="sum_qty_sj()" /></td>
+                        <td ><input style="width:100%;text-align:right;" class="form-control" type="text" id="qty_ak'.$x.'" name="qty_ak['.$x.']" value="" onkeyup="sum_qty_aktual()"/></td>
+                        <td ><select class="form-control select2lok" id="selectlok'.$x.'" name="selectlok['.$x.']" style="width: 100%;">
+                                '.$pilih_lokasi.'
+                             </select></td>
+                        <td style="display:none"><input class="form-control-sm" type="text" id="no_roll'.$x.'" name="no_roll['.$x.']" value="'.$y.'" /></td>
+                        <td ><input style="width:100%;text-align:right;" class="form-control" type="text" id="roll_buyer'.$x.'" name="roll_buyer['.$x.']" value="" /></td>
+                       </tr>';
+                       $y++;
+        }
+    
+        $html .= '</tbody>
+            </table>
+        </div>';
+
+        return $html;
+    }
+
+
+    public function showdetailitem(Request $request)
+    {
+        
+        $det_item = DB::connection('mysql_sb')->select("select id_roll,id_item,id_jo,kode_rak,itemdesc,raknya,lot_no, roll_no, qty_sisa, unit from (select br.id id_roll,br.id_h,brh.id_item,brh.id_jo,roll_no,lot_no,roll_qty,roll_qty_used,roll_qty - roll_qty_used qty_sisa,roll_foc,br.unit, concat(kode_rak,' ',nama_rak) raknya,kode_rak,br.barcode, mi.itemdesc from bpb_roll br inner join 
+                bpb_roll_h brh on br.id_h=brh.id 
+                inner join masteritem mi on brh.id_item = mi.id_item
+                inner join master_rak mr on br.id_rak_loc=mr.id where 
+                brh.id_jo='" . $request->id_jo . "' and brh.id_item='" . $request->id_item . "' and br.id_rak_loc!='' 
+                order by br.id) a where qty_sisa > 0");
+
+        $html = '<div class="table-responsive" style="max-height: 300px">
+            <table id="tableshow" class="table table-head-fixed table-bordered table-striped table-sm w-100 text-nowrap">
+                <thead>
+                    <tr>
+                        <th class="text-center" style="font-size: 0.6rem;width: 3%;">Check</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 20%;">Lokasi</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 13%;">No Lot</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 10%;">No Roll</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 13%;">Stok</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 13%;">Satuan</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 13%;">Qty Out</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 13%;">Qty Sisa</th>
+                        <th hidden></th>
+                        <th hidden></th>
+                        <th hidden></th>
+                        <th hidden></th>
+                    </tr>
+                </thead>
+                <tbody>';
+            $jml_qty_sj = 0;
+            $jml_qty_ak = 0;
+            $x = 1;
+        foreach ($det_item as $detitem) {
+            $html .= ' <tr>
+                        <td ><input type="checkbox" id="pil_item'.$x.'" name="pil_item['.$x.']" class="flat" value="1" onchange="enableinput()"></td>
+                        <td >'.$detitem->raknya.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="rak'.$x.'" name="rak['.$x.']" value="'.$detitem->kode_rak.'" / readonly></td>
+                        <td >'.$detitem->lot_no.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="no_lot'.$x.'" name="no_lot['.$x.']" value="'.$detitem->lot_no.'" / readonly></td>
+                        <td >'.$detitem->roll_no.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="no_roll'.$x.'" name="no_roll['.$x.']" value="'.$detitem->roll_no.'" / readonly></td>
+                        <td class="text-right">'.$detitem->qty_sisa.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="qty_stok'.$x.'" name="qty_stok['.$x.']" value="'.$detitem->qty_sisa.'" / readonly></td>
+                       <td >'.$detitem->unit.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="unit'.$x.'" name="unit['.$x.']" value="'.$detitem->unit.'" / readonly></td>
+                        <td><input style="width:90px;text-align:right;" class="form-control" type="text" id="qty_out'.$x.'" name="qty_out['.$x.']" value="" onkeyup="sum_qty_item(this.value)" / disabled></td>
+                        <td ><input style="width:80px;text-align:right;" class="form-control" type="text" id="qty_sisa'.$x.'" name="qty_sisa['.$x.']" value="" / disabled></td>
+                        <td hidden> <input type="hidden" id="id_roll'.$x.'" name="id_roll['.$x.']" value="'.$detitem->id_roll.'" / readonly></td>
+                        <td hidden> <input type="hidden" id="id_item'.$x.'" name="id_item['.$x.']" value="'.$detitem->id_item.'" / readonly></td>
+                        <td hidden> <input type="hidden" id="id_jo'.$x.'" name="id_jo['.$x.']" value="'.$detitem->id_jo.'" / readonly></td>
+                        <td hidden> <input type="hidden" id="itemdesc'.$x.'" name="itemdesc['.$x.']" value="'.$detitem->itemdesc.'" / readonly></td>
+                       </tr>';
+                       $x++;
+        }
+
+        $html .= '</tbody>
+            </table>
+        </div>';
+
+        return $html;
+    }
+
+
+    public function showdetailbarcode(Request $request)
+    {
+        // dd($request->id_barcode);
+        $det_item = DB::connection('mysql_sb')->select("select br.id id_roll, brh.id_item, brh.id_jo, roll_no,lot_no,mi.goods_code, mi.itemdesc, roll_qty - roll_qty_used sisa,br.unit, kode_rak, ac.kpno from bpb_roll br 
+inner join bpb_roll_h brh on br.id_h = brh.id 
+inner join masteritem mi on brh.id_item = mi.id_item 
+inner join jo_det jd on brh.id_jo = jd.id_jo 
+inner join so on jd.id_so = so.id 
+inner join act_costing ac on so.id_cost = ac.id 
+inner join master_rak mr on br.id_rak_loc = mr.id
+where br.id in (" . $request->id_barcode . ")");
+
+        $html = '<div class="table-responsive" style="max-height: 300px">
+            <table id="tableshow" class="table table-head-fixed table-bordered table-striped table-sm w-100 text-nowrap">
+                <thead>
+                    <tr>
+                        <th class="text-center" style="font-size: 0.6rem;width: 10%;">Lokasi</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 10%;">No Roll</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 11%;">No Lot</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 11%;">ID Item</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 14%;">Nama Barang</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 11%;">Stok</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 11%;">Satuan</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 11%;">Qty Out</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 11%;">Qty Sisa</th>
+                        <th hidden></th>
+                        <th hidden></th>
+                        <th hidden></th>
+                    </tr>
+                </thead>
+                <tbody>';
+            $jml_qty_sj = 0;
+            $jml_qty_ak = 0;
+            $x = 1;
+        foreach ($det_item as $detitem) {
+            $html .= ' <tr>
+                        <td> '.$detitem->kode_rak.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="rak'.$x.'" name="rak['.$x.']" value="'.$detitem->kode_rak.'" / readonly></td>
+                        <td> '.$detitem->roll_no.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="no_roll'.$x.'" name="no_roll['.$x.']" value="'.$detitem->roll_no.'" / readonly></td>
+                        <td> '.$detitem->lot_no.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="no_lot'.$x.'" name="no_lot['.$x.']" value="'.$detitem->lot_no.'" / readonly></td>
+                        <td> '.$detitem->id_item.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="rak'.$x.'" name="rak['.$x.']" value="'.$detitem->id_item.'" / readonly></td>
+                        <td> '.$detitem->itemdesc.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="itemdesc'.$x.'" name="itemdesc['.$x.']" value="'.$detitem->itemdesc.'" / readonly></td>
+                        <td> '.$detitem->sisa.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="qty_stok'.$x.'" name="qty_stok['.$x.']" value="'.$detitem->sisa.'" / readonly></td>
+                        <td> '.$detitem->unit.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="unit'.$x.'" name="unit['.$x.']" value="'.$detitem->unit.'" / readonly></td>
+                        <td><input style="width:100px;text-align:right;" class="form-control" type="text" id="qty_out'.$x.'" name="qty_out['.$x.']" value="" onkeyup="sum_qty_barcode(this.value)" /></td>
+                        <td ><input style="width:100px;text-align:right;" class="form-control" type="text" id="qty_sisa'.$x.'" name="qty_sisa['.$x.']" value="" /></td>
+                        <td style="display:none"><input style="width:100%;align:center;" class="form-control" type="text" id="qty_stok'.$x.'" name="qty_stok['.$x.']" value="'.$detitem->sisa.'" / readonly></td>
+                        <td hidden> <input type="hidden" id="id_roll'.$x.'" name="id_roll['.$x.']" value="'.$detitem->id_roll.'" / readonly></td>
+                        <td hidden> <input type="hidden" id="id_item'.$x.'" name="id_item['.$x.']" value="'.$detitem->id_item.'" / readonly></td>
+                        <td hidden> <input type="hidden" id="id_jo'.$x.'" name="id_jo['.$x.']" value="'.$detitem->id_jo.'" / readonly></td>
+                       </tr>';
+                       $x++;
+        }
+
+        $html .= '</tbody>
+            </table>
+        </div>';
+
+        return $html;
+    }
+
+    // <tr>
+    //     <td ><input style="width:100%;align:center;" class="form-control" type="text" id="rak'.$x.'" name="rak['.$x.']" value="'.$detitem->kode_rak.'" / readonly></td>
+    //     <td ><input style="width:100%;align:center;" class="form-control" type="text" id="no_roll'.$x.'" name="no_roll['.$x.']" value="'.$detitem->roll_no.'" / readonly></td>
+    //     <td ><input style="width:100%;align:center;" class="form-control" type="text" id="no_lot'.$x.'" name="no_lot['.$x.']" value="'.$detitem->lot_no.'" / readonly></td>
+    //     <td class="text-right"><input style="width:100%;align:center;" class="form-control" type="text" id="id_item'.$x.'" name="id_item['.$x.']" value="'.$detitem->id_item.'" / readonly></td>
+    //     <td class="text-right"><input style="width:100%;align:center;" class="form-control" type="text" id="nama_barang'.$x.'" name="nama_barang['.$x.']" value="'.$detitem->itemdesc.'" / readonly></td>
+    //     <td class="text-right"><input style="width:100%;align:center;" class="form-control" type="text" id="qty_stok'.$x.'" name="qty_stok['.$x.']" value="'.$detitem->sisa.'" / readonly></td>
+    //     <td ><input style="width:100%;align:center;" class="form-control" type="text" id="unit'.$x.'" name="unit['.$x.']" value="'.$detitem->unit.'" / readonly></td>
+    //     <td><input style="width:100%;text-align:right;" class="form-control" type="text" id="qty_out'.$x.'" name="qty_out['.$x.']" value="" onkeyup="sum_qty_item(this.value)" /></td>
+    //     <td ><input style="width:100%;text-align:right;" class="form-control" type="text" id="qty_sisa'.$x.'" name="qty_sisa['.$x.']" value="" /></td>
+    // </tr>
+
+
+    public function getDetailList(Request $request)
+    {
+            $data_detail = DB::connection('mysql_sb')->select("select * from (select breq.bppbno no_req,jod.jo_no,breq.id_supplier,breq.qty qtyreq,breq.qty_out qty_sdh_out,breq.qty - breq.qty_out qty_sisa_out,mi.id_item,mi.goods_code, concat(mi.itemdesc,' ',mi.color,' ',mi.size,' ',mi.add_info) itemdesc, tbl_in.id_jo,tbl_in.qty_in, ifnull(tbl_out.qty_out,0) qty_out ,(tbl_in.qty_in - ifnull(tbl_out.qty_out,0)) qty_sisa, tbl_in.unit, ac.kpno,ac.styleno,mbuyer.supplier buyer,tbl_in.rak from bppb_req breq 
+inner join masteritem mi on mi.id_item=breq.id_item 
+inner join (select id_item,id_jo,sum(qty) qty_in,unit,group_concat(nomor_rak) rak from bpb where id_jo in (".$request->no_jo.") group by id_item,id_jo) as tbl_in on mi.id_item=tbl_in.id_item and breq.id_jo=tbl_in.id_jo 
+left join (select id_item,id_jo,sum(qty) qty_out from bppb where id_jo in (".$request->no_jo.") group by id_item,id_jo) as tbl_out on tbl_in.id_item=tbl_out.id_item and tbl_in.id_jo=tbl_out.id_jo 
+INNER JOIN (select jo_no,id_so,id_jo from jo_det a inner join jo s on a.id_jo=s.id where id_jo in (".$request->no_jo.") group by id_jo) jod on breq.id_jo=jod.id_jo 
+inner join (select so.id,id_cost,min(sod.deldate_det) mindeldate from so inner join so_det sod on so.id=sod.id_so group by so.id) so on jod.id_so=so.id 
+inner join act_costing ac on so.id_cost=ac.id 
+inner join mastersupplier mbuyer on ac.id_buyer=mbuyer.id_supplier where breq.bppbno='".$request->no_req."' 
+union 
+select breq.bppbno no_req,jod.jo_no,breq.id_supplier,breq.qty qtyreq,breq.qty_out qty_sdh_out,breq.qty - breq.qty_out qty_sisa_out,mi.id_item,mi.goods_code, concat(mi.itemdesc,' ',mi.color,' ',mi.size,' ',mi.add_info) itemdesc, tbl_in.id_jo,tbl_in.qty_in, ifnull(tbl_out.qty_out,0) qty_out ,(tbl_in.qty_in - ifnull(tbl_out.qty_out,0)) qty_sisa, tbl_in.unit, ac.kpno,ac.styleno,mbuyer.supplier buyer,tbl_in.rak from (select a.*,jd.id_jo id_jo_2 from bppb_req a inner join act_costing ac on a.idws_act = ac.kpno inner join so on ac.id = so.id_cost inner join jo_det jd on so.id = jd.id_so where a.bppbno = '".$request->no_req."') breq 
+inner join masteritem mi on mi.id_item=breq.id_item 
+inner join (select id_item,id_jo,sum(qty) qty_in,unit,group_concat(nomor_rak) rak from bpb where id_jo in (".$request->no_jo.") group by id_item,id_jo) as tbl_in on mi.id_item=tbl_in.id_item and breq.id_jo_2=tbl_in.id_jo 
+left join (select id_item,id_jo,sum(qty) qty_out from bppb where id_jo in (".$request->no_jo.") group by id_item,id_jo) as tbl_out on tbl_in.id_item=tbl_out.id_item and tbl_in.id_jo=tbl_out.id_jo 
+INNER JOIN (select jo_no,id_so,id_jo from jo_det a inner join jo s on a.id_jo=s.id where id_jo in (".$request->no_jo.") group by id_jo) jod on breq.id_jo_2=jod.id_jo 
+inner join (select so.id,id_cost,min(sod.deldate_det) mindeldate from so 
+inner join so_det sod on so.id=sod.id_so group by so.id) so on jod.id_so=so.id 
+inner join act_costing ac on so.id_cost=ac.id 
+inner join mastersupplier mbuyer on ac.id_buyer=mbuyer.id_supplier where breq.bppbno='".$request->no_req."') a inner join (select a.id_item iditem,round((qtyin - COALESCE(qtyout,0)),2) qtyitem_sisa  from (select id_item from masteritem) a inner join 
+(select id_item, sum(qty) qtyin from bpb where bpbno not like 'FG%' GROUP BY id_item) b on b.id_item = a.id_item left join
+(select id_item, sum(qty) qtyout from bppb where bppbno not like 'SJ-FG%' GROUP BY id_item) c on c.id_item = a.id_item) b on b.iditem = a.id_item");
+
+
+        return json_encode([
+            "draw" => intval($request->input('draw')),
+            "recordsTotal" => intval(count($data_detail)),
+            "recordsFiltered" => intval(count($data_detail)),
+            "data" => $data_detail
+        ]);
+    }
+
+    public function getListbarcode(Request $request)
+    {
+        $listbarcode = DB::connection('mysql_sb')->select("select br.id isi, concat(br.id,' - ' ,mi.itemdesc, ' - ', ac.kpno) tampil,concat(br.id,' - ', mi.itemdesc) tampil2 
+  from bpb_roll br 
+  inner join bpb_roll_h brh on br.id_h = brh.id 
+  inner join bppb_req breq on brh.id_item = breq.id_item and brh.id_jo = breq.id_jo 
+  inner join masteritem mi on brh.id_item = mi.id_item 
+  inner join jo_det jd on brh.id_jo = jd.id_jo 
+  inner join so on jd.id_so = so.id 
+  inner join act_costing ac on so.id_cost = ac.id
+  where (br.roll_qty - br.roll_qty_used) > 0 and breq.bppbno = '" . $request->noreq . "' 
+  union
+  select br.id isi, concat(br.id,' - ' ,mi.itemdesc, ' - ', ac.kpno) tampil,concat(br.id,' - ', mi.itemdesc) tampil2 
+  from bpb_roll br 
+  inner join bpb_roll_h brh on br.id_h = brh.id
+  inner join jo_det jd on brh.id_jo = jd.id_jo 
+  inner join so on jd.id_so = so.id 
+  inner join act_costing ac on so.id_cost = ac.id
+  inner join bppb_req breq on brh.id_item = breq.id_item and ac.kpno = breq.idws_act 
+  inner join masteritem mi on brh.id_item = mi.id_item 
+  where (br.roll_qty - br.roll_qty_used) > 0 and breq.bppbno = '" . $request->noreq . "'");
+
+        $html = "";
+
+        foreach ($listbarcode as $barcode) {
+            $html .= " <option value='" . $barcode->isi . "'>" . $barcode->isi . "</option> ";
+        }
+
+        return $html;
+    }
+
+
+    public function approvematerial(Request $request)
+    {
+            $timestamp = Carbon::now();
+            $updateLokasi = InMaterialFabric::where('no_dok', $request['txt_nodok'])->update([
+                'status' => 'Approved',
+                'approved_by' => Auth::user()->name,
+                'approved_date' => $timestamp,
+            ]);
+        
+        $massage = 'Approved Data Successfully';
+
+            return array(
+                "status" => 200,
+                "message" => $massage,
+                "additional" => [],
+                "redirect" => url('/in-material')
+            );
+        
+    }
+
+
+    public function updatedet(Request $request)
+    {
+        
+        $id = $request['txt_idgr'];
+        
+            $updateInMaterial = InMaterialFabric::where('id', $request['txt_idgr'])->update([
+                'tgl_dok' => $request['txt_tgl_gr'],
+                'tgl_shipp' => $request['txt_tgl_ship'],
+                'type_bc' => $request['txt_type_bc'],
+                'type_pch' => $request['txt_type_pch'],
+                'ori_dok' => $request['txt_oridok'],
+                'no_invoice' => $request['txt_invdok'],
+                'deskripsi' => $request['txt_notes'],
+            ]);
+
+        for ($i = 1; $i <= intval($request['txt_jmldet']); $i++) {
+            if ($request["qty_good"][$i] > 0 || $request["qty_reject"][$i] > 0) {
+                $updateInMaterialDet = InMaterialFabricDet::where('id', $request["id_det"][$i])->update([
+                'qty_good' => $request["qty_good"][$i],
+                'qty_reject' => $request["qty_reject"][$i],
+            ]);
+            }
+            }
+
+        $massage = 'Edit Data Successfully';
+
+            return array(
+                "status" => 200,
+                "message" => $massage,
+                "additional" => [],
+                "redirect" => url('/in-material')
+            );
+        
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+
+    // if (intval($request['jumlah_qty']) > 0) {
+        $bppb_header = BppbHeader::create([
+                'no_bppb' => $request['txt_nobppb'],
+                'tgl_bppb' => $request['txt_tgl_bppb'],
+                'no_req' => $request['txt_noreq'],
+                'jenis_pengeluaran' => $request['txt_jns_klr'],
+                'no_jo' => $request['txt_nojo'],
+                'tujuan' => $request['txt_dikirim'],
+                'dok_bc' => $request['txt_dok_bc'],
+                'no_ws' => $request['txt_nows'],
+                'no_ws_aktual' => $request['txt_nows_act'],
+                'buyer' => $request['txt_buyer'],
+                'no_aju' => $request['txt_no_aju'],
+                'tgl_aju' => $request['txt_tgl_aju'],
+                'no_daftar' => $request['txt_no_daftar'],
+                'tgl_daftar' => $request['txt_tgl_daftar'],
+                'no_kontrak' => $request['txt_kontrak'],
+                'no_invoice' => $request['txt_invoice'],
+                'catatan' => $request['txt_notes'],
+                'status' => 'Pending',
+                'created_by' => Auth::user()->name,
+            ]);
+
+        $bppb_detail = DB::connection('mysql_sb')->insert("insert into whs_bppb_det select * from whs_bppb_det_temp where created_by = '".Auth::user()->name."'");
+        $bppb_temp = BppbDetTemp::where('created_by',Auth::user()->name)->delete();
+
+            $massage = $request['txt_nobppb'] . ' Saved Succesfully';
+            $stat = 200;
+    // }else{
+    //     $massage = ' Please Input Data';
+    //     $stat = 400;
+    // }
+
+
+            return array(
+                "status" =>  $stat,
+                "message" => $massage,
+                "additional" => [],
+                "redirect" => url('/out-material')
+            );
+
+    }
+
+    public function saveoutmanual(Request $request)
+    {
+            // $iddok = $request['txtidgr'];
+        if (intval($request['t_roll']) > 0 && intval($request['m_qty_bal_h']) >= 0) {
+            $timestamp = Carbon::now();
+            $no_bppb = $request['m_no_bppb'];
+            $bppb_temp_det = [];
+            $data_aktual = 0;
+            for ($i = 1; $i <= intval($request['t_roll']); $i++) {
+            if ($request["qty_out"][$i] > 0) {
+                // dd(intval($request["qty_ak"][$i]));
+                array_push($bppb_temp_det, [
+                    "no_bppb" => $no_bppb,
+                    "id_roll" => $request["id_roll"][$i],
+                    "id_jo" => $request["id_jo"][$i],
+                    "id_item" => $request["id_item"][$i],
+                    "no_rak" => $request["rak"][$i],
+                    "no_lot" => $request["no_lot"][$i],
+                    "no_roll" => $request["no_roll"][$i],
+                    "item_desc" => $request["itemdesc"][$i],
+                    "qty_stok" => $request["qty_stok"][$i],
+                    "satuan" => $request["unit"][$i],
+                    "qty_out" => $request["qty_out"][$i],
+                    "status" => 'Y',
+                    "created_by" => Auth::user()->name,
+                    "deskripsi" => 'manual',
+                    "craeted_at" => $timestamp,
+                    "updated_at" => $timestamp,
+                ]);
+            }
+            }
+
+            $BppbdetStore = BppbDetTemp::insert($bppb_temp_det);
+
+
+            $massage = 'Add data Succesfully';
+            $stat = 200;
+        }elseif(intval($request['t_roll']) <= 0){
+            $massage = ' Please Input Data';
+            $stat = 400;
+        }elseif(intval($request['m_qty_bal_h']) >= 0){
+            $massage = ' Qty Out Melebihi Qty Request';
+            $stat = 400;
+        }else{
+            $massage = ' Data Error';
+            $stat = 400;
+        }
+        // dd($iddok);
+
+            return array(
+                "status" => $stat,
+                "message" => $massage,
+                "additional" => [],
+                "redirect" => ''
+            );
+
+    }
+
+    public function saveoutscan(Request $request)
+    {
+            // $iddok = $request['txtidgr'];
+        if (intval($request['m_qty_bal_h2']) >= 0) {
+            $timestamp = Carbon::now();
+            $no_bppb = $request['m_no_bppb2'];
+            $bppb_temp_det = [];
+            $data_aktual = 0;
+            for ($i = 1; $i <= 1; $i++) {
+            if ($request["qty_out"][$i] > 0) {
+                // dd(intval($request["qty_ak"][$i]));
+                array_push($bppb_temp_det, [
+                    "no_bppb" => $no_bppb,
+                    "id_roll" => $request["id_roll"][$i],
+                    "id_jo" => $request["id_jo"][$i],
+                    "id_item" => $request["id_item"][$i],
+                    "no_rak" => $request["rak"][$i],
+                    "no_lot" => $request["no_lot"][$i],
+                    "no_roll" => $request["no_roll"][$i],
+                    "item_desc" => $request["itemdesc"][$i],
+                    "qty_stok" => $request["qty_stok"][$i],
+                    "satuan" => $request["unit"][$i],
+                    "qty_out" => $request["qty_out"][$i],
+                    "status" => 'Y',
+                    "created_by" => Auth::user()->name,
+                    "deskripsi" => 'scan',
+                    "craeted_at" => $timestamp,
+                    "updated_at" => $timestamp,
+                ]);
+            }
+            }
+
+            $BppbdetStore = BppbDetTemp::insert($bppb_temp_det);
+
+
+            $massage = 'Add data Succesfully';
+            $stat = 200;
+        }elseif(intval($request['t_roll']) <= 0){
+            $massage = ' Please Input Data';
+            $stat = 400;
+        }elseif(intval($request['m_qty_bal_h']) >= 0){
+            $massage = ' Qty Out Melebihi Qty Request';
+            $stat = 400;
+        }else{
+            $massage = ' Data Error';
+            $stat = 400;
+        }
+        // dd($iddok);
+
+            return array(
+                "status" => $stat,
+                "message" => $massage,
+                "additional" => [],
+                "redirect" => ''
+            );
+
+    }
+
+    public function simpanedit(Request $request)
+    {
+        // $markerCount = Marker::selectRaw("MAX(kode) latest_kode")->whereRaw("kode LIKE 'MRK/" . date('ym') . "/%'")->first();
+        // $markerNumber = intval(substr($markerCount->latest_kode, -5)) + 1;
+        // $markerCode = 'MRK/' . date('ym') . '/' . sprintf('%05s', $markerNumber);
+        // $totalQty = 0;
+
+        $validatedRequest = $request->validate([
+            "txt_id" => "required",
+            "txt_area" => "required",
+            "txt_inisial" => "required",
+            "txt_baris" => "required",
+            "txt_level" => "required",
+            "txt_num" => "required",
+            "txt_capacity" => "required",
+        ]);
+
+        $lokCode = $validatedRequest['txt_inisial'] . '.' . $validatedRequest['txt_baris'] . '.' . $validatedRequest['txt_level'] . '.' . $validatedRequest['txt_num'];
+
+        $delete_unit = UnitLokasi::where('kode_lok', $lokCode)
+              ->delete();
+
+        if ($request['ROLL_edit'] == 'on') {
+             $unitStore1 = UnitLokasi::create([
+                'kode_lok' => $lokCode,
+                'unit' => 'ROLL',
+                'status' => 'Y',
+            ]);
+            
+        }
+        if ($request['BUNDLE_edit'] == 'on') {
+             $unitStore2 = UnitLokasi::create([
+                'kode_lok' => $lokCode,
+                'unit' => 'BUNDLE',
+                'status' => 'Y',
+            ]);
+            
+        }
+        if ($request['BOX_edit'] == 'on') {
+             $unitStore3 = UnitLokasi::create([
+                'kode_lok' => $lokCode,
+                'unit' => 'BOX',
+                'status' => 'Y',
+            ]);
+            
+        }
+        if ($request['PACK_edit'] == 'on') {
+             $unitStore4 = UnitLokasi::create([
+                'kode_lok' => $lokCode,
+                'unit' => 'PACK',
+                'status' => 'Y',
+            ]);
+            
+        }
+
+        $timestamp = Carbon::now();
+
+        if ($request['ROLL_edit'] == 'on' || $request['BUNDLE_edit'] == 'on' || $request['BOX_edit'] == 'on' || $request['PACK_edit'] == 'on') {
+            $updateLokasi = MasterLokasi::where('id', $validatedRequest['txt_id'])->update([
+                'kode_lok' => $lokCode,
+                'area_lok' => $validatedRequest['txt_area'],
+                'inisial_lok' => $validatedRequest['txt_inisial'],
+                'baris_lok' => $validatedRequest['txt_baris'],
+                'level_lok' => $validatedRequest['txt_level'],
+                'no_lok' => $validatedRequest['txt_num'],
+                'kapasitas' => $validatedRequest['txt_capacity'],
+                'status' => 'Active',
+                'create_by' => Auth::user()->name,
+                'create_date' => $timestamp,
+
+            ]);
+
+            $massage = 'Location ' . $lokCode . ' Edit Succesfully';
+
+            return array(
+                "status" => 200,
+                "message" => $massage,
+                "additional" => [],
+                "redirect" => url('/master-lokasi')
+            );
+        }
+        
+    }
+
+    public function barcodeinmaterial(Request $request, $id)
+    {
+       
+       
+            $dataItem = DB::connection('mysql_sb')->select("select a.*,CONCAT(a.no_roll,' Of ',all_roll) roll, ac.styleno from (select b.id,item_desc,kode_item,id_jo,id_item,supplier,a.no_dok,no_po,b.no_ws,no_roll,no_roll_buyer,no_lot,ROUND(qty_aktual,2) qty,satuan,'-' grouping,kode_lok from whs_inmaterial_fabric a inner join whs_lokasi_inmaterial b on b.no_dok = a.no_dok where a.id = '$id' and b.status = 'Y') a INNER JOIN
+                (select no_dok nodok,no_lot nolot,COUNT(no_roll) all_roll from (select item_desc,kode_item,id_item,supplier,a.no_dok,no_po,b.no_ws,no_roll,no_lot,ROUND(qty_aktual,2) qty,satuan,'-' grouping from whs_inmaterial_fabric a inner join whs_lokasi_inmaterial b on b.no_dok = a.no_dok where a.id = '$id' and b.status = 'Y') a GROUP BY no_lot) b on b.nodok = a.no_dok and a.no_lot = b.nolot 
+                inner join jo_det jd on a.id_jo = jd.id_jo
+                inner join so on jd.id_so = so.id
+                inner join act_costing ac on so.id_cost = ac.id order by a.no_lot,a.id asc");
+
+            // decode qr code
+            // $qrCodeDecode = base64_encode(Barcode::format('svg')->size(100)->generate($dataLokasi->kode_lok));
+
+            // generate pdf
+            // dd($dataItem);
+            PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
+            $pdf = PDF::loadView('inmaterial.pdf.print-barcode', ["dataItem" => $dataItem])->setPaper('a7', 'landscape');
+
+            $path = public_path('pdf/');
+            $fileName = 'barcode-material.pdf';
+            $pdf->save($path . '/' . $fileName);
+            $generatedFilePath = public_path('pdf/'.$fileName);
+
+            return response()->download($generatedFilePath);
+        
+    }
+
+
+    public function pdfinmaterial(Request $request, $id)
+    {
+       
+       
+            $dataHeader = DB::connection('mysql_sb')->select("select * from whs_inmaterial_fabric where id = '$id' limit 1");
+            $dataDetail = DB::connection('mysql_sb')->select("select a.no_dok,a.no_ws,a.desc_item,ROUND(a.qty_good,2) qty ,a.unit from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.id = '$id' and a.status = 'Y'");
+            $dataSum = DB::connection('mysql_sb')->select("select sum(qty) qty_all from (select a.no_dok,a.no_ws,a.desc_item,ROUND(a.qty_good,2) qty ,a.unit from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.id = '$id' and a.status = 'Y') a");
+            $dataUser = DB::connection('mysql_sb')->select("select created_by,created_at,approved_by,approved_date from whs_inmaterial_fabric where id = '$id' limit 1");
+            $dataHead = DB::connection('mysql_sb')->select("select CONCAT('Bandung, ',DATE_FORMAT(a.tgl_dok,'%d %b %Y')) tgl_dok,a.supplier,b.alamat, CURRENT_TIMESTAMP() tgl_cetak from whs_inmaterial_fabric a inner join mastersupplier b on b.supplier = a.supplier where id = '$id' and b.tipe_sup = 'S' limit 1");
+
+
+            PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
+            $pdf = PDF::loadView('inmaterial.pdf.print-pdf', ["dataHeader" => $dataHeader,"dataDetail" => $dataDetail,"dataSum" => $dataSum,"dataUser" => $dataUser,"dataHead" => $dataHead])->setPaper('a4', 'potrait');
+
+            $path = public_path('pdf/');
+            $fileName = 'pdf-material.pdf';
+            $pdf->save($path . '/' . $fileName);
+            $generatedFilePath = public_path('pdf/'.$fileName);
+
+            return response()->download($generatedFilePath);
+        
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  \App\Models\Stocker  $stocker
+     * @return \Illuminate\Http\Response
+     */
+    
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  \App\Models\Stocker  $stocker
+     * @return \Illuminate\Http\Response
+     */
+    public function edit(Stocker $stocker)
+    {
+        //
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\Stocker  $stocker
+     * @return \Illuminate\Http\Response
+     */
+    public function update($id)
+    {
+        $dataLokasi = DB::select("
+        select  id,
+                kode_lok,
+                area_lok,
+                inisial_lok,
+                baris_lok,
+                level_lok,
+                no_lok,
+                unit,
+                kapasitas, 
+                CONCAT(create_by, ' ',create_date) create_user, 
+                status from whs_master_lokasi where id = '$id'");
+        $arealok = DB::connection('mysql_sb')->table('whs_master_area')->select('id', 'area')->where('status', '=', 'active')->get();
+        $unit = DB::connection('mysql_sb')->table('whs_master_unit')->select('id', 'nama_unit')->where('status', '=', 'active')->get();
+       
+        return view('master.update-lokasi', ["dataLokasi" => $dataLokasi,'arealok' => $arealok,'unit' => $unit, 'page' => 'dashboard-warehouse']);
+    }
+
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  \App\Models\Stocker  $stocker
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy(Stocker $stocker)
+    {
+        //
+    }
+
+  
+
+    
+}

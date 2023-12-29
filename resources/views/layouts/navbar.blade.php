@@ -1,7 +1,7 @@
 @if (!isset($page))
-    @php
-        $page = '';
-    @endphp
+@php
+$page = '';
+@endphp
 @endif
 
 @if (!isset($subPage))
@@ -34,6 +34,44 @@
                 {{-- <li class="nav-item">
                     <a href="/marker" class="nav-link {{ $page == 'marker' ? 'active' : '' }}">Marker</a>
                 </li> --}}
+                <li class="nav-item dropdown">
+                    <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
+                    <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                        @if ($page == "dashboard-warehouse")
+                        <!-- <li>
+                            <a href="{{ route('warehouse') }}" class="dropdown-item">
+                                Fabric Warehouse
+                            </a>
+                        </li> -->
+
+                        <li>
+                            <a href="{{ route('master-lokasi') }}" class="dropdown-item">
+                                Master Lokasi
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('in-material') }}" class="dropdown-item">
+                                Penerimaan Bahan Baku
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('out-material') }}" class="dropdown-item">
+                                Pengeluaran Bahan Baku
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('mutasi-lokasi') }}" class="dropdown-item">
+                                Mutasi Lokasi
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('qc-pass') }}" class="dropdown-item">
+                                QC
+                            </a>
+                        </li>
+                        @endif
+
+    
                 @if ($page == 'dashboard-cutting')
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
@@ -389,88 +427,87 @@
                         <!-- Message Start -->
                         <div class="media">
                             <img src="{{ asset('dist/img/user1-128x128.jpg') }}" alt="User Avatar" class="img-size-50 mr-3 img-circle">
-                            <div class="media-body">
-                                <h3 class="dropdown-item-title">
-                                    Brad Diesel
-                                    <span class="float-end text-sm text-danger"><i class="fas fa-star"></i></span>
-                                </h3>
-                                <p class="text-sm">Call me whenever you can...</p>
-                                <p class="text-sm text-muted"><i class="far fa-clock mr-1"></i> 4 Hours Ago</p>
-                            </div>
-                        </div>
-                        <!-- Message End -->
-                    </a>
-                    <div class="dropdown-divider"></div>
-                    <a href="#" class="dropdown-item">
-                        <!-- Message Start -->
-                        <div class="media">
-                            <img src="{{ asset('dist/img/user8-128x128.jpg') }}" alt="User Avatar" class="img-size-50 img-circle mr-3">
-                            <div class="media-body">
-                                <h3 class="dropdown-item-title">
-                                    John Pierce
-                                    <span class="float-end text-sm text-muted"><i class="fas fa-star"></i></span>
-                                </h3>
-                                <p class="text-sm">I got your message bro</p>
-                                <p class="text-sm text-muted"><i class="far fa-clock mr-1"></i> 4 Hours Ago</p>
-                            </div>
-                        </div>
-                        <!-- Message End -->
-                    </a>
-                    <div class="dropdown-divider"></div>
-                    <a href="#" class="dropdown-item">
-                        <!-- Message Start -->
-                        <div class="media">
-                            <img src="{{ asset('dist/img/user3-128x128.jpg') }}" alt="User Avatar" class="img-size-50 img-circle mr-3">
-                            <div class="media-body">
-                                <h3 class="dropdown-item-title">
-                                    Nora Silvester
-                                    <span class="float-end text-sm text-warning"><i class="fas fa-star"></i></span>
-                                </h3>
-                                <p class="text-sm">The subject goes here</p>
-                                <p class="text-sm text-muted"><i class="far fa-clock mr-1"></i> 4 Hours Ago</p>
-                            </div>
-                        </div>
-                        <!-- Message End -->
-                    </a>
-                    <div class="dropdown-divider"></div>
-                    <a href="#" class="dropdown-item dropdown-footer">See All Messages</a>
-                </div>
-            </li>
-            <!-- Notifications Dropdown Menu -->
-            <li class="nav-item dropdown">
-                <a class="nav-link" data-bs-toggle="dropdown" href="#">
-                    <i class="far fa-bell"></i>
-                    <span class="badge badge-warning navbar-badge">15</span>
-                </a>
-                <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
-                    <span class="dropdown-header">15 Notifications</span>
-                    <div class="dropdown-divider"></div>
-                    <a href="#" class="dropdown-item">
-                        <i class="fas fa-envelope mr-2"></i> 4 new messages
-                        <span class="float-end text-muted text-sm">3 mins</span>
-                    </a>
-                    <div class="dropdown-divider"></div>
-                    <a href="#" class="dropdown-item">
-                        <i class="fas fa-users mr-2"></i> 8 friend requests
-                        <span class="float-end text-muted text-sm">12 hours</span>
-                    </a>
-                    <div class="dropdown-divider"></div>
-                    <a href="#" class="dropdown-item">
-                        <i class="fas fa-file mr-2"></i> 3 new reports
-                        <span class="float-end text-muted text-sm">2 days</span>
-                    </a>
-                    <div class="dropdown-divider"></div>
-                    <a href="#" class="dropdown-item dropdown-footer">See All Notifications</a>
-                </div>
-            </li> --}}
-            <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="offcanvas" href="#user-offcanvas" role="button"
-                    aria-controls="user-offcanvas">
-                    {{ strtoupper(auth()->user()->name) }}
-                    <i class="fas fa-user ps-1"></i>
-                </a>
-            </li>
-        </ul>
+            <div class="media-body">
+                <h3 class="dropdown-item-title">
+                    Brad Diesel
+                    <span class="float-end text-sm text-danger"><i class="fas fa-star"></i></span>
+                </h3>
+                <p class="text-sm">Call me whenever you can...</p>
+                <p class="text-sm text-muted"><i class="far fa-clock mr-1"></i> 4 Hours Ago</p>
+            </div>
+    </div>
+    <!-- Message End -->
+    </a>
+    <div class="dropdown-divider"></div>
+    <a href="#" class="dropdown-item">
+        <!-- Message Start -->
+        <div class="media">
+            <img src="{{ asset('dist/img/user8-128x128.jpg') }}" alt="User Avatar" class="img-size-50 img-circle mr-3">
+            <div class="media-body">
+                <h3 class="dropdown-item-title">
+                    John Pierce
+                    <span class="float-end text-sm text-muted"><i class="fas fa-star"></i></span>
+                </h3>
+                <p class="text-sm">I got your message bro</p>
+                <p class="text-sm text-muted"><i class="far fa-clock mr-1"></i> 4 Hours Ago</p>
+            </div>
+        </div>
+        <!-- Message End -->
+    </a>
+    <div class="dropdown-divider"></div>
+    <a href="#" class="dropdown-item">
+        <!-- Message Start -->
+        <div class="media">
+            <img src="{{ asset('dist/img/user3-128x128.jpg') }}" alt="User Avatar" class="img-size-50 img-circle mr-3">
+            <div class="media-body">
+                <h3 class="dropdown-item-title">
+                    Nora Silvester
+                    <span class="float-end text-sm text-warning"><i class="fas fa-star"></i></span>
+                </h3>
+                <p class="text-sm">The subject goes here</p>
+                <p class="text-sm text-muted"><i class="far fa-clock mr-1"></i> 4 Hours Ago</p>
+            </div>
+        </div>
+        <!-- Message End -->
+    </a>
+    <div class="dropdown-divider"></div>
+    <a href="#" class="dropdown-item dropdown-footer">See All Messages</a>
+    </div>
+    </li>
+    <!-- Notifications Dropdown Menu -->
+    <li class="nav-item dropdown">
+        <a class="nav-link" data-bs-toggle="dropdown" href="#">
+            <i class="far fa-bell"></i>
+            <span class="badge badge-warning navbar-badge">15</span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
+            <span class="dropdown-header">15 Notifications</span>
+            <div class="dropdown-divider"></div>
+            <a href="#" class="dropdown-item">
+                <i class="fas fa-envelope mr-2"></i> 4 new messages
+                <span class="float-end text-muted text-sm">3 mins</span>
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="#" class="dropdown-item">
+                <i class="fas fa-users mr-2"></i> 8 friend requests
+                <span class="float-end text-muted text-sm">12 hours</span>
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="#" class="dropdown-item">
+                <i class="fas fa-file mr-2"></i> 3 new reports
+                <span class="float-end text-muted text-sm">2 days</span>
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="#" class="dropdown-item dropdown-footer">See All Notifications</a>
+        </div>
+    </li> --}}
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="offcanvas" href="#user-offcanvas" role="button" aria-controls="user-offcanvas">
+            {{ strtoupper(auth()->user()->name) }}
+            <i class="fas fa-user ps-1"></i>
+        </a>
+    </li>
+    </ul>
     </div>
 </nav>
 <!-- /.navbar -->

@@ -49,6 +49,11 @@ function capitalizeFirstLetter(string) {
     return "-";
 }
 
+// Round
+Number.prototype.round = function(places) {
+    return +(Math.round(this + "e+" + places)  + "e-" + places);
+}
+
 // Pad 2 Digits
 function pad(n) {
     return n < 10 ? '0' + n : n

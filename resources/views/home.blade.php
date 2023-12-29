@@ -1,6 +1,7 @@
 @extends('layouts.index', ['navbar' => false, 'footer' => false])
 
 @section('content')
+
     <div class="container mt-5">
         <div class="card h-100">
             <div class="card-body">
@@ -21,7 +22,6 @@
                                 </div>
                             </a>
                         </div>
-                    @endif
 
                     @stocker
                         <div class="col-md-2 col-3">
@@ -37,7 +37,8 @@
                                 </div>
                             </a>
                         </div>
-                    @endstocker
+                @endstocker
+                @endif
 
                     @dc
                         <div class="col-md-2 col-3">
@@ -55,7 +56,7 @@
                         </div>
                     @enddc
 
-                    @hr
+                    {{-- @hr
                         <div class="col-md-2 col-3">
                             <a href="{{ route('dashboard-mut-karyawan') }}" class="home-item">
                                 <div class="card h-100">
@@ -69,7 +70,7 @@
                                 </div>
                             </a>
                         </div>
-                    @endhr
+                    @endhr --}}
 
                     @hr
                         <div class="col-md-2 col-3">
@@ -86,6 +87,21 @@
                             </a>
                         </div>
                     @endhr
+
+
+                <!-- warehouse -->
+                <div class="col-md-2 col-3">
+                    <a href="{{ route('dashboard-warehouse') }}" class="home-item">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex h-100 flex-column justify-content-between">
+                                    <img src="{{ asset('dist/img/warehouse.png') }}" class="img-fluid p-3" alt="cutting image">
+                                    <p class="text-center">Warehouse</p>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
 
 
                     <div class="col-md-2 col-3">
@@ -112,4 +128,5 @@
             </div>
         </div>
     </div>
+</div>
 @endsection
