@@ -128,11 +128,15 @@
                                 $currentGroup = "";
                                 $currentGroupStocker = 0;
                                 $currentTotal = 0;
+                                $currentBefore = 0;
 
                             @endphp
-                            @foreach ($dataSpreading->formCutInputDetails as $detail)
+                            @foreach ($dataSpreading->formCutInputDetails->sortByDesc('group_stocker') as $detail)
                                 @if (!$detail->group_stocker)
+                                {{-- With group stocker condition --}}
+
                                     @if ($loop->first)
+                                    {{-- Initial group --}}
                                         @php
                                             $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
@@ -140,6 +144,7 @@
                                     @endif
 
                                     @if ($detail->group_roll != $currentGroup)
+                                    {{-- Create element when switching group --}}
                                         <div class="d-flex gap-3">
                                             <div class="mb-3">
                                                 <label><small>Group</small></label>
@@ -151,18 +156,24 @@
                                             </div>
                                         </div>
 
-                                        @include('stocker.stocker-detail-part',['dataPartDetail' => $dataPartDetail, 'group' => $currentGroup, 'groupStocker' => $currentGroupStocker, 'qtyPly' => $currentTotal, 'index' => $index])
+                                        @include('stocker.stocker-detail-part')
                                         @php
                                             $index += $dataRatio->count() * $dataPartDetail->count();
                                         @endphp
 
+
+                                        {{-- Change initial group --}}
                                         @php
+                                            $currentBefore = $currentTotal;
+
                                             $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
                                             $currentTotal = $detail->lembar_gelaran;
                                         @endphp
 
+
                                         @if ($loop->last)
+                                        {{-- Create last element when it comes to an end of this loop --}}
                                             <div class="d-flex gap-3">
                                                 <div class="mb-3">
                                                     <label><small>Group</small></label>
@@ -174,16 +185,18 @@
                                                 </div>
                                             </div>
 
-                                            @include('stocker.stocker-detail-part',['dataPartDetail' => $dataPartDetail, 'group' => $currentGroup, 'groupStocker' => $currentGroupStocker, 'qtyPly' => $currentTotal, 'index' => $index])
+                                            @include('stocker.stocker-detail-part')
                                             @php
                                                 $index += $dataRatio->count() * $dataPartDetail->count();
                                             @endphp
                                         @endif
                                     @else
+                                        {{-- Accumulate when it still in the same group --}}
                                         @php
                                             $currentTotal += $detail->lembar_gelaran;
                                         @endphp
 
+                                        {{-- Create last element when it comes to an end of this loop --}}
                                         @if ($loop->last)
                                             <div class="d-flex gap-3">
                                                 <div class="mb-3">
@@ -196,14 +209,17 @@
                                                 </div>
                                             </div>
 
-                                            @include('stocker.stocker-detail-part',['dataPartDetail' => $dataPartDetail, 'group' => $currentGroup, 'groupStocker' => $currentGroupStocker, 'qtyPly' => $currentTotal, 'index' => $index])
+                                            @include('stocker.stocker-detail-part')
                                             @php
                                                 $index += $dataRatio->count() * $dataPartDetail->count();
                                             @endphp
                                         @endif
                                     @endif
                                 @else
+                                {{-- Without group stocker condition --}}
+
                                     @if ($loop->first)
+                                    {{-- Initial Group --}}
                                         @php
                                             $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
@@ -211,6 +227,7 @@
                                     @endif
 
                                     @if ($detail->group_stocker != $currentGroupStocker)
+                                    {{-- Create element when switching group --}}
                                         <div class="d-flex gap-3">
                                             <div class="mb-3">
                                                 <label><small>Group</small></label>
@@ -222,17 +239,21 @@
                                             </div>
                                         </div>
 
-                                        @include('stocker.stocker-detail-part',['dataPartDetail' => $dataPartDetail, 'group' => $currentGroup, 'groupStocker' => $currentGroupStocker, 'qtyPly' => $currentTotal, 'index' => $index])
+                                        @include('stocker.stocker-detail-part')
                                         @php
                                             $index += $dataRatio->count() * $dataPartDetail->count();
                                         @endphp
 
+                                        {{-- Change initial group --}}
                                         @php
+                                            $currentBefore = $currentTotal;
+
                                             $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
                                             $currentTotal = $detail->lembar_gelaran;
                                         @endphp
 
+                                        {{-- Create last element when it comes to an end of this loop --}}
                                         @if ($loop->last)
                                             <div class="d-flex gap-3">
                                                 <div class="mb-3">
@@ -245,17 +266,19 @@
                                                 </div>
                                             </div>
 
-                                            @include('stocker.stocker-detail-part',['dataPartDetail' => $dataPartDetail, 'group' => $currentGroup, 'groupStocker' => $currentGroupStocker, 'qtyPly' => $currentTotal, 'index' => $index])
+                                            @include('stocker.stocker-detail-part')
                                             @php
                                                 $index += $dataRatio->count() * $dataPartDetail->count();
                                             @endphp
                                         @endif
                                     @else
+                                        {{-- Accumulate when it still in the group --}}
                                         @php
                                             $currentTotal += $detail->lembar_gelaran;
                                         @endphp
 
                                         @if ($loop->last)
+                                        {{-- Create last element when it comes to an end of this loop --}}
                                             <div class="d-flex gap-3">
                                                 <div class="mb-3">
                                                     <label><small>Group</small></label>
@@ -267,7 +290,7 @@
                                                 </div>
                                             </div>
 
-                                            @include('stocker.stocker-detail-part',['dataPartDetail' => $dataPartDetail, 'group' => $currentGroup, 'groupStocker' => $currentGroupStocker, 'qtyPly' => $currentTotal, 'index' => $index])
+                                            @include('stocker.stocker-detail-part')
                                             @php
                                                 $index += $dataRatio->count() * $dataPartDetail->count();
                                             @endphp
