@@ -1,11 +1,24 @@
-@if (!(isset($page)))
+@if (!isset($page))
     @php
         $page = '';
     @endphp
 @endif
 
+@if (!isset($subPage))
+    @php
+        $subPage = '';
+    @endphp
+@endif
+
+@if (!isset($subPageGroup))
+    @php
+        $subPageGroup = '';
+    @endphp
+@endif
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -17,19 +30,26 @@
 
     @yield('custom-link')
 </head>
+
 <body class="hold-transition layout-top-nav">
     <div class="wrapper">
-        @if (!(isset($navbar)))
+        @if (!isset($navbar))
             @php
                 $navbar = true;
             @endphp
         @endif
 
         @if ($navbar)
-            @include('layouts.navbar', ['page' => $page])
+            @include('layouts.navbar', ['page' => $page, 'subPage' => $subPage])
         @endif
 
         @include('layouts.offcanvas')
+
+        <div class="loading-container-fullscreen d-none" id="loading">
+            <div class="loading-container">
+                <div class="loading"></div>
+            </div>
+        </div>
 
         <!-- Content Wrapper. Contains page content -->
         <div class="content-wrapper pt-3">
@@ -41,11 +61,6 @@
                             <div class="col-sm-6">
                                 <h1 class="m-0">{{ ucfirst($title) }}</h1>
                             </div>
-                            {{-- <div class="col-sm-6">
-                                <ol class="breadcrumb float-sm-right">
-                                <li class="breadcrumb-item"><a href="#">Home</a></li>
-                                </ol>
-                            </div> --}}
                         </div>
                     </div>
                 </div>
@@ -57,26 +72,27 @@
                     @yield('content')
                 </div>
             </div>
-
-            @if (!(isset($footer)))
-                @php
-                    $footer = true;
-                @endphp
-            @endif
-
-            @if ($footer)
-                <footer class="main-footer mt-3">
-                    <strong>
-                        <a href="https://nirwanagroup.co.id/en/service/nirwana-alabare-santosa/" class="text-dark" target="_blank">
-                            Nirwana Digital Solution
-                        </a> &copy; {{ date('Y') }}
-                    </strong>
-                </footer>
-            @endif
         </div>
 
+        @if (!isset($footer))
+            @php
+                $footer = true;
+            @endphp
+        @endif
+
+        @if ($footer)
+            <footer class="main-footer">
+                <strong>
+                    <a href="https://nirwanagroup.co.id/en/service/nirwana-alabare-santosa/" class="text-dark"
+                        target="_blank">
+                        Nirwana Digital Solution
+                    </a> &copy; {{ date('Y') }}
+                </strong>
+            </footer>
+        @endif
     </div>
 
     @include('layouts.script')
 </body>
+
 </html>

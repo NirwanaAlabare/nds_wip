@@ -35,6 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 });
 
+// Round
+Number.prototype.round = function(places) {
+    return +(Math.round(this + "e+" + places)  + "e-" + places);
+}
+
 // Capitalize
 function capitalizeFirstLetter(string) {
     if (string) {
@@ -65,6 +70,14 @@ function checkIfNull(value) {
     return true;
 }
 
+function formatDate(date) {
+    return [
+        date.getFullYear(),
+        pad(date.getMonth() + 1),
+        pad(date.getDate()),
+    ].join('-');
+}
+
 // Clear modified
 var modified = [];
 function clearModified() {
@@ -85,6 +98,8 @@ function clearModified() {
 
 // Form Submit
 function submitForm(e, evt) {
+    $("input[type=submit][clicked=true]").attr('disabled', true);
+
     evt.preventDefault();
 
     clearModified();
@@ -96,27 +111,20 @@ function submitForm(e, evt) {
         processData: false,
         contentType: false,
         success: function(res) {
+            $("input[type=submit][clicked=true]").removeAttr('disabled');
+
             if (res.status == 200) {
                 $('.modal').modal('hide');
-
-                // if (res.redirect != '') {
-                //     if (res.redirect != 'reload') {
-                //         location.href = res.redirect;
-                //     } else {
-                //         location.reload();
-                //     }
-                // }
 
                 Swal.fire({
                     icon: 'success',
                     title: res.message,
-                    text: res.message,
                     showCancelButton: false,
                     showConfirmButton: true,
                     confirmButtonText: 'Oke',
                     timer: 5000,
                     timerProgressBar: true
-                }).then((result)=>{
+                }).then(() => {
                     if (res.redirect != '') {
                         if (res.redirect != 'reload') {
                             location.href = res.redirect;
@@ -124,14 +132,33 @@ function submitForm(e, evt) {
                             location.reload();
                         }
                     }
-                })
+                });
 
                 e.reset();
+
+                if (res.callback != '') {
+                    eval(res.callback);
+                }
 
                 if (document.getElementsByClassName('select2')) {
                     $(".select2").val('').trigger('change');
                 }
-            } else {
+            }
+          else if (res.status == 300) {
+            $('.modal').modal('hide');
+
+            iziToast.success({
+                title: 'success',
+                message: res.message,
+                position: 'topCenter'
+            });
+
+            e.reset();
+
+            if (document.getElementsByClassName('select2')) {
+                $(".select2").val('').trigger('change');
+            }
+        } else {
                 for(let i = 0;i < res.errors; i++) {
                     document.getElementById(res.errors[i]).classList.add('is-invalid');
                     modified.push([res.errors[i], 'classList', 'remove(', "'is-invalid')"])
@@ -171,6 +198,8 @@ function submitForm(e, evt) {
                 }
             }
         }, error: function (jqXHR) {
+            $("input[type=submit][clicked=true]").removeAttr('disabled');
+
             let res = jqXHR.responseJSON;
             let message = '';
 
@@ -258,7 +287,7 @@ function deleteData(e) {
 
                             $('.modal').modal('hide');
                         } else {
-                            iziToast.success({
+                            iziToast.error({
                                 title: 'Error',
                                 message: res.message,
                                 position: 'topCenter'

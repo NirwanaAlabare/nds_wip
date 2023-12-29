@@ -5,10 +5,21 @@
     <style>
         @page { margin: 0.5px; }
 
-        body { margin: 0.5px; }
+        @font-face {
+            font-family: 'Open Sans';
+            font-style: normal;
+            font-weight: bold;
+            src: url({{ storage_path("OpenSans-Bold.ttf") }}) format('truetype');
+        }
+
+        body {
+            margin: 0.5px;
+            font-family: 'Open Sans', sans-serif;
+            font-weight: bold;
+        }
 
         * {
-            font-size: 4.5px;
+            font-size: 3.3px;
         }
 
         img {
@@ -34,7 +45,7 @@
             <tr>
                 <td>{{ $numbering['kode'] }}</td>
                 <td rowspan="6" style="vertical-align: middle; text-align: center;">
-                    <img src="data:image/png;base64, {!! $qrCode[$loop->index] !!}">
+                    <img src="data:image/png;base64, {!! base64_encode(QrCode::format('svg')->size(100)->generate("WIP-".$numbering['kode']."-".$numbering['no_cut_size']."-".$numbering['so_det_id'])) !!}">
                 </td>
             </tr>
             <tr>
@@ -45,9 +56,6 @@
             </tr>
             <tr>
                 <td>{{ $color }}</td>
-            </tr>
-            <tr>
-                <td>{{ $kode }}</td>
             </tr>
             <tr>
                 <td>{{ $numbering['size'] }}</td>

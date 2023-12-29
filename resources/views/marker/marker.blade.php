@@ -8,99 +8,119 @@
 @endsection
 
 @section('content')
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable" style="max-width: 55%;">
+    {{-- Show Detail Marker Modal --}}
+    <div class="modal fade" id="showMarkerModal" tabindex="-1" role="dialog" aria-labelledby="showMarkerModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 65%;">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-light">
-                    <h1 class="modal-title fs-5" id="exampleModalLabel"></h1>
+                    <h1 class="modal-title fs-5" id="showMarkerModalLabel"></h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="detail">
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    {{-- <button type="submit" class="btn btn-sb">Simpan</button> --}}
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Tutup</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="exampleModalEdit" tabindex="-1" role="dialog" aria-labelledby="exampleModalEditLabel"
-        aria-hidden="true">
+    {{-- Edit Marker --}}
+    <div class="modal fade" id="editMarkerModal" tabindex="-1" role="dialog" aria-labelledby="editMarkerModalLabel" aria-hidden="true">
         <form action="{{ route('update_marker') }}" method="post" onsubmit="submitForm(this, event)">
             @method('PUT')
-            <div class="modal-dialog modal-lg modal-dialog-scrollable" style="max-width: 55%;">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 25%;">
                 <div class="modal-content">
                     <div class="modal-header bg-sb text-light">
-                        <h1 class="modal-title fs-5" id="exampleModalEditLabel"></h1>
+                        <h1 class="modal-title fs-5" id="editMarkerModalLabel"></h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         <div class='row'>
-                            <div class='col-sm-3'>
+                            <div class='col-sm-12'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Gramasi</small></label>
-                                    <input type='text' class='form-control' id='txt_gramasi' name='txt_gramasi'
-                                        value = ''>
+                                    <input type='number' class='form-control' id='txt_gramasi' name='txt_gramasi' value = ''>
                                     <input type='hidden' class='form-control' id='id_c' name='id_c' value = ''>
+                                </div>
+                            </div>
+                            <div class='col-sm-12' id="marker_pilot">
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Marker Pilot</small></label>
+                                    <div class="d-flex gap-3 ms-1">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="pilot_status" id="idle" value="idle">
+                                            <label class="form-check-label" for="idle">
+                                                <small>Pilot</small>
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="pilot_status" id="active" value="active">
+                                            <label class="form-check-label" for="active">
+                                                <small>Pilot Sukses</small>
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="pilot_status" id="not_active" value="not active">
+                                            <label class="form-check-label" for="not_active">
+                                                <small>Pilot Gagal</small>
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                        <button type="submit" class="btn btn-sb">Simpan</button>
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Tutup</button>
+                        <button type="submit" class="btn btn-success">Simpan</button>
                     </div>
                 </div>
             </div>
         </form>
     </div>
 
-
-
-    <div class="card card-sb card-outline">
+    <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0">Data Marker</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-marker fa-sm"></i> Marker</h5>
         </div>
         <div class="card-body">
-            <a href="{{ route('create-marker') }}" class="btn btn-primary btn-sm mb-3">
+            <a href="{{ route('create-marker') }}" class="btn btn-success btn-sm mb-3">
                 <i class="fas fa-plus"></i>
                 Baru
             </a>
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
-                    <label class="form-label"><small>Tgl Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
-                        value="{{ date('Y-m-d') }}">
+                    <label class="form-label"><small>Tanggal Awal</small></label>
+                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
-                    <label class="form-label"><small>Tgl Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                        value="{{ date('Y-m-d') }}">
+                    <label class="form-label"><small>Tanggal Akhir</small></label>
+                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
-                    <button class="btn btn-primary btn-sm" onclick="filterTable()">Tampilkan</button>
+                    <button class="btn btn-primary btn-sm" onclick="filterTable()"><i class="fa fa-search"></i></button>
                 </div>
             </div>
             <div class="table-responsive">
                 <table id="datatable" class="table table-bordered table-sm w-100">
                     <thead>
                         <tr>
+                            <th class="align-bottom">Action</th>
                             <th>Tanggal</th>
                             <th>No. Marker</th>
                             <th>No. WS</th>
+                            <th>Style</th>
                             <th>Color</th>
                             <th>Panel</th>
                             <th>Panjang Marker</th>
-                            {{-- <th>Comma Marker</th> --}}
                             <th>Lebar Marker</th>
                             <th>Gramasi</th>
                             <th>Gelar QTYs</th>
-                            <th>PO</th>
                             <th>Urutan</th>
-                            <th>Tot Form</th>
-                            <th>Act</th>
+                            <th>PO</th>
+                            <th>Total Form</th>
+                            <th>Ket.</th>
                         </tr>
                     </thead>
                 </table>
@@ -116,6 +136,25 @@
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
     <script>
+        $('#datatable thead tr').clone(true).appendTo('#datatable thead');
+        $('#datatable thead tr:eq(1) th').each(function(i) {
+            if (i != 0) {
+                var title = $(this).text();
+                $(this).html('<input type="text" class="form-control form-control-sm" />');
+
+                $('input', this).on('keyup change', function() {
+                    if (datatable.column(i).search() !== this.value) {
+                        datatable
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            } else {
+                $(this).empty();
+            }
+        });
+
         let datatable = $("#datatable").DataTable({
             ordering: false,
             processing: true,
@@ -127,7 +166,11 @@
                     d.tgl_akhir = $('#tgl-akhir').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
+                    data: 'id'
+                },
+                {
                     data: 'tgl_cut_fix',
                     searchable: false
                 },
@@ -136,6 +179,9 @@
                 },
                 {
                     data: 'act_costing_ws'
+                },
+                {
+                    data: 'style'
                 },
                 {
                     data: 'color'
@@ -157,60 +203,96 @@
                     data: 'gelar_qty'
                 },
                 {
-                    data: 'po_marker'
+                    data: 'urutan_marker'
                 },
                 {
-                    data: 'urutan_marker'
+                    data: 'po_marker'
                 },
                 {
                     data: 'tot_form',
                     searchable: false
                 },
                 {
-                    data: 'id'
+                    data: 'notes',
                 },
             ],
-            columnDefs: [{
-                    targets: [12],
+            columnDefs: [
+                {
+                    targets: [0],
                     render: (data, type, row, meta) => {
-                        if (row.cancel != 'Y' && row.tot_form != 0) {
-                            return `<div class='d-flex gap-1 justify-content-center'><a class='btn btn-primary btn-sm'
-                        data-bs-toggle="modal" data-bs-target="#exampleModal" onclick='getdetail(` + row.id + `);'>
-                        <i class='fa fa-search'></i></a>
-                            </div>`;
-                        } else if (row.cancel != 'Y' && row.tot_form == 0) {
-                            return `<div class='d-flex gap-1 justify-content-center'><a class='btn btn-primary btn-sm'
-                        data-bs-toggle="modal" data-bs-target="#exampleModal" onclick='getdetail(` + row.id + `);'>
-                        <i class='fa fa-search'></i></a>
-                        <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModalEdit"
-                            onclick='edit(` + row.id + `);'><i class='fa fa-edit'></i></a>
-                        <a class='btn btn-danger btn-sm' onclick='cancel(` + row.id + `);'><i class='fa fa-ban'></i></a>
-                            </div>`;
-                        } else if (row.cancel == 'Y') {
-                            return `<div class='d-flex gap-1 justify-content-center'>
-                                <a class='btn btn-primary btn-sm'
-                        data-bs-toggle="modal" data-bs-target="#exampleModal" onclick='getdetail(` + row.id + `);'>
-                        <i class='fa fa-search'></i></a>
-                            </div>`;
-                        }
+                        let exportBtn = `
+                            <button type="button" class="btn btn-sm btn-secondary" onclick="printMarker('` + row.kode + `');">
+                                <i class="fa fa-print"></i>
+                            </button>
+                        `;
 
+                        if (row.cancel != 'Y' && row.tot_form != 0 && row.tipe_marker != "pilot marker") {
+                            return `
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
+                                        <i class='fa fa-search'></i>
+                                    </a>
+                                    ` + exportBtn + `
+                                </div>
+                            `;
+                        } else if ((row.cancel != 'Y' && row.tot_form == 0) || (row.cancel != 'Y' && row.gelar_qty_balance > 0 && row.tipe_marker == "pilot marker")) {
+                            return `
+                                <div class='d-flex gap-1 justify-content-center mb-1'>
+                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
+                                        <i class='fa fa-search'></i>
+                                    </a>
+                                    ` + exportBtn +
+                                `
+                                </div>
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editMarkerModal" onclick='edit(` + row.id + `);'>
+                                        <i class='fa fa-edit'></i>
+                                    </a>
+                                    <a class='btn btn-danger btn-sm' onclick='cancel(` + row.id + `);'>
+                                        <i class='fa fa-ban'></i>
+                                    </a>
+                                </div>
+                            `;
+                        } else if (row.cancel == 'Y') {
+                            return `
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
+                                        <i class='fa fa-search'></i>
+                                    </a>
+                                    ` + exportBtn + `
+                                </div>
+                            `;
+                        } else {
+                            return `
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
+                                        <i class='fa fa-search'></i>
+                                    </a>
+                                    ` + exportBtn + `
+                                </div>
+                            `;
+                        }
                     }
                 },
                 {
                     targets: '_all',
                     render: (data, type, row, meta) => {
-                        var color = 'black';
+                        var color = '#2b2f3a';
                         if (row.tot_form != '0' && row.cancel == 'N') {
-                            color = 'green';
+                            color = '#087521';
                         } else if (row.tot_form == '0' && row.cancel == 'N') {
-                            color = 'blue';
+                            color = '#2243d6';
                         } else if (row.cancel == 'Y') {
-                            color = 'red';
+                            color = '#d33141';
                         }
-                        return '<span style="color:' + color + '">' + data + '</span>';
+                        return '<span style="font-weight: 600; color:' + color + '">' + data + '</span>';
                     }
-                }
-            ]
+                },
+                {
+                    targets: [1,2,3],
+                    className: 'text-nowrap'
+                },
+            ],
         });
 
         function filterTable() {
@@ -218,7 +300,7 @@
         }
 
         function getdetail(id_c) {
-            $("#exampleModalLabel").html('Marker Detail');
+            $("#showMarkerModalLabel").html('Marker Detail');
             let html = $.ajax({
                 type: "POST",
                 url: '{{ route('show-marker') }}',
@@ -231,8 +313,8 @@
         };
 
         function edit(id_c) {
-            $("#exampleModalEditLabel").html('Marker Edit');
-            jQuery.ajax({
+            $("#editMarkerModalLabel").html('Marker Edit');
+            $.ajax({
                 url: '{{ route('show_gramasi') }}',
                 method: 'POST',
                 data: {
@@ -242,14 +324,24 @@
                 success: function(response) {
                     document.getElementById('txt_gramasi').value = response.gramasi;
                     document.getElementById('id_c').value = response.id;
+
+                    if (response.tipe_marker == "pilot marker") {
+                        document.getElementById('marker_pilot').classList.remove('d-none');
+
+                        if (response.status_marker) {
+                            document.getElementById(response.status_marker).checked = true;
+                        } else {
+                            document.getElementById("idle").checked = true;
+                        }
+                    } else {
+                        document.getElementById('marker_pilot').classList.add('d-none');
+                    }
                 },
                 error: function(request, status, error) {
                     alert(request.responseText);
                 },
-
             });
         };
-
 
         function cancel(id_c) {
             let html = $.ajax({
@@ -260,14 +352,54 @@
                 },
                 async: false
             }).responseText;
+
             swal.fire({
                 position: 'mid-end',
                 icon: 'info',
-                title: 'Data Sudah Di Rubah',
+                title: 'Data Sudah Di Ubah',
                 showConfirmButton: false,
                 timer: 1000
-            })
+            });
+
             datatable.ajax.reload();
         };
+
+        function printMarker(kodeMarker) {
+            let fileName = kodeMarker;
+
+            // Show Loading
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                url: '{{ route('print-marker') }}/' + kodeMarker.replace(/\//g, '_'),
+                type: 'post',
+                processData: false,
+                contentType: false,
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(res) {
+                    if (res) {
+                        var blob = new Blob([res], {
+                            type: 'application/pdf'
+                        });
+
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = fileName + ".pdf";
+                        link.click();
+
+                        swal.close();
+                    }
+                }
+            });
+        }
     </script>
 @endsection

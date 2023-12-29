@@ -4,14 +4,27 @@ $page = '';
 @endphp
 @endif
 
+@if (!isset($subPage))
+    @php
+        $subPage = '';
+    @endphp
+@endif
+
+@if (!isset($subPageGroup))
+    @php
+        $subPageGroup = '';
+    @endphp
+@endif
+
 <!-- Navbar -->
 <nav class="main-header navbar navbar-expand-md navbar-light navbar-white">
     <div class="container">
-        <a href="{{ $page != '' ? route($page) : "#" }}" class="navbar-brand">
+        <a href="{{ $page != '' ? route($page) : '#' }}" class="navbar-brand">
             <img src="{{ asset('dist/img/logo-icon.png') }}" alt="nds Logo" class="brand-image">
         </a>
 
-        <button class="navbar-toggler order-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler order-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
+            aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
@@ -58,44 +71,303 @@ $page = '';
                         </li>
                         @endif
 
-                        @if ($page == "dashboard-cutting")
-                        @marker
-                        <li>
-                            <a href="{{ route('marker') }}" class="dropdown-item">
-                                Marker
-                            </a>
-                        </li>
-                        @endmarker
+    
+                @if ($page == 'dashboard-cutting')
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-cutting' ? 'active' : '' }}">Proses</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @marker
+                                <li>
+                                    <a href="{{ route('marker') }}"
+                                        class="dropdown-item {{ $subPage == 'marker' ? 'active' : '' }}">
+                                        Marker <i class="fas fa-marker fa-sm"></i>
+                                    </a>
+                                </li>
+                            @endmarker
 
-                        @spreading
-                        <li>
-                            <a href="{{ route('spreading') }}" class="dropdown-item">
-                                Spreading
-                            </a>
-                        </li>
-                        @endspreading
+                            @spreading
+                                <li>
+                                    <a href="{{ route('spreading') }}"
+                                        class="dropdown-item {{ $subPage == 'spreading' ? 'active' : '' }}">
+                                        Spreading <i class="fas fa-scroll fa-sm"></i>
+                                    </a>
+                                </li>
+                            @endspreading
 
-                        @meja
-                        <li>
-                            <a href="{{ route('form-cut-input') }}" class="dropdown-item">
-                                Form Cutting
-                            </a>
-                        </li>
-                        @endmeja
-                        @endif
+                            @meja
+                                <li>
+                                    <a href="{{ route('form-cut-input') }}"
+                                        class="dropdown-item {{ $subPage == 'form-cut-input' ? 'active' : '' }}">
+                                        Form Cutting <i class="fas fa-cut fa-sm"></i>
+                                    </a>
+                                </li>
+                            @endmeja
 
-                        @if ($page == "dashboard-stocker")
-                        @stocker
-                        <li>
-                            <a href="{{ route('stocker') }}" class="dropdown-item">
-                                Stocker
+                            {{-- @admin
+                                <li>
+                                    <a href="{{ route('cut-plan') }}" class="dropdown-item">
+                                        Cutting Plan
+                                    </a>
+                                </li>
+                            @endadmin --}}
+                        </ul>
+                    </li>
+
+                    @admin
+                        <li class="nav-item dropdown">
+                            <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                                aria-expanded="false"
+                                class="nav-link dropdown-toggle {{ $subPageGroup == 'cuttingplan-cutting' ? 'active' : '' }}">Cutting
+                                Plan</a>
+                            <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
+                                <li>
+                                    <a href="{{ route('cut-plan') }}"
+                                        class="dropdown-item {{ $subPage == 'cut-plan' ? 'active' : '' }}">
+                                        Cutting Plan <i class="fas fa-map fa-sm"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                                aria-expanded="false"
+                                class="nav-link dropdown-toggle {{ $subPageGroup == 'laporan-cutting' ? 'active' : '' }}">Laporan</a>
+                            <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
+                                <li>
+                                    <a href="{{ route('lap_pemakaian') }}"
+                                        class="dropdown-item {{ $subPage == 'lap-pemakaian' ? 'active' : '' }}">
+                                        Laporan Pemakaian <i class="fas fa-file-alt fa-sm"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    @endadmin
+
+                    {{-- @manager
+                        <li class="nav-item">
+                            <a href="{{ route('manage-cutting') }}" class="nav-link">
+                                Generate <i class="fas fa-file-archive fa-sm"></i>
                             </a>
                         </li>
-                        @endstocker
-                        @endif
-                        {{-- <li class="dropdown-divider"></li> --}}
-                        <!-- Level two dropdown-->
-                        {{-- <li class="dropdown-submenu dropdown-hover">
+                    @endmanager --}}
+
+                    @admin
+                        <li class="nav-item {{ $subPage == 'summary-cutting' ? 'active' : '' }}">
+                            <a href="{{ route('summary') }}" class="nav-link">
+                                Summary <i class="fas fa-tasks fa-sm"></i>
+                            </a>
+                        </li>
+                    @endadmin
+                @endif
+
+                @if ($page == 'dashboard-stocker')
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'master-stocker' ? 'active' : '' }}">Master</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @stocker
+                                {{-- <li>
+                                    <a href="{{ route('part') }}" class="dropdown-item">
+                                        Part
+                                    </a>
+                                </li> --}}
+                                <li>
+                                    <a href="{{ route('master-part') }}"
+                                        class="dropdown-item {{ $subPage == 'master-part' ? 'active' : '' }}">
+                                        Master Part <i class="fas fa-plus-square fa-sm"></i>
+                                    </a>
+                                </li>
+                            @endstocker
+                        </ul>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-stocker' ? 'active' : '' }}">Proses</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @stocker
+                                {{-- <li>
+                                    <a href="{{ route('part') }}" class="dropdown-item">
+                                        Part
+                                    </a>
+                                </li> --}}
+                                <li>
+                                    <a href="{{ route('part') }}"
+                                        class="dropdown-item {{ $subPage == 'part' ? 'active' : '' }}">
+                                        Part <i class="fas fa-th fa-sm"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('stocker') }}"
+                                        class="dropdown-item {{ $subPage == 'stocker' ? 'active' : '' }}">
+                                        Stocker <i class="fas fa-ticket-alt"></i>
+                                    </a>
+                                </li>
+                            @endstocker
+                        </ul>
+                    </li>
+                @endif
+
+                @if ($page == 'dashboard-dc')
+                    {{-- <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @dc
+                                <li>
+                                    <a href="{{ route('stocker') }}" class="dropdown-item">
+                                        Stocker <i class="fas fa-receipt fa-sm"></i>
+                                    </a>
+                                </li>
+                            @enddc
+                        </ul>
+                    </li> --}}
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'dcin-dc' ? 'active' : '' }}">DC In</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @dc
+                                <li>
+                                    <a href="{{ route('dc-in') }}"
+                                        class="dropdown-item {{ $subPage == 'dc-in' ? 'active' : '' }}">
+                                        DC In <i class="fas fa-qrcode fa-sm"></i>
+                                    </a>
+                                </li>
+                            @enddc
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'secondary-dc' ? 'active' : '' }}">Secondary</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @dc
+                                <li>
+                                    <a href="{{ route('secondary-inhouse') }}"
+                                        class="dropdown-item {{ $subPage == 'secondary-inhouse' ? 'active' : '' }}">
+                                        Secondary Inhouse <i class="fas fa-house-user"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('secondary-in') }}"
+                                        class="dropdown-item {{ $subPage == 'secondary-in' ? 'active' : '' }}">
+                                        Secondary In <i class="fas fa-receipt fa-sm"></i>
+                                    </a>
+                                </li>
+                            @enddc
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'rak-dc' ? 'active' : '' }}">Rak</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @dc
+                                <li>
+                                    <a href="{{ route('rack') }}"
+                                        class="dropdown-item {{ $subPage == 'rack' ? 'active' : '' }}">
+                                        Master Rak <i class="fas fa-plus-square fa-sm"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('stock-rack') }}"
+                                        class="dropdown-item {{ $subPage == 'stock-rack' ? 'active' : '' }}">
+                                        Rak <i class="fas fa-table fa-sm"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('stock-rack-visual') }}"
+                                        class="dropdown-item {{ $subPage == 'stock-rack-visual' ? 'active' : '' }}">
+                                        Stok Rak <i class="fas fa-th-list"></i>
+                                    </a>
+                                </li>
+                            @enddc
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'stok-dc' ? 'active' : '' }}">Stok
+                            DC</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @dc
+                                <li>
+                                    <a href="{{ route('stocker') }}"
+                                        class="dropdown-item {{ $subPage == '-' ? 'active' : '' }}">
+                                        Stocker <i class="fas fa-receipt fa-sm"></i>
+                                    </a>
+                                </li>
+                            @enddc
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'trolley-dc' ? 'active' : '' }}">Trolley</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @dc
+                                <li>
+                                    <a href="{{ route('trolley') }}"
+                                        class="dropdown-item {{ $subPage == 'trolley' ? 'active' : '' }}">
+                                        Master Trolley <i class="fas fa-plus-square fa-sm"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('stock-trolley') }}"
+                                        class="dropdown-item {{ $subPage == 'stock-trolley' ? 'active' : '' }}">
+                                        Trolley <i class="fas fa-dolly-flatbed"></i>
+                                    </a>
+                                </li>
+                            @enddc
+                        </ul>
+                    </li>
+                @endif
+
+                @if ($page == 'dashboard-mut-karyawan')
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-karyawan' ? 'active' : '' }}">Proses</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @hr
+                                <li>
+                                    <a href="{{ route('mut-karyawan') }}"
+                                        class="dropdown-item {{ $subPage == 'mut-karyawan' ? 'active' : '' }}">
+                                        Mutasi Karyawan<i class="fas fa-users-cog fa-sm"></i>
+                                    </a>
+                                </li>
+                            @endhr
+                        </ul>
+                    </li>
+                @endif
+
+
+                @if ($page == 'dashboard-mut-mesin')
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-mut-mesin' ? 'active' : '' }}">Proses</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @hr
+                                <li>
+                                    <a href="{{ route('mut-mesin') }}"
+                                        class="dropdown-item {{ $subPage == 'mut-mesin' ? 'active' : '' }}">
+                                        Mutasi Mesin <i class="fas fa-tools fa-sm"></i>
+                                    </a>
+                                </li>
+                            @endhr
+                        </ul>
+                    </li>
+                @endif
+
+                {{-- <li class="dropdown-divider"></li> --}}
+                <!-- Level two dropdown-->
+                {{-- <li class="dropdown-submenu dropdown-hover">
                             <a id="dropdownSubMenu2" href="#" role="button" data-bs-toggle="dropdown"
                                 aria-haspopup="true" aria-expanded="false" class="dropdown-item dropdown-toggle">Hover
                                 for action</a>
@@ -120,22 +392,7 @@ $page = '';
                                 <li><a href="#" class="dropdown-item">level 2</a></li>
                             </ul>
                         </li> --}}
-                        <!-- End Level two -->
-                    </ul>
-                </li>
-
-                @if (auth()->user()->type == 'admin')
-                <li class="nav-item dropdown">
-                    <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">Laporan</a>
-                    <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
-                        <li>
-                            <a href="{{ route('lap_pemakaian') }}" class="dropdown-item">
-                                Laporan Pemakaian
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                @endif
+                <!-- End Level two -->
 
                 <li class="nav-item">
                     <a href="{{ route('home') }}/" class="nav-link">

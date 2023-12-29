@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -23,17 +24,25 @@ class DatabaseSeeder extends Seeder
         // ]);
 
         // \App\Models\User::create([
-        //     'name' => 'usermarker',
-        //     'username' => 'usermarker',
-        //     'type' => 'marker',
+        //     'name' => 'usermanager',
+        //     'username' => 'usermanager',
+        //     'type' => 'manager',
         //     'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
         //     'remember_token' => Str::random(10),
         // ]);
 
         // \App\Models\User::create([
-        //     'name' => 'userwarehouse',
-        //     'username' => 'userwarehouse',
-        //     'type' => 'warehouse',
+        //     'name' => 'userdc',
+        //     'username' => 'userdc',
+        //     'type' => 'dc',
+        //     'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
+        //     'remember_token' => Str::random(10),
+        // ]);
+
+        // \App\Models\User::create([
+        //     'name' => 'usermarker',
+        //     'username' => 'usermarker',
+        //     'type' => 'marker',
         //     'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
         //     'remember_token' => Str::random(10),
         // ]);
@@ -54,38 +63,6 @@ class DatabaseSeeder extends Seeder
         //     'remember_token' => Str::random(10),
         // ]);
 
-        // \App\Models\User::create([
-        //     'name' => 'lab',
-        //     'username' => 'lab',
-        //     'type' => 'Qcpass',
-        //     'password' => '$2y$10$PshUXMlz9c6ftrtFan6tD.MGMZoq9z1B/VejfFOFizwY9BEl7D5Oy', // password
-        //     'remember_token' => Str::random(10),
-        // ]);
-
-        // \App\Models\User::create([
-        //     'name' => 'qc 02',
-        //     'username' => 'qc_02',
-        //     'type' => 'Qcpass',
-        //     'password' => '$2y$10$PshUXMlz9c6ftrtFan6tD.MGMZoq9z1B/VejfFOFizwY9BEl7D5Oy', // password
-        //     'remember_token' => Str::random(10),
-        // ]);
-
-        // \App\Models\User::create([
-        //     'name' => 'qc 03',
-        //     'username' => 'qc_03',
-        //     'type' => 'Qcpass',
-        //     'password' => '$2y$10$PshUXMlz9c6ftrtFan6tD.MGMZoq9z1B/VejfFOFizwY9BEl7D5Oy', // password
-        //     'remember_token' => Str::random(10),
-        // ]);
-
-        // \App\Models\User::create([
-        //     'name' => 'qc 04',
-        //     'username' => 'qc_04',
-        //     'type' => 'Qcpass',
-        //     'password' => '$2y$10$PshUXMlz9c6ftrtFan6tD.MGMZoq9z1B/VejfFOFizwY9BEl7D5Oy', // password
-        //     'remember_token' => Str::random(10),
-        // ]);
-
         // Generate Meja User
         // for ($i = 0;$i < 10;$i++) {
         //     \App\Models\User::create([
@@ -96,5 +73,15 @@ class DatabaseSeeder extends Seeder
         //         'remember_token' => Str::random(10)
         //     ]);
         // }
+
+        for ($i = 0; $i < 5; $i++) {
+            \App\Models\User::create([
+                'name' => 'userhr_'.($i+1),
+                'username' => 'userhr_'.($i+1),
+                'type' => 'hr',
+                'password' => Hash::make('123'), // password
+                'remember_token' => Str::random(10),
+            ]);
+        }
     }
 }

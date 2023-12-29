@@ -1,0 +1,28 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class PartDetail extends Model
+{
+    use HasFactory;
+
+    protected $table = 'part_detail';
+
+    protected $guarded = [];
+
+    /**
+     * Get the part that own the details.
+     */
+    public function part()
+    {
+        return $this->belongsTo(Part::class, 'part_id', 'id');
+    }
+
+    public function masterPart()
+    {
+        return $this->belongsTo(MasterPart::class, 'master_part_id', 'id');
+    }
+}
