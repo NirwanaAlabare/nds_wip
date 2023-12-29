@@ -161,6 +161,12 @@
                                     <input type="text" class="form-control form-control-sm" name="gelar_qty" id="gelar_qty" onchange="calculateAllRatio(this)" onkeyup="calculateAllRatio(this)" {{ $formCutInputData->gelar_qty ? "value=".$formCutInputData->gelar_qty." readonly" : '' }}>
                                 </div>
                             </div>
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label class="form-label label-fetch"><small><b>Catatan</b></small></label>
+                                    <textarea class="form-control border-fetch" name="marker_notes" rows="2" readonly>{{ $formCutInputData->notes }}</textarea>
+                                </div>
+                            </div>
                         </div>
                         @php
                             $totalRatio = 0;

@@ -126,6 +126,12 @@
                                 <input type="text" class="form-control form-control-sm border-fetch" id="qty_ply" name="qty_ply" value="{{ $formCutInputData->qty_ply }}" readonly>
                             </div>
                         </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label class="form-label label-fetch"><small><b>Catatan</b></small></label>
+                                <textarea class="form-control border-fetch" name="marker_notes" rows="2" readonly>{{ $formCutInputData->notes }}</textarea>
+                            </div>
+                        </div>
                     </div>
                     <table id="ratio-datatable"
                         class="table table-striped table-bordered table-sm w-100 text-center mt-3">
@@ -2071,8 +2077,6 @@
                 if (status == "PENGERJAAN FORM CUTTING") {
                     startProcessButton.classList.add("d-none");
                     nextProcessOneButton.classList.remove("d-none");
-
-                    alert(status);
 
                     document.getElementById("lost-time-card").classList.remove("d-none");
                 }
