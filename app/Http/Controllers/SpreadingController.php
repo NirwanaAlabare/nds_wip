@@ -208,7 +208,12 @@ class SpreadingController extends Controller
             $request['hitungform'] = $request['hitungform'] > 1 ? $request['hitungform'] - 1 : $request['hitungform'];
         }
 
-        if ($request["tipe_form"] == "regular" || $request["tipe_form"] == "bulk") {
+        $keterangan = "";
+        if ($request["tipe_form"] != "Pilot") {
+            if ($request["tipe_form"] != "Regular") {
+                $keterangan = $request["tipe_form"];
+            }
+
             $request["tipe_form"] = "normal";
         }
 
@@ -246,6 +251,7 @@ class SpreadingController extends Controller
                 "cancel" => "N",
                 "qty_ply" => $qtyPly,
                 "tgl_input" => $timestamp,
+                "notes" => $keterangan,
                 "created_at" => $timestamp,
                 "updated_at" => $timestamp,
             ]);

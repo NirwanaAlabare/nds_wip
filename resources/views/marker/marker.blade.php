@@ -226,7 +226,7 @@
                             </button>
                         `;
 
-                        if (row.cancel != 'Y' && row.tot_form != 0) {
+                        if (row.cancel != 'Y' && row.tot_form != 0 && row.tipe_marker != "pilot marker") {
                             return `
                                 <div class='d-flex gap-1 justify-content-center'>
                                     <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
@@ -235,7 +235,7 @@
                                     ` + exportBtn + `
                                 </div>
                             `;
-                        } else if (row.cancel != 'Y' && row.tot_form == 0) {
+                        } else if ((row.cancel != 'Y' && row.tot_form == 0) || (row.cancel != 'Y' && row.gelar_qty_balance > 0 && row.tipe_marker == "pilot marker")) {
                             return `
                                 <div class='d-flex gap-1 justify-content-center mb-1'>
                                     <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
@@ -254,6 +254,15 @@
                                 </div>
                             `;
                         } else if (row.cancel == 'Y') {
+                            return `
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
+                                        <i class='fa fa-search'></i>
+                                    </a>
+                                    ` + exportBtn + `
+                                </div>
+                            `;
+                        } else {
                             return `
                                 <div class='d-flex gap-1 justify-content-center'>
                                     <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>

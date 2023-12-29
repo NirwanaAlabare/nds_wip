@@ -35,8 +35,10 @@ class MarkerController extends Controller
                 CONCAT(lebar_marker, ' ', UPPER(unit_lebar_marker)) lebar_marker,
                 gramasi,
                 gelar_qty,
+                gelar_qty_balance,
                 po_marker,
                 urutan_marker,
+                tipe_marker,
                 ifnull(b.tot_form,0) tot_form,
                 ifnull(notes, '-') notes,
                 cancel
@@ -597,7 +599,7 @@ class MarkerController extends Controller
             $updateStatus .= ", status_marker = '".$request->pilot_status."'";
 
             if ($request->pilot_status == "active") {
-                $updateStatus .= ", tipe_marker = 'bulk marker'";
+                $updateStatus .= ", tipe_marker = 'bulk marker', notes = 'Pilot to Bulk'";
             }
         }
 
