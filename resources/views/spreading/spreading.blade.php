@@ -41,7 +41,7 @@
                 <div class="col-md-6">
                     <div class="d-flex justify-content-end align-items-end gap-1 mb-3">
                         <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-sb"><i class="fas fa-clipboard-list"></i> Manual</a>
-                        <a href="{{ url('pilot-form-cut/create') }}" target="_blank" class="btn btn-sm btn-sb-secondary"><i class="fas fa-clipboard-list"></i> Pilot</a>
+                        {{-- <a href="{{ url('pilot-form-cut/create') }}" target="_blank" class="btn btn-sm btn-sb-secondary"><i class="fas fa-clipboard-list"></i> Pilot</a> --}}
                         {{-- <button type="button" onclick="updateNoCut()" class="btn btn-sm btn-sb"><i class="fas fa-sync-alt"></i> Generate No. Cut</button> --}}
                     </div>
                 </div>

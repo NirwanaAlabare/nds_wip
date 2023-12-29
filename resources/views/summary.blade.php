@@ -25,14 +25,14 @@
                             <input type="date" class="form-control form-control-sm" onchange="dataTableReload()" id="tanggal" name="tanggal" value="{{ date('Y-m-d') }}">
                         </div>
                         <div>
-                            <button class="btn btn-primary btn-sm" onclick="dataTableReload()">Tampilkan</button>
+                            <button class="btn btn-primary btn-sm" onclick="dataTableReload()"><i class="fa fa-search"></i></button>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-md-6">
-                    <div class="d-flex justify-content-end align-items-end gap-3 mb-3">
-                        <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-dark"><i class="fas fa-clipboard-list"></i> Form Cut Manual</a>
+                    <div class="d-flex justify-content-end align-items-end gap-1 mb-3">
+                        <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-sb"><i class="fas fa-clipboard-list"></i> Manual</a>
                         <button type="button" onclick="updateNoCut()" class="btn btn-sm btn-yes"><i class="fas fa-sync-alt"></i> Generate No. Cut</button>
                     </div>
                 </div>
@@ -41,11 +41,12 @@
                 <table id="datatable" class="table table-bordered table-sm w-100">
                     <thead>
                         <tr>
-                            <th>No Form</th>
-                            <th>Tgl Form</th>
+                            <th>Action</th>
+                            <th>Tanggal Form</th>
+                            <th>No. Form</th>
                             <th>No. Meja</th>
-                            <th>Marker</th>
-                            <th>WS</th>
+                            <th>No. Marker</th>
+                            <th>No. WS</th>
                             <th>Style</th>
                             <th>Color</th>
                             <th>Panel</th>
@@ -55,7 +56,6 @@
                             <th>Qty Actual</th>
                             <th>Ket.</th>
                             <th class="align-bottom">App</th>
-                            <th>Act</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -64,8 +64,7 @@
             </div>
         </div>
         <!-- Modal -->
-        <div class="modal fade" id="detailSpreadingModal" tabindex="-1" aria-labelledby="detailSpreadingModalLabel"
-            aria-hidden="true">
+        <div class="modal fade" id="detailSpreadingModal" tabindex="-1" aria-labelledby="detailSpreadingModalLabel" aria-hidden="true">
             <form action="{{ route('update-spreading') }}" method="post" onsubmit="submitForm(this, event)">
                 @method('PUT')
                 <div class="modal-dialog modal-lg modal-dialog-scrollable">
@@ -80,51 +79,44 @@
                                 <input type="hidden" id="edit_marker_id" name="edit_marker_id">
                                 <div class="col-6 col-md-4">
                                     <div class="mb-3">
+                                        <label class="form-label"><small>Tanggal Form</small></label>
+                                        <input type="text" class="form-control" id="edit_tgl_form_cut"name="edit_tgl_form_cut" value="" readonly />
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <div class="mb-3">
                                         <label class="form-label"><small>No. Form</small></label>
-                                        <input type="text" class="form-control" id="edit_no_form" name="edit_no_form"
-                                            value="" readonly />
+                                        <input type="text" class="form-control" id="edit_no_form" name="edit_no_form" value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-6 col-md-4">
                                     <div class="mb-3">
-                                        <label class="form-label"><small>Tgl Form</small></label>
-                                        <input type="text" class="form-control" id="edit_tgl_form_cut"
-                                            name="edit_tgl_form_cut" value="" readonly />
+                                        <label class="form-label"><small>No. Marker</small></label>
+                                        <input type="text" class="form-control" id="edit_id_marker" name="edit_id_marker" value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-6 col-md-4">
                                     <div class="mb-3">
-                                        <label class="form-label"><small>Marker</small></label>
-                                        <input type="text" class="form-control" id="edit_id_marker" name="edit_id_marker"
-                                            value="" readonly />
-                                    </div>
-                                </div>
-                                <div class="col-6 col-md-4">
-                                    <div class="mb-3">
-                                        <label class="form-label"><small>WS</small></label>
-                                        <input type="text" class="form-control" id="edit_ws" name="edit_ws"
-                                            value="" readonly />
+                                        <label class="form-label"><small>No. WS</small></label>
+                                        <input type="text" class="form-control" id="edit_ws" name="edit_ws" value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-6 col-md-4">
                                     <div class="mb-3">
                                         <label class="form-label"><small>Color</small></label>
-                                        <input type="text" class="form-control" id="edit_color" name="edit_color"
-                                            value="" readonly />
+                                        <input type="text" class="form-control" id="edit_color" name="edit_color" value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-6 col-md-4">
                                     <div class="mb-3">
                                         <label class="form-label"><small>Panel</small></label>
-                                        <input type="text" class="form-control" id="edit_panel" name="edit_panel"
-                                            value="" readonly />
+                                        <input type="text" class="form-control" id="edit_panel" name="edit_panel" value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-4 col-md-3">
                                     <div class="mb-3">
                                         <label class="form-label"><small>P. Marker</small></label>
-                                        <input type="text" class="form-control" id="edit_panjang_marker"
-                                            name="edit_panjang_marker" value="" readonly />
+                                        <input type="text" class="form-control" id="edit_panjang_marker" 2233232name="edit_panjang_marker" value="" readonly />
                                     </div>
                                 </div>
                                 <div class="col-4 col-md-3">
@@ -243,9 +235,9 @@
         });
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 10 || i == 11 || i == 12) {
+            if (i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 10 || i == 11 || i == 12) {
                 var title = $(this).text();
-                $(this).html('<input type="text"  style="width:100%"/>');
+                $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%"/>');
 
                 $('input', this).on('keyup change', function() {
                     if (datatable.column(i).search() !== this.value) {
@@ -272,10 +264,13 @@
             },
             columns: [
                 {
-                    data: 'no_form'
+                    data: 'id'
                 },
                 {
                     data: 'tgl_form_cut'
+                },
+                {
+                    data: 'no_form'
                 },
                 {
                     data: 'nama_meja'
@@ -313,13 +308,10 @@
                 {
                     data: 'app'
                 },
-                {
-                    data: 'id'
-                },
             ],
             columnDefs: [
                 {
-                    targets: [2],
+                    targets: [3],
                     render: (data, type, row, meta) => {
                         let color = "";
 
@@ -344,7 +336,7 @@
                     }
                 },
                 {
-                    targets: [8],
+                    targets: [9],
                     className: "text-center align-middle",
                     render: (data, type, row, meta) => {
                         icon = "";
@@ -373,7 +365,7 @@
                     }
                 },
                 {
-                    targets: [13],
+                    targets: [14],
                     className: "text-center align-middle",
                     render: (data, type, row, meta) => {
                         icon = "";
@@ -411,36 +403,24 @@
                     }
                 },
                 {
-                    targets: [14],
+                    targets: [0],
                     render: (data, type, row, meta) => {
-                        let btnEdit =
-                            "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" +
-                            JSON.stringify(row) +
-                            ", \"detailSpreadingModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-search'></i></a>";
+                        let btnEdit = "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"detailSpreadingModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-search'></i></a>";
 
                         let btnProcess = "";
 
                         if (row.tipe_form_cut == 'MANUAL') {
-                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row
-                                    .app == 'Y') || row.status != 'SPREADING' ?
-                                `<a class='btn btn-success btn-sm' href='{{ route('process-manual-form-cut') }}/` +
-                                row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa ` + (row
-                                    .status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) +
-                                `'></i></a>` :
-                                "";
+                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ? `<a class='btn btn-success btn-sm' href='{{ route('process-manual-form-cut') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa ` + (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) + `'></i></a>` : "";
                         } else {
-                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row
-                                    .app == 'Y') || row.status != 'SPREADING' ?
-                                `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` +
-                                row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa ` + (row
-                                    .status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) +
-                                `'></i></a>` :
-                                "";
+                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ? `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa ` + (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) +`'></i></a>` :"";
                         }
 
-                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnProcess +
-                            `</div>`;
+                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnProcess + `</div>`;
                     }
+                },
+                {
+                    targets: [4,5],
+                    className: "text-nowrap"
                 },
                 {
                     targets: '_all',
@@ -465,7 +445,7 @@
 
                         return '<span style="color:' + color + ';">' + (data ? data : "-") + '</span>';
                     }
-                }
+                },
             ],
             rowCallback: function(row, data, index) {
                 if (data['tipe_form_cut'] == 'MANUAL') {
@@ -485,7 +465,8 @@
                     d.cbomarker = $('#edit_marker_id').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'size'
                 },
                 {
