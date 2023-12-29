@@ -20,10 +20,8 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </a>
                         </div>
-                    </a>
-                </div>
 
                     @stocker
                         <div class="col-md-2 col-3">
@@ -37,10 +35,9 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </a>
                         </div>
-                    </a>
-                </div>
+                @endstocker
                 @endif
 
                     @dc

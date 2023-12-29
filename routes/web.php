@@ -361,19 +361,19 @@ Route::middleware('auth')->group(function () {
     });
 
     //Mutasi Karywawan
-    Route::controller(EmployeeController::class)->prefix("mut-karyawan")->middleware('hr')->group(function () {
-        Route::get('/', 'index')->name('mut-karyawan');
-        Route::get('/create', 'create')->name('create-mut-karyawan');
-        Route::post('/store', 'store')->name('store-mut-karyawan');
-        Route::put('/update', 'update')->name('update-mut-karyawan');
-        Route::delete('/destroy', 'destroy')->name('destroy-mut-karyawan');
-        Route::get('/getdataline', 'getdataline')->name('getdataline');
-        Route::get('/gettotal', 'gettotal')->name('gettotal');
-        Route::get('/getdatanik', 'getdatanik')->name('getdatanik');
-        Route::get('/getdatalinekaryawan', 'getdatalinekaryawan')->name('getdatalinekaryawan');
-        Route::get('/export_excel_mut_karyawan', 'export_excel_mut_karyawan')->name('export_excel_mut_karyawan');
-        Route::get('/line-chart-data', 'lineChartData')->name('line-chart-data');
-    });
+    // Route::controller(EmployeeController::class)->prefix("mut-karyawan")->middleware('hr')->group(function () {
+    //     Route::get('/', 'index')->name('mut-karyawan');
+    //     Route::get('/create', 'create')->name('create-mut-karyawan');
+    //     Route::post('/store', 'store')->name('store-mut-karyawan');
+    //     Route::put('/update', 'update')->name('update-mut-karyawan');
+    //     Route::delete('/destroy', 'destroy')->name('destroy-mut-karyawan');
+    //     Route::get('/getdataline', 'getdataline')->name('getdataline');
+    //     Route::get('/gettotal', 'gettotal')->name('gettotal');
+    //     Route::get('/getdatanik', 'getdatanik')->name('getdatanik');
+    //     Route::get('/getdatalinekaryawan', 'getdatalinekaryawan')->name('getdatalinekaryawan');
+    //     Route::get('/export_excel_mut_karyawan', 'export_excel_mut_karyawan')->name('export_excel_mut_karyawan');
+    //     Route::get('/line-chart-data', 'lineChartData')->name('line-chart-data');
+    // });
 
     // Mutasi Mesin
     Route::controller(MutasiMesinController::class)->prefix("mut-mesin")->middleware('hr')->group(function () {
