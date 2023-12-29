@@ -55,7 +55,7 @@
                         </div>
                     @enddc
 
-                    @hr
+                    {{-- @hr
                         <div class="col-md-2 col-3">
                             <a href="{{ route('dashboard-mut-karyawan') }}" class="home-item">
                                 <div class="card h-100">
@@ -69,7 +69,7 @@
                                 </div>
                             </a>
                         </div>
-                    @endhr
+                    @endhr --}}
 
                     @hr
                         <div class="col-md-2 col-3">
