@@ -13,7 +13,7 @@
 @section('content')
 <form action="{{ route('store-mutlokasi') }}" method="post" id="store-mutlokasi" onsubmit="submitForm(this, event)">
     @csrf
-    <div class="card card-sb card-outline">
+    <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold">
                 Data Header
@@ -128,7 +128,7 @@
 
 
     </div>
-</div>   
+</div>
 </div>
 
 </form>
@@ -279,7 +279,7 @@
         }
 
 
-        
+
 
         function getrak() {
             document.getElementById('txt_rak').innerHTML = '';
@@ -361,7 +361,7 @@
                 jum_qty += parseFloat(qty_mut);
 
 
-                if (qty_mut > 0) {     
+                if (qty_mut > 0) {
                     if (parseFloat(qty_mut) > parseFloat(qty_roll)) {
                         $('#qty_mut'+i).val(qty_roll);
                     }else{
@@ -390,7 +390,7 @@
 
         } );
 
-        
+
         function tambahqty($val){
             var table = document.getElementById("datatable");
             var qty = 0;

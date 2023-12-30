@@ -29,7 +29,7 @@
     <div class="modal fade" id="editMarkerModal" tabindex="-1" role="dialog" aria-labelledby="editMarkerModalLabel" aria-hidden="true">
         <form action="{{ route('update_marker') }}" method="post" onsubmit="submitForm(this, event)">
             @method('PUT')
-            <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 25%;">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 35%;">
                 <div class="modal-content">
                     <div class="modal-header bg-sb text-light">
                         <h1 class="modal-title fs-5" id="editMarkerModalLabel"></h1>
@@ -39,31 +39,31 @@
                         <div class='row'>
                             <div class='col-sm-12'>
                                 <div class='form-group'>
-                                    <label class='form-label'><small>Gramasi</small></label>
+                                    <label class='form-label'><small class="fw-bold">Gramasi</small></label>
                                     <input type='number' class='form-control' id='txt_gramasi' name='txt_gramasi' value = ''>
                                     <input type='hidden' class='form-control' id='id_c' name='id_c' value = ''>
                                 </div>
                             </div>
                             <div class='col-sm-12' id="marker_pilot">
                                 <div class='form-group'>
-                                    <label class='form-label'><small>Marker Pilot</small></label>
+                                    <label class='form-label'><small class="fw-bold">Status Pilot</small></label>
                                     <div class="d-flex gap-3 ms-1">
                                         <div class="form-check">
                                             <input class="form-check-input" type="radio" name="pilot_status" id="idle" value="idle">
                                             <label class="form-check-label" for="idle">
-                                                <small>Pilot</small>
+                                                <small class="fw-bold"><i class="fa fa-minus fa-sm"></i> Pilot Idle</small>
                                             </label>
                                         </div>
                                         <div class="form-check">
                                             <input class="form-check-input" type="radio" name="pilot_status" id="active" value="active">
-                                            <label class="form-check-label" for="active">
-                                                <small>Pilot Sukses</small>
+                                            <label class="form-check-label text-success" for="active">
+                                                <small class="fw-bold"><i class="fa fa-check fa-sm"></i> Pilot Approve</small>
                                             </label>
                                         </div>
                                         <div class="form-check">
                                             <input class="form-check-input" type="radio" name="pilot_status" id="not_active" value="not active">
-                                            <label class="form-check-label" for="not_active">
-                                                <small>Pilot Gagal</small>
+                                            <label class="form-check-label text-danger" for="not_active">
+                                                <small class="fw-bold"><i class="fa fa-times fa-sm"></i> Pilot Disapprove</small>
                                             </label>
                                         </div>
                                     </div>
@@ -335,6 +335,10 @@
                         }
                     } else {
                         document.getElementById('marker_pilot').classList.add('d-none');
+                    }
+
+                    if (response.jumlah_form > 0) {
+                        document.getElementById('txt_gramasi').setAttribute('readonly', true);
                     }
                 },
                 error: function(request, status, error) {

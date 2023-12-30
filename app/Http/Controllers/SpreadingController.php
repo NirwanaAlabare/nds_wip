@@ -74,6 +74,7 @@ class SpreadingController extends Controller
                     b.po_marker,
                     b.urutan_marker,
                     b.cons_marker,
+                    UPPER(b.tipe_marker) tipe_marker,
                     a.tipe_form_cut,
                     COALESCE(b.notes, '-') notes,
                     GROUP_CONCAT(DISTINCT CONCAT(master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ', ') marker_details,

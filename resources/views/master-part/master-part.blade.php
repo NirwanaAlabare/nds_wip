@@ -36,7 +36,7 @@
                         <tr>
                             <th>Kode Part</th>
                             <th>Nama Part</th>
-                            <th>Bag</th>
+                            <th>Bagian</th>
                             <th class="align-bottom">Action</th>
                         </tr>
                     </thead>
@@ -59,7 +59,7 @@
                             <input type="text" class="form-control" name="nama_part" id="nama_part" value="">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Bag</label>
+                            <label class="form-label">Bagian</label>
                             <input type="text" class="form-control" name="bag" id="bag" value="">
                         </div>
                     </div>

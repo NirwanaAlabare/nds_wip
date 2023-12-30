@@ -13,7 +13,7 @@
 @section('content')
 <form action="{{ route('store-qcdet-temp') }}" method="post" id="store-qcdet-temp" onsubmit="submitForm2(this, event)">
     @csrf
-    <div class="card card-sb card-outline">
+    <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold">
                 @foreach ($kode_insp as $kodeinsp) {{ $kodeinsp->no_insp }} <input type="hidden" class="form-control " id="txt_noinsp" name="txt_noinsp" value="{{ $kodeinsp->no_insp }}" readonly> @endforeach
@@ -766,7 +766,7 @@
     function finishdata(){
         var poin = $('#avgpoin').val();
         if (poin > 15) {
-            $('#modal-finis-data').modal('show'); 
+            $('#modal-finis-data').modal('show');
         }else{
             return $.ajax({
                 headers: {
@@ -1158,13 +1158,13 @@
                 targets: [7],
                 render: (data, type, row, meta) => {
                     console.log(data);
-                    return `<div class='d-flex gap-1 justify-content-center'> 
+                    return `<div class='d-flex gap-1 justify-content-center'>
                     <a href="{{ route('create-qcpass') }}/`+data+`"><button type='button' class='btn btn-sm btn-warning'><i class="fa-solid fa-pen-to-square"></i></button></a>
                     <button type='button' class='btn btn-sm btn-danger' onclick='deleteqc("` + row.id + `")'><i class='fa fa-trash'></i></button>
                      </div>`;
                 }
             }
-               
+
             ]
         });
 
@@ -1177,8 +1177,8 @@
             ajax: {
                 url: '{{ route("get-sum-data") }}',
                 data: function (d) {
-                    d.akt_lenght = $('#txt_akt_lenght').val(); 
-                    d.no_insp = $('#txt_noinsp').val(); 
+                    d.akt_lenght = $('#txt_akt_lenght').val();
+                    d.no_insp = $('#txt_noinsp').val();
                     // d.txt_fill = $('#txt_po').val() ? $('#txt_po').val() : $('#txt_wsglobal').val();
                     // d.name_fill = $('#txt_po').val() ? 'PO' : 'WS';
                     // // alert(d.name_fill);
@@ -1215,7 +1215,7 @@
                 targets: [6],
                 render: (data, type, row, meta) => data ? data.round(2) : "-"
             }
-               
+
             ]
         });
 

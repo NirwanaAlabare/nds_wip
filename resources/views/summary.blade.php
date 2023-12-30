@@ -189,7 +189,14 @@
                                             name="edit_cons_marker" value="" readonly />
                                     </div>
                                 </div>
-                                <div class="col-md-12 table-responsive">
+                                <div class="col-6 col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label"><small>Tipe Marker</small></label>
+                                        <input type="text" class="form-control" id="edit_tipe_marker"
+                                            name="edit_tipe_marker" value="" readonly />
+                                    </div>
+                                </div>
+                                <div class="col-md-6 table-responsive">
                                     <table id="datatable-ratio" class="table table-bordered table-striped table-sm w-100">
                                         <thead>
                                             <tr>

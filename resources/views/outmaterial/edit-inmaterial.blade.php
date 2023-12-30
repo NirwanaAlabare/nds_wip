@@ -14,7 +14,7 @@
 <form action="{{ route('update-inmaterial-fabric') }}" method="post" id="store-inmaterial" onsubmit="submitForm(this, event)">
     @method('GET')
     @csrf
-    <div class="card card-sb card-outline">
+    <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold">
                 Data Header
@@ -263,7 +263,7 @@
         </div>
     </div>
     </div>
-</div>   
+</div>
 </div>
 @endforeach
 
@@ -271,7 +271,7 @@
 <input type="hidden" class="form-control " id="txt_jmldet" name="txt_jmldet" value="{{$jmldet->jml_dok}}" readonly>
 @endforeach
 
-    <div class="card card-sb card-outline">
+    <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold">
                 Data Detail
@@ -560,7 +560,7 @@
 
                 </div>
             </div>
-    
+
             </div>
         </div>
     </form>
@@ -917,11 +917,11 @@
     </script>
     <script type="text/javascript">
     function addlocation($ws,$id_jo, $id_item,$kode_item, $qty, $unit, $balance,$desc){
-        let ws = $ws; 
-        let id_jo = $id_jo; 
+        let ws = $ws;
+        let id_jo = $id_jo;
         let id_item = $id_item;
         let kode_item = $kode_item;
-        let qty = $qty; 
+        let qty = $qty;
         let unit = $unit;
         let balance = $balance;
         let desc = $desc;
@@ -936,7 +936,7 @@
     $('#m_unit').val(unit);
     $('#m_idjo').val(id_jo);
     $('#m_iditem').val(id_item);
-    $('#modal-add-lokasi').modal('show');  
+    $('#modal-add-lokasi').modal('show');
     }
 
     function getlist_addlokasi(){
@@ -965,11 +965,11 @@
 
 
     function showlocation($ws,$id_jo, $id_item,$kode_item, $qty, $unit, $balance,$desc){
-        let ws = $ws; 
-        let id_jo = $id_jo; 
+        let ws = $ws;
+        let id_jo = $id_jo;
         let id_item = $id_item;
         let kode_item = $kode_item;
-        let qty = $qty; 
+        let qty = $qty;
         let unit = $unit;
         let balance = $balance;
         let desc = $desc;
@@ -984,12 +984,12 @@
     $('#m_unit2').val(unit);
     $('#m_idjo2').val(id_jo);
     $('#m_iditem2').val(id_item);
-    $('#modal-show-lokasi').modal('show');  
+    $('#modal-show-lokasi').modal('show');
     }
 
     function getlist_showlokasi($ws,$id_jo, $id_item){
         let ws = $ws;
-        let id_jo = $id_jo; 
+        let id_jo = $id_jo;
         let id_item = $id_item;
         return $.ajax({
                 headers: {

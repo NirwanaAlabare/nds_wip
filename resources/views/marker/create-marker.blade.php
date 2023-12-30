@@ -180,10 +180,6 @@
                     </div>
                     <input type="hidden" class="form-control" id="jumlah_so_det" name="jumlah_so_det" readonly>
                 </div>
-<<<<<<< HEAD
-                <input type="text" class="form-control" id="jumlah_so_det" name="jumlah_so_det" readonly>
-=======
->>>>>>> 5258aece9d1993d7b9c064ec068bf44e54bac214
             </div>
         </div>
         <div class="card card-sb">

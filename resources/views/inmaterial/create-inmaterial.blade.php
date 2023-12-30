@@ -13,7 +13,7 @@
 @section('content')
 <form action="{{ route('store-inmaterial-fabric') }}" method="post" id="store-inmaterial" onsubmit="submitForm(this, event)">
     @csrf
-    <div class="card card-sb card-outline">
+    <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold">
                 Data Header
@@ -239,10 +239,10 @@
         </div>
     </div>
     </div>
-</div>   
+</div>
 </div>
 
-    <div class="card card-sb card-outline">
+    <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold">
                 Data Detail
@@ -525,7 +525,7 @@
             ajax: {
                 url: '{{ route("get-detail-list") }}',
                 data: function (d) {
-                    d.txt_supp = $('#txt_supp').val(); 
+                    d.txt_supp = $('#txt_supp').val();
                     d.txt_fill = $('#txt_po').val() ? $('#txt_po').val() : $('#txt_wsglobal').val();
                     d.name_fill = $('#txt_po').val() ? 'PO' : 'WS';
                     // alert(d.name_fill);
@@ -637,7 +637,7 @@
                     className: "d-none",
                     render: (data, type, row, meta) => '<input type="hidden" id="det_unit' + meta.row + '" name="det_unit['+meta.row+']" value="' + data + '" readonly />'
                 },
-                
+
                 {
                     targets: [9],
                     render: (data, type, row, meta) => {

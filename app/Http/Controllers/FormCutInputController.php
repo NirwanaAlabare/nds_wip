@@ -84,6 +84,7 @@ class FormCutInputController extends Controller
                     b.po_marker po_marker,
                     b.urutan_marker urutan_marker,
                     b.cons_marker cons_marker,
+                    UPPER(b.tipe_marker) tipe_marker,
                     cutting_plan.app,
                     a.tipe_form_cut,
                     b.notes notes,

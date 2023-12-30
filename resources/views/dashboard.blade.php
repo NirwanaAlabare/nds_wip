@@ -66,7 +66,7 @@
 
     {{-- <div class="row">
         <div class="col-lg-12">
-            <div class="card card-sb card-outline">
+            <div class="card card-sb">
                 <div class="card-header">
                     <h5 class="card-title">Card</h5>
                 </div>
@@ -141,7 +141,7 @@
         </div>
 
         <div class="col-md-12">
-            <div class="card card-sb card-outline">
+            <div class="card card-sb">
                 <div class="card-header">
                     <h5 class="card-title m-0">Data</h5>
                 </div>

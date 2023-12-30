@@ -188,7 +188,13 @@
                                         <input type="text" class="form-control" id="edit_cons_marker" name="edit_cons_marker" value="" readonly />
                                     </div>
                                 </div>
-                                <div class="col-12 col-md-12">
+                                <div class="col-6 col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label"><small>Tipe Marker</small></label>
+                                        <input type="text" class="form-control" id="edit_tipe_marker" name="edit_tipe_marker" value="" readonly />
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label"><small>No. Meja</small></label>
                                         <select class="form-select form-select-sm select2bs4" aria-label="Default select example" id="edit_no_meja" name="edit_no_meja">

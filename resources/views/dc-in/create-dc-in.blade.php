@@ -102,7 +102,7 @@
     <form action="{{ route('store_dc_in') }}" method="post" id="store_dc_in" name='form'
         onsubmit="submitDCInForm(this, event)">
 
-        <div class="card card-outline">
+        <div class="card">
             <div class="card-header">
                 <div class='row'>
                     <div class="col-sm-11">
@@ -183,7 +183,7 @@
                     </div>
                 </div>
             </div>
-            <div class="card card-sb card-outline">
+            <div class="card card-sb">
                 <div class="card-header">
                     <h5 class="card-title fw-bold mb-0">Scan QR Stocker DC In</h5>
                     <div class="card-tools">

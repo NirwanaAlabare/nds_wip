@@ -459,30 +459,34 @@ class MarkerController extends Controller
         </div>
 
         <div class='row'>
-            <div class='col-sm-3'>
+            <div class='col-sm-4'>
                 <div class='form-group'>
                     <label class='form-label'><small>PO</small></label>
                     <input type='text' class='form-control' id='txtpo' name='txtpo' value = '" . $datanomarker->po_marker . "' readonly>
                 </div>
             </div>
-            <div class='col-sm-3'>
+            <div class='col-sm-4'>
                 <div class='form-group'>
                     <label class='form-label'><small>Gramasi</small></label>
                     <input type='text' class='form-control' id='txturutan' name='txturutan'  value = '" . $datanomarker->gramasi . "' readonly>
                 </div>
             </div>
-            <div class='col-sm-3'>
+            <div class='col-sm-4'>
                 <div class='form-group'>
                     <label class='form-label'><small>Urutan</small></label>
-                    <input type='text' class='form-control' id='txturutan' name='txturutan'  value = '" . $datanomarker->urutan_marker . "' readonly>
+                    <input type='text' class='form-control' id='txturutan' name='txturutan'  value='" . $datanomarker->urutan_marker . "' readonly>
                 </div>
             </div>
-            <div class='col-sm-3'>
+            <div class='col-sm-6'>
+                <div class='form-group'>
+                    <label class='form-label'><small>Tipe Marker</small></label>
+                    <input type='text' class='form-control' id='tipemarker' name='tipemarker' value='". strtoupper(str_replace(" marker", "", $datanomarker->tipe_marker)) ."' readonly>
+                </div>
+            </div>
+            <div class='col-sm-6'>
                 <div class='form-group'>
                     <label class='form-label'><small>Catatan</small></label>
-                    <textarea class='form-control' id='txtarea' name='txtarea' readonly>"
-                . ($datanomarker->notes ? $datanomarker->notes : '-') .
-                "</textarea>
+                    <textarea class='form-control' id='txtarea' name='txtarea' readonly>". ($datanomarker->notes ? $datanomarker->notes : '-') ."</textarea>
                 </div>
             </div>
         </div>
@@ -580,8 +584,10 @@ class MarkerController extends Controller
     public function show_gramasi(Request $request)
     {
         $data_gramasi = DB::select("
-        select id,gramasi,tipe_marker,status_marker from marker_input
-        where id = '$request->id_c'");
+        select marker_input.id,gramasi,tipe_marker,status_marker, count(form_cut_input.id) jumlah_form from marker_input
+        left join form_cut_input on form_cut_input.id_marker = marker_input.kode
+        where marker_input.id = '$request->id_c'
+        group by marker_input.id");
         return json_encode($data_gramasi[0]);
     }
 

@@ -13,7 +13,7 @@
 @section('content')
 <form action="{{ route('store-qcdet-temp') }}" method="post" id="store-qcdet-temp" onsubmit="submitForm2(this, event)">
     @csrf
-    <div class="card card-sb card-outline">
+    <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold">
                 Inspection Form - @foreach ($kode_insp as $kodeinsp) {{ $kodeinsp->no_insp }} <input type="hidden" class="form-control " id="txt_noinsp" name="txt_noinsp" value="{{ $kodeinsp->no_insp }}" readonly> @endforeach
@@ -201,10 +201,10 @@
         </div>
     </div>
     </div>
-</div>   
+</div>
 </div>
 
-    <div class="card card-sb card-outline">
+    <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold">
                 Data Detail
@@ -374,7 +374,7 @@
         </div>
 </form>
 <form action="{{ route('store-qcdet-save') }}" method="post" id="store-qcdet-save" onsubmit="submitForm4(this, event)">
-<div class="card card-sb card-outline">
+<div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold">
                 Data Detail
@@ -1412,7 +1412,7 @@
     function finishdata(){
         var poin = $('#avgpoin').val();
         if (poin > 15) {
-            $('#modal-finis-data').modal('show'); 
+            $('#modal-finis-data').modal('show');
         }else{
             return $.ajax({
                 headers: {
@@ -1826,12 +1826,12 @@
                 targets: [7],
                 render: (data, type, row, meta) => {
                     console.log(data);
-                    return `<div class='d-flex gap-1 justify-content-center'> 
+                    return `<div class='d-flex gap-1 justify-content-center'>
                     <button type='button' class='btn btn-sm btn-danger' onclick='deleteqc("` + row.id + `")'><i class='fa fa-trash'></i></button>
                      </div>`;
                 }
             }
-               
+
             ]
         });
 
@@ -1844,8 +1844,8 @@
             ajax: {
                 url: '{{ route("get-sum-data") }}',
                 data: function (d) {
-                    d.akt_lenght = $('#txt_akt_lenght').val(); 
-                    d.no_insp = $('#txt_noinsp').val(); 
+                    d.akt_lenght = $('#txt_akt_lenght').val();
+                    d.no_insp = $('#txt_noinsp').val();
                     // d.txt_fill = $('#txt_po').val() ? $('#txt_po').val() : $('#txt_wsglobal').val();
                     // d.name_fill = $('#txt_po').val() ? 'PO' : 'WS';
                     // // alert(d.name_fill);
@@ -1893,17 +1893,17 @@
                 render: (data, type, row, meta) => {
                     console.log(row.stat_save);
                     if (row.stat_save == 'save') {
-                    return `<div class='d-flex gap-1 justify-content-center'> 
+                    return `<div class='d-flex gap-1 justify-content-center'>
                     <button type='button' class='btn btn-sm btn-danger' onclick='deleteqcdet("` + row.no_form + `")'><i class='fa fa-trash'></i></button>
                      </div>`;
                     }else{
-                        return `<div class='d-flex gap-1 justify-content-center'> 
+                        return `<div class='d-flex gap-1 justify-content-center'>
                      </div>`;
 
                     }
                 }
             }
-               
+
             ]
         });
 

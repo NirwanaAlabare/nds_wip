@@ -14,7 +14,7 @@
 @endsection
 
 @section('content')
-<div class="card card-sb card-outline">
+<div class="card card-sb">
     <div class="card-header">
         <h5 class="card-title fw-bold mb-0">Data Mutasi Lokasi</h5>
     </div>
@@ -59,7 +59,7 @@
             </div>
 
 
-            
+
             <div class="col-md-3" style="padding-top: 0.5rem;">
             <div class="mt-4 ">
                 <button class="btn btn-primary " onclick="dataTableReload()"> <i class="fas fa-search"></i> Tampilkan</button>
@@ -218,7 +218,7 @@ $('.select2type').select2({
             {
                 data: 'filter'
             }
-            
+
         ],
         columnDefs: [{
                 targets: [7],
@@ -232,9 +232,9 @@ $('.select2type').select2({
                 render: (data, type, row, meta) => {
                     console.log(row);
                     if (row.status == 'Pending') {
-                        return `<div class='d-flex gap-1 justify-content-center'> 
+                        return `<div class='d-flex gap-1 justify-content-center'>
                    <a href="{{ route('edit-mutlok') }}/`+data+`"><button type='button' class='btn btn-sm btn-danger'><i class="fa-solid fa-pen-to-square"></i></button></a>
-                    <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='approve_mutlok("` + row.no_mut + `")'><i class="fa-solid fa-person-circle-check"></i></button> 
+                    <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='approve_mutlok("` + row.no_mut + `")'><i class="fa-solid fa-person-circle-check"></i></button>
                     </div>`;
                     }else{
                         return `<div class='d-flex gap-1 justify-content-center'> -
@@ -242,7 +242,7 @@ $('.select2type').select2({
                     }
                 }
             }
-       
+
         ]
     });
 
@@ -254,12 +254,12 @@ $('.select2type').select2({
     function approve_mutlok($nodok){
         // alert($id);
         let nodok  = $nodok;
-    
+
     $('#txt_nodok').val(nodok);
-    $('#modal-appv-mutlok').modal('show');  
+    $('#modal-appv-mutlok').modal('show');
     }
 
-    
+
 </script>
 <script type="text/javascript">
 

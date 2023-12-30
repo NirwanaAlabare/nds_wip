@@ -13,7 +13,7 @@
 @section('content')
     <form action="{{ route('store-part') }}" method="post" id="store-part" onsubmit="submitPartForm(this, event)">
         @csrf
-        <div class="card card-sb card-outline">
+        <div class="card card-sb">
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
                     <h5 class="card-title fw-bold">
