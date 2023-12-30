@@ -49,7 +49,7 @@
         <table class="{{ $loop->index != 0 ? 'page-break' : '' }}">
             <tr>
                 <td rowspan="3" style="vertical-align: middle; text-align: center; width: 35%;">
-                    <img src="data:image/png;base64, {!! base64_encode(QrCode::format('svg')->size(100)->generate($dataStocker->id_qr_stocker)); !!}">
+                    <img src="data:image/png;base64, {!! base64_encode(QrCode::format('svg')->size(100)->generate($dataStocker->id_qr_stocker)) !!}">
                 </td>
                 <td>Bundle Qty : {{ $dataStocker->bundle_qty }}</td>
             </tr>

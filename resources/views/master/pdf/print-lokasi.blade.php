@@ -49,7 +49,7 @@
         <tr>
             <td style="width:15%"></td>
             <td style="vertical-align: middle; text-align: center;width:70%">
-             <div style="text-align: center;" class="mb-2">{!!  DNS1D::getBarcodeHTML($dataLokasi->kode_lok, 'c39',2,80,'black', false); !!}</div>
+             <div style="text-align: center;" class="mb-2">{!!  DNS1D::getBarcodeHTML($dataLokasi->kode_lok, 'c39',2,80,'black', false) !!}</div>
             </td>
             <td style="width:15%"></td>
         </tr>

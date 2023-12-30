@@ -55,7 +55,7 @@
         <tbody>
             <tr>
                 <td style="text-align: center;">
-                    <img src="data:image/png;base64, {!! base64_encode(QrCode::format('svg')->size(100)->generate($dataTrolley->kode)); !!}">
+                    <img src="data:image/png;base64, {!! base64_encode(QrCode::format('svg')->size(100)->generate($dataTrolley->kode)) !!}">
                 </td>
             </tr>
             {{-- <tr>

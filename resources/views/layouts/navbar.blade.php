@@ -31,47 +31,38 @@ $page = '';
         <div class="collapse navbar-collapse order-3" id="navbarCollapse">
             <!-- Left navbar links -->
             <ul class="navbar-nav">
-                {{-- <li class="nav-item">
-                    <a href="/marker" class="nav-link {{ $page == 'marker' ? 'active' : '' }}">Marker</a>
-                </li> --}}
-                <li class="nav-item dropdown">
+                @if ($page == "dashboard-warehouse")
+                    <li class="nav-item dropdown">
                     <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
                     <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-                        @if ($page == "dashboard-warehouse")
-                        <!-- <li>
-                            <a href="{{ route('warehouse') }}" class="dropdown-item">
-                                Fabric Warehouse
-                            </a>
-                        </li> -->
-
-                        <li>
-                            <a href="{{ route('master-lokasi') }}" class="dropdown-item">
-                                Master Lokasi
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('in-material') }}" class="dropdown-item">
-                                Penerimaan Bahan Baku
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('out-material') }}" class="dropdown-item">
-                                Pengeluaran Bahan Baku
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('mutasi-lokasi') }}" class="dropdown-item">
-                                Mutasi Lokasi
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('qc-pass') }}" class="dropdown-item">
-                                QC
-                            </a>
-                        </li>
-                        @endif
-
-    
+                            <li>
+                                <a href="{{ route('master-lokasi') }}" class="dropdown-item">
+                                    Master Lokasi
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('in-material') }}" class="dropdown-item">
+                                    Penerimaan Bahan Baku
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('out-material') }}" class="dropdown-item">
+                                    Pengeluaran Bahan Baku
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('mutasi-lokasi') }}" class="dropdown-item">
+                                    Mutasi Lokasi
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('qc-pass') }}" class="dropdown-item">
+                                    QC
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endif
                 @if ($page == 'dashboard-cutting')
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
@@ -104,14 +95,6 @@ $page = '';
                                     </a>
                                 </li>
                             @endmeja
-
-                            {{-- @admin
-                                <li>
-                                    <a href="{{ route('cut-plan') }}" class="dropdown-item">
-                                        Cutting Plan
-                                    </a>
-                                </li>
-                            @endadmin --}}
                         </ul>
                     </li>
 
@@ -145,14 +128,6 @@ $page = '';
                         </li>
                     @endadmin
 
-                    {{-- @manager
-                        <li class="nav-item">
-                            <a href="{{ route('manage-cutting') }}" class="nav-link">
-                                Generate <i class="fas fa-file-archive fa-sm"></i>
-                            </a>
-                        </li>
-                    @endmanager --}}
-
                     @admin
                         <li class="nav-item {{ $subPage == 'summary-cutting' ? 'active' : '' }}">
                             <a href="{{ route('summary') }}" class="nav-link">
@@ -169,11 +144,6 @@ $page = '';
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'master-stocker' ? 'active' : '' }}">Master</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @stocker
-                                {{-- <li>
-                                    <a href="{{ route('part') }}" class="dropdown-item">
-                                        Part
-                                    </a>
-                                </li> --}}
                                 <li>
                                     <a href="{{ route('master-part') }}"
                                         class="dropdown-item {{ $subPage == 'master-part' ? 'active' : '' }}">
@@ -190,11 +160,6 @@ $page = '';
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-stocker' ? 'active' : '' }}">Proses</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @stocker
-                                {{-- <li>
-                                    <a href="{{ route('part') }}" class="dropdown-item">
-                                        Part
-                                    </a>
-                                </li> --}}
                                 <li>
                                     <a href="{{ route('part') }}"
                                         class="dropdown-item {{ $subPage == 'part' ? 'active' : '' }}">
@@ -213,19 +178,6 @@ $page = '';
                 @endif
 
                 @if ($page == 'dashboard-dc')
-                    {{-- <li class="nav-item dropdown">
-                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
-                            aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
-                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-                            @dc
-                                <li>
-                                    <a href="{{ route('stocker') }}" class="dropdown-item">
-                                        Stocker <i class="fas fa-receipt fa-sm"></i>
-                                    </a>
-                                </li>
-                            @enddc
-                        </ul>
-                    </li> --}}
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
                             aria-haspopup="true"aria-expanded="false"
