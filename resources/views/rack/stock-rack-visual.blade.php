@@ -69,17 +69,17 @@
                                                                         data-bs-custom-class="custom-tooltip"
                                                                         data-bs-html="true"
                                                                         data-bs-title="
-                                                                            WS : <strong>{{ $rackDetailStocker->stocker->act_costing_ws }}</strong><br>
-                                                                            Color : <strong>{{ $rackDetailStocker->stocker->color }}</strong><br>
-                                                                            No. Cut : <strong>{{ $rackDetailStocker->stocker->formCut->no_cut }}</strong><br>
-                                                                            Shade : <strong>{{ $rackDetailStocker->stocker->shade }}</strong><br>
-                                                                            Size : <strong>{{ $rackDetailStocker->stocker->size }}</strong><br>
-                                                                            Part : <strong>{{ $rackDetailStocker->stocker->partDetail->masterPart->nama_part }}</strong><br>
-                                                                            Range : <strong>{{ $rackDetailStocker->stocker->range_awal." - ".$rackDetailStocker->stocker->range_akhir }}</strong><br>
+                                                                            WS : <strong>{{ ($rackDetailStocker->stocker ? $rackDetailStocker->stocker->act_costing_ws : '-') }}</strong><br>
+                                                                            Color : <strong>{{ ($rackDetailStocker->stocker ? $rackDetailStocker->stocker->color : '-') }}</strong><br>
+                                                                            No. Cut : <strong>{{ ($rackDetailStocker->stocker ? $rackDetailStocker->stocker->formCut->no_cut : '-') }}</strong><br>
+                                                                            Shade : <strong>{{ ($rackDetailStocker->stocker ? $rackDetailStocker->stocker->shade : '-') }}</strong><br>
+                                                                            Size : <strong>{{ ($rackDetailStocker->stocker ? $rackDetailStocker->stocker->size : '-') }}</strong><br>
+                                                                            Part : <strong>{{( $rackDetailStocker->stocker ? $rackDetailStocker->stocker->partDetail->masterPart->nama_part : '-') }}</strong><br>
+                                                                            Range : <strong>{{ ($rackDetailStocker->stocker ? $rackDetailStocker->stocker->range_awal : '-')." - ".($rackDetailStocker->stocker ? $rackDetailStocker->stocker->range_akhir : '-') }}</strong><br>
                                                                         "
                                                                     >
                                                                         <div class="card-body">
-                                                                            {{ $rackDetailStocker->stocker->id_qr_stocker }}
+                                                                            {{ $rackDetailStocker->stocker ? $rackDetailStocker->stocker->id_qr_stocker : '-' }}
                                                                         </div>
                                                                     </div>
                                                                 </div>
