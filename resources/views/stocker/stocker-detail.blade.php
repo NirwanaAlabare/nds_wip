@@ -131,7 +131,7 @@
                                 $currentBefore = 0;
 
                             @endphp
-                            @foreach ($dataSpreading->formCutInputDetails->sortByDesc('group_stocker') as $detail)
+                            @foreach ($dataSpreading->formCutInputDetails->sortByDesc('group_stocker')->sortByDesc('group_roll') as $detail)
                                 @if (!$detail->group_stocker)
                                 {{-- With group stocker condition --}}
 

@@ -87,7 +87,7 @@ class FormCutInputController extends Controller
                     UPPER(b.tipe_marker) tipe_marker,
                     cutting_plan.app,
                     a.tipe_form_cut,
-                    b.notes notes,
+                    COALESCE(b.notes, '-') notes,
                     GROUP_CONCAT(DISTINCT CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC) marker_details
                 FROM cutting_plan
                 left join form_cut_input a on a.no_form = cutting_plan.no_form_cut_input

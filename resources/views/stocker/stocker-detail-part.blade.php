@@ -10,7 +10,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button accordion-sb collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-{{ $index }}" aria-expanded="false" aria-controls="panelsStayOpen-collapseTwo">
-                    {{ $partDetail->nama_part }}
+                    {{ $partDetail->nama_part." - ".$partDetail->bag }}
                 </button>
             </h2>
             <div id="panelsStayOpen-{{ $index }}" class="accordion-collapse collapse">

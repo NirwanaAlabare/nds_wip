@@ -48,13 +48,19 @@
                                         <select class='form-control select2bs4' style='width: 100%;' name='cbomarker' id='cbomarker' onchange='getdata_marker();'></select>
                                     </div>
                                 </div>
-                                <div class="col-6 col-md-6">
+                                <div class="col-12 col-md-4">
+                                    <div class="form-group">
+                                        <label>Tipe Form</label>
+                                        <input type='text' class='form-control' id='tipe_form' name='tipe_form' autocomplete='off' readonly>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-4">
                                     <div class="form-group">
                                         <label>Qty Ply Cutting</label>
                                         <input type='number' class='form-control' id='txtqty_ply_cut' name='txtqty_ply_cut' oninput='sum();' autocomplete='off'>
                                     </div>
                                 </div>
-                                <div class="col-6 col-md-6">
+                                <div class="col-6 col-md-4">
                                     <div class="form-group">
                                         <label>Total Form</label>
                                         <input type='number' class='form-control' id='jumlah_form' name='jumlah_form' oninput='customSum();' autocomplete='off'>
@@ -62,8 +68,8 @@
                                 </div>
                                 <div class="col-12">
                                     <div class="form-group">
-                                        <label>Tipe Form</label>
-                                        <input type='text' class='form-control' id='tipe_form' name='tipe_form' autocomplete='off' readonly>
+                                        <label>Keterangan</label>
+                                        <textarea class='form-control' id='notes' name='notes' rows="2"></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -383,6 +389,7 @@
                     document.getElementById('hitungmarker').value = response.gelar_qty_balance ? response.gelar_qty_balance : response.gelar_qty;
                     document.getElementById('txtid_marker').value = response.kode;
                     document.getElementById('tipe_form').value = response.tipe_marker == "bulk marker" && response.status_marker == "active" ? "Pilot to Bulk" : capitalizeFirstLetter((response.tipe_marker).replace(' marker', ""));
+                    document.getElementById('notes').value = response.notes ? response.notes : (response.tipe_marker == "bulk marker" && response.status_marker == "active" ? "Pilot to Bulk" : capitalizeFirstLetter((response.tipe_marker).replace(' marker', "")));
                 },
                 error: function(request, status, error) {
                     alert(request.responseText);
@@ -437,6 +444,7 @@
             document.getElementById('hitungform').value = "";
             document.getElementById('qty_ply_form').value = "";
             document.getElementById('sisa').value = "";
+            document.getElementById('notes').value = "";
         }
 
         document.getElementById("store-spreading").onkeypress = function(e) {

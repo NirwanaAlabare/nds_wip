@@ -162,7 +162,7 @@ class StockerController extends Controller
                 GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') part
             ")->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->leftJoin("part", "part.id", "=", "part_form.part_id")->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->where("form_cut_input.id", $formCutId)->groupBy("form_cut_input.id")->first();
 
-        $dataPartDetail = PartDetail::select("part_detail.id", "master_part.nama_part")->leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->leftJoin("part", "part.id", "part_detail.part_id")->leftJoin("part_form", "part_form.part_id", "part.id")->leftJoin("form_cut_input", "form_cut_input.id", "part_form.form_id")->where("form_cut_input.id", $formCutId)->groupBy("master_part.id")->get();
+        $dataPartDetail = PartDetail::select("part_detail.id", "master_part.nama_part", "master_part.bag")->leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->leftJoin("part", "part.id", "part_detail.part_id")->leftJoin("part_form", "part_form.part_id", "part.id")->leftJoin("form_cut_input", "form_cut_input.id", "part_form.form_id")->where("form_cut_input.id", $formCutId)->groupBy("master_part.id")->get();
 
         $dataRatio = MarkerDetail::selectRaw("
                 marker_input_detail.id marker_detail_id,
@@ -450,7 +450,25 @@ class StockerController extends Controller
                 form_cut_input.no_cut,
                 master_part.nama_part part,
                 master_sb_ws.dest
-            ")->leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->leftJoin("part", "part.id", "=", "part_detail.part_id")->leftJoin("part_form", "part_form.part_id", "=", "part.id")->leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->leftJoin("master_sb_ws", "stocker_input.so_det_id", "=", "master_sb_ws.id_so_det")->leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->where("form_cut_input.status", "SELESAI PENGERJAAN")->where("part_detail.id", $partDetailId)->where("form_cut_input.id", $request['form_cut_id'])->groupBy("form_cut_input.id", "stocker_input.id")->orderBy("stocker_input.group_stocker", "asc")->orderBy("stocker_input.id", "asc")->get();
+            ")->
+            leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+            leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+            leftJoin("part", "part.id", "=", "part_detail.part_id")->
+            leftJoin("part_form", "part_form.part_id", "=", "part.id")->
+            leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+            leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+            leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
+            leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->
+            leftJoin("master_sb_ws", "stocker_input.so_det_id", "=", "master_sb_ws.id_so_det")->
+            leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
+            where("form_cut_input.status", "SELESAI PENGERJAAN")->
+            where("part_detail.id", $partDetailId)->
+            where("form_cut_input.id", $request['form_cut_id'])->
+            groupBy("form_cut_input.id", "stocker_input.id")->
+            orderBy("stocker_input.group_stocker", "desc")->
+            orderBy("stocker_input.shade", "desc")->
+            orderBy("stocker_input.id", "desc")->
+            get();
 
         // generate pdf
         PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);

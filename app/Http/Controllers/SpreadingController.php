@@ -209,9 +209,10 @@ class SpreadingController extends Controller
             $request['hitungform'] = $request['hitungform'] > 1 ? $request['hitungform'] - 1 : $request['hitungform'];
         }
 
-        $keterangan = "";
+        $keterangan = $request["notes"];
+
         if ($request["tipe_form"] != "Pilot") {
-            if ($request["tipe_form"] != "Regular") {
+            if ((!$request["notes"] || $request["notes"] == "") && $request["tipe_form"] != "Regular") {
                 $keterangan = $request["tipe_form"];
             }
 
