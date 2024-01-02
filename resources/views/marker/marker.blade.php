@@ -200,7 +200,7 @@
                     data: 'gramasi'
                 },
                 {
-                    data: 'gelar_qty'
+                    data: 'ply_progress'
                 },
                 {
                     data: 'urutan_marker'

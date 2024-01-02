@@ -451,7 +451,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-outmaterial-fabric');
     });
 
- 
+
     //mutasi-lokasi
     Route::controller(MutLokasiController::class)->prefix("mutasi-lokasi")->middleware('mutasi-lokasi')->group(function () {
         Route::get('/', 'index')->name('mutasi-lokasi');
@@ -493,6 +493,10 @@ Route::middleware('auth')->group(function () {
 });
 
 // Dashboard
+Route::get('/dashboard-marker', function () {
+    return view('dashboard', ['page' => 'dashboard-marker']);
+})->middleware('auth')->name('dashboard-marker');
+
 Route::get('/dashboard-cutting', function () {
     return view('dashboard', ['page' => 'dashboard-cutting']);
 })->middleware('auth')->name('dashboard-cutting');

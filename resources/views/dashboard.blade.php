@@ -29,6 +29,10 @@
 
 @section('content')
     <div style="{{ $page ? 'height: 100%;' : 'height: 75vh;' }}">
+        @if ($page == 'dashboard-marker')
+            <div style="height: 75vh;"></div>
+        @endif
+
         @if ($page == 'dashboard-cutting')
             <div style="height: 75vh;"></div>
         @endif

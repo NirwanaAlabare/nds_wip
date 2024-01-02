@@ -32,7 +32,7 @@ class MasterPartController extends Controller
                 })->toJson();
         }
 
-        return view("master-part.master-part", ["page" => "dashboard-stocker",  "subPageGroup" => "master-stocker", "subPage" => "master-part"]);
+        return view("master-part.master-part", ["page" => "dashboard-marker",  "subPageGroup" => "master-marker", "subPage" => "master-part"]);
     }
 
     /**

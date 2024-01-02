@@ -63,11 +63,26 @@ $page = '';
                         </ul>
                     </li>
                 @endif
-                @if ($page == 'dashboard-cutting')
+                @if ($page == 'dashboard-marker')
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
                             aria-haspopup="true"aria-expanded="false"
-                            class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-cutting' ? 'active' : '' }}">Proses</a>
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'master-marker' ? 'active' : '' }}">Master</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @marker
+                                <li>
+                                    <a href="{{ route('master-part') }}"
+                                        class="dropdown-item {{ $subPage == 'master-part' ? 'active' : '' }}">
+                                        Master Part <i class="fas fa-plus-square fa-sm"></i>
+                                    </a>
+                                </li>
+                            @endmarker
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-marker' ? 'active' : '' }}">Proses</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @marker
                                 <li>
@@ -76,7 +91,30 @@ $page = '';
                                         Marker <i class="fas fa-marker fa-sm"></i>
                                     </a>
                                 </li>
+                                <li>
+                                    <a href="{{ route('part') }}"
+                                        class="dropdown-item {{ $subPage == 'part' ? 'active' : '' }}">
+                                        Part <i class="fas fa-th fa-sm"></i>
+                                    </a>
+                                </li>
                             @endmarker
+                        </ul>
+                    </li>
+                @endif
+                @if ($page == 'dashboard-cutting')
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-cutting' ? 'active' : '' }}">Proses</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            {{-- @marker
+                                <li>
+                                    <a href="{{ route('marker') }}"
+                                        class="dropdown-item {{ $subPage == 'marker' ? 'active' : '' }}">
+                                        Marker <i class="fas fa-marker fa-sm"></i>
+                                    </a>
+                                </li>
+                            @endmarker --}}
 
                             @spreading
                                 <li>
@@ -138,7 +176,7 @@ $page = '';
                 @endif
 
                 @if ($page == 'dashboard-stocker')
-                    <li class="nav-item dropdown">
+                    {{-- <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
                             aria-haspopup="true"aria-expanded="false"
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'master-stocker' ? 'active' : '' }}">Master</a>
@@ -152,7 +190,7 @@ $page = '';
                                 </li>
                             @endstocker
                         </ul>
-                    </li>
+                    </li> --}}
 
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"

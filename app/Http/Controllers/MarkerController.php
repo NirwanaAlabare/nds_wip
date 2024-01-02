@@ -40,9 +40,11 @@ class MarkerController extends Controller
                 urutan_marker,
                 tipe_marker,
                 ifnull(b.tot_form,0) tot_form,
+                CONCAT(ifnull(b.total_lembar,0), '/', gelar_qty) ply_progress,
                 ifnull(notes, '-') notes,
                 cancel
-            ")->leftJoin(DB::raw("(select id_marker,coalesce(count(id_marker),0) tot_form from form_cut_input group by id_marker)b"), "marker_input.kode", "=", "b.id_marker");
+            ")->
+            leftJoin(DB::raw("(select id_marker,coalesce(count(id_marker),0) tot_form,coalesce(sum(total_lembar),0) total_lembar from form_cut_input group by id_marker)b"), "marker_input.kode", "=", "b.id_marker");
 
             return DataTables::eloquent($markersQuery)->filter(function ($query) {
                 $tglAwal = request('tgl_awal');
@@ -70,7 +72,7 @@ class MarkerController extends Controller
             })->toJson();
         }
 
-        return view('marker.marker', ["page" => "dashboard-cutting", "subPageGroup" => "proses-cutting", "subPage" => "marker"]);
+        return view('marker.marker', ["page" => "dashboard-marker", "subPageGroup" => "proses-marker", "subPage" => "marker"]);
     }
 
     /**
@@ -95,7 +97,7 @@ class MarkerController extends Controller
 
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
-        return view('marker.create-marker', ['orders' => $orders, 'page' => 'dashboard-cutting', "subPageGroup" => "proses-cutting", "subPage" => "marker"]);
+        return view('marker.create-marker', ['orders' => $orders, 'page' => 'dashboard-marker', "subPageGroup" => "proses-marker", "subPage" => "marker"]);
     }
 
     public function getOrderInfo(Request $request)
