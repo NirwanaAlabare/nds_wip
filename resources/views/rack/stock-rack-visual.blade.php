@@ -61,7 +61,7 @@
                                                 <th class="{{ ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0) ? 'bg-warning align-top' : '' }} w-50 p-3">
                                                     <div class="row row-cols-1 row-cols-sm-2">
                                                         @if ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0)
-                                                            @foreach ($rackDetail->rackDetailStockers->orderBy('id_qr_stocker') as $rackDetailStocker)
+                                                            @foreach ($rackDetail->rackDetailStockers->sortBy('id_qr_stocker') as $rackDetailStocker)
                                                                 <div class="col">
                                                                     <div class="card"
                                                                         data-bs-toggle="tooltip"
