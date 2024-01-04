@@ -19,9 +19,7 @@
         }
 
         * {
-            font-size: 3.3px;
-            white-space: nowrap;
-            overflow: hidden;
+            font-size: 3px;
         }
 
         img {
