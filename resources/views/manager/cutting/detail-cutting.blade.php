@@ -2,8 +2,9 @@
 
 @section('content')
     <div class="row g-3">
-        <div class="d-flex gap-3 align-items-center">
-            <h5 class="mb-1">Form Cut / {{ $formCutInputData->no_form . " / ". strtoupper($formCutInputData->name) }}</h5>
+        <div class="d-flex gap-3 justify-content-between align-items-center">
+            <h5 class="text-sb fw-bold mb-1">Form Cut / {{ $formCutInputData->no_form . " / ". strtoupper($formCutInputData->name) }}</h5>
+            <a href="{{ route('manage-cutting') }}" class="btn btn-sb-secondary btn-sm"><i class="fa fa-reply"></i> Kembali ke manage cutting</a>
         </div>
         <div class="col-md-6">
             <div class="card card-sb h-100" id="header-data-card">
@@ -1673,8 +1674,6 @@
                 dataType: 'json',
                 data: dataObj,
                 success: async function(res) {
-                    document.getElementById("loading").classList.add("d-none");
-
                     if (res) {
                         await clearSpreadingForm();
 
@@ -1745,6 +1744,8 @@
                 confirmButtonColor: '#fa4456',
             }).then((result) => {
                 if (result.isConfirmed) {
+                    document.getElementById("loading").classList.remove("d-none");
+
                     $.ajax({
                         url: '{{ route('destroy-spreading-roll') }}/'+idRoll,
                         type: 'POST',
@@ -1809,6 +1810,8 @@
                     totalLembar: totalLembar
                 },
                 success: function(res) {
+                    document.getElementById("loading").classList.add("d-none");
+
                     if (res) {
                         Swal.fire({
                             icon: 'success',
@@ -1825,7 +1828,7 @@
                     }
                 },
                 error: function(jqXHR) {
-                    console.log(jqXHR.responseJSON);
+                    document.getElementById("loading").classList.add("d-none");
 
                     Swal.fire({
                         icon: 'error',

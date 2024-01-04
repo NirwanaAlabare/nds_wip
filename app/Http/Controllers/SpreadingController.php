@@ -8,6 +8,8 @@ use App\Models\FormCutInputDetail;
 use App\Models\FormCutInputDetailLap;
 use App\Models\MarkerDetail;
 use App\Models\Marker;
+use App\Models\Stocker;
+use App\Models\StockerDetail;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -382,8 +384,8 @@ class SpreadingController extends Controller
     {
         $spreadingForm = FormCutInput::where('id', $id)->first();
 
-        $checkStocker = Stocker::where("no_form", $spreadingForm->no_form)->get();
-        $checkNumbering = StockerDetail::where("no_form", $spreadingForm->no_form)->get();
+        $checkStocker = Stocker::where("form_cut_id", $id)->get();
+        $checkNumbering = StockerDetail::where("form_cut_id", $id)->get();
 
         if ($checkStocker->count() < 1 && $checkNumbering->count() < 1) {
             $deleteSpreadingForm = FormCutInput::where('id', $id)->delete();

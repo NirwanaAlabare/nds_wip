@@ -1685,6 +1685,8 @@
 
             // -Store Time Record Transaction-
             function storeTimeRecord() {
+                document.getElementById("loading").classList.remove("d-none");
+
                 clearModified();
 
                 let spreadingForm = new FormData(document.getElementById("spreading-form"));
@@ -1710,6 +1712,8 @@
                         dataType: 'json',
                         data: dataObj,
                         success: function(res) {
+                            document.getElementById("loading").classList.add("d-none");
+
                             if (res) {
                                 timeRecordTableTbody.innerHTML = "";
 
@@ -1740,6 +1744,8 @@
                             }
                         },
                         error: function(jqXHR) {
+                            document.getElementById("loading").classList.add("d-none");
+
                             let res = jqXHR.responseJSON;
                             let message = '';
                             let i = 0;
@@ -1767,6 +1773,8 @@
                         dataType: 'json',
                         data: dataObj,
                         success: function(res) {
+                            document.getElementById("loading").classList.add("d-none");
+
                             if (res) {
                                 timeRecordTableTbody.innerHTML = "";
 
@@ -1797,6 +1805,8 @@
                             }
                         },
                         error: function(jqXHR) {
+                            document.getElementById("loading").classList.add("d-none");
+
                             let res = jqXHR.responseJSON;
                             let message = '';
                             let i = 0;
@@ -1877,6 +1887,8 @@
                     confirmButtonColor: "#6531a0",
                 }).then(async (result) => {
                     if (result.isConfirmed) {
+                        document.getElementById("loading").classList.remove("d-none");
+
                         await updateToNextProcessOne();
                         await updateToNextProcessTwo();
 
@@ -1892,6 +1904,7 @@
                                 totalLembar: totalLembar
                             },
                             success: function(res) {
+                                document.getElementById("loading").classList.add("d-none");
                                 if (res) {
                                     lockFormCutInput();
 
@@ -1912,6 +1925,7 @@
                                 }
                             },
                             error: function(jqXHR) {
+                                document.getElementById("loading").classList.add("d-none");
                                 Swal.fire({
                                     icon: 'error',
                                     title: 'Gagal',
