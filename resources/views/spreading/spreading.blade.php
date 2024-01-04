@@ -232,6 +232,42 @@
                 </div>
             </form>
         </div>
+
+        <!-- Edit Status Modal -->
+        <div class="modal fade" id="editStatusModal" tabindex="-1" aria-labelledby="editStatusModalLabel" aria-hidden="true">
+            <form action="{{ route('update-status') }}" method="post" onsubmit="submitForm(this, event)">
+                @method('PUT')
+                <div class="modal-dialog modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header bg-sb text-light">
+                            <h1 class="modal-title fs-5" id="editStatusModalLabel">Edit Status</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body" style="max-height: 65vh !important;">
+                            <div class="row">
+                                <input type="hidden" id="edit_id_status" name="edit_id_status">
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label class="form-label">Status</label>
+                                        <select class="form-select select2bs4stat" name="edit_status" id="edit_status">
+                                            <option value="SPREADING">SPREADING</option>
+                                            <option value="PENGERJAAN FORM CUTTING">PENGERJAAN FORM CUTTING</option>
+                                            <option value="PENGERJAAN FORM CUTTING DETAIL">PENGERJAAN FORM CUTTING DETAIL</option>
+                                            <option value="PENGERJAAN FORM CUTTING SPREAD">PENGERJAAN FORM CUTTING SPREAD</option>
+                                            <option value="SELESAI PENGERJAAN">SELESAI PENGERJAAN</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Tutup</button>
+                            <button type="submit" class="btn btn-success">Simpan</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 @endsection
 
@@ -254,6 +290,11 @@
         $('.select2bs4').select2({
             theme: 'bootstrap4',
             dropdownParent: $("#editMejaModal")
+        });
+
+        $('.select2bs4stat').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $("#editStatusModal")
         });
     </script>
 
@@ -318,7 +359,7 @@
                     data: 'marker_details'
                 },
                 {
-                    data: 'qty_ply'
+                    data: 'ply_progress'
                 },
                 {
                     data: 'notes'
@@ -375,9 +416,22 @@
                     }
                 },
                 {
+                    targets: [11],
+                    render: (data, type, row, meta) => {
+                        return `
+                            <div class="progress border border-sb position-relative" style="min-width: 50px;height: 21px">
+                                <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">`+row.total_lembar+`/`+row.qty_ply+`</p>
+                                <div class="progress-bar" style="background-color: #75baeb;width: `+((row.total_lembar/row.qty_ply)*100)+`%" role="progressbar"></div>
+                            </div>
+                        `;
+                    }
+                },
+                {
                     targets: [0],
                     render: (data, type, row, meta) => {
-                        let btnEdit = row.status == 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"editMejaModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-edit'></i></a>" : "";
+                        let btnEditMeja = row.status == 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"editMejaModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-edit'></i></a>" : "";
+                        let btnEditStatus = row.status != 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify({'id_status' : row.id, 'status' : row.status}) + ", \"editStatusModal\", [{\"function\" : \"dataTableRatio1Reload()\"}]);'><i class='fa fa-cog'></i></a>" : "";
+                        let btnDelete = row.status == 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-danger btn-sm' data='"+JSON.stringify(row)+"' data-url='"+'{{ route('destroy-spreading') }}'+"/"+row.id+"' onclick='deleteData(this);'><i class='fa fa-trash'></i></a>" : "";
                         let btnProcess = "";
 
                         if (row.tipe_form_cut == 'MANUAL') {
@@ -391,7 +445,7 @@
                                 `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>` : "";
                         }
 
-                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnProcess + `</div>`;
+                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEditMeja + btnEditStatus + btnProcess + btnDelete + `</div>`;
                     }
                 },
                 {
@@ -453,12 +507,39 @@
             ]
         });
 
+        let datatableRatio1 = $("#datatable-ratio-1").DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '{{ route('getdata_ratio') }}',
+                data: function(d) {
+                    d.cbomarker = $('#edit_marker_id').val();
+                },
+            },
+            columns: [
+                {
+                    data: 'size'
+                },
+                {
+                    data: 'ratio'
+                },
+                {
+                    data: 'cut_qty'
+                },
+            ]
+        });
+
         function dataTableReload() {
             datatable.ajax.reload();
         }
 
         function dataTableRatioReload() {
             datatableRatio.ajax.reload();
+        }
+
+        function dataTableRatio1Reload() {
+            datatableRatio1.ajax.reload();
         }
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');

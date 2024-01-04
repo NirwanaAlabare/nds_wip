@@ -3,7 +3,7 @@
 @section('content')
     <div class="row g-3">
         <div class="d-flex gap-3 align-items-center">
-            <h5 class="mb-1">Form Cut - {{ strtoupper($formCutInputData->name) }}</h5>
+            <h5 class="mb-1">Form Cut / {{ $formCutInputData->no_form . " / ". strtoupper($formCutInputData->name) }}</h5>
         </div>
         <div class="col-md-6">
             <div class="card card-sb h-100" id="header-data-card">
@@ -350,6 +350,351 @@
                             </table>
                         </form>
                     </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-12">
+            <div class="card card-sb d-none" id="spreading-form-card">
+                <div class="card-header">
+                    <h3 class="card-title">Spreading</h3>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i
+                                class="fas fa-minus"></i></button>
+                    </div>
+                </div>
+                <div class="card-body" style="display: block;">
+                    <form action="#" method="post" id="spreading-form">
+                        <input type="hidden" id="id_sambungan" name="id_sambungan" readonly>
+                        <input type="hidden" id="status_sambungan" name="status_sambungan" readonly>
+                        <input type="hidden" id="current_id_roll" name="current_id_roll" readonly>
+                        <input type="hidden" id="method" name="method" readonly>
+                        <div class="row">
+                            <div class="col-3">
+                                <div class="mb-3">
+                                    <label class="form-label label-input"><small><b>Group</b></small></label>
+                                    <input type="text" class="form-control form-control-sm border-input" id="current_group" name="current_group">
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="mb-3">
+                                    <label class="form-label label-scan" id="current_id_item_label"><small><b>Id Item</b></small></label>
+                                    <input type="text" class="form-control form-control-sm border-scan" id="current_id_item" name="current_id_item" readonly>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="mb-3">
+                                    <label class="form-label label-scan" id="current_lot_label"><small><b>Lot</b></small></label>
+                                    <input type="text" class="form-control form-control-sm border-scan" id="current_lot" name="current_lot" readonly>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="mb-3">
+                                    <label class="form-label label-scan" id="current_roll_label"><small><b>Roll</b></small></label>
+                                    <input type="text" class="form-control form-control-sm border-scan"
+                                        id="current_roll" name="current_roll" readonly>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label label-scan" id="current_qty_real_label"><small><b>Qty</b></small></label>
+                                <div class="d-flex mb-3">
+                                    <div style="width: 60%">
+                                        <input type="number" class="form-control form-control-sm border-scan" id="current_qty_real" name="current_qty_real" readonly
+                                        onchange="setRollQtyConversion(this.value); calculateEstAmpar();"
+                                        onkeyup="setRollQtyConversion(this.value); calculateEstAmpar();">
+                                    </div>
+                                    <div style="width: 40%">
+                                        <input type="text" class="form-control form-control-sm border-scan" id="current_unit" name="current_unit" readonly>
+                                        <select class="form-select form-select-sm d-none rounded-0" name="current_custom_unit" id="current_custom_unit" onchange="setCustomUnit(this.value); setRollQtyConversion(); calculateEstAmpar()">
+                                            <option value="METER">METER</option>
+                                            <option value="KGM">KGM</option>
+                                            <option value="YARD">YARD</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    <label class="form-label label-calc" id="current_qty_label"><small><b>Qty Konversi</b></small></label>
+                                    <div class="d-flex mb-3">
+                                        <div style="width: 60%">
+                                            <input type="number" class="form-control form-control-sm border-calc" id="current_qty" name="current_qty" readonly>
+                                        </div>
+                                        <div style="width: 40%">
+                                            <input type="text" class="form-control form-control-sm border-calc" id="current_unit_convert" name="current_unit_convert" value="METER" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    <label class="form-label label-input"><small><b>Sisa Gelaran</b></small></label>
+                                    <div class="d-flex mb-3">
+                                        <div style="width: 60%;">
+                                            <input type="number" class="form-control form-control-sm border-input"
+                                                id="current_sisa_gelaran" name="current_sisa_gelaran" step=".01"
+                                                onkeyup="
+                                                    // restrictRemainPly();
+                                                    calculateShortRoll();
+                                                    calculateRemark();
+                                                "
+                                                onchange="
+                                                    // restrictRemainPly();
+                                                    calculateShortRoll();
+                                                    calculateRemark();
+                                                ">
+                                        </div>
+                                        <div style="width: 40%;">
+                                            <input type="text" class="form-control form-control-sm border-input"
+                                                id="current_sisa_gelaran_unit" name="current_sisa_gelaran_unit"
+                                                step=".01" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    <label class="form-label label-input"><small><b>Sambungan</b></small></label>
+                                    <div class="d-flex">
+                                        <div style="width: 60%">
+                                            <input type="number" class="form-control form-control-sm border-input"
+                                                id="current_sambungan" name="current_sambungan" step=".01"
+                                                onkeyup="
+                                                    calculateTotalPemakaian();
+                                                    calculateShortRoll();
+                                                    // calculateSisaKain();
+                                                "
+                                                onchange="
+                                                    calculateTotalPemakaian();
+                                                    calculateShortRoll();
+                                                    // calculateSisaKain();
+                                                ">
+                                        </div>
+                                        <div style="width: 40%">
+                                            <input type="text" class="form-control form-control-sm border-input"
+                                                id="current_sambungan_unit" name="current_sambungan_unit" step=".01"
+                                                readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="mb-3">
+                                    <label class="form-label label-calc"><small><b>Estimasi Amparan</b></small></label>
+                                    <input type="number" class="form-control form-control-sm border-calc"
+                                        id="current_est_amparan" name="current_est_amparan" step=".01" readonly>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="mb-3">
+                                    <label class="form-label label-sb"><small><b>Lembar Gelaran</b></small></label>
+                                    <input type="number" class="form-control form-control-sm border-sb"
+                                        id="current_lembar_gelaran" name="current_lembar_gelaran" readonly
+                                        onkeyup="
+                                            calculateTotalPemakaian();
+                                            calculateShortRoll();
+                                            calculateRemark();
+                                            // calculateSisaKain();
+                                        "
+                                        onchange="
+                                            calculateTotalPemakaian();
+                                            calculateShortRoll();
+                                            calculateRemark();
+                                            // calculateSisaKain();
+                                        ">
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="mb-3">
+                                    <label class="form-label label-sb"><small><b>Average Time</b></small></label>
+                                    <input type="text" class="form-control form-control-sm border-sb"
+                                        id="current_average_time" name="current_average_time" readonly>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label class="form-label label-sb"><small><b>Ply Progress</b></small></label>
+                                    <div class="progress border border-sb" style="height: 31px">
+                                        <p class="position-absolute"
+                                            style="top: 59%;left: 50%;transform: translate(-50%, -50%);"
+                                            id="current_ply_progress_txt"></p>
+                                        <div class="progress-bar" style="background-color: #75baeb;" role="progressbar"
+                                            id="current_ply_progress"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="mb-3">
+                                    <label class="form-label label-input"><small><b>Kepala Kain</b></small></label>
+                                    <div class="input-group input-group-sm mb-3">
+                                        <input type="number" class="form-control border-input" id="current_kepala_kain"
+                                            name="current_kepala_kain" step=".01"
+                                            onkeyup="
+                                                calculateTotalPemakaian();
+                                                calculateShortRoll();
+                                                // calculateSisaKain();
+                                            "
+                                            onchange="
+                                                calculateTotalPemakaian();
+                                                calculateShortRoll();
+                                                // calculateSisaKain();
+                                            ">
+                                        <span class="input-group-text input-group-unit"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="mb-3">
+                                    <label class="form-label label-input"><small><b>Sisa Tidak Bisa</b></small></label>
+                                    <div class="input-group input-group-sm mb-3">
+                                        <input type="number" class="form-control border-input"
+                                            id="current_sisa_tidak_bisa" name="current_sisa_tidak_bisa" step=".01"
+                                            onkeyup="
+                                                calculateTotalPemakaian();
+                                                calculateShortRoll();
+                                                calculateRemark();
+                                                // calculateSisaKain();
+                                            "
+                                            onchange="
+                                                calculateTotalPemakaian();
+                                                calculateShortRoll();
+                                                calculateRemark();
+                                                // calculateSisaKain();
+                                            ">
+                                        <span class="input-group-text input-group-unit"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="mb-3">
+                                    <label class="form-label label-input"><small><b>Reject</b></small></label>
+                                    <div class="input-group input-group-sm mb-3">
+                                        <input type="number" class="form-control form-control-sm border-input"
+                                            id="current_reject" name="current_reject" step=".01"
+                                            onkeyup="
+                                                calculateTotalPemakaian();
+                                                calculateShortRoll();
+                                                calculateRemark();
+                                                // calculateSisaKain();
+                                            "
+                                            onchange="
+                                                calculateTotalPemakaian();
+                                                calculateShortRoll();
+                                                calculateRemark();
+                                                // calculateSisaKain();
+                                            ">
+                                        <span class="input-group-text input-group-unit"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="mb-3">
+                                    <label class="form-label label-input"><small><b>Piping</b></small></label>
+                                    <div class="input-group input-group-sm mb-3">
+                                        <input type="number" class="form-control form-control-sm border-input" id="current_piping" name="current_piping" step=".01"
+                                            onkeyup="
+                                                calculateShortRoll();
+                                                calculateRemark();
+                                                // calculateSisaKain();
+                                            "
+                                            onchange="
+                                                calculateShortRoll();
+                                                calculateRemark();
+                                                // calculateSisaKain();
+                                            ">
+                                        <span class="input-group-text input-group-unit"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="mb-3">
+                                    <label class="form-label label-calc"><small><b>Tot. Pakai /Roll</b></small></label>
+                                    <div class="input-group input-group-sm mb-3">
+                                        <input type="number" class="form-control form-control-sm border-calc"
+                                            id="current_total_pemakaian_roll" name="current_total_pemakaian_roll"
+                                            step=".01" readonly>
+                                        <span class="input-group-text input-group-unit"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="mb-3">
+                                    <label class="form-label label-calc"><small><b>Short Roll +/-</b></small></label>
+                                    <div class="input-group input-group-sm mb-3">
+                                        <input type="number" class="form-control form-control-sm border-calc"
+                                            id="current_short_roll" name="current_short_roll" step=".01" readonly>
+                                        <span class="input-group-text input-group-unit"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="mb-3">
+                                    <label class="form-label label-input"><small><b>Sisa Kain</b></small></label>
+                                    <div class="input-group input-group-sm mb-3">
+                                        <input type="number" class="form-control form-control-sm border-input"
+                                            id="current_sisa_kain" name="current_sisa_kain" step=".01"
+                                            onkeyup="
+                                                calculateShortRoll();
+                                                calculateRemark();
+                                            "
+                                            onchange="
+                                                calculateShortRoll();
+                                                calculateRemark();
+                                            ">
+                                        <span class="input-group-text input-group-unit"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="mb-3">
+                                    <label class="form-label label-input"><small><b>Remark</b></small></label>
+                                    <div class="input-group input-group-sm mb-3">
+                                        <input type="number" class="form-control form-control-sm border-input"
+                                            id="current_remark" name="current_remark" step=".01">
+                                        <span class="input-group-text input-group-unit"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-6 my-3">
+                                <button type="button" class="fs-5 fw-bold btn btn-success btn-sm w-100 h-100"
+                                    style="min-height: 90px !important;" id="startLapButton"
+                                    onclick="startTimeRecord()">START</button>
+                                <button type="button" class="fs-5 fw-bold btn btn-primary btn-sm d-none w-100 h-100"
+                                    style="min-height: 90px !important;" id="nextLapButton"
+                                    onclick="addNewTimeRecord()">NEXT LAP</button>
+                            </div>
+                            <div class="col-6 col-md-6 my-3">
+                                <div class="row">
+                                    <div class="col-5">
+                                        <input type="text" class="form-control form-control-sm" id="minutes"
+                                            value="00" readonly class="mx-1">
+                                    </div>
+                                    <div class="col-2">
+                                        <center>:</center>
+                                    </div>
+                                    <div class="col-5">
+                                        <input type="text" class="form-control form-control-sm" id="seconds"
+                                            value="00" readonly class="mx-1">
+                                    </div>
+                                </div>
+                                <div class="w-100 table-responsive mt-3" style="max-height: 150px; overflow-y: auto;">
+                                    <table class="table table-bordered table-sm" id="timeRecordTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Lap</th>
+                                                <th>Waktu</th>
+                                                <th class="d-none"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <button type="button" class="btn btn-sb btn-sm btn-block my-3" id="stopLapButton" onclick="stopTimeRecord()">Simpan</button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

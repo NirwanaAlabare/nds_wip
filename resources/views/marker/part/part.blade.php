@@ -34,6 +34,7 @@
                 <table id="datatable-part" class="table table-bordered table-sm w-100">
                     <thead>
                         <tr>
+                            <th class="align-bottom">Action</th>
                             <th>Kode Part</th>
                             <th>No. WS</th>
                             <th>Buyer</th>
@@ -42,7 +43,6 @@
                             <th>Panel</th>
                             <th>Part</th>
                             <th>Total Form</th>
-                            <th class="align-bottom">Action</th>
                         </tr>
                     </thead>
                 </table>
@@ -160,6 +160,9 @@
             },
             columns: [
                 {
+                    data: 'id'
+                },
+                {
                     data: 'kode',
                 },
                 {
@@ -185,13 +188,10 @@
                     data: 'total_form',
                     searchable: false
                 },
-                {
-                    data: 'id'
-                },
             ],
             columnDefs: [
                 {
-                    targets: [8],
+                    targets: [0],
                     render: (data, type, row, meta) => {
                         return `
                             <div class='d-flex gap-1 justify-content-center'>

@@ -8,6 +8,7 @@ use App\Models\Marker;
 use App\Models\MarkerDetail;
 use App\Models\FormCutInput;
 use App\Models\FormCutInputLostTime;
+use App\Models\User;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Auth;
 use DB;
@@ -25,11 +26,11 @@ class ManagerController extends Controller
     }
 
     public function cutting(Request $request) {
-        if ($request->ajax()) {
-            $additionalQuery = "";
+        $additionalQuery = "";
 
+        if ($request->ajax()) {
             if ($request->dateFrom) {
-                $additionalQuery .= "and a.tgl_form_cut >= '" . $request->dateFrom . "' ";
+                $additionalQuery .= " and a.tgl_form_cut >= '" . $request->dateFrom . "' ";
             }
 
             if ($request->dateTo) {
@@ -48,8 +49,7 @@ class ManagerController extends Controller
                         panel like '%" . $request->search["value"] . "%' OR
                         b.color like '%" . $request->search["value"] . "%' OR
                         a.status like '%" . $request->search["value"] . "%' OR
-                        meja.name like '%" . $request->search["value"] . "%' OR
-                        manager.name like '%" . $request->search["value"] . "%'
+                        users.name like '%" . $request->search["value"] . "%'
                     )
                 ";
             }
@@ -60,44 +60,48 @@ class ManagerController extends Controller
                     a.no_meja,
                     a.id_marker,
                     a.no_form,
+                    a.no_cut,
                     a.tgl_form_cut,
                     b.id marker_id,
                     b.act_costing_ws ws,
-                    panel,
+                    b.style,
+                    CONCAT(b.panel, ' - ', b.urutan_marker) panel,
                     b.color,
                     a.status,
-                    meja.name nama_meja,
+                    users.name nama_meja,
                     b.panjang_marker,
                     UPPER(b.unit_panjang_marker) unit_panjang_marker,
                     b.comma_marker,
                     UPPER(b.unit_comma_marker) unit_comma_marker,
                     b.lebar_marker,
                     UPPER(b.unit_lebar_marker) unit_lebar_marker,
+                    CONCAT(COALESCE(a.total_lembar, '0'), '/', a.qty_ply) ply_progress,
                     a.qty_ply,
                     b.gelar_qty,
                     b.po_marker,
                     b.urutan_marker,
                     b.cons_marker,
-                    a.generated,
+                    UPPER(b.tipe_marker) tipe_marker,
                     a.tipe_form_cut,
-                    manager.name generated_by,
-                    GROUP_CONCAT(CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC) marker_details
+                    COALESCE(b.notes, '-') notes,
+                    GROUP_CONCAT(DISTINCT CONCAT(master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ', ') marker_details,
+                    cutting_plan.tgl_plan,
+                    cutting_plan.app
                 FROM `form_cut_input` a
-                left join marker_input b on a.id_marker = b.kode
+                left join cutting_plan on cutting_plan.no_form_cut_input = a.no_form
+                left join users on users.id = a.no_meja
+                left join marker_input b on a.id_marker = b.kode and b.cancel = 'N'
                 left join marker_input_detail on b.id = marker_input_detail.marker_id
                 left join master_size_new on marker_input_detail.size = master_size_new.size
-                left join users as meja on meja.id = a.no_meja
-                left join users as manager on manager.id = a.generated_by
                 where
-                    b.cancel = 'N' and
-                    a.status = 'SELESAI PENGERJAAN' and
-                    a.app = 'Y'
+                    a.id is not null
                     " . $additionalQuery . "
                     " . $keywordQuery . "
                 GROUP BY a.id
                 ORDER BY
-                    FIELD(a.generated, 'N', 'Y'),
-                    FIELD(a.tipe_form_cut, null, 'NORMAL', 'MANUAL'),
+                    FIELD(a.status, 'PENGERJAAN MARKER', 'PENGERJAAN FORM CUTTING', 'PENGERJAAN FORM CUTTING DETAIL', 'PENGERJAAN FORM CUTTING SPREAD', 'SPREADING', 'SELESAI PENGERJAAN'),
+                    FIELD(a.tipe_form_cut, null, 'PILOT', 'NORMAL', 'MANUAL'),
+                    FIELD(a.app, 'Y', 'N', null),
                     a.no_form desc,
                     a.updated_at desc
             ");
@@ -105,7 +109,9 @@ class ManagerController extends Controller
             return DataTables::of($data_spreading)->toJson();
         }
 
-        return view('manager.cutting.cutting', ["page" => "dashboard-cutting"]);
+        $meja = User::select("id", "name", "username")->where('type', 'meja')->get();
+
+        return view('manager.cutting.cutting', ['meja' => $meja, 'page' => 'dashboard-cutting', "subPage" => "manage-cutting"]);
     }
 
     /**

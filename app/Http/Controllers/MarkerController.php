@@ -35,6 +35,7 @@ class MarkerController extends Controller
                 CONCAT(lebar_marker, ' ', UPPER(unit_lebar_marker)) lebar_marker,
                 gramasi,
                 gelar_qty,
+                COALESCE(b.total_lembar, 0) total_lembar,
                 gelar_qty_balance,
                 po_marker,
                 urutan_marker,
@@ -72,7 +73,7 @@ class MarkerController extends Controller
             })->toJson();
         }
 
-        return view('marker.marker', ["page" => "dashboard-marker", "subPageGroup" => "proses-marker", "subPage" => "marker"]);
+        return view('marker.marker.marker', ["page" => "dashboard-marker", "subPageGroup" => "proses-marker", "subPage" => "marker"]);
     }
 
     /**
@@ -97,7 +98,7 @@ class MarkerController extends Controller
 
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
-        return view('marker.create-marker', ['orders' => $orders, 'page' => 'dashboard-marker', "subPageGroup" => "proses-marker", "subPage" => "marker"]);
+        return view('marker.marker.create-marker', ['orders' => $orders, 'page' => 'dashboard-marker', "subPageGroup" => "proses-marker", "subPage" => "marker"]);
     }
 
     public function getOrderInfo(Request $request)
@@ -132,13 +133,18 @@ class MarkerController extends Controller
                 master_sb_ws.ws no_ws,
                 master_sb_ws.color,
                 master_sb_ws.size,
-                sum(master_sb_ws.qty) order_qty
+                sum(master_sb_ws.qty) order_qty,
+                COALESCE(marker_input_detail.ratio, 0) ratio,
+                COALESCE(marker_input_detail.cut_qty, 0) cut_qty
             ")->
-            where("id_act_cost", $request->act_costing_id)->
-            where("color", $request->color)->
+            where("master_sb_ws.id_act_cost", $request->act_costing_id)->
+            where("master_sb_ws.color", $request->color)->
+            leftJoin('marker_input_detail', 'marker_input_detail.so_det_id', '=', 'master_sb_ws.id_so_det')->
+            leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->
             leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
             groupBy("id_act_cost", "color", "size")->
-            orderBy("master_size_new.urutan")->get();
+            orderBy("master_size_new.urutan")->
+            get();
 
         return json_encode([
             "draw" => intval($request->input('draw')),
@@ -329,7 +335,7 @@ class MarkerController extends Controller
         $data_marker_tracking = DB::select("
         select no_form,
         DATE_FORMAT(tgl_form_cut, '%d-%m-%Y') tgl_form_cut,
-        u.name no_meja,
+        UPPER(u.name) no_meja,
         DATE_FORMAT(waktu_mulai, '%d-%m-%Y %T') waktu_mulai,
         DATE_FORMAT(waktu_selesai, '%d-%m-%Y %T') waktu_selesai,
         a.status
@@ -571,9 +577,11 @@ class MarkerController extends Controller
      * @param  \App\Models\Marker  $marker
      * @return \Illuminate\Http\Response
      */
-    public function edit(Marker $marker)
+    public function edit(Marker $marker, $id)
     {
-        //
+        $marker = Marker::where('id', $id)->first();
+
+        return view('marker.marker.edit-marker', ['marker' => $marker]);
     }
 
     /**
@@ -583,6 +591,95 @@ class MarkerController extends Controller
      * @param  \App\Models\Marker  $marker
      * @return \Illuminate\Http\Response
      */
+    public function update(Marker $marker, Request $request, $id) {
+        $validatedRequest = $request->validate([
+            "tgl_cutting" => "required",
+            "ws_id" => "required",
+            "ws" => "required",
+            "buyer" => "required",
+            "style" => "required",
+            "cons_ws" => "required|numeric|min:0",
+            "color" => "required",
+            "panel" => "required",
+            "p_marker" => "required|numeric|min:0",
+            "p_unit" => "required",
+            "comma_marker" => "required|numeric|min:0",
+            "comma_unit" => "required",
+            "l_marker" => "required|numeric|min:0",
+            "l_unit" => "required",
+            "gelar_marker_qty" => "required|numeric|gt:0",
+            "po" => "required",
+            "no_urut_marker" => "required|numeric|gt:0",
+            "cons_marker" => "required|numeric|gt:0",
+            "gramasi" => "required|numeric|gt:0",
+            "tipe_marker" => "required",
+            "cons_piping" => "required|numeric|min:0"
+        ]);
+        $totalQty = 0;
+
+        foreach ($request["cut_qty"] as $qty) {
+            $totalQty += $qty;
+        }
+
+        if ($totalQty > 0) {
+            $markerUpdate = Marker::where('id', $id)->update([
+                'tgl_cutting' => $validatedRequest['tgl_cutting'],
+                'act_costing_id' => $validatedRequest['ws_id'],
+                'act_costing_ws' => $validatedRequest['ws'],
+                'buyer' => $validatedRequest['buyer'],
+                'style' => $validatedRequest['style'],
+                'cons_ws' => $validatedRequest['cons_ws'],
+                'color' => $validatedRequest['color'],
+                'panel' => $validatedRequest['panel'],
+                'panjang_marker' => $validatedRequest['p_marker'],
+                'unit_panjang_marker' => $validatedRequest['p_unit'],
+                'comma_marker' => $validatedRequest['comma_marker'],
+                'unit_comma_marker' => $validatedRequest['comma_unit'],
+                'lebar_marker' => $validatedRequest['l_marker'],
+                'unit_lebar_marker' => $validatedRequest['l_unit'],
+                'gelar_qty' => $validatedRequest['gelar_marker_qty'],
+                'gelar_qty_balance' => $validatedRequest['gelar_marker_qty'],
+                'po_marker' => $validatedRequest['po'],
+                'urutan_marker' => $validatedRequest['no_urut_marker'],
+                'cons_marker' => $validatedRequest['cons_marker'],
+                'gramasi' => $validatedRequest['gramasi'],
+                'tipe_marker' => $validatedRequest['tipe_marker'],
+                'notes' => $request['notes'],
+                'cons_piping' => $validatedRequest['cons_piping'],
+                'cancel' => 'N',
+            ]);
+
+            $timestamp = Carbon::now();
+            $markerDetailData = [];
+            for ($i = 0; $i < intval($request['jumlah_so_det']); $i++) {
+                MarkerDetail::where('marker_id', $id)->
+                    where('so_det_id', $request["so_det_id"][$i])->
+                    update([
+                        "size" => $request["size"][$i],
+                        "ratio" => $request["ratio"][$i],
+                        "cut_qty" => $request["cut_qty"][$i],
+                        "cancel" => 'N',
+                        "created_at" => $timestamp,
+                        "updated_at" => $timestamp,
+                    ]);
+            }
+
+            return array(
+                "status" => 200,
+                "message" => $id,
+                "redirect" => route('marker'),
+                "additional" => [],
+            );
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Total Cut Qty Kosong",
+            "redirect" => route('marker'),
+            "additional" => [],
+        );
+    }
+
     public function show_gramasi(Request $request)
     {
         $data_gramasi = DB::select("

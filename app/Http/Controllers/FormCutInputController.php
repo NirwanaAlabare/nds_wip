@@ -72,15 +72,18 @@ class FormCutInputController extends Controller
                     CONCAT(b.panel, ' - ', b.urutan_marker) panel,
                     b.color color,
                     a.status,
-                    users.name nama_meja,
+                    UPPER(users.name) nama_meja,
                     b.panjang_marker panjang_marker,
                     UPPER(b.unit_panjang_marker) unit_panjang_marker,
                     b.comma_marker comma_marker,
                     UPPER(b.unit_comma_marker) unit_comma_marker,
                     b.lebar_marker lebar_marker,
                     UPPER(b.unit_lebar_marker) unit_lebar_marker,
+                    CONCAT(COALESCE(a.total_lembar, '0'), '/', a.qty_ply) ply_progress,
                     a.qty_ply,
+                    b.gelar_qty,
                     b.gelar_qty gelar_qty,
+                    COALESCE(a.total_lembar, '0') total_lembar,
                     b.po_marker po_marker,
                     b.urutan_marker urutan_marker,
                     b.cons_marker cons_marker,
@@ -776,7 +779,6 @@ class FormCutInputController extends Controller
                         "sambungan" => 0,
                         "status" => "not complete",
                         "metode" => $request->metode ? $request->metode : "scan",
-                        "group_stocker" => $groupStocker,
                     ]);
 
                     if ($storeTimeRecordSummaryNext) {
