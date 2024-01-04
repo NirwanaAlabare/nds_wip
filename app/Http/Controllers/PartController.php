@@ -55,7 +55,7 @@ class PartController extends Controller
                 })->toJson();
         }
 
-        return view("part.part", ["page" => "dashboard-marker", "subPageGroup" => "proses-marker", "subPage" => "part"]);
+        return view("marker.part.part", ["page" => "dashboard-marker", "subPageGroup" => "proses-marker", "subPage" => "part"]);
     }
 
     /**
@@ -78,7 +78,7 @@ class PartController extends Controller
 
         $masterParts = MasterPart::all();
 
-        return view('part.create-part', ['orders' => $orders, 'masterParts' => $masterParts, 'page' => 'dashboard-marker',  "subPageGroup" => "proses-marker", "subPage" => "part"]);
+        return view('marker.part.create-part', ['orders' => $orders, 'masterParts' => $masterParts, 'page' => 'dashboard-marker',  "subPageGroup" => "proses-marker", "subPage" => "part"]);
     }
 
     public function getOrderInfo(Request $request)
@@ -390,7 +390,7 @@ class PartController extends Controller
             groupBy("part.id")->
             first();
 
-        return view("part.manage-part-form", ["part" => $part, "page" => "dashboard-marker",  "subPageGroup" => "proses-marker", "subPage" => "part"]);
+        return view("marker.part.manage-part-form", ["part" => $part, "page" => "dashboard-marker",  "subPageGroup" => "proses-marker", "subPage" => "part"]);
     }
 
     public function getFormCut(Request $request, $id = 0) {

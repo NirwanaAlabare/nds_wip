@@ -20,6 +20,8 @@
 
         * {
             font-size: 3.3px;
+            white-space: nowrap;
+            overflow: hidden;
         }
 
         img {

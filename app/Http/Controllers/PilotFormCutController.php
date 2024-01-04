@@ -1025,7 +1025,6 @@ class PilotFormCutController extends Controller
                         "unit" => $itemUnit,
                         "sambungan" => 0,
                         "status" => "not complete",
-                        "group_stocker" => $groupStocker,
                     ]);
 
                     if ($storeTimeRecordSummaryNext) {

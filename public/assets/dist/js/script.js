@@ -229,12 +229,16 @@ function submitForm(e, evt) {
 function editData(e, modal, addons = []) {
     let data = e;
 
+    console.log(e);
+
     for (let key in data) {
+
+        console.log(document.getElementById('edit_'+key));
         if (document.getElementById('edit_'+key)) {
             document.getElementById('edit_'+key).value = data[key];
             document.getElementById('edit_'+key).setAttribute('value', data[key]);
 
-            if (document.getElementById('edit_'+key).classList.contains('select2bs4') || document.getElementById('edit_'+key).classList.contains('select2')) {
+            if (document.getElementById('edit_'+key).classList.contains('select2bs4') || document.getElementById('edit_'+key).classList.contains('select2') || document.getElementById('edit_'+key).classList.contains('select2bs4stat')) {
                 $('#edit_'+key).val(data[key]).trigger('change.select2');
             }
         } else {
