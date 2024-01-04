@@ -99,7 +99,8 @@ class ManagerController extends Controller
                 left join marker_input_detail on b.id = marker_input_detail.marker_id
                 left join master_size_new on marker_input_detail.size = master_size_new.size
                 where
-                    a.id is not null
+                    a.id is not null and
+                    a.status = 'SELESAI PENGERJAAN'
                     " . $additionalQuery . "
                     " . $keywordQuery . "
                 GROUP BY a.id
