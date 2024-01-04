@@ -496,11 +496,6 @@
                                     </div>
                                     <div style="width: 40%;">
                                         <input type="text" class="form-control form-control-sm" style="border-radius: 0 3px 3px 0" id="current_unit" name="current_unit" readonly>
-                                        <select class="form-select form-select-sm d-none rounded-0" name="current_custom_unit" id="current_custom_unit" onchange="setCustomUnit(this.value); setRollQtyConversion(); calculateEstAmpar()">
-                                            <option value="METER">METER</option>
-                                            <option value="KGM">KGM</option>
-                                            <option value="YARD">YARD</option>
-                                        </select>
                                     </div>
                                 </div>
                             </div>
@@ -740,7 +735,7 @@
                                 </div>
                             </div>
                             <div class="col-md-12">
-                                <button type="button" class="btn btn-sb btn-sm btn-block my-3" id="stopLapButton" onclick="storeTimeRecord()"><i class="fa fa-check"></i> Simpan</button>
+                                <button type="button" class="btn btn-success btn-sm btn-block my-3" id="stopLapButton" onclick="storeTimeRecord()"><i class="fa fa-check"></i> Simpan</button>
                                 <button type="button" class="btn btn-no btn-sm btn-block my-3" id="stopLapButton" onclick="deleteTimeRecord()"><i class="fa fa-trash"></i> Hapus</button>
                             </div>
                         </div>
@@ -870,7 +865,6 @@
                     type: 'get',
                     dataType: 'json',
                     success: function(res) {
-                        console.log(res);
                         if (res) {
                             setSpreadingForm(res);
                         } else {
@@ -903,8 +897,6 @@
             let lembarVar = lembar;
             let totalPemakaianVar = totalPemakaian;
             let consActualGelaran = 0;
-
-            console.log("asd", unitVar, lembarVar, totalPemakaianVar)
 
             // consActualGelaran = totalQtyCutVar > 0 ? (lembarVar * pActualConverted) / totalQtyCutVar : 0;
             consActualGelaran = totalPemakaianVar / lembarVar;
@@ -1085,7 +1077,6 @@
             document.getElementById("total-piping").innerText = Number(totalPiping).round(2);
             document.getElementById("total-remark").innerText = Number(totalRemark).round(2);
 
-            console.log(latestUnit, totalLembar, totalTotalPemakaian)
 
             calculateConsActualGelaran(unit = latestUnit, lembar = totalLembar, totalTotalPemakaian);
         }
@@ -1126,7 +1117,6 @@
             data.qty ? document.getElementById("current_qty").value = convertedQty : '';
             data.qty ? document.getElementById("current_qty_real").value = data.qty : '';
             data.unit ? document.getElementById("current_unit").value = data.unit : '';
-            data.unit ? document.getElementById("current_custom_unit").value = data.unit : '';
             data.unit ? document.getElementById("current_sisa_gelaran_unit").value = (data.unit != "KGM" ? "METER" : "KGM") : '';
             data.unit ? document.getElementById("current_sambungan_unit").value = (data.unit != "KGM" ? "METER" : "KGM") : '';
             data.sisa_gelaran ? document.getElementById("current_sisa_gelaran").value = data.sisa_gelaran : '';
@@ -1294,7 +1284,6 @@
         }
 
         function conversion(qty, unit, unitBefore) {
-            console.log("convert", qty, unitBefore, unit);
 
             let gramasiVar = Number(document.getElementById("gramasi").value);
             let pActualVar = Number(document.getElementById("p_act").value);
@@ -1713,9 +1702,6 @@
             document.getElementById("current_roll").setAttribute("readonly", true);
             document.getElementById("current_qty").setAttribute("readonly", true);
             document.getElementById("current_qty_real").setAttribute("readonly", true);
-
-            document.getElementById("current_unit").classList.remove("d-none");
-            document.getElementById("current_custom_unit").classList.add("d-none");
         }
 
         // -Open Item input on Spreading Form-
@@ -1726,9 +1712,6 @@
             document.getElementById("current_roll").removeAttribute("readonly");
             document.getElementById("current_qty").removeAttribute("readonly");
             document.getElementById("current_qty_real").removeAttribute("readonly");
-
-            document.getElementById("current_unit").classList.add("d-none");
-            document.getElementById("current_custom_unit").classList.remove("d-none");
         }
 
         function deleteTimeRecord() {
