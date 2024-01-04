@@ -133,7 +133,7 @@ class MarkerController extends Controller
                 master_sb_ws.ws no_ws,
                 master_sb_ws.color,
                 master_sb_ws.size,
-                sum(master_sb_ws.qty) order_qty,
+                master_sb_ws.qty order_qty,
                 COALESCE(marker_input_detail.ratio, 0) ratio,
                 COALESCE(marker_input_detail.cut_qty, 0) cut_qty
             ")->
