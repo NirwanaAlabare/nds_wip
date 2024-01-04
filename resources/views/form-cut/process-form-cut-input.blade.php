@@ -1592,8 +1592,7 @@
             }
 
             // -Convert P. Actual-
-            function pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar,
-                unitQtyVar) {
+            function pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar) {
                 let pActualConverted = 0;
 
                 if (unitQtyVar == unitPActualVar) {

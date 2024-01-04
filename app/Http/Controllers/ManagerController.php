@@ -7,7 +7,11 @@ use Carbon\Carbon;
 use App\Models\Marker;
 use App\Models\MarkerDetail;
 use App\Models\FormCutInput;
+use App\Models\FormCutInputDetail;
 use App\Models\FormCutInputLostTime;
+use App\Models\ScannedItem;
+use App\Models\Part;
+use App\Models\PartForm;
 use App\Models\User;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Auth;
@@ -78,6 +82,7 @@ class ManagerController extends Controller
                     CONCAT(COALESCE(a.total_lembar, '0'), '/', a.qty_ply) ply_progress,
                     a.qty_ply,
                     b.gelar_qty,
+                    COALESCE(a.total_lembar, '0') total_lembar,
                     b.po_marker,
                     b.urutan_marker,
                     b.cons_marker,
@@ -198,36 +203,135 @@ class ManagerController extends Controller
         //
     }
 
-    public function generateStocker(Request $request, $id) {
-        $generatedBy = Auth::user()->id;
-        $generatedAt = Carbon::now();
-
+    public function updateCutting(Request $request) {
         $validatedRequest = $request->validate([
-            "generated_type" => "required"
+            "current_id" => "required",
+            "current_id_roll" => "nullable",
+            "no_form_cut_input" => "required",
+            "no_meja" => "required",
+            "current_id_item" => "required",
+            "current_group" => "required",
+            "current_group_stocker" => "nullable",
+            "current_roll" => "nullable",
+            "current_qty" => "required",
+            "current_qty_real" => "required",
+            "current_unit" => "required",
+            "current_sisa_gelaran" => "required",
+            "current_est_amparan" => "required",
+            "current_lembar_gelaran" => "required",
+            "current_kepala_kain" => "required",
+            "current_sisa_tidak_bisa" => "required",
+            "current_reject" => "required",
+            "current_sisa_kain" => "required",
+            "current_total_pemakaian_roll" => "required",
+            "current_short_roll" => "required",
+            "current_piping" => "required",
+            "current_remark" => "required",
+            "current_sambungan" => "required",
+            "p_act" => "required"
         ]);
 
-        $generateFormCut = FormCutInput::where("id", $id)->
+        $itemQty = ($validatedRequest["current_unit"] != "KGM" ? floatval($validatedRequest['current_qty']) : floatval($validatedRequest['current_qty_real']));
+        $itemUnit = ($validatedRequest["current_unit"] != "KGM" ? "METER" : $validatedRequest['current_unit']);
+
+        $updateTimeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->
+            leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->
+            where('form_cut_input.no_meja', $validatedRequest['no_meja'])->
+            where('form_cut_input_detail.id', $validatedRequest['current_id'])->
             update([
-                "generated" => $validatedRequest['generated_type'],
-                "generated_by" => $generatedBy,
-                "generated_at" => $generatedAt,
-                "generated_notes" => $request['generated_notes'],
+                "id_roll" => $validatedRequest['current_id_roll'],
+                "id_item" => $validatedRequest['current_id_item'],
+                "group_roll" => $validatedRequest['current_group'],
+                "lot" => $request["current_lot"],
+                "roll" => $validatedRequest['current_roll'],
+                "qty" => $itemQty,
+                "unit" => $itemUnit,
+                "sisa_gelaran" => $validatedRequest['current_sisa_gelaran'],
+                "sambungan" => $validatedRequest['current_sambungan'],
+                "est_amparan" => $validatedRequest['current_est_amparan'],
+                "lembar_gelaran" => $validatedRequest['current_lembar_gelaran'],
+                "kepala_kain" => $validatedRequest['current_kepala_kain'],
+                "sisa_tidak_bisa" => $validatedRequest['current_sisa_tidak_bisa'],
+                "reject" => $validatedRequest['current_reject'],
+                "sisa_kain" => $validatedRequest['current_sisa_kain'],
+                "total_pemakaian_roll" => $validatedRequest['current_total_pemakaian_roll'],
+                "short_roll" => $validatedRequest['current_short_roll'],
+                "piping" => $validatedRequest['current_piping'],
+                "remark" => $validatedRequest['current_remark'],
             ]);
 
-        $generateFormCut = true;
+        if ($updateTimeRecordSummary) {
+            $itemRemain = $validatedRequest['current_sisa_kain'];
 
-        if ($generateFormCut) {
+            ScannedItem::where("id_roll", $validatedRequest['current_id_roll'])->update([
+                "id_item" => $validatedRequest['current_id_item'],
+                "lot" => $request['current_lot'],
+                "roll" => $validatedRequest['current_roll'],
+                "qty" => $itemRemain,
+                "unit" => $itemUnit,
+            ]);
+
+            $formCutDetails = FormCutInputDetail::where("no_form_cut_input", $validatedRequest['no_form_cut_input'])->orderBy("id", "asc")->get();
+            $currentGroup = "";
+            $groupNumber = 0;
+            foreach ($formCutDetails as $formCutDetail) {
+                if ($currentGroup != $formCutDetail->group_roll) {
+                    $currentGroup = $formCutDetail->group_roll;
+                    $groupNumber += 1;
+                }
+
+                $formCutDetail->group_stocker = $groupNumber;
+                $formCutDetail->save();
+            }
+
             return array(
                 "status" => 200,
                 "message" => "alright",
-                "additional" => [],
+            );
+        }
+    }
+
+    public function updateFinish(Request $request, $id) {
+        $formCutInputData = FormCutInput::where("id", $id)->first();
+
+        $updateFormCutInput = FormCutInput::where("id", $id)->update([
+            "cons_act" => $request->consAct,
+            "unit_cons_act" => $request->unitConsAct,
+            "total_lembar" => $request->totalLembar,
+            "operator" => $request->operator,
+        ]);
+
+        // store to part form
+        $partData = Part::select('part.id')->
+            where("act_costing_id", $formCutInputData->marker->act_costing_id)->
+            where("act_costing_ws", $formCutInputData->marker->act_costing_ws)->
+            where("panel", $formCutInputData->marker->panel)->
+            where("buyer", $formCutInputData->marker->buyer)->
+            where("style", $formCutInputData->marker->style)->
+            first();
+
+        if ($updateFormCutInput && $partData) {
+            $lastPartForm = PartForm::select("kode")->orderBy("kode", "desc")->first();
+            $urutanPartForm = $lastPartForm ? intval(substr($lastPartForm->kode, -5)) + 1 : 1;
+            $kodePartForm = "PFM" . sprintf('%05s', $urutanPartForm);
+
+            $addToPartForm = PartForm::create([
+                "kode" => $kodePartForm,
+                "part_id" => $partData->id,
+                "form_id" => $formCutInputData->id,
+                "created_at" => Carbon::now(),
+                "updated_at" => Carbon::now(),
+            ]);
+
+            return array(
+                "status" => 200,
+                "message" => "alright",
             );
         }
 
         return array(
             "status" => 400,
             "message" => "nothing really matter anymore",
-            "additional" => [],
         );
     }
 
@@ -240,5 +344,21 @@ class ManagerController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    public function destroySpreadingRoll($id) {
+        $deleteRoll = FormCutInputDetail::where("id", $id)->delete();
+
+        if ($deleteRoll) {
+            return array(
+                "status" => 200,
+                "message" => "alright"
+            );
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "nothing really matter anymore"
+        );
     }
 }

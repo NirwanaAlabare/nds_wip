@@ -317,7 +317,7 @@
                     data: 'marker_details'
                 },
                 {
-                    data: 'ply_progress'
+                    data: undefined
                 },
                 {
                     data: 'notes'
@@ -354,6 +354,17 @@
                         }
 
                         return icon;
+                    }
+                },
+                {
+                    targets: [11],
+                    render: (data, type, row, meta) => {
+                        return `
+                            <div class="progress border border-sb position-relative" style="min-width: 50px;height: 21px">
+                                <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">`+row.total_lembar+`/`+row.qty_ply+`</p>
+                                <div class="progress-bar" style="background-color: #75baeb;width: `+((row.total_lembar/row.qty_ply)*100)+`%" role="progressbar"></div>
+                            </div>
+                        `;
                     }
                 },
                 {

@@ -402,6 +402,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/cutting', 'cutting')->name('manage-cutting');
         Route::get('/cutting/detail/{id?}', 'detailCutting')->name('detail-cutting');
         Route::put('/cutting/generate/{id?}', 'generateStocker')->name('generate-stocker');
+        Route::post('/cutting/update-form', 'updateCutting')->name('update-spreading-form');
+        Route::put('/cutting/update-finish/{id?}', 'updateFinish')->name('finish-update-spreading-form');
+        Route::delete('/cutting/destroy-roll/{id?}', 'destroySpreadingRoll')->name('destroy-spreading-roll');
     });
 
     //warehouse

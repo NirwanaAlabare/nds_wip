@@ -17,10 +17,10 @@
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-cog fa-sm"></i> Manage Cutting</h5>
         </div>
         <div class="card-body">
-            <a href="{{ route('create-spreading') }}" class="btn btn-success btn-sm mb-3">
+            {{-- <a href="{{ route('create-spreading') }}" class="btn btn-success btn-sm mb-3">
                 <i class="fas fa-plus"></i>
                 Baru
-            </a>
+            </a> --}}
             <div class="row justify-content-between align-items-end g-3 mb-3">
                 <div class="col-md-6">
                     <div class="d-flex align-items-end gap-3 mb-3">
@@ -40,7 +40,7 @@
 
                 <div class="col-md-6">
                     <div class="d-flex justify-content-end align-items-end gap-1 mb-3">
-                        <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-sb"><i class="fas fa-clipboard-list"></i> Manual</a>
+                        {{-- <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-sb"><i class="fas fa-clipboard-list"></i> Manual</a> --}}
                         {{-- <a href="{{ url('pilot-form-cut/create') }}" target="_blank" class="btn btn-sm btn-sb-secondary"><i class="fas fa-clipboard-list"></i> Pilot</a> --}}
                         {{-- <button type="button" onclick="updateNoCut()" class="btn btn-sm btn-sb"><i class="fas fa-sync-alt"></i> Generate No. Cut</button> --}}
                     </div>
@@ -372,6 +372,17 @@
                         }
 
                         return icon;
+                    }
+                },
+                {
+                    targets: [11],
+                    render: (data, type, row, meta) => {
+                        return `
+                            <div class="progress border border-sb position-relative" style="min-width: 50px;height: 21px">
+                                <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">`+row.total_lembar+`/`+row.qty_ply+`</p>
+                                <div class="progress-bar" style="background-color: #75baeb;width: `+((row.total_lembar/row.qty_ply)*100)+`%" role="progressbar"></div>
+                            </div>
+                        `;
                     }
                 },
                 {

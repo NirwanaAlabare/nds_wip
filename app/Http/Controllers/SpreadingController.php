@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CutPlan;
 use App\Models\FormCutInput;
+use App\Models\FormCutInputDetail;
+use App\Models\FormCutInputDetailLap;
 use App\Models\MarkerDetail;
 use App\Models\Marker;
 use App\Models\User;
