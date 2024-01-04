@@ -277,7 +277,7 @@
             processing: true,
             serverSide: true,
             ajax: {
-                url: '{{ route('spreading') }}',
+                url: '{{ route('manage-cutting') }}',
                 data: function(d) {
                     d.dateFrom = $('#tgl-awal').val();
                     d.dateTo = $('#tgl-akhir').val();
