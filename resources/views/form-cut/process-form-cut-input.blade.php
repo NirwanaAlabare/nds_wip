@@ -168,8 +168,7 @@
                     </table>
                     <input type="hidden" name="total_ratio" id="total_ratio" value="{{ $totalRatio }}">
                     <input type="hidden" name="total_qty_cut" id="total_qty_cut" value="{{ $totalCutQty }}">
-                    <input type="hidden" name="total_qty_cut_ply" id="total_qty_cut_ply"
-                        value="{{ $totalCutQtyPly }}">
+                    <input type="hidden" name="total_qty_cut_ply" id="total_qty_cut_ply" value="{{ $totalCutQtyPly }}">
                 </div>
             </div>
         </div>
@@ -977,23 +976,14 @@
                             </div>
                         </div>
                         <div class="col-md-12">
-                            <div class="row">
-                                <div class="col-md-4">
+                            <div class="row align-items-end">
+                                <div class="col-md-3">
                                     <div class="mb-3">
-                                        <label class="form-label label-input"><small><b>Operator</b></small></label>
-                                        <input type="text" class="form-control form-control-sm border-input"
-                                            name="operator" id="operator" value="{{ $formCutInputData->operator }}">
+                                        <label class="form-labe label-calc"><small><b>Cons. Actual 1 Gelaran</b></small></label>
+                                        <input type="text" class="form-control form-control-sm border-calc" name="cons_actual_gelaran" id="cons_actual_gelaran" readonly>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="mb-3">
-                                        <label class="form-labe label-calc"><small><b>Cons. Actual 1
-                                                    Gelaran</b></small></label>
-                                        <input type="text" class="form-control form-control-sm border-calc"
-                                            name="cons_actual_gelaran" id="cons_actual_gelaran" readonly>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <div class="mb-3">
                                         <label class="form-label label-calc"><small><b>Unit</b></small></label>
                                         <select class="form-select form-select-sm border-calc"
@@ -1002,6 +992,54 @@
                                             <option value="yard">YARD</option>
                                             <option value="kgm">KGM</option>
                                         </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-labe label-calc"><small><b>Kenaikan Cons. WS</b></small></label>
+                                        <input type="text" class="form-control form-control-sm border-calc" name="cons_ws_uprate" id="cons_ws_uprate" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-labe label-calc"><small><b>Kenaikan Cons. Marker</b></small></label>
+                                        <input type="text" class="form-control form-control-sm border-calc" name="cons_marker_uprate" id="cons_marker_uprate" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-labe label-calc"><small><b>Cons. Actual 1 Gelaran Tanpa Short Roll</b></small></label>
+                                        <input type="text" class="form-control form-control-sm border-calc" name="cons_actual_gelaran_short_rolless" id="cons_actual_gelaran_short_rolless" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label label-calc"><small><b>Unit</b></small></label>
+                                        <select class="form-select form-select-sm border-calc"
+                                            name="unit_cons_actual_gelaran_short_rolless" id="unit_cons_actual_gelaran_short_rolless" disabled>
+                                            <option value="meter">METER</option>
+                                            <option value="yard">YARD</option>
+                                            <option value="kgm">KGM</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-labe label-calc"><small><b>Kenaikan Cons. WS</b></small></label>
+                                        <input type="text" class="form-control form-control-sm border-calc" name="cons_ws_uprate_sr" id="cons_ws_uprate_sr" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-labe label-calc"><small><b>Kenaikan Cons. Marker</b></small></label>
+                                        <input type="text" class="form-control form-control-sm border-calc" name="cons_marker_uprate_sr" id="cons_marker_uprate_sr" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label class="form-label label-input"><small><b>Operator</b></small></label>
+                                        <input type="text" class="form-control form-control-sm border-input"
+                                            name="operator" id="operator" value="{{ $formCutInputData->operator }}">
                                     </div>
                                 </div>
                             </div>
@@ -2004,50 +2042,110 @@
             }
 
             // -Calculate Cons. Actual 1 Gelaran-
-            function calculateConsActualGelaran(unit = 0, piping = 0, lembar = 0, totalQtyFabric = 0,
-                totalQtyCut = 0,
-                totalPemakaian) {
+            // function calculateConsActualGelaran(unit = 0, piping = 0, lembar = 0, totalQtyFabric = 0, totalQtyCut = 0, totalPemakaian) {
+            //     let unitVar = unit;
+            //     let pipingVar = Number(piping);
+            //     let lembarVar = Number(lembar);
+            //     let totalQtyFabricVar = Number(totalQtyFabric);
+            //     let totalQtyCutVar = Number(totalQtyCut);
+            //     let totalPemakaianVar = Number(totalPemakaian);
+            //     let pActualVar = Number(document.getElementById('p_act').value);
+            //     let unitPActualVar = document.getElementById("unit_p_act").value;
+            //     let lActualVar = Number(document.getElementById("l_act").value);
+            //     let commaActualVar = Number(document.getElementById("comma_act").value);
+            //     let gramasiVar = Number(document.getElementById("gramasi").value);
+
+            //     if (checkIfNull(unitVar) && checkIfNull(pipingVar) && checkIfNull(lembarVar) && checkIfNull(pActualVar) && checkIfNull(totalQtyCutVar)) {
+            //         let consActualGelaran = 0;
+
+            //         let commaMeter = commaActualVar / 100;
+
+            //         let pActualConverted = 0;
+
+            //         if (document.getElementById("status_sambungan").value == "extension") {
+            //             pActualConverted = document.getElementById("current_sambungan").value;
+            //         } else {
+            //             if (unitVar != "KGM") {
+            //                 pActualConverted = pActualCommaActual(pActualVar, unitPActualVar,
+            //                     commaActualVar);
+            //             } else {
+            //                 pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar,
+            //                     lActualVar,
+            //                     gramasiVar, unitVar);
+            //             }
+            //         }
+
+            //         // consActualGelaran = totalQtyCutVar > 0 ? (lembarVar * pActualConverted) / totalQtyCutVar : 0;
+            //         consActualGelaran = totalPemakaianVar / lembarVar;
+
+            //         document.getElementById("cons_actual_gelaran").value = consActualGelaran.round(2);
+            //         document.getElementById("unit_cons_actual_gelaran").value = unitVar.toLowerCase();
+            //         // document.getElementById("unit_cons_ampar").value = unitVar.toUpperCase();
+
+            //         calculateConsAmpar();
+            //     }
+            // }
+
+            function calculateConsActualGelaran(unit, totalQtyFabric, totalKepalaKain, totalSisaTidakBisa, totalReject, totalSisaKain, totalPiping, totalShortRoll) {
                 let unitVar = unit;
-                let pipingVar = Number(piping);
-                let lembarVar = Number(lembar);
-                let totalQtyFabricVar = Number(totalQtyFabric);
-                let totalQtyCutVar = Number(totalQtyCut);
-                let totalPemakaianVar = Number(totalPemakaian);
-                let pActualVar = Number(document.getElementById('p_act').value);
-                let unitPActualVar = document.getElementById("unit_p_act").value;
-                let lActualVar = Number(document.getElementById("l_act").value);
-                let commaActualVar = Number(document.getElementById("comma_act").value);
-                let gramasiVar = Number(document.getElementById("gramasi").value);
+                let totalQtyFabricVar = totalQtyFabric ? Number(totalQtyFabric) : 0;
+                let totalKepalaKainVar = totalKepalaKain ? Number(totalKepalaKain) : 0;
+                let totalSisaTidakBisaVar = totalSisaTidakBisa ? Number(totalSisaTidakBisa) : 0;
+                let totalRejectVar = totalReject ? Number(totalReject) : 0;
+                let totalSisaKainVar = totalSisaKain ? Number(totalSisaKain) : 0;
+                let totalPipingVar = totalPiping ? Number(totalPiping) : 0;
+                let totalShortRollVar = totalShortRoll ? Number(totalShortRoll) : 0;
 
-                if (checkIfNull(unitVar) && checkIfNull(pipingVar) && checkIfNull(lembarVar) && checkIfNull(pActualVar) && checkIfNull(totalQtyCutVar)) {
-                    let consActualGelaran = 0;
+                let consActualGelaran = (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar)/totalQtyCut;
+                let consActualGelaranShortRolless = (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar + totalShortRollVar)/totalQtyCut;
 
-                    let commaMeter = commaActualVar / 100;
+                document.getElementById('cons_actual_gelaran').value = Number(consActualGelaran).round(3);
+                document.getElementById('cons_actual_gelaran_short_rolless').value = Number(consActualGelaranShortRolless).round(3);
 
-                    let pActualConverted = 0;
+                document.getElementById("unit_cons_actual_gelaran").value = unitVar.toLowerCase();
+                document.getElementById("unit_cons_actual_gelaran_short_rolless").value = unitVar.toLowerCase();
 
-                    if (document.getElementById("status_sambungan").value == "extension") {
-                        pActualConverted = document.getElementById("current_sambungan").value;
-                    } else {
-                        if (unitVar != "KGM") {
-                            pActualConverted = pActualCommaActual(pActualVar, unitPActualVar,
-                                commaActualVar);
-                        } else {
-                            pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar,
-                                lActualVar,
-                                gramasiVar, unitVar);
-                        }
-                    }
+                calculateConsAmpar();
 
-                    // consActualGelaran = totalQtyCutVar > 0 ? (lembarVar * pActualConverted) / totalQtyCutVar : 0;
-                    consActualGelaran = totalPemakaianVar / lembarVar;
+                consUpRate();
+            }
 
-                    document.getElementById("cons_actual_gelaran").value = consActualGelaran.round(2);
-                    document.getElementById("unit_cons_actual_gelaran").value = unitVar.toLowerCase();
-                    // document.getElementById("unit_cons_ampar").value = unitVar.toUpperCase();
+            function consUpRate() {
+                let consActualGelaran = document.getElementById('cons_actual_gelaran').value;
+                let unitConsActualGelaran = document.getElementById('unit_cons_actual_gelaran').value;
 
-                    calculateConsAmpar();
+                let consActualGelaranShortRolless = document.getElementById('cons_actual_gelaran_short_rolless').value;
+                let unitConsActualGelaranShortRolless = document.getElementById('unit_cons_actual_gelaran_short_rolless').value;
+
+                let consWs = document.getElementById('cons_ws').value;
+                let consMarker = document.getElementById('cons_marker').value;
+
+                let consWsUpRate = 0;
+                let consMarkerUpRate = 0;
+                let consWsUpRateSr = 0;
+                let consMarkerUpRateSr = 0;
+
+                if (unitConsActualGelaran != "METER" && unitConsActualGelaranShortRolless != "METER") {
+                    let consActualGelaranConverted = conversion(consActualGelaran, "METER", unitConsActualGelaran.toUpperCase());
+                    let consActualGelaranShortRollessConverted = conversion(consActualGelaranShortRolless, "METER", unitConsActualGelaranShortRolless.toUpperCase());
+
+                    consWsUpRate = (consWs - consActualGelaranConverted)/consWs;
+                    consMarkerUpRate = (consMarker - consActualGelaranConverted)/consMarker;
+
+                    consWsUpRateSr = (consWs - consActualGelaranShortRollessConverted)/consWs;
+                    consMarkerUpRateSr = (consMarker - consActualGelaranShortRollessConverted)/consMarker;
+                } else {
+                    consWsUpRate = (consWs - consActualGelaran)/consWs;
+                    consMarkerUpRate = (consMarker - consActualGelaran)/consMarker;
+
+                    consWsUpRateSr = (consWs - consActualGelaranShortRolless)/consWs;
+                    consMarkerUpRateSr = (consMarker - consActualGelaranShortRolless)/consMarker;
                 }
+
+                document.getElementById('cons_ws_uprate').value = Number(consWsUpRate * 100).round(2)+"%";
+                document.getElementById('cons_marker_uprate').value = Number(consMarkerUpRate * 100).round(2)+"%";
+                document.getElementById('cons_ws_uprate_sr').value = Number(consWsUpRateSr * 100).round(2)+"%";
+                document.getElementById('cons_marker_uprate_sr').value = Number(consMarkerUpRateSr * 100).round(2)+"%";
             }
 
             // -Get Cons. WS Data-
@@ -2965,7 +3063,7 @@
                 document.getElementById("total-piping").innerText = Number(totalPiping).round(2);
                 document.getElementById("total-remark").innerText = Number(totalRemark).round(2);
 
-                calculateConsActualGelaran(unit = latestUnit, piping = totalPiping, lembar = totalLembar, totalQtyFabric, totalQtyCut, totalTotalPemakaian);
+                calculateConsActualGelaran(latestUnit, totalQtyFabric, totalKepalaKain, totalSisaTidakBisa, totalReject, totalSisaKain, totalPiping, totalShortRoll);
 
                 latestStatus = data.status;
             }

@@ -2794,6 +2794,7 @@
             var totalLembar = 0;
             var totalPiping = 0;
             var totalQtyFabric = 0;
+            var latestStatus = "";
             var latestUnit = "";
 
         // Function List :
