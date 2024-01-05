@@ -979,7 +979,7 @@
                                     <div class="mb-3">
                                         <label class="form-label label-input"><small><b>Operator</b></small></label>
                                         <input type="text" class="form-control form-control-sm border-input"
-                                            name="operator" id="operator" value="{{ $formCutInputData->operator }}">
+                                            name="operator" id="operator" value="{{ isset($formCutInputData) ? $formCutInputData->operator : "" }}">
                                     </div>
                                 </div>
                             </div>

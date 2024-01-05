@@ -997,13 +997,19 @@
                                 <div class="col-md-3">
                                     <div class="mb-3">
                                         <label class="form-labe label-calc"><small><b>Kenaikan Cons. WS</b></small></label>
-                                        <input type="text" class="form-control form-control-sm border-calc" name="cons_ws_uprate" id="cons_ws_uprate" readonly>
+                                        <div class="input-group input-group-sm mb-3">
+                                            <input type="text" class="form-control border-calc" name="cons_ws_uprate" id="cons_ws_uprate" readonly>
+                                            <span class="input-group-text border-calc">%</span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="mb-3">
                                         <label class="form-labe label-calc"><small><b>Kenaikan Cons. Marker</b></small></label>
-                                        <input type="text" class="form-control form-control-sm border-calc" name="cons_marker_uprate" id="cons_marker_uprate" readonly>
+                                        <div class="input-group input-group-sm mb-3">
+                                            <input type="text" class="form-control border-calc" name="cons_marker_uprate" id="cons_marker_uprate" readonly>
+                                            <span class="input-group-text border-calc">%</span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
@@ -1026,16 +1032,19 @@
                                 <div class="col-md-3">
                                     <div class="mb-3">
                                         <label class="form-labe label-calc"><small><b>Kenaikan Cons. WS</b></small></label>
-                                        <div class="input-group mb-3">
-                                            <input type="text" class="form-control form-control-sm border-calc" name="cons_ws_uprate_nosr" id="cons_ws_uprate_nosr" readonly>
-                                            <span class="input-group-text">%</span>
+                                        <div class="input-group input-group-sm mb-3">
+                                            <input type="text" class="form-control border-calc" name="cons_ws_uprate_nosr" id="cons_ws_uprate_nosr" readonly>
+                                            <span class="input-group-text border-calc">%</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="mb-3">
                                         <label class="form-labe label-calc"><small><b>Kenaikan Cons. Marker</b></small></label>
-                                        <input type="text" class="form-control form-control-sm border-calc" name="cons_marker_uprate_nosr" id="cons_marker_uprate_nosr" readonly>
+                                        <div class="input-group input-group-sm mb-3">
+                                            <input type="text" class="form-control border-calc" name="cons_marker_uprate_nosr" id="cons_marker_uprate_nosr" readonly>
+                                            <span class="input-group-text border-calc">%</span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-12">
@@ -2151,10 +2160,10 @@
                     consMarkerUpRateNoSr = (consMarker - consActualGelaranShortRolless)/consMarker;
                 }
 
-                document.getElementById('cons_ws_uprate').value = Number(consWsUpRate).round(2)+"%";
-                document.getElementById('cons_marker_uprate').value = Number(consMarkerUpRate).round(2)+"%";
-                document.getElementById('cons_ws_uprate_nosr').value = Number(consWsUpRateNoSr).round(2)+"%";
-                document.getElementById('cons_marker_uprate_nosr').value = Number(consMarkerUpRateNoSr).round(2)+"%";
+                document.getElementById('cons_ws_uprate').value = Number(consWsUpRate).round(2);
+                document.getElementById('cons_marker_uprate').value = Number(consMarkerUpRate).round(2);
+                document.getElementById('cons_ws_uprate_nosr').value = Number(consWsUpRateNoSr).round(2);
+                document.getElementById('cons_marker_uprate_nosr').value = Number(consMarkerUpRateNoSr).round(2);
             }
 
             // -Get Cons. WS Data-
