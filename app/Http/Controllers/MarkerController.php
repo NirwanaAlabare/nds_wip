@@ -148,7 +148,7 @@ class MarkerController extends Controller
             $sizeQuery->where("marker_input_detail.marker_id", $request->marker_id);
         }
 
-        $sizes = $sizeQuery->groupBy("marker_input_detail.id", "id_act_cost", "color", "size")->
+        $sizes = $sizeQuery->groupBy("id_act_cost", "color", "size")->
             orderBy("master_size_new.urutan")->
             get();
 
