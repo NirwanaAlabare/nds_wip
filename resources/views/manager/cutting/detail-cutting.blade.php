@@ -397,7 +397,9 @@
                                     </tbody>
                                     <tfoot>
                                         <tr>
-                                            <th colspan="9" class="text-center">Total</th>
+                                            <th colspan="7" class="text-center">Total</th>
+                                            <th id="total-qty"></th>
+                                            <th id="total-unit"></th>
                                             <th id="total-sisa-gelaran"></th>
                                             <th id="total-sambungan"></th>
                                             <th id="total-est-amparan"></th>
@@ -953,12 +955,14 @@
         var totalLembar = 0;
         var totalPiping = 0;
         var totalQtyFabric = 0;
+        var latestStatus = "";
         var latestUnit = "";
 
         function appendSummaryItem(data) {
             totalLembar += Number(data.lembar_gelaran);
             totalPiping += Number(data.piping);
             totalQtyFabric += Number(data.qty);
+            latestStatus != 'extension complete' ? totalQtyFabric += Number(data.qty) : '';
             latestUnit = data.unit;
 
             let tr = document.createElement('tr');
@@ -984,7 +988,7 @@
             let td20 = document.createElement('td');
             let td21 = document.createElement('td');
             let td22 = document.createElement('td');
-            td1.innerHTML = totalSummaryData + 1;
+            td1.innerHTML = (latestStatus != 'extension complete' ? totalSummaryData + 1 : "");
             td2.innerHTML = data.group_roll ? data.group_roll : '-';
             td3.innerHTML = data.group_stocker ? data.group_stocker : '-';
             td4.innerHTML = data.id_roll ? data.id_roll : '-';
@@ -1045,7 +1049,7 @@
 
             summaryItemTableTbody.appendChild(tr);
 
-            totalSummaryData++;
+            latestStatus != 'extension complete' ? totalSummaryData++ : '';
 
             totalSisaGelaran += Number(data.sisa_gelaran);
             totalSambungan += Number(data.sambungan);
@@ -1056,13 +1060,15 @@
             totalReject += Number(data.reject);
             totalSisaKain += Number(data.sisa_kain);
             totalTotalPemakaian += Number(data.total_pemakaian_roll);
-            totalShortRoll += Number(data.short_roll);
+            Number(data.short_roll) < 0 ? totalShortRoll += Number(data.short_roll) : "";
             totalRemark += Number(data.remark);
 
             let averageTotalAverageTime = totalAverageTime/totalSummaryData;
             let averageTotalAverageTimeMinute = pad((averageTotalAverageTime/60).round(0));
             let averageTotalAverageTimeSecond = pad((averageTotalAverageTime%60).round(0));
 
+            document.getElementById("total-qty").innerText = Number(totalQtyFabric).round(2);
+            document.getElementById("total-unit").innerText = latestUnit;
             document.getElementById("total-sisa-gelaran").innerText = Number(totalSisaGelaran).round(2);
             document.getElementById("total-sambungan").innerText = Number(totalSambungan).round(2);
             document.getElementById("total-est-amparan").innerText = Number(totalEstAmparan).round(2);
@@ -1079,6 +1085,8 @@
 
 
             calculateConsActualGelaran(unit = latestUnit, lembar = totalLembar, totalTotalPemakaian);
+
+            latestStatus = data.status;
         }
 
         function resetSummary() {

@@ -939,6 +939,7 @@
                                         <tr>
                                             <th>No.</th>
                                             <th>Group</th>
+                                            <th>Group Number</th>
                                             <th class="label-scan">ID Roll</th>
                                             <th class="label-scan">ID Item</th>
                                             <th class="label-scan">Lot</th>
@@ -964,7 +965,9 @@
                                     </tbody>
                                     <tfoot>
                                         <tr>
-                                            <th colspan="8" class="text-center">Total</th>
+                                            <th colspan="7" class="text-center">Total</th>
+                                            <th id="total-qty"></th>
+                                            <th id="total-unit"></th>
                                             <th id="total-sisa-gelaran"></th>
                                             <th id="total-sambungan"></th>
                                             <th id="total-est-amparan"></th>
@@ -2869,7 +2872,7 @@
             function appendScannedItem(data) {
                 totalLembar += Number(data.lembar_gelaran);
                 totalPiping += Number(data.piping);
-                totalQtyFabric += Number(data.qty);
+                latestStatus != 'extension complete' ? totalQtyFabric += Number(data.qty) : '';
                 latestUnit = data.unit;
 
                 let tr = document.createElement('tr');
@@ -2894,27 +2897,29 @@
                 let td19 = document.createElement('td');
                 let td20 = document.createElement('td');
                 let td21 = document.createElement('td');
-                td1.innerHTML = totalScannedItem + 1;
+                let td22 = document.createElement('td');
+                td1.innerHTML = (latestStatus != 'extension complete' ? totalScannedItem + 1 : "");
                 td2.innerHTML = data.group_roll ? data.group_roll : '-';
-                td3.innerHTML = data.id_roll ? data.id_roll : '-';
-                td4.innerHTML = data.id_item ? data.id_item : '-';
-                td5.innerHTML = data.lot ? data.lot : '-';
-                td6.innerHTML = data.roll ? data.roll : '-';
-                td7.innerHTML = data.qty ? data.qty : '-';
-                td8.innerHTML = data.unit ? data.unit : '-';
-                td9.innerHTML = data.sisa_gelaran ? data.sisa_gelaran : '-';
-                td10.innerHTML = data.sambungan ? data.sambungan : '-';
-                td11.innerHTML = data.est_amparan ? data.est_amparan : '-';
-                td12.innerHTML = data.lembar_gelaran ? data.lembar_gelaran : '';
-                td13.innerHTML = data.average_time ? data.average_time : '-';
-                td14.innerHTML = data.kepala_kain ? data.kepala_kain : '-';
-                td15.innerHTML = data.sisa_tidak_bisa ? data.sisa_tidak_bisa : '-';
-                td16.innerHTML = data.reject ? data.reject : '-';
-                td17.innerHTML = data.sisa_kain ? data.sisa_kain : '-';
-                td18.innerHTML = data.total_pemakaian_roll ? data.total_pemakaian_roll : '-';
-                td19.innerHTML = data.short_roll ? data.short_roll : '-';
-                td20.innerHTML = data.piping ? data.piping : '-';
-                td21.innerHTML = data.remark ? data.remark : '-';
+                td3.innerHTML = data.group_stocker ? data.group_stocker : '-';
+                td4.innerHTML = data.id_roll ? data.id_roll : '-';
+                td5.innerHTML = data.id_item ? data.id_item : '-';
+                td6.innerHTML = data.lot ? data.lot : '-';
+                td7.innerHTML = data.roll ? data.roll : '-';
+                td8.innerHTML = data.qty ? data.qty : '-';
+                td9.innerHTML = data.unit ? data.unit : '-';
+                td10.innerHTML = data.sisa_gelaran ? data.sisa_gelaran : '-';
+                td11.innerHTML = data.sambungan ? data.sambungan : '-';
+                td12.innerHTML = data.est_amparan ? data.est_amparan : '-';
+                td13.innerHTML = data.lembar_gelaran ? data.lembar_gelaran : '';
+                td14.innerHTML = data.average_time ? data.average_time : '-';
+                td15.innerHTML = data.kepala_kain ? data.kepala_kain : '-';
+                td16.innerHTML = data.sisa_tidak_bisa ? data.sisa_tidak_bisa : '-';
+                td17.innerHTML = data.reject ? data.reject : '-';
+                td18.innerHTML = data.sisa_kain ? data.sisa_kain : '-';
+                td19.innerHTML = data.total_pemakaian_roll ? data.total_pemakaian_roll : '-';
+                td20.innerHTML = data.short_roll ? data.short_roll : '-';
+                td21.innerHTML = data.piping ? data.piping : '-';
+                td22.innerHTML = data.remark ? data.remark : '-';
                 tr.appendChild(td1);
                 tr.appendChild(td2);
                 tr.appendChild(td3);
@@ -2936,10 +2941,11 @@
                 tr.appendChild(td19);
                 tr.appendChild(td20);
                 tr.appendChild(td21);
+                tr.appendChild(td22);
 
                 scannedItemTableTbody.appendChild(tr);
 
-                totalScannedItem++;
+                latestStatus != 'extension complete' ? totalScannedItem++ : '';
 
                 totalSisaGelaran += Number(data.sisa_gelaran);
                 totalSambungan += Number(data.sambungan);
@@ -2950,13 +2956,15 @@
                 totalReject += Number(data.reject);
                 totalSisaKain += Number(data.sisa_kain);
                 totalTotalPemakaian += Number(data.total_pemakaian_roll);
-                totalShortRoll += Number(data.short_roll);
+                Number(data.short_roll) < 0 ? totalShortRoll += Number(data.short_roll) : "";
                 totalRemark += Number(data.remark);
 
                 let averageTotalAverageTime = totalAverageTime / totalScannedItem;
                 let averageTotalAverageTimeMinute = pad((averageTotalAverageTime / 60).round(0));
                 let averageTotalAverageTimeSecond = pad((averageTotalAverageTime % 60).round(0));
 
+                document.getElementById("total-qty").innerText = Number(totalQtyFabric).round(2);
+                document.getElementById("total-unit").innerText = latestUnit;
                 document.getElementById("total-sisa-gelaran").innerText = Number(totalSisaGelaran).round(2);
                 document.getElementById("total-sambungan").innerText = Number(totalSambungan).round(2);
                 document.getElementById("total-est-amparan").innerText = Number(totalEstAmparan).round(2);
@@ -2972,6 +2980,8 @@
                 document.getElementById("total-remark").innerText = Number(totalRemark).round(2);
 
                 calculateConsActualGelaran(unit = latestUnit, piping = totalPiping, lembar = totalLembar, totalQtyFabric, totalQtyCut, totalTotalPemakaian);
+
+                latestStatus = data.status;
             }
 
         // Time Record Module :
@@ -3110,8 +3120,6 @@
                         resetTimeRecord();
                     }
                 } else {
-                    storeThisTimeRecord();
-
                     pauseTimeRecordButtons();
 
                     summarySeconds += totalSeconds;
@@ -3136,6 +3144,8 @@
                     tr.appendChild(td3);
 
                     timeRecordTableTbody.prepend(tr);
+
+                    await storeThisTimeRecord();
 
                     stopLapButton.disabled = false;
                 }
