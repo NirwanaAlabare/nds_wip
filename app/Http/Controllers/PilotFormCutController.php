@@ -1144,8 +1144,14 @@ class PilotFormCutController extends Controller
             "waktu_selesai" => $request->finishTime,
             "cons_act" => $request->consAct,
             "unit_cons_act" => $request->unitConsAct,
+            "cons_act_nosr" => $request->consActNoSr,
+            "unit_cons_act_nosr" => $request->unitConsActNoSr,
             "total_lembar" => $request->totalLembar,
             "no_cut" => $formCutInputSimilarCount + 1,
+            "cons_ws_uprate" => $request->consWsUprate,
+            "cons_marker_uprate" => $request->consMarkerUprate,
+            "cons_ws_uprate_nosr" => $request->consWsUprateNoSr,
+            "cons_marker_uprate_nosr" => $request->consMarkerUprateNoSr,
             "operator" => $request->operator,
         ]);
 

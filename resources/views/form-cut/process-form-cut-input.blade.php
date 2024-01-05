@@ -1026,13 +1026,16 @@
                                 <div class="col-md-3">
                                     <div class="mb-3">
                                         <label class="form-labe label-calc"><small><b>Kenaikan Cons. WS</b></small></label>
-                                        <input type="text" class="form-control form-control-sm border-calc" name="cons_ws_uprate_sr" id="cons_ws_uprate_sr" readonly>
+                                        <div class="input-group mb-3">
+                                            <input type="text" class="form-control form-control-sm border-calc" name="cons_ws_uprate_nosr" id="cons_ws_uprate_nosr" readonly>
+                                            <span class="input-group-text">%</span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="mb-3">
                                         <label class="form-labe label-calc"><small><b>Kenaikan Cons. Marker</b></small></label>
-                                        <input type="text" class="form-control form-control-sm border-calc" name="cons_marker_uprate_sr" id="cons_marker_uprate_sr" readonly>
+                                        <input type="text" class="form-control form-control-sm border-calc" name="cons_marker_uprate_nosr" id="cons_marker_uprate_nosr" readonly>
                                     </div>
                                 </div>
                                 <div class="col-md-12">
@@ -1579,6 +1582,12 @@
                                 operator: $('#operator').val(),
                                 consAct: $('#cons_actual_gelaran').val(),
                                 unitConsAct: $('#unit_cons_actual_gelaran').val(),
+                                consActNosr: $('#cons_actual_gelaran_short_rolless').val(),
+                                unitConsActNosr: $('#unit_cons_actual_gelaran_short_rolless').val(),
+                                consWsUprate: $('#cons_ws_uprate').val(),
+                                consMarkerUprate: $('#cons_marker_uprate').val(),
+                                consWsUprateNoSr: $('#cons_ws_uprate_nosr').val(),
+                                consMarkerUprateNoSr: $('#cons_marker_uprate_nosr').val(),
                                 totalLembar: totalLembar
                             },
                             success: function(res) {
@@ -2122,8 +2131,8 @@
 
                 let consWsUpRate = 0;
                 let consMarkerUpRate = 0;
-                let consWsUpRateSr = 0;
-                let consMarkerUpRateSr = 0;
+                let consWsUpRateNoSr = 0;
+                let consMarkerUpRateNoSr = 0;
 
                 if (unitConsActualGelaran != "METER" && unitConsActualGelaranShortRolless != "METER") {
                     let consActualGelaranConverted = conversion(consActualGelaran, "METER", unitConsActualGelaran.toUpperCase());
@@ -2132,20 +2141,20 @@
                     consWsUpRate = (consWs - consActualGelaranConverted)/consWs;
                     consMarkerUpRate = (consMarker - consActualGelaranConverted)/consMarker;
 
-                    consWsUpRateSr = (consWs - consActualGelaranShortRollessConverted)/consWs;
-                    consMarkerUpRateSr = (consMarker - consActualGelaranShortRollessConverted)/consMarker;
+                    consWsUpRateNoSr = (consWs - consActualGelaranShortRollessConverted)/consWs;
+                    consMarkerUpRateNoSr = (consMarker - consActualGelaranShortRollessConverted)/consMarker;
                 } else {
                     consWsUpRate = (consWs - consActualGelaran)/consWs;
                     consMarkerUpRate = (consMarker - consActualGelaran)/consMarker;
 
-                    consWsUpRateSr = (consWs - consActualGelaranShortRolless)/consWs;
-                    consMarkerUpRateSr = (consMarker - consActualGelaranShortRolless)/consMarker;
+                    consWsUpRateNoSr = (consWs - consActualGelaranShortRolless)/consWs;
+                    consMarkerUpRateNoSr = (consMarker - consActualGelaranShortRolless)/consMarker;
                 }
 
-                document.getElementById('cons_ws_uprate').value = Number(consWsUpRate * 100).round(2)+"%";
-                document.getElementById('cons_marker_uprate').value = Number(consMarkerUpRate * 100).round(2)+"%";
-                document.getElementById('cons_ws_uprate_sr').value = Number(consWsUpRateSr * 100).round(2)+"%";
-                document.getElementById('cons_marker_uprate_sr').value = Number(consMarkerUpRateSr * 100).round(2)+"%";
+                document.getElementById('cons_ws_uprate').value = Number(consWsUpRate).round(2)+"%";
+                document.getElementById('cons_marker_uprate').value = Number(consMarkerUpRate).round(2)+"%";
+                document.getElementById('cons_ws_uprate_nosr').value = Number(consWsUpRateNoSr).round(2)+"%";
+                document.getElementById('cons_marker_uprate_nosr').value = Number(consMarkerUpRateNoSr).round(2)+"%";
             }
 
             // -Get Cons. WS Data-
