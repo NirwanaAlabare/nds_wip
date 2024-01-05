@@ -15,9 +15,13 @@
         <h5 class="fw-bold text-sb">Edit Data Marker - {{ $marker->kode }}</h5>
         <a href="{{ route('marker') }}" class="btn btn-primary btn-sm px-1 py-1"><i class="fas fa-reply"></i> Kembali ke Marker</a>
     </div>
+    @php
+        $totalForm = $marker->formCutInputs->count();
+    @endphp
     <form action="{{ route('update-marker')."/".$marker->id }}" method="post" id="store-marker" onsubmit="submitMarkerForm(this, event)">
         @method('PUT')
         <div class="card card-sb">
+            <input type="hidden" id="id" name="id" value="{{ $marker->id }}">
             <div class="card-header">
                 <h5 class="card-title fw-bold">
                     List Data
@@ -90,7 +94,7 @@
                             <div class="col-12 col-md-6">
                                 <label class="form-label"><small>P. Marker</small></label>
                                 <div class="input-group mb-1">
-                                    <input type="number" class="form-control" id="p_marker" name="p_marker" step=".001" value="{{ $marker->panjang_marker }}">
+                                    <input type="number" class="form-control" id="p_marker" name="p_marker" step=".001" value="{{ $marker->panjang_marker }}" {{ $totalForm > 0 ? "readonly" : "" }}>
                                     <span class="input-group-text">METER</span>
                                 </div>
                                 <input type="hidden" class="form-control" id="p_unit" name="p_unit" value="METER" readonly>
@@ -98,7 +102,7 @@
                             <div class="col-12 col-md-6">
                                 <label class="form-label"><small>Comma</small></label>
                                 <div class="input-group mb-1">
-                                    <input type="number" class="form-control" id="comma_marker" name="comma_marker" step=".001" value="{{ $marker->comma_marker }}">
+                                    <input type="number" class="form-control" id="comma_marker" name="comma_marker" step=".001" value="{{ $marker->comma_marker }}" {{ $totalForm > 0 ? "readonly" : "" }}>
                                     <span class="input-group-text">CM</span>
                                 </div>
                                 <input type="hidden" class="form-control" id="comma_unit" name="comma_unit" value="CM" readonly>
@@ -106,7 +110,7 @@
                             <div class="col-12 col-md-6">
                                 <label class="form-label"><small>L. Marker</small></label>
                                 <div class="input-group mb-1">
-                                    <input type="number" class="form-control" id="l_marker" name="l_marker" step=".001" value="{{ $marker->lebar_marker }}">
+                                    <input type="number" class="form-control" id="l_marker" name="l_marker" step=".001" value="{{ $marker->lebar_marker }}" {{ $totalForm > 0 ? "readonly" : "" }}>
                                     <span class="input-group-text">CM</span>
                                 </div>
                                 <input type="hidden" class="form-control" id="l_unit" name="l_unit" value="CM" readonly>
@@ -114,25 +118,25 @@
                             <div class="col-6 col-md-6">
                                 <div class="mb-1">
                                     <label class="form-label"><small>Cons Marker</small></label>
-                                    <input type="number" class="form-control" id="cons_marker" name="cons_marker" step=".001" value="{{ $marker->cons_marker }}">
+                                    <input type="number" class="form-control" id="cons_marker" name="cons_marker" step=".001" value="{{ $marker->cons_marker }}" {{ $totalForm > 0 ? "readonly" : "" }}>
                                 </div>
                             </div>
                             <div class="col-4 col-md-4">
                                 <div class="mb-1">
                                     <label class="form-label"><small>Cons Piping</small></label>
-                                    <input type="number" class="form-control" id="cons_piping" name="cons_piping" step=".001" value="{{ $marker->cons_piping }}">
+                                    <input type="number" class="form-control" id="cons_piping" name="cons_piping" step=".001" value="{{ $marker->cons_piping }}" {{ $totalForm > 0 ? "readonly" : "" }}>
                                 </div>
                             </div>
                             <div class="col-4 col-md-4">
                                 <div class="mb-1">
                                     <label class="form-label"><small>Gramasi</small></label>
-                                    <input type="number" class="form-control" id="gramasi" name="gramasi" step=".001" value="{{ $marker->gramasi }}">
+                                    <input type="number" class="form-control" id="gramasi" name="gramasi" step=".001" value="{{ $marker->gramasi }}" {{ $totalForm > 0 ? "readonly" : "" }}>
                                 </div>
                             </div>
                             <div class="col-4 col-md-4">
                                 <div class="mb-1">
                                     <label class="form-label"><small>Qty Gelar Marker</small></label>
-                                    <input type="number" class="form-control" id="gelar_marker_qty" name="gelar_marker_qty" onchange="calculateAllRatio(this)" onkeyup="calculateAllRatio(this)" value="{{ $marker->gelar_qty }}">
+                                    <input type="number" class="form-control" id="gelar_marker_qty" name="gelar_marker_qty" onchange="calculateAllRatio(this)" onkeyup="calculateAllRatio(this)" value="{{ $marker->gelar_qty }}" {{ $totalForm > 0 ? "readonly" : "" }}>
                                 </div>
                             </div>
                         </div>
@@ -152,13 +156,16 @@
                     <div class="col-md-3">
                         <div class="mb-1">
                             <label class="form-label"><small>Tipe Marker</small></label>
-                            <select class="form-select select2bs4" id="tipe_marker" name="tipe_marker" style="width: 100%;">
+                            <select class="form-select select2bs4" id="tipe_marker" name="tipe_marker" style="width: 100%;" {{ $totalForm > 0 ? "disabled" : "" }}>
                                 <option value="regular marker" {{ $marker->tipe_marker == "regular marker" ? "selected" : "" }}>Regular Marker</option>
                                 <option value="special marker" {{ $marker->tipe_marker == "special marker" ? "selected" : "" }}>Special Marker</option>
                                 <option value="pilot marker" {{ $marker->tipe_marker == "pilot marker" ? "selected" : "" }}>Pilot Marker</option>
                                 <option value="bulk marker" {{ $marker->tipe_marker == "bulk marker" ? "selected" : "" }}>Bulk Marker</option>
                             </select>
                         </div>
+                        @if ($totalForm > 0)
+                            <input type="hidden" id="tipe_marker" name="tipe_marker" value="{{ $marker->tipe_marker }}">
+                        @endif
                     </div>
                     <div class="col-md-3">
                         <div class="mb-1">

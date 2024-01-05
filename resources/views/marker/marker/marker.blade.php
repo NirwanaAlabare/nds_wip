@@ -245,11 +245,16 @@
 
                         if (row.cancel != 'Y' && row.tot_form != 0 && row.tipe_marker != "pilot marker") {
                             return `
-                                <div class='d-flex gap-1 justify-content-center'>
-                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
+                                <div class='d-flex gap-1 justify-content-center mb-1'>
+                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
                                         <i class='fa fa-search'></i>
                                     </a>
                                     ` + exportBtn + `
+                                </div>
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editMarkerModal" onclick='edit(` + row.id + `);'>
+                                        <i class='fa fa-edit'></i>
+                                    </a>
                                 </div>
                             `;
                         } else if ((row.cancel != 'Y' && row.tot_form == 0) || (row.cancel != 'Y' && row.gelar_qty_balance > 0 && row.tipe_marker == "pilot marker")) {
@@ -367,11 +372,12 @@
 
                     if (response.jumlah_form > 0) {
                         document.getElementById('txt_gramasi').setAttribute('readonly', true);
-                        document.getElementById('advanced-edit-section').classList.add('d-none');
                     } else {
-                        document.getElementById('advanced-edit-link').setAttribute('href', '{{ route('edit-marker') }}/'+response.id);
-                        document.getElementById('advanced-edit-section').classList.remove('d-none');
+                        document.getElementById('txt_gramasi').removeAttribute('readonly');
                     }
+
+                    document.getElementById('advanced-edit-link').setAttribute('href', '{{ route('edit-marker') }}/'+response.id);
+                    document.getElementById('advanced-edit-section').classList.remove('d-none');
                 },
                 error: function(request, status, error) {
                     alert(request.responseText);

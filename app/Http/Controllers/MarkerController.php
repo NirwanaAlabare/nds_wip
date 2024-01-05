@@ -128,7 +128,7 @@ class MarkerController extends Controller
 
     public function getSizeList(Request $request)
     {
-        $sizes = DB::table("master_sb_ws")->selectRaw("
+        $sizeQuery = DB::table("master_sb_ws")->selectRaw("
                 master_sb_ws.id_so_det so_det_id,
                 master_sb_ws.ws no_ws,
                 master_sb_ws.color,
@@ -141,8 +141,14 @@ class MarkerController extends Controller
             where("master_sb_ws.color", $request->color)->
             leftJoin('marker_input_detail', 'marker_input_detail.so_det_id', '=', 'master_sb_ws.id_so_det')->
             leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->
-            leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
-            groupBy("id_act_cost", "color", "size")->
+            leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size");
+
+
+        if ($request->marker_id) {
+            $sizeQuery->where("marker_input_detail.marker_id", $request->marker_id);
+        }
+
+        $sizes = $sizeQuery->groupBy("marker_input_detail.id", "id_act_cost", "color", "size")->
             orderBy("master_size_new.urutan")->
             get();
 
