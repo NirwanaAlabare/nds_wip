@@ -11,7 +11,7 @@
         <div class="d-flex gap-3 align-items-center">
             <h5 class="mb-1">Form Cut Pilot - {{ strtoupper($formCutInputData->name) }}</h5>
             <button class="btn btn-sm btn-success" id="start-process" onclick="startProcess()">Mulai Pengerjaan</button>
-            <button class="btn btn-sm btn-sb-secondary d-none" id="create-new-form" onclick="createNewForm()">Buat Form Cut Pilot Baru</button>
+            {{-- <button class="btn btn-sm btn-sb-secondary d-none" id="create-new-form" onclick="createNewForm()">Buat Form Cut Pilot Baru</button> --}}
         </div>
         <div class="col-md-6">
             <div class="card card-sb" id="header-data-card">
