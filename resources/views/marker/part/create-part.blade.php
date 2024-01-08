@@ -26,7 +26,7 @@
             </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-6 col-md-4">
+                    <div class="col-6 col-md-3">
                         <div class="mb-1">
                             <div class="form-group">
                                 <label><small>No. WS</small></label>
@@ -41,15 +41,19 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-6 col-md-4">
+                    <div class="col-6 col-md-3">
                         <div class="mb-1">
-                            <div class="form-group">
-                                <label><small>Color</small></label>
-                                <input type="text" class="form-control" name="color" id="color" readonly>
-                            </div>
+                            <label class="form-label"><small>Buyer</small></label>
+                            <input type="text" class="form-control" id="buyer" name="buyer" readonly>
                         </div>
                     </div>
-                    <div class="col-6 col-md-4">
+                    <div class="col-6 col-md-3">
+                        <div class="mb-1">
+                            <label class="form-label"><small>Style</small></label>
+                            <input type="text" class="form-control" id="style" name="style" readonly>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
                         <div class="mb-1">
                             <div class="form-group">
                                 <label><small>Panel</small></label>
@@ -62,34 +66,65 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-12 col-md-6">
-                        <input type="hidden" class="form-control" id="ws" name="ws" readonly>
+                    <input type="hidden" class="form-control" id="ws" name="ws" readonly>
+                    <div class="col-12 col-md-12">
+                        <div class="mb-1">
+                            <div class="form-group">
+                                <label><small>Color</small></label>
+                                <input type="text" class="form-control" name="color" id="color" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-12" id="parts-section">
                         <div class="row">
-                            <div class="col-6">
-                                <div class="mb-1">
-                                    <label class="form-label"><small>Buyer</small></label>
-                                    <input type="text" class="form-control" id="buyer" name="buyer" readonly>
+                            <div class="col-3">
+                                <label class="form-label"><small>Part</small></label>
+                                <select class="form-control select2bs4" name="part_details[0]" id="part_details_0">
+                                    <option value="">Pilih Part</option>
+                                    @foreach ($masterParts as $masterPart)
+                                        <option value="{{ $masterPart->id }}">{{ $masterPart->nama_part }} - {{ $masterPart->bag }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-3">
+                                <label class="form-label"><small>Cons</small></label>
+                                <div class="d-flex mb-3">
+                                    <div style="width: 50%;">
+                                        <input type="number" class="form-control" style="border-radius: 3px 0 0 3px;" name="cons[0]" id="cons_0" step="0.001">
+                                    </div>
+                                    <div style="width: 50%;">
+                                        <select class="form-select" style="border-radius: 0 3px 3px 0;" name="cons_unit[0]" id="cons_unit_0">
+                                            <option value="meter">METER</option>
+                                            <option value="yard">YARD</option>
+                                            <option value="kgm">KGM</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-6">
-                                <div class="mb-1">
-                                    <label class="form-label"><small>Style</small></label>
-                                    <input type="text" class="form-control" id="style" name="style" readonly>
-                                </div>
+                            <div class="col-3">
+                                <label class="form-label"><small>Tujuan</small></label>
+                                <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="tujuan[0]" id="tujuan_0">
+                                    <option value="">Pilih Tujuan</option>
+                                    <option value="secondary_luar">Secondary Luar</option>
+                                    <option value="secondary_dalam">Secondary Dalam</option>
+                                </select>
+                            </div>
+                            <div class="col-3">
+                                <label class="form-label"><small>Proses</small></label>
+                                <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="proses[0]" id="proses_0">
+                                    <option value="">Pilih Proses</option>
+                                    <option value="heatseal">Heatseal</option>
+                                    <option value="secondary_dalam">Secondary Dalam</option>
+                                </select>
                             </div>
                         </div>
                     </div>
-                    <div class="col-12 col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label"><small>Part</small></label>
-                            <select class="form-control select2bs4" name="part_details[]" id="part_details" multiple="multiple">
-                                @foreach ($masterParts as $masterPart)
-                                    <option value="{{ $masterPart->id }}">{{ $masterPart->nama_part }} - {{ $masterPart->bag }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+                    <div class="col-12">
+                        <button type="button" class="btn btn-sm btn-sb-secondary my-3" onclick="addNewPart()">
+                            <i class="far fa-plus-square"></i> Tambah Part
+                        </button>
                     </div>
-                    <input type="hidden" class="form-control" id="jumlah_part_detail" name="jumlah_part_detail" value="" readonly>
+                    <input type="hidden" class="form-control" id="jumlah_part_detail" name="jumlah_part_detail" value="1" readonly>
                 </div>
                 <button type="submit" class="btn btn-success btn-block fw-bold mt-3" id="submit-button">SIMPAN</button>
             </div>
@@ -110,6 +145,16 @@
         var sumCutQty = null;
         var totalRatio = null;
 
+        var partSection = null;
+        var partOptions = null;
+        var tujuanOptions = null;
+        var prosesOptions = null;
+        var currentPartOptions = null;
+        var currentPartIndex = 0;
+        var selectedPartArray = [];
+
+        var jumlahPartDetail = null;
+
         // Initial Window On Load Event
         $(document).ready(async function () {
             //Reset Form
@@ -118,6 +163,13 @@
 
                 $("#ws_id").val(null).trigger("change");
                 $('#part_details').val(null).trigger('change');
+
+                partSection = document.getElementById('parts-section');
+                partOptions = document.getElementById('part_details_0');
+                tujuanOptions = document.getElementById('tujuan_0');
+                prosesOptions = document.getElementById('proses_0');
+
+                jumlahPartDetail = document.getElementById('jumlah_part_detail');
             }
 
             // Select2 Prevent Step-Jump Input ( Step = WS -> Panel )
@@ -130,15 +182,11 @@
         });
 
         // Initialize Select2 Elements
-        $('.select2').select2()
+        $('.select2').select2();
 
         // Initialize Select2BS4 Elements
         $('.select2bs4').select2({
             theme: 'bootstrap4',
-        });
-
-        $('#part_details').on('change', function() {
-            $("#jumlah_part_detail").val($(this).select2('data').length);
         });
 
         // Step One (WS) on change event
@@ -188,6 +236,104 @@
                         $("#panel").prop("disabled", false);
                     }
                 },
+            });
+        }
+
+        function addNewPart() {
+            currentPartIndex++;
+            jumlahPartDetail.value++
+
+            // row
+            let divRow = document.createElement('div');
+            divRow.setAttribute('class', 'row');
+
+            // 1
+            let divCol1 = document.createElement('div');
+            divCol1.setAttribute('class', 'col-3');
+
+            let label1 = document.createElement('label');
+            label1.setAttribute('class', 'form-label');
+            label1.innerHTML = '<small>Part</small>';
+
+            let partDetail = document.createElement("select");
+            partDetail.setAttribute('class', 'form-select select2bs4');
+            partDetail.setAttribute('name', 'part_details['+currentPartIndex+']');
+            partDetail.setAttribute('id', 'part_details_'+currentPartIndex);
+            partDetail.innerHTML = partOptions.innerHTML;
+
+            divCol1.appendChild(label1);
+            divCol1.appendChild(partDetail);
+
+            // 2
+            let divCol2 = document.createElement('div');
+            divCol2.setAttribute('class', 'col-3');
+
+            divCol2.innerHTML= `
+                <label class="form-label"><small>Cons</small></label>
+                <div class="d-flex mb-3">
+                    <div style="width: 50%;">
+                        <input type="number" class="form-control" style="border-radius: 3px 0 0 3px;" name="cons[`+currentPartIndex+`]" id="cons_`+currentPartIndex+`" step="0.001">
+                    </div>
+                    <div style="width: 50%;">
+                        <select class="form-select" style="border-radius: 0 3px 3px 0;" name="cons_unit[`+currentPartIndex+`]" id="cons_unit_`+currentPartIndex+`">
+                            <option value="meter">METER</option>
+                            <option value="yard">YARD</option>
+                            <option value="kgm">KGM</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+
+            // 3
+            let divCol3 = document.createElement('div');
+            divCol3.setAttribute('class', 'col-3');
+
+            let label3 = document.createElement('label');
+            label3.setAttribute('class', 'form-label');
+            label3.innerHTML = '<small>Tujuan</small>';
+
+            let tujuan = document.createElement("select");
+            tujuan.setAttribute('class', 'form-select select2bs4');
+            tujuan.setAttribute('name', 'tujuan['+currentPartIndex+']');
+            tujuan.setAttribute('id', 'tujuan_'+currentPartIndex);
+            tujuan.innerHTML = tujuanOptions.innerHTML;
+
+            divCol3.appendChild(label3);
+            divCol3.appendChild(tujuan);
+
+            // 4
+            let divCol4 = document.createElement('div');
+            divCol4.setAttribute('class', 'col-3');
+
+            let label4 = document.createElement('label');
+            label4.setAttribute('class', 'form-label');
+            label4.innerHTML = '<small>Proses</small>';
+
+            let proses = document.createElement("select");
+            proses.setAttribute('class', 'form-select select2bs4');
+            proses.setAttribute('name', 'proses['+currentPartIndex+']');
+            proses.setAttribute('id', 'proses_'+currentPartIndex);
+            proses.innerHTML = prosesOptions.innerHTML;
+
+            divCol4.appendChild(label4);
+            divCol4.appendChild(proses);
+
+            // row
+            divRow.appendChild(divCol1);
+            divRow.appendChild(divCol2);
+            divRow.appendChild(divCol3);
+            divRow.appendChild(divCol4);
+
+            partSection.appendChild(divRow);
+
+            $('#part_details_'+currentPartIndex).select2({
+                theme: 'bootstrap4',
+            });
+            $('#tujuan_'+currentPartIndex).select2({
+                theme: 'bootstrap4',
+            });
+            $('#proses_'+currentPartIndex).select2({
+                theme: 'bootstrap4',
             });
         }
 

@@ -208,6 +208,8 @@ class PartController extends Controller
                 array_push($partDetailData, [
                     "part_id" => $partId,
                     "master_part_id" => $request["part_details"][$i],
+                    "tujuan" => $request["tujuan"][$i],
+                    "proses" => $request["tujuan"][$i],
                     "created_at" => $timestamp,
                     "updated_at" => $timestamp,
                 ]);
