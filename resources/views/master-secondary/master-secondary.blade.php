@@ -22,9 +22,9 @@
                 <table id="datatable-master-secondary" class="table table-bordered table-sm w-100">
                     <thead>
                         <tr>
+                            <th class="align-bottom">Action</th>
                             <th>Jenis Secondary</th>
                             <th>Proses</th>
-                            <th class="align-bottom">Action</th>
                         </tr>
                     </thead>
                 </table>
@@ -123,40 +123,42 @@
             ajax: {
                 url: '{{ route('master-secondary') }}',
             },
-            columns: [{
+            columns: [
+                {
+                    data: 'id'
+                },
+                {
                     data: 'tujuan',
                 },
                 {
                     data: 'proses'
                 },
-                {
-                    data: 'id'
-                },
             ],
-            columnDefs: [{
-                targets: [2],
-                className: "align-middle",
-                render: (data, type, row, meta) => {
-                    return `
-                            <div class='d-flex gap-1 justify-content-center'>
-                                <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editMasterSecondaryModal"
-                                    onclick="getdetail('` + row.id + `');">
-                                    <i class='fa fa-edit'></i>
-                                </a>
-                                <a class='btn btn-danger btn-sm' data='` + JSON.stringify(row) +
-                        `' data-url='{{ route('destroy-master-secondary') }}/` + row['id'] + `' onclick='deleteData(this)'>
-                                    <i class='fa fa-trash'></i>
-                                </a>
-                            </div>
-                        `;
+            columnDefs: [
+                {
+                    targets: [0],
+                    className: "align-middle",
+                    render: (data, type, row, meta) => {
+                        return `
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editMasterSecondaryModal"
+                                        onclick="getdetail('` + row.id + `');">
+                                        <i class='fa fa-edit'></i>
+                                    </a>
+                                    <a class='btn btn-danger btn-sm' data='` + JSON.stringify(row) +
+                            `' data-url='{{ route('destroy-master-secondary') }}/` + row['id'] + `' onclick='deleteData(this)'>
+                                        <i class='fa fa-trash'></i>
+                                    </a>
+                                </div>
+                            `;
+                    }
                 }
-            }],
+            ],
         });
 
         function datatableMasterPartReload() {
             datatableMasterPart.ajax.reload()
         }
-
 
         function getdetail(id_c) {
             jQuery.ajax({

@@ -39,12 +39,13 @@ class PartController extends Controller
                 ->leftJoin("master_part", "master_part.id", "part_detail.master_part_id")
                 ->leftJoin("part_form", "part_form.part_id", "part.id")
                 ->leftJoin("form_cut_input", "form_cut_input.id", "part_form.form_id")
-                ->leftJoin(DB::raw("(select part_id,
-                count(id) total,
-                SUM(CASE WHEN cons IS NULL THEN 0 ELSE 1 END) terisi,
-                count(id) - SUM(CASE WHEN cons IS NULL THEN 0 ELSE 1 END) sisa
-                from part_detail
-                group by part_id) a"), "part.id", "=", "a.part_id")
+                ->leftJoin(DB::raw("(select
+                    part_id,
+                    count(id) total,
+                    SUM(CASE WHEN cons IS NULL THEN 0 ELSE 1 END) terisi,
+                    count(id) - SUM(CASE WHEN cons IS NULL THEN 0 ELSE 1 END) sisa
+                    from part_detail
+                    group by part_id) a"), "part.id", "=", "a.part_id")
                 ->groupBy("part.id");
 
             return DataTables::eloquent($partQuery)->filterColumn('ws', function ($query, $keyword) {
@@ -454,7 +455,7 @@ class PartController extends Controller
         $data_tujuan = DB::select("select tujuan isi, tujuan tampil from master_tujuan");
 
 
-        return view("part.manage-part-secondary", ["part" => $part, "data_part" => $data_part, "data_tujuan" => $data_tujuan, "page" => "dashboard-marker",  "subPageGroup" => "proses-marker", "subPage" => "part"]);
+        return view("marker.part.manage-part-secondary", ["part" => $part, "data_part" => $data_part, "data_tujuan" => $data_tujuan, "page" => "dashboard-marker",  "subPageGroup" => "proses-marker", "subPage" => "part"]);
     }
 
     public function get_proses(Request $request)

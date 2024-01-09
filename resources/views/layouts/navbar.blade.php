@@ -93,15 +93,15 @@
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @marker
                                 <li>
-                                    <a href="{{ route('marker') }}"
-                                        class="dropdown-item {{ $subPage == 'marker' ? 'active' : '' }}">
-                                        Marker <i class="fas fa-marker fa-sm"></i>
-                                    </a>
-                                </li>
-                                <li>
                                     <a href="{{ route('part') }}"
                                         class="dropdown-item {{ $subPage == 'part' ? 'active' : '' }}">
                                         Part <i class="fas fa-th fa-sm"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('marker') }}"
+                                        class="dropdown-item {{ $subPage == 'marker' ? 'active' : '' }}">
+                                        Marker <i class="fas fa-marker fa-sm"></i>
                                     </a>
                                 </li>
                             @endmarker
