@@ -82,7 +82,7 @@
                                 <select class="form-control select2bs4" name="part_details[0]" id="part_details_0">
                                     <option value="">Pilih Part</option>
                                     @foreach ($masterParts as $masterPart)
-                                        <option value="{{ $masterPart->id }}">{{ $masterPart->nama_part }} - {{ $masterPart->bag }}</option>
+                                        <option value="{{ $masterPart->id }}" data-index="0">{{ $masterPart->nama_part }} - {{ $masterPart->bag }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -105,16 +105,18 @@
                                 <label class="form-label"><small>Tujuan</small></label>
                                 <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="tujuan[0]" id="tujuan_0">
                                     <option value="">Pilih Tujuan</option>
-                                    <option value="secondary_luar">Secondary Luar</option>
-                                    <option value="secondary_dalam">Secondary Dalam</option>
+                                    @foreach ($masterTujuan as $tujuan)
+                                        <option value="{{ $tujuan->id }}">{{ $tujuan->tujuan }}</option>
+                                    @endforeach
                                 </select>
                             </div>
                             <div class="col-3">
                                 <label class="form-label"><small>Proses</small></label>
-                                <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="proses[0]" id="proses_0">
+                                <select class="form-control select2bs4" style="border-radius: 0 3px 3px 0;" name="proses[0]" id="proses_0" data-index="0" onchange="changeTujuan(this)">
                                     <option value="">Pilih Proses</option>
-                                    <option value="heatseal">Heatseal</option>
-                                    <option value="secondary_dalam">Secondary Dalam</option>
+                                    @foreach ($masterSecondary as $secondary)
+                                        <option value="{{ $secondary->id }}" data-tujuan="{{ $secondary->id_tujuan }}">{{ $secondary->proses }}</option>
+                                    @endforeach
                                 </select>
                             </div>
                         </div>
@@ -149,11 +151,11 @@
         var partOptions = null;
         var tujuanOptions = null;
         var prosesOptions = null;
-        var currentPartOptions = null;
-        var currentPartIndex = 0;
         var selectedPartArray = [];
 
         var jumlahPartDetail = null;
+
+        document.getElementById('loading').classList.remove("d-none");
 
         // Initial Window On Load Event
         $(document).ready(async function () {
@@ -161,19 +163,27 @@
             if (document.getElementById('store-part')) {
                 document.getElementById('store-part').reset();
 
+                $(".select2").val('').trigger('change');
+                $(".select2bs4").val('').trigger('change');
+                $(".select2bs4custom").val('').trigger('change');
+
                 $("#ws_id").val(null).trigger("change");
                 $('#part_details').val(null).trigger('change');
 
+                await getMasterParts();
+                await getTujuan();
+                await getProses();
+
                 partSection = document.getElementById('parts-section');
-                partOptions = document.getElementById('part_details_0');
-                tujuanOptions = document.getElementById('tujuan_0');
-                prosesOptions = document.getElementById('proses_0');
 
                 jumlahPartDetail = document.getElementById('jumlah_part_detail');
+                jumlahPartDetail.value = 1;
             }
 
             // Select2 Prevent Step-Jump Input ( Step = WS -> Panel )
             $("#panel").prop("disabled", true);
+
+            document.getElementById('loading').classList.add("d-none");
         });
 
         // Select2 Autofocus
@@ -239,10 +249,62 @@
             });
         }
 
-        function addNewPart() {
-            currentPartIndex++;
-            jumlahPartDetail.value++
+        function getMasterParts() {
+            return $.ajax({
+                url: '{{ route("get-master-parts") }}',
+                type: 'get',
+                success: function (res) {
+                    if (res) {
+                        partOptions = res;
+                    }
+                },
+                error: function (jqXHR) {
+                    console.log(jqXHR);
+                }
+            });
+        }
 
+        function getTujuan() {
+            return $.ajax({
+                url: '{{ route("get-master-tujuan") }}',
+                type: 'get',
+                success: function (res) {
+                    if (res) {
+                        tujuanOptions = res;
+                    }
+                },
+                error: function (jqXHR) {
+                    console.log(jqXHR);
+                }
+            });
+        }
+
+        function getProses() {
+            return $.ajax({
+                url: '{{ route("get-master-secondary") }}',
+                type: 'get',
+                success: function (res) {
+                    if (res) {
+                        prosesOptions = res;
+                    }
+                },
+                error: function (jqXHR) {
+                    console.log(jqXHR);
+                }
+            });
+        }
+
+        function changeTujuan(element) {
+            let thisIndex = element.getAttribute('data-index');
+            let thisSelected = element.options[element.selectedIndex];
+            let thisTujuan = document.getElementById('tujuan_'+thisIndex);
+
+            if (thisTujuan.value != thisSelected.getAttribute('data-tujuan')) {
+                $('#tujuan_'+thisIndex).val(thisSelected.getAttribute('data-tujuan')).trigger("change");
+            }
+        }
+
+        function addNewPart() {
             // row
             let divRow = document.createElement('div');
             divRow.setAttribute('class', 'row');
@@ -256,10 +318,10 @@
             label1.innerHTML = '<small>Part</small>';
 
             let partDetail = document.createElement("select");
-            partDetail.setAttribute('class', 'form-select select2bs4');
-            partDetail.setAttribute('name', 'part_details['+currentPartIndex+']');
-            partDetail.setAttribute('id', 'part_details_'+currentPartIndex);
-            partDetail.innerHTML = partOptions.innerHTML;
+            partDetail.setAttribute('class', 'form-select select2bs4custom');
+            partDetail.setAttribute('name', 'part_details['+jumlahPartDetail.value+']');
+            partDetail.setAttribute('id', 'part_details_'+jumlahPartDetail.value);
+            partDetail.innerHTML = partOptions;
 
             divCol1.appendChild(label1);
             divCol1.appendChild(partDetail);
@@ -272,10 +334,10 @@
                 <label class="form-label"><small>Cons</small></label>
                 <div class="d-flex mb-3">
                     <div style="width: 50%;">
-                        <input type="number" class="form-control" style="border-radius: 3px 0 0 3px;" name="cons[`+currentPartIndex+`]" id="cons_`+currentPartIndex+`" step="0.001">
+                        <input type="number" class="form-control" style="border-radius: 3px 0 0 3px;" name="cons[`+jumlahPartDetail.value+`]" id="cons_`+jumlahPartDetail.value+`" step="0.001">
                     </div>
                     <div style="width: 50%;">
-                        <select class="form-select" style="border-radius: 0 3px 3px 0;" name="cons_unit[`+currentPartIndex+`]" id="cons_unit_`+currentPartIndex+`">
+                        <select class="form-select" style="border-radius: 0 3px 3px 0;" name="cons_unit[`+jumlahPartDetail.value+`]" id="cons_unit_`+jumlahPartDetail.value+`">
                             <option value="meter">METER</option>
                             <option value="yard">YARD</option>
                             <option value="kgm">KGM</option>
@@ -293,10 +355,10 @@
             label3.innerHTML = '<small>Tujuan</small>';
 
             let tujuan = document.createElement("select");
-            tujuan.setAttribute('class', 'form-select select2bs4');
-            tujuan.setAttribute('name', 'tujuan['+currentPartIndex+']');
-            tujuan.setAttribute('id', 'tujuan_'+currentPartIndex);
-            tujuan.innerHTML = tujuanOptions.innerHTML;
+            tujuan.setAttribute('class', 'form-select select2bs4custom');
+            tujuan.setAttribute('name', 'tujuan['+jumlahPartDetail.value+']');
+            tujuan.setAttribute('id', 'tujuan_'+jumlahPartDetail.value);
+            tujuan.innerHTML = tujuanOptions;
 
             divCol3.appendChild(label3);
             divCol3.appendChild(tujuan);
@@ -310,10 +372,12 @@
             label4.innerHTML = '<small>Proses</small>';
 
             let proses = document.createElement("select");
-            proses.setAttribute('class', 'form-select select2bs4');
-            proses.setAttribute('name', 'proses['+currentPartIndex+']');
-            proses.setAttribute('id', 'proses_'+currentPartIndex);
-            proses.innerHTML = prosesOptions.innerHTML;
+            proses.setAttribute('class', 'form-select select2bs4custom');
+            proses.setAttribute('name', 'proses['+jumlahPartDetail.value+']');
+            proses.setAttribute('id', 'proses_'+jumlahPartDetail.value);
+            proses.setAttribute('data-index', jumlahPartDetail.value);
+            proses.setAttribute('onchange', 'changeTujuan(this)');
+            proses.innerHTML = prosesOptions;
 
             divCol4.appendChild(label4);
             divCol4.appendChild(proses);
@@ -326,15 +390,17 @@
 
             partSection.appendChild(divRow);
 
-            $('#part_details_'+currentPartIndex).select2({
+            $('#part_details_'+jumlahPartDetail.value).select2({
                 theme: 'bootstrap4',
             });
-            $('#tujuan_'+currentPartIndex).select2({
+            $('#tujuan_'+jumlahPartDetail.value).select2({
                 theme: 'bootstrap4',
             });
-            $('#proses_'+currentPartIndex).select2({
+            $('#proses_'+jumlahPartDetail.value).select2({
                 theme: 'bootstrap4',
             });
+
+            jumlahPartDetail.value++;
         }
 
         // Prevent Form Submit When Pressing Enter

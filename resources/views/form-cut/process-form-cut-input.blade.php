@@ -646,7 +646,7 @@
                                 <div class="mb-3">
                                     <label class="form-label label-sb"><small><b>Lembar Gelaran</b></small></label>
                                     <input type="number" class="form-control form-control-sm border-sb"
-                                        id="current_lembar_gelaran" name="current_lembar_gelaran" readonly
+                                        id="current_lembar_gelaran" name="current_lembar_gelaran"
                                         onkeyup="
                                             calculateTotalPemakaian();
                                             calculateShortRoll();

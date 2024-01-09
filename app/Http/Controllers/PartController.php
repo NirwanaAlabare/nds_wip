@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\MasterPart;
+use App\Models\MasterTujuan;
+use App\Models\MasterSecondary;
 use App\Models\Part;
 use App\Models\PartDetail;
 use App\Models\PartForm;
@@ -31,18 +33,19 @@ class PartController extends Controller
                     part.color,
                     part.panel,
                     COUNT(DISTINCT form_cut_input.id) total_form,
-                    GROUP_CONCAT(DISTINCT master_part.nama_part ORDER BY master_part.nama_part SEPARATOR ', ') part_details,
+                    GROUP_CONCAT(DISTINCT CONCAT(master_part.nama_part, ' - ', master_part.bag) ORDER BY master_part.nama_part SEPARATOR ', ') part_details,
                     a.sisa
                 ")->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")
                 ->leftJoin("master_part", "master_part.id", "part_detail.master_part_id")
                 ->leftJoin("part_form", "part_form.part_id", "part.id")
                 ->leftJoin("form_cut_input", "form_cut_input.id", "part_form.form_id")
-                ->leftJoin(DB::raw("(select part_id,
-                count(id) total,
-                SUM(CASE WHEN cons IS NULL THEN 0 ELSE 1 END) terisi,
-                count(id) - SUM(CASE WHEN cons IS NULL THEN 0 ELSE 1 END) sisa
-                from part_detail
-                group by part_id) a"), "part.id", "=", "a.part_id")
+                ->leftJoin(DB::raw("(select
+                    part_id,
+                    count(id) total,
+                    SUM(CASE WHEN cons IS NULL THEN 0 ELSE 1 END) terisi,
+                    count(id) - SUM(CASE WHEN cons IS NULL THEN 0 ELSE 1 END) sisa
+                    from part_detail
+                    group by part_id) a"), "part.id", "=", "a.part_id")
                 ->groupBy("part.id");
 
             return DataTables::eloquent($partQuery)->filterColumn('ws', function ($query, $keyword) {
@@ -71,8 +74,10 @@ class PartController extends Controller
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
         $masterParts = MasterPart::all();
+        $masterTujuan = MasterTujuan::all();
+        $masterSecondary = MasterSecondary::all();
 
-        return view('marker.part.create-part', ['orders' => $orders, 'masterParts' => $masterParts, 'page' => 'dashboard-marker',  "subPageGroup" => "proses-marker", "subPage" => "part"]);
+        return view('marker.part.create-part', ['orders' => $orders, 'masterParts' => $masterParts, 'masterTujuan' => $masterTujuan, 'masterSecondary' => $masterSecondary, 'page' => 'dashboard-marker',  "subPageGroup" => "proses-marker", "subPage" => "part"]);
     }
 
     public function getOrderInfo(Request $request)
@@ -154,6 +159,42 @@ class PartController extends Controller
         return $html;
     }
 
+    public function getMasterParts(Request $request)
+    {
+        $masterParts = MasterPart::all();
+
+        $masterPartOptions = "<option value=''>Pilih Part</option>";
+        foreach ($masterParts as $masterPart) {
+            $masterPartOptions .= "<option value='".$masterPart->id."'>".$masterPart->nama_part." - ".$masterPart->bag."</option>";
+        }
+
+        return $masterPartOptions;
+    }
+
+    public function getMasterTujuan(Request $request)
+    {
+        $masterTujuan = MasterTujuan::all();
+
+        $masterTujuanOptions = "<option value=''>Pilih Proses</option>";
+        foreach ($masterTujuan as $tujuan) {
+            $masterTujuanOptions .= "<option value='".$tujuan->id."'>".$tujuan->tujuan."</option>";
+        }
+
+        return $masterTujuanOptions;
+    }
+
+    public function getMasterSecondary(Request $request)
+    {
+        $masterSecondary = MasterSecondary::all();
+
+        $masterSecondaryOptions = "<option value=''>Pilih Proses</option>";
+        foreach ($masterSecondary as $secondary) {
+            $masterSecondaryOptions .= "<option value='".$secondary->id."' data-tujuan='".$secondary->id_tujuan."'>".$secondary->proses."</option>";
+        }
+
+        return $masterSecondaryOptions;
+    }
+
     /**
      * Store a newly created resource in storage.
      *
@@ -191,14 +232,17 @@ class PartController extends Controller
             $partId = $partStore->id;
             $partDetailData = [];
             for ($i = 0; $i < $totalPartDetail; $i++) {
-                array_push($partDetailData, [
-                    "part_id" => $partId,
-                    "master_part_id" => $request["part_details"][$i],
-                    "tujuan" => $request["tujuan"][$i],
-                    "proses" => $request["tujuan"][$i],
-                    "created_at" => $timestamp,
-                    "updated_at" => $timestamp,
-                ]);
+                if ($request["part_details"][$i] && $request["proses"][$i] && $request["cons"][$i] && $request["cons_unit"][$i]) {
+                    array_push($partDetailData, [
+                        "part_id" => $partId,
+                        "master_part_id" => $request["part_details"][$i],
+                        "master_secondary_id" => $request["proses"][$i],
+                        "cons" => $request["cons"][$i],
+                        "unit" => $request["cons_unit"][$i],
+                        "created_at" => $timestamp,
+                        "updated_at" => $timestamp,
+                    ]);
+                }
             }
 
             $partDetailStore = PartDetail::insert($partDetailData);
@@ -350,7 +394,7 @@ class PartController extends Controller
                 part.style,
                 part.color,
                 part.panel,
-                GROUP_CONCAT(master_part.nama_part ORDER BY master_part.nama_part SEPARATOR ', ') part_details
+                GROUP_CONCAT(DISTINCT CONCAT(master_part.nama_part, ' - ', master_part.bag) ORDER BY master_part.nama_part SEPARATOR ', ') part_details
             ")->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->leftJoin("master_part", "master_part.id", "part_detail.master_part_id")->where("part.id", $id)->groupBy("part.id")->first();
 
         return view("marker.part.manage-part-form", ["part" => $part, "page" => "dashboard-marker",  "subPageGroup" => "proses-marker", "subPage" => "part"]);
@@ -401,7 +445,7 @@ class PartController extends Controller
                 part.style,
                 part.color,
                 part.panel,
-                GROUP_CONCAT(master_part.nama_part ORDER BY master_part.nama_part SEPARATOR ', ') part_details
+                GROUP_CONCAT(DISTINCT CONCAT(master_part.nama_part, ' - ', master_part.bag) ORDER BY master_part.nama_part SEPARATOR ', ') part_details
             ")->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->leftJoin("master_part", "master_part.id", "part_detail.master_part_id")->where("part.id", $id)->groupBy("part.id")->first();
 
         $data_part = DB::select("select pd.id isi, concat(nama_part,' - ',bag) tampil from part_detail pd

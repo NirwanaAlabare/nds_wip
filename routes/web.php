@@ -294,6 +294,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-colors', 'getColorList')->name('get-part-colors');
         // get panels
         Route::get('/get-panels', 'getPanelList')->name('get-part-panels');
+        // get master part
+        Route::get('/get-master-parts', 'getMasterParts')->name('get-master-parts');
+        // get master tujuan
+        Route::get('/get-master-tujuan', 'getMasterTujuan')->name('get-master-tujuan');
+        // get master secondary
+        Route::get('/get-master-secondary', 'getMasterSecondary')->name('get-master-secondary');
     });
 
     // Stocker
