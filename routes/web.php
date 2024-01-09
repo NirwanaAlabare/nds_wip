@@ -31,6 +31,7 @@ use App\Http\Controllers\TrolleyController;
 use App\Http\Controllers\TrolleyStockerController;
 use App\Http\Controllers\SecondaryInhouseController;
 use App\Http\Controllers\MutasiMesinController;
+use App\Http\Controllers\MasterSecondaryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -253,6 +254,16 @@ Route::middleware('auth')->group(function () {
         Route::delete('/destroy/{id?}', 'destroy')->name('destroy-master-part');
     });
 
+    // Master Secondary
+    Route::controller(MasterSecondaryController::class)->prefix("master-secondary")->middleware('marker')->group(function () {
+        Route::get('/', 'index')->name('master-secondary');
+        Route::post('/store', 'store')->name('store-master-secondary');
+        Route::get('/show_master_secondary', 'show_master_secondary')->name('show_master_secondary');
+        Route::put('/update_master_secondary', 'update_master_secondary')->name('update_master_secondary');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-master-secondary');
+    });
+
+
     // Part
     Route::controller(PartController::class)->prefix("part")->middleware('stocker')->group(function () {
         Route::get('/', 'index')->name('part');
@@ -268,6 +279,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/store-part-form', 'storePartForm')->name('store-part-form');
         Route::delete('/destroy-part-form', 'destroyPartForm')->name('destroy-part-form');
         Route::get('/show-part-form', 'showPartForm')->name('show-part-form');
+
+        // part secondary
+        Route::get('/manage-part-secondary/{id?}', 'managePartSecondary')->name('manage-part-secondary');
+        Route::get('/datatable_list_part/{id?}', 'datatable_list_part')->name('datatable_list_part');
+        Route::get('/get_proses', 'get_proses')->name('get_proses');
+        Route::post('/store_part_secondary', 'store_part_secondary')->name('store_part_secondary');
 
         // get order
         Route::get('/get-order', 'getOrderInfo')->name('get-part-order');
@@ -489,7 +506,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-no-form', 'getnoform')->name('get-no-form');
         Route::get('/delete-qc-det', 'deleteqcdet')->name('delete-qc-det');
     });
-
 });
 
 // Dashboard

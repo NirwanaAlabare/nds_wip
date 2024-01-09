@@ -43,8 +43,7 @@ class MarkerController extends Controller
                 CONCAT(ifnull(b.total_lembar,0), '/', gelar_qty) ply_progress,
                 ifnull(notes, '-') notes,
                 cancel
-            ")->
-            leftJoin(DB::raw("(select id_marker,coalesce(count(id_marker),0) tot_form,coalesce(sum(total_lembar),0) total_lembar from form_cut_input group by id_marker)b"), "marker_input.kode", "=", "b.id_marker");
+            ")->leftJoin(DB::raw("(select id_marker,coalesce(count(id_marker),0) tot_form,coalesce(sum(total_lembar),0) total_lembar from form_cut_input group by id_marker)b"), "marker_input.kode", "=", "b.id_marker");
 
             return DataTables::eloquent($markersQuery)->filter(function ($query) {
                 $tglAwal = request('tgl_awal');
@@ -87,10 +86,7 @@ class MarkerController extends Controller
                     marker_input_detail.so_det_id,
                     marker_input.panel,
                     SUM(marker_input_detail.cut_qty) total_cut_qty
-                ")->
-                leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->
-                where('marker_input.cancel', 'N')->
-                groupBy("marker_input_detail.so_det_id", "marker_input.panel")->get();
+                ")->leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->where('marker_input.cancel', 'N')->groupBy("marker_input_detail.so_det_id", "marker_input.panel")->get();
 
             return $markerDetail;
         }
@@ -133,12 +129,7 @@ class MarkerController extends Controller
                 master_sb_ws.color,
                 master_sb_ws.size,
                 sum(master_sb_ws.qty) order_qty
-            ")->
-            where("id_act_cost", $request->act_costing_id)->
-            where("color", $request->color)->
-            leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
-            groupBy("id_act_cost", "color", "size")->
-            orderBy("master_size_new.urutan")->get();
+            ")->where("id_act_cost", $request->act_costing_id)->where("color", $request->color)->leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->groupBy("id_act_cost", "color", "size")->orderBy("master_size_new.urutan")->get();
 
         return json_encode([
             "draw" => intval($request->input('draw')),
@@ -359,9 +350,9 @@ class MarkerController extends Controller
                     <tr>
                         <td>$track->tgl_form_cut</td>
                         <td>$track->no_form</td>
-                        <td>".($track->no_meja ? $track->no_meja : '-')."</td>
-                        <td>".($track->waktu_mulai ? $track->waktu_mulai : '-')."</td>
-                        <td>".($track->waktu_selesai ? $track->waktu_selesai : '-')."</td>
+                        <td>" . ($track->no_meja ? $track->no_meja : '-') . "</td>
+                        <td>" . ($track->waktu_mulai ? $track->waktu_mulai : '-') . "</td>
+                        <td>" . ($track->waktu_selesai ? $track->waktu_selesai : '-') . "</td>
                         <td>$track->status</td>
                     </tr>
                 ";
@@ -482,13 +473,13 @@ class MarkerController extends Controller
             <div class='col-sm-6'>
                 <div class='form-group'>
                     <label class='form-label'><small>Tipe Marker</small></label>
-                    <input type='text' class='form-control' id='tipemarker' name='tipemarker' value='". strtoupper(str_replace(" marker", "", $datanomarker->tipe_marker)) ."' readonly>
+                    <input type='text' class='form-control' id='tipemarker' name='tipemarker' value='" . strtoupper(str_replace(" marker", "", $datanomarker->tipe_marker)) . "' readonly>
                 </div>
             </div>
             <div class='col-sm-6'>
                 <div class='form-group'>
                     <label class='form-label'><small>Catatan</small></label>
-                    <textarea class='form-control' id='txtarea' name='txtarea' readonly>". ($datanomarker->notes ? $datanomarker->notes : '-') ."</textarea>
+                    <textarea class='form-control' id='txtarea' name='txtarea' readonly>" . ($datanomarker->notes ? $datanomarker->notes : '-') . "</textarea>
                 </div>
             </div>
         </div>
@@ -604,7 +595,7 @@ class MarkerController extends Controller
     {
         $updateStatus = "";
         if ($request->pilot_status) {
-            $updateStatus .= ", status_marker = '".$request->pilot_status."'";
+            $updateStatus .= ", status_marker = '" . $request->pilot_status . "'";
 
             if ($request->pilot_status == "active") {
                 $updateStatus .= ", tipe_marker = 'bulk marker', notes = 'Pilot to Bulk'";
@@ -614,7 +605,7 @@ class MarkerController extends Controller
         $update_gramasi = DB::update("
         update marker_input set
         gramasi = '$request->txt_gramasi'
-        ".$updateStatus."
+        " . $updateStatus . "
         where id = '$request->id_c'");
 
         if ($update_gramasi) {
@@ -656,27 +647,13 @@ class MarkerController extends Controller
         $actCostingData = DB::connection('mysql_sb')->table('act_costing')->selectRaw('
                 SUM(so_det.qty) order_qty,
                 so_det.unit unit_qty
-            ')->
-            leftJoin('so', 'so.id_cost', '=', 'act_costing.id')->
-            leftJoin('so_det', 'so_det.id_so', '=', 'so.id')->
-            where('act_costing.id', $markerData->act_costing_id)->
-            where('so_det.color', $markerData->color)->
-            groupBy('act_costing.id')->first();
+            ')->leftJoin('so', 'so.id_cost', '=', 'act_costing.id')->leftJoin('so_det', 'so_det.id_so', '=', 'so.id')->where('act_costing.id', $markerData->act_costing_id)->where('so_det.color', $markerData->color)->groupBy('act_costing.id')->first();
 
         $soDetData = DB::connection('mysql_sb')->table('so_det')->selectRaw('
                 so_det.id,
                 so_det.size as size,
                 so_det.qty as qty
-            ')->
-            leftJoin('so', 'so.id', '=', 'so_det.id_so')->
-            leftJoin('act_costing', 'so.id_cost', '=', 'act_costing.id')->
-            leftJoin('master_size_new', 'master_size_new.size', '=', 'so_det.size')->
-            where('act_costing.id', $markerData->act_costing_id)->
-            where('so_det.color', $markerData->color)->
-            where('so_det.qty', '>', '0')->
-            groupBy('so_det.size')->
-            orderBy('master_size_new.urutan')->
-            get();
+            ')->leftJoin('so', 'so.id', '=', 'so_det.id_so')->leftJoin('act_costing', 'so.id_cost', '=', 'act_costing.id')->leftJoin('master_size_new', 'master_size_new.size', '=', 'so_det.size')->where('act_costing.id', $markerData->act_costing_id)->where('so_det.color', $markerData->color)->where('so_det.qty', '>', '0')->groupBy('so_det.size')->orderBy('master_size_new.urutan')->get();
 
         $orderQty = DB::connection('mysql_sb')->select("
             select k.cons cons_ws, sum(sd.qty) order_qty from bom_jo_item k
