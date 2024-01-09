@@ -312,6 +312,21 @@ Route::middleware('auth')->group(function () {
         Route::post('/rearrange-group', 'rearrangeGroup')->name('rearrange-group');
 
         Route::put('/count-stocker-update', 'countStockerUpdate')->name('count-stocker-update');
+
+        Route::get('/stocker-part', 'part')->name('stocker-part');
+
+        // part form
+        Route::get('/manage-part-form/{id?}', 'managePartForm')->name('stocker-manage-part-form');
+        Route::get('/get-form-cut/{id?}', 'getFormCut')->name('stocker-get-part-form-cut');
+        Route::post('/store-part-form', 'storePartForm')->name('stocker-store-part-form');
+        Route::delete('/destroy-part-form', 'destroyPartForm')->name('stocker-destroy-part-form');
+        Route::get('/show-part-form', 'showPartForm')->name('stocker-show-part-form');
+
+        // part secondary
+        Route::get('/manage-part-secondary/{id?}', 'managePartSecondary')->name('stocker-manage-part-secondary');
+        Route::get('/datatable_list_part/{id?}', 'datatable_list_part')->name('stocker-datatable_list_part');
+        Route::get('/get_proses', 'get_proses')->name('stocker-get_proses');
+        Route::post('/store_part_secondary', 'store_part_secondary')->name('stocker-store_part_secondary');
     });
 
     // DC IN

@@ -205,13 +205,11 @@
                     </li> --}}
 
                     <li class="nav-item dropdown">
-                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
-                            aria-haspopup="true"aria-expanded="false"
-                            class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-stocker' ? 'active' : '' }}">Proses</a>
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-stocker' ? 'active' : '' }}">Proses</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @stocker
                                 <li>
-                                    <a href="{{ route('part') }}"
+                                    <a href="{{ route('stocker-part') }}"
                                         class="dropdown-item {{ $subPage == 'part' ? 'active' : '' }}">
                                         Part <i class="fas fa-th fa-sm"></i>
                                     </a>

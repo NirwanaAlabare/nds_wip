@@ -19,7 +19,7 @@
         }
 
         * {
-            font-size: 3px;
+            font-size: 3.75px;
         }
 
         img {
@@ -55,7 +55,7 @@
                 <td>{{ $ws }}</td>
             </tr>
             <tr>
-                <td>{{ $color }}</td>
+                <td>{{ strtoupper(substr($color, 0, 10)).(strlen($color) > 30 ? '...' : '') }}</td>
             </tr>
             <tr>
                 <td>{{ $numbering['size'] }}</td>

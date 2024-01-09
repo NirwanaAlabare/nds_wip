@@ -68,16 +68,10 @@
                     </div>
                     <div class="col-6 col-md-6">
                         <div class="row">
-                            <div class="col-6 col-md-6">
+                            <div class="col-12 col-md-12">
                                 <div class="mb-1">
                                     <label class="form-label"><small>Part</small></label>
                                     <input type="text" class="form-control form-control-sm" id="part" name="part" value="{{ $dataSpreading->part }}" readonly>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-6">
-                                <div class="mb-1">
-                                    <label class="form-label"><small>Shade</small></label>
-                                    <input type="text" class="form-control form-control-sm" id="shade" name="shade" value="{{ $dataSpreading->shell }}">
                                 </div>
                             </div>
                         </div>
@@ -156,21 +150,19 @@
                                             </div>
                                         </div>
 
-                                        @include('stocker.stocker-detail-part')
+                                        @include('stocker.stocker.stocker-detail-part')
                                         @php
                                             $index += $dataRatio->count() * $dataPartDetail->count();
                                         @endphp
 
-
                                         {{-- Change initial group --}}
                                         @php
-                                            $currentBefore = $currentTotal;
+                                            $currentBefore += $currentTotal;
 
                                             $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
                                             $currentTotal = $detail->lembar_gelaran;
                                         @endphp
-
 
                                         @if ($loop->last)
                                         {{-- Create last element when it comes to an end of this loop --}}
@@ -185,7 +177,7 @@
                                                 </div>
                                             </div>
 
-                                            @include('stocker.stocker-detail-part')
+                                            @include('stocker.stocker.stocker-detail-part')
                                             @php
                                                 $index += $dataRatio->count() * $dataPartDetail->count();
                                             @endphp
@@ -209,7 +201,7 @@
                                                 </div>
                                             </div>
 
-                                            @include('stocker.stocker-detail-part')
+                                            @include('stocker.stocker.stocker-detail-part')
                                             @php
                                                 $index += $dataRatio->count() * $dataPartDetail->count();
                                             @endphp
@@ -239,14 +231,14 @@
                                             </div>
                                         </div>
 
-                                        @include('stocker.stocker-detail-part')
+                                        @include('stocker.stocker.stocker-detail-part')
                                         @php
                                             $index += $dataRatio->count() * $dataPartDetail->count();
                                         @endphp
 
                                         {{-- Change initial group --}}
                                         @php
-                                            $currentBefore = $currentTotal;
+                                            $currentBefore += $currentTotal;
 
                                             $currentGroup = $detail->group_roll;
                                             $currentGroupStocker = $detail->group_stocker;
@@ -266,7 +258,7 @@
                                                 </div>
                                             </div>
 
-                                            @include('stocker.stocker-detail-part')
+                                            @include('stocker.stocker.stocker-detail-part')
                                             @php
                                                 $index += $dataRatio->count() * $dataPartDetail->count();
                                             @endphp
@@ -290,7 +282,7 @@
                                                 </div>
                                             </div>
 
-                                            @include('stocker.stocker-detail-part')
+                                            @include('stocker.stocker.stocker-detail-part')
                                             @php
                                                 $index += $dataRatio->count() * $dataPartDetail->count();
                                             @endphp
