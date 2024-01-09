@@ -31,10 +31,11 @@
         <div class="collapse navbar-collapse order-3" id="navbarCollapse">
             <!-- Left navbar links -->
             <ul class="navbar-nav">
-                @if ($page == "dashboard-warehouse")
+                @if ($page == 'dashboard-warehouse')
                     <li class="nav-item dropdown">
-                    <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
-                    <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
                                 <a href="{{ route('master-lokasi') }}" class="dropdown-item">
                                     Master Lokasi
@@ -74,6 +75,12 @@
                                     <a href="{{ route('master-part') }}"
                                         class="dropdown-item {{ $subPage == 'master-part' ? 'active' : '' }}">
                                         Master Part <i class="fas fa-plus-square fa-sm"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('master-secondary') }}"
+                                        class="dropdown-item {{ $subPage == 'master-secondary' ? 'active' : '' }}">
+                                        Master Secondary <i class="fas fa-location-arrow fa-sm"></i>
                                     </a>
                                 </li>
                             @endmarker
@@ -224,7 +231,8 @@
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
                             aria-haspopup="true"aria-expanded="false"
-                            class="nav-link dropdown-toggle {{ $subPageGroup == 'dcin-dc' ? 'active' : '' }}">DC In</a>
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'dcin-dc' ? 'active' : '' }}">DC
+                            In</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @dc
                                 <li>
@@ -496,13 +504,14 @@
             <a href="#" class="dropdown-item dropdown-footer">See All Notifications</a>
         </div>
     </li> --}}
-    <li class="nav-item">
-        <a class="nav-link" data-bs-toggle="offcanvas" href="#user-offcanvas" role="button" aria-controls="user-offcanvas">
-            {{ strtoupper(auth()->user()->name) }}
-            <i class="fas fa-user ps-1"></i>
-        </a>
-    </li>
-    </ul>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="offcanvas" href="#user-offcanvas" role="button"
+                    aria-controls="user-offcanvas">
+                    {{ strtoupper(auth()->user()->name) }}
+                    <i class="fas fa-user ps-1"></i>
+                </a>
+            </li>
+        </ul>
     </div>
 </nav>
 <!-- /.navbar -->
