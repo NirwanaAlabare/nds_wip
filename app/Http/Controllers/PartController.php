@@ -33,7 +33,7 @@ class PartController extends Controller
                     part.color,
                     part.panel,
                     COUNT(DISTINCT form_cut_input.id) total_form,
-                    GROUP_CONCAT(DISTINCT master_part.nama_part ORDER BY master_part.nama_part SEPARATOR ', ') part_details,
+                    GROUP_CONCAT(DISTINCT CONCAT(master_part.nama_part, ' - ', master_part.bag) ORDER BY master_part.nama_part SEPARATOR ', ') part_details,
                     a.sisa
                 ")->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")
                 ->leftJoin("master_part", "master_part.id", "part_detail.master_part_id")
@@ -394,7 +394,7 @@ class PartController extends Controller
                 part.style,
                 part.color,
                 part.panel,
-                GROUP_CONCAT(master_part.nama_part ORDER BY master_part.nama_part SEPARATOR ', ') part_details
+                GROUP_CONCAT(DISTINCT CONCAT(master_part.nama_part, ' - ', master_part.bag) ORDER BY master_part.nama_part SEPARATOR ', ') part_details
             ")->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->leftJoin("master_part", "master_part.id", "part_detail.master_part_id")->where("part.id", $id)->groupBy("part.id")->first();
 
         return view("marker.part.manage-part-form", ["part" => $part, "page" => "dashboard-marker",  "subPageGroup" => "proses-marker", "subPage" => "part"]);
@@ -445,7 +445,7 @@ class PartController extends Controller
                 part.style,
                 part.color,
                 part.panel,
-                GROUP_CONCAT(master_part.nama_part ORDER BY master_part.nama_part SEPARATOR ', ') part_details
+                GROUP_CONCAT(DISTINCT CONCAT(master_part.nama_part, ' - ', master_part.bag) ORDER BY master_part.nama_part SEPARATOR ', ') part_details
             ")->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->leftJoin("master_part", "master_part.id", "part_detail.master_part_id")->where("part.id", $id)->groupBy("part.id")->first();
 
         $data_part = DB::select("select pd.id isi, concat(nama_part,' - ',bag) tampil from part_detail pd
