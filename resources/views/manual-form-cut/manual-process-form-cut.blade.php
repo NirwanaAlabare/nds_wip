@@ -163,8 +163,8 @@
                             </div>
                             <div class="col-12">
                                 <div class="mb-3">
-                                    <label class="form-label label-fetch"><small><b>Catatan</b></small></label>
-                                    <textarea class="form-control border-fetch" name="marker_notes" rows="2" readonly>{{ $formCutInputData->notes }}</textarea>
+                                    <label class="form-label"><small><b>Catatan</b></small></label>
+                                    <textarea class="form-control" name="marker_notes" rows="2" readonly>{{ $formCutInputData->notes }}</textarea>
                                 </div>
                             </div>
                         </div>
@@ -917,6 +917,7 @@
                                         <tr>
                                             <th>No.</th>
                                             <th>Group</th>
+                                            <th>Group Number</th>
                                             <th class="label-scan">ID Roll</th>
                                             <th class="label-scan">ID Item</th>
                                             <th class="label-scan">Lot</th>
@@ -942,7 +943,9 @@
                                     </tbody>
                                     <tfoot>
                                         <tr>
-                                            <th colspan="8" class="text-center">Total</th>
+                                            <th colspan="7" class="text-center">Total</th>
+                                            <th id="total-qty"></th>
+                                            <th id="total-unit"></th>
                                             <th id="total-sisa-gelaran"></th>
                                             <th id="total-sambungan"></th>
                                             <th id="total-est-amparan"></th>
@@ -962,27 +965,82 @@
                             </div>
                         </div>
                         <div class="col-md-12">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="mb-3">
-                                        <label class="form-label label-input"><small><b>Operator</b></small></label>
-                                        <input type="text" class="form-control form-control-sm border-input" name="operator" id="operator" value="{{ $formCutInputData->operator }}">
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
+                            <div class="row align-items-end">
+                                <div class="col-md-3">
                                     <div class="mb-3">
                                         <label class="form-labe label-calc"><small><b>Cons. Actual 1 Gelaran</b></small></label>
                                         <input type="text" class="form-control form-control-sm border-calc" name="cons_actual_gelaran" id="cons_actual_gelaran" readonly>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <div class="mb-3">
                                         <label class="form-label label-calc"><small><b>Unit</b></small></label>
-                                        <select class="form-select form-select-sm border-calc" name="unit_cons_actual_gelaran" id="unit_cons_actual_gelaran" disabled>
+                                        <select class="form-select form-select-sm border-calc"
+                                            name="unit_cons_actual_gelaran" id="unit_cons_actual_gelaran" disabled>
                                             <option value="meter">METER</option>
                                             <option value="yard">YARD</option>
                                             <option value="kgm">KGM</option>
                                         </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-labe label-calc"><small><b>Kenaikan Cons. WS</b></small></label>
+                                        <div class="input-group input-group-sm mb-3">
+                                            <input type="text" class="form-control border-calc" name="cons_ws_uprate" id="cons_ws_uprate" readonly>
+                                            <span class="input-group-text border-calc">%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-labe label-calc"><small><b>Kenaikan Cons. Marker</b></small></label>
+                                        <div class="input-group input-group-sm mb-3">
+                                            <input type="text" class="form-control border-calc" name="cons_marker_uprate" id="cons_marker_uprate" readonly>
+                                            <span class="input-group-text border-calc">%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-labe label-calc"><small><b>Cons. Actual 1 Gelaran Tanpa Short Roll</b></small></label>
+                                        <input type="text" class="form-control form-control-sm border-calc" name="cons_actual_gelaran_short_rolless" id="cons_actual_gelaran_short_rolless" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label label-calc"><small><b>Unit</b></small></label>
+                                        <select class="form-select form-select-sm border-calc"
+                                            name="unit_cons_actual_gelaran_short_rolless" id="unit_cons_actual_gelaran_short_rolless" disabled>
+                                            <option value="meter">METER</option>
+                                            <option value="yard">YARD</option>
+                                            <option value="kgm">KGM</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-labe label-calc"><small><b>Kenaikan Cons. WS</b></small></label>
+                                        <div class="input-group input-group-sm mb-3">
+                                            <input type="text" class="form-control border-calc" name="cons_ws_uprate_nosr" id="cons_ws_uprate_nosr" readonly>
+                                            <span class="input-group-text border-calc">%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-labe label-calc"><small><b>Kenaikan Cons. Marker</b></small></label>
+                                        <div class="input-group input-group-sm mb-3">
+                                            <input type="text" class="form-control border-calc" name="cons_marker_uprate_nosr" id="cons_marker_uprate_nosr" readonly>
+                                            <span class="input-group-text border-calc">%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label class="form-label label-input"><small><b>Operator</b></small></label>
+                                        <input type="text" class="form-control form-control-sm border-input"
+                                            name="operator" id="operator" value="{{ $formCutInputData->operator }}">
                                     </div>
                                 </div>
                             </div>
@@ -1748,6 +1806,8 @@
 
             // -Store Time Record Transaction-
             function storeTimeRecord() {
+                document.getElementById("loading").classList.remove("d-none");
+
                 clearModified();
 
                 let spreadingForm = new FormData(document.getElementById("spreading-form"));
@@ -1773,6 +1833,8 @@
                         dataType: 'json',
                         data: dataObj,
                         success: function(res) {
+                            document.getElementById("loading").classList.add("d-none");
+
                             if (res) {
                                 timeRecordTableTbody.innerHTML = "";
 
@@ -1803,6 +1865,8 @@
                             }
                         },
                         error: function(jqXHR) {
+                            document.getElementById("loading").classList.add("d-none");
+
                             let res = jqXHR.responseJSON;
                             let message = '';
                             let i = 0;
@@ -1830,6 +1894,8 @@
                         dataType: 'json',
                         data: dataObj,
                         success: function(res) {
+                            document.getElementById("loading").classList.add("d-none");
+
                             if (res) {
                                 timeRecordTableTbody.innerHTML = "";
 
@@ -1860,6 +1926,8 @@
                             }
                         },
                         error: function(jqXHR) {
+                            document.getElementById("loading").classList.add("d-none");
+
                             let res = jqXHR.responseJSON;
                             let message = '';
                             let i = 0;
@@ -1940,6 +2008,8 @@
                     confirmButtonColor: "#6531a0",
                 }).then(async (result) => {
                     if (result.isConfirmed) {
+                        document.getElementById("loading").classList.remove("d-none");
+
                         // await updateToNextProcessOne();
                         await updateToNextProcessTwo();
 
@@ -1952,9 +2022,17 @@
                                 operator: $('#operator').val(),
                                 consAct: $('#cons_actual_gelaran').val(),
                                 unitConsAct: $('#unit_cons_actual_gelaran').val(),
+                                consActNosr: $('#cons_actual_gelaran_short_rolless').val(),
+                                unitConsActNosr: $('#unit_cons_actual_gelaran_short_rolless').val(),
+                                consWsUprate: $('#cons_ws_uprate').val(),
+                                consMarkerUprate: $('#cons_marker_uprate').val(),
+                                consWsUprateNoSr: $('#cons_ws_uprate_nosr').val(),
+                                consMarkerUprateNoSr: $('#cons_marker_uprate_nosr').val(),
                                 totalLembar: totalLembar
                             },
                             success: function(res) {
+                                document.getElementById("loading").classList.add("d-none");
+
                                 if (res) {
                                     lockFormCutInput();
 
@@ -1973,6 +2051,8 @@
                                 }
                             },
                             error: function(jqXHR) {
+                                document.getElementById("loading").classList.add("d-none");
+
                                 Swal.fire({
                                     icon: 'error',
                                     title: 'Gagal',
@@ -2414,45 +2494,108 @@
             }
 
             // -Calculate Cons. Actual 1 Gelaran-
-            function calculateConsActualGelaran(unit = 0, piping = 0, lembar = 0, totalQtyFabric = 0, totalQtyCut = 0, totalPemakaian) {
+            // function calculateConsActualGelaran(unit = 0, piping = 0, lembar = 0, totalQtyFabric = 0, totalQtyCut = 0, totalPemakaian) {
+            //     let unitVar = unit;
+            //     let pipingVar = Number(piping);
+            //     let lembarVar = Number(lembar);
+            //     let totalQtyFabricVar = Number(totalQtyFabric);
+            //     let totalQtyCutVar = Number(totalQtyCut);
+            //     let totalPemakaianVar = Number(totalPemakaian);
+            //     let pActualVar = Number(document.getElementById('p_act').value);
+            //     let unitPActualVar = document.getElementById("unit_p_act").value;
+            //     let lActualVar = Number(document.getElementById("l_act").value);
+            //     let commaActualVar = Number(document.getElementById("comma_act").value);
+            //     let gramasiVar = Number(document.getElementById("gramasi").value);
+
+            //     if (checkIfNull(unitVar) && checkIfNull(pipingVar) && checkIfNull(lembarVar) && checkIfNull(pActualVar) && checkIfNull(totalQtyCutVar)) {
+            //         let consActualGelaran = 0;
+
+            //         let commaMeter = commaActualVar / 100;
+
+            //         let pActualConverted = 0;
+
+            //         if (document.getElementById("status_sambungan").value == "extension") {
+            //             pActualConverted = document.getElementById("current_sambungan").value;
+            //         } else {
+            //             if (unitVar != "KGM") {
+            //                 pActualConverted = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
+            //             } else {
+            //                 pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitVar);
+            //             }
+            //         }
+
+            //         // consActualGelaran = totalQtyCutVar > 0 ? (lembarVar * pActualConverted) / totalQtyCutVar : 0;
+            //         consActualGelaran = totalPemakaianVar / lembarVar;
+
+            //         document.getElementById("cons_actual_gelaran").value = consActualGelaran.round(2);
+            //         document.getElementById("unit_cons_actual_gelaran").value = unitVar.toLowerCase();
+            //         // document.getElementById("unit_cons_ampar").value = unitVar.toUpperCase();
+
+            //         calculateConsAmpar();
+            //     }
+            // }
+            function calculateConsActualGelaran(unit, totalQtyFabric, totalKepalaKain, totalSisaTidakBisa, totalReject, totalSisaKain, totalPiping, totalShortRoll) {
                 let unitVar = unit;
-                let pipingVar = Number(piping);
-                let lembarVar = Number(lembar);
-                let totalQtyFabricVar = Number(totalQtyFabric);
-                let totalQtyCutVar = Number(totalQtyCut);
-                let totalPemakaianVar = Number(totalPemakaian);
-                let pActualVar = Number(document.getElementById('p_act').value);
-                let unitPActualVar = document.getElementById("unit_p_act").value;
-                let lActualVar = Number(document.getElementById("l_act").value);
-                let commaActualVar = Number(document.getElementById("comma_act").value);
-                let gramasiVar = Number(document.getElementById("gramasi").value);
+                let totalQtyFabricVar = totalQtyFabric ? Number(totalQtyFabric) : 0;
+                let totalKepalaKainVar = totalKepalaKain ? Number(totalKepalaKain) : 0;
+                let totalSisaTidakBisaVar = totalSisaTidakBisa ? Number(totalSisaTidakBisa) : 0;
+                let totalRejectVar = totalReject ? Number(totalReject) : 0;
+                let totalSisaKainVar = totalSisaKain ? Number(totalSisaKain) : 0;
+                let totalPipingVar = totalPiping ? Number(totalPiping) : 0;
+                let totalShortRollVar = totalShortRoll ? Number(totalShortRoll) : 0;
 
-                if (checkIfNull(unitVar) && checkIfNull(pipingVar) && checkIfNull(lembarVar) && checkIfNull(pActualVar) && checkIfNull(totalQtyCutVar)) {
-                    let consActualGelaran = 0;
+                let consActualGelaran = (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar)/totalQtyCut;
+                let consActualGelaranShortRolless = (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar + totalShortRollVar)/totalQtyCut;
 
-                    let commaMeter = commaActualVar / 100;
+                document.getElementById('cons_actual_gelaran').value = Number(consActualGelaran).round(3);
+                document.getElementById('cons_actual_gelaran_short_rolless').value = Number(consActualGelaranShortRolless).round(3);
 
-                    let pActualConverted = 0;
+                document.getElementById("unit_cons_actual_gelaran").value = unitVar.toLowerCase();
+                document.getElementById("unit_cons_actual_gelaran_short_rolless").value = unitVar.toLowerCase();
 
-                    if (document.getElementById("status_sambungan").value == "extension") {
-                        pActualConverted = document.getElementById("current_sambungan").value;
-                    } else {
-                        if (unitVar != "KGM") {
-                            pActualConverted = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
-                        } else {
-                            pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitVar);
-                        }
-                    }
+                calculateConsAmpar();
 
-                    // consActualGelaran = totalQtyCutVar > 0 ? (lembarVar * pActualConverted) / totalQtyCutVar : 0;
-                    consActualGelaran = totalPemakaianVar / lembarVar;
+                consUpRate();
+            }
 
-                    document.getElementById("cons_actual_gelaran").value = consActualGelaran.round(2);
-                    document.getElementById("unit_cons_actual_gelaran").value = unitVar.toLowerCase();
-                    // document.getElementById("unit_cons_ampar").value = unitVar.toUpperCase();
+            function consUpRate() {
+                let consActualGelaran = document.getElementById('cons_actual_gelaran').value;
+                let unitConsActualGelaran = document.getElementById('unit_cons_actual_gelaran').value;
 
-                    calculateConsAmpar();
+                let consActualGelaranShortRolless = document.getElementById('cons_actual_gelaran_short_rolless').value;
+                let unitConsActualGelaranShortRolless = document.getElementById('unit_cons_actual_gelaran_short_rolless').value;
+
+                let consWs = document.getElementById('cons_ws').value;
+                let consMarker = document.getElementById('cons_marker').value;
+
+                let consWsUpRate = 0;
+                let consMarkerUpRate = 0;
+                let consWsUpRateNoSr = 0;
+                let consMarkerUpRateNoSr = 0;
+
+                console.log(consActualGelaran, consMarker, consWs);
+
+                if (unitConsActualGelaran != "METER" && unitConsActualGelaranShortRolless != "METER") {
+                    let consActualGelaranConverted = conversion(consActualGelaran, "METER", unitConsActualGelaran.toUpperCase());
+                    let consActualGelaranShortRollessConverted = conversion(consActualGelaranShortRolless, "METER", unitConsActualGelaranShortRolless.toUpperCase());
+
+                    consWsUpRate = (consWs - consActualGelaranConverted)/consWs;
+                    consMarkerUpRate = (consMarker - consActualGelaranConverted)/consMarker;
+
+                    consWsUpRateNoSr = (consWs - consActualGelaranShortRollessConverted)/consWs;
+                    consMarkerUpRateNoSr = (consMarker - consActualGelaranShortRollessConverted)/consMarker;
+                } else {
+                    consWsUpRate = (consWs - consActualGelaran)/consWs;
+                    consMarkerUpRate = (consMarker - consActualGelaran)/consMarker;
+
+                    consWsUpRateNoSr = (consWs - consActualGelaranShortRolless)/consWs;
+                    consMarkerUpRateNoSr = (consMarker - consActualGelaranShortRolless)/consMarker;
                 }
+
+                document.getElementById('cons_ws_uprate').value = Number(consWsUpRate).round(2);
+                document.getElementById('cons_marker_uprate').value = Number(consMarkerUpRate).round(2);
+                document.getElementById('cons_ws_uprate_nosr').value = Number(consWsUpRateNoSr).round(2);
+                document.getElementById('cons_marker_uprate_nosr').value = Number(consMarkerUpRateNoSr).round(2);
             }
 
             // -Check Form Cut Input Status-
@@ -3165,6 +3308,7 @@
                 var totalLembar = 0;
                 var totalPiping = 0;
                 var totalQtyFabric = 0;
+                var latestStatus = "";
                 var latestUnit = "";
 
             // Function List :
@@ -3243,7 +3387,7 @@
                 function appendScannedItem(data) {
                     totalLembar += Number(data.lembar_gelaran);
                     totalPiping += Number(data.piping);
-                    totalQtyFabric += Number(data.qty);
+                    latestStatus != 'extension complete' ? totalQtyFabric += Number(data.qty) : '';
                     latestUnit = data.unit;
 
                     let tr = document.createElement('tr');
@@ -3268,27 +3412,29 @@
                     let td19 = document.createElement('td');
                     let td20 = document.createElement('td');
                     let td21 = document.createElement('td');
-                    td1.innerHTML = totalScannedItem + 1;
+                    let td22 = document.createElement('td');
+                    td1.innerHTML = (latestStatus != 'extension complete' ? totalScannedItem + 1 : "");
                     td2.innerHTML = data.group_roll ? data.group_roll : '-';
-                    td3.innerHTML = data.id_roll ? data.id_roll : '-';
-                    td4.innerHTML = data.id_item ? data.id_item : '-';
-                    td5.innerHTML = data.lot ? data.lot : '-';
-                    td6.innerHTML = data.roll ? data.roll : '-';
-                    td7.innerHTML = data.qty ? data.qty : '-';
-                    td8.innerHTML = data.unit ? data.unit : '-';
-                    td9.innerHTML = data.sisa_gelaran ? data.sisa_gelaran : '-';
-                    td10.innerHTML = data.sambungan ? data.sambungan : '-';
-                    td11.innerHTML = data.est_amparan ? data.est_amparan : '-';
-                    td12.innerHTML = data.lembar_gelaran ? data.lembar_gelaran : '';
-                    td13.innerHTML = data.average_time ? data.average_time : '-';
-                    td14.innerHTML = data.kepala_kain ? data.kepala_kain : '-';
-                    td15.innerHTML = data.sisa_tidak_bisa ? data.sisa_tidak_bisa : '-';
-                    td16.innerHTML = data.reject ? data.reject : '-';
-                    td17.innerHTML = data.sisa_kain ? data.sisa_kain : '-';
-                    td18.innerHTML = data.total_pemakaian_roll ? data.total_pemakaian_roll : '-';
-                    td19.innerHTML = data.short_roll ? data.short_roll : '-';
-                    td20.innerHTML = data.piping ? data.piping : '-';
-                    td21.innerHTML = data.remark ? data.remark : '-';
+                    td3.innerHTML = data.group_stocker ? data.group_stocker : '-';
+                    td4.innerHTML = data.id_roll ? data.id_roll : '-';
+                    td5.innerHTML = data.id_item ? data.id_item : '-';
+                    td6.innerHTML = data.lot ? data.lot : '-';
+                    td7.innerHTML = data.roll ? data.roll : '-';
+                    td8.innerHTML = data.qty ? data.qty : '-';
+                    td9.innerHTML = data.unit ? data.unit : '-';
+                    td10.innerHTML = data.sisa_gelaran ? data.sisa_gelaran : '-';
+                    td11.innerHTML = data.sambungan ? data.sambungan : '-';
+                    td12.innerHTML = data.est_amparan ? data.est_amparan : '-';
+                    td13.innerHTML = data.lembar_gelaran ? data.lembar_gelaran : '';
+                    td14.innerHTML = data.average_time ? data.average_time : '-';
+                    td15.innerHTML = data.kepala_kain ? data.kepala_kain : '-';
+                    td16.innerHTML = data.sisa_tidak_bisa ? data.sisa_tidak_bisa : '-';
+                    td17.innerHTML = data.reject ? data.reject : '-';
+                    td18.innerHTML = data.sisa_kain ? data.sisa_kain : '-';
+                    td19.innerHTML = data.total_pemakaian_roll ? data.total_pemakaian_roll : '-';
+                    td20.innerHTML = data.short_roll ? data.short_roll : '-';
+                    td21.innerHTML = data.piping ? data.piping : '-';
+                    td22.innerHTML = data.remark ? data.remark : '-';
                     tr.appendChild(td1);
                     tr.appendChild(td2);
                     tr.appendChild(td3);
@@ -3310,10 +3456,11 @@
                     tr.appendChild(td19);
                     tr.appendChild(td20);
                     tr.appendChild(td21);
+                    tr.appendChild(td22);
 
                     scannedItemTableTbody.appendChild(tr);
 
-                    totalScannedItem++;
+                    latestStatus != 'extension complete' ? totalScannedItem++ : '';
 
                     totalSisaGelaran += Number(data.sisa_gelaran);
                     totalSambungan += Number(data.sambungan);
@@ -3324,18 +3471,20 @@
                     totalReject += Number(data.reject);
                     totalSisaKain += Number(data.sisa_kain);
                     totalTotalPemakaian += Number(data.total_pemakaian_roll);
-                    totalShortRoll += Number(data.short_roll);
+                    Number(data.short_roll) < 0 ? totalShortRoll += Number(data.short_roll) : "";
                     totalRemark += Number(data.remark);
 
-                    let averageTotalAverageTime = totalAverageTime/totalScannedItem;
-                    let averageTotalAverageTimeMinute = pad((averageTotalAverageTime/60).round(0));
-                    let averageTotalAverageTimeSecond = pad((averageTotalAverageTime%60).round(0));
+                    let averageTotalAverageTime = totalAverageTime / totalScannedItem;
+                    let averageTotalAverageTimeMinute = pad((averageTotalAverageTime / 60).round(0));
+                    let averageTotalAverageTimeSecond = pad((averageTotalAverageTime % 60).round(0));
 
+                    document.getElementById("total-qty").innerText = Number(totalQtyFabric).round(2);
+                    document.getElementById("total-unit").innerText = latestUnit;
                     document.getElementById("total-sisa-gelaran").innerText = Number(totalSisaGelaran).round(2);
                     document.getElementById("total-sambungan").innerText = Number(totalSambungan).round(2);
                     document.getElementById("total-est-amparan").innerText = Number(totalEstAmparan).round(2);
                     document.getElementById("total-lembar").innerText = Number(totalLembar).round(2);
-                    document.getElementById("total-average-time").innerText = averageTotalAverageTimeMinute+":"+averageTotalAverageTimeSecond;
+                    document.getElementById("total-average-time").innerText = averageTotalAverageTimeMinute + ":" +averageTotalAverageTimeSecond;
                     document.getElementById("total-kepala-kain").innerText = Number(totalKepalaKain).round(2);
                     document.getElementById("total-sisa-tidak-bisa").innerText = Number(totalSisaTidakBisa).round(2);
                     document.getElementById("total-reject").innerText = Number(totalReject).round(2);
@@ -3345,7 +3494,9 @@
                     document.getElementById("total-piping").innerText = Number(totalPiping).round(2);
                     document.getElementById("total-remark").innerText = Number(totalRemark).round(2);
 
-                    calculateConsActualGelaran(unit = latestUnit, piping = totalPiping, lembar = totalLembar, totalQtyFabric, totalQtyCut, totalTotalPemakaian);
+                    calculateConsActualGelaran(latestUnit, totalQtyFabric, totalKepalaKain, totalSisaTidakBisa, totalReject, totalSisaKain, totalPiping, totalShortRoll);
+
+                    latestStatus = data.status;
                 }
 
         // Time Record Module :
@@ -3484,8 +3635,6 @@
                             resetTimeRecord();
                         }
                     } else {
-                        storeThisTimeRecord();
-
                         pauseTimeRecordButtons();
 
                         summarySeconds += totalSeconds;
@@ -3510,6 +3659,8 @@
                         tr.appendChild(td3);
 
                         timeRecordTableTbody.prepend(tr);
+
+                        await storeThisTimeRecord();
 
                         stopLapButton.disabled = false;
                     }

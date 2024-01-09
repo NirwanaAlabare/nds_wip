@@ -17,27 +17,14 @@
                 <i class="fas fa-plus"></i>
                 Baru
             </button>
-            {{-- <div class="d-flex align-items-end gap-3 mb-3">
-                <div class="mb-3">
-                    <label class="form-label"><small>Tgl Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-d') }}">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label"><small>Tgl Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}">
-                </div>
-                <div class="mb-3">
-                    <button class="btn btn-primary btn-sm" onclick="filterTable()">Tampilkan</button>
-                </div>
-            </div> --}}
             <div class="table-responsive">
                 <table id="datatable-master-part" class="table table-bordered table-sm w-100">
                     <thead>
                         <tr>
+                            <th class="align-bottom">Action</th>
                             <th>Kode Part</th>
                             <th>Nama Part</th>
                             <th>Bagian</th>
-                            <th class="align-bottom">Action</th>
                         </tr>
                     </thead>
                 </table>
@@ -88,7 +75,7 @@
                             <input type="text" class="form-control" name="edit_nama_part" id="edit_nama_part" value="">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Bag</label>
+                            <label class="form-label">Bagian</label>
                             <input type="text" class="form-control" name="edit_bag" id="edit_bag" value="">
                         </div>
                     </div>
@@ -119,6 +106,9 @@
             },
             columns: [
                 {
+                    data: 'id'
+                },
+                {
                     data: 'kode_master_part',
                 },
                 {
@@ -127,13 +117,10 @@
                 {
                     data: 'bag'
                 },
-                {
-                    data: 'id'
-                },
             ],
             columnDefs: [
                 {
-                    targets: [3],
+                    targets: [0],
                     className: "align-middle",
                     render: (data, type, row, meta) => {
                         return `

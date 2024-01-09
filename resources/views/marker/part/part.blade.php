@@ -36,15 +36,15 @@
                 <table id="datatable-part" class="table table-bordered table-sm w-100">
                     <thead>
                         <tr>
-                            <th style="width:5%">Kode Part</th>
+                            <th class="align-bottom">Action</th>
+                            <th>Kode Part</th>
                             <th>No. WS</th>
                             <th>Buyer</th>
                             <th>Style</th>
                             <th>Color</th>
                             <th>Panel</th>
                             <th>Part</th>
-                            <th style="width:5%">Total Form</th>
-                            <th class="align-bottom">Action</th>
+                            <th>Total Form</th>
                         </tr>
                     </thead>
                 </table>
@@ -166,6 +166,9 @@
                 }
             },
             columns: [{
+                    data: 'id'
+                },
+                {
                     data: 'kode',
                 },
                 {
@@ -191,15 +194,9 @@
                     data: 'total_form',
                     searchable: false
                 },
-                {
-                    data: 'id'
-                },
             ],
-            // <a href='{{ route('manage-part-form') }}/` + row['id'] + `' class='btn btn-success btn-sm'>
-            //                         <i class='fa fa-plus'></i>
-            //                     </a>
             columnDefs: [{
-                    targets: [8],
+                    targets: [0],
                     render: (data, type, row, meta) => {
                         return `
                             <div class='d-flex gap-1 justify-content-center'>

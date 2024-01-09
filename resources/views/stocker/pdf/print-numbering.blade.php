@@ -19,7 +19,7 @@
         }
 
         * {
-            font-size: 3.3px;
+            font-size: 3px;
         }
 
         img {

@@ -61,8 +61,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('marker');
         Route::get('/create', 'create')->name('create-marker');
         Route::post('/store', 'store')->name('store-marker');
-        Route::get('/edit', 'edit')->name('edit-marker');
-        Route::put('/update', 'update')->name('update-marker');
+        Route::get('/edit/{id?}', 'edit')->name('edit-marker');
+        Route::put('/update/{id?}', 'update')->name('update-marker');
         Route::post('/show', 'show')->name('show-marker');
         Route::post('/show_gramasi', 'show_gramasi')->name('show_gramasi');
         Route::post('/update_status', 'update_status')->name('update_status');
@@ -92,8 +92,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/getdata_ratio', 'getdata_ratio')->name('getdata_ratio');
         Route::post('/store', 'store')->name('store-spreading');
         Route::put('/update', 'update')->name('update-spreading');
+        Route::put('/update-status', 'updateStatus')->name('update-status');
         Route::get('/get-order-info', 'getOrderInfo')->name('get-spreading-data');
         Route::get('/get-cut-qty', 'getCutQty')->name('get-cut-qty-data');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-spreading');
         // export excel
         // Route::get('/export_excel', 'export_excel')->name('export_excel');
         // Route::get('/export', 'export')->name('export');
@@ -417,6 +419,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/cutting', 'cutting')->name('manage-cutting');
         Route::get('/cutting/detail/{id?}', 'detailCutting')->name('detail-cutting');
         Route::put('/cutting/generate/{id?}', 'generateStocker')->name('generate-stocker');
+        Route::post('/cutting/update-form', 'updateCutting')->name('update-spreading-form');
+        Route::put('/cutting/update-finish/{id?}', 'updateFinish')->name('finish-update-spreading-form');
+        Route::delete('/cutting/destroy-roll/{id?}', 'destroySpreadingRoll')->name('destroy-spreading-roll');
     });
 
     //warehouse

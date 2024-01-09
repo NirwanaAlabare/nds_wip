@@ -58,7 +58,7 @@ class PartController extends Controller
             })->toJson();
         }
 
-        return view("part.part", ["page" => "dashboard-marker", "subPageGroup" => "proses-marker", "subPage" => "part"]);
+        return view("marker.part.part", ["page" => "dashboard-marker", "subPageGroup" => "proses-marker", "subPage" => "part"]);
     }
 
     /**
@@ -72,7 +72,7 @@ class PartController extends Controller
 
         $masterParts = MasterPart::all();
 
-        return view('part.create-part', ['orders' => $orders, 'masterParts' => $masterParts, 'page' => 'dashboard-marker',  "subPageGroup" => "proses-marker", "subPage" => "part"]);
+        return view('marker.part.create-part', ['orders' => $orders, 'masterParts' => $masterParts, 'page' => 'dashboard-marker',  "subPageGroup" => "proses-marker", "subPage" => "part"]);
     }
 
     public function getOrderInfo(Request $request)
@@ -194,6 +194,8 @@ class PartController extends Controller
                 array_push($partDetailData, [
                     "part_id" => $partId,
                     "master_part_id" => $request["part_details"][$i],
+                    "tujuan" => $request["tujuan"][$i],
+                    "proses" => $request["tujuan"][$i],
                     "created_at" => $timestamp,
                     "updated_at" => $timestamp,
                 ]);
@@ -351,7 +353,7 @@ class PartController extends Controller
                 GROUP_CONCAT(master_part.nama_part ORDER BY master_part.nama_part SEPARATOR ', ') part_details
             ")->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->leftJoin("master_part", "master_part.id", "part_detail.master_part_id")->where("part.id", $id)->groupBy("part.id")->first();
 
-        return view("part.manage-part-form", ["part" => $part, "page" => "dashboard-marker",  "subPageGroup" => "proses-marker", "subPage" => "part"]);
+        return view("marker.part.manage-part-form", ["part" => $part, "page" => "dashboard-marker",  "subPageGroup" => "proses-marker", "subPage" => "part"]);
     }
 
     public function managePartSecondary(Request $request, $id = 0)

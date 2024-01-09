@@ -25,7 +25,7 @@
         </div>
     </div>
 
-    {{-- Edit Marker --}}
+    {{-- Edit Marker Modal --}}
     <div class="modal fade" id="editMarkerModal" tabindex="-1" role="dialog" aria-labelledby="editMarkerModalLabel" aria-hidden="true">
         <form action="{{ route('update_marker') }}" method="post" onsubmit="submitForm(this, event)">
             @method('PUT')
@@ -37,6 +37,9 @@
                     </div>
                     <div class="modal-body">
                         <div class='row'>
+                            <div class="col-sm-12 mb-3 d-none" id="advanced-edit-section">
+                                <a href="" class="btn btn-primary btn-sm btn-block" id="advanced-edit-link"><i class="fas fa-edit"></i> Advanced Edit</a>
+                            </div>
                             <div class='col-sm-12'>
                                 <div class='form-group'>
                                     <label class='form-label'><small class="fw-bold">Gramasi</small></label>
@@ -92,11 +95,11 @@
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small>Tanggal Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-d') }}">
+                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-d') }}" onchange="filterTable()">
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small>Tanggal Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}">
+                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="filterTable()">
                 </div>
                 <div class="mb-3">
                     <button class="btn btn-primary btn-sm" onclick="filterTable()"><i class="fa fa-search"></i></button>
@@ -136,6 +139,20 @@
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
     <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            let oneWeeksBefore = new Date(new Date().setDate(new Date().getDate() - 7));
+            let oneWeeksBeforeDate = ("0" + oneWeeksBefore.getDate()).slice(-2);
+            let oneWeeksBeforeMonth = ("0" + (oneWeeksBefore.getMonth() + 1)).slice(-2);
+            let oneWeeksBeforeYear = oneWeeksBefore.getFullYear();
+            let oneWeeksBeforeFull = oneWeeksBeforeYear + '-' + oneWeeksBeforeMonth + '-' + oneWeeksBeforeDate;
+
+            $("#tgl-awal").val(oneWeeksBeforeFull).trigger("change");
+
+            window.addEventListener("focus", () => {
+                $('#datatable').DataTable().ajax.reload(null, false);
+            });
+        });
+
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
             if (i != 0) {
@@ -200,7 +217,7 @@
                     data: 'gramasi'
                 },
                 {
-                    data: 'ply_progress'
+                    data: undefined
                 },
                 {
                     data: 'urutan_marker'
@@ -228,11 +245,16 @@
 
                         if (row.cancel != 'Y' && row.tot_form != 0 && row.tipe_marker != "pilot marker") {
                             return `
-                                <div class='d-flex gap-1 justify-content-center'>
-                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
+                                <div class='d-flex gap-1 justify-content-center mb-1'>
+                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
                                         <i class='fa fa-search'></i>
                                     </a>
                                     ` + exportBtn + `
+                                </div>
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editMarkerModal" onclick='edit(` + row.id + `);'>
+                                        <i class='fa fa-edit'></i>
+                                    </a>
                                 </div>
                             `;
                         } else if ((row.cancel != 'Y' && row.tot_form == 0) || (row.cancel != 'Y' && row.gelar_qty_balance > 0 && row.tipe_marker == "pilot marker")) {
@@ -272,6 +294,17 @@
                                 </div>
                             `;
                         }
+                    }
+                },
+                {
+                    targets: [10],
+                    render: (data, type, row, meta) => {
+                        return `
+                            <div class="progress border border-sb position-relative" style="height: 21px">
+                                <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">`+row.total_lembar+`/`+row.gelar_qty+`</p>
+                                <div class="progress-bar" style="background-color: #75baeb;width: `+((row.total_lembar/row.gelar_qty)*100)+`%" role="progressbar"></div>
+                            </div>
+                        `;
                     }
                 },
                 {
@@ -339,7 +372,12 @@
 
                     if (response.jumlah_form > 0) {
                         document.getElementById('txt_gramasi').setAttribute('readonly', true);
+                    } else {
+                        document.getElementById('txt_gramasi').removeAttribute('readonly');
                     }
+
+                    document.getElementById('advanced-edit-link').setAttribute('href', '{{ route('edit-marker') }}/'+response.id);
+                    document.getElementById('advanced-edit-section').classList.remove('d-none');
                 },
                 error: function(request, status, error) {
                     alert(request.responseText);

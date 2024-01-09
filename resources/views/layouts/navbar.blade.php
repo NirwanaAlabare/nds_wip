@@ -123,19 +123,19 @@
                                 </li>
                             @endmarker --}}
 
-                            @spreading
+                            @admin
                                 <li>
                                     <a href="{{ route('spreading') }}"
                                         class="dropdown-item {{ $subPage == 'spreading' ? 'active' : '' }}">
                                         Spreading <i class="fas fa-scroll fa-sm"></i>
                                     </a>
                                 </li>
-                            @endspreading
+                            @endadmin
 
                             @meja
                                 <li>
                                     <a href="{{ route('form-cut-input') }}"
-                                        class="dropdown-item {{ $subPage == 'form-cut-input' ? 'active' : '' }}">
+                                        class="appeared dropdown-item {{ $subPage == 'form-cut-input' ? 'active' : '' }}">
                                         Form Cutting <i class="fas fa-cut fa-sm"></i>
                                     </a>
                                 </li>
@@ -177,6 +177,11 @@
                         <li class="nav-item {{ $subPage == 'summary-cutting' ? 'active' : '' }}">
                             <a href="{{ route('summary') }}" class="nav-link">
                                 Summary <i class="fas fa-tasks fa-sm"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item {{ $subPage == 'manage-cutting' ? 'active' : '' }}">
+                            <a href="{{ route('manage-cutting') }}" class="nav-link">
+                                Manage <i class="fa-solid fa-gear fa-sm"></i>
                             </a>
                         </li>
                     @endadmin
