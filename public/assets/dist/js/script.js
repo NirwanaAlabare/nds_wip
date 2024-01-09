@@ -35,11 +35,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 });
 
-// Round
-Number.prototype.round = function(places) {
-    return +(Math.round(this + "e+" + places)  + "e-" + places);
-}
-
 // Capitalize
 function capitalizeFirstLetter(string) {
     if (string) {

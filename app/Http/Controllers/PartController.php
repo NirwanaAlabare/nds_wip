@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\MasterPart;
+use App\Models\MasterTujuan;
+use App\Models\MasterSecondary;
 use App\Models\Part;
 use App\Models\PartDetail;
 use App\Models\PartForm;
@@ -77,8 +79,10 @@ class PartController extends Controller
             get();
 
         $masterParts = MasterPart::all();
+        $masterTujuan = MasterTujuan::all();
+        $masterSecondary = MasterSecondary::all();
 
-        return view('marker.part.create-part', ['orders' => $orders, 'masterParts' => $masterParts, 'page' => 'dashboard-marker',  "subPageGroup" => "proses-marker", "subPage" => "part"]);
+        return view('marker.part.create-part', ['orders' => $orders, 'masterParts' => $masterParts, 'masterTujuan' => $masterTujuan, 'masterSecondary' => $masterSecondary, 'page' => 'dashboard-marker',  "subPageGroup" => "proses-marker", "subPage" => "part"]);
     }
 
     public function getOrderInfo(Request $request)
@@ -168,6 +172,42 @@ class PartController extends Controller
         return $html;
     }
 
+    public function getMasterParts(Request $request)
+    {
+        $masterParts = MasterPart::all();
+
+        $masterPartOptions = "<option value=''>Pilih Part</option>";
+        foreach ($masterParts as $masterPart) {
+            $masterPartOptions .= "<option value='".$masterPart->id."'>".$masterPart->nama_part." - ".$masterPart->bag."</option>";
+        }
+
+        return $masterPartOptions;
+    }
+
+    public function getMasterTujuan(Request $request)
+    {
+        $masterTujuan = MasterTujuan::all();
+
+        $masterTujuanOptions = "<option value=''>Pilih Proses</option>";
+        foreach ($masterTujuan as $tujuan) {
+            $masterTujuanOptions .= "<option value='".$tujuan->id."'>".$tujuan->tujuan."</option>";
+        }
+
+        return $masterTujuanOptions;
+    }
+
+    public function getMasterSecondary(Request $request)
+    {
+        $masterSecondary = MasterSecondary::all();
+
+        $masterSecondaryOptions = "<option value=''>Pilih Proses</option>";
+        foreach ($masterSecondary as $secondary) {
+            $masterSecondaryOptions .= "<option value='".$secondary->id."' data-tujuan='".$secondary->id_tujuan."'>".$secondary->proses."</option>";
+        }
+
+        return $masterSecondaryOptions;
+    }
+
     /**
      * Store a newly created resource in storage.
      *
@@ -205,14 +245,17 @@ class PartController extends Controller
             $partId = $partStore->id;
             $partDetailData = [];
             for ($i = 0; $i < $totalPartDetail; $i++) {
-                array_push($partDetailData, [
-                    "part_id" => $partId,
-                    "master_part_id" => $request["part_details"][$i],
-                    "tujuan" => $request["tujuan"][$i],
-                    "proses" => $request["tujuan"][$i],
-                    "created_at" => $timestamp,
-                    "updated_at" => $timestamp,
-                ]);
+                if ($request["part_details"][$i] && $request["proses"][$i] && $request["cons"][$i] && $request["cons_unit"][$i]) {
+                    array_push($partDetailData, [
+                        "part_id" => $partId,
+                        "master_part_id" => $request["part_details"][$i],
+                        "master_secondary_id" => $request["proses"][$i],
+                        "cons" => $request["cons"][$i],
+                        "unit" => $request["cons_unit"][$i],
+                        "created_at" => $timestamp,
+                        "updated_at" => $timestamp,
+                    ]);
+                }
             }
 
             $partDetailStore = PartDetail::insert($partDetailData);
