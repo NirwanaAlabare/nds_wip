@@ -134,7 +134,7 @@ class StockerController extends Controller
                 form_cut_input.no_meja,
                 form_cut_input.id_marker,
                 form_cut_input.no_form,
-                form_cut_input.tgl_form_cut,
+                DATE(form_cut_input.waktu_selesai) tgl_form_cut,
                 marker_input.id marker_id,
                 marker_input.act_costing_ws ws,
                 marker_input.buyer,

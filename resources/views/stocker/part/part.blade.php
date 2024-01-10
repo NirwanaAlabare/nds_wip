@@ -13,10 +13,10 @@
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-th fa-sm"></i> Part</h5>
         </div>
         <div class="card-body">
-            <a href="{{ route('create-part') }}" class="btn btn-success btn-sm mb-3">
+            {{-- <a href="{{ route('create-part') }}" class="btn btn-success btn-sm mb-3">
                 <i class="fas fa-plus"></i>
                 Baru
-            </a>
+            </a> --}}
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div>
                     <label class="form-label"><small>Tanggal Awal</small></label>
