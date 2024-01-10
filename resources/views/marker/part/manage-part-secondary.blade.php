@@ -98,12 +98,12 @@
                             <div class="col-md-3">
                                 <div class="mb-4">
                                     <label><small><b>Part</b></small></label>
-                                    <select class="form-control form-control-sm" id="txtpart" name="txtpart"
+                                    <select class="form-control select2bs4" id="txtpart" name="txtpart"
                                         style="width: 100%;">
                                         <option selected="selected" value="">Pilih Part</option>
                                         @foreach ($data_part as $datapart)
-                                            <option value="{{ $datapart->isi }}">
-                                                {{ $datapart->tampil }}
+                                            <option value="{{ $datapart->id }}">
+                                                {{ $datapart->nama_part." - ".$datapart->bag }}
                                             </option>
                                         @endforeach
                                     </select>
@@ -112,8 +112,8 @@
                             <div class="col-md-2">
                                 <div class="mb-4">
                                     <label><small><b>Cons</b></small></label>
-                                    <div class="input-group input-group-sm mb-3">
-                                        <input type="text" class="form-control form-control-sm" name="txtcons"
+                                    <div class="input-group mb-3">
+                                        <input type="text" class="form-control" name="txtcons"
                                             id="txtcons">
                                         <div class="input-group-prepend">
                                             <span class="input-group-text" id="inputGroup-sizing-sm">METER</span>
@@ -124,7 +124,7 @@
                             <div class="col-md-3">
                                 <div class="mb-4">
                                     <label><small><b>Tujuan</b></small></label>
-                                    <select class="form-control form-control-sm" id="cbotuj" name="cbotuj"
+                                    <select class="form-control select2bs4" id="cbotuj" name="cbotuj"
                                         style="width: 100%;" onchange="getproses();">
                                         <option selected="selected" value="">Pilih Tujuan</option>
                                         @foreach ($data_tujuan as $datatujuan)
@@ -138,7 +138,7 @@
                             <div class="col-md-3">
                                 <div class="mb-4">
                                     <label><small><b>Proses</b></small></label>
-                                    <select class="form-control form-control-sm" id="cboproses" name="cboproses"
+                                    <select class="form-control select2bs4" id="cboproses" name="cboproses"
                                         style="width: 100%;">
                                     </select>
                                 </div>
@@ -146,8 +146,7 @@
                             <div class="col-md-1">
                                 <div class="mb-4">
                                     <label><small><b>&nbsp</b></small></label>
-                                    <input type="button" class="form-control form-control-sm bg-primary" name="simpan"
-                                        id="simpan" value="Simpan"onclick="simpan_data();">
+                                    <input type="button" class="form-control form-control-sm bg-primary" name="simpan" id="simpan" value="Simpan"onclick="simpan_data();">
                                 </div>
                             </div>
                 </form>
@@ -199,10 +198,10 @@
         //Form Part Datatable
 
         function cleardata() {
-            $("#cboproses").val('');
-            $("#cbotuj").val('');
-            $("#txtpart").val('');
-            $("#txtcons").val('');
+            $("#cboproses").val('').trigger('change');
+            $("#cbotuj").val('').trigger('change');
+            $("#txtpart").val('').trigger('change');
+            $("#txtcons").val('').trigger('change');
         }
 
         function getproses() {
@@ -241,7 +240,8 @@
                         d.id = $('#id').val();
                     },
                 },
-                columns: [{
+                columns: [
+                    {
                         data: 'nama_part',
                     },
                     {
@@ -278,6 +278,7 @@
         }
 
         function simpan_data() {
+            let id = document.getElementById("id").value;
             let cbotuj = document.form.cbotuj.value;
             let txtpart = document.form.txtpart.value;
             let txtcons = document.form.txtcons.value;
@@ -286,6 +287,7 @@
                 type: "post",
                 url: '{{ route('store_part_secondary') }}',
                 data: {
+                    id: id,
                     cbotuj: cbotuj,
                     txtpart: txtpart,
                     txtcons: txtcons,

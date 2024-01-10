@@ -162,7 +162,7 @@ class StockerController extends Controller
                 GROUP_CONCAT(DISTINCT CONCAT(master_part.nama_part, ' - ', master_part.bag) SEPARATOR ', ') part
             ")->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->leftJoin("part", "part.id", "=", "part_form.part_id")->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->where("form_cut_input.id", $formCutId)->groupBy("form_cut_input.id")->first();
 
-        $dataPartDetail = PartDetail::select("part_detail.id", "master_part.nama_part", "master_part.bag")->leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->leftJoin("part", "part.id", "part_detail.part_id")->leftJoin("part_form", "part_form.part_id", "part.id")->leftJoin("form_cut_input", "form_cut_input.id", "part_form.form_id")->where("form_cut_input.id", $formCutId)->groupBy("master_part.id")->get();
+        $dataPartDetail = PartDetail::selectRaw("part_detail.id, master_part.nama_part, master_part.bag, COALESCE(master_secondary.tujuan, '-') tujuan, COALESCE(master_secondary.proses, '-') proses")->leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->leftJoin("part", "part.id", "part_detail.part_id")->leftJoin("part_form", "part_form.part_id", "part.id")->leftJoin("form_cut_input", "form_cut_input.id", "part_form.form_id")->leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->where("form_cut_input.id", $formCutId)->groupBy("master_part.id")->get();
 
         $dataRatio = MarkerDetail::selectRaw("
                 marker_input_detail.id marker_detail_id,
@@ -346,6 +346,7 @@ class StockerController extends Controller
                     'size' => $request["size"][$index],
                     'qty_ply' => $request['qty_ply_group'][$index],
                     'qty_cut' => $request['qty_cut'][$index],
+                    'notes' => $request['note'],
                     'range_awal' => $cumRangeAwal,
                     'range_akhir' => $cumRangeAkhir,
                 ]
@@ -364,6 +365,7 @@ class StockerController extends Controller
                 marker_input.color,
                 stocker_input.shade,
                 stocker_input.group_stocker,
+                COALESCE(stocker_input.notes) notes,
                 form_cut_input.no_cut,
                 master_part.nama_part part,
                 master_sb_ws.dest
@@ -429,6 +431,7 @@ class StockerController extends Controller
                             'size' => $request["size"][$i],
                             'qty_ply' => $request['qty_ply_group'][$i],
                             'qty_cut' => $request['qty_cut'][$i],
+                            'notes' => $request['note'],
                             'range_awal' => $cumRangeAwal,
                             'range_akhir' => $cumRangeAkhir
                         ]
@@ -449,6 +452,7 @@ class StockerController extends Controller
                 marker_input.color,
                 stocker_input.shade,
                 stocker_input.group_stocker,
+                stocker_input.note,
                 form_cut_input.no_cut,
                 master_part.nama_part part,
                 master_sb_ws.dest

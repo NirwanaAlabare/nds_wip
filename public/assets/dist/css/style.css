@@ -186,6 +186,10 @@ table.vertical tbody td {
     color: var(--sb-color);
 }
 
+.text-sb-secondary {
+    color: var(--sb-secondary-color) !important;
+}
+
 /* Button Color */
 .btn-sb {
     border-color: var(--sb-color);

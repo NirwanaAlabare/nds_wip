@@ -10,7 +10,10 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button accordion-sb collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-{{ $index }}" aria-expanded="false" aria-controls="panelsStayOpen-collapseTwo">
-                    {{ $partDetail->nama_part." - ".$partDetail->bag }}
+                    <div class="d-flex w-75 justify-content-between align-items-center">
+                        <p class="w-50 mb-0">{{ $partDetail->nama_part." - ".$partDetail->bag }}</p>
+                        <p class="w-50 mb-0">{{ $partDetail->tujuan." - ".$partDetail->proses }}</p>
+                    </div>
                 </button>
             </h2>
             <div id="panelsStayOpen-{{ $index }}" class="accordion-collapse collapse">
