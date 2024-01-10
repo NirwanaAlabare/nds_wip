@@ -192,7 +192,9 @@ class StockerController extends Controller
             $join->on("stocker_input.form_cut_id", "=", "form_cut_input.id");
             $join->on("stocker_input.part_detail_id", "=", "part_detail.id");
             $join->on("stocker_input.so_det_id", "=", "marker_input_detail.so_det_id");
-        })->where("marker_input.act_costing_ws", $dataSpreading->ws)->where("marker_input.color", $dataSpreading->color)->where("marker_input.panel", $dataSpreading->panel)->where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->groupBy("no_cut", "marker_input.color", "marker_input_detail.so_det_id", "part_detail.id", "stocker_input.id")->get();
+        })->where("marker_input.act_costing_ws", $dataSpreading->ws)->where("marker_input.color", $dataSpreading->color)->where("marker_input.panel", $dataSpreading->panel)->where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->groupBy("form_cut_input.no_cut", "marker_input.color", "marker_input_detail.so_det_id", "part_detail.id", "stocker_input.id")->orderBy("no_cut", "desc")->get();
+
+        // dd($dataStocker);
 
         $dataNumbering = MarkerDetail::selectRaw("
                 marker_input.color,
