@@ -452,7 +452,7 @@ class StockerController extends Controller
                 marker_input.color,
                 stocker_input.shade,
                 stocker_input.group_stocker,
-                stocker_input.note,
+                stocker_input.notes,
                 form_cut_input.no_cut,
                 master_part.nama_part part,
                 master_sb_ws.dest
