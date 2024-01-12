@@ -321,10 +321,11 @@
                                     @php
                                         $qty = intval($ratio->ratio) * intval($dataSpreading->total_lembar);
 
-                                        $numberingThis = $dataNumbering ? $dataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", $dataSpreading->no_cut)->where("ratio", ">", "0")->first() : null;
-                                        $numberingBefore = $dataNumbering ? $dataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->where("ratio", ">", "0")->sortByDesc('no_cut')->first() : null;
+                                        $numberingThis = $dataNumbering ? $dataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->first() : null;
+                                        $numberingBefore = $dataNumbering ? $dataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->sortByDesc('no_cut')->first() : null;
                                         $rangeAwal = ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? $numberingBefore->range_akhir + 1 : "-") : "-") : 1);
                                         $rangeAkhir = ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? $numberingBefore->range_akhir + $qty : "-") : "-") : $qty);
+                                        $numGeneratable = true;
                                     @endphp
                                     <tr>
                                         <input type="hidden" name="ratio[{{ $index }}]" id="ratio_{{ $index }}" value="{{ $ratio->ratio }}">
@@ -340,34 +341,39 @@
                                         <td>{{ $rangeAwal }}</td>
                                         <td>{{ $rangeAkhir }}</td>
                                         <td>
-                                            @if ($dataSpreading->no_cut > 1)
-                                                @if ($numberingBefore)
-                                                    @if ($numberingBefore->numbering_id != null)
-                                                        @if ($numberingThis->numbering_id != null)
-                                                            <i class="fa fa-check"></i>
-                                                        @else
-                                                            <i class="fa fa-times"></i>
-                                                        @endif
+                                        @if ($dataSpreading->no_cut > 1)
+                                            @if ($numberingBefore)
+                                                @if ($numberingBefore->numbering_id != null)
+                                                    @if ($stockerThis && $stockerThis->numbering_id != null)
+                                                        <i class="fa fa-check"></i>
                                                     @else
-                                                        <i class="fa fa-minus"></i>
+                                                        <i class="fa fa-times"></i>
                                                     @endif
                                                 @else
+                                                    @php $numGeneratable = false; @endphp
                                                     <i class="fa fa-minus"></i>
                                                 @endif
                                             @else
-                                                @if ($numberingThis->numbering_id != null)
+                                                @if ($numberingThis && $numberingThis->numbering_id != null)
                                                     <i class="fa fa-check"></i>
                                                 @else
                                                     <i class="fa fa-times"></i>
                                                 @endif
                                             @endif
+                                        @else
+                                            @if ($numberingThis && $numberingThis->numbering_id != null)
+                                                <i class="fa fa-check"></i>
+                                            @else
+                                                <i class="fa fa-times"></i>
+                                            @endif
+                                        @endif
                                         <td>
                                             <div class="d-flex gap-3">
-                                                <button type="button" class="btn btn-sm btn-danger" onclick="printNumbering({{ $index }});" {{ ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? "" : "disabled") : "") : "") }}>
+                                                <button type="button" class="btn btn-sm btn-danger" onclick="printNumbering({{ $index }});" {{ $numGeneratable ? '' : 'disabled' }}>
                                                     <i class="fa fa-print fa-s"></i>
                                                 </button>
                                                 <div class="form-check mt-1 mb-0">
-                                                    <input class="form-check-input generate-num-check" type="checkbox" name="generate_num[{{ $index }}]" id="generate_num_{{ $index }}" value="{{ $ratio->so_det_id }}" {{ ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? "" : "disabled") : "") : "") }}>
+                                                    <input class="form-check-input generate-num-check" type="checkbox" name="generate_num[{{ $index }}]" id="generate_num_{{ $index }}" value="{{ $ratio->so_det_id }}" {{ $numGeneratable ? '' : 'disabled' }}>
                                                     <label class="form-check-label" for="flexCheckDefault">
                                                         Generate Numbering
                                                     </label>

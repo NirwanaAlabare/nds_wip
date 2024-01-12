@@ -323,7 +323,7 @@ class MarkerController extends Controller
         $data_marker_det = DB::select("
         SELECT a.size, ratio
         from marker_input_detail a
-        inner join master_size_new b on a.size = b.size
+        left join master_size_new b on a.size = b.size
         where marker_id = '$request->id_c'
         order by urutan asc");
 
