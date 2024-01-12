@@ -308,7 +308,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/show/{partDetailId?}/{formCutId?}', 'show')->name('show-stocker');
         Route::post('/print-stocker/{index?}', 'printStocker')->name('print-stocker');
         Route::post('/print-stocker-all-size/{partDetailId?}', 'printStockerAllSize')->name('print-stocker-all-size');
+        Route::post('/print-stocker-checked', 'printStockerChecked')->name('print-stocker-checked');
         Route::post('/print-numbering/{index?}', 'printNumbering')->name('print-numbering');
+        Route::post('/print-numbering-checked', 'printNumberingChecked')->name('print-numbering-checked');
         Route::post('/rearrange-group', 'rearrangeGroup')->name('rearrange-group');
 
         Route::put('/count-stocker-update', 'countStockerUpdate')->name('count-stocker-update');

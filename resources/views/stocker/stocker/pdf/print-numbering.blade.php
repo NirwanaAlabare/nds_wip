@@ -45,7 +45,7 @@
             <tr>
                 <td>{{ $numbering['kode'] }}</td>
                 <td rowspan="6" style="vertical-align: middle; text-align: center;">
-                    <img src="data:image/png;base64, {!! base64_encode(QrCode::format('svg')->size(100)->generate("WIP-".$numbering['kode']."-".$numbering['no_cut_size']."-".$numbering['so_det_id'])) !!}">
+                    <img src="data:image/png;base64, {!! base64_encode(QrCode::format('svg')->size(100)->generate("WIP-".$numbering['kode']."-".$numbering['no_cut_size']."-".$numbering['so_det_id']."-".$numbering['size'])) !!}">
                 </td>
             </tr>
             <tr>

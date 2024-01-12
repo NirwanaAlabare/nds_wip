@@ -118,6 +118,7 @@
                         <div class="card-body">
                             @php
                                 $index = 0;
+                                $partIndex = 0;
 
                                 $currentGroup = "";
                                 $currentGroupStocker = 0;
@@ -153,6 +154,7 @@
                                         @include('stocker.stocker.stocker-detail-part')
                                         @php
                                             $index += $dataRatio->count() * $dataPartDetail->count();
+                                            $partIndex += $dataPartDetail->count();
                                         @endphp
 
                                         {{-- Change initial group --}}
@@ -180,6 +182,7 @@
                                             @include('stocker.stocker.stocker-detail-part')
                                             @php
                                                 $index += $dataRatio->count() * $dataPartDetail->count();
+                                                $partIndex += $dataPartDetail->count();
                                             @endphp
                                         @endif
                                     @else
@@ -204,6 +207,7 @@
                                             @include('stocker.stocker.stocker-detail-part')
                                             @php
                                                 $index += $dataRatio->count() * $dataPartDetail->count();
+                                                $partIndex += $dataPartDetail->count();
                                             @endphp
                                         @endif
                                     @endif
@@ -234,6 +238,7 @@
                                         @include('stocker.stocker.stocker-detail-part')
                                         @php
                                             $index += $dataRatio->count() * $dataPartDetail->count();
+                                            $partIndex += $dataPartDetail->count();
                                         @endphp
 
                                         {{-- Change initial group --}}
@@ -261,6 +266,7 @@
                                             @include('stocker.stocker.stocker-detail-part')
                                             @php
                                                 $index += $dataRatio->count() * $dataPartDetail->count();
+                                                $partIndex += $dataPartDetail->count();
                                             @endphp
                                         @endif
                                     @else
@@ -285,11 +291,15 @@
                                             @include('stocker.stocker.stocker-detail-part')
                                             @php
                                                 $index += $dataRatio->count() * $dataPartDetail->count();
+                                                $partIndex += $dataPartDetail->count();
                                             @endphp
                                         @endif
                                     @endif
                                 @endif
                             @endforeach
+                        </div>
+                        <div class="d-flex justify-content-end p-3">
+                            <button type="button" class="btn btn-danger btn-sm mb-3 w-auto" onclick="generateCheckedStocker()"><i class="fa fa-print"></i> Generate Checked Stocker</button>
                         </div>
                     </div>
                 </div>
@@ -352,9 +362,17 @@
                                                 @endif
                                             @endif
                                         <td>
-                                            <button type="button" class="btn btn-sm btn-danger" onclick="printNumbering({{ $index }});" {{ ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? "" : "disabled") : "") : "") }}>
-                                                <i class="fa fa-print fa-s"></i>
-                                            </button>
+                                            <div class="d-flex gap-3">
+                                                <button type="button" class="btn btn-sm btn-danger" onclick="printNumbering({{ $index }});" {{ ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? "" : "disabled") : "") : "") }}>
+                                                    <i class="fa fa-print fa-s"></i>
+                                                </button>
+                                                <div class="form-check mt-1 mb-0">
+                                                    <input class="form-check-input" type="checkbox" name="generate_num[{{ $index }}]" id="generate_num_{{ $index }}" value="{{ $ratio->so_det_id }}">
+                                                    <label class="form-check-label" for="flexCheckDefault">
+                                                        Generate Numbering
+                                                    </label>
+                                                </div>
+                                            </div>
                                         </td>
                                     </tr>
                                     @php
@@ -363,6 +381,9 @@
                                 @endforeach
                             </tbody>
                         </table>
+                    </div>
+                    <div class="d-flex justify-content-end p-3">
+                        <button type="button" class="btn btn-danger btn-sm w-auto" onclick="generateCheckedNumbering()"><i class="fa fa-print"></i> Generate Checked Numbering</button>
                     </div>
                 </div>
             </form>
@@ -522,6 +543,74 @@
             });
         }
 
+        function massChange(element) {
+            let dataGroup = element.getAttribute('data-group');
+            let dataChecked = element.checked;
+
+            let similarElements = document.getElementsByClassName(dataGroup);
+
+            for (let i = 0; i < similarElements.length; i++) {
+                similarElements[i].checked = dataChecked;
+            };
+        }
+
+        function generateCheckedStocker() {
+            let stockerForm = new FormData(document.getElementById("stocker-form"));
+
+            let no_ws = document.getElementById("no_ws").value;
+            let style = document.getElementById("style").value;
+            let color = document.getElementById("color").value;
+            let panel = document.getElementById("panel").value;
+            let no_form_cut = document.getElementById("no_form_cut").value;
+
+            let fileName = [
+                no_ws,
+                style,
+                color,
+                panel,
+                part,
+                no_form_cut
+            ].join('-');
+
+            console.log(fileName);
+
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                url: '{{ route('print-stocker-checked') }}',
+                type: 'post',
+                processData: false,
+                contentType: false,
+                data: stockerForm,
+                xhrFields:
+                {
+                    responseType: 'blob'
+                },
+                success: function(res) {
+                    if (res) {
+                        console.log(res);
+
+                        var blob = new Blob([res], {type: 'application/pdf'});
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = fileName+".pdf";
+                        link.click();
+
+                        swal.close();
+
+                        window.location.reload();
+                    }
+                }
+            });
+        }
+
         function printNumbering(index) {
             let stockerForm = new FormData(document.getElementById("stocker-form"));
 
@@ -552,6 +641,58 @@
 
             $.ajax({
                 url: '{{ route('print-numbering') }}/'+index,
+                type: 'post',
+                processData: false,
+                contentType: false,
+                data: stockerForm,
+                xhrFields:
+                {
+                    responseType: 'blob'
+                },
+                success: function(res) {
+                    if (res) {
+                        console.log(res);
+
+                        var blob = new Blob([res], {type: 'application/pdf'});
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = fileName+".pdf";
+                        link.click();
+                    }
+
+                    window.location.reload();
+                }
+            });
+        }
+
+        function generateCheckedNumbering() {
+            let stockerForm = new FormData(document.getElementById("stocker-form"));
+
+            let no_ws = document.getElementById("no_ws").value;
+            let style = document.getElementById("style").value;
+            let color = document.getElementById("color").value;
+            let panel = document.getElementById("panel").value;
+            let no_form_cut = document.getElementById("no_form_cut").value;
+
+            let fileName = [
+                no_ws,
+                style,
+                color,
+                panel,
+                no_form_cut,
+            ].join('-');
+
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                url: '{{ route('print-numbering-checked') }}',
                 type: 'post',
                 processData: false,
                 contentType: false,

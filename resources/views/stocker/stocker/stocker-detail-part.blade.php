@@ -1,6 +1,7 @@
 <div class="accordion mb-3" id="accordionPanelsStayOpenExample">
     @php
         $index;
+        $partIndex;
     @endphp
 
     @foreach ($dataPartDetail as $partDetail)
@@ -8,14 +9,24 @@
             $generatable = true;
         @endphp
         <div class="accordion-item">
-            <h2 class="accordion-header">
-                <button class="accordion-button accordion-sb collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-{{ $index }}" aria-expanded="false" aria-controls="panelsStayOpen-collapseTwo">
-                    <div class="d-flex w-75 justify-content-between align-items-center">
-                        <p class="w-50 mb-0">{{ $partDetail->nama_part." - ".$partDetail->bag }}</p>
-                        <p class="w-50 mb-0">{{ $partDetail->tujuan." - ".$partDetail->proses }}</p>
+            <div class="d-flex justify-content-between align-items-center gap-3">
+                <h2 class="accordion-header col-9">
+                    <button class="accordion-button accordion-sb collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-{{ $index }}" aria-expanded="false" aria-controls="panelsStayOpen-collapseTwo">
+                        <div class="d-flex w-75 justify-content-between align-items-center">
+                            <p class="w-25 mb-0">{{ $partDetail->nama_part." - ".$partDetail->bag }}</p>
+                            <p class="w-50 mb-0">{{ $partDetail->tujuan." - ".$partDetail->proses }}</p>
+                        </div>
+                    </button>
+                </h2>
+                <div class="accordion-header-side col-3">
+                    <div class="form-check ms-3">
+                        <input class="form-check-input generate-{{ $partDetail->id }}" type="checkbox" id="generate_{{ $partIndex }}" name="generate_stocker[{{ $partIndex }}]" data-group="generate-{{ $partDetail->id }}" value="{{ $partDetail->id }}" onchange="massChange(this)">
+                        <label class="form-check-label fw-bold text-sb">
+                            Generate Stocker
+                        </label>
                     </div>
-                </button>
-            </h2>
+                </div>
+            </div>
             <div id="panelsStayOpen-{{ $index }}" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     <div class="table-responsive">
@@ -108,5 +119,9 @@
                 </div>
             </div>
         </div>
+
+        @php
+            $partIndex++;
+        @endphp
     @endforeach
 </div>
