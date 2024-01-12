@@ -9,8 +9,8 @@
             $generatable = true;
         @endphp
         <div class="accordion-item">
-            <div class="d-flex justify-content-between align-items-center gap-3">
-                <h2 class="accordion-header col-9">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="accordion-header w-75">
                     <button class="accordion-button accordion-sb collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-{{ $index }}" aria-expanded="false" aria-controls="panelsStayOpen-collapseTwo">
                         <div class="d-flex w-75 justify-content-between align-items-center">
                             <p class="w-25 mb-0">{{ $partDetail->nama_part." - ".$partDetail->bag }}</p>
@@ -20,7 +20,7 @@
                 </h2>
                 <div class="accordion-header-side col-3">
                     <div class="form-check ms-3">
-                        <input class="form-check-input generate-{{ $partDetail->id }}" type="checkbox" id="generate_{{ $partIndex }}" name="generate_stocker[{{ $partIndex }}]" data-group="generate-{{ $partDetail->id }}" value="{{ $partDetail->id }}" onchange="massChange(this)">
+                        <input class="form-check-input generate-{{ $partDetail->id }}" type="checkbox" id="generate_{{ $partIndex }}" name="generate_stocker[{{ $partIndex }}]" data-group="generate-{{ $partDetail->id }}" value="{{ $partDetail->id }}" onchange="massChange(this)" disabled>
                         <label class="form-check-label fw-bold text-sb">
                             Generate Stocker
                         </label>
@@ -115,6 +115,7 @@
                             </tbody>
                         </table>
                         <button type="button" class="btn btn-sm btn-danger fw-bold float-end mb-3" onclick="printStockerAllSize('{{ $partDetail->id }}', '{{ $currentGroup }}', '{{ $currentTotal }}');" {{ $generatable ? '' : 'disabled' }}>Generate All Size <i class="fas fa-print"></i></button>
+                        <input type="hidden" class="generatable" name="generatable[{{ $partIndex }}]" id="generatable_{{ $partIndex }}" data-group="{{ $partDetail->id }}" value="{{ $generatable }}">
                     </div>
                 </div>
             </div>

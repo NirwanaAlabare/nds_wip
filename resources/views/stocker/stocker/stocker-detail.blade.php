@@ -367,7 +367,7 @@
                                                     <i class="fa fa-print fa-s"></i>
                                                 </button>
                                                 <div class="form-check mt-1 mb-0">
-                                                    <input class="form-check-input" type="checkbox" name="generate_num[{{ $index }}]" id="generate_num_{{ $index }}" value="{{ $ratio->so_det_id }}">
+                                                    <input class="form-check-input" type="checkbox" name="generate_num[{{ $index }}]" id="generate_num_{{ $index }}" value="{{ $ratio->so_det_id }}" {{ ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? "" : "disabled") : "") : "") }}>
                                                     <label class="form-check-label" for="flexCheckDefault">
                                                         Generate Numbering
                                                     </label>
@@ -410,6 +410,25 @@
         $("#datatable").DataTable({
             ordering: false,
             paging: false,
+        });
+
+        $(document).ready(() => {
+            let generatableElements = document.getElementsByClassName('generatable');
+
+            for (let i = 0; i < generatableElements.length; i++) {
+                let generatableValue = generatableElements[i].value;
+                let generatableIndex = generatableElements[i].getAttribute('data-group');
+
+                let generateStocker = document.getElementsByClassName('generate-'+generatableIndex);
+
+                for (let j = 0; j < generateStocker.length; j++) {
+                    if (generatableValue) {
+                        generateStocker[j].removeAttribute('disabled');
+                    } else {
+                        generateStocker[j].setAttribute('disabled', true);
+                    }
+                }
+            }
         });
 
         function rearrangeGroup(noForm) {
