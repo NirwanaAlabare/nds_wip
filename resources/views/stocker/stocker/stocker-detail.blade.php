@@ -367,7 +367,7 @@
                                                     <i class="fa fa-print fa-s"></i>
                                                 </button>
                                                 <div class="form-check mt-1 mb-0">
-                                                    <input class="form-check-input" type="checkbox" name="generate_num[{{ $index }}]" id="generate_num_{{ $index }}" value="{{ $ratio->so_det_id }}" {{ ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? "" : "disabled") : "") : "") }}>
+                                                    <input class="form-check-input generate-num-check" type="checkbox" name="generate_num[{{ $index }}]" id="generate_num_{{ $index }}" value="{{ $ratio->so_det_id }}" {{ ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? "" : "disabled") : "") : "") }}>
                                                     <label class="form-check-label" for="flexCheckDefault">
                                                         Generate Numbering
                                                     </label>
@@ -523,8 +523,6 @@
                 no_form_cut
             ].join('-');
 
-            console.log(fileName);
-
             Swal.fire({
                 title: 'Please Wait...',
                 html: 'Exporting Data...',
@@ -574,60 +572,75 @@
         }
 
         function generateCheckedStocker() {
-            let stockerForm = new FormData(document.getElementById("stocker-form"));
+            let generateStockerCheck = document.getElementsByClassName('generate-stocker-check');
 
-            let no_ws = document.getElementById("no_ws").value;
-            let style = document.getElementById("style").value;
-            let color = document.getElementById("color").value;
-            let panel = document.getElementById("panel").value;
-            let no_form_cut = document.getElementById("no_form_cut").value;
-
-            let fileName = [
-                no_ws,
-                style,
-                color,
-                panel,
-                part,
-                no_form_cut
-            ].join('-');
-
-            console.log(fileName);
-
-            Swal.fire({
-                title: 'Please Wait...',
-                html: 'Exporting Data...',
-                didOpen: () => {
-                    Swal.showLoading()
-                },
-                allowOutsideClick: false,
-            });
-
-            $.ajax({
-                url: '{{ route('print-stocker-checked') }}',
-                type: 'post',
-                processData: false,
-                contentType: false,
-                data: stockerForm,
-                xhrFields:
-                {
-                    responseType: 'blob'
-                },
-                success: function(res) {
-                    if (res) {
-                        console.log(res);
-
-                        var blob = new Blob([res], {type: 'application/pdf'});
-                        var link = document.createElement('a');
-                        link.href = window.URL.createObjectURL(blob);
-                        link.download = fileName+".pdf";
-                        link.click();
-
-                        swal.close();
-
-                        window.location.reload();
-                    }
+            let checkedCount = 0;
+            for (let i = 0; i < generateStockerCheck.length; i++) {
+                if (generateStockerCheck[i].checked) {
+                    checkedCount++;
                 }
-            });
+            }
+
+            if (checkedCount > 0) {
+                let stockerForm = new FormData(document.getElementById("stocker-form"));
+
+                let no_ws = document.getElementById("no_ws").value;
+                let style = document.getElementById("style").value;
+                let color = document.getElementById("color").value;
+                let panel = document.getElementById("panel").value;
+                let no_form_cut = document.getElementById("no_form_cut").value;
+
+                let fileName = [
+                    no_ws,
+                    style,
+                    color,
+                    panel,
+                    part,
+                    no_form_cut
+                ].join('-');
+
+                Swal.fire({
+                    title: 'Please Wait...',
+                    html: 'Exporting Data...',
+                    didOpen: () => {
+                        Swal.showLoading()
+                    },
+                    allowOutsideClick: false,
+                });
+
+                $.ajax({
+                    url: '{{ route('print-stocker-checked') }}',
+                    type: 'post',
+                    processData: false,
+                    contentType: false,
+                    data: stockerForm,
+                    xhrFields:
+                    {
+                        responseType: 'blob'
+                    },
+                    success: function(res) {
+                        if (res) {
+                            console.log(res);
+
+                            var blob = new Blob([res], {type: 'application/pdf'});
+                            var link = document.createElement('a');
+                            link.href = window.URL.createObjectURL(blob);
+                            link.download = fileName+".pdf";
+                            link.click();
+
+                            swal.close();
+
+                            window.location.reload();
+                        }
+                    }
+                });
+            } else {
+                Swal.fire({
+                    icon:'warning',
+                    title: 'Warning',
+                    html: 'Harap ceklis stocker yang akan di print',
+                });
+            }
         }
 
         function printNumbering(index) {
@@ -685,55 +698,72 @@
         }
 
         function generateCheckedNumbering() {
-            let stockerForm = new FormData(document.getElementById("stocker-form"));
+            let generateNumberingCheck = document.getElementsByClassName('generate-num-check');
 
-            let no_ws = document.getElementById("no_ws").value;
-            let style = document.getElementById("style").value;
-            let color = document.getElementById("color").value;
-            let panel = document.getElementById("panel").value;
-            let no_form_cut = document.getElementById("no_form_cut").value;
-
-            let fileName = [
-                no_ws,
-                style,
-                color,
-                panel,
-                no_form_cut,
-            ].join('-');
-
-            Swal.fire({
-                title: 'Please Wait...',
-                html: 'Exporting Data...',
-                didOpen: () => {
-                    Swal.showLoading()
-                },
-                allowOutsideClick: false,
-            });
-
-            $.ajax({
-                url: '{{ route('print-numbering-checked') }}',
-                type: 'post',
-                processData: false,
-                contentType: false,
-                data: stockerForm,
-                xhrFields:
-                {
-                    responseType: 'blob'
-                },
-                success: function(res) {
-                    if (res) {
-                        console.log(res);
-
-                        var blob = new Blob([res], {type: 'application/pdf'});
-                        var link = document.createElement('a');
-                        link.href = window.URL.createObjectURL(blob);
-                        link.download = fileName+".pdf";
-                        link.click();
-                    }
-
-                    window.location.reload();
+            let checkedCount = 0;
+            for (let i = 0; i < generateNumberingCheck.length; i++) {
+                if (generateNumberingCheck[i].checked) {
+                    checkedCount++;
                 }
-            });
+            }
+
+            if (checkedCount > 0) {
+                let stockerForm = new FormData(document.getElementById("stocker-form"));
+
+                let no_ws = document.getElementById("no_ws").value;
+                let style = document.getElementById("style").value;
+                let color = document.getElementById("color").value;
+                let panel = document.getElementById("panel").value;
+                let no_form_cut = document.getElementById("no_form_cut").value;
+
+                let fileName = [
+                    no_ws,
+                    style,
+                    color,
+                    panel,
+                    no_form_cut,
+                ].join('-');
+
+                Swal.fire({
+                    title: 'Please Wait...',
+                    html: 'Exporting Data...',
+                    didOpen: () => {
+                        Swal.showLoading()
+                    },
+                    allowOutsideClick: false,
+                });
+
+                $.ajax({
+                    url: '{{ route('print-numbering-checked') }}',
+                    type: 'post',
+                    processData: false,
+                    contentType: false,
+                    data: stockerForm,
+                    xhrFields:
+                    {
+                        responseType: 'blob'
+                    },
+                    success: function(res) {
+                        if (res) {
+                            console.log(res);
+
+                            var blob = new Blob([res], {type: 'application/pdf'});
+                            var link = document.createElement('a');
+                            link.href = window.URL.createObjectURL(blob);
+                            link.download = fileName+".pdf";
+                            link.click();
+                        }
+
+                        window.location.reload();
+                    }
+                });
+            } else {
+                Swal.fire({
+                    icon:'warning',
+                    title: 'Warning',
+                    html: 'Harap ceklis numbering yang akan di print',
+                });
+            }
         }
 
         function countStockerUpdate() {

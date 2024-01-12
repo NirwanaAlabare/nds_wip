@@ -412,8 +412,6 @@ class StockerController extends Controller
                     $cumRangeAwal = $cumRangeAkhir + 1;
                     $cumRangeAkhir = $cumRangeAkhir + $request['qty_ply_group'][$i];
 
-                    \Log::info($request['ratio'][$i] . "-" . ($j + 1) . '-' . ($stockerId));
-
                     $storeItem = Stocker::updateOrCreate(
                         [
                             'id_qr_stocker' => $stockerId,

@@ -20,7 +20,7 @@
                 </h2>
                 <div class="accordion-header-side col-3">
                     <div class="form-check ms-3">
-                        <input class="form-check-input generate-{{ $partDetail->id }}" type="checkbox" id="generate_{{ $partIndex }}" name="generate_stocker[{{ $partIndex }}]" data-group="generate-{{ $partDetail->id }}" value="{{ $partDetail->id }}" onchange="massChange(this)" disabled>
+                        <input class="form-check-input generate-stocker-check generate-{{ $partDetail->id }}" type="checkbox" id="generate_{{ $partIndex }}" name="generate_stocker[{{ $partIndex }}]" data-group="generate-{{ $partDetail->id }}" value="{{ $partDetail->id }}" onchange="massChange(this)" disabled>
                         <label class="form-check-label fw-bold text-sb">
                             Generate Stocker
                         </label>
