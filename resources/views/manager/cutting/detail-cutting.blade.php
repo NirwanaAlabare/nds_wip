@@ -1168,8 +1168,10 @@
                 inputGroupUnit[i].innerText = unitSimplified;
             }
 
-            // updating est ampar & ply progress bar
+            // updating est ampar & updating short roll & ply progress bar
             calculateEstAmpar();
+
+            calculateShortRoll();
 
             updatePlyProgress();
         }
