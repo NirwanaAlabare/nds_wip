@@ -24,12 +24,13 @@
                 <table class="table table-bordered w-100" id="datatable">
                     <thead>
                         <tr>
+                            <th>Act</th>
+                            <th>Trolley</th>
                             <th>WS Number</th>
                             <th>Style</th>
                             <th>Color</th>
-                            <th>Trolley</th>
                             <th>Qty</th>
-                            <th>Act</th>
+                            <th>Send</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -57,6 +58,12 @@
             },
             columns: [
                 {
+                    data: 'id'
+                },
+                {
+                    data: 'nama_trolley',
+                },
+                {
                     data: 'act_costing_ws',
                 },
                 {
@@ -64,9 +71,6 @@
                 },
                 {
                     data: 'color',
-                },
-                {
-                    data: 'nama_trolley',
                 },
                 {
                     data: 'qty',
@@ -77,7 +81,20 @@
             ],
             columnDefs: [
                 {
-                    targets: [3],
+                    targets: [0],
+                    className: "align-middle",
+                    render: (data, type, row, meta) => {
+                        return `
+                            <div class='d-flex gap-1 justify-content-center'>
+                                <a class='btn btn-success btn-sm' href='{{ route('allocate-this-trolley') }}/`+row.id+`'>
+                                    <i class='fa fa-plus'></i>
+                                </a>
+                            </div>
+                        `;
+                    }
+                },
+                {
+                    targets: [6],
                     className: "align-middle",
                     render: (data, type, row, meta) => {
                         return `
@@ -85,16 +102,10 @@
                                 <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editMasterTrolleyModal" onclick='editData(` + JSON.stringify(row) + `, "editMasterTrolleyModal", [{"function" : "datatableReload()"}]);'>
                                     <i class='fa fa-edit'></i>
                                 </a>
-                                <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route("destroy-trolley") }}/`+row['id']+`' onclick='deleteData(this);'>
-                                    <i class='fa fa-trash'></i>
-                                </a>
-                                <button type="button" class="btn btn-sm btn-secondary" data='`+JSON.stringify(row)+`' data-url='{{ route("print-trolley") }}/`+row['id']+`' onclick="printTrolley(this);">
-                                    <i class="fa fa-print fa-s"></i>
-                                </button>
                             </div>
                         `;
                     }
-                },
+                }
             ]
         });
 

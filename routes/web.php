@@ -396,10 +396,14 @@ Route::middleware('auth')->group(function () {
     Route::controller(TrolleyStockerController::class)->prefix("stock-trolley")->middleware('dc')->group(function () {
         Route::get('/', 'index')->name('stock-trolley');
         Route::get('/allocate', 'allocate')->name('allocate-trolley');
+        Route::get('/allocate-this/{id?}', 'allocateThis')->name('allocate-this-trolley');
+        Route::post('/store-allocate-this', 'storeAllocateThis')->name('store-allocate-this-trolley');
         Route::post('/store', 'store')->name('store-trolley-stock');
         Route::put('/update', 'update')->name('update-trolley-stock');
         Route::delete('/destroy/{id?}', 'destroy')->name('destroy-trolley-stock');
         Route::post('/print-bon-mutasi/{id?}', 'printBonMutasi')->name('print-trolley-stock');
+
+        Route::get('/get-stocker-data/{id?}', 'getStockerData')->name('get-stocker-data-trolley-stock');
     });
 
     //Mutasi Karywawan

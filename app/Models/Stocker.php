@@ -36,4 +36,20 @@ class Stocker extends Model
     {
         return $this->hasMany(StockerDetail::class, 'stocker_id', 'id');
     }
+
+    /**
+     * Get the stocker rack.
+     */
+    public function rackDetailStockers()
+    {
+        return $this->hasMany(RackDetailStocker::class, 'stocker_id', 'id_qr_stocker');
+    }
+
+    /**
+     * Get the stocker trolley.
+     */
+    public function trolleyStockers()
+    {
+        return $this->hasMany(TrolleyStocker::class, 'stocker_id', 'id');
+    }
 }
