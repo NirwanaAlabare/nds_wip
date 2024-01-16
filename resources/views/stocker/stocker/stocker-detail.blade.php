@@ -435,6 +435,10 @@
                     }
                 }
             }
+
+            window.onfocus = function() {
+                window.location.reload();
+            };
         });
 
         function rearrangeGroup(noForm) {
