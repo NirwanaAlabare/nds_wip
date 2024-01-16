@@ -37,7 +37,7 @@ class TrolleyStockerController extends Controller
                 leftJoin('stocker_input', 'stocker_input.id', '=', 'trolley_stocker.stocker_id')->
                 leftJoin('form_cut_input', 'form_cut_input.id', '=', 'stocker_input.form_cut_id')->
                 leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')->
-                groupBy('stocker_input.act_costing_ws', 'marker_input.style', 'stocker_input.color', 'trolley.id');
+                groupBy('trolley_stocker.id');
 
             return DataTables::eloquent($trolleyStock)
                 ->filter(function ($query) {
@@ -52,7 +52,7 @@ class TrolleyStockerController extends Controller
                 ->toJson();
         }
 
-        return view('trolley.stock-trolley', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'stock-trolley']);
+        return view('trolley.stock-trolley.stock-trolley', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'stock-trolley']);
     }
 
     /**
@@ -69,7 +69,7 @@ class TrolleyStockerController extends Controller
     {
         $trolleys = Trolley::orderBy('nama_trolley', 'asc')->get();
 
-        return view('trolley.allocate-trolley', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'stock-trolley', 'trolleys' => $trolleys]);
+        return view('trolley.stock-trolley.allocate-trolley', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'stock-trolley', 'trolleys' => $trolleys]);
     }
 
     public function allocateThis(Request $request, $id)
@@ -82,7 +82,7 @@ class TrolleyStockerController extends Controller
                     form_cut_input.no_cut,
                     marker_input.style,
                     stocker_input.color,
-                    master_part.nama_part,
+                    GROUP_CONCAT(DISTINCT master_part.nama_part) nama_part,
                     stocker_input.size
                 ")->
                 leftJoin("stocker_input", "stocker_input.id", "=", "trolley_stocker.stocker_id")->
@@ -91,6 +91,7 @@ class TrolleyStockerController extends Controller
                 leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
                 leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
                 where('trolley_id', $id)->
+                groupBy('form_cut_input.no_cut', 'stocker_input.size')->
                 get();
 
             return DataTables::of($trolley)->toJson();
@@ -98,7 +99,7 @@ class TrolleyStockerController extends Controller
 
         $trolley = Trolley::with('userLine')->where('id', $id)->first();
 
-        return view('trolley.allocate-this-trolley', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'stock-trolley', 'trolley' => $trolley]);
+        return view('trolley.stock-trolley.allocate-this-trolley', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'stock-trolley', 'trolley' => $trolley]);
     }
 
     /**
@@ -122,18 +123,35 @@ class TrolleyStockerController extends Controller
         $lastTrolleyStock = TrolleyStocker::select('kode')->orderBy('id', 'desc')->first();
         $trolleyStockNumber = $lastTrolleyStock ? intval(substr($lastTrolleyStock->kode, -5)) + 1 : 1;
 
-        $trolleyStockCode = "TLS".sprintf('%05s', $trolleyStockNumber);
+        $stockerData = Stocker::where("id", $validatedRequest["stocker_id"])->first();
+        $similarStockerData = Stocker::where("form_cut_id", $stockerData->form_cut_id)->
+            where("so_det_id", $stockerData->so_det_id)->
+            where("group_stocker", $stockerData->group_stocker)->
+            where("ratio", $stockerData->ratio)->
+            get();
 
-        $storeTrolleyStock = TrolleyStocker::create([
-            "kode" => $trolleyStockCode,
-            "trolley_id" => $validatedRequest['trolley_id'],
-            "stocker_id" => $validatedRequest['stocker_id'],
-            "status" => "active",
-            "tanggal_alokasi" => date('Y-m-d')
-        ]);
+        $trolleyStockArr = [];
 
-        if ($storeTrolleyStock) {
-            $updateStocker = Stocker::where("id", $validatedRequest["stocker_id"])->
+        $i = 0;
+        foreach ($similarStockerData as $stocker) {
+            array_push($trolleyStockArr, [
+                "kode" => "TLS".sprintf('%05s', ($trolleyStockNumber+$i)),
+                "trolley_id" => $validatedRequest['trolley_id'],
+                "stocker_id" => $stocker['id'],
+                "status" => "active",
+                "tanggal_alokasi" => date('Y-m-d')
+            ]);
+
+            $i++;
+        }
+
+        $storeTrolleyStock = TrolleyStocker::insert($trolleyStockArr);
+
+        if (count($trolleyStockArr) > 0) {
+            $updateStocker = Stocker::where("form_cut_id", $stockerData->form_cut_id)->
+                where("so_det_id", $stockerData->so_det_id)->
+                where("group_stocker", $stockerData->group_stocker)->
+                where("ratio", $stockerData->ratio)->
                 update([
                     "lokasi" => "trolley",
                     "latest_alokasi" => Carbon::now()
@@ -214,10 +232,21 @@ class TrolleyStockerController extends Controller
     {
         $getTrolleyStockData = TrolleyStocker::where("id", $id)->first();
 
-        $deleteTrolleyStock = TrolleyStocker::where("id", $id)->delete();
+        $stockerData = Stocker::where("id", $getTrolleyStockData->stocker_id)->first();
+
+        $deleteTrolleyStock = TrolleyStocker::leftJoin("stocker_input", "stocker_input.id", "=", "trolley_stocker.stocker_id")->
+            whereRaw("trolley_stocker.trolley_id = '".$getTrolleyStockData->trolley_id."'")->
+            whereRaw("stocker_input.form_cut_id = '".$stockerData->form_cut_id."'")->
+            whereRaw("stocker_input.so_det_id = '".$stockerData->so_det_id."'")->
+            whereRaw("stocker_input.group_stocker = '".$stockerData->group_stocker."'")->
+            whereRaw("stocker_input.ratio = '".$stockerData->ratio."'")->
+            delete();
 
         if ($deleteTrolleyStock) {
-            $updateStocker = Stocker::where("id", $getTrolleyStockData->stocker_id)->
+            $updateStocker = Stocker::where("stocker_input.form_cut_id", $stockerData->form_cut_id)->
+                where("stocker_input.so_det_id", $stockerData->so_det_id)->
+                where("stocker_input.group_stocker", $stockerData->group_stocker)->
+                where("stocker_input.ratio", $stockerData->ratio)->
                 update([
                     "lokasi" => "idle",
                     "latest_alokasi" => Carbon::now()
@@ -256,15 +285,43 @@ class TrolleyStockerController extends Controller
 
     public function getStockerData($id = 0)
     {
-        $scannedStocker = Stocker::leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+        $scannedStocker = Stocker::selectRaw("
+                stocker_input.id,
+                stocker_input.act_costing_ws,
+                stocker_input.color,
+                stocker_input.id_qr_stocker,
+                stocker_input.size,
+                stocker_input.qty_ply,
+                stocker_input.lokasi,
+                form_cut_input.no_cut,
+                marker_input.buyer,
+                marker_input.style
+            ")->
+            leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
             leftJoin("marker_input", "marker_input.kode", "form_cut_input.id_marker")->
             where('id_qr_stocker', $id)->
             first();
 
-        if ($scannedStocker) {
-            return json_encode($scannedStocker);
+        if ($scannedStocker && $scannedStocker->lokasi != "trolley") {
+            return json_encode(
+                array(
+                    'status' => 200,
+                    'message' => 'Stocker berhasil ditemukan',
+                    'data' => $scannedStocker,
+                    'redirect' => '',
+                    'additional' => []
+                )
+            );
         }
 
-        return json_encode(null);
+        return json_encode(
+            array(
+                'status' => 400,
+                'message' => 'Stocker tidak ditemukan',
+                'data' => null,
+                'redirect' => '',
+                'additional' => []
+            )
+        );
     }
 }

@@ -324,6 +324,12 @@
                                         Trolley <i class="fas fa-dolly-flatbed"></i>
                                     </a>
                                 </li>
+                                <li>
+                                    <a href="{{ route('stock-trolley') }}"
+                                        class="dropdown-item {{ $subPage == 'stock-trolley' ? 'active' : '' }}">
+                                        Line <i class="fas fa-dolly-flatbed"></i>
+                                    </a>
+                                </li>
                             @enddc
                         </ul>
                     </li>
@@ -331,14 +337,11 @@
 
                 @if ($page == 'dashboard-mut-karyawan')
                     <li class="nav-item dropdown">
-                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
-                            aria-haspopup="true"aria-expanded="false"
-                            class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-karyawan' ? 'active' : '' }}">Proses</a>
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-karyawan' ? 'active' : '' }}">Proses</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @hr
                                 <li>
-                                    <a href="{{ route('mut-karyawan') }}"
-                                        class="dropdown-item {{ $subPage == 'mut-karyawan' ? 'active' : '' }}">
+                                    <a href="{{ route('mut-karyawan') }}" class="dropdown-item {{ $subPage == 'mut-karyawan' ? 'active' : '' }}">
                                         Mutasi Karyawan<i class="fas fa-users-cog fa-sm"></i>
                                     </a>
                                 </li>

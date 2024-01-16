@@ -47,6 +47,7 @@
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-rowsgroup/dataTables.rowsGroup.js') }}"></script>
 
     <script>
         let datatable = $("#datatable").DataTable({
@@ -58,6 +59,7 @@
             },
             columns: [
                 {
+                    name: 'id',
                     data: 'id'
                 },
                 {
@@ -79,6 +81,13 @@
                     data: 'id'
                 },
             ],
+            rowsGroup: [
+                // Always the array (!) of the column-selectors in specified order to which rows groupping is applied
+                // (column-selector could be any of specified in https://datatables.net/reference/type/column-selector)
+                0,
+                1,
+                6
+            ],
             columnDefs: [
                 {
                     targets: [0],
@@ -94,19 +103,23 @@
                     }
                 },
                 {
+                    targets: [1],
+                    className: "align-middle",
+                },
+                {
                     targets: [6],
                     className: "align-middle",
                     render: (data, type, row, meta) => {
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
-                                <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editMasterTrolleyModal" onclick='editData(` + JSON.stringify(row) + `, "editMasterTrolleyModal", [{"function" : "datatableReload()"}]);'>
-                                    <i class='fa fa-edit'></i>
+                                <a href='' class='btn btn-primary btn-sm' data-bs-toggle="modal">
+                                    <i class='fa fa-share'></i>
                                 </a>
                             </div>
                         `;
                     }
                 }
-            ]
+            ],
         });
 
         function datatableReload() {

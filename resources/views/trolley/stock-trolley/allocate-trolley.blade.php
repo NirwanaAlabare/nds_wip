@@ -9,7 +9,7 @@
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="text-sb fw-bold">Alokasi Trolley</h5>
-        <a href="{{ route('trolley') }}" class="btn btn-success btn-sm">
+        <a href="{{ route('stock-trolley') }}" class="btn btn-success btn-sm">
             <i class="fas fa-reply"></i> Kembali ke Stok Trolley
         </a>
     </div>

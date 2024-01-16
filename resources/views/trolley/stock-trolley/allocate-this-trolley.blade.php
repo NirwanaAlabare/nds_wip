@@ -12,14 +12,14 @@
 
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="text-sb fw-bold">Alokasi Trolley</h5>
-        <a href="{{ route('trolley') }}" class="btn btn-success btn-sm">
+        <h5 class="text-sb fw-bold">{{ $trolley->nama_trolley }}</h5>
+        <a href="{{ route('stock-trolley') }}" class="btn btn-success btn-sm">
             <i class="fas fa-reply"></i> Kembali ke Stok Trolley
         </a>
     </div>
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold">{{ $trolley->nama_trolley }}</h5>
+            <h5 class="card-title fw-bold">Alokasi Trolley</h5>
             <div class="card-tools">
                 <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
                 </button>
@@ -92,7 +92,7 @@
             </form>
         </div>
     </div>
-    <div class="card card-info" id="stock-trolley">
+    <div class="card card-primary" id="stock-trolley">
         <div class="card-header">
             <h5 class="card-title fw-bold">Stock Trolley</h5>
             <div class="card-tools">
@@ -262,6 +262,8 @@
                     function getStockerDataInput() {
                         let id = document.getElementById('kode_stocker').value;
 
+                        console.log(id)
+
                         getStockerData(id);
                     }
 
@@ -272,8 +274,8 @@
                                 type: 'get',
                                 dataType: 'json',
                                 success: function(res) {
-                                    if (res) {
-                                        setStockerData(res);
+                                    if (res && res.status == 200) {
+                                        setStockerData(res.data);
                                     }
                                 },
                                 error: function(jqXHR) {
