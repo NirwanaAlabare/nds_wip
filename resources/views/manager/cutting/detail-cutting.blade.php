@@ -359,7 +359,8 @@
                 <div class="card-header">
                     <h3 class="card-title">Summary</h3>
                     <div class="card-tools">
-                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i
+                                class="fas fa-minus"></i></button>
                     </div>
                 </div>
                 <div class="card-body" style="display: block;">
@@ -372,23 +373,23 @@
                                             <th>No.</th>
                                             <th>Group</th>
                                             <th>Group Number</th>
-                                            <th>ID Roll</th>
-                                            <th>ID Item</th>
-                                            <th>Lot</th>
-                                            <th>Roll</th>
-                                            <th>Qty</th>
-                                            <th>Unit</th>
+                                            <th class="label-scan">ID Roll</th>
+                                            <th class="label-scan">ID Item</th>
+                                            <th class="label-scan">Lot</th>
+                                            <th class="label-scan">Roll</th>
+                                            <th class="label-scan">Qty</th>
+                                            <th class="label-scan">Unit</th>
                                             <th>Sisa Gelaran</th>
                                             <th>Sambungan</th>
-                                            <th>Estimasi Amparan</th>
+                                            <th class="label-calc">Estimasi Amparan</th>
                                             <th>Lembar Gelaran</th>
                                             <th>Average Time</th>
                                             <th>Kepala Kain</th>
                                             <th>Sisa Tidak Bisa</th>
                                             <th>Reject</th>
                                             <th>Sisa Kain</th>
-                                            <th>Total Pemakaian Per Roll</th>
-                                            <th>Short Roll +/-</th>
+                                            <th class="label-calc">Total Pemakaian Per Roll</th>
+                                            <th class="label-calc">Short Roll +/-</th>
                                             <th>Piping</th>
                                             <th>Remark</th>
                                         </tr>
@@ -419,13 +420,7 @@
                             </div>
                         </div>
                         <div class="col-md-12">
-                            <div class="row">
-                                <div class="col-md-3">
-                                    <div class="mb-3">
-                                        <label class="form-label label-input"><small><b>Operator</b></small></label>
-                                        <input type="text" class="form-control form-control-sm border-input" name="operator" id="operator" value="{{ $formCutInputData->operator }}" readonly>
-                                    </div>
-                                </div>
+                            <div class="row align-items-end">
                                 <div class="col-md-3">
                                     <div class="mb-3">
                                         <label class="form-labe label-calc"><small><b>Cons. Actual 1 Gelaran</b></small></label>
@@ -435,7 +430,8 @@
                                 <div class="col-md-3">
                                     <div class="mb-3">
                                         <label class="form-label label-calc"><small><b>Unit</b></small></label>
-                                        <select class="form-select form-select-sm border-calc" name="unit_cons_actual_gelaran" id="unit_cons_actual_gelaran" disabled>
+                                        <select class="form-select form-select-sm border-calc"
+                                            name="unit_cons_actual_gelaran" id="unit_cons_actual_gelaran" disabled>
                                             <option value="meter">METER</option>
                                             <option value="yard">YARD</option>
                                             <option value="kgm">KGM</option>
@@ -444,8 +440,62 @@
                                 </div>
                                 <div class="col-md-3">
                                     <div class="mb-3">
-                                        <label class="form-label label-input"><small><b>Catatan</b></small></label>
-                                        <textarea class="form-control border-input" id="notes" name="notes" rows="2">{{ $formCutInputData->app_notes }}</textarea>
+                                        <label class="form-labe label-calc"><small><b>Kenaikan Cons. WS</b></small></label>
+                                        <div class="input-group input-group-sm mb-3">
+                                            <input type="text" class="form-control border-calc" name="cons_ws_uprate" id="cons_ws_uprate" readonly>
+                                            <span class="input-group-text border-calc">%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-labe label-calc"><small><b>Kenaikan Cons. Marker</b></small></label>
+                                        <div class="input-group input-group-sm mb-3">
+                                            <input type="text" class="form-control border-calc" name="cons_marker_uprate" id="cons_marker_uprate" readonly>
+                                            <span class="input-group-text border-calc">%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-labe label-calc"><small><b>Cons. Actual 1 Gelaran Tanpa Short Roll</b></small></label>
+                                        <input type="text" class="form-control form-control-sm border-calc" name="cons_actual_gelaran_short_rolless" id="cons_actual_gelaran_short_rolless" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label label-calc"><small><b>Unit</b></small></label>
+                                        <select class="form-select form-select-sm border-calc"
+                                            name="unit_cons_actual_gelaran_short_rolless" id="unit_cons_actual_gelaran_short_rolless" disabled>
+                                            <option value="meter">METER</option>
+                                            <option value="yard">YARD</option>
+                                            <option value="kgm">KGM</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-labe label-calc"><small><b>Kenaikan Cons. WS</b></small></label>
+                                        <div class="input-group input-group-sm mb-3">
+                                            <input type="text" class="form-control border-calc" name="cons_ws_uprate_nosr" id="cons_ws_uprate_nosr" readonly>
+                                            <span class="input-group-text border-calc">%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-labe label-calc"><small><b>Kenaikan Cons. Marker</b></small></label>
+                                        <div class="input-group input-group-sm mb-3">
+                                            <input type="text" class="form-control border-calc" name="cons_marker_uprate_nosr" id="cons_marker_uprate_nosr" readonly>
+                                            <span class="input-group-text border-calc">%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label class="form-label label-input"><small><b>Operator</b></small></label>
+                                        <input type="text" class="form-control form-control-sm border-input"
+                                            name="operator" id="operator" value="{{ $formCutInputData->operator }}">
                                     </div>
                                 </div>
                             </div>
@@ -494,7 +544,7 @@
                                 <label class="form-label" id="current_qty_real_label"><small><b>Qty</b></small></label>
                                 <div class="d-flex mb-3">
                                     <div style="width: 60%;">
-                                        <input type="number" class="form-control form-control-sm" style="border-radius: 3px 0 0 3px" id="current_qty_real" name="current_qty_real" onchange="setRollQtyConversion(this.value); calculateEstAmpar();" onkeyup="setRollQtyConversion(this.value); calculateEstAmpar();">
+                                        <input type="number" class="form-control form-control-sm" style="border-radius: 3px 0 0 3px" id="current_qty_real" name="current_qty_real" onchange="setRollQtyConversion(this.value); calculateEstAmpar(); calculateShortRoll()" onkeyup="setRollQtyConversion(this.value); calculateEstAmpar(); calculateShortRoll()">
                                     </div>
                                     <div style="width: 40%;">
                                         <input type="text" class="form-control form-control-sm" style="border-radius: 0 3px 3px 0" id="current_unit" name="current_unit" readonly>
@@ -764,87 +814,7 @@
 
             await getSummary();
 
-            await getNumberData();// -Finish Process-
-            function finishProcess() {
-                let now = new Date();
-                finishTime.value = now.getFullYear().toString() + "-" + pad(now.getMonth() + 1) + "-" + pad(
-                        now.getDate()) +
-                    " " + pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds());
-
-                if ($("#operator").val() == "" || $("#cons_actual_gelaran").val() == "") {
-                    return Swal.fire({
-                        icon: 'error',
-                        title: 'Tidak Dapat Menyelesaikan Proses',
-                        text: 'Harap pastikan data "Operator" dan "Cons. Actual 1 Gelaran" telah terisi',
-                        showConfirmButton: true,
-                        confirmButtonText: 'Oke',
-                        confirmButtonColor: "#6531a0",
-                    });
-                }
-
-                updateToFinishProcess();
-            }
-
-            // -Finish Process Transaction-
-            function updateToFinishProcess() {
-                Swal.fire({
-                    icon: 'info',
-                    title: 'Selesaikan Pengerjaan?',
-                    text: 'Yakin akan menyelesaikan proses pengerjaan?',
-                    showCancelButton: true,
-                    showConfirmButton: true,
-                    confirmButtonText: 'Selesaikan',
-                    confirmButtonColor: "#6531a0",
-                }).then(async (result) => {
-                    if (result.isConfirmed) {
-                        await updateToNextProcessOne();
-                        await updateToNextProcessTwo();
-
-                        $.ajax({
-                            url: '{{ route('finish-process-form-cut-input') }}/' + id,
-                            type: 'put',
-                            dataType: 'json',
-                            data: {
-                                finishTime: finishTime.value,
-                                operator: $('#operator').val(),
-                                consAct: $('#cons_actual_gelaran').val(),
-                                unitConsAct: $('#unit_cons_actual_gelaran').val(),
-                                totalLembar: totalLembar
-                            },
-                            success: function(res) {
-                                if (res) {
-                                    lockFormCutInput();
-
-                                    Swal.fire({
-                                        icon: 'success',
-                                        title: 'Berhasil',
-                                        text: 'Proses telah berhasil diselesaikan (Laman akan ditutup)',
-                                        showCancelButton: false,
-                                        showConfirmButton: true,
-                                        confirmButtonText: 'Oke',
-                                        timer: 3000,
-                                        timerProgressBar: true
-                                    }).then((result) => {
-                                        window.close();
-                                    })
-
-                                    status = "SELESAI PENGERJAAN";
-                                }
-                            },
-                            error: function(jqXHR) {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Gagal',
-                                    text: 'Terjadi kesalahan',
-                                    showCancelButton: false,
-                                    showConfirmButton: true,
-                                    confirmButtonText: 'Oke',
-                                });
-                            }
-                        });
-                    }
-                });
-            }
+            await getNumberData();
 
             await clearSpreadingForm();
 
@@ -894,17 +864,66 @@
         }
 
         // -Calculate Cons. Actual 1 Gelaran-
-        function calculateConsActualGelaran(unit = 0, lembar = 0, totalPemakaian = 0) {
+        function calculateConsActualGelaran(unit, totalQtyFabric, totalKepalaKain, totalSisaTidakBisa, totalReject, totalSisaKain, totalPiping, totalShortRoll) {
             let unitVar = unit;
-            let lembarVar = lembar;
-            let totalPemakaianVar = totalPemakaian;
-            let consActualGelaran = 0;
+            let totalQtyFabricVar = totalQtyFabric ? Number(totalQtyFabric) : 0;
+            let totalKepalaKainVar = totalKepalaKain ? Number(totalKepalaKain) : 0;
+            let totalSisaTidakBisaVar = totalSisaTidakBisa ? Number(totalSisaTidakBisa) : 0;
+            let totalRejectVar = totalReject ? Number(totalReject) : 0;
+            let totalSisaKainVar = totalSisaKain ? Number(totalSisaKain) : 0;
+            let totalPipingVar = totalPiping ? Number(totalPiping) : 0;
+            let totalShortRollVar = totalShortRoll ? Number(totalShortRoll) : 0;
 
-            // consActualGelaran = totalQtyCutVar > 0 ? (lembarVar * pActualConverted) / totalQtyCutVar : 0;
-            consActualGelaran = totalPemakaianVar / lembarVar;
+            let consActualGelaran = (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar)/totalQtyCut;
+            let consActualGelaranShortRolless = (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar + totalShortRollVar)/totalQtyCut;
 
-            document.getElementById("cons_actual_gelaran").value = consActualGelaran.round(2);
+            document.getElementById('cons_actual_gelaran').value = Number(consActualGelaran).round(3);
+            document.getElementById('cons_actual_gelaran_short_rolless').value = Number(consActualGelaranShortRolless).round(3);
+
             document.getElementById("unit_cons_actual_gelaran").value = unitVar.toLowerCase();
+            document.getElementById("unit_cons_actual_gelaran_short_rolless").value = unitVar.toLowerCase();
+
+            calculateConsAmpar();
+
+            consUpRate();
+        }
+
+        function consUpRate() {
+            let consActualGelaran = document.getElementById('cons_actual_gelaran').value;
+            let unitConsActualGelaran = document.getElementById('unit_cons_actual_gelaran').value;
+
+            let consActualGelaranShortRolless = document.getElementById('cons_actual_gelaran_short_rolless').value;
+            let unitConsActualGelaranShortRolless = document.getElementById('unit_cons_actual_gelaran_short_rolless').value;
+
+            let consWs = document.getElementById('cons_ws').value;
+            let consMarker = document.getElementById('cons_marker').value;
+
+            let consWsUpRate = 0;
+            let consMarkerUpRate = 0;
+            let consWsUpRateNoSr = 0;
+            let consMarkerUpRateNoSr = 0;
+
+            if (unitConsActualGelaran != "METER" && unitConsActualGelaranShortRolless != "METER") {
+                let consActualGelaranConverted = conversion(consActualGelaran, "METER", unitConsActualGelaran.toUpperCase());
+                let consActualGelaranShortRollessConverted = conversion(consActualGelaranShortRolless, "METER", unitConsActualGelaranShortRolless.toUpperCase());
+
+                consWsUpRate = (consActualGelaranConverted - consWs)/consWs * 100;
+                consMarkerUpRate = ((consActualGelaranConverted - consMarker)/consMarker) * 100;
+
+                consWsUpRateNoSr = ((consActualGelaranShortRollessConverted - consWs)/consWs) * 100;
+                consMarkerUpRateNoSr = ((consActualGelaranShortRollessConverted - consMarker)/consMarker) * 100;
+            } else {
+                consWsUpRate = ((consActualGelaran - consWs)/consWs) * 100;
+                consMarkerUpRate = ((consActualGelaran - consMarker)/consMarker) * 100;
+
+                consWsUpRateNoSr = ((consActualGelaranShortRolless - consWs)/consWs) * 100;
+                consMarkerUpRateNoSr = ((consActualGelaranShortRolless - consMarker)/consMarker) * 100;
+            }
+
+            document.getElementById('cons_ws_uprate').value = Number(consWsUpRate).round(2);
+            document.getElementById('cons_marker_uprate').value = Number(consMarkerUpRate).round(2);
+            document.getElementById('cons_ws_uprate_nosr').value = Number(consWsUpRateNoSr).round(2);
+            document.getElementById('cons_marker_uprate_nosr').value = Number(consMarkerUpRateNoSr).round(2);
         }
 
         // -Get Summary Data-
@@ -1351,7 +1370,8 @@
 
             let pActualFinal = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
 
-            consActual = totalQtyCut > 0 ? pActualFinal / totalQtyCut : 0;
+            // consActual = totalQtyCut > 0 ? pActualFinal / totalQtyCut : 0;
+            consActual = totalQtyCut > 0 ? pActualFinal / totalRatio : 0;
 
             document.getElementById('cons_act').value = consActual.round(2);
         }
@@ -1449,12 +1469,16 @@
 
             let pActualConverted = 0;
 
-            if (unitQtyVar != "KGM") {
-                pActualConverted = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
+            if (document.getElementById("current_sambungan").value > 0) {
+                pActualConverted = document.getElementById("current_sambungan").value;
             } else {
-                qtyVar = Number(document.getElementById("current_qty_real").value);
+                if (unitQtyVar != "KGM") {
+                    pActualConverted = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
+                } else {
+                    qtyVar = Number(document.getElementById("current_qty_real").value);
 
-                pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                    pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                }
             }
 
             // let shortRoll = pActualConverted * lembarGelaranVar + kepalaKainVar + pipingVar + sisaKainVar + rejectVar + sambunganVar - qtyVar;
@@ -1568,47 +1592,6 @@
             let estSambungan = pActualConverted - sisaGelaranConverted;
 
             return estSambungan.round(2);
-        }
-
-        // -Calculate Cons. Actual 1 Gelaran-
-        function calculateConsActualGelaran1(unit = 0, piping = 0, lembar = 0, totalQtyFabric = 0, totalQtyCut = 0, totalPemakaian) {
-            let unitVar = unit;
-            let pipingVar = Number(piping);
-            let lembarVar = Number(lembar);
-            let totalQtyFabricVar = Number(totalQtyFabric);
-            let totalQtyCutVar = Number(totalQtyCut);
-            let totalPemakaianVar = Number(totalPemakaian);
-            let pActualVar = Number(document.getElementById('p_act').value);
-            let unitPActualVar = document.getElementById("unit_p_act").value;
-            let lActualVar = Number(document.getElementById("l_act").value);
-            let commaActualVar = Number(document.getElementById("comma_act").value);
-            let gramasiVar = Number(document.getElementById("gramasi").value);
-
-            if (checkIfNull(unitVar) && checkIfNull(pipingVar) && checkIfNull(lembarVar) && checkIfNull(pActualVar) && checkIfNull(totalQtyCutVar)) {
-                let consActualGelaran = 0;
-
-                let commaMeter = commaActualVar / 100;
-
-                let pActualConverted = 0;
-
-                if (unitVar != "KGM") {
-                    pActualConverted = pActualCommaActual(pActualVar, unitPActualVar,
-                        commaActualVar);
-                } else {
-                    pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar,
-                        lActualVar,
-                        gramasiVar, unitVar);
-                }
-
-                // consActualGelaran = totalQtyCutVar > 0 ? (lembarVar * pActualConverted) / totalQtyCutVar : 0;
-                consActualGelaran = totalPemakaianVar / lembarVar;
-
-                document.getElementById("cons_actual_gelaran").value = consActualGelaran.round(2);
-                document.getElementById("unit_cons_actual_gelaran").value = unitVar.toLowerCase();
-                // document.getElementById("unit_cons_ampar").value = unitVar.toUpperCase();
-
-                calculateConsAmpar();
-            }
         }
 
         // -Get Cons. WS Data-
@@ -1798,6 +1781,12 @@
                     operator: $('#operator').val(),
                     consAct: $('#cons_actual_gelaran').val(),
                     unitConsAct: $('#unit_cons_actual_gelaran').val(),
+                    consActNosr: $('#cons_actual_gelaran_short_rolless').val(),
+                    unitConsActNosr: $('#unit_cons_actual_gelaran_short_rolless').val(),
+                    consWsUprate: $('#cons_ws_uprate').val(),
+                    consMarkerUprate: $('#cons_marker_uprate').val(),
+                    consWsUprateNoSr: $('#cons_ws_uprate_nosr').val(),
+                    consMarkerUprateNoSr: $('#cons_marker_uprate_nosr').val(),
                     totalLembar: totalLembar
                 },
                 success: function(res) {
