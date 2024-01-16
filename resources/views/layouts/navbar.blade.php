@@ -327,7 +327,7 @@
                                 <li>
                                     <a href="{{ route('stock-trolley') }}"
                                         class="dropdown-item {{ $subPage == 'stock-trolley' ? 'active' : '' }}">
-                                        Line <i class="fas fa-dolly-flatbed"></i>
+                                        Line <i class="fa-solid fa-users-line"></i>
                                     </a>
                                 </li>
                             @enddc
