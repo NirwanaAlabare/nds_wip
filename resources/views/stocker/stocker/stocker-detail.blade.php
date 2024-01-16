@@ -323,8 +323,8 @@
 
                                         $numberingThis = $dataNumbering ? $dataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->first() : null;
                                         $numberingBefore = $dataNumbering ? $dataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->sortByDesc('no_cut')->first() : null;
-                                        $rangeAwal = ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? $numberingBefore->range_akhir + 1 : "-") : "-") : 1);
-                                        $rangeAkhir = ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? $numberingBefore->range_akhir + $qty : "-") : "-") : $qty);
+                                        $rangeAwal = ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? $numberingBefore->range_akhir + 1 : "-") : 1) : 1);
+                                        $rangeAkhir = ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? $numberingBefore->range_akhir + $qty : "-") : $qty) : $qty);
                                         $numGeneratable = true;
                                     @endphp
                                     <tr>
@@ -344,7 +344,7 @@
                                         @if ($dataSpreading->no_cut > 1)
                                             @if ($numberingBefore)
                                                 @if ($numberingBefore->numbering_id != null)
-                                                    @if ($stockerThis && $stockerThis->numbering_id != null)
+                                                    @if ($numberingThis && $numberingThis->numbering_id != null)
                                                         <i class="fa fa-check"></i>
                                                     @else
                                                         <i class="fa fa-times"></i>
