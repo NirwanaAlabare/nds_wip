@@ -418,6 +418,8 @@
             paging: false,
         });
 
+        var generating = false;
+
         $(document).ready(() => {
             let generatableElements = document.getElementsByClassName('generatable');
 
@@ -437,7 +439,11 @@
             }
 
             window.onfocus = function() {
-                window.location.reload();
+                console.log(generating);
+
+                if (!generating) {
+                    window.location.reload();
+                }
             };
         });
 
@@ -460,6 +466,8 @@
         }
 
         function printStocker(index) {
+            generating = true;
+
             let stockerForm = new FormData(document.getElementById("stocker-form"));
 
             let no_ws = document.getElementById("no_ws").value;
@@ -511,11 +519,20 @@
 
                         window.location.reload();
                     }
+
+                    generating = false;
+                },
+                error: function(jqXHR) {
+                    console.log(jqXHR);
+
+                    generating = false;
                 }
             });
         }
 
         function printStockerAllSize(part) {
+            generating = true;
+
             let stockerForm = new FormData(document.getElementById("stocker-form"));
 
             let no_ws = document.getElementById("no_ws").value;
@@ -566,6 +583,12 @@
 
                         window.location.reload();
                     }
+                    generating = false;
+                },
+                error: function(jqXHR) {
+                    console.log(jqXHR);
+
+                    generating = false;
                 }
             });
         }
@@ -592,6 +615,8 @@
             }
 
             if (checkedCount > 0) {
+                generating = true;
+
                 let stockerForm = new FormData(document.getElementById("stocker-form"));
 
                 let no_ws = document.getElementById("no_ws").value;
@@ -642,6 +667,13 @@
 
                             window.location.reload();
                         }
+
+                        generating = false;
+                    },
+                    error: function(jqXHR) {
+                        console.log(jqXHR);
+
+                        generating = false;
                     }
                 });
             } else {
@@ -654,6 +686,8 @@
         }
 
         function printNumbering(index) {
+            generating = true;
+
             let stockerForm = new FormData(document.getElementById("stocker-form"));
 
             let no_ws = document.getElementById("no_ws").value;
@@ -703,11 +737,20 @@
                     }
 
                     window.location.reload();
+
+                    generating = false;
+                },
+                error: function(jqXHR) {
+                    console.log(jqXHR);
+
+                    generating = false;
                 }
             });
         }
 
         function generateCheckedNumbering() {
+            generating = true;
+
             let generateNumberingCheck = document.getElementsByClassName('generate-num-check');
 
             let checkedCount = 0;
@@ -765,6 +808,13 @@
                         }
 
                         window.location.reload();
+
+                        generating = false;
+                    },
+                    error: function(jqXHR) {
+                        console.log(jqXHR);
+
+                        generating = false;
                     }
                 });
             } else {
