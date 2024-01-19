@@ -59,8 +59,9 @@
                             <p>Selected Form : <span class="fw-bold" id="selected-row-count-1">0</span></p>
                         </div>
                         <div class="col-6">
-                            <button class="btn btn-success btn-sm float-end" onclick="addToCutPlan(this)"><i
-                                    class="fa fa-plus fa-sm"></i> Tambahkan ke Cut Plan</button>
+                            <button class="btn btn-success btn-sm float-end" onclick="addToCutPlan(this)">
+                                <i class="fa fa-plus fa-sm"></i> Tambahkan ke Cut Plan
+                            </button>
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -168,8 +169,7 @@
 
             datatableSelect.ajax.reload(() => {
                 $('#datatable-select').DataTable().ajax.reload(() => {
-                    document.getElementById('selected-row-count-1').innerText = $(
-                        '#datatable-select').DataTable().rows('.selected').data().length;
+                    document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
                 });
             });
 

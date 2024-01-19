@@ -344,7 +344,7 @@ class CutPlanController extends Controller
                     'app_at' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $approvedAt : null) : 'N',
                 ]);
 
-                if ($updateCutPlan) {
+                if ($updateCutPlan && $updateForm) {
                     array_push($success, $noFormVal);
                 } else {
                     array_push($fail, $noFormVal);
@@ -435,8 +435,6 @@ class CutPlanController extends Controller
                 if ($tglAkhir) {
                     $query->whereRaw("tgl_cutting <= '" . $tglAkhir . "'");
                 }
-
-                // dd($formInfoFilter, $markerInfoFilter, $mejaFilter, $approveFilter);
 
                 if ($formInfoFilter) {
                     $query->whereHas('formCutInput', function ($query) use ($formInfoFilter) {
