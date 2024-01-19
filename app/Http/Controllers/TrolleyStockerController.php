@@ -72,8 +72,34 @@ class TrolleyStockerController extends Controller
         //
     }
 
-    public function allocate()
+    public function allocate(Request $request)
     {
+        if ($request->ajax()) {
+            $trolley = TrolleyStocker::selectRaw("
+                    trolley_stocker.id,
+                    GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker ORDER BY stocker_input.id ASC SEPARATOR ', ') id_qr_stocker,
+                    stocker_input.act_costing_ws,
+                    form_cut_input.no_cut,
+                    marker_input.style,
+                    stocker_input.color,
+                    GROUP_CONCAT(DISTINCT master_part.nama_part) nama_part,
+                    stocker_input.size,
+                    SUM(stocker_input.qty_ply) qty
+                ")->
+                leftJoin("stocker_input", "stocker_input.id", "=", "trolley_stocker.stocker_id")->
+                leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+                leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+                leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+                leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+                where('trolley_id', $request->trolley_id)->
+                where('trolley_stocker.status', "active")->
+                where('stocker_input.lokasi', "trolley")->
+                groupBy('form_cut_input.no_cut', 'stocker_input.size')->
+                get();
+
+            return DataTables::of($trolley)->toJson();
+        }
+
         $trolleys = Trolley::orderBy('nama_trolley', 'asc')->get();
 
         return view('trolley.stock-trolley.allocate-trolley', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'stock-trolley', 'trolleys' => $trolleys]);
@@ -121,6 +147,83 @@ class TrolleyStockerController extends Controller
     public function store(Request $request)
     {
         //
+    }
+
+    public function storeAllocate(Request $request)
+    {
+        $validatedRequest = $request->validate([
+            "trolley_id" => "required",
+            "stocker_id" => "required",
+        ]);
+
+        $lastTrolleyStock = TrolleyStocker::select('kode')->orderBy('id', 'desc')->first();
+        $trolleyStockNumber = $lastTrolleyStock ? intval(substr($lastTrolleyStock->kode, -5)) + 1 : 1;
+
+        $stockerData = Stocker::where("id", $validatedRequest["stocker_id"])->first();
+        $similarStockerData = Stocker::where("form_cut_id", $stockerData->form_cut_id)->
+            where("so_det_id", $stockerData->so_det_id)->
+            where("group_stocker", $stockerData->group_stocker)->
+            where("ratio", $stockerData->ratio)->
+            get();
+
+        $trolleyStockArr = [];
+
+        $i = 0;
+        foreach ($similarStockerData as $stocker) {
+            array_push($trolleyStockArr, [
+                "kode" => "TLS".sprintf('%05s', ($trolleyStockNumber+$i)),
+                "trolley_id" => $validatedRequest['trolley_id'],
+                "stocker_id" => $stocker['id'],
+                "status" => "active",
+                "tanggal_alokasi" => date('Y-m-d'),
+                "created_at" => Carbon::now(),
+                "updated_at" => Carbon::now(),
+            ]);
+
+            $i++;
+        }
+
+        $storeTrolleyStock = TrolleyStocker::insert($trolleyStockArr);
+
+        if (count($trolleyStockArr) > 0) {
+            $updateStocker = Stocker::where("form_cut_id", $stockerData->form_cut_id)->
+                where("so_det_id", $stockerData->so_det_id)->
+                where("group_stocker", $stockerData->group_stocker)->
+                where("ratio", $stockerData->ratio)->
+                update([
+                    "lokasi" => "trolley",
+                    "latest_alokasi" => Carbon::now()
+                ]);
+
+            if ($updateStocker) {
+                return array(
+                    'status' => 200,
+                    'message' => 'Stocker berhasil dialokasi',
+                    'redirect' => '',
+                    'table' => 'trolley-stock-datatable',
+                    'callback' => 'clearAll()',
+                    'additional' => [],
+                );
+            }
+
+            return array(
+                'status' => 400,
+                'message' => 'Stocker gagal dialokasi',
+                'redirect' => '',
+                'table' => 'trolley-stock-datatable',
+                'callback' => 'clearAll()',
+                'additional' => [],
+            );
+        }
+
+        return array(
+            'status' => 400,
+            'message' => 'Stocker gagal dialokasi',
+            'redirect' => '',
+            'table' => 'trolley-stock-datatable',
+            'callback' => 'clearAll()',
+            'additional' => [],
+        );
     }
 
     public function storeAllocateThis(Request $request)

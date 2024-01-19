@@ -420,6 +420,7 @@ Route::middleware('auth')->group(function () {
 
         // allocate
         Route::get('/allocate', 'allocate')->name('allocate-trolley');
+        Route::post('/store-allocate', 'storeAllocate')->name('store-allocate-trolley');
         Route::get('/allocate-this/{id?}', 'allocateThis')->name('allocate-this-trolley');
         Route::post('/store-allocate-this', 'storeAllocateThis')->name('store-allocate-this-trolley');
 
