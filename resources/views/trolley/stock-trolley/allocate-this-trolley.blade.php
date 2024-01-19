@@ -26,7 +26,7 @@
             </div>
         </div>
         <div class="card-body" style="display: block" id="scan-stocker">
-            <form action="{{ route('store-allocate-this-trolley') }}" method="post" onsubmit="submitForm(this, event)">
+            <form action="{{ route('store-allocate-this-trolley') }}" method="post" onsubmit="submitForm(this, event)" id="stocker-form">
                 <div id="stocker-reader" onclick="clearStockerScan()"></div>
                 <input type="hidden" name="trolley_id" id="trolley_id" value="{{ $trolley->id }}">
                 <input type="hidden" name="stocker_id" id="stocker_id">
@@ -113,6 +113,7 @@
                         <th>Color</th>
                         <th>Part</th>
                         <th>Size</th>
+                        <th>Qty</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -185,6 +186,9 @@
                 },
                 {
                     data: 'size',
+                },
+                {
+                    data: 'qty',
                 },
             ],
             columnDefs: [
@@ -274,8 +278,18 @@
                                 type: 'get',
                                 dataType: 'json',
                                 success: function(res) {
+                                    clearStockerData();
+
                                     if (res && res.status == 200) {
                                         setStockerData(res.data);
+                                    } else {
+                                        Swal.fire({
+                                            icon: 'warning',
+                                            title: res.message,
+                                            showCancelButton: false,
+                                            showConfirmButton: true,
+                                            confirmButtonText: 'Oke',
+                                        });
                                     }
                                 },
                                 error: function(jqXHR) {
@@ -299,6 +313,28 @@
                                 }
                             }
                         }
+                    }
+
+                    function clearStockerData() {
+                        document.getElementById("stocker_act_costing_ws").readonly = false;
+                        document.getElementById("stocker_buyer").readonly = false;
+                        document.getElementById("stocker_style").readonly = false;
+                        document.getElementById("stocker_color").readonly = false;
+                        document.getElementById("stocker_id_qr_stocker").readonly = false;
+                        document.getElementById("stocker_no_cut").readonly = false;
+                        document.getElementById("stocker_size").readonly = false;
+                        document.getElementById("stocker_qty_ply").readonly = false;
+
+                        document.forms['stocker-form'].reset();
+
+                        document.getElementById("stocker_act_costing_ws").readonly = true;
+                        document.getElementById("stocker_buyer").readonly = true;
+                        document.getElementById("stocker_style").readonly = true;
+                        document.getElementById("stocker_color").readonly = true;
+                        document.getElementById("stocker_id_qr_stocker").readonly = true;
+                        document.getElementById("stocker_no_cut").readonly = true;
+                        document.getElementById("stocker_size").readonly = true;
+                        document.getElementById("stocker_qty_ply").readonly = true;
                     }
     </script>
 @endsection

@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Trolley;
 use App\Models\TrolleyStocker;
-use App\Models\SignalBit\UserLine;
 use App\Models\Stocker;
+use App\Models\LoadingLine;
+use App\Models\LoadingLinePlan;
+use App\Models\SignalBit\UserLine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
@@ -33,11 +35,16 @@ class TrolleyStockerController extends Controller
                     trolley.nama_trolley,
                     SUM(stocker_input.qty_ply) qty
                 ")->
-                leftJoin('trolley_stocker', 'trolley_stocker.trolley_id', '=', 'trolley.id')->
+                leftJoin("trolley_stocker", function($join)
+                    {
+                        $join->on('trolley_stocker.trolley_id', '=', 'trolley.id');
+                        $join->on('trolley_stocker.status', '=', DB::raw('"active"'));
+                    }
+                )->
                 leftJoin('stocker_input', 'stocker_input.id', '=', 'trolley_stocker.stocker_id')->
                 leftJoin('form_cut_input', 'form_cut_input.id', '=', 'stocker_input.form_cut_id')->
                 leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')->
-                groupBy('trolley_stocker.id');
+                groupBy('trolley.id', 'stocker_input.act_costing_ws', 'marker_input.style', 'stocker_input.color');
 
             return DataTables::eloquent($trolleyStock)
                 ->filter(function ($query) {
@@ -77,13 +84,14 @@ class TrolleyStockerController extends Controller
         if ($request->ajax()) {
             $trolley = TrolleyStocker::selectRaw("
                     trolley_stocker.id,
-                    stocker_input.id_qr_stocker,
+                    GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker ORDER BY stocker_input.id ASC SEPARATOR ', ') id_qr_stocker,
                     stocker_input.act_costing_ws,
                     form_cut_input.no_cut,
                     marker_input.style,
                     stocker_input.color,
                     GROUP_CONCAT(DISTINCT master_part.nama_part) nama_part,
-                    stocker_input.size
+                    stocker_input.size,
+                    SUM(stocker_input.qty_ply) qty
                 ")->
                 leftJoin("stocker_input", "stocker_input.id", "=", "trolley_stocker.stocker_id")->
                 leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
@@ -91,6 +99,8 @@ class TrolleyStockerController extends Controller
                 leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
                 leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
                 where('trolley_id', $id)->
+                where('trolley_stocker.status', "active")->
+                where('stocker_input.lokasi', "trolley")->
                 groupBy('form_cut_input.no_cut', 'stocker_input.size')->
                 get();
 
@@ -283,6 +293,152 @@ class TrolleyStockerController extends Controller
         );
     }
 
+    public function send(Request $request, $id) {
+        if ($request->ajax()) {
+            $trolley = TrolleyStocker::selectRaw("
+                    trolley_stocker.id,
+                    GROUP_CONCAT(stocker_input.id ORDER BY stocker_input.id ASC) stocker_id,
+                    GROUP_CONCAT(stocker_input.id_qr_stocker ORDER BY stocker_input.id ASC SEPARATOR ', ') id_qr_stocker,
+                    stocker_input.act_costing_ws,
+                    form_cut_input.no_cut,
+                    marker_input.style,
+                    stocker_input.color,
+                    GROUP_CONCAT(DISTINCT master_part.nama_part) nama_part,
+                    stocker_input.size,
+                    SUM(stocker_input.qty_ply) qty
+                ")->
+                leftJoin("stocker_input", "stocker_input.id", "=", "trolley_stocker.stocker_id")->
+                leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+                leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+                leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+                leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+                where('trolley_id', $id)->
+                where('trolley_stocker.status', 'active')->
+                where('stocker_input.lokasi', "!=", "line")->
+                groupBy('form_cut_input.no_cut', 'stocker_input.size')->
+                get();
+
+            return DataTables::of($trolley)->toJson();
+        }
+
+        $trolley = Trolley::with('userLine')->where('id', $id)->first();
+
+        $lines = UserLine::where('Groupp', 'SEWING')->whereRaw('(Locked != 1 || Locked is NULL)')->orderBy('line_id', 'asc')->get();
+
+        return view('trolley.stock-trolley.send-stock-trolley', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'stock-trolley', 'trolley' => $trolley, 'lines' => $lines]);
+    }
+
+    public function submitSend(Request $request) {
+        $success = [];
+        $fail = [];
+        $exist = [];
+
+        $lastLoadingLine = LoadingLine::select('kode')->orderBy("id", "desc")->first();
+        $lastLoadingLineNumber = $lastLoadingLine ? intval(substr($lastLoadingLine->kode, -5)) + 1 : 1;
+
+        $lineData = UserLine::where("line_id", $request->line_id)->first();
+
+        foreach ($request->selectedStocker as $req) {
+            $loadingStockArr = [];
+
+            $stockerIds = explode(",", $req['stocker_ids']);
+
+            for ($i = 0; $i < count($stockerIds); $i++) {
+                $thisStockerData = Stocker::where('id', $stockerIds[$i])->first();
+
+                $loadingLinePlan = LoadingLinePlan::where("act_costing_ws", $thisStockerData->act_costing_ws)->where("line_id", $lineData['line_id'])->first();
+
+                $isExist = LoadingLine::where("stocker_id", $stockerIds[$i])->count();
+
+                if ($isExist < 1) {
+                    if ($loadingLinePlan) {
+                        array_push($loadingStockArr, [
+                            "kode" => "LOAD".sprintf('%05s', ($lastLoadingLineNumber+$i)),
+                            "line_id" => $lineData['line_id'],
+                            "loading_plan_id" => $loadingLinePlan['id'],
+                            "nama_line" => $lineData['username'],
+                            "stocker_id" => $thisStockerData['id'],
+                            "qty" => $thisStockerData['qty_ply'],
+                            "status" => "active",
+                            "tanggal_loading" => $request['tanggal_loading'],
+                            "created_at" => Carbon::now(),
+                            "updated_at" => Carbon::now(),
+                        ]);
+                    } else {
+                        $lastLoadingPlan = LoadingLinePlan::selectRaw("MAX(kode) latest_kode")->first();
+                        $lastLoadingPlanNumber = intval(substr($lastLoadingPlan->latest_kode, -5)) + 1;
+                        $kodeLoadingPlan = 'LLP'.sprintf('%05s', $lastLoadingPlanNumber);
+
+                        $storeLoadingPlan = LoadingLinePlan::create([
+                            "line_id" => $lineData['line_id'],
+                            "kode" => $kodeLoadingPlan,
+                            "act_costing_id" => $thisStockerData->formCut->marker->act_costing_id,
+                            "act_costing_ws" => $thisStockerData->formCut->marker->act_costing_ws,
+                            "buyer" => $thisStockerData->formCut->marker->buyer,
+                            "style" => $thisStockerData->formCut->marker->style,
+                            "color" => $thisStockerData->formCut->marker->color,
+                            "tanggal" => $request['tanggal_loading'],
+                        ]);
+
+                        array_push($loadingStockArr, [
+                            "kode" => "LOAD".sprintf('%05s', ($lastLoadingLineNumber+$i)),
+                            "line_id" => $lineData['line_id'],
+                            "loading_plan_id" => $storeLoadingPlan['id'],
+                            "nama_line" => $lineData['username'],
+                            "stocker_id" => $thisStockerData['id'],
+                            "qty" => $thisStockerData['qty_ply'],
+                            "status" => "active",
+                            "tanggal_loading" => $request['tanggal_loading'],
+                            "created_at" => Carbon::now(),
+                            "updated_at" => Carbon::now(),
+                        ]);
+                    }
+                } else {
+                    array_push($exist, ['stocker' => $thisStockerData['id']]);
+                }
+            }
+
+            $storeLoadingStock = LoadingLine::insert($loadingStockArr);
+
+            if (count($loadingStockArr) > 0) {
+                $updateStocker = Stocker::whereIn("id", $stockerIds)->
+                    update([
+                        "lokasi" => "line",
+                        "latest_alokasi" => Carbon::now()
+                    ]);
+
+                $updateTrolleyStocker = TrolleyStocker::whereIn("stocker_id", $stockerIds)->
+                    update([
+                        "status" => "not active"
+                    ]);
+
+                if ($updateStocker) {
+                    array_push($success, ['stocker' => $stockerIds]);
+                } else {
+                    array_push($fail, ['stocker' => $stockerIds]);
+                }
+            }
+        }
+
+        if (count($success) > 0) {
+            return array(
+                'status' => 200,
+                'message' => 'Stocker berhasil dikirim',
+                'redirect' => '',
+                'table' => 'datatable-trolley-stock',
+                'additional' => ["success" => $success, "fail" => $fail, "exist" => $exist],
+            );
+        } else {
+            return array(
+                'status' => 400,
+                'message' => 'Data tidak ditemukan',
+                'redirect' => '',
+                'table' => 'datatable-trolley-stock',
+                'additional' => ["success" => $success, "fail" => $fail, "exist" => $exist],
+            );
+        }
+    }
+
     public function getStockerData($id = 0)
     {
         $scannedStocker = Stocker::selectRaw("
@@ -302,16 +458,38 @@ class TrolleyStockerController extends Controller
             where('id_qr_stocker', $id)->
             first();
 
-        if ($scannedStocker && $scannedStocker->lokasi != "trolley") {
-            return json_encode(
-                array(
-                    'status' => 200,
-                    'message' => 'Stocker berhasil ditemukan',
-                    'data' => $scannedStocker,
-                    'redirect' => '',
-                    'additional' => []
-                )
-            );
+        if ($scannedStocker) {
+            if ($scannedStocker->lokasi == "line") {
+                return json_encode(
+                    array(
+                        'status' => 400,
+                        'message' => 'Stocker sudah ada di sebuah line',
+                        'data' => null,
+                        'redirect' => '',
+                        'additional' => []
+                    )
+                );
+            } else if ($scannedStocker->lokasi == "trolley") {
+                return json_encode(
+                    array(
+                        'status' => 400,
+                        'message' => 'Stocker sudah ada di sebuah troli',
+                        'data' => null,
+                        'redirect' => '',
+                        'additional' => []
+                    )
+                );
+            } else {
+                return json_encode(
+                    array(
+                        'status' => 200,
+                        'message' => 'Stocker berhasil ditemukan',
+                        'data' => $scannedStocker,
+                        'redirect' => '',
+                        'additional' => []
+                    )
+                );
+            }
         }
 
         return json_encode(

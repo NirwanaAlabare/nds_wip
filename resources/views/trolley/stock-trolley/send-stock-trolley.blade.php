@@ -13,20 +13,20 @@
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="text-sb fw-bold">{{ $trolley->nama_trolley }}</h5>
-        <a href="{{ route('trolley') }}" class="btn btn-success btn-sm">
+        <a href="{{ route('stock-trolley') }}" class="btn btn-success btn-sm">
             <i class="fas fa-reply"></i> Kembali ke Stok Trolley
         </a>
     </div>
-    <div class="card card-sb">
-        <div class="card-header">
-            <h5 class="card-title fw-bold">Kirim ke Line</h5>
-            <div class="card-tools">
-                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
-                </button>
+    <form action="{{ route('store-allocate-this-trolley') }}" method="post" onsubmit="submitForm(this, event)">
+        <div class="card card-sb">
+            <div class="card-header">
+                <h5 class="card-title fw-bold">Kirim ke Line</h5>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
+                    </button>
+                </div>
             </div>
-        </div>
-        <div class="card-body" style="display: block" id="scan-stocker">
-            <form action="{{ route('store-allocate-this-trolley') }}" method="post" onsubmit="submitForm(this, event)">
+            <div class="card-body" style="display: block" id="scan-stocker">
                 <div id="line-reader" onclick="clearLineScan()"></div>
                 <input type="hidden" name="trolley_id" id="trolley_id" value="{{ $trolley->id }}">
                 <div class="mb-3">
@@ -34,44 +34,56 @@
                     <div class="input-group">
                         <select class="form-control form-control-sm select2bs4" name="line_id" id="line_id">
                             @foreach ($lines as $line)
-                                <option value="{{ $line->id }}">{{ $line->nama_line }}</option>
+                                <option value="{{ $line->line_id }}">{{ $line->FullName }}</option>
                             @endforeach
                         </select>
                         <button class="btn btn-sm btn-outline-success" type="button" onclick="getLineDataInput()">Get</button>
                         <button class="btn btn-sm btn-outline-primary" type="button" onclick="initLineScan()">Scan</button>
                     </div>
                 </div>
-            </form>
-        </div>
-    </div>
-    <div class="card card-primary" id="stock-trolley">
-        <div class="card-header">
-            <h5 class="card-title fw-bold">Stock Trolley</h5>
-            <div class="card-tools">
-                <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                    <i class="fas fa-minus"></i>
-                </button>
             </div>
         </div>
-        <div class="card-body" style="display: block">
-            <table class="table table-bordered" id="datatable-trolley-stock">
-                <thead>
-                    <tr>
-                        <th>Act</th>
-                        <th>No. Stocker</th>
-                        <th>No. WS</th>
-                        <th>No. Cut</th>
-                        <th>Style</th>
-                        <th>Color</th>
-                        <th>Part</th>
-                        <th>Size</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
+        <div class="card card-primary h-100">
+            <div class="card-header">
+                <div class="row align-items-center">
+                    <div class="col-6">
+                        <h5 class="card-title fw-bold">
+                            Kirim Stocker :
+                        </h5>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row justify-content-between mb-3">
+                    <div class="col-6">
+                        <p>Selected Stocker : <span class="fw-bold" id="selected-row-count-1">0</span></p>
+                    </div>
+                    <div class="col-6">
+                        <button class="btn btn-success btn-sm float-end" onclick="sendToLine(this)"><i class="fa fa-plus fa-sm"></i> Kirim ke Line</button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered w-100" id="datatable-trolley-stock">
+                        <thead>
+                            <tr>
+                                <th>Stocker IDs</th>
+                                <th>No. Stocker</th>
+                                <th>No. WS</th>
+                                <th>No. Cut</th>
+                                <th>Style</th>
+                                <th>Color</th>
+                                <th>Part</th>
+                                <th>Size</th>
+                                <th>Qty</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-    </div>
+    </form>
 @endsection
 
 @section('custom-script')
@@ -111,11 +123,11 @@
             processing: true,
             serverSide: true,
             ajax: {
-                url: '{{ route('allocate-this-trolley') }}/'+trolleyId+' }}',
+                url: '{{ route('send-trolley-stock') }}/'+trolleyId+' }}',
             },
             columns: [
                 {
-                    data: 'id'
+                    data: 'stocker_id'
                 },
                 {
                     data: 'id_qr_stocker',
@@ -138,26 +150,147 @@
                 {
                     data: 'size',
                 },
+                {
+                    data: 'qty',
+                },
             ],
             columnDefs: [
                 {
-                    targets: [0],
-                    className: "align-middle",
-                    render: (data, type, row, meta) => {
-                        return `
-                            <div class='d-flex gap-1 justify-content-center'>
-                                <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route("destroy-trolley-stock") }}/`+row['id']+`' onclick='deleteData(this);'>
-                                    <i class='fa fa-trash'></i>
-                                </a>
-                            </div>
-                        `;
-                    }
+                    targets: [0, 1],
+                    className: "d-none",
                 },
             ]
         });
 
+        // Datatable selected row selection
+        datatableTrolleyStock.on('click', 'tbody tr', function(e) {
+            e.currentTarget.classList.toggle('selected');
+            document.getElementById('selected-row-count-1').innerText = $('#datatable-trolley-stock').DataTable().rows('.selected').data().length;
+        });
+
         function datatableTrolleyStockReload() {
-            datatableTrolleyStock.ajax.reload();
+            datatableTrolleyStock.ajax.reload(() => {
+                document.getElementById('selected-row-count-1').innerText = $('#datatable-trolley-stock').DataTable().rows('.selected').data().length;
+            });
+        }
+
+        function sendToLine(element) {
+            let date = new Date();
+
+            let day = date.getDate();
+            let month = date.getMonth() + 1;
+            let year = date.getFullYear();
+
+            let tanggalLoading = `${year}-${month}-${day}`
+
+            let selectedStockerTable = $('#datatable-trolley-stock').DataTable().rows('.selected').data();
+            let selectedStocker = [];
+            for (let key in selectedStockerTable) {
+                if (!isNaN(key)) {
+                    selectedStocker.push({
+                        stocker_ids: selectedStockerTable[key]['stocker_id']
+                    });
+                }
+            }
+
+            let lineId = document.getElementById('line_id').value;
+
+            if (tanggalLoading && selectedStocker.length > 0) {
+                element.setAttribute('disabled', true);
+
+                $.ajax({
+                    type: "POST",
+                    url: '{!! route('submit-send-trolley-stock') !!}',
+                    data: {
+                        tanggal_loading: tanggalLoading,
+                        selectedStocker: selectedStocker,
+                        line_id: lineId
+                    },
+                    success: function(res) {
+                        element.removeAttribute('disabled');
+
+                        if (res.status == 200) {
+                            iziToast.success({
+                                title: 'Success',
+                                message: res.message,
+                                position: 'topCenter'
+                            });
+                        } else {
+                            iziToast.error({
+                                title: 'Error',
+                                message: res.message,
+                                position: 'topCenter'
+                            });
+                        }
+
+                        if (res.table != '') {
+                            $('#' + res.table).DataTable().ajax.reload(() => {
+                                document.getElementById('selected-row-count-1').innerText = $('#' + res.table).DataTable().rows('.selected').data().length;
+                            });
+                        }
+
+                        if (res.additional) {
+                            let message = "";
+
+                            if (res.additional['success'].length > 0) {
+                                res.additional['success'].forEach(element => {
+                                    message += element['stocker'] + " - Berhasil <br>";
+                                });
+                            }
+
+                            if (res.additional['fail'].length > 0) {
+                                res.additional['fail'].forEach(element => {
+                                    message += element['stocker'] + " - Gagal <br>";
+                                });
+                            }
+
+                            if (res.additional['exist'].length > 0) {
+                                res.additional['exist'].forEach(element => {
+                                    message += element['stocker'] + " - Sudah Ada <br>";
+                                });
+                            }
+
+                            if ((res.additional['success'].length + res.additional['fail'].length + res.additional['exist'].length) > 1) {
+                                Swal.fire({
+                                    icon: 'info',
+                                    title: 'Hasil Transfer',
+                                    html: message,
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                });
+                            }
+                        }
+                    },
+                    error: function(jqXHR) {
+                        element.removeAttribute('disabled');
+
+                        // let res = jqXHR.responseJSON;
+                        // let message = '';
+
+                        // for (let key in res.errors) {
+                        //     message = res.errors[key];
+                        // }
+
+                        // iziToast.error({
+                        //     title: 'Error',
+                        //     message: 'Terjadi kesalahan. ' + message,
+                        //     position: 'topCenter'
+                        // });
+
+                        console.log(jqXHR);
+                    }
+                })
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal',
+                    html: "Harap pilih line dan tentukan stocker nya",
+                    showCancelButton: false,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Oke',
+                });
+            }
         }
 
         // Scan QR Module :
@@ -171,23 +304,21 @@
                         if (document.getElementById("line-reader")) {
                             if (lineScannerInitialized == false) {
                                 if (lineScanner == null || (lineScanner && (lineScanner.getState() && lineScanner.getState() != 2))) {
-                                    const stockerScanSuccessCallback = (decodedText, decodedResult) => {
+                                    const lineScanSuccessCallback = (decodedText, decodedResult) => {
                                             // handle the scanned code as you like, for example:
                                         console.log(`Code matched = ${decodedText}`, decodedResult);
 
                                         // store to input text
                                         let breakDecodedText = decodedText.split('-');
 
-                                        $('#kode_stocker').val(breakDecodedText[0]).trigger('change');
-
-                                        getLineData(breakDecodedText[0]);
+                                        setLineInput(breakDecodedText[0])
 
                                         clearLineScan();
                                     };
-                                    const stockerScanConfig = { fps: 10, qrbox: { width: 250, height: 250 } };
+                                    const lineScanConfig = { fps: 10, qrbox: { width: 250, height: 250 } };
 
                                     // If you want to prefer front camera
-                                    await lineScanner.start({ facingMode: "environment" }, stockerScanConfig, stockerScanSuccessCallback);
+                                    await lineScanner.start({ facingMode: "environment" }, lineScanConfig, lineScanSuccessCallback);
 
                                     lineScannerInitialized = true;
                                 }
@@ -211,44 +342,8 @@
                         await initLineScan();
                     }
 
-                    function getLineDataInput() {
-                        let id = document.getElementById('kode_stocker').value;
-
-                        getLineData(id);
-                    }
-
-                    function getLineData(id) {
-                        if (checkIfNull(id)) {
-                            return $.ajax({
-                                url: '{{ route('get-line-data-trolley-stock') }}/' + id,
-                                type: 'get',
-                                dataType: 'json',
-                                success: function(res) {
-                                    if (res) {
-                                        setLineData(res);
-                                    }
-                                },
-                                error: function(jqXHR) {
-                                    console.log(jqXHR);
-                                }
-                            });
-                        }
-                    }
-
-                    function setLineData(data) {
-                        if (data) {
-                            for (let key in data) {
-                                console.log(document.getElementById('line_'+key));
-                                if (document.getElementById('line_'+key)) {
-                                    document.getElementById('line_'+key).value = data[key];
-                                    document.getElementById('line_'+key).setAttribute('value', data[key]);
-
-                                    if (document.getElementById('line_'+key).classList.contains('select2bs4') || document.getElementById('line_'+key).classList.contains('select2') || document.getElementById('line_'+key).classList.contains('select2bs4stat')) {
-                                        $('#line_'+key).val(data[key]).trigger('change.select2');
-                                    }
-                                }
-                            }
-                        }
+                    function setLineInput(val) {
+                        $('line_id').val(val).trigger("change");
                     }
 
         function addToLine(element) {
@@ -259,7 +354,7 @@
 
             let tanggalAlokasi = `${day}-${month}-${year}`;
 
-            let selectedForm = $('#datatable-select').DataTable().rows('.selected').data();
+            let selectedForm = $('#datatable-trolley-stock').DataTable().rows('.selected').data();
             let formCutPlan = [];
             for (let key in selectedForm) {
                 if (!isNaN(key)) {
@@ -301,8 +396,8 @@
                                 document.getElementById('selected-row-count-2').innerText = $('#' + res.table).DataTable().rows('.selected').data().length;
                             });
 
-                            $('#datatable-select').DataTable().ajax.reload(() => {
-                                document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
+                            $('#datatable-trolley-stock').DataTable().ajax.reload(() => {
+                                document.getElementById('selected-row-count-1').innerText = $('#datatable-trolley-stock').DataTable().rows('.selected').data().length;
                             });
                         }
 

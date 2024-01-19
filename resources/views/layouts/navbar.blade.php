@@ -325,8 +325,8 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('stock-trolley') }}"
-                                        class="dropdown-item {{ $subPage == 'stock-trolley' ? 'active' : '' }}">
+                                    <a href="{{ route('loading-line') }}"
+                                        class="dropdown-item {{ $subPage == 'loading-line' ? 'active' : '' }}">
                                         Line <i class="fa-solid fa-users-line"></i>
                                     </a>
                                 </li>

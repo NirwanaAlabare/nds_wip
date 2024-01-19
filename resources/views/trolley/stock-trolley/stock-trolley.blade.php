@@ -112,7 +112,7 @@
                     render: (data, type, row, meta) => {
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
-                                <a href='' class='btn btn-primary btn-sm' data-bs-toggle="modal">
+                                <a href='{{ route('send-trolley-stock') }}/`+data+`' class='btn btn-primary btn-sm'>
                                     <i class='fa fa-share'></i>
                                 </a>
                             </div>
