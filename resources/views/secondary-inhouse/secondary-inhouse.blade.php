@@ -313,14 +313,6 @@
                     data: 'name',
                 },
             ],
-            // columnDefs: [{
-            //     targets: [10],
-            //     render: (data, type, row, meta) => {
-            //         return `<div class='d-flex gap-1 justify-content-center'> <a class='btn btn-warning btn-sm' href='{{ route('create-dc-in') }}/` +
-            //             row.no_form +
-            //             `' data-bs-toggle='tooltip'><i class='fas fa-qrcode'></i></a> </div>`;
-            //     }
-            // }]
         });
     </script>
 

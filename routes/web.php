@@ -314,20 +314,36 @@ Route::middleware('auth')->group(function () {
         Route::put('/count-stocker-update', 'countStockerUpdate')->name('count-stocker-update');
     });
 
+    // // DC IN BACKUP
+    // Route::controller(DCInController::class)->prefix("dc-in")->middleware('dc')->group(function () {
+    //     Route::get('/', 'index')->name('dc-in');
+    //     Route::get('/create/{no_form?}', 'create')->name('create-dc-in');
+    //     Route::get('/getdata_stocker_info', 'getdata_stocker_info')->name('getdata_stocker_info');
+    //     Route::get('/getdata_stocker_input', 'getdata_stocker_input')->name('getdata_stocker_input');
+    //     Route::get('/getdata_dc_in', 'getdata_dc_in')->name('getdata_dc_in');
+    //     Route::post('/show_tmp_dc_in', 'show_tmp_dc_in')->name('show_tmp_dc_in');
+    //     Route::post('/get_alokasi', 'get_alokasi')->name('get_alokasi');
+    //     Route::post('/get_det_alokasi', 'get_det_alokasi')->name('get_det_alokasi');
+    //     Route::put('/update_tmp_dc_in', 'update_tmp_dc_in')->name('update_tmp_dc_in');
+    //     Route::post('/store', 'store')->name('store_dc_in');
+    //     Route::post('/simpan_final_dc_in', 'simpan_final_dc_in')->name('simpan_final_dc_in');
+    //     Route::get('/getdata_stocker_history', 'getdata_stocker_history')->name('getdata_stocker_history');
+    // });
+
     // DC IN
     Route::controller(DCInController::class)->prefix("dc-in")->middleware('dc')->group(function () {
         Route::get('/', 'index')->name('dc-in');
-        Route::get('/create/{no_form?}', 'create')->name('create-dc-in');
-        Route::get('/getdata_stocker_info', 'getdata_stocker_info')->name('getdata_stocker_info');
-        Route::get('/getdata_stocker_input', 'getdata_stocker_input')->name('getdata_stocker_input');
-        Route::get('/getdata_dc_in', 'getdata_dc_in')->name('getdata_dc_in');
-        Route::post('/show_tmp_dc_in', 'show_tmp_dc_in')->name('show_tmp_dc_in');
-        Route::post('/get_alokasi', 'get_alokasi')->name('get_alokasi');
-        Route::post('/get_det_alokasi', 'get_det_alokasi')->name('get_det_alokasi');
+        Route::post('/insert_tmp_dc', 'insert_tmp_dc')->name('insert_tmp_dc');
+        Route::get('/show_data_header', 'show_data_header')->name('show_data_header');
+        Route::get('/get_data_tmp', 'get_data_tmp')->name('get_data_tmp');
+        Route::post('/store', 'store')->name('store-dc-in');
+        Route::get('/create', 'create')->name('create-dc-in');
         Route::put('/update_tmp_dc_in', 'update_tmp_dc_in')->name('update_tmp_dc_in');
-        Route::post('/store', 'store')->name('store_dc_in');
-        Route::post('/simpan_final_dc_in', 'simpan_final_dc_in')->name('simpan_final_dc_in');
-        Route::get('/getdata_stocker_history', 'getdata_stocker_history')->name('getdata_stocker_history');
+        Route::get('/show_tmp_dc_in', 'show_tmp_dc_in')->name('show_tmp_dc_in');
+        Route::get('/get_proses', 'get_proses')->name('get_proses');
+        Route::get('/get_tempat', 'get_tempat')->name('get_tempat');
+        Route::get('/get_lokasi', 'get_lokasi')->name('get_lokasi');
+        Route::delete('/destroy', 'destroy')->name('destroy');
     });
 
     // Secondary INHOUSE
