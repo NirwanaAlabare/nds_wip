@@ -24,12 +24,13 @@
                 <table class="table table-bordered w-100" id="datatable">
                     <thead>
                         <tr>
+                            <th>Act</th>
+                            <th>Trolley</th>
                             <th>WS Number</th>
                             <th>Style</th>
                             <th>Color</th>
-                            <th>Trolley</th>
                             <th>Qty</th>
-                            <th>Act</th>
+                            <th>Send</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -46,6 +47,7 @@
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-rowsgroup/dataTables.rowsGroup.js') }}"></script>
 
     <script>
         let datatable = $("#datatable").DataTable({
@@ -57,6 +59,13 @@
             },
             columns: [
                 {
+                    name: 'id',
+                    data: 'id'
+                },
+                {
+                    data: 'nama_trolley',
+                },
+                {
                     data: 'act_costing_ws',
                 },
                 {
@@ -66,36 +75,51 @@
                     data: 'color',
                 },
                 {
-                    data: 'nama_trolley',
-                },
-                {
                     data: 'qty',
                 },
                 {
                     data: 'id'
                 },
             ],
+            rowsGroup: [
+                // Always the array (!) of the column-selectors in specified order to which rows groupping is applied
+                // (column-selector could be any of specified in https://datatables.net/reference/type/column-selector)
+                0,
+                1,
+                6
+            ],
             columnDefs: [
                 {
-                    targets: [3],
+                    targets: [0],
                     className: "align-middle",
                     render: (data, type, row, meta) => {
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
-                                <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editMasterTrolleyModal" onclick='editData(` + JSON.stringify(row) + `, "editMasterTrolleyModal", [{"function" : "datatableReload()"}]);'>
-                                    <i class='fa fa-edit'></i>
+                                <a class='btn btn-success btn-sm' href='{{ route('allocate-this-trolley') }}/`+row.id+`'>
+                                    <i class='fa fa-plus'></i>
                                 </a>
-                                <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route("destroy-trolley") }}/`+row['id']+`' onclick='deleteData(this);'>
-                                    <i class='fa fa-trash'></i>
-                                </a>
-                                <button type="button" class="btn btn-sm btn-secondary" data='`+JSON.stringify(row)+`' data-url='{{ route("print-trolley") }}/`+row['id']+`' onclick="printTrolley(this);">
-                                    <i class="fa fa-print fa-s"></i>
-                                </button>
                             </div>
                         `;
                     }
                 },
-            ]
+                {
+                    targets: [1],
+                    className: "align-middle",
+                },
+                {
+                    targets: [6],
+                    className: "align-middle",
+                    render: (data, type, row, meta) => {
+                        return `
+                            <div class='d-flex gap-1 justify-content-center'>
+                                <a href='{{ route('send-trolley-stock') }}/`+data+`' class='btn btn-primary btn-sm'>
+                                    <i class='fa fa-share'></i>
+                                </a>
+                            </div>
+                        `;
+                    }
+                }
+            ],
         });
 
         function datatableReload() {

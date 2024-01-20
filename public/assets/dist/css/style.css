@@ -186,6 +186,10 @@ table.vertical tbody td {
     color: var(--sb-color);
 }
 
+.text-sb-secondary {
+    color: var(--sb-secondary-color) !important;
+}
+
 /* Button Color */
 .btn-sb {
     border-color: var(--sb-color);
@@ -292,7 +296,6 @@ table.vertical tbody td {
 
 .home-item {
     text-decoration: none;
-
 }
 
 .home-item .card{
@@ -369,16 +372,22 @@ table.vertical tbody td {
 }
 
 /* Accordion Button */
+.accordion-item .accordion-button.accordion-sb  {
+    background-color: var(--light-color);
+}
+
 .accordion-button.accordion-sb {
     background-color: var(--sb-color) !important;
     color: var(--light-color) !important;
     font-weight: 600;
+    border-top-right-radius: 0px !important;
 }
 
 .accordion-button.accordion-sb.collapsed {
-    background-color: var(--light-color) !important;
+    background-color: #fff !important;
     color: var(--sb-color) !important;
     font-weight: 600;
+    border-top-right-radius: 0px !important;
 }
 
 .accordion-button.accordion-sb:focus {

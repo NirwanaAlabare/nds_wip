@@ -297,6 +297,12 @@ class ManagerController extends Controller
         $updateFormCutInput = FormCutInput::where("id", $id)->update([
             "cons_act" => $request->consAct,
             "unit_cons_act" => $request->unitConsAct,
+            "cons_act_nosr" => $request->consActNoSr,
+            "unit_cons_act_nosr" => $request->unitConsActNoSr,
+            "cons_ws_uprate" => $request->consWsUprate,
+            "cons_marker_uprate" => $request->consMarkerUprate,
+            "cons_ws_uprate_nosr" => $request->consWsUprateNoSr,
+            "cons_marker_uprate_nosr" => $request->consMarkerUprateNoSr,
             "total_lembar" => $request->totalLembar,
             "operator" => $request->operator,
         ]);

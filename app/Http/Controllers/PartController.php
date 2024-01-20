@@ -448,12 +448,13 @@ class PartController extends Controller
                 GROUP_CONCAT(DISTINCT CONCAT(master_part.nama_part, ' - ', master_part.bag) ORDER BY master_part.nama_part SEPARATOR ', ') part_details
             ")->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->leftJoin("master_part", "master_part.id", "part_detail.master_part_id")->where("part.id", $id)->groupBy("part.id")->first();
 
-        $data_part = DB::select("select pd.id isi, concat(nama_part,' - ',bag) tampil from part_detail pd
-        inner join master_part mp on pd.master_part_id = mp.id
-        where part_id = '$id'");
+        // $data_part = DB::select("select pd.id isi, concat(nama_part,' - ',bag) tampil from part_detail pd
+        // inner join master_part mp on pd.master_part_id = mp.id
+        // where part_id = '$id'");
+
+        $data_part = MasterPart::all();
 
         $data_tujuan = DB::select("select tujuan isi, tujuan tampil from master_tujuan");
-
 
         return view("marker.part.manage-part-secondary", ["part" => $part, "data_part" => $data_part, "data_tujuan" => $data_tujuan, "page" => "dashboard-marker",  "subPageGroup" => "proses-marker", "subPage" => "part"]);
     }
@@ -480,13 +481,19 @@ class PartController extends Controller
             "cboproses" => "required",
         ]);
 
-        $update_part = DB::update("
-    update part_detail
-    set
-    master_secondary_id = '" . $validatedRequest['cboproses'] . "',
-    cons = '$request->txtcons',
-    unit = 'METER'
-    where id = '$request->txtpart'");
+        // $update_part = DB::update("
+        //     update part_detail
+        //     set
+        //     master_secondary_id = '" . $validatedRequest['cboproses'] . "',
+        //     cons = '$request->txtcons',
+        //     unit = 'METER'
+        //     where id = '$request->txtpart'");
+
+        $update_part = PartDetail::updateOrCreate(['part_id' => $request->id, 'master_part_id' => $request->txtpart],[
+            'master_secondary_id' => $validatedRequest['cboproses'],
+            'cons' => $request->txtcons,
+            'unit' => 'METER',
+        ]);
 
         if ($update_part) {
             return array(
@@ -499,8 +506,6 @@ class PartController extends Controller
             'msg' => 'Data Part "' . $request->txtpart . '" berhasil diupdate',
         );
     }
-
-
 
     public function getFormCut(Request $request, $id = 0)
     {
@@ -689,13 +694,12 @@ class PartController extends Controller
         $list_part = DB::select(
             "
             SELECT pd.id,
-            nama_part,
-            bag,
+            CONCAT(nama_part, ' - ', bag) nama_part,
             master_secondary_id,
             ms.tujuan,
             ms.proses,
             cons,
-            unit
+            UPPER(unit) unit
             FROM `part_detail` pd
             inner join master_part mp on pd.master_part_id = mp.id
             left join master_secondary ms on pd.master_secondary_id = ms.id

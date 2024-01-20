@@ -120,7 +120,7 @@ function submitForm(e, evt) {
                     timer: 5000,
                     timerProgressBar: true
                 }).then(() => {
-                    if (res.redirect != '') {
+                    if (res.redirect && res.redirect != '') {
                         if (res.redirect != 'reload') {
                             location.href = res.redirect;
                         } else {
@@ -170,29 +170,28 @@ function submitForm(e, evt) {
 
                 e.reset();
 
-                if (res.callback != '') {
+                if (res.callback && res.callback != '') {
                     eval(res.callback);
                 }
 
                 if (document.getElementsByClassName('select2')) {
                     $(".select2").val('').trigger('change');
                 }
-            }
-          else if (res.status == 300) {
-            $('.modal').modal('hide');
+            } else if (res.status == 300) {
+                $('.modal').modal('hide');
 
-            iziToast.success({
-                title: 'success',
-                message: res.message,
-                position: 'topCenter'
-            });
+                iziToast.success({
+                    title: 'success',
+                    message: res.message,
+                    position: 'topCenter'
+                });
 
-            e.reset();
+                e.reset();
 
-            if (document.getElementsByClassName('select2')) {
-                $(".select2").val('').trigger('change');
-            }
-        } else {
+                if (document.getElementsByClassName('select2')) {
+                    $(".select2").val('').trigger('change');
+                }
+            } else {
                 for(let i = 0;i < res.errors; i++) {
                     document.getElementById(res.errors[i]).classList.add('is-invalid');
                     modified.push([res.errors[i], 'classList', 'remove(', "'is-invalid')"])

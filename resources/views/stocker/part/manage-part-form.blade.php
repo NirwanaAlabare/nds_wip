@@ -8,13 +8,6 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
-
-    <style>
-        /* table.dataTable tbody tr.selected {
-            color: white !important;
-            background-color: #da00c8 !important;
-        } */
-    </style>
 @endsection
 
 @section('content')
@@ -22,18 +15,59 @@
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="card-title fw-bold">
-                    <i class="fa fa-cog fa-sm"></i> Atur Cutting Plan
+                    <i class="fa fa-cog fa-sm"></i> Atur Part Form Cut
                 </h5>
-                <a href="{{ route('cut-plan') }}" class="btn btn-primary btn-sm">
-                    <i class="fa fa-reply fa-sm"></i> Kembali ke Daftar Cutting Plan
+                <a href="{{ route('part') }}" class="btn btn-sm btn-primary">
+                    <i class="fa fa-reply"></i> Kembali ke Part
                 </a>
             </div>
         </div>
         <div class="card-body">
             <form action="#" method="post">
-                <div class="mb-3">
-                    <label>Tanggal Plan</label>
-                    <input type="date" class="form-control" name="tgl_plan" id="tgl_plan" min='{{ date('Y-m-d') }}' value="{{ date('Y-m-d') }}">
+                <div class="row">
+                    <input type="hidden" class="form-control form-control-sm" name="id" id="id" value="{{ $part->id }}" readonly>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label><small><b>Kode Part</b></small></label>
+                            <input type="text" class="form-control form-control-sm" name="kode" id="kode" value="{{ $part->kode }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label><small><b>No. WS</b></small></label>
+                            <input type="text" class="form-control form-control-sm" name="ws" id="ws" value="{{ $part->act_costing_ws }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label><small><b>Buyer</b></small></label>
+                            <input type="text" class="form-control form-control-sm" name="buyer" id="buyer" value="{{ $part->buyer }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label><small><b>Style</b></small></label>
+                            <input type="text" class="form-control form-control-sm" name="style" id="style" value="{{ $part->style }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label><small><b>Color</b></small></label>
+                            <input type="text" class="form-control form-control-sm" name="color" id="color" value="{{ $part->color }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label><small><b>Panel</b></small></label>
+                            <input type="text" class="form-control form-control-sm" name="panel" id="panel" value="{{ $part->panel }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label><small><b>Parts</b></small></label>
+                            <input type="text" class="form-control form-control-sm" name="part_details" id="part_details" value="{{ $part->part_details }}" readonly>
+                        </div>
+                    </div>
                 </div>
             </form>
         </div>
@@ -45,22 +79,29 @@
                     <div class="row align-items-center">
                         <div class="col-6">
                             <h5 class="card-title fw-bold">
-                                Tambah Form Cut :
+                                Form Cut yang belum ditambahkan :
                             </h5>
                         </div>
-                        {{-- <div class="col-6">
-                            <input type="date" class="form-control form-control-sm w-auto float-end" id="tgl_form" name="tgl_form" value="{{ date('Y-m-d') }}">
-                        </div> --}}
                     </div>
                 </div>
                 <div class="card-body">
+                    {{-- <div class="d-flex gap-3">
+                        <div class="mb-3">
+                            <label><small><b>Tgl Awal</b></small></label>
+                            <input type="date" class="form-control form-control-sm w-auto" id="tgl_awal" name="tgl_awal" value="{{ date('Y-m-d') }}">
+                        </div>
+                        <div class="mb-3">
+                            <label><small><b>Tgl Akhir</b></small></label>
+                            <input type="date" class="form-control form-control-sm w-auto" id="tgl_akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}">
+                        </div>
+                    </div> --}}
                     <div class="row justify-content-between mb-3">
                         <div class="col-6">
-                            <p>Selected Form : <span class="fw-bold" id="selected-row-count-1">0</span></p>
+                            <p>Form yang dipilih : <span class="fw-bold" id="selected-row-count-2">0</span></p>
                         </div>
                         <div class="col-6">
-                            <button class="btn btn-success btn-sm float-end" onclick="addToCutPlan(this)">
-                                <i class="fa fa-plus fa-sm"></i> Tambahkan ke Cut Plan
+                            <button class="btn btn-success btn-sm float-end" onclick="addToPartForm(this)">
+                                <i class="fa fa-plus fa-sm"></i> Tambahkan ke Part
                             </button>
                         </div>
                     </div>
@@ -68,14 +109,15 @@
                         <table id="datatable-select" class="table table-bordered table-sm w-100">
                             <thead>
                                 <tr>
-                                    <th>Tanggal</th>
                                     <th>No. Form</th>
+                                    <th>Tgl Spreading</th>
                                     <th>No. Meja</th>
-                                    <th>No. Marker</th>
-                                    <th>No. WS</th>
+                                    <th>Marker</th>
+                                    <th>WS</th>
                                     <th>Style</th>
                                     <th>Color</th>
                                     <th>Panel</th>
+                                    <th>No. Cut</th>
                                     <th>Size Ratio</th>
                                     <th>Qty Ply</th>
                                 </tr>
@@ -90,32 +132,32 @@
         <div class="col-12 mb-3">
             <div class="card card-info h-100">
                 <div class="card-header">
-                    <h5 class="card-title fw-bold" style="padding-bottom: 2px">
-                        Form Cut Terdaftar :
+                    <h5 class="card-title mb-0 fw-bold" style="padding-bottom: 2px">
+                        Form Cut yang sudah ditambahkan :
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="row mb-3">
+                    {{-- <div class="row mb-3">
                         <div class="col-6">
-                            <p>Selected Form : <span class="fw-bold" id="selected-row-count-2">0</span></p>
+                            <p>Form yang dipilih : <span class="fw-bold" id="selected-row-count-1">0</span></p>
                         </div>
                         <div class="col-6">
-                            <button class="btn btn-danger btn-sm float-end" onclick="removeCutPlan(this)"><i class="fa fa-minus fa-sm"></i> Singkirkan dari Cut Plan</button>
+                            <button class="btn btn-danger btn-sm float-end" onclick="removePartForm()"><i class="fa fa-minus fa-sm"></i> Singkirkan Form</button>
                         </div>
-                    </div>
+                    </div> --}}
                     <div class="table-responsive">
                         <table id="datatable-selected" class="table table-bordered table-sm w-100">
                             <thead>
                                 <tr>
-                                    <th>Tanggal</th>
                                     <th>No. Form</th>
+                                    <th>Tgl Spreading</th>
                                     <th>No. Meja</th>
-                                    <th>No. Marker</th>
-                                    <th>No. WS</th>
+                                    <th>Marker</th>
+                                    <th>WS</th>
                                     <th>Style</th>
                                     <th>Color</th>
                                     <th>Panel</th>
-                                    <th class="align-bottom">Status</th>
+                                    <th>No. Cut</th>
                                     <th>Size Ratio</th>
                                     <th>Qty Ply</th>
                                 </tr>
@@ -128,7 +170,6 @@
             </div>
         </div>
     </div>
-    {{-- <button class="btn btn-sb btn-block" type="submit">SIMPAN</button> --}}
 @endsection
 
 @section('custom-script')
@@ -149,284 +190,33 @@
             theme: 'bootstrap4'
         })
 
-        //Focus Select2
-        $(document).on('select2:open', () => {
-            document.querySelector('.select2-search__field').focus();
-        });
-
         //Reset Form
         if (document.getElementById('store-cut-plan')) {
             document.getElementById('store-cut-plan').reset();
         }
 
-        document.getElementById("tgl_plan").addEventListener("change", function() {
-            let todayDate = new Date();
-            let selectedDate = new Date(this.value);
+        var id = document.getElementById("id").value;
+        var ws = document.getElementById("ws").value;
+        var panel = document.getElementById("panel").value;
 
-            if (selectedDate < todayDate) {
-                $("#tgl_plan").val(formatDate(todayDate));
-            }
-
-            datatableSelect.ajax.reload(() => {
-                $('#datatable-select').DataTable().ajax.reload(() => {
-                    document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
-                });
-            });
-
-            datatableSelected.ajax.reload(() => {
-                $('#datatable-selected').DataTable().ajax.reload(() => {
-                    document.getElementById('selected-row-count-2').innerText = $(
-                        '#datatable-selected').DataTable().rows('.selected').data().length;
-                });
-            });
-        });
-
-        // document.getElementById("tgl_form").addEventListener("change", function () {
-        //     datatableSelect.ajax.reload(() => {
-        //         $('#datatable-select').DataTable().ajax.reload(() => {
-        //             document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
-        //         });
-        //     });
-        // });
-
-        $('#datatable-select thead tr').clone(true).appendTo('#datatable-select thead');
-        $('#datatable-select thead tr:eq(1) th').each(function(i) {
-            if (i != 8) {
-                var title = $(this).text();
-                $(this).html('<input type="text" class="form-control form-control-sm" />');
-
-                $('input', this).on('keyup change', function() {
-                    if (datatableSelect.column(i).search() !== this.value) {
-                        datatableSelect
-                            .column(i)
-                            .search(this.value)
-                            .draw();
-                    }
-                });
-            } else {
-                $(this).empty();
-            }
-        });
-
-        let datatableSelect = $("#datatable-select").DataTable({
-            ordering: false,
-            processing: true,
-            serverSide: true,
-            ajax: {
-                url: '{{ route('create-cut-plan') }}',
-                data: function(d) {
-                    d.tgl_plan = $('#tgl_plan').val();
-                },
-            },
-            columns: [
-                {
-                    data: 'tgl_form_cut'
-                },
-                {
-                    data: 'no_form'
-                },
-                {
-                    data: 'nama_meja'
-                },
-                {
-                    data: 'id_marker'
-                },
-                {
-                    data: 'ws'
-                },
-                {
-                    data: 'style'
-                },
-                {
-                    data: 'color'
-                },
-                {
-                    data: 'panel'
-                },
-                {
-                    data: 'marker_details'
-                },
-                {
-                    data: 'qty_ply'
-                },
-            ],
-            columnDefs: [
-                {
-                    targets: [2],
-                    render: (data, type, row, meta) => {
-
-                        return data ? data.toUpperCase() : "-";
-                    }
-                },
-                {
-                    targets: [0,1,3,4],
-                    className: "text-nowrap"
-                },
-            ],
-            rowCallback: function( row, data, index ) {
-                if (data['tipe_form_cut'] == 'MANUAL') {
-                    $('td', row).css('background-color', '#e7dcf7');
-                    $('td', row).css('border', '0.15px solid #d0d0d0');
-                } else if (data['tipe_form_cut'] == 'PILOT') {
-                    $('td', row).css('background-color', '#c5e0fa');
-                    $('td', row).css('border', '0.15px solid #d0d0d0');
-                }
-            }
-        });
-
-        // Datatable row selection
-        datatableSelect.on('click', 'tbody tr', function(e) {
-            e.currentTarget.classList.toggle('selected');
-            document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
-        });
-
-        function addToCutPlan(element) {
-            let tglPlan = $("#tgl_plan").val();
-            let selectedForm = $('#datatable-select').DataTable().rows('.selected').data();
-            let formCutPlan = [];
-            for (let key in selectedForm) {
-                if (!isNaN(key)) {
-                    formCutPlan.push({
-                        no_form: selectedForm[key]['no_form']
-                    });
-                }
-            }
-
-            if (tglPlan && formCutPlan.length > 0) {
-                element.setAttribute('disabled', true);
-
-                $.ajax({
-                    type: "POST",
-                    url: '{!! route('store-cut-plan') !!}',
-                    data: {
-                        tgl_plan: tglPlan,
-                        formCutPlan: formCutPlan
-                    },
-                    success: function(res) {
-                        element.removeAttribute('disabled');
-
-                        if (res.status == 200) {
-                            iziToast.success({
-                                title: 'Success',
-                                message: res.message,
-                                position: 'topCenter'
-                            });
-                        } else {
-                            iziToast.error({
-                                title: 'Error',
-                                message: res.message,
-                                position: 'topCenter'
-                            });
-                        }
-
-                        if (res.table != '') {
-                            $('#' + res.table).DataTable().ajax.reload(() => {
-                                document.getElementById('selected-row-count-2').innerText = $('#' + res.table).DataTable().rows('.selected').data().length;
-                            });
-
-                            $('#datatable-select').DataTable().ajax.reload(() => {
-                                document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
-                            });
-                        }
-
-                        if (res.additional) {
-                            let message = "";
-
-                            if (res.additional['success'].length > 0) {
-                                res.additional['success'].forEach(element => {
-                                    message += element['no_form'] + " - Berhasil <br>";
-                                });
-                            }
-
-                            if (res.additional['fail'].length > 0) {
-                                res.additional['fail'].forEach(element => {
-                                    message += element['no_form'] + " - Gagal <br>";
-                                });
-                            }
-
-                            if (res.additional['exist'].length > 0) {
-                                res.additional['exist'].forEach(element => {
-                                    message += element['no_form'] + " - Sudah Ada <br>";
-                                });
-                            }
-
-                            if ((res.additional['success'].length + res.additional['fail'].length + res
-                                    .additional['exist'].length) > 1) {
-                                Swal.fire({
-                                    icon: 'info',
-                                    title: 'Hasil Transfer',
-                                    html: message,
-                                    showCancelButton: false,
-                                    showConfirmButton: true,
-                                    confirmButtonText: 'Oke',
-                                });
-                            }
-                        }
-                    },
-                    error: function(jqXHR) {
-                        element.removeAttribute('disabled');
-
-                        let res = jqXHR.responseJSON;
-                        let message = '';
-
-                        for (let key in res.errors) {
-                            message = res.errors[key];
-                        }
-
-                        iziToast.error({
-                            title: 'Error',
-                            message: 'Terjadi kesalahan. ' + message,
-                            position: 'topCenter'
-                        });
-                    }
-                })
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Gagal',
-                    html: "Harap isi tanggal plan dan tentukan form cut nya",
-                    showCancelButton: false,
-                    showConfirmButton: true,
-                    confirmButtonText: 'Oke',
-                });
-            }
-        }
-
-        $('#datatable-selected thead tr').clone(true).appendTo('#datatable-selected thead');
-        $('#datatable-selected thead tr:eq(1) th').each(function(i) {
-            if (i != 8 && i != 9) {
-                var title = $(this).text();
-                $(this).html('<input type="text" class="form-control form-control-sm"/>');
-
-                $('input', this).on('keyup change', function() {
-                    if (datatableSelected.column(i).search() !== this.value) {
-                        datatableSelected
-                            .column(i)
-                            .search(this.value)
-                            .draw();
-                    }
-                });
-            } else {
-                $(this).empty();
-            }
-        });
-
+        //Form Part Datatable
         let datatableSelected = $("#datatable-selected").DataTable({
             ordering: false,
             processing: true,
             serverSide: true,
             ajax: {
-                url: '{{ route('get-selected-form') }}',
+                url: '{{ route('manage-part-form') }}/'+id,
                 data: function(d) {
-                    d.tgl_plan = $('#tgl_plan').val();
+                    d.act_costing_ws = $('#ws').val();
+                    d.panel = $('#panel').val();
                 },
             },
             columns: [
                 {
-                    data: 'tgl_form_cut'
+                    data: 'no_form'
                 },
                 {
-                    data: 'no_form'
+                    data: 'tgl_form_cut'
                 },
                 {
                     data: 'nama_meja'
@@ -435,7 +225,7 @@
                     data: 'id_marker'
                 },
                 {
-                    data: 'ws'
+                    data: 'act_costing_ws'
                 },
                 {
                     data: 'style'
@@ -447,7 +237,7 @@
                     data: 'panel'
                 },
                 {
-                    data: 'status'
+                    data: 'no_cut'
                 },
                 {
                     data: 'marker_details'
@@ -477,34 +267,6 @@
                     }
                 },
                 {
-                    targets: [8],
-                    className: "text-center align-middle",
-                    render: (data, type, row, meta) => {
-                        icon = "";
-
-                        switch (data) {
-                            case "SPREADING":
-                                icon = `<i class="fas fa-file fa-lg"></i>`;
-                                break;
-                            case "PENGERJAAN FORM CUTTING":
-                            case "PENGERJAAN FORM CUTTING DETAIL":
-                            case "PENGERJAAN FORM CUTTING SPREAD":
-                                icon =
-                                    `<i class="fas fa-sync-alt fa-spin fa-lg" style="color: #2243d6;"></i>`;
-                                break;
-                            case "SELESAI PENGERJAAN":
-                                icon = `<i class="fas fa-check fa-lg" style="color: #087521;"></i>`;
-                                break;
-                        }
-
-                        return icon;
-                    }
-                },
-                {
-                    targets: [0,1,3,4],
-                    className: "text-nowrap"
-                },
-                {
                     targets: '_all',
                     render: (data, type, row, meta) => {
                         let color = "";
@@ -522,34 +284,244 @@
                         return data ? "<span style='color: " + color + "' >" + data + "</span>" : "<span style=' color: " + color + "'>-</span>"
                     }
                 }
-            ],
-            rowCallback: function( row, data, index ) {
-                if (data['tipe_form_cut'] == 'MANUAL') {
-                    $('td', row).css('background-color', '#e7dcf7');
-                    $('td', row).css('border', '0.15px solid #d0d0d0');
-                } else if (data['tipe_form_cut'] == 'PILOT') {
-                    $('td', row).css('background-color', '#c5e0fa');
-                    $('td', row).css('border', '0.15px solid #d0d0d0');
-                }
+            ]
+        });
+
+        // Datatable row selection
+        datatableSelected.on('click', 'tbody tr', function(e) {
+            e.currentTarget.classList.toggle('selected');
+            // document.getElementById('selected-row-count-1').innerText = $('#datatable-selected').DataTable().rows('.selected').data().length;
+        });
+
+        $('#datatable-selected thead tr').clone(true).appendTo('#datatable-selected thead');
+        $('#datatable-selected thead tr:eq(1) th').each(function(i) {
+            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8 || i == 10) {
+                var title = $(this).text();
+                $(this).html('<input type="text" class="form-control form-control-sm" />');
+
+                $('input', this).on('keyup change', function() {
+                    if (datatableSelected.column(i).search() !== this.value) {
+                        datatableSelected
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            } else {
+                $(this).empty();
             }
         });
 
-        function removeCutPlan(element) {
+        function addToPartForm(element) {
             element.setAttribute('disabled', true);
 
-            let tglPlan = $("#tgl_plan").val();
-            let selectedForm = $('#datatable-selected').DataTable().rows('.selected').data();
-            let formCutPlan = [];
+            let selectedForm = $('#datatable-select').DataTable().rows('.selected').data();
+            let partForms = [];
             for (let key in selectedForm) {
                 if (!isNaN(key)) {
-                    formCutPlan.push({
-                        no_form: selectedForm[key]['no_form'],
-                        status: selectedForm[key]['status']
+                    partForms.push({
+                        form_id: selectedForm[key]['id'],
+                        no_form: selectedForm[key]['no_form']
                     });
                 }
             }
 
-            if (tglPlan && formCutPlan.length > 0 && !(formCutPlan.some(item => item.status.includes('PENGERJAAN FORM CUTTING') || item.status.includes('PENGERJAAN FORM CUTTING DETAIL') || item.status.includes('PENGERJAAN FORM CUTTING SPREAD') || item.status.includes('SELESAI PENGERJAAN')))) {
+            if (partForms.length > 0) {
+                $.ajax({
+                    type: "POST",
+                    url: '{!! route('store-part-form') !!}',
+                    data: {
+                        part_id: id,
+                        partForms: partForms
+                    },
+                    success: function(res) {
+                        element.removeAttribute('disabled');
+
+                        if (res.status == 200) {
+                            iziToast.success({
+                                title: 'Success',
+                                message: res.message,
+                                position: 'topCenter'
+                            });
+                        } else {
+                            iziToast.error({
+                                title: 'Error',
+                                message: res.message,
+                                position: 'topCenter'
+                            });
+                        }
+
+                        if (res.table != '') {
+                            $('#' + res.table).DataTable().ajax.reload(() => {
+                                document.getElementById('selected-row-count-2').innerText = $('#' + res.table).DataTable().rows('.selected').data().length;
+                            });
+
+                            $('#datatable-select').DataTable().ajax.reload(() => {
+                                // document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
+                            });
+                        }
+
+                        if (res.additional) {
+                            let message = "";
+
+                            if (res.additional['success'].length > 0) {
+                                res.additional['success'].forEach(element => {
+                                    message += element['no_form'] + " - Berhasil <br>";
+                                });
+                            }
+
+                            if (res.additional['fail'].length > 0) {
+                                res.additional['fail'].forEach(element => {
+                                    message += element['no_form'] + " - Gagal <br>";
+                                });
+                            }
+
+                            if (res.additional['exist'].length > 0) {
+                                res.additional['exist'].forEach(element => {
+                                    message += element['no_form'] + " - Sudah Ada <br>";
+                                });
+                            }
+
+                            if ((res.additional['success'].length + res.additional['fail'].length + res.additional['exist'].length) > 0) {
+                                Swal.fire({
+                                    icon: 'info',
+                                    title: 'Hasil Transfer',
+                                    html: message,
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                });
+                            }
+                        }
+                    },
+                    error: function(jqXHR) {
+                        element.removeAttribute('disabled');
+
+                        let res = jqXHR.responseJSON;
+                        let message = '';
+
+                        for (let key in res.errors) {
+                            message = res.errors[key];
+                        }
+
+                        iziToast.error({
+                            title: 'Error',
+                            message: 'Terjadi kesalahan. ' + message,
+                            position: 'topCenter'
+                        });
+                    }
+                })
+            } else {
+                element.removeAttribute('disabled');
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal',
+                    html: "Harap pilih form cut yang ingin ditambahkan",
+                    showCancelButton: false,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Oke',
+                });
+            }
+        }
+
+        //Form Cut Datatable
+        let datatableSelect = $("#datatable-select").DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '{{ route('get-part-form-cut') }}/',
+                data: function(d) {
+                    d.act_costing_ws = $('#ws').val();
+                    d.panel = $('#panel').val();
+                },
+            },
+            columns: [
+                {
+                    data: 'no_form'
+                },
+                {
+                    data: 'tgl_form_cut'
+                },
+                {
+                    data: 'nama_meja'
+                },
+                {
+                    data: 'id_marker'
+                },
+                {
+                    data: 'ws'
+                },
+                {
+                    data: 'style'
+                },
+                {
+                    data: 'color'
+                },
+                {
+                    data: 'panel'
+                },
+                {
+                    data: 'no_cut'
+                },
+                {
+                    data: 'marker_details'
+                },
+                {
+                    data: 'qty_ply'
+                },
+            ],
+            columnDefs: [
+                {
+                    targets: [2],
+                    render: (data, type, row, meta) => {
+
+                        return data ? data.toUpperCase() : "-";
+                    }
+                }
+            ]
+        });
+
+        // Datatable row selection
+        datatableSelect.on('click', 'tbody tr', function(e) {
+            e.currentTarget.classList.toggle('selected');
+            document.getElementById('selected-row-count-2').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
+        });
+
+        $('#datatable-select thead tr').clone(true).appendTo('#datatable-select thead');
+        $('#datatable-select thead tr:eq(1) th').each(function(i) {
+            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8 || i == 10) {
+                var title = $(this).text();
+                $(this).html('<input type="text" class="form-control form-control-sm" />');
+
+                $('input', this).on('keyup change', function() {
+                    if (datatableSelect.column(i).search() !== this.value) {
+                        datatableSelect
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            } else {
+                $(this).empty();
+            }
+        });
+
+        function removePartForm() {
+            let tglPlan = $("#tgl_plan").val();
+            let selectedForm = $('#datatable-selected').DataTable().rows('.selected').data();
+            let partForms = [];
+            for (let key in selectedForm) {
+                if (!isNaN(key)) {
+                    partForms.push({
+                        form_id: selectedForm[key]['id'],
+                        no_form: selectedForm[key]['no_form']
+                    });
+                }
+            }
+
+            if (partForms.length > 0) {
                 Swal.fire({
                     icon: 'info',
                     title: 'Singkirkan Form yang dipilih?',
@@ -559,21 +531,15 @@
                     confirmButtonText: 'Singkirkan',
                     confirmButtonColor: "#d33141",
                 }).then(async (result) => {
-                    element.removeAttribute('disabled');
-
                     if (result.isConfirmed) {
-                        element.setAttribute('disabled', true);
-
                         $.ajax({
                             type: "DELETE",
-                            url: '{!! route('destroy-cut-plan') !!}',
+                            url: '{!! route('destroy-part-form') !!}',
                             data: {
-                                tgl_plan: tglPlan,
-                                formCutPlan: formCutPlan
+                                part_id: id,
+                                partForms: partForms
                             },
                             success: function(res) {
-                                element.removeAttribute('disabled');
-
                                 if (res.status == 200) {
                                     iziToast.success({
                                         title: 'Success',
@@ -589,16 +555,11 @@
                                 }
 
                                 if (res.table != '') {
-                                    $('#' + res.table).DataTable().ajax.reload(() => {
-                                        document.getElementById('selected-row-count-2')
-                                            .innerText = $('#' + res.table).DataTable()
-                                            .rows('.selected').data().length;
+                                    $('#' + res.table).DataTable().ajax.reload(() => {document.getElementById('selected-row-count-2').innerText = $('#' + res.table).DataTable().rows('.selected').data().length;
                                     });
 
                                     $('#datatable-select').DataTable().ajax.reload(() => {
-                                        document.getElementById('selected-row-count-1')
-                                            .innerText = $('#datatable-select').DataTable()
-                                            .rows('.selected').data().length;
+                                        // document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
                                     });
                                 }
 
@@ -621,7 +582,7 @@
                                     if (res.additional['success'].length + res.additional['fail'].length > 1) {
                                         Swal.fire({
                                             icon: 'info',
-                                            title: 'Plan berhasil disingkirkan',
+                                            title: 'Form berhasil disingkirkan',
                                             html: message,
                                             showCancelButton: false,
                                             showConfirmButton: true,
@@ -631,8 +592,6 @@
                                 }
                             },
                             error: function(jqXHR) {
-                                element.removeAttribute('disabled');
-
                                 let res = jqXHR.responseJSON;
                                 let message = '';
 
@@ -650,23 +609,16 @@
                     }
                 });
             } else {
-                element.removeAttribute('disabled');
-
                 Swal.fire({
                     icon: 'error',
                     title: 'Gagal',
-                    html: "Harap isi tanggal plan dan tentukan form cut yang belum diproses",
+                    html: "Harap pilih form cut yang akan disingkirkan",
                     showCancelButton: false,
                     showConfirmButton: true,
                     confirmButtonText: 'Oke',
                 });
             }
         }
-
-        // Datatable selected row selection
-        datatableSelected.on('click', 'tbody tr', function(e) {
-            e.currentTarget.classList.toggle('selected');
-            document.getElementById('selected-row-count-2').innerText = $('#datatable-selected').DataTable().rows('.selected').data().length;
-        });
     </script>
 @endsection
+

@@ -29,9 +29,11 @@ use App\Http\Controllers\RackController;
 use App\Http\Controllers\RackStockerController;
 use App\Http\Controllers\TrolleyController;
 use App\Http\Controllers\TrolleyStockerController;
+use App\Http\Controllers\LoadingLineController;
 use App\Http\Controllers\SecondaryInhouseController;
 use App\Http\Controllers\MutasiMesinController;
 use App\Http\Controllers\MasterSecondaryController;
+use App\Http\Controllers\GeneralController;
 
 /*
 |--------------------------------------------------------------------------
@@ -54,6 +56,22 @@ Route::middleware('auth')->group(function () {
     // User
     Route::controller(UserController::class)->prefix("user")->group(function () {
         Route::put('/update/{id?}', 'update')->name('update-user');
+    });
+
+    // General
+    Route::controller(GeneralController::class)->prefix("general")->group(function () {
+        // get order
+        Route::get('/get-order', 'getOrderInfo')->name('get-general-order');
+        // get colors
+        Route::get('/get-colors', 'getColorList')->name('get-general-colors');
+        // get panels
+        Route::get('/get-panels', 'getPanelList')->name('get-general-panels');
+        // get sizes
+        Route::get('/get-sizes', 'getSizeList')->name('get-general-sizes');
+        // get count
+        Route::get('/get-count', 'getCount')->name('get-general-count');
+        // get number
+        Route::get('/get-number', 'getNumber')->name('get-general-number');
     });
 
     // Marker
@@ -308,10 +326,27 @@ Route::middleware('auth')->group(function () {
         Route::get('/show/{partDetailId?}/{formCutId?}', 'show')->name('show-stocker');
         Route::post('/print-stocker/{index?}', 'printStocker')->name('print-stocker');
         Route::post('/print-stocker-all-size/{partDetailId?}', 'printStockerAllSize')->name('print-stocker-all-size');
+        Route::post('/print-stocker-checked', 'printStockerChecked')->name('print-stocker-checked');
         Route::post('/print-numbering/{index?}', 'printNumbering')->name('print-numbering');
+        Route::post('/print-numbering-checked', 'printNumberingChecked')->name('print-numbering-checked');
         Route::post('/rearrange-group', 'rearrangeGroup')->name('rearrange-group');
 
         Route::put('/count-stocker-update', 'countStockerUpdate')->name('count-stocker-update');
+
+        Route::get('/stocker-part', 'part')->name('stocker-part');
+
+        // part form
+        Route::get('/manage-part-form/{id?}', 'managePartForm')->name('stocker-manage-part-form');
+        Route::get('/get-form-cut/{id?}', 'getFormCut')->name('stocker-get-part-form-cut');
+        Route::post('/store-part-form', 'storePartForm')->name('stocker-store-part-form');
+        Route::delete('/destroy-part-form', 'destroyPartForm')->name('stocker-destroy-part-form');
+        Route::get('/show-part-form', 'showPartForm')->name('stocker-show-part-form');
+
+        // part secondary
+        Route::get('/manage-part-secondary/{id?}', 'managePartSecondary')->name('stocker-manage-part-secondary');
+        Route::get('/datatable_list_part/{id?}', 'datatable_list_part')->name('stocker-datatable_list_part');
+        Route::get('/get_proses', 'get_proses')->name('stocker-get_proses');
+        Route::post('/store_part_secondary', 'store_part_secondary')->name('stocker-store_part_secondary');
     });
 
     // // DC IN BACKUP
@@ -394,11 +429,33 @@ Route::middleware('auth')->group(function () {
     // Trolley Stocker
     Route::controller(TrolleyStockerController::class)->prefix("stock-trolley")->middleware('dc')->group(function () {
         Route::get('/', 'index')->name('stock-trolley');
-        Route::get('/allocate', 'allocate')->name('allocate-trolley');
         Route::post('/store', 'store')->name('store-trolley-stock');
         Route::put('/update', 'update')->name('update-trolley-stock');
         Route::delete('/destroy/{id?}', 'destroy')->name('destroy-trolley-stock');
         Route::post('/print-bon-mutasi/{id?}', 'printBonMutasi')->name('print-trolley-stock');
+
+        // allocate
+        Route::get('/allocate', 'allocate')->name('allocate-trolley');
+        Route::post('/store-allocate', 'storeAllocate')->name('store-allocate-trolley');
+        Route::get('/allocate-this/{id?}', 'allocateThis')->name('allocate-this-trolley');
+        Route::post('/store-allocate-this', 'storeAllocateThis')->name('store-allocate-this-trolley');
+
+        // send
+        Route::get('/send-trolley-stock/{id?}', 'send')->name('send-trolley-stock');
+        Route::post('/submit-send-trolley-stock', 'submitSend')->name('submit-send-trolley-stock');
+
+        // get data
+        Route::get('/get-stocker-data/{id?}', 'getStockerData')->name('get-stocker-data-trolley-stock');
+    });
+
+    Route::controller(LoadingLineController::class)->prefix("loading-line")->middleware('dc')->group(function () {
+        Route::get('/', 'index')->name('loading-line');
+        Route::get('/detail/{id?}', 'show')->name('detail-loading-plan');
+        Route::get('/create', 'create')->name('create-loading-plan');
+        Route::post('/store', 'store')->name('store-loading-plan');
+        Route::get('/edit/{id?}', 'edit')->name('edit-loading-plan');
+        Route::put('/update/{id?}', 'update')->name('update-loading-plan');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-loading-plan');
     });
 
     //Mutasi Karywawan

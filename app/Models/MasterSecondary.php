@@ -12,4 +12,8 @@ class MasterSecondary extends Model
     protected $table = "master_secondary";
 
     protected $guarded = [];
+
+    public function partDetails() {
+        return $this->hasMany(MasterSecondary::class, 'master_secondary_id', 'id');
+    }
 }

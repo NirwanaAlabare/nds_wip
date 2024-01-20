@@ -19,7 +19,7 @@
         }
 
         * {
-            font-size: 12px;
+            font-size: 11px;
         }
 
         img {
@@ -82,7 +82,7 @@
             <tr>
                 <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;white-space: nowrap;">Style</td>
                 <td style="border: none;border-left: none; border-top: 1px solid; border-bottom: 1px solid;text-align: center;width: auto;">:</td>
-                <td colspan="4" style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataStocker->style }}</td>
+                <td colspan="4" style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ substr($dataStocker->style, 0, 33).(strlen($dataStocker->style) > 33 ? '...' : '') }}</td>
             </tr>
             <tr>
                 <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;white-space: nowrap;">Color</td>
@@ -106,6 +106,11 @@
                 <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;white-space: nowrap;">Country</td>
                 <td style="border: none;border-left: none; border-top: 1px solid; border-bottom: 1px solid;text-align: center;width: auto;">:</td>
                 <td colspan="4" style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataStocker->dest }}</td>
+            </tr>
+            <tr>
+                <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;white-space: nowrap;">Note</td>
+                <td style="border: none;border-left: none; border-top: 1px solid; border-bottom: 1px solid;text-align: center;width: auto;">:</td>
+                <td colspan="4" style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ $dataStocker->notes }}</td>
             </tr>
         </table>
     @endforeach

@@ -6,19 +6,22 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\SignalBit\UserLine;
 
-class Trolley extends Model
+class LoadingLinePlan extends Model
 {
     use HasFactory;
 
-    protected $table = 'trolley';
+    protected $table = "loading_line_plan";
 
     protected $guarded = [];
 
+    /**
+     * Get the userline.
+     */
     public function userLine() {
         return $this->belongsTo(UserLine::class, 'line_id', 'line_id');
     }
 
-    public function trolleyStockers() {
-        return $this->hasMany(TrolleyStocker::class, 'trolley_id', 'id');
+    public function loadingLines() {
+        return $this->hasMany(LoadingLine::class, 'loading_plan_id', 'id');
     }
 }

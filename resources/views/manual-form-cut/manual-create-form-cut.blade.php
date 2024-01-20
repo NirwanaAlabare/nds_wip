@@ -2194,7 +2194,8 @@
 
                 let pActualFinal = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
 
-                consActual = totalQtyCut > 0 ? pActualFinal / totalQtyCut : 0;
+                // consActual = totalQtyCut > 0 ? pActualFinal / totalQtyCut : 0;
+                consActual = totalQtyCut > 0 ? pActualFinal / totalRatio : 0;
 
                 document.getElementById('cons_act').value = consActual.round(2);
             }
@@ -2514,17 +2515,17 @@
                     let consActualGelaranConverted = conversion(consActualGelaran, "METER", unitConsActualGelaran.toUpperCase());
                     let consActualGelaranShortRollessConverted = conversion(consActualGelaranShortRolless, "METER", unitConsActualGelaranShortRolless.toUpperCase());
 
-                    consWsUpRate = (consWs - consActualGelaranConverted)/consWs;
-                    consMarkerUpRate = (consMarker - consActualGelaranConverted)/consMarker;
+                    consWsUpRate = (consActualGelaranConverted - consWs)/consWs * 100;
+                    consMarkerUpRate = ((consActualGelaranConverted - consMarker)/consMarker) * 100;
 
-                    consWsUpRateNoSr = (consWs - consActualGelaranShortRollessConverted)/consWs;
-                    consMarkerUpRateNoSr = (consMarker - consActualGelaranShortRollessConverted)/consMarker;
+                    consWsUpRateNoSr = ((consActualGelaranShortRollessConverted - consWs)/consWs) * 100;
+                    consMarkerUpRateNoSr = ((consActualGelaranShortRollessConverted - consMarker)/consMarker) * 100;
                 } else {
-                    consWsUpRate = (consWs - consActualGelaran)/consWs;
-                    consMarkerUpRate = (consMarker - consActualGelaran)/consMarker;
+                    consWsUpRate = ((consActualGelaran - consWs)/consWs) * 100;
+                    consMarkerUpRate = ((consActualGelaran - consMarker)/consMarker) * 100;
 
-                    consWsUpRateNoSr = (consWs - consActualGelaranShortRolless)/consWs;
-                    consMarkerUpRateNoSr = (consMarker - consActualGelaranShortRolless)/consMarker;
+                    consWsUpRateNoSr = ((consActualGelaranShortRolless - consWs)/consWs) * 100;
+                    consMarkerUpRateNoSr = ((consActualGelaranShortRolless - consMarker)/consMarker) * 100;
                 }
 
                 document.getElementById('cons_ws_uprate').value = Number(consWsUpRate).round(2);
@@ -2999,12 +3000,20 @@
                 function lockExtension() {
                     document.getElementById("current_sambungan").setAttribute('readonly', true);
                     document.getElementById("current_sisa_gelaran").removeAttribute('readonly');
+
+                    document.getElementById("current_lembar_gelaran").removeAttribute('readonly');
+                    document.getElementById("current_lembar_gelaran").setAttribute('onkeyup', "calculateTotalPemakaian();calculateShortRoll();calculateRemark();openStopTimeRecord();");
+                    document.getElementById("current_lembar_gelaran").setAttribute('onchange', "calculateTotalPemakaian();calculateShortRoll();calculateRemark();openStopTimeRecord();");
                 }
 
                 // -Open Extension input on Spreading Form-
                 function openExtension() {
                     document.getElementById("current_sambungan").removeAttribute('readonly');
                     document.getElementById("current_sisa_gelaran").setAttribute('readonly', true);
+
+                    document.getElementById("current_lembar_gelaran").setAttribute('readonly', true);
+                    document.getElementById("current_lembar_gelaran").setAttribute('onkeyup', "calculateTotalPemakaian();calculateShortRoll();calculateRemark();");
+                    document.getElementById("current_lembar_gelaran").setAttribute('onchange', "calculateTotalPemakaian();calculateShortRoll();calculateRemark();");
                 }
 
                 // -Lock Item input on Spreading Form-
@@ -3601,6 +3610,16 @@
                     }
 
                     updatePlyProgress();
+                }
+
+                function openStopTimeRecord() {
+                    let lembarGelaran = document.getElementById('current_lembar_gelaran').value;
+
+                    if (lembarGelaran > 0) {
+                        stopLapButton.disabled = false;
+                    } else {
+                        stopLapButton.disabled = true;
+                    }
                 }
 
                 // -Stop Time Record-

@@ -1,6 +1,7 @@
 <div class="accordion mb-3" id="accordionPanelsStayOpenExample">
     @php
         $index;
+        $partIndex;
     @endphp
 
     @foreach ($dataPartDetail as $partDetail)
@@ -8,11 +9,24 @@
             $generatable = true;
         @endphp
         <div class="accordion-item">
-            <h2 class="accordion-header">
-                <button class="accordion-button accordion-sb collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-{{ $index }}" aria-expanded="false" aria-controls="panelsStayOpen-collapseTwo">
-                    {{ $partDetail->nama_part." - ".$partDetail->bag }}
-                </button>
-            </h2>
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="accordion-header w-75">
+                    <button class="accordion-button accordion-sb collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-{{ $index }}" aria-expanded="false" aria-controls="panelsStayOpen-collapseTwo">
+                        <div class="d-flex w-75 justify-content-between align-items-center">
+                            <p class="w-25 mb-0">{{ $partDetail->nama_part." - ".$partDetail->bag }}</p>
+                            <p class="w-50 mb-0">{{ $partDetail->tujuan." - ".$partDetail->proses }}</p>
+                        </div>
+                    </button>
+                </h2>
+                <div class="accordion-header-side col-3">
+                    <div class="form-check ms-3">
+                        <input class="form-check-input generate-stocker-check generate-{{ $partDetail->id }}" type="checkbox" id="generate_{{ $partIndex }}" name="generate_stocker[{{ $partIndex }}]" data-group="generate-{{ $partDetail->id }}" value="{{ $partDetail->id }}" onchange="massChange(this)" disabled>
+                        <label class="form-check-label fw-bold text-sb">
+                            Generate Stocker
+                        </label>
+                    </div>
+                </div>
+            </div>
             <div id="panelsStayOpen-{{ $index }}" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     <div class="table-responsive">
@@ -34,7 +48,8 @@
                                         $qtyBefore = intval($ratio->ratio) * intval($currentBefore);
 
                                         $stockerThis = $dataStocker ? $dataStocker->where("part_detail_id", $partDetail->id)->where("so_det_id", $ratio->so_det_id)->where("no_cut", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->first() : null;
-                                        $stockerBefore = $dataStocker ? $dataStocker->where("part_detail_id", $partDetail->id)->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->sortByDesc('no_cut')->sortByDesc('range_akhir')->first() : null;
+                                        $stockerBefore = $dataStocker ? $dataStocker->where("part_detail_id", $partDetail->id)->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->sortByDesc('range_akhir')->sortByDesc('no_cut')->first() : null;
+
                                         $rangeAwal = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + 1 + ($qtyBefore) : "-") : 1 + ($qtyBefore)) : 1 + ($qtyBefore));
                                         $rangeAkhir = ($dataSpreading->no_cut > 1 ? ($stockerBefore ? ($stockerBefore->stocker_id != null ? $stockerBefore->range_akhir + $qty + ($qtyBefore) : "-") : $qty + ($qtyBefore)) : $qty + ($qtyBefore));
                                     @endphp
@@ -100,9 +115,14 @@
                             </tbody>
                         </table>
                         <button type="button" class="btn btn-sm btn-danger fw-bold float-end mb-3" onclick="printStockerAllSize('{{ $partDetail->id }}', '{{ $currentGroup }}', '{{ $currentTotal }}');" {{ $generatable ? '' : 'disabled' }}>Generate All Size <i class="fas fa-print"></i></button>
+                        <input type="hidden" class="generatable" name="generatable[{{ $partIndex }}]" id="generatable_{{ $partIndex }}" data-group="{{ $partDetail->id }}" value="{{ $generatable }}">
                     </div>
                 </div>
             </div>
         </div>
+
+        @php
+            $partIndex++;
+        @endphp
     @endforeach
 </div>

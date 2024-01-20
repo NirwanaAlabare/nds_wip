@@ -137,7 +137,7 @@
                                                         @foreach ($rackDetail->rackDetailStockers as $rackDetailStocker)
                                                             <td>
                                                                 @php
-                                                                    echo $rackDetailStocker->stocker ? $rackDetailStocker->stocker->partDetail->masterPart->nama_part : '-';
+                                                                    echo $rackDetailStocker->stocker ? $rackDetailStocker->stocker->partDetail && $rackDetailStocker->stocker->partDetail->masterPart->nama_part : '-';
                                                                 @endphp
                                                             </td>
                                                         @endforeach

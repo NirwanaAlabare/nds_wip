@@ -74,7 +74,7 @@
                                                                             No. Cut : <strong>{{ ($rackDetailStocker->stocker ? $rackDetailStocker->stocker->formCut->no_cut : '-') }}</strong><br>
                                                                             Shade : <strong>{{ ($rackDetailStocker->stocker ? $rackDetailStocker->stocker->shade : '-') }}</strong><br>
                                                                             Size : <strong>{{ ($rackDetailStocker->stocker ? $rackDetailStocker->stocker->size : '-') }}</strong><br>
-                                                                            Part : <strong>{{( $rackDetailStocker->stocker ? $rackDetailStocker->stocker->partDetail->masterPart->nama_part : '-') }}</strong><br>
+                                                                            Part : <strong>{{( $rackDetailStocker->stocker ? $rackDetailStocker->stocker->partDetail && $rackDetailStocker->stocker->partDetail->masterPart->nama_part : '-') }}</strong><br>
                                                                             Range : <strong>{{ ($rackDetailStocker->stocker ? $rackDetailStocker->stocker->range_awal : '-')." - ".($rackDetailStocker->stocker ? $rackDetailStocker->stocker->range_akhir : '-') }}</strong><br>
                                                                         "
                                                                     >
