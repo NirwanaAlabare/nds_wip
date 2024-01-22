@@ -260,6 +260,12 @@
                                         Secondary In <i class="fas fa-receipt fa-sm"></i>
                                     </a>
                                 </li>
+                                <li>
+                                    {{-- <a href="{{ route('summary-secondary') }}"
+                                        class="dropdown-item {{ $subPage == 'summary-secondary' ? 'active' : '' }}">
+                                        Summary Secondary <i class="fas fa-receipt fa-sm"></i>
+                                    </a> --}}
+                                </li>
                             @enddc
                         </ul>
                     </li>

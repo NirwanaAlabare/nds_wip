@@ -491,6 +491,7 @@ Route::middleware('auth')->group(function () {
 
     Route::controller(SummaryController::class)->prefix("summary")->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('summary');
+        Route::get('/secondary', 'index')->name('summary-secondary');
     });
 
     // Manager
