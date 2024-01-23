@@ -115,7 +115,7 @@
         </form>
     </div>
 
-    <div class="card card-sb card-outline">
+    <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold mb-0">DC IN <i class="fas fa-podcast"></i></h5>
         </div>

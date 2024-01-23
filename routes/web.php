@@ -375,7 +375,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/create', 'create')->name('create-dc-in');
         Route::put('/update_tmp_dc_in', 'update_tmp_dc_in')->name('update_tmp_dc_in');
         Route::get('/show_tmp_dc_in', 'show_tmp_dc_in')->name('show_tmp_dc_in');
-        Route::get('/get_proses', 'get_proses')->name('get_proses');
+        Route::get('/get_proses', 'get_proses')->name('get_proses_dc_in');
         Route::get('/get_tempat', 'get_tempat')->name('get_tempat');
         Route::get('/get_lokasi', 'get_lokasi')->name('get_lokasi');
         Route::delete('/destroy', 'destroy')->name('destroy');
@@ -492,6 +492,7 @@ Route::middleware('auth')->group(function () {
 
     Route::controller(SummaryController::class)->prefix("summary")->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('summary');
+        Route::get('/secondary', 'index')->name('summary-secondary');
     });
 
     // Manager

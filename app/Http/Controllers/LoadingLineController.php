@@ -27,7 +27,7 @@ class LoadingLineController extends Controller
                 loading_line_plan.color,
                 COALESCE(loading_line_plan.target_loading, 0) target_loading,
                 COALESCE(SUM(loading_line.qty), 0) loading_qty,
-                COALESCE(loading_line_plan.target_loading - SUM(loading_line.qty), 0) balance_loading,
+                COALESCE(SUM(loading_line.qty) - loading_line_plan.target_loading, 0) balance_loading,
                 COALESCE(trolley.nama_trolley, '-') nama_trolley,
                 COALESCE(trolley_qty.trolley_qty, 0) stock_trolley,
                 COALESCE(GROUP_CONCAT(DISTINCT stocker_input.color), '-') trolley_color

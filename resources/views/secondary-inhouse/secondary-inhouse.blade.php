@@ -203,7 +203,7 @@
         </form>
     </div>
 
-    <div class="card card-sb card-outline">
+    <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold mb-0">Secondary Dalam <i class="fas fa-house-user"></i></h5>
         </div>

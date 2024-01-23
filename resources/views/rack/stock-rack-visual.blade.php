@@ -58,32 +58,97 @@
                                         </tr>
                                         <tr>
                                             @foreach ($rack->rackDetails as $rackDetail)
-                                                <th class="{{ ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0) ? 'bg-warning align-top' : '' }} w-50 p-3">
-                                                    <div class="row row-cols-1 row-cols-sm-2">
+                                                <th class="{{ ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0) ? 'bg-warning align-top h-100' : '' }} w-50 p-3">
+                                                    <div class="row row-cols-1 row-cols-sm-2 g-3">
                                                         @if ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0)
-                                                            @foreach ($rackDetail->rackDetailStockers->sortBy('id_qr_stocker') as $rackDetailStocker)
-                                                                <div class="col">
-                                                                    <div class="card"
-                                                                        data-bs-toggle="tooltip"
-                                                                        data-bs-placement="right"
-                                                                        data-bs-custom-class="custom-tooltip"
-                                                                        data-bs-html="true"
-                                                                        data-bs-title="
-                                                                            WS : <strong>{{ ($rackDetailStocker->stocker ? $rackDetailStocker->stocker->act_costing_ws : '-') }}</strong><br>
-                                                                            Color : <strong>{{ ($rackDetailStocker->stocker ? $rackDetailStocker->stocker->color : '-') }}</strong><br>
-                                                                            No. Cut : <strong>{{ ($rackDetailStocker->stocker ? $rackDetailStocker->stocker->formCut->no_cut : '-') }}</strong><br>
-                                                                            Shade : <strong>{{ ($rackDetailStocker->stocker ? $rackDetailStocker->stocker->shade : '-') }}</strong><br>
-                                                                            Size : <strong>{{ ($rackDetailStocker->stocker ? $rackDetailStocker->stocker->size : '-') }}</strong><br>
-                                                                            Part : <strong>{{( $rackDetailStocker->stocker ? $rackDetailStocker->stocker->partDetail && $rackDetailStocker->stocker->partDetail->masterPart->nama_part : '-') }}</strong><br>
-                                                                            Range : <strong>{{ ($rackDetailStocker->stocker ? $rackDetailStocker->stocker->range_awal : '-')." - ".($rackDetailStocker->stocker ? $rackDetailStocker->stocker->range_akhir : '-') }}</strong><br>
-                                                                        "
-                                                                    >
-                                                                        <div class="card-body">
-                                                                            {{ $rackDetailStocker->stocker ? $rackDetailStocker->stocker->id_qr_stocker : '-' }}
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
+                                                            @php
+                                                                $thisRackStocker = collect([]);
+                                                            @endphp
+
+                                                            @foreach ($rackDetail->rackDetailStockers->sortBy('stocker_id') as $rackDetailStocker)
+                                                                @php
+                                                                    if ($rackDetailStocker->stocker) {
+                                                                        $thisRackStocker->push($rackDetailStocker->stocker);
+                                                                    }
+                                                                @endphp
                                                             @endforeach
+
+                                                            @if ($thisRackStocker)
+                                                                @foreach ($thisRackStocker->groupBy(["form_cut_id", "so_det_id", "group_stocker", "ratio"], $preserveKeys = true) as $stockerGroup)
+                                                                    @foreach ($stockerGroup as $soDetId => $item)
+                                                                        @php
+                                                                            $data = [];
+
+                                                                            // SO Det
+                                                                            if (count($stockerGroup[$soDetId]) > 0) {
+                                                                                foreach ($stockerGroup[$soDetId] as $groupStocker => $item1) {
+                                                                                    // Group Stocker
+                                                                                    if (count($stockerGroup[$soDetId][$groupStocker]) > 0) {
+                                                                                        foreach ($stockerGroup[$soDetId][$groupStocker] as $ratio => $item2) {
+                                                                                            // Ratio
+                                                                                            if (count($stockerGroup[$soDetId][$groupStocker][$ratio]) > 0) {
+                                                                                                foreach ($stockerGroup[$soDetId][$groupStocker][$ratio] as $key => $item3) {
+                                                                                                    if (isset($data['act_costing_ws']) && $data['act_costing_ws'] == $item3->act_costing_ws) {
+                                                                                                        array_push($data, ['act_costing_ws' => $item3->act_costing_ws]);
+                                                                                                    } else {
+                                                                                                        $data['act_costing_ws'] .= $item3->act_costing_ws;
+                                                                                                    }
+
+                                                                                                    if (isset($data['size']) && $data['size'] == $item3->size) {
+                                                                                                        array_push($data, ['size' => $item3->size]);
+                                                                                                    } else {
+                                                                                                        $data['size'] .= $item3->size;
+                                                                                                    }
+
+                                                                                                    if (isset($data['shade']) && $data['shade'] == $item3->shade) {
+                                                                                                        array_push($data, ['shade' => $item3->shade]);
+                                                                                                    } else {
+                                                                                                        $data['shade'] .= $item3->shade;
+                                                                                                    }
+
+                                                                                                    if (isset($data['ratio']) && $data['ratio'] == $item3->ratio) {
+                                                                                                        array_push($data, ['ratio' => $item3->ratio]);
+                                                                                                    } else {
+                                                                                                        $data['ratio'] .= $item3->ratio;
+                                                                                                    }
+
+                                                                                                    if (isset($data['id_qr_stocker']) && $data['id_qr_stocker'] == $item3->id_qr_stocker) {
+                                                                                                        array_push($data, ['id_qr_stocker' => $item3->id_qr_stocker]);
+                                                                                                    } else {
+                                                                                                        $data['id_qr_stocker'] .= $item3->id_qr_stocker;
+                                                                                                    }
+                                                                                                }
+                                                                                            }
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        @endphp
+
+                                                                        <div class="col">
+                                                                            <div class="card h-100"
+                                                                                data-bs-toggle="tooltip"
+                                                                                data-bs-placement="right"
+                                                                                data-bs-custom-class="custom-tooltip"
+                                                                                data-bs-html="true"
+                                                                                data-bs-title="
+                                                                                    WS : <strong>{{ ( $data['act_costing_ws'] ) }}</strong><br>
+                                                                                    Color : <strong>{{ ( $data['color'] ) }}</strong><br>
+                                                                                    No. Cut : <strong>{{ "" }}</strong><br>
+                                                                                    Shade : <strong>{{ ( $data['shade'] ) }}</strong><br>
+                                                                                    Size : <strong>{{ $data['ratio'] }}</strong><br>
+                                                                                    Part : <strong>{{ "" }}</strong><br>
+                                                                                    Range : <strong>{{ "" }}</strong><br>
+                                                                                "
+                                                                            >
+                                                                                <div class="card-body">
+                                                                                    {{ $data['id_qr_stocker'] }}
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    @endforeach
+                                                                @endforeach
+                                                            @endif
                                                         @else
                                                             &nbsp;
                                                         @endif
