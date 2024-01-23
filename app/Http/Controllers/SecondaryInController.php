@@ -19,7 +19,7 @@ class SecondaryInController extends Controller
         $tgl_skrg = Carbon::now()->isoFormat('D MMMM Y hh:mm:ss');
         $tglskrg = date('Y-m-d');
 
-        $data_rak = DB::select("select id isi, nama_detail_rak tampil from rack_detail");
+        $data_rak = DB::select("select nama_detail_rak isi, nama_detail_rak tampil from rack_detail");
         // dd($data_rak);
         if ($request->ajax()) {
             $additionalQuery = '';
@@ -45,23 +45,28 @@ class SecondaryInController extends Controller
             }
 
             $data_input = DB::select("
-            SELECT a.*,
+            SELECT a.id_qr_stocker,
             DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
             s.act_costing_ws,
             s.color,
             p.buyer,
             p.style,
+            dc.tujuan,
+            dc.lokasi,
+            s.lokasi lokasi_rak,
             a.qty_awal,
             a.qty_reject,
             a.qty_replace,
             a.qty_in,
             a.created_at,
-            users.name
+            a.user
             from secondary_in_input a
             inner join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
             inner join part_detail pd on s.part_detail_id = pd.id
             inner join part p on pd.part_id = p.id
-            inner join users on a.user = users.id
+						left join dc_in_input dc on a.id_qr_stocker = dc.id_qr_stocker
+						left join secondary_inhouse_input sii on a.id_qr_stocker = sii.id_qr_stocker
+            order by a.tgl_trans desc
             ");
 
             return DataTables::of($data_input)->toJson();
@@ -73,8 +78,7 @@ class SecondaryInController extends Controller
     {
         $cekdata =  DB::select("
         select
-        sii.no_form,
-        sii.id_qr_stocker,
+        s.id_qr_stocker,
         s.act_costing_ws,
         buyer,
         no_cut,
@@ -82,22 +86,34 @@ class SecondaryInController extends Controller
         s.color,
         s.size,
         dc.tujuan,
-        dc.alokasi,
+        dc.lokasi,
         mp.nama_part,
-        sii.qty_in qty_awal,
-        ifnull(b.id_qr_stocker,'x')
-        from secondary_inhouse_input sii
-        inner join stocker_input s on sii.id_qr_stocker = s.id_qr_stocker
+        if(dc.tujuan = 'SECONDARY LUAR',dc.qty_awal, si.qty_awal) qty_awal,
+        s.lokasi lokasi_rak
+        from
+        (
+        select dc.id_qr_stocker,ifnull(si.id_qr_stocker,'x') cek_1, ifnull(sii.id_qr_stocker,'x') cek_2  from dc_in_input dc
+        left join secondary_inhouse_input si on dc.id_qr_stocker = si.id_qr_stocker
+        left join secondary_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
+        where dc.tujuan = 'SECONDARY DALAM' and
+        ifnull(si.id_qr_stocker,'x') != 'x' and ifnull(sii.id_qr_stocker,'x') = 'x'
+        union
+        select dc.id_qr_stocker, 'x' cek_1, ifnull(sii.id_qr_stocker,'x') cek_2  from dc_in_input dc
+        left join secondary_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
+        where dc.tujuan = 'SECONDARY LUAR'	and	ifnull(sii.id_qr_stocker,'x') != 'x'
+        ) md
+        inner join stocker_input s on md.id_qr_stocker = s.id_qr_stocker
         inner join form_cut_input a on s.form_cut_id = a.id
         inner join part_detail p on s.part_detail_id = p.id
         inner join master_part mp on p.master_part_id = mp.id
         inner join marker_input mi on a.id_marker = mi.kode
-		left join secondary_in_input b on sii.id_qr_stocker = b.id_qr_stocker
-        inner join dc_in_input dc on sii.id_qr_stocker = dc.id_qr_stocker
-        where sii.id_qr_stocker =  '" . $request->txtqrstocker . "' and ifnull(b.id_qr_stocker,'x') = 'x'
+        left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
+        left join secondary_inhouse_input si on s.id_qr_stocker = si.id_qr_stocker
+        where s.id_qr_stocker =     '" . $request->txtqrstocker . "'
         ");
         return json_encode($cekdata[0]);
     }
+
 
 
     // public function get_rak(Request $request)
@@ -128,14 +144,14 @@ class SecondaryInController extends Controller
         ]);
 
         $rak = DB::table('rack_detail')
-            ->select('nama_detail_rak')
-            ->where('id', '=', $validatedRequest['cborak'])
+            ->select('id')
+            ->where('nama_detail_rak', '=', $validatedRequest['cborak'])
             ->get();
-        $rak_data = $rak ? $rak[0]->nama_detail_rak : null;
+        $rak_data = $rak ? $rak[0]->id : null;
 
         $insert_rak = RackDetailStocker::create([
-            'detail_rack_id' => $validatedRequest['cborak'],
-            'nm_rak' => $rak_data,
+            'nm_rak' => $validatedRequest['cborak'],
+            'detail_rack_id' => $rak_data,
             'stocker_id' => $request['txtno_stocker'],
             'qty_in' => $request['txtqtyin'],
             'created_at' => $timestamp,
@@ -143,19 +159,20 @@ class SecondaryInController extends Controller
         ]);
         $saveinhouse = SecondaryIn::create([
             'tgl_trans' => $tgltrans,
-            'no_form' => $request['txtno_form'],
             'id_qr_stocker' => $request['txtno_stocker'],
-            'tujuan' => 'NON SECONDARY',
-            'alokasi' => $validatedRequest['cborak'],
             'qty_awal' => $request['txtqtyawal'],
             'qty_reject' => $request['txtqtyreject'],
             'qty_replace' => $request['txtqtyreplace'],
             'qty_in' => $request['txtqtyin'],
-            'user' => Auth::user()->id,
+            'user' => Auth::user()->name,
             'ket' => $request['txtket'],
             'created_at' => $timestamp,
             'updated_at' => $timestamp,
         ]);
+
+        DB::update(
+            "update stocker_input set status = 'non secondary' where id_qr_stocker = '" . $request->txtno_stocker . "'"
+        );
         // dd($savemutasi);
         // $message .= "$tglpindah <br>";
 

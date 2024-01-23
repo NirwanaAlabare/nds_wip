@@ -235,6 +235,9 @@
                             <th>Buyer</th>
                             <th>Style</th>
                             <th>Color</th>
+                            <th>Tujuan Awal</th>
+                            <th>Lokasi Awal</th>
+                            <th>Lokasi Rak</th>
                             <th>Qty Awal</th>
                             <th>Qty Reject</th>
                             <th>Qty Replace</th>
@@ -264,7 +267,7 @@
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: false,
+            paging: true,
             ajax: {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -296,6 +299,15 @@
                     data: 'color',
                 },
                 {
+                    data: 'tujuan',
+                },
+                {
+                    data: 'lokasi',
+                },
+                {
+                    data: 'lokasi_rak',
+                },
+                {
                     data: 'qty_awal',
                 },
                 {
@@ -308,7 +320,7 @@
                     data: 'qty_in',
                 },
                 {
-                    data: 'name',
+                    data: 'user',
                 },
             ],
             // columnDefs: [{
@@ -418,7 +430,6 @@
                 dataType: 'json',
                 success: function(response) {
                     document.getElementById('txtno_stocker').value = response.id_qr_stocker;
-                    document.getElementById('txtno_form').value = response.no_form;
                     document.getElementById('txtws').value = response.act_costing_ws;
                     document.getElementById('txtbuyer').value = response.buyer;
                     document.getElementById('txtno_cut').value = response.no_cut;
@@ -427,8 +438,9 @@
                     document.getElementById('txtsize').value = response.size;
                     document.getElementById('txtpart').value = response.nama_part;
                     document.getElementById('txttujuan').value = response.tujuan;
-                    document.getElementById('txtalokasi').value = response.alokasi;
+                    document.getElementById('txtalokasi').value = response.lokasi;
                     document.getElementById('txtqtyawal').value = response.qty_awal;
+                    $("#cborak").val(response.lokasi_rak).trigger('change');
                     // let txtqtyreject = $("#txtqtyreject").val();
                     // let txtqtyreplace = $("#txtqtyreplace").val();
                     // let txtqtyin = $("#txtqtyin").val();

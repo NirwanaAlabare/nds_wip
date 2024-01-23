@@ -139,7 +139,7 @@
                         value="{{ date('Y-m-d') }}">
                 </div>
             </div>
-            <h5 class="card-title fw-bold mb-0">List Transaksi Inhouse</h5>
+            <h5 class="card-title fw-bold mb-0">List Transaksi DC IN</h5>
             <br>
             <br>
             <div class="table-responsive">
@@ -152,6 +152,9 @@
                             <th>Buyer</th>
                             <th>Style</th>
                             <th>Color</th>
+                            <th>Tujuan</th>
+                            <th>Tempat</th>
+                            <th>Lokasi</th>
                             <th>Qty Awal</th>
                             <th>Qty Reject</th>
                             <th>Qty Replace</th>
@@ -181,12 +184,12 @@
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: false,
+            paging: true,
             ajax: {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                url: '{{ route('secondary-inhouse') }}',
+                url: '{{ route('dc-in') }}',
                 dataType: 'json',
                 dataSrc: 'data',
                 data: function(d) {
@@ -213,6 +216,15 @@
                     data: 'color',
                 },
                 {
+                    data: 'tujuan',
+                },
+                {
+                    data: 'tempat',
+                },
+                {
+                    data: 'lokasi',
+                },
+                {
                     data: 'qty_awal',
                 },
                 {
@@ -225,7 +237,7 @@
                     data: 'qty_in',
                 },
                 {
-                    data: 'name',
+                    data: 'user',
                 },
             ],
         });

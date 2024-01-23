@@ -386,6 +386,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('secondary-inhouse');
         Route::get('/cek_data_stocker_inhouse', 'cek_data_stocker_inhouse')->name('cek_data_stocker_inhouse');
         Route::post('/store', 'store')->name('store-secondary-inhouse');
+        Route::get('/detail_stocker_inhouse', 'detail_stocker_inhouse')->name('detail_stocker_inhouse');
     });
 
     // Secondary IN
