@@ -99,7 +99,8 @@ class RackStockerController extends Controller
 
     public function stockRackVisualDetail(Request $request) {
         $stocker = Stocker::selectRaw("
-                CONCAT(stocker_input.id_qr_stocker, ' - ', master_part.nama_part) stocker
+                CONCAT(stocker_input.id_qr_stocker, ' - ', master_part.nama_part) stocker,
+                stocker_input.lokasi
             ")->
             leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
             leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->

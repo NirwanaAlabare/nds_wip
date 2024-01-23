@@ -174,7 +174,7 @@
 
         function openModal(data) {
             for (let key in data) {
-                if (key != "detail_rack_id" && key != "form_cut_id" && key != 'group_stocker') {
+                if (key != "detail_rack_id" && key != "form_cut_id" && key != 'group_stocker' && key != 'so_det_id') {
                     let tr = document.createElement("tr");
 
                     let th = document.createElement("th");

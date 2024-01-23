@@ -812,13 +812,13 @@
         $(document).ready(async () => {
             document.getElementById("loading").classList.remove("d-none");
 
-            await getSummary();
-
             await getNumberData();
 
             await clearSpreadingForm();
 
             await lockItemSpreading();
+
+            await getSummary();
 
             document.getElementById("loading").classList.add("d-none");
         });
@@ -864,7 +864,7 @@
         }
 
         // -Calculate Cons. Actual 1 Gelaran-
-        function calculateConsActualGelaran(unit, totalQtyFabric, totalKepalaKain, totalSisaTidakBisa, totalReject, totalSisaKain, totalPiping, totalShortRoll) {
+        async function calculateConsActualGelaran(unit, totalQtyFabric, totalKepalaKain, totalSisaTidakBisa, totalReject, totalSisaKain, totalPiping, totalShortRoll) {
             let unitVar = unit;
             let totalQtyFabricVar = totalQtyFabric ? Number(totalQtyFabric) : 0;
             let totalKepalaKainVar = totalKepalaKain ? Number(totalKepalaKain) : 0;
@@ -1103,7 +1103,7 @@
             document.getElementById("total-remark").innerText = Number(totalRemark).round(2);
 
 
-            calculateConsActualGelaran(unit = latestUnit, lembar = totalLembar, totalTotalPemakaian);
+            calculateConsActualGelaran(latestUnit, totalQtyFabric, totalKepalaKain, totalSisaTidakBisa, totalReject, totalSisaKain, totalPiping, totalShortRoll);
 
             latestStatus = data.status;
         }

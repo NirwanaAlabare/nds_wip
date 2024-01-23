@@ -144,9 +144,9 @@ class SecondaryInController extends Controller
         where dc.tujuan = 'SECONDARY DALAM' and
         ifnull(si.id_qr_stocker,'x') != 'x' and ifnull(sii.id_qr_stocker,'x') = 'x'
         union
-        select dc.id_qr_stocker, 'x' cek_1, ifnull(sii.id_qr_stocker,'x') cek_2  from dc_in_input dc
+        select dc.id_qr_stocker, 'x' cek_1, if(sii.id_qr_stocker is null ,dc.id_qr_stocker,'x') cek_2  from dc_in_input dc
         left join secondary_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
-        where dc.tujuan = 'SECONDARY LUAR'	and	ifnull(sii.id_qr_stocker,'x') != 'x'
+        where dc.tujuan = 'SECONDARY LUAR'	and	if(sii.id_qr_stocker is null ,dc.id_qr_stocker,'x') != 'x'
         ) md
         inner join stocker_input s on md.id_qr_stocker = s.id_qr_stocker
         inner join form_cut_input a on s.form_cut_id = a.id
