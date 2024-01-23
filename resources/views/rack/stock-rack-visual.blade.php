@@ -62,91 +62,36 @@
                                                     <div class="row row-cols-1 row-cols-sm-2 g-3">
                                                         @if ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0)
                                                             @php
-                                                                $thisRackStocker = collect([]);
+                                                                $stockerData = $stockers->where('detail_rack_id', $rackDetail->id);
                                                             @endphp
 
-                                                            @foreach ($rackDetail->rackDetailStockers->sortBy('stocker_id') as $rackDetailStocker)
-                                                                @php
-                                                                    if ($rackDetailStocker->stocker) {
-                                                                        $thisRackStocker->push($rackDetailStocker->stocker);
-                                                                    }
-                                                                @endphp
-                                                            @endforeach
-
-                                                            @if ($thisRackStocker)
-                                                                @foreach ($thisRackStocker->groupBy(["form_cut_id", "so_det_id", "group_stocker", "ratio"], $preserveKeys = true) as $stockerGroup)
-                                                                    @foreach ($stockerGroup as $soDetId => $item)
-                                                                        @php
-                                                                            $data = [];
-
-                                                                            // SO Det
-                                                                            if (count($stockerGroup[$soDetId]) > 0) {
-                                                                                foreach ($stockerGroup[$soDetId] as $groupStocker => $item1) {
-                                                                                    // Group Stocker
-                                                                                    if (count($stockerGroup[$soDetId][$groupStocker]) > 0) {
-                                                                                        foreach ($stockerGroup[$soDetId][$groupStocker] as $ratio => $item2) {
-                                                                                            // Ratio
-                                                                                            if (count($stockerGroup[$soDetId][$groupStocker][$ratio]) > 0) {
-                                                                                                foreach ($stockerGroup[$soDetId][$groupStocker][$ratio] as $key => $item3) {
-                                                                                                    if (isset($data['act_costing_ws']) && $data['act_costing_ws'] == $item3->act_costing_ws) {
-                                                                                                        array_push($data, ['act_costing_ws' => $item3->act_costing_ws]);
-                                                                                                    } else {
-                                                                                                        $data['act_costing_ws'] .= $item3->act_costing_ws;
-                                                                                                    }
-
-                                                                                                    if (isset($data['size']) && $data['size'] == $item3->size) {
-                                                                                                        array_push($data, ['size' => $item3->size]);
-                                                                                                    } else {
-                                                                                                        $data['size'] .= $item3->size;
-                                                                                                    }
-
-                                                                                                    if (isset($data['shade']) && $data['shade'] == $item3->shade) {
-                                                                                                        array_push($data, ['shade' => $item3->shade]);
-                                                                                                    } else {
-                                                                                                        $data['shade'] .= $item3->shade;
-                                                                                                    }
-
-                                                                                                    if (isset($data['ratio']) && $data['ratio'] == $item3->ratio) {
-                                                                                                        array_push($data, ['ratio' => $item3->ratio]);
-                                                                                                    } else {
-                                                                                                        $data['ratio'] .= $item3->ratio;
-                                                                                                    }
-
-                                                                                                    if (isset($data['id_qr_stocker']) && $data['id_qr_stocker'] == $item3->id_qr_stocker) {
-                                                                                                        array_push($data, ['id_qr_stocker' => $item3->id_qr_stocker]);
-                                                                                                    } else {
-                                                                                                        $data['id_qr_stocker'] .= $item3->id_qr_stocker;
-                                                                                                    }
-                                                                                                }
-                                                                                            }
-                                                                                        }
-                                                                                    }
-                                                                                }
-                                                                            }
-                                                                        @endphp
-
-                                                                        <div class="col">
-                                                                            <div class="card h-100"
-                                                                                data-bs-toggle="tooltip"
-                                                                                data-bs-placement="right"
-                                                                                data-bs-custom-class="custom-tooltip"
-                                                                                data-bs-html="true"
-                                                                                data-bs-title="
-                                                                                    WS : <strong>{{ ( $data['act_costing_ws'] ) }}</strong><br>
-                                                                                    Color : <strong>{{ ( $data['color'] ) }}</strong><br>
-                                                                                    No. Cut : <strong>{{ "" }}</strong><br>
-                                                                                    Shade : <strong>{{ ( $data['shade'] ) }}</strong><br>
-                                                                                    Size : <strong>{{ $data['ratio'] }}</strong><br>
-                                                                                    Part : <strong>{{ "" }}</strong><br>
-                                                                                    Range : <strong>{{ "" }}</strong><br>
-                                                                                "
-                                                                            >
-                                                                                <div class="card-body">
-                                                                                    {{ $data['id_qr_stocker'] }}
-                                                                                </div>
+                                                            @if ($stockerData)
+                                                                @foreach ($stockerData as $data)
+                                                                    <div class="col">
+                                                                        <div class="card h-100"
+                                                                            data-bs-toggle="tooltip"
+                                                                            data-bs-placement="right"
+                                                                            data-bs-custom-class="custom-tooltip"
+                                                                            data-bs-html="true"
+                                                                            data-bs-title="
+                                                                                WS : <strong>{{ $data->act_costing_ws }}</strong><br>
+                                                                                Buyer : <strong>{{ $data->buyer }}</strong><br>
+                                                                                Style : <strong>{{ $data->style }}</strong><br>
+                                                                                Color : <strong>{{ $data->color }}</strong><br>
+                                                                                Size : <strong>{{ $data->size }}</strong><br>
+                                                                                No. Cut : <strong>{{ $data->no_cut }}</strong><br>
+                                                                                Shade : <strong>{{ $data->shade }}</strong><br>
+                                                                                Qty : <strong>{{ $data->qty_ply }}</strong><br>
+                                                                                Range : <strong>{{ $data->full_range }}</strong><br>
+                                                                            "
+                                                                        >
+                                                                            <div class="card-body" onclick="openModal({{ json_encode($data) }})"  data-bs-toggle="modal" data-bs-target="#detailModal">
+                                                                                {{ $data->style }}
+                                                                                <br>
+                                                                                <small>{{ $data->color }}</small>
                                                                             </div>
                                                                         </div>
-                                                                    @endforeach
+                                                                    </div>
                                                                 @endforeach
                                                             @endif
                                                         @else
@@ -161,6 +106,22 @@
                             </div>
                         @endforeach
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-sb-secondary">
+                    <h1 class="modal-title fs-5" id="detailModalLabel">Detail</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="closeModal()"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-bordered table-sm" id="detail-table">
+                        <tbody>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -187,6 +148,8 @@
 
         // Carousel
         var carouselSlid = false;
+        var detailTable = document.getElementById('detail-table');
+        var detailTableTbody = detailTable.getElementsByTagName("tbody")[0];
 
         document.getElementById('carouselExample').addEventListener('slid.bs.carousel', event => {
             if (!(carouselSlid)) {
@@ -208,5 +171,68 @@
                 carouselSlid = false;
             }
         });
+
+        function openModal(data) {
+            for (let key in data) {
+                if (key != "detail_rack_id" && key != "form_cut_id" && key != 'group_stocker') {
+                    let tr = document.createElement("tr");
+
+                    let th = document.createElement("th");
+                    th.innerText = key.replace(/_/g, " ").toUpperCase();
+
+                    let td = document.createElement("td");
+                    td.innerText = data[key];
+
+                    tr.appendChild(th);
+                    tr.appendChild(td);
+
+                    detailTableTbody.appendChild(tr);
+                }
+            }
+
+            $.ajax({
+                url: '{{ route('stock-rack-visual-detail') }}',
+                type: 'get',
+                data: {
+                    'form_cut_id' : data.form_cut_id,
+                    'so_det_id' : data.so_det_id,
+                    'group_stocker' : data.group_stocker,
+                    'ratio' : data.ratio,
+                },
+                success: async function(res) {
+                    if (res) {
+                        let tr = document.createElement("tr");
+                        let th = document.createElement("th");
+                        th.innerText = "PART";
+                        th.classList.add("align-top");
+                        th.setAttribute("rowspan", res.length + 1);
+
+                        tr.appendChild(th);
+
+                        detailTableTbody.appendChild(tr);
+
+                        await res.forEach(item => {
+                            let tr = document.createElement("tr");
+
+                            let td = document.createElement("td");
+                            td.innerText = item.stocker;
+
+                            tr.appendChild(td);
+
+                            detailTableTbody.appendChild(tr);
+                        });
+                    }
+                }
+            });
+
+            $('#detailModal').show();
+        }
+
+        function closeModal() {
+            detailTableTbody.innerHtml = "";
+            detailTableTbody.innerText = "";
+
+            $('#detailModal').hide();
+        }
     </script>
 @endsection
