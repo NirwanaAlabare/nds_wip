@@ -42,7 +42,8 @@ class DCInController extends Controller
             }
 
             $data_input = DB::select("
-            SELECT a.*,
+            SELECT
+            a.id_qr_stocker,
             DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
             s.act_costing_ws,
             s.color,
@@ -51,14 +52,17 @@ class DCInController extends Controller
             a.qty_awal,
             a.qty_reject,
             a.qty_replace,
-            a.qty_in,
+            (a.qty_awal + a.qty_reject - a.qty_replace) qty_in,
+            a.tujuan,
+            a.lokasi,
+            a.tempat,
             a.created_at,
-            users.name
-            from secondary_inhouse_input a
+            user
+            from dc_in_input a
             inner join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
             inner join part_detail pd on s.part_detail_id = pd.id
             inner join part p on pd.part_id = p.id
-            inner join users on a.user = users.id
+            order by a.tgl_trans desc
             ");
 
             return DataTables::of($data_input)->toJson();
@@ -74,14 +78,18 @@ class DCInController extends Controller
             $lokasi = $request->txtlok_h;
             $tempat = $request->txttempat_h;
         } else {
-            $tujuan = '';
-            $lokasi = '';
-            $tempat = '';
+            $tujuan = $request->txttuj_h;
+            $lokasi = $request->txtlok_h;
+            $tempat = '-';
         }
 
         DB::insert(
             "insert into tmp_dc_in_input_new (id_qr_stocker,qty_reject,qty_replace,tujuan,tempat,lokasi, user)
             values ('" . $request->txtqrstocker . "','0','0','$tujuan','$tempat','$lokasi','$user')"
+        );
+
+        DB::update(
+            "update stocker_input set status = 'dc' where id_qr_stocker = '" . $request->txtqrstocker . "'"
         );
     }
 
@@ -138,7 +146,7 @@ class DCInController extends Controller
         a.range_akhir,
         concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade)kode,
         ms.tujuan,
-        a.lokasi,
+        IF(ms.tujuan = 'NON SECONDARY',a.lokasi,ms.proses) lokasi ,
         a.tempat
         FROM `stocker_input` a
         inner join master_sb_ws m on a.so_det_id = m.id_so_det
@@ -276,13 +284,25 @@ class DCInController extends Controller
         $timestamp = Carbon::now();
         $user = Auth::user()->name;
 
+
+
         DB::insert(
             "insert into dc_in_input
             (id_qr_stocker,tgl_trans,tujuan,lokasi,tempat,qty_awal,qty_reject,qty_replace,user,status,created_at,updated_at)
-            select tmp.id_qr_stocker,$tgltrans,tmp.tujuan,tmp.lokasi,tmp.tempat,ms.qty_ply,qty_reject,qty_replace,user,'N','$timestamp','$timestamp' from tmp_dc_in_input_new tmp
+            select tmp.id_qr_stocker,'$tgltrans',tmp.tujuan,tmp.lokasi,tmp.tempat,ms.qty_ply,qty_reject,qty_replace,user,'N','$timestamp','$timestamp' from tmp_dc_in_input_new tmp
             inner join stocker_input ms on tmp.id_qr_stocker = ms.id_qr_stocker
             where user = '$user'"
         );
+
+        DB::insert(
+            "INSERT INTO rack_detail_stocker (detail_rack_id,nm_rak,stocker_id,qty_in,created_at,updated_at)
+            select r.id,nama_detail_rak,tmp.id_qr_stocker,s.qty_ply - qty_reject + qty_replace qty_in, '$timestamp','$timestamp'
+            from tmp_dc_in_input_new tmp
+            inner join rack_detail r on tmp.lokasi = r.nama_detail_rak
+            inner join stocker_input s on tmp.id_qr_stocker = s.id_qr_stocker
+            where tmp.tujuan = 'NON SECONDARY' AND user = '$user'"
+        );
+
 
 
         return array(
@@ -298,6 +318,7 @@ class DCInController extends Controller
     public function destroy(Request $request)
     {
         $user = Auth::user()->name;
+
         DB::delete(
             "DELETE FROM tmp_dc_in_input_new where user = '$user'"
         );

@@ -205,7 +205,9 @@
                     </li> --}}
 
                     <li class="nav-item dropdown">
-                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-stocker' ? 'active' : '' }}">Proses</a>
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-stocker' ? 'active' : '' }}">Proses</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @stocker
                                 <li>
@@ -251,7 +253,7 @@
                                 <li>
                                     <a href="{{ route('secondary-inhouse') }}"
                                         class="dropdown-item {{ $subPage == 'secondary-inhouse' ? 'active' : '' }}">
-                                        Secondary Inhouse <i class="fas fa-house-user"></i>
+                                        Secondary Dalam <i class="fas fa-house-user"></i>
                                     </a>
                                 </li>
                                 <li>
@@ -343,11 +345,14 @@
 
                 @if ($page == 'dashboard-mut-karyawan')
                     <li class="nav-item dropdown">
-                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-karyawan' ? 'active' : '' }}">Proses</a>
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-karyawan' ? 'active' : '' }}">Proses</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @hr
                                 <li>
-                                    <a href="{{ route('mut-karyawan') }}" class="dropdown-item {{ $subPage == 'mut-karyawan' ? 'active' : '' }}">
+                                    <a href="{{ route('mut-karyawan') }}"
+                                        class="dropdown-item {{ $subPage == 'mut-karyawan' ? 'active' : '' }}">
                                         Mutasi Karyawan<i class="fas fa-users-cog fa-sm"></i>
                                     </a>
                                 </li>

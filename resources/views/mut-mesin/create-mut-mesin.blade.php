@@ -452,7 +452,7 @@
                     // alert(request.responseText);
                     Swal.fire({
                         icon: 'warning',
-                        title: 'Data NIK Tidak Terdaftar Silahkan hubungi Department HRD',
+                        title: 'Data Mesin Tidak Terdaftar',
                         showConfirmButton: true,
                     })
                     document.getElementById('txtenroll_id').focus();

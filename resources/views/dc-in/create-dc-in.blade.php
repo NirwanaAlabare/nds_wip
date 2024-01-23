@@ -52,7 +52,7 @@
                                     <label class='form-label'><small>Keterangan</small></label>
                                     <input type='text' class='form-control' id='txtket' name='txtket' value=''>
                                     <input type='hidden' class='form-control' id='id_c' name='id_c' value=''>
-                                    <input type='text' class='form-control' id='id_kode' name='id_kode' value=''>
+                                    <input type='hidden' class='form-control' id='id_kode' name='id_kode' value=''>
                                 </div>
                             </div>
                         </div>
@@ -95,7 +95,7 @@
     <form action="{{ route('store-dc-in') }}" method="post" id="store-dc-in" name='form'
         onsubmit="submitForm(this, event)">
         @csrf
-        <div class="card card-info">
+        <div class="card card-sb">
             <div class="card-header">
                 <h5 class="card-title fw-bold mb-0">Scan DC IN</h5>
             </div>
@@ -259,9 +259,9 @@
     <script>
         $(document).ready(function() {
             initScan();
-            getdatatmp();
             clearh();
             cleard();
+            getdatatmp();
         })
     </script>
     <script>
@@ -373,7 +373,7 @@
                         url: '{{ route('insert_tmp_dc') }}',
                         data: {
                             txtqrstocker: txtqrstocker,
-                            txttuj_h: response.tujuan,
+                            txttuj_h: document.form.txttuj_h.value,
                             txtlok_h: response.lokasi,
                             txttempat_h: response.tempat
                         },
