@@ -394,6 +394,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('secondary-in');
         Route::get('/cek_data_stocker_in', 'cek_data_stocker_in')->name('cek_data_stocker_in');
         Route::post('/store', 'store')->name('store-secondary-in');
+        Route::get('/detail_stocker_in', 'detail_stocker_in')->name('detail_stocker_in');
     });
 
     // Rack

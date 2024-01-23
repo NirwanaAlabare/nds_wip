@@ -107,6 +107,7 @@ class SecondaryInhouseController extends Controller
             inner join master_sb_ws m on s.so_det_id = m.id_so_det
             left join secondary_inhouse_input sii on dc.id_qr_stocker = sii.id_qr_stocker
             where dc.tujuan = 'SECONDARY DALAM' group by dc.lokasi
+            having sum(sii.qty_in) - sum(dc.qty_awal - dc.qty_reject + dc.qty_replace) != '0'
             ");
 
             return DataTables::of($data_detail)->toJson();

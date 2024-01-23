@@ -74,6 +74,52 @@ class SecondaryInController extends Controller
         return view('secondary-in.secondary-in', ['page' => 'dashboard-dc', "subPageGroup" => "secondary-dc", "subPage" => "secondary-in", "data_rak" => $data_rak], ['tgl_skrg' => $tgl_skrg]);
     }
 
+    public function detail_stocker_in(Request $request)
+    {
+        $tgl_skrg = Carbon::now()->isoFormat('D MMMM Y hh:mm:ss');
+        $tglskrg = date('Y-m-d');
+        if ($request->ajax()) {
+            $additionalQuery = '';
+
+
+            $keywordQuery = '';
+            if ($request->search['value']) {
+                $keywordQuery =
+                    "
+                     (
+                        line like '%" .
+                    $request->search['value'] .
+                    "%'
+                    )
+                ";
+            }
+
+            $data_input = DB::select("
+            select s.act_costing_ws, buyer,s.color,styleno, dc.qty_awal - dc.qty_reject + dc.qty_replace qty_in, si.qty_in qty_out, dc.qty_awal - dc.qty_reject + dc.qty_replace -  si.qty_in balance, dc.tujuan,dc.lokasi
+            from dc_in_input dc
+            inner join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
+            inner join master_sb_ws m on s.so_det_id = m.id_so_det
+            left join secondary_in_input si on dc.id_qr_stocker = si.id_qr_stocker
+            where dc.tujuan = 'SECONDARY LUAR' and dc.qty_awal - dc.qty_reject + dc.qty_replace -  si.qty_in != '0'
+            group by dc.lokasi
+            union
+            select s.act_costing_ws, buyer,s.color,  styleno , sii.qty_in qty_in, si.qty_in qty_out,sii.qty_in - si.qty_in balance, dc.tujuan, dc.lokasi
+            from dc_in_input dc
+            inner join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
+            inner join master_sb_ws m on s.so_det_id = m.id_so_det
+            left join secondary_inhouse_input sii on dc.id_qr_stocker = sii.id_qr_stocker
+            left join secondary_in_input si on dc.id_qr_stocker = si.id_qr_stocker
+            where dc.tujuan = 'SECONDARY DALAM'
+            group by dc.lokasi
+            having sum(sii.qty_in) - sum(dc.qty_awal - dc.qty_reject + dc.qty_replace) != '0'
+            ");
+
+            return DataTables::of($data_input)->toJson();
+        }
+        return view('secondary-in.secondary-in', ['page' => 'dashboard-dc', "subPageGroup" => "secondary-dc", "subPage" => "secondary-in"], ['tgl_skrg' => $tgl_skrg]);
+    }
+
+
     public function cek_data_stocker_in(Request $request)
     {
         $cekdata =  DB::select("
