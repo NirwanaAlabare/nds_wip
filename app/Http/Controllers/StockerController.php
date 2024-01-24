@@ -311,6 +311,8 @@ class StockerController extends Controller
 
         $cumRangeAwal = $rangeAwal;
         $cumRangeAkhir = $rangeAwal - 1;
+
+        $storeItemArr = [];
         for ($i = 0; $i < $request['ratio'][$index]; $i++) {
             $checkStocker = Stocker::select("id_qr_stocker", "range_awal", "range_akhir")->whereRaw("
                 part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
@@ -329,11 +331,9 @@ class StockerController extends Controller
             $cumRangeAwal = $cumRangeAkhir + 1;
             $cumRangeAkhir = $cumRangeAkhir + $request['qty_ply_group'][$index];
 
-            $storeItem = Stocker::updateOrCreate(
-                [
+            if (!$checkStocker) {
+                array_push($storeItemArr, [
                     'id_qr_stocker' => $stockerId,
-                ],
-                [
                     'act_costing_ws' => $request["no_ws"],
                     'part_detail_id' => $request['part_detail_id'][$index],
                     'form_cut_id' => $request['form_cut_id'],
@@ -349,8 +349,12 @@ class StockerController extends Controller
                     'notes' => $request['note'],
                     'range_awal' => $cumRangeAwal,
                     'range_akhir' => $cumRangeAkhir,
-                ]
-            );
+                ]);
+            }
+        }
+
+        if (count($storeItemArr) > 0) {
+            $storeItem = Stocker::insert($storeItemArr);
         }
 
         $dataStockers = Stocker::selectRaw("
@@ -385,6 +389,7 @@ class StockerController extends Controller
 
     public function printStockerAllSize(Request $request, $partDetailId = 0)
     {
+        $storeItemArr = [];
         for ($i = 0; $i < count($request['part_detail_id']); $i++) {
             if ($request['part_detail_id'][$i] == $partDetailId) {
                 $stockerCount = Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first() ? str_replace("STK-", "", Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first()->id_qr_stocker) + 1 : 1;
@@ -412,11 +417,9 @@ class StockerController extends Controller
                     $cumRangeAwal = $cumRangeAkhir + 1;
                     $cumRangeAkhir = $cumRangeAkhir + $request['qty_ply_group'][$i];
 
-                    $storeItem = Stocker::updateOrCreate(
-                        [
+                    if (!$checkStocker) {
+                        array_push($storeItemArr, [
                             'id_qr_stocker' => $stockerId,
-                        ],
-                        [
                             'act_costing_ws' => $request["no_ws"],
                             'part_detail_id' => $request['part_detail_id'][$i],
                             'form_cut_id' => $request['form_cut_id'],
@@ -432,10 +435,14 @@ class StockerController extends Controller
                             'notes' => $request['note'],
                             'range_awal' => $cumRangeAwal,
                             'range_akhir' => $cumRangeAkhir
-                        ]
-                    );
+                        ]);
+                    }
                 }
             }
+        }
+
+        if (count($storeItemArr) > 0) {
+            $storeItem = Stocker::insert($storeItemArr);
         }
 
         $dataStockers = Stocker::selectRaw("
@@ -494,6 +501,7 @@ class StockerController extends Controller
 
         $partDetailKeys = $partDetail->intersect($request['generate_stocker'])->keys();
 
+        $storeItemArr = [];
         foreach ($partDetailKeys as $index) {
             $stockerCount = Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first() ? str_replace("STK-", "", Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first()->id_qr_stocker) + 1 : 1;
 
@@ -520,11 +528,9 @@ class StockerController extends Controller
                 $cumRangeAwal = $cumRangeAkhir + 1;
                 $cumRangeAkhir = $cumRangeAkhir + $request['qty_ply_group'][$index];
 
-                $storeItem = Stocker::updateOrCreate(
-                    [
+                if (!$checkStocker) {
+                    array_push($storeItemArr, [
                         'id_qr_stocker' => $stockerId,
-                    ],
-                    [
                         'act_costing_ws' => $request["no_ws"],
                         'part_detail_id' => $request['part_detail_id'][$index],
                         'form_cut_id' => $request['form_cut_id'],
@@ -540,9 +546,13 @@ class StockerController extends Controller
                         'notes' => $request['note'],
                         'range_awal' => $cumRangeAwal,
                         'range_akhir' => $cumRangeAkhir
-                    ]
-                );
+                    ]);
+                }
             }
+        }
+
+        if (count($storeItemArr) > 0) {
+            $storeItem = Stocker::insert($storeItemArr);
         }
 
         $dataStockers = Stocker::selectRaw("
@@ -607,7 +617,7 @@ class StockerController extends Controller
 
         $n = 0;
         for ($i = $rangeAwal; $i < $rangeAkhir; $i++) {
-            $checkStockerDetailData = StockerDetail::where('form_cut_id', null)->where('act_costing_ws', $request["no_ws"])->where('color', $request['color'])->where('panel', $request['panel'])->where('so_det_id', $request['so_det_id'])->where('no_cut_size', $noCutSize . sprintf('%04s', ($i)))->first();
+            $checkStockerDetailData = StockerDetail::where('form_cut_id', $request["form_cut_id"])->where('act_costing_ws', $request["no_ws"])->where('color', $request['color'])->where('panel', $request['panel'])->where('so_det_id', $request['so_det_id'])->where('no_cut_size', $noCutSize . sprintf('%04s', ($i)))->first();
 
             if (!$checkStockerDetailData) {
                 array_push($storeDetailItemArr, [
@@ -638,7 +648,9 @@ class StockerController extends Controller
             $n++;
         }
 
-        $storeDetailItem = StockerDetail::insert($storeDetailItemArr);
+        if (count($storeDetailItemArr) > 0) {
+            $storeDetailItem = StockerDetail::insert($storeDetailItemArr);
+        }
 
         // generate pdf
         $customPaper = array(0, 0, 56.70, 28.38);
@@ -664,7 +676,8 @@ class StockerController extends Controller
         $checkedSizeKeys = $checkedSize->keys();
 
         foreach ($checkedSizeKeys as $index) {
-            $stockerDetailCount = StockerDetail::select("kode")->orderBy("id", "desc")->first() ? str_replace("WIP-", "", StockerDetail::select("kode")->orderBy("id", "desc")->first()->kode) + 1 : 1;
+            $stockerDetail = StockerDetail::orderBy("id", "desc");
+            $stockerDetailCount = $stockerDetail->first() ? str_replace("WIP-", "", $stockerDetail->first()->kode) + 1 : 1;
 
             $rangeAwal = $request['range_awal'][$index];
             $rangeAkhir = $request['range_akhir'][$index] + 1;
@@ -674,7 +687,7 @@ class StockerController extends Controller
 
             $n = 0;
             for ($i = $rangeAwal; $i < $rangeAkhir; $i++) {
-                $checkStockerDetailData = StockerDetail::where('form_cut_id', null)->where('act_costing_ws', $request["no_ws"])->where('color', $request['color'])->where('panel', $request['panel'])->where('so_det_id', $request['so_det_id'])->where('no_cut_size', $noCutSize . sprintf('%04s', ($i)))->first();
+                $checkStockerDetailData = $stockerDetail->where('form_cut_id', $request['form_cut_id'])->where('act_costing_ws', $request["no_ws"])->where('color', $request['color'])->where('panel', $request['panel'])->where('so_det_id', $request['so_det_id'])->where('no_cut_size', $noCutSize . sprintf('%04s', ($i)))->first();
 
                 if (!$checkStockerDetailData) {
                     array_push($storeDetailItemArr, [
@@ -706,7 +719,9 @@ class StockerController extends Controller
             }
         }
 
-        $storeDetailItem = StockerDetail::insert($storeDetailItemArr);
+        if (count($storeDetailItemArr) > 0) {
+            $storeDetailItem = StockerDetail::insert($storeDetailItemArr);
+        }
 
         // generate pdf
         $customPaper = array(0, 0, 56.70, 28.38);
