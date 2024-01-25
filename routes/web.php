@@ -330,6 +330,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/print-numbering/{index?}', 'printNumbering')->name('print-numbering');
         Route::post('/print-numbering-checked', 'printNumberingChecked')->name('print-numbering-checked');
         Route::post('/rearrange-group', 'rearrangeGroup')->name('rearrange-group');
+        Route::post('/reorder-stocker-numbering', 'reorderStockerNumbering')->name('reorder-stocker-numbering');
 
         Route::put('/count-stocker-update', 'countStockerUpdate')->name('count-stocker-update');
 

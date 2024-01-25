@@ -60,7 +60,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="row">
+                    <div class="row align-items-end">
                         <input type="hidden" name="detail_id" id="detail_id" onchange="dataTablePartFormReload()">
                         <div class="col-md-4">
                             <div class="mb-3">
@@ -83,18 +83,23 @@
                                     value="" readonly>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label">Panel</label>
                                 <input type="text" class="form-control" name="detail_panel" id="detail_panel"
                                     value="" readonly>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label">Part</label>
                                 <input type="text" class="form-control" name="detail_part" id="detail_part_details"
                                     value="" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <button class="btn btn-sb-secondary btn-block" onclick="reorderStockerNumbering()"><i class="fa-solid fa-arrow-up-wide-short"></i> Reorder</button>
                             </div>
                         </div>
                         <div class="col-md-12">
@@ -283,7 +288,8 @@
                     d.id = $('#detail_id').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'id_marker'
                 },
                 {
@@ -337,9 +343,8 @@
                 {
                     targets: [12],
                     render: (data, type, row, meta) => {
-                        return `<div class='d-flex gap-1 justify-content-center'> <a class='btn btn-info btn-sm' href='{{ route('show-stocker') }}/` +
-                            row.part_detail_id + `/` + row.form_cut_id +
-                            `' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-eye'></i></a> </div>`;
+                        return `<div class='d-flex gap-1 justify-content-center'>
+                            <a class='btn btn-info btn-sm' href='{{ route('show-stocker') }}/` + row.part_detail_id + `/` + row.form_cut_id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-eye'></i></a> </div>`;
                     }
                 }
             ]
@@ -367,6 +372,33 @@
 
         function dataTablePartFormReload() {
             datatablePartForm.ajax.reload();
+        }
+
+        function reorderStockerNumbering() {
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Updating Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                url: '{{ route('reorder-stocker-numbering') }}',
+                type: 'post',
+                data: {
+                    id : $("#detail_id").val()
+                },
+                success: function (res) {
+                    console.log(res);
+
+                    swal.close();
+                },
+                error: function (jqXHR) {
+                    console.log(jqXHR);
+                }
+            });
         }
     </script>
 @endsection
