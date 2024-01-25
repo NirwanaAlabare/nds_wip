@@ -278,14 +278,22 @@ class StockerController extends Controller
             whereRaw("part_form.id is not null")->
             where("part.id", $request->id)->
             groupBy("form_cut_input.id")->
+            orderBy("marker_input.color", "asc")->
             orderBy("form_cut_input.no_cut", "asc")->
-            orderBy("no_cut", "asc")->
             get();
 
         $rangeAwal = 0;
         $rangeAkhir = 0;
 
+        $currentColor = "";
         foreach ($formCutInputs as $formCut) {
+            if ($formCut->color != $currentColor) {
+                $rangeAwal = 0;
+                $rangeAkhir = 0;
+
+                $currentColor = $formCut->color;
+            }
+
             $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->orderBy("group_stocker", "asc")->get();
             $stockerNumberingForm = StockerDetail::where("form_cut_id", $formCut->id_form)->get();
 
