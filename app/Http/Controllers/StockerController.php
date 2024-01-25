@@ -286,45 +286,56 @@ class StockerController extends Controller
             get();
 
         $rangeAwal = 0;
-        $rangeAkhir = 0;
+        $sizeRangeAkhir = collect();
 
         $currentColor = "";
         foreach ($formCutInputs as $formCut) {
             if ($formCut->color != $currentColor) {
                 $rangeAwal = 0;
-                $rangeAkhir = 0;
+                $sizeRangeAkhir = collect();
 
                 $currentColor = $formCut->color;
             }
 
-            $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->orderBy("group_stocker", "desc")->get();
+            $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->orderBy("shade", "desc")->orderBy("group_stocker", "desc")->orderBy("size", "asc")->orderBy("ratio", "asc")->get();
             $stockerNumberingForm = StockerDetail::where("form_cut_id", $formCut->id_form)->get();
 
             $formCutInputDetails = FormCutInputDetail::where("no_form_cut_input", $formCut->no_form)->get();
 
-            $currentGroup = "";
-            $i = 0;
+            $currentGroup = "initial";
+            $currentPart = $stockerForm->first() ? $stockerForm->first()->part_detail_id : "";
             foreach ($stockerForm as $stocker) {
-                if ($i == 0) {
-                    $rangeAwalNumbering = $rangeAkhir + 1;
+                $lembarGelaran = $formCutInputDetails->filter(function($data) use ($stocker) {return $data->group_roll == $stocker->shade;})->sum('lembar_gelaran');
 
-                    $i++;
+                if ($currentPart == $stocker->part_detail_id) {
+                    if (isset($sizeRangeAkhir[$stocker->size])) {
+                        $rangeAwal = $sizeRangeAkhir[$stocker->size] + 1;
+                        $sizeRangeAkhir[$stocker->size] = $sizeRangeAkhir[$stocker->size] + $lembarGelaran;
+                    } else {
+                        $rangeAwal =  1;
+                        $sizeRangeAkhir->put($stocker->size, $lembarGelaran);
+                    }
                 }
 
-                if ($currentGroup != $stocker->group_stocker) {
-                    $currentGroup = $stocker->group_stocker;
-
-                    $rangeAwal = $rangeAkhir + 1;
-                    $rangeAkhir = $rangeAkhir + $formCutInputDetails->where("group_stocker", $stocker->group_stocker)->sum("lembar_gelaran");
-                }
+                \Log::info([
+                    $formCut->no_form, 
+                    "Shade ".$stocker->shade, 
+                    "Size ".$stocker->size, 
+                    "Ratio ".$stocker->ratio,
+                    "Awal ".$rangeAwal, 
+                    "Form ".$formCutInputDetails->filter(function($data) use ($stocker) {return $data->group_roll == $stocker->shade;}),
+                    "Lembar ".$lembarGelaran, 
+                    "Akhir ".($sizeRangeAkhir[$stocker->size]), 
+                    "sizeRangeAkhir ". $sizeRangeAkhir,
+                ]);
 
                 $stocker->range_awal = $rangeAwal;
-                $stocker->range_akhir = $rangeAkhir;
+                $stocker->range_akhir = $sizeRangeAkhir[$stocker->size];
                 $stocker->save();
             }
         }
 
-        return $rangeAwal." - ".$rangeAkhir;
+        return $sizeRangeAkhir;
     }
 
     public function countStockerUpdate(Request $request)
