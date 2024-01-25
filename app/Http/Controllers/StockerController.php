@@ -266,8 +266,9 @@ class StockerController extends Controller
         ini_set('max_execution_time', 36000);
 
         $formCutInputs = FormCutInput::selectRaw("
-                *,
+                marker_input.color,
                 form_cut_input.id as id_form
+                form_cut_input.no_form as no_form
             ")->
             leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
             leftJoin("part", "part.id", "=", "part_form.part_id")->
@@ -296,7 +297,7 @@ class StockerController extends Controller
                 $currentColor = $formCut->color;
             }
 
-            $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->orderBy("group_stocker", "asc")->get();
+            $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->orderBy("group_stocker", "desc")->get();
             $stockerNumberingForm = StockerDetail::where("form_cut_id", $formCut->id_form)->get();
 
             $formCutInputDetails = FormCutInputDetail::where("no_form_cut_input", $formCut->no_form)->get();
@@ -306,6 +307,8 @@ class StockerController extends Controller
             foreach ($stockerForm as $stocker) {
                 if ($i == 0) {
                     $rangeAwalNumbering = $rangeAkhir + 1;
+
+                    $i++;
                 }
 
                 if ($currentGroup != $stocker->group_stocker) {
@@ -318,8 +321,6 @@ class StockerController extends Controller
                 $stocker->range_awal = $rangeAwal;
                 $stocker->range_akhir = $rangeAkhir;
                 $stocker->save();
-
-                $i++;
             }
         }
 
