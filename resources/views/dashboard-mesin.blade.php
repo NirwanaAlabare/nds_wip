@@ -2541,7 +2541,7 @@
                             },
                             subtitle: {
                                 // text: [dari+' / '+sampai, 'Total Orang : '+totalEmployee.toLocaleString()],
-                                text: ['Total Orang : ' + totalEmployee.toLocaleString()],
+                                text: ['Total Mesin : ' + totalEmployee.toLocaleString()],
                                 align: 'center',
                                 style: {
                                     fontSize: '13px',
