@@ -263,6 +263,8 @@ class StockerController extends Controller
     }
 
     public function reorderStockerNumbering(Request $request) {
+        ini_set('max_execution_time', 36000);
+
         $formCutInputs = FormCutInput::selectRaw("
                 *,
                 form_cut_input.id as id_form
@@ -795,10 +797,6 @@ class StockerController extends Controller
         $generatedFilePath = public_path('pdf/' . $fileName);
 
         return response()->download($generatedFilePath);
-    }
-
-    public function reOrder(Request $request) {
-
     }
 
     public function part(Request $request)
