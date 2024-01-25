@@ -649,13 +649,13 @@ class MarkerController extends Controller
             $markerDetailData = [];
             for ($i = 0; $i < intval($request['jumlah_so_det']); $i++) {
                 MarkerDetail::where('marker_id', $id)->where('so_det_id', $request["so_det_id"][$i])->update([
-                        "size" => $request["size"][$i],
-                        "ratio" => $request["ratio"][$i],
-                        "cut_qty" => $request["cut_qty"][$i],
-                        "cancel" => 'N',
-                        "created_at" => $timestamp,
-                        "updated_at" => $timestamp,
-                    ]);
+                    "size" => $request["size"][$i],
+                    "ratio" => $request["ratio"][$i],
+                    "cut_qty" => $request["cut_qty"][$i],
+                    "cancel" => 'N',
+                    "created_at" => $timestamp,
+                    "updated_at" => $timestamp,
+                ]);
             }
 
             return array(

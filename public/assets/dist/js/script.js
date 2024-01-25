@@ -127,6 +127,45 @@ function submitForm(e, evt) {
                             location.reload();
                         }
                     }
+                    else
+                    {
+                        location.reload();
+                    }
+                });
+
+                e.reset();
+
+                if (res.callback != '') {
+                    eval(res.callback);
+                }
+
+                if (document.getElementsByClassName('select2')) {
+                    $(".select2").val('').trigger('change');
+                }
+            }
+            else if (res.status == 999) {
+                $('.modal').modal('hide');
+
+                Swal.fire({
+                    icon: 'success',
+                    title: res.message,
+                    showCancelButton: false,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Oke',
+                    timer: 2000,
+                    timerProgressBar: true
+                }).then(() => {
+                    if (res.redirect != '') {
+                        if (res.redirect != 'reload') {
+                            location.href = res.redirect;
+                        } else {
+                            location.reload();
+                        }
+                    }
+                    else
+                    {
+                        location.reload();
+                    }
                 });
 
                 e.reset();

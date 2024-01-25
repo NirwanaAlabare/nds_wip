@@ -103,7 +103,7 @@
                                         <option selected="selected" value="">Pilih Part</option>
                                         @foreach ($data_part as $datapart)
                                             <option value="{{ $datapart->id }}">
-                                                {{ $datapart->nama_part." - ".$datapart->bag }}
+                                                {{ $datapart->nama_part . ' - ' . $datapart->bag }}
                                             </option>
                                         @endforeach
                                     </select>
@@ -113,8 +113,7 @@
                                 <div class="mb-4">
                                     <label><small><b>Cons</b></small></label>
                                     <div class="input-group mb-3">
-                                        <input type="text" class="form-control" name="txtcons"
-                                            id="txtcons">
+                                        <input type="text" class="form-control" name="txtcons" id="txtcons">
                                         <div class="input-group-prepend">
                                             <span class="input-group-text" id="inputGroup-sizing-sm">METER</span>
                                         </div>
@@ -146,7 +145,8 @@
                             <div class="col-md-1">
                                 <div class="mb-4">
                                     <label><small><b>&nbsp</b></small></label>
-                                    <input type="button" class="form-control form-control-sm bg-primary" name="simpan" id="simpan" value="Simpan"onclick="simpan_data();">
+                                    <input type="button" class="form-control form-control-sm bg-primary" name="simpan"
+                                        id="simpan" value="Simpan"onclick="simpan_data();">
                                 </div>
                             </div>
                 </form>
@@ -240,8 +240,7 @@
                         d.id = $('#id').val();
                     },
                 },
-                columns: [
-                    {
+                columns: [{
                         data: 'nama_part',
                     },
                     {

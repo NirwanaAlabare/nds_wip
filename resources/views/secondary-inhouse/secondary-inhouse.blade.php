@@ -20,7 +20,7 @@
             <div class="modal-dialog modal-xl modal-dialog-scrollable">
                 <div class="modal-content">
                     <div class="modal-header bg-sb text-light">
-                        <h1 class="modal-title fs-5">Scan QR Secondary Inhouse</h1>
+                        <h1 class="modal-title fs-5">Scan QR Secondary Dalam</h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
@@ -203,9 +203,9 @@
         </form>
     </div>
 
-    <div class="card card-sb card-outline">
+    <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0">Secondary Inhouse <i class="fas fa-house-user"></i></h5>
+            <h5 class="card-title fw-bold mb-0">Secondary Dalam <i class="fas fa-house-user"></i></h5>
         </div>
         <div class="card-body">
             <div class="d-flex align-items-end gap-3 mb-3">
@@ -224,10 +224,23 @@
                         onclick="reset();"><i class="fas fa-plus"></i> Baru</button>
                 </div>
             </div>
-            <h5 class="card-title fw-bold mb-0">List Transaksi Inhouse</h5>
+
+            <div class="d-flex align-items-end gap-3 mb-3">
+                <div class="mb-3">
+                    <button class="btn btn-info btn-sm" onclick="list();" id="list" name="list"><i
+                            class="fas fa-list"></i> List</button>
+                </div>
+                <div class="mb-3">
+                    <button class="btn btn-secondary btn-sm" onclick="detail();" id="detail" name="detail"><i
+                            class="fas fa-list"></i>
+                        Detail</button>
+                </div>
+            </div>
+
+            <h5 class="card-title fw-bold mb-0" id="judul" name="judul">List Transaksi Inhouse / Dalam</h5>
             <br>
             <br>
-            <div class="table-responsive">
+            <div class="table-responsive" id = "show_datatable_input">
                 <table id="datatable-input" class="table table-bordered table-striped table-sm w-100">
                     <thead>
                         <tr>
@@ -237,6 +250,8 @@
                             <th>Buyer</th>
                             <th>Style</th>
                             <th>Color</th>
+                            <th>Tujuan Asal</th>
+                            <th>Lokasi Asal</th>
                             <th>Qty Awal</th>
                             <th>Qty Reject</th>
                             <th>Qty Replace</th>
@@ -248,6 +263,26 @@
                     </tbody>
                 </table>
             </div>
+
+            <div class="table-responsive" id = "show_datatable_detail">
+                <table id="datatable-detail" class="table table-bordered table-striped table-sm w-100">
+                    <thead>
+                        <tr>
+                            <th>WS</th>
+                            <th>Buyer</th>
+                            <th>Style</th>
+                            <th>Color</th>
+                            <th>Out</th>
+                            <th>In</th>
+                            <th>Balance</th>
+                            <th>Proses</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+
         </div>
     </div>
 @endsection
@@ -266,7 +301,8 @@
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: false,
+            paging: true,
+            destroy: true,
             ajax: {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -298,6 +334,12 @@
                     data: 'color',
                 },
                 {
+                    data: 'tujuan',
+                },
+                {
+                    data: 'lokasi',
+                },
+                {
                     data: 'qty_awal',
                 },
                 {
@@ -310,17 +352,54 @@
                     data: 'qty_in',
                 },
                 {
-                    data: 'name',
+                    data: 'user',
                 },
             ],
-            // columnDefs: [{
-            //     targets: [10],
-            //     render: (data, type, row, meta) => {
-            //         return `<div class='d-flex gap-1 justify-content-center'> <a class='btn btn-warning btn-sm' href='{{ route('create-dc-in') }}/` +
-            //             row.no_form +
-            //             `' data-bs-toggle='tooltip'><i class='fas fa-qrcode'></i></a> </div>`;
-            //     }
-            // }]
+        });
+
+        let datatable_detail = $("#datatable-detail").DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            paging: true,
+            destroy: true,
+            ajax: {
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '{{ route('detail_stocker_inhouse') }}',
+                dataType: 'json',
+                dataSrc: 'data',
+                data: function(d) {
+                    d.dateFrom = $('#tgl-awal').val();
+                    d.dateTo = $('#tgl-akhir').val();
+                },
+            },
+            columns: [{
+                    data: 'act_costing_ws',
+                },
+                {
+                    data: 'buyer',
+                },
+                {
+                    data: 'color',
+                },
+                {
+                    data: 'styleno',
+                },
+                {
+                    data: 'qty_out',
+                },
+                {
+                    data: 'qty_in',
+                },
+                {
+                    data: 'balance',
+                },
+                {
+                    data: 'lokasi',
+                },
+            ],
         });
     </script>
 
@@ -385,7 +464,7 @@
     <script>
         $(document).ready(function() {
             reset();
-
+            list();
         })
 
         $('#exampleModal').on('show.bs.modal', function(e) {
@@ -429,7 +508,7 @@
                     document.getElementById('txtsize').value = response.size;
                     document.getElementById('txtpart').value = response.nama_part;
                     document.getElementById('txttujuan').value = response.tujuan;
-                    document.getElementById('txtalokasi').value = response.alokasi;
+                    document.getElementById('txtalokasi').value = response.lokasi;
                     document.getElementById('txtqtyawal').value = response.qty_awal;
                     // let txtqtyreject = $("#txtqtyreject").val();
                     // let txtqtyreplace = $("#txtqtyreplace").val();
@@ -488,6 +567,19 @@
             if (!isNaN(result_fix)) {
                 document.getElementById("txtqtyin").value = result_fix;
             }
+        }
+
+
+        function list() {
+            document.getElementById("judul").textContent = "List Transaksi Inhouse / Dalam";
+            document.getElementById("show_datatable_input").style.display = 'block';
+            document.getElementById("show_datatable_detail").style.display = 'none';
+        }
+
+        function detail() {
+            document.getElementById("judul").textContent = "Detail Transaksi Inhouse / Dalam";
+            document.getElementById("show_datatable_input").style.display = 'none';
+            document.getElementById("show_datatable_detail").style.display = 'block';
         }
     </script>
 @endsection

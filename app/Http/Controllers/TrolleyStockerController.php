@@ -93,7 +93,7 @@ class TrolleyStockerController extends Controller
                 leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
                 where('trolley_id', $request->trolley_id)->
                 where('trolley_stocker.status', "active")->
-                where('stocker_input.lokasi', "trolley")->
+                where('stocker_input.status', "trolley")->
                 groupBy('form_cut_input.no_cut', 'stocker_input.size')->
                 get();
 
@@ -126,7 +126,7 @@ class TrolleyStockerController extends Controller
                 leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
                 where('trolley_id', $id)->
                 where('trolley_stocker.status', "active")->
-                where('stocker_input.lokasi', "trolley")->
+                where('stocker_input.status', "trolley")->
                 groupBy('form_cut_input.no_cut', 'stocker_input.size')->
                 get();
 
@@ -191,7 +191,7 @@ class TrolleyStockerController extends Controller
                 where("group_stocker", $stockerData->group_stocker)->
                 where("ratio", $stockerData->ratio)->
                 update([
-                    "lokasi" => "trolley",
+                    "status" => "trolley",
                     "latest_alokasi" => Carbon::now()
                 ]);
 
@@ -266,7 +266,7 @@ class TrolleyStockerController extends Controller
                 where("group_stocker", $stockerData->group_stocker)->
                 where("ratio", $stockerData->ratio)->
                 update([
-                    "lokasi" => "trolley",
+                    "status" => "trolley",
                     "latest_alokasi" => Carbon::now()
                 ]);
 
@@ -361,7 +361,7 @@ class TrolleyStockerController extends Controller
                 where("stocker_input.group_stocker", $stockerData->group_stocker)->
                 where("stocker_input.ratio", $stockerData->ratio)->
                 update([
-                    "lokasi" => "idle",
+                    "status" => "idle",
                     "latest_alokasi" => Carbon::now()
                 ]);
 
@@ -417,7 +417,7 @@ class TrolleyStockerController extends Controller
                 leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
                 where('trolley_id', $id)->
                 where('trolley_stocker.status', 'active')->
-                where('stocker_input.lokasi', "!=", "line")->
+                where('stocker_input.status', "!=", "line")->
                 groupBy('form_cut_input.no_cut', 'stocker_input.size')->
                 get();
 
@@ -506,7 +506,7 @@ class TrolleyStockerController extends Controller
             if (count($loadingStockArr) > 0) {
                 $updateStocker = Stocker::whereIn("id", $stockerIds)->
                     update([
-                        "lokasi" => "line",
+                        "status" => "line",
                         "latest_alokasi" => Carbon::now()
                     ]);
 
@@ -551,7 +551,7 @@ class TrolleyStockerController extends Controller
                 stocker_input.id_qr_stocker,
                 stocker_input.size,
                 stocker_input.qty_ply,
-                stocker_input.lokasi,
+                stocker_input.status,
                 form_cut_input.no_cut,
                 marker_input.buyer,
                 marker_input.style
@@ -562,7 +562,7 @@ class TrolleyStockerController extends Controller
             first();
 
         if ($scannedStocker) {
-            if ($scannedStocker->lokasi == "line") {
+            if ($scannedStocker->status == "line") {
                 return json_encode(
                     array(
                         'status' => 400,
@@ -572,7 +572,7 @@ class TrolleyStockerController extends Controller
                         'additional' => []
                     )
                 );
-            } else if ($scannedStocker->lokasi == "trolley") {
+            } else if ($scannedStocker->status == "trolley") {
                 return json_encode(
                     array(
                         'status' => 400,

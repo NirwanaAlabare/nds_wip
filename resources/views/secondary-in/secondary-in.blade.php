@@ -201,7 +201,7 @@
         </form>
     </div>
 
-    <div class="card card-sb card-outline">
+    <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold mb-0">Secondary In <i class="fas fa-sign-in-alt"></i></h5>
         </div>
@@ -222,10 +222,21 @@
                         onclick="reset();"><i class="fas fa-plus"></i> Baru</button>
                 </div>
             </div>
-            <h5 class="card-title fw-bold mb-0">List Transaksi In</h5>
+            <div class="d-flex align-items-end gap-3 mb-3">
+                <div class="mb-3">
+                    <button class="btn btn-info btn-sm" onclick="list();" id="list" name="list"><i
+                            class="fas fa-list"></i> List</button>
+                </div>
+                <div class="mb-3">
+                    <button class="btn btn-secondary btn-sm" onclick="detail();" id="detail" name="detail"><i
+                            class="fas fa-list"></i>
+                        Detail</button>
+                </div>
+            </div>
+            <h5 class="card-title fw-bold mb-0" id="judul" name="judul">List Transaksi Secondary In</h5>
             <br>
             <br>
-            <div class="table-responsive">
+            <div class="table-responsive" id = "show_datatable_input">
                 <table id="datatable-input" class="table table-bordered table-striped table-sm w-100">
                     <thead>
                         <tr>
@@ -235,6 +246,9 @@
                             <th>Buyer</th>
                             <th>Style</th>
                             <th>Color</th>
+                            <th>Tujuan Awal</th>
+                            <th>Lokasi Awal</th>
+                            <th>Lokasi Rak</th>
                             <th>Qty Awal</th>
                             <th>Qty Reject</th>
                             <th>Qty Replace</th>
@@ -246,6 +260,25 @@
                     </tbody>
                 </table>
             </div>
+            <div class="table-responsive" id = "show_datatable_detail">
+                <table id="datatable-detail" class="table table-bordered table-striped table-sm w-100">
+                    <thead>
+                        <tr>
+                            <th>WS</th>
+                            <th>Buyer</th>
+                            <th>Style</th>
+                            <th>Color</th>
+                            <th>Out</th>
+                            <th>In</th>
+                            <th>Balance</th>
+                            <th>Proses</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+
         </div>
     </div>
 @endsection
@@ -264,7 +297,7 @@
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: false,
+            paging: true,
             ajax: {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -296,6 +329,15 @@
                     data: 'color',
                 },
                 {
+                    data: 'tujuan',
+                },
+                {
+                    data: 'lokasi',
+                },
+                {
+                    data: 'lokasi_rak',
+                },
+                {
                     data: 'qty_awal',
                 },
                 {
@@ -308,7 +350,7 @@
                     data: 'qty_in',
                 },
                 {
-                    data: 'name',
+                    data: 'user',
                 },
             ],
             // columnDefs: [{
@@ -319,6 +361,52 @@
             //             `' data-bs-toggle='tooltip'><i class='fas fa-qrcode'></i></a> </div>`;
             //     }
             // }]
+        });
+
+
+        let datatable_detail = $("#datatable-detail").DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            paging: true,
+            destroy: true,
+            ajax: {
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '{{ route('detail_stocker_in') }}',
+                dataType: 'json',
+                dataSrc: 'data',
+                data: function(d) {
+                    d.dateFrom = $('#tgl-awal').val();
+                    d.dateTo = $('#tgl-akhir').val();
+                },
+            },
+            columns: [{
+                    data: 'act_costing_ws',
+                },
+                {
+                    data: 'buyer',
+                },
+                {
+                    data: 'color',
+                },
+                {
+                    data: 'styleno',
+                },
+                {
+                    data: 'qty_out',
+                },
+                {
+                    data: 'qty_in',
+                },
+                {
+                    data: 'balance',
+                },
+                {
+                    data: 'lokasi',
+                },
+            ],
         });
     </script>
 
@@ -383,7 +471,7 @@
     <script>
         $(document).ready(function() {
             reset();
-
+            list();
         })
 
         $('#exampleModal').on('show.bs.modal', function(e) {
@@ -418,7 +506,6 @@
                 dataType: 'json',
                 success: function(response) {
                     document.getElementById('txtno_stocker').value = response.id_qr_stocker;
-                    document.getElementById('txtno_form').value = response.no_form;
                     document.getElementById('txtws').value = response.act_costing_ws;
                     document.getElementById('txtbuyer').value = response.buyer;
                     document.getElementById('txtno_cut').value = response.no_cut;
@@ -427,8 +514,9 @@
                     document.getElementById('txtsize').value = response.size;
                     document.getElementById('txtpart').value = response.nama_part;
                     document.getElementById('txttujuan').value = response.tujuan;
-                    document.getElementById('txtalokasi').value = response.alokasi;
+                    document.getElementById('txtalokasi').value = response.lokasi;
                     document.getElementById('txtqtyawal').value = response.qty_awal;
+                    $("#cborak").val(response.lokasi_rak).trigger('change');
                     // let txtqtyreject = $("#txtqtyreject").val();
                     // let txtqtyreplace = $("#txtqtyreplace").val();
                     // let txtqtyin = $("#txtqtyin").val();
@@ -486,6 +574,18 @@
             if (!isNaN(result_fix)) {
                 document.getElementById("txtqtyin").value = result_fix;
             }
+        }
+
+        function list() {
+            document.getElementById("judul").textContent = "List Transaksi Inhouse / Dalam";
+            document.getElementById("show_datatable_input").style.display = 'block';
+            document.getElementById("show_datatable_detail").style.display = 'none';
+        }
+
+        function detail() {
+            document.getElementById("judul").textContent = "Detail Transaksi Inhouse / Dalam";
+            document.getElementById("show_datatable_input").style.display = 'none';
+            document.getElementById("show_datatable_detail").style.display = 'block';
         }
     </script>
 @endsection

@@ -104,6 +104,10 @@ class SummaryController extends Controller
         return view('summary', ["page" => "dashboard-cutting", "subPage" => "summary-cutting"]);
     }
 
+    public function secondary(Request $request) {
+        //
+    }
+
     /**
      * Show the form for creating a new resource.
      *
