@@ -267,7 +267,7 @@ class StockerController extends Controller
 
         $formCutInputs = FormCutInput::selectRaw("
                 marker_input.color,
-                form_cut_input.id as id_form
+                form_cut_input.id as id_form,
                 form_cut_input.no_form as no_form
             ")->
             leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
