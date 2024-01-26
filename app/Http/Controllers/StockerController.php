@@ -240,7 +240,8 @@ class StockerController extends Controller
             where("marker_input.color", $dataSpreading->color)->
             where("marker_input.panel", $dataSpreading->panel)->
             where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
-            groupBy("no_cut", "marker_input.color", "marker_input_detail.so_det_id")->
+            groupBy("form_cut_input.no_cut", "marker_input.color", "marker_input_detail.so_det_id")->
+            orderBy("form_cut_input.no_cut", "desc")->
             get();
 
         return view("stocker.stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataPartDetail" => $dataPartDetail, "dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "dataNumbering" => $dataNumbering, "page" => "dashboard-stocker", "subPageGroup" => "proses-stocker", "subPage" => "stocker"]);
