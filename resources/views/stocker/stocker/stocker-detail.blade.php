@@ -807,14 +807,14 @@
                             link.click();
                         }
 
-                        window.location.reload();
+                        // window.location.reload();
 
-                        generating = false;
+                        // generating = false;
                     },
                     error: function(jqXHR) {
                         console.log(jqXHR);
 
-                        generating = false;
+                        // generating = false;
                     }
                 });
             } else {
