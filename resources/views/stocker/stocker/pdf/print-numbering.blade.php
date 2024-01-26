@@ -13,13 +13,14 @@
         }
 
         body {
-            margin: 0.5px;
+            margin: 0.3px;
             font-family: 'Open Sans', sans-serif;
             font-weight: bold;
         }
 
         * {
-            font-size: 3.75px;
+            font-size: 4.5px;
+            line-height: 4.5px;
         }
 
         img {
@@ -55,7 +56,7 @@
                 <td>{{ $ws }}</td>
             </tr>
             <tr>
-                <td>{{ strtoupper(substr($color, 0, 10)).(strlen($color) > 30 ? '...' : '') }}</td>
+                <td>{{ strtoupper(substr($color, 0, 10)).(strlen($color) > 10 ? '...' : '') }}</td>
             </tr>
             <tr>
                 <td>{{ $numbering['size'] }}</td>

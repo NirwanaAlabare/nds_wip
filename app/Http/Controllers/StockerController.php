@@ -171,7 +171,12 @@ class StockerController extends Controller
                 marker_input_detail.ratio,
                 stocker_input.id stocker_id
                 ")->
-            leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->leftJoin("part", "part.id", "=", "part_form.part_id")->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->leftJoin("stocker_input", function ($join) {
+            leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->
+            leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
+            leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
+            leftJoin("part", "part.id", "=", "part_form.part_id")->
+            leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
+            leftJoin("stocker_input", function ($join) {
                 $join->on("stocker_input.form_cut_id", "=", "form_cut_input.id");
                 $join->on("stocker_input.part_detail_id", "=", "part_detail.id");
                 $join->on("stocker_input.so_det_id", "=", "marker_input_detail.so_det_id");
@@ -195,7 +200,12 @@ class StockerController extends Controller
                 stocker_input.range_awal,
                 stocker_input.range_akhir
             ")->
-            leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->leftJoin("part", "part.id", "=", "part_form.part_id")->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->leftJoin("stocker_input", function ($join) {
+            leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->
+            leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
+            leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
+            leftJoin("part", "part.id", "=", "part_form.part_id")->
+            leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
+            leftJoin("stocker_input", function ($join) {
                 $join->on("stocker_input.form_cut_id", "=", "form_cut_input.id");
                 $join->on("stocker_input.part_detail_id", "=", "part_detail.id");
                 $join->on("stocker_input.so_det_id", "=", "marker_input_detail.so_det_id");
@@ -204,9 +214,13 @@ class StockerController extends Controller
             where("marker_input.color", $dataSpreading->color)->
             where("marker_input.panel", $dataSpreading->panel)->
             where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
-            groupBy("form_cut_input.no_cut", "marker_input.color", "marker_input_detail.so_det_id", "part_detail.id", "stocker_input.ratio")->
-            orderBy("range_akhir", "desc")->
-            orderBy("no_cut", "desc")->
+            groupBy("form_cut_input.no_cut", "marker_input.color", "marker_input_detail.so_det_id", "part_detail.id", "stocker_input.ratio", "stocker_input.range_awal", "stocker_input.range_akhir")->
+            orderBy("form_cut_input.no_cut", "desc")->
+            orderBy("stocker_input.shade", "asc")->
+            orderBy("stocker_input.size", "desc")->
+            orderBy("stocker_input.ratio", "desc")->
+            orderBy("stocker_input.group_stocker", "asc")->
+            orderBy("stocker_input.part_detail_id", "desc")->
             get();
 
         $dataNumbering = MarkerDetail::selectRaw("
@@ -319,8 +333,7 @@ class StockerController extends Controller
                 $currentColor = $formCut->color;
             }
 
-            $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->orderBy("shade", "desc")->orderBy("group_stocker", "desc")->orderBy("size", "asc")->orderBy("ratio", "asc")->get();
-            $stockerNumberingForm = StockerDetail::where("form_cut_id", $formCut->id_form)->get();
+            $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->orderBy("shade", "desc")->orderBy("size", "asc")->orderBy("ratio", "asc")->orderBy("group_stocker", "desc")->orderBy("part_detail_id", "asc")->get();
 
             $formCutInputDetails = FormCutInputDetail::where("no_form_cut_input", $formCut->no_form)->get();
 
@@ -339,6 +352,10 @@ class StockerController extends Controller
                     }
                 }
 
+                $stocker->range_awal = $rangeAwal;
+                $stocker->range_akhir = $sizeRangeAkhir[$stocker->size];
+                $stocker->save();
+
                 \Log::info([
                     $formCut->no_form, 
                     "Shade ".$stocker->shade, 
@@ -349,11 +366,8 @@ class StockerController extends Controller
                     "Lembar ".$lembarGelaran, 
                     "Akhir ".($sizeRangeAkhir[$stocker->size]), 
                     "sizeRangeAkhir ". $sizeRangeAkhir,
+                    "stocker ". $stocker->id_qr_stocker ." : ". $stocker->range_awal." - ".$stocker->range_akhir
                 ]);
-
-                $stocker->range_awal = $rangeAwal;
-                $stocker->range_akhir = $sizeRangeAkhir[$stocker->size];
-                $stocker->save();
             }
         }
 
