@@ -358,14 +358,14 @@ class StockerController extends Controller
                 $stocker->save();
 
                 \Log::info([
-                    $formCut->no_form, 
-                    "Shade ".$stocker->shade, 
-                    "Size ".$stocker->size, 
+                    $formCut->no_form,
+                    "Shade ".$stocker->shade,
+                    "Size ".$stocker->size,
                     "Ratio ".$stocker->ratio,
-                    "Awal ".$rangeAwal, 
+                    "Awal ".$rangeAwal,
                     "Form ".$formCutInputDetails->filter(function($data) use ($stocker) {return $data->group_roll == $stocker->shade;}),
-                    "Lembar ".$lembarGelaran, 
-                    "Akhir ".($sizeRangeAkhir[$stocker->size]), 
+                    "Lembar ".$lembarGelaran,
+                    "Akhir ".($sizeRangeAkhir[$stocker->size]),
                     "sizeRangeAkhir ". $sizeRangeAkhir,
                     "stocker ". $stocker->id_qr_stocker ." : ". $stocker->range_awal." - ".$stocker->range_akhir
                 ]);
