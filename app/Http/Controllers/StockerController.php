@@ -334,8 +334,6 @@ class StockerController extends Controller
                 $currentColor = $formCut->color;
             }
 
-            calculate :
-
             $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->orderBy("shade", "desc")->orderBy("size", "asc")->orderBy("ratio", "asc")->orderBy("group_stocker", "desc")->orderBy("part_detail_id", "asc")->get();
 
             $formCutInputDetails = FormCutInputDetail::where("no_form_cut_input", $formCut->no_form)->get();
@@ -343,12 +341,14 @@ class StockerController extends Controller
             $currentGroup = "initial";
             $currentPart = $stockerForm->first() ? $stockerForm->first()->part_detail_id : "";
             foreach ($stockerForm as $stocker) {
-                $lembarGelaran = 0;
-                if ($stocker->group_stocker) {
-                    $lembarGelaran = $formCutInputDetails->filter(function($data) use ($stocker) {return $data->group_stocker == $stocker->group_stocker;})->sum('lembar_gelaran');
-                } else {
-                    $lembarGelaran = $stocker->qty_ply;
-                }
+                // $lembarGelaran = 0;
+                // if ($stocker->group_stocker) {
+                //     $lembarGelaran = $formCutInputDetails->filter(function($data) use ($stocker) {return $data->group_stocker == $stocker->group_stocker;})->sum('lembar_gelaran');
+                // } else {
+                //     $lembarGelaran = $formCutInputDetails->filter(function($data) use ($stocker) {return $data->group_roll == $stocker->shade;})->sum('lembar_gelaran');
+                // }
+
+                $lembarGelaran = $formCutInputDetails->filter(function($data) use ($stocker) {return $data->group_roll == $stocker->shade;})->sum('lembar_gelaran');
 
                 if ($currentPart == $stocker->part_detail_id) {
                     if (isset($sizeRangeAkhir[$stocker->size])) {
@@ -898,7 +898,7 @@ class StockerController extends Controller
     }
 
     public function fullGenerateNumbering(Request $request) {
-        ini_set('max_execution_time', 3600);
+        ini_set('max_execution_time', 360000);
 
         $formCutInputs = FormCutInput::selectRaw("
                 marker_input.color,
@@ -1055,7 +1055,6 @@ class StockerController extends Controller
                     $now = Carbon::now();
                     $noCutSize = $ratio->size . "" . sprintf('%02s', $dataSpreading->no_cut);
 
-                    \Log::info([$rangeAwal, $rangeAkhir]);
                     if (is_numeric($rangeAwal) && is_numeric($rangeAwal))
                     for ($i = $rangeAwal; $i <= $rangeAkhir; $i++) {
                         array_push($storeDetailItemArr, [
