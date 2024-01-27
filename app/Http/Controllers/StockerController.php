@@ -394,7 +394,7 @@ class StockerController extends Controller
 
             foreach ($numbers as $number) {
                 if ($number->number > $sizeRangeAkhir[$number->size]) {
-                    StockerDetail::where("form_cut_id", $number->form_cut_id)->where("number", ">", $sizeRangeAkhir[$number->size])->delete();
+                    StockerDetail::where("form_cut_id", $number->form_cut_id)->where("size", $number->size)->where("number", ">", $sizeRangeAkhir[$number->size])->delete();
                 }
 
                 if ($number->number < $sizeRangeAkhir[$number->size]) {
