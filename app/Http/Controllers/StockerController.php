@@ -59,11 +59,11 @@ class StockerController extends Controller
 
             return Datatables::of($formCutInputs)->filter(function ($query) {
                     if (request()->has('dateFrom') && request('dateFrom') != null && request('dateFrom') != "") {
-                        $query->where('form_cut_input.tgl_form_cut', '>=', request('dateFrom'));
+                        $query->whereRaw('DATE(form_cut_input.waktu_selesai) >= "'.request('dateFrom').'"');
                     }
 
                     if (request()->has('dateTo') && request('dateTo') != null && request('dateTo') != "") {
-                        $query->where('form_cut_input.tgl_form_cut', '<=', request('dateTo'));
+                        $query->whereRaw('DATE(form_cut_input.waktu_selesai) <= "'.request('dateTo').'"');
                     }
                 }, true)->filterColumn('id_marker', function ($query, $keyword) {
                     $query->whereRaw("LOWER(form_cut_input.id_marker) LIKE LOWER('%" . $keyword . "%')");
@@ -334,6 +334,8 @@ class StockerController extends Controller
                 $currentColor = $formCut->color;
             }
 
+            calculate :
+
             $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->orderBy("shade", "desc")->orderBy("size", "asc")->orderBy("ratio", "asc")->orderBy("group_stocker", "desc")->orderBy("part_detail_id", "asc")->get();
 
             $formCutInputDetails = FormCutInputDetail::where("no_form_cut_input", $formCut->no_form)->get();
@@ -341,7 +343,12 @@ class StockerController extends Controller
             $currentGroup = "initial";
             $currentPart = $stockerForm->first() ? $stockerForm->first()->part_detail_id : "";
             foreach ($stockerForm as $stocker) {
-                $lembarGelaran = $formCutInputDetails->filter(function($data) use ($stocker) {return $data->group_roll == $stocker->shade;})->sum('lembar_gelaran');
+                $lembarGelaran = 0;
+                if ($stocker->group_stocker) {
+                    $lembarGelaran = $formCutInputDetails->filter(function($data) use ($stocker) {return $data->group_stocker == $stocker->group_stocker;})->sum('lembar_gelaran');
+                } else {
+                    $lembarGelaran = $stocker->qty_ply;
+                }
 
                 if ($currentPart == $stocker->part_detail_id) {
                     if (isset($sizeRangeAkhir[$stocker->size])) {
@@ -369,6 +376,48 @@ class StockerController extends Controller
                     "sizeRangeAkhir ". $sizeRangeAkhir,
                     "stocker ". $stocker->id_qr_stocker ." : ". $stocker->range_awal." - ".$stocker->range_akhir
                 ]);
+            }
+
+            $numbers = StockerDetail::selectRaw("
+                    form_cut_id,
+                    act_costing_ws,
+                    color,
+                    panel,
+                    so_det_id,
+                    size,
+                    no_cut_size,
+                    MAX(number) number
+                ")->
+                where("form_cut_id", $formCut->id_form)->
+                groupBy("form_cut_id", "size")->
+                get();
+
+            foreach ($numbers as $number) {
+                if ($number->number > $sizeRangeAkhir[$number->size]) {
+                    StockerDetail::where("number", ">", $sizeRangeAkhir[$number->size])->delete();
+                }
+
+                if ($number->number < $sizeRangeAkhir[$number->size]) {
+                    $stockerDetailCount = StockerDetail::select("kode")->orderBy("id", "desc")->first() ? str_replace("WIP-", "", StockerDetail::select("kode")->orderBy("id", "desc")->first()->kode) + 1 : 1;
+                    $noCutSize = substr($number->no_cut_size, 0, strlen($number->size)+2);
+
+                    $no = 0;
+                    for ($i = $number->number; $i < $sizeRangeAkhir[$number->size]; $i++) {
+                        StockerDetail::create([
+                            "kode" => "WIP-".($stockerDetailCount+$no),
+                            "form_cut_id" => $number->form_cut_id,
+                            "act_costing_ws" => $number->act_costing_ws,
+                            "color" => $number->color,
+                            "panel" => $number->panel,
+                            "so_det_id" => $number->so_det_id,
+                            "size" => $number->size,
+                            "no_cut_size" => $noCutSize. sprintf('%04s', ($i+1)),
+                            "number" => $i+1
+                        ]);
+
+                        $no++;
+                    }
+                }
             }
         }
 
@@ -786,17 +835,17 @@ class StockerController extends Controller
 
         $checkedSizeKeys = $checkedSize->keys();
 
-        foreach ($checkedSizeKeys as $index) {
-            $stockerDetail = StockerDetail::orderBy("id", "desc");
-            $stockerDetailCount = $stockerDetail->first() ? str_replace("WIP-", "", $stockerDetail->first()->kode) + 1 : 1;
+        $stockerDetail = StockerDetail::orderBy("id", "desc");
+        $stockerDetailCount = $stockerDetail->first() ? str_replace("WIP-", "", $stockerDetail->first()->kode) + 1 : 1;
 
+        $n = 0;
+        foreach ($checkedSizeKeys as $index) {
             $rangeAwal = $request['range_awal'][$index];
             $rangeAkhir = $request['range_akhir'][$index] + 1;
 
             $now = Carbon::now();
             $noCutSize = $request["size"][$index] . "" . sprintf('%02s', $request['no_cut']);
 
-            $n = 0;
             for ($i = $rangeAwal; $i < $rangeAkhir; $i++) {
                 $checkStockerDetailData = StockerDetail::where('form_cut_id', $request['form_cut_id'])->where('act_costing_ws', $request["no_ws"])->where('color', $request['color'])->where('panel', $request['panel'])->where('so_det_id', $request['so_det_id'])->where('no_cut_size', $i)->first();
 

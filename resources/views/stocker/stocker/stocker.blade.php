@@ -27,13 +27,14 @@
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" onchange="dataTableReload()" value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
-                    <button class="btn btn-primary btn-sm" onclick="dataTableReload()">Tampilkan</button>
+                    <button class="btn btn-primary btn-sm" onclick="dataTableReload()"><i class="fa fa-search"></i></button>
                 </div>
             </div>
             <div class="table-responsive">
                 <table id="datatable" class="table table-bordered table-sm w-100">
                     <thead>
                         <tr>
+                            <th>Act</th>
                             <th>No. Marker</th>
                             <th>No. Form</th>
                             <th>Tgl Spreading</th>
@@ -46,7 +47,6 @@
                             <th>Part</th>
                             <th>Size Ratio</th>
                             <th>Total Lembar</th>
-                            <th>Act</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -103,6 +103,10 @@
             },
             columns: [
                 {
+                    data: null,
+                    searchable: false
+                },
+                {
                     data: 'id_marker'
                 },
                 {
@@ -141,20 +145,16 @@
                     data: 'total_lembar',
                     searchable: false
                 },
-                {
-                    data: null,
-                    searchable: false
-                },
             ],
             columnDefs: [
                 // Nama Meja
                 {
-                    targets: [3],
+                    targets: [4],
                     render: (data, type, row, meta) => data ? data.toUpperCase() : "-"
                 },
                 // Last Column
                 {
-                    targets: [12],
+                    targets: [0],
                     render: (data, type, row, meta) => {
                         return `<div class='d-flex gap-1 justify-content-center'> <a class='btn btn-info btn-sm' href='{{ route("show-stocker") }}/`+row.part_detail_id+`/`+row.form_cut_id+`' data-bs-toggle='tooltip'><i class='fa fa-eye'></i></a> </div>`;
                     }

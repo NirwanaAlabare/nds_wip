@@ -34,11 +34,11 @@ class ManagerController extends Controller
 
         if ($request->ajax()) {
             if ($request->dateFrom) {
-                $additionalQuery .= " and a.tgl_form_cut >= '" . $request->dateFrom . "' ";
+                $additionalQuery .= " and DATE(a.waktu_selesai) >= '" . $request->dateFrom . "' ";
             }
 
             if ($request->dateTo) {
-                $additionalQuery .= " and a.tgl_form_cut <= '" . $request->dateTo . "' ";
+                $additionalQuery .= " and DATE(a.waktu_selesai) <= '" . $request->dateTo . "' ";
             }
 
             $keywordQuery = "";

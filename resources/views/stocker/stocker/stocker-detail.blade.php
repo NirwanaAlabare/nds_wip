@@ -27,7 +27,7 @@
             </div>
         </div>
         <div class="card-body">
-            <button class="btn btn-sm btn-dark mb-3" onclick="rearrangeGroup('{{ $dataSpreading->no_form }}')">Rearrange Group</button>
+            <button class="btn btn-sm btn-success mb-3" onclick="rearrangeGroup('{{ $dataSpreading->no_form }}')"><i class="fa-solid fa-layer-group"></i> Rearrange Group</button>
             <form action="#" method="post" id="stocker-form">
                 <div class="row mb-3">
                     <div class="col-6 col-md-3">
@@ -448,6 +448,15 @@
         });
 
         function rearrangeGroup(noForm) {
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Rearranging Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
             $.ajax({
                 url: '{{ route('rearrange-group') }}',
                 type: 'post',
