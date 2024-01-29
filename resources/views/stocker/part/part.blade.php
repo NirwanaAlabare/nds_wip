@@ -29,7 +29,7 @@
                         value="{{ date('Y-m-d') }}" onchange="datatablePartReload()">
                 </div>
                 <div>
-                    <button class="btn btn-primary btn-sm" onclick="datatablePartReload()">Tampilkan</button>
+                    <button class="btn btn-primary btn-sm" onclick="datatablePartReload()"><i class="fa fa-search"></i></button>
                 </div>
             </div>
             <div class="table-responsive">
@@ -377,7 +377,7 @@
         function reorderStockerNumbering() {
             Swal.fire({
                 title: 'Please Wait...',
-                html: 'Updating Data...',
+                html: 'Reordering Data...',
                 didOpen: () => {
                     Swal.showLoading()
                 },

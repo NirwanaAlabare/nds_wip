@@ -259,7 +259,7 @@
                                 <a class='btn btn-primary btn-sm' onclick='editData(` + JSON.stringify(row) + `, \"cutPlanDetailModal\", [{\"function\" : \"datatableFormReload()\"}]);'>
                                     <i class='fa fa-search'></i>
                                 </a>
-                                <a class='btn btn-warning btn-sm' onclick='manageCutPlan(` + JSON.stringify(row) + `);'>
+                                <a class='btn btn-success btn-sm' onclick='manageCutPlan(` + JSON.stringify(row) + `);'>
                                     <i class='fa fa-cog'></i>
                                 </a>
                             </div>
