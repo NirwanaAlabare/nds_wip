@@ -300,7 +300,7 @@ class StockerController extends Controller
     }
 
     public function reorderStockerNumbering(Request $request) {
-        ini_set('max_execution_time', 36000);
+        ini_set('max_execution_time', 360000);
 
         $formCutInputs = FormCutInput::selectRaw("
                 marker_input.color,
@@ -338,23 +338,29 @@ class StockerController extends Controller
 
             $formCutInputDetails = FormCutInputDetail::where("no_form_cut_input", $formCut->no_form)->get();
 
-            $currentGroup = "initial";
             $currentPart = $stockerForm->first() ? $stockerForm->first()->part_detail_id : "";
+            $currentSize = "";
+            $currentGroup = "initial";
+            $currentRatio = 0;
             foreach ($stockerForm as $stocker) {
-                $lembarGelaran = 0;
-                if ($stocker->group_stocker && $stocker->group_stocker != null && str_replace(" ", "", $stocker->group_stocker) != "") {
-                    $lembarGelaran = $formCutInputDetails->filter(function($data) use ($stocker) {return $data->group_stocker == $stocker->group_stocker;})->sum('lembar_gelaran');
-                } else {
-                    $lembarGelaran = $formCutInputDetails->filter(function($data) use ($stocker) {return $data->group_roll == $stocker->shade;})->sum('lembar_gelaran');
-                }
+                // $lembarGelaran = 0;
+                // if ($stocker->group_stocker && $stocker->group_stocker != null && str_replace(" ", "", $stocker->group_stocker) != "") {
+                //     $lembarGelaran = $formCutInputDetails->filter(function($data) use ($stocker) {return $data->group_stocker == $stocker->group_stocker;})->sum('lembar_gelaran');
+                // } else {
+                //     $lembarGelaran = $formCutInputDetails->filter(function($data) use ($stocker) {return $data->group_roll == $stocker->shade;})->sum('lembar_gelaran');
+                // }
 
                 $lembarGelaran = $formCutInputDetails->filter(function($data) use ($stocker) {return $data->group_roll == $stocker->shade;})->sum('lembar_gelaran');
 
                 if ($currentPart == $stocker->part_detail_id) {
-                    if (isset($sizeRangeAkhir[$stocker->size])) {
+                    if (isset($sizeRangeAkhir[$stocker->size]) && ($currentSize != $stocker->size || $currentGroup != $stocker->shade || $currentRatio != $stocker->ratio)) {
                         $rangeAwal = $sizeRangeAkhir[$stocker->size] + 1;
                         $sizeRangeAkhir[$stocker->size] = $sizeRangeAkhir[$stocker->size] + $lembarGelaran;
-                    } else {
+                        
+                        $currentSize = $stocker->size;
+                        $currentGroup = $stocker->shade;
+                        $currentRatio = $stocker->ratio;
+                    } else if (!isset($sizeRangeAkhir[$stocker->size])) {
                         $rangeAwal =  1;
                         $sizeRangeAkhir->put($stocker->size, $lembarGelaran);
                     }
