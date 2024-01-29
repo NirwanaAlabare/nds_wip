@@ -197,8 +197,7 @@ class StockerController extends Controller
                 stocker_input.shade,
                 stocker_input.group_stocker,
                 stocker_input.qty_ply,
-                stocker_input.range_awal,
-                stocker_input.range_akhir
+                MAX(CAST(stocker_input.range_akhir as UNSIGNED)) range_akhir
             ")->
             leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->
             leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
@@ -214,13 +213,8 @@ class StockerController extends Controller
             where("marker_input.color", $dataSpreading->color)->
             where("marker_input.panel", $dataSpreading->panel)->
             where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
-            groupBy("form_cut_input.no_cut", "marker_input.color", "marker_input_detail.so_det_id", "part_detail.id", "stocker_input.ratio", "stocker_input.range_awal", "stocker_input.range_akhir")->
+            groupBy("form_cut_input.no_cut", "marker_input_detail.so_det_id")->
             orderBy("form_cut_input.no_cut", "desc")->
-            orderBy("stocker_input.shade", "asc")->
-            orderBy("stocker_input.size", "desc")->
-            orderBy("stocker_input.ratio", "desc")->
-            orderBy("stocker_input.group_stocker", "asc")->
-            orderBy("stocker_input.part_detail_id", "desc")->
             get();
 
         $dataNumbering = MarkerDetail::selectRaw("
@@ -240,7 +234,8 @@ class StockerController extends Controller
             where("marker_input.color", $dataSpreading->color)->
             where("marker_input.panel", $dataSpreading->panel)->
             where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
-            groupBy("no_cut", "marker_input.color", "marker_input_detail.so_det_id")->
+            groupBy("no_cut", "marker_input_detail.so_det_id")->
+            orderBy("form_cut_input.no_cut", "desc")->
             get();
 
         return view("stocker.stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataPartDetail" => $dataPartDetail, "dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "dataNumbering" => $dataNumbering, "page" => "dashboard-stocker", "subPageGroup" => "proses-stocker", "subPage" => "stocker"]);
