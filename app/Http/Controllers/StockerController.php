@@ -341,12 +341,12 @@ class StockerController extends Controller
             $currentGroup = "initial";
             $currentPart = $stockerForm->first() ? $stockerForm->first()->part_detail_id : "";
             foreach ($stockerForm as $stocker) {
-                // $lembarGelaran = 0;
-                // if ($stocker->group_stocker) {
-                //     $lembarGelaran = $formCutInputDetails->filter(function($data) use ($stocker) {return $data->group_stocker == $stocker->group_stocker;})->sum('lembar_gelaran');
-                // } else {
-                //     $lembarGelaran = $formCutInputDetails->filter(function($data) use ($stocker) {return $data->group_roll == $stocker->shade;})->sum('lembar_gelaran');
-                // }
+                $lembarGelaran = 0;
+                if ($stocker->group_stocker && $stocker->group_stocker != null && str_replace(" ", "", $stocker->group_stocker) != "") {
+                    $lembarGelaran = $formCutInputDetails->filter(function($data) use ($stocker) {return $data->group_stocker == $stocker->group_stocker;})->sum('lembar_gelaran');
+                } else {
+                    $lembarGelaran = $formCutInputDetails->filter(function($data) use ($stocker) {return $data->group_roll == $stocker->shade;})->sum('lembar_gelaran');
+                }
 
                 $lembarGelaran = $formCutInputDetails->filter(function($data) use ($stocker) {return $data->group_roll == $stocker->shade;})->sum('lembar_gelaran');
 
