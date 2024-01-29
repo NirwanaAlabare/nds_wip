@@ -123,7 +123,7 @@ class CutPlanController extends Controller
                     b.cons_marker,
                     a.tipe_form_cut,
                     CONCAT(b.panel, ' - ', b.urutan_marker) panel,
-                    GROUP_CONCAT(CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC) marker_details
+                    GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ', ') marker_details
                 FROM `form_cut_input` a
                 left join marker_input b on a.id_marker = b.kode
                 left join marker_input_detail on b.id = marker_input_detail.marker_id
