@@ -341,17 +341,24 @@
                                         <td>{{ $rangeAwal }}</td>
                                         <td>{{ $rangeAkhir }}</td>
                                         <td>
-                                        @if ($dataSpreading->no_cut > 1)
-                                            @if ($numberingBefore)
-                                                @if ($numberingBefore->numbering_id != null)
+                                            @if ($dataSpreading->no_cut > 1)
+                                                @if ($numberingBefore)
+                                                    @if ($numberingBefore->numbering_id != null)
+                                                        @if ($numberingThis && $numberingThis->numbering_id != null)
+                                                            <i class="fa fa-check"></i>
+                                                        @else
+                                                            <i class="fa fa-times"></i>
+                                                        @endif
+                                                    @else
+                                                        @php $numGeneratable = false; @endphp
+                                                        <i class="fa fa-minus"></i>
+                                                    @endif
+                                                @else
                                                     @if ($numberingThis && $numberingThis->numbering_id != null)
                                                         <i class="fa fa-check"></i>
                                                     @else
                                                         <i class="fa fa-times"></i>
                                                     @endif
-                                                @else
-                                                    @php $numGeneratable = false; @endphp
-                                                    <i class="fa fa-minus"></i>
                                                 @endif
                                             @else
                                                 @if ($numberingThis && $numberingThis->numbering_id != null)
@@ -360,13 +367,6 @@
                                                     <i class="fa fa-times"></i>
                                                 @endif
                                             @endif
-                                        @else
-                                            @if ($numberingThis && $numberingThis->numbering_id != null)
-                                                <i class="fa fa-check"></i>
-                                            @else
-                                                <i class="fa fa-times"></i>
-                                            @endif
-                                        @endif
                                         <td>
                                             <div class="d-flex gap-3">
                                                 <button type="button" class="btn btn-sm btn-danger" onclick="printNumbering({{ $index }});" {{ $numGeneratable ? '' : 'disabled' }}>
