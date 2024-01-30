@@ -1088,6 +1088,46 @@ class StockerController extends Controller
         return $storeDetailItemArr;
     }
 
+    public function fixRedundantStocker(Request $request)
+    {
+        $stockerCount = Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first() ? str_replace("STK-", "", Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first()->id_qr_stocker) + 1 : 1;
+
+        $redundantStockers = DB::select("
+            select
+                id_qr_stocker,
+                count(stocker_input.id)
+            from
+                stocker_input
+            group by id_qr_stocker having count(stocker_input.id) > 1
+        ");
+
+        if ($redundantStockers) {
+            $i = 0;
+            foreach($redundantStockers as $redundantStocker) {
+                $stockers = Stocker::where("id_qr_stocker", $redundantStocker->id_qr_stocker)->get();
+
+                $j = 0;
+                foreach ($stockers as $stocker) {
+                    if ($j != 0) {
+                        \Log::info($stockerCount + $i + $j +1);
+
+                        $stocker->id_qr_stocker = "STK-".($stockerCount + $i + $j +1);
+
+                        $stocker->save();
+                    } else {
+                        $stocker = $stocker->id_qr_stocker;
+                    }
+
+                    $j++;
+                }
+
+                $i += $j;
+            }
+        }
+
+        return $redundantStocker;
+    }
+
     public function part(Request $request)
     {
         if ($request->ajax()) {

@@ -332,6 +332,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/rearrange-group', 'rearrangeGroup')->name('rearrange-group');
         Route::post('/reorder-stocker-numbering', 'reorderStockerNumbering')->name('reorder-stocker-numbering');
         Route::post('/full-generate-numbering', 'fullGenerateNumbering')->name('full-generate-numbering');
+        Route::post('/fix-redundant-stocker', 'fixRedundantStocker')->name('fix-redundant-stocker');
 
         Route::put('/count-stocker-update', 'countStockerUpdate')->name('count-stocker-update');
 
