@@ -318,8 +318,9 @@ class StockerController extends Controller
         $currentForm = 0;
         foreach ($formCutInputs as $formCut) {
             $currentForm++;
-            $formCut->no_cut = $currentForm;
-            $formCut->save();
+            FormCutInput::where("id", $formCut->id_form)->update([
+                "no_cut" => $currentForm
+            ]);
 
             if ($formCut->color != $currentColor) {
                 $rangeAwal = 0;
