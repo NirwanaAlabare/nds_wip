@@ -658,14 +658,15 @@ class StockerController extends Controller
     {
         ini_set('max_execution_time', 36000);
 
+        $stockerCount = Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first() ? str_replace("STK-", "", Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first()->id_qr_stocker) + 1 : 1;
+
         $partDetail = collect($request['part_detail_id']);
 
         $partDetailKeys = $partDetail->intersect($request['generate_stocker'])->keys();
 
+        $i = 0;
         $storeItemArr = [];
         foreach ($partDetailKeys as $index) {
-            $stockerCount = Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first() ? str_replace("STK-", "", Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first()->id_qr_stocker) + 1 : 1;
-
             $rangeAwal = $request['range_awal'][$index];
             $rangeAkhir = $request['range_akhir'][$index];
 
@@ -685,9 +686,11 @@ class StockerController extends Controller
                     ratio = " . ($j + 1) . "
                 ")->first();
 
-                $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j);
+                $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j + $i + 1);
                 $cumRangeAwal = $cumRangeAkhir + 1;
                 $cumRangeAkhir = $cumRangeAkhir + $request['qty_ply_group'][$index];
+
+                \Log::info($stockerId);
 
                 if (!$checkStocker) {
                     array_push($storeItemArr, [
@@ -710,6 +713,8 @@ class StockerController extends Controller
                     ]);
                 }
             }
+
+            $i += $j;
         }
 
         if (count($storeItemArr) > 0) {
