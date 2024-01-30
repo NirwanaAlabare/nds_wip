@@ -207,6 +207,7 @@ class StockerController extends Controller
             where("marker_input.color", $dataSpreading->color)->
             where("marker_input.panel", $dataSpreading->panel)->
             where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
+            where("marker_input_detail.ratio", ">", "0")->
             groupBy("form_cut_input.no_cut", "marker_input_detail.so_det_id")->
             orderBy("form_cut_input.no_cut", "desc")->
             get();
@@ -228,6 +229,7 @@ class StockerController extends Controller
             where("marker_input.color", $dataSpreading->color)->
             where("marker_input.panel", $dataSpreading->panel)->
             where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
+            where("marker_input_detail.ratio", ">", "0")->
             groupBy("no_cut", "marker_input_detail.so_det_id")->
             orderBy("form_cut_input.no_cut", "desc")->
             get();
@@ -317,17 +319,19 @@ class StockerController extends Controller
         $currentColor = "";
         $currentForm = 0;
         foreach ($formCutInputs as $formCut) {
-            $currentForm++;
-            FormCutInput::where("id", $formCut->id_form)->update([
-                "no_cut" => $currentForm
-            ]);
-
             if ($formCut->color != $currentColor) {
                 $rangeAwal = 0;
                 $sizeRangeAkhir = collect();
 
                 $currentColor = $formCut->color;
+
+                $currentForm = 0;
             }
+
+            $currentForm++;
+            FormCutInput::where("id", $formCut->id_form)->update([
+                "no_cut" => $currentForm
+            ]);
 
             $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->orderBy("shade", "desc")->orderBy("size", "asc")->orderBy("ratio", "asc")->orderBy("group_stocker", "desc")->orderBy("part_detail_id", "asc")->get();
 
@@ -814,7 +818,7 @@ class StockerController extends Controller
         }
 
         // generate pdf
-        $customPaper = array(0, 0, 56.70, 28.38);
+        $customPaper = array(0, 0, 56.70, 33.39);
         $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering', ["ws" => $request["no_ws"], "color" => $request["color"], "no_cut" => $request["no_cut"], "dataNumbering" => $detailItemArr])->setPaper($customPaper);
 
         $path = public_path('pdf/');
@@ -887,7 +891,7 @@ class StockerController extends Controller
         }
 
         // generate pdf
-        $customPaper = array(0, 0, 56.70, 28.38);
+        $customPaper = array(0, 0, 56.70, 33.39);
         $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering', ["ws" => $request["no_ws"], "color" => $request["color"], "no_cut" => $request["no_cut"], "dataNumbering" => $detailItemArr])->setPaper($customPaper);
 
         $path = public_path('pdf/');
