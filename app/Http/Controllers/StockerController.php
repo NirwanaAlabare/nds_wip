@@ -168,19 +168,13 @@ class StockerController extends Controller
                 marker_input_detail.id marker_detail_id,
                 marker_input_detail.so_det_id,
                 marker_input_detail.size,
-                marker_input_detail.ratio,
-                stocker_input.id stocker_id
-                ")->
+                marker_input_detail.ratio
+            ")->
             leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->
             leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
             leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
             leftJoin("part", "part.id", "=", "part_form.part_id")->
             leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
-            leftJoin("stocker_input", function ($join) {
-                $join->on("stocker_input.form_cut_id", "=", "form_cut_input.id");
-                $join->on("stocker_input.part_detail_id", "=", "part_detail.id");
-                $join->on("stocker_input.so_det_id", "=", "marker_input_detail.so_det_id");
-            })->
             where("marker_input.id", $dataSpreading->marker_id)->
             where("marker_input_detail.ratio", ">", "0")->
             orderBy("marker_input_detail.id", "asc")->
