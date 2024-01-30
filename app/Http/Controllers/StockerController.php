@@ -293,6 +293,7 @@ class StockerController extends Controller
         $formCutInputs = FormCutInput::selectRaw("
                 marker_input.color,
                 form_cut_input.id as id_form,
+                form_cut_input.no_cut,
                 form_cut_input.no_form as no_form
             ")->
             leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
@@ -314,7 +315,12 @@ class StockerController extends Controller
         $sizeRangeAkhir = collect();
 
         $currentColor = "";
+        $currentForm = 0;
         foreach ($formCutInputs as $formCut) {
+            $currentForm++;
+            $formCut->no_cut = $currentForm;
+            $formCut->save();
+
             if ($formCut->color != $currentColor) {
                 $rangeAwal = 0;
                 $sizeRangeAkhir = collect();
