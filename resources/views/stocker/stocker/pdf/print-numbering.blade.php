@@ -3,7 +3,7 @@
 <head>
     <title>Stocker</title>
     <style>
-        @page { margin: 0.5px; }
+        @page { margin: 0.3px; }
 
         @font-face {
             font-family: 'Open Sans';
@@ -19,8 +19,8 @@
         }
 
         * {
-            font-size: 4.5px;
-            line-height: 4.5px;
+            font-size: 5px;
+            line-height: 5px;
         }
 
         img {
@@ -34,7 +34,7 @@
 
         table td, table th{
             text-align: left;
-            vertical-align: top;
+            vertical-align: middle;
             padding: 0.3px;
             width: 100%;
         }
@@ -56,10 +56,10 @@
                 <td>{{ $ws }}</td>
             </tr>
             <tr>
-                <td>{{ strtoupper(substr($color, 0, 10)).(strlen($color) > 10 ? '...' : '') }}</td>
+                <td>{{ strtoupper(substr($color, 0, 8)).(strlen($color) > 8 ? '...' : '') }}</td>
             </tr>
             <tr>
-                <td>{{ $numbering['size'] }}</td>
+                <td style="font-size: 11px; line-height: 6px; padding-top: 6px;">{{ $numbering['size'] }}</td>
             </tr>
         </table>
     @endforeach
