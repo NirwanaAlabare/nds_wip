@@ -124,11 +124,10 @@
                                 $currentGroupStocker = 0;
                                 $currentTotal = 0;
                                 $currentBefore = 0;
-
                             @endphp
                             @foreach ($dataSpreading->formCutInputDetails->sortByDesc('group_stocker')->sortByDesc('group_roll') as $detail)
                                 @if (!$detail->group_stocker)
-                                {{-- With group stocker condition --}}
+                                {{-- Without group stocker condition --}}
 
                                     @if ($loop->first)
                                     {{-- Initial group --}}
@@ -212,7 +211,7 @@
                                         @endif
                                     @endif
                                 @else
-                                {{-- Without group stocker condition --}}
+                                {{-- With group stocker condition --}}
 
                                     @if ($loop->first)
                                     {{-- Initial Group --}}
