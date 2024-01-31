@@ -194,7 +194,10 @@ class StockerController extends Controller
             ")->
             leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->
             leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
-            leftJoin("stocker_input", "stocker_input.form_cut_id", "=", "form_cut_input.id")->
+            leftJoin("stocker_input", function ($join) {
+                $join->on("stocker_input.form_cut_id", "=", "form_cut_input.id");
+                $join->on("stocker_input.so_det_id", "=", "marker_input_detail.so_det_id");
+            })->
             where("marker_input.act_costing_ws", $dataSpreading->ws)->
             where("marker_input.color", $dataSpreading->color)->
             where("marker_input.panel", $dataSpreading->panel)->
@@ -213,9 +216,10 @@ class StockerController extends Controller
                 stocker_numbering.no_cut_size,
                 MAX(stocker_numbering.number) range_akhir
             ")->
-            leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->
-            leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
-            leftJoin("stocker_numbering", "stocker_numbering.form_cut_id", "=", "form_cut_input.id")->
+            leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->leftJoin("stocker_numbering", function ($join) {
+                $join->on("stocker_numbering.form_cut_id", "=", "form_cut_input.id");
+                $join->on("stocker_numbering.so_det_id", "=", "marker_input_detail.so_det_id");
+            })->
             where("marker_input.act_costing_ws", $dataSpreading->ws)->
             where("marker_input.color", $dataSpreading->color)->
             where("marker_input.panel", $dataSpreading->panel)->
