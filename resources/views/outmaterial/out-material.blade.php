@@ -14,7 +14,7 @@
 @endsection
 
 @section('content')
-<div class="card card-sb card-outline">
+<div class="card card-sb">
     <div class="card-header">
         <h5 class="card-title fw-bold mb-0">Data Pengeluaran Bahan Baku</h5>
     </div>
@@ -105,8 +105,13 @@
                 </div>
             </div>
             </div>
+<<<<<<< HEAD
             
             <div class="col-md-6" style="padding-top: 0.5rem;">
+=======
+
+            <div class="col-md-3" style="padding-top: 0.5rem;">
+>>>>>>> 74f97cd8e56c3138c0b36bbae506b89899bc5442
             <div class="mt-4 ">
                 <button class="btn btn-primary " onclick="dataTableReload()"> <i class="fas fa-search"></i> Search</button>
                 <!-- <button class="btn btn-info" onclick="tambahdata()"> <i class="fas fa-plus"></i> Add Data</button> -->
@@ -497,16 +502,22 @@ $('.select2type').select2({
             {
                 data: 'id'
             }
-            
+
         ],
         columnDefs: [{
                 targets: [13],
                 render: (data, type, row, meta) => {
                     console.log(row);
                     if (row.status == 'Pending') {
+<<<<<<< HEAD
                         return `<div class='d-flex gap-1 justify-content-center'> 
                    <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
                     <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='approve_outmaterial("` + row.no_bppb + `")'><i class="fa-solid fa-person-circle-check"></i></button> 
+=======
+                        return `<div class='d-flex gap-1 justify-content-center'>
+                   <a href="{{ route('edit-mutlok') }}/`+data+`"><button type='button' class='btn btn-sm btn-danger'><i class="fa-solid fa-pen-to-square"></i></button></a>
+                    <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='approve_mutlok("` + row.no_bppb + `")'><i class="fa-solid fa-person-circle-check"></i></button>
+>>>>>>> 74f97cd8e56c3138c0b36bbae506b89899bc5442
                     </div>`;
                     }else{
                         return `<div class='d-flex gap-1 justify-content-center'> 
@@ -515,7 +526,7 @@ $('.select2type').select2({
                     }
                 }
             }
-       
+
         ]
     });
 
@@ -526,24 +537,31 @@ $('.select2type').select2({
 <script type="text/javascript">
     function approve_outmaterial($no_bppb){
         // alert($id);
+<<<<<<< HEAD
         let no_bppb  = $no_bppb;
     
     $('#txt_nodok').val(no_bppb);
     $('#modal-appv-material').modal('show');  
+=======
+        let nodok  = $nodok;
+
+    $('#txt_nodok').val(nodok);
+    $('#modal-appv-material').modal('show');
+>>>>>>> 74f97cd8e56c3138c0b36bbae506b89899bc5442
     }
 
 
     function nonactive_lokasi($id,$status,$kode_lok){
         // alert($id);
         let id  = $id;
-        let status  = $status;       
-        let kode  = $kode_lok; 
+        let status  = $status;
+        let kode  = $kode_lok;
         let idnya  = $id;
-    
+
     $('#txt_kode_lok').val(kode);
     $('#id_lok').val(idnya);
     $('#status_lok').val(status);
-    $('#modal-active-lokasi').modal('show');  
+    $('#modal-active-lokasi').modal('show');
     }
 
 
@@ -553,15 +571,15 @@ $('.select2type').select2({
         $("#BUNDLE_edit").prop("checked", false);
         $("#BOX_edit").prop("checked", false);
         $("#PACK_edit").prop("checked", false);
-        let kapasitas  = $kapasitas;       
-        let inisial_lok  = $inisial_lok; 
+        let kapasitas  = $kapasitas;
+        let inisial_lok  = $inisial_lok;
         let idnya  = $id;
-        let baris  = $baris;       
-        let level  = $level; 
+        let baris  = $baris;
+        let level  = $level;
         let nomor  = $nomor;
         let area  = $area;
         let unit  = $unit;
-        let u_roll  = $u_roll; 
+        let u_roll  = $u_roll;
         let u_bundle  = $u_bundle;
         let u_box  = $u_box;
         let u_pack  = $u_pack;
@@ -583,7 +601,7 @@ $('.select2type').select2({
         if (u_pack == 'PACK') {
             $("#PACK_edit").prop("checked", true);
         }
-    
+
     $('#txt_id').val(idnya);
     $('#txt_inisial').val(inisial_lok);
     $('#txt_capacity').val(kapasitas);
@@ -591,13 +609,13 @@ $('.select2type').select2({
     $('#txt_level').val(level);
     $('#txt_num').val(nomor);
     $('#txt_area').val(area);
-    // document.getElementById('txt_area').value=area; 
-    // document.getElementById('txt_area').selected=true; 
-    $('#modal-edit-lokasi').modal('show'); 
+    // document.getElementById('txt_area').value=area;
+    // document.getElementById('txt_area').selected=true;
+    $('#modal-edit-lokasi').modal('show');
     }
 
     function tambahdata(){
-    $('#modal-tambah-lokasi').modal('show'); 
+    $('#modal-tambah-lokasi').modal('show');
     }
 </script>
 

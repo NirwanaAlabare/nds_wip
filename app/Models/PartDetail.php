@@ -25,4 +25,9 @@ class PartDetail extends Model
     {
         return $this->belongsTo(MasterPart::class, 'master_part_id', 'id');
     }
+
+    public function secondary()
+    {
+        return $this->belongsTo(MasterSecondary::class, 'master_secondary_id', 'id');
+    }
 }

@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CutPlan;
 use App\Models\FormCutInput;
+use App\Models\FormCutInputDetail;
+use App\Models\FormCutInputDetailLap;
 use App\Models\MarkerDetail;
 use App\Models\Marker;
+use App\Models\Stocker;
+use App\Models\StockerDetail;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -69,14 +74,17 @@ class SpreadingController extends Controller
                     UPPER(b.unit_comma_marker) unit_comma_marker,
                     b.lebar_marker,
                     UPPER(b.unit_lebar_marker) unit_lebar_marker,
-                    a.qty_ply,
-                    b.gelar_qty,
+                    CONCAT(COALESCE(a.total_lembar, '0'), '/', a.qty_ply) ply_progress,
+                    COALESCE(a.qty_ply, 0) qty_ply,
+                    COALESCE(b.gelar_qty, 0) gelar_qty,
+                    COALESCE(a.total_lembar, '0') total_lembar,
                     b.po_marker,
                     b.urutan_marker,
                     b.cons_marker,
+                    UPPER(b.tipe_marker) tipe_marker,
                     a.tipe_form_cut,
                     COALESCE(b.notes, '-') notes,
-                    GROUP_CONCAT(DISTINCT CONCAT(master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ', ') marker_details,
+                    GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ', ') marker_details,
                     cutting_plan.tgl_plan,
                     cutting_plan.app
                 FROM `form_cut_input` a
@@ -208,9 +216,10 @@ class SpreadingController extends Controller
             $request['hitungform'] = $request['hitungform'] > 1 ? $request['hitungform'] - 1 : $request['hitungform'];
         }
 
-        $keterangan = "";
+        $keterangan = $request["notes"];
+
         if ($request["tipe_form"] != "Pilot") {
-            if ($request["tipe_form"] != "Regular") {
+            if ((!$request["notes"] || $request["notes"] == "") && $request["tipe_form"] != "Regular") {
                 $keterangan = $request["tipe_form"];
             }
 
@@ -282,8 +291,7 @@ class SpreadingController extends Controller
      * @param  \App\Models\Spreading  $spreading
      * @return \Illuminate\Http\Response
      */
-    public function show(Spreading $spreading)
-    {
+    public function show()   {
         //
     }
 
@@ -293,8 +301,7 @@ class SpreadingController extends Controller
      * @param  \App\Models\Spreading  $spreading
      * @return \Illuminate\Http\Response
      */
-    public function edit(Spreading $spreading)
-    {
+    public function edit()   {
         //
     }
 
@@ -337,14 +344,84 @@ class SpreadingController extends Controller
         );
     }
 
+    public function updateStatus(Request $request) {
+        $validatedRequest = $request->validate([
+            "edit_id_status" => "required",
+            "edit_status" => "required",
+        ]);
+
+        $updateStatusForm = FormCutInput::where('id', $validatedRequest['edit_id_status'])->update([
+            'status' => $validatedRequest['edit_status']
+        ]);
+
+        if ($updateStatusForm) {
+            $updatedData = FormCutInput::where('id', $validatedRequest['edit_id_status'])->first();
+            return array(
+                'status' => 200,
+                'message' => 'Form  "' . $updatedData->no_form. '" berhasil diubah ke status '.$validatedRequest['edit_status'].'. ',
+                'redirect' => '',
+                'table' => 'datatable',
+                'additional' => [],
+            );
+        }
+
+        return array(
+            'status' => 400,
+            'message' => 'Data produksi gagal diubah',
+            'redirect' => '',
+            'table' => 'datatable',
+            'additional' => [],
+        );
+    }
+
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Spreading  $spreading
+     * @param  \App\Models\FormCutInput  $formCutInput
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Spreading $spreading)
+    public function destroy(FormCutInput $formCutInput, $id)
     {
-        //
+        $spreadingForm = FormCutInput::where('id', $id)->first();
+
+        $checkStocker = Stocker::where("form_cut_id", $id)->get();
+        $checkNumbering = StockerDetail::where("form_cut_id", $id)->get();
+
+        if ($checkStocker->count() < 1 && $checkNumbering->count() < 1) {
+            $deleteSpreadingForm = FormCutInput::where('id', $id)->delete();
+
+            if ($deleteSpreadingForm) {
+                $updateMarkerBalance = Marker::where("kode", $spreadingForm->id_marker)->update([
+                    "gelar_qty_balance" => DB::raw('gelar_qty_balance + '.$spreadingForm->qty_ply)
+                ]);
+
+                if ($updateMarkerBalance) {
+                    $spreadingFormDetails = FormCutInputDetail::where('no_form_cut_input', $spreadingForm->no_form_cut_input)->get();
+                    $deleteSpreadingFormDetail = FormCutInputDetail::where('no_form_cut_input', $spreadingForm->no_form_cut_input)->delete();
+                    $deleteCutPlan = CutPlan::where('no_form_cut_input', $spreadingForm->no_form_cut_input)->delete();
+
+                    if ($deleteSpreadingFormDetail) {
+                        $idFormDetailLapArr = [];
+                        foreach ($spreadingFormDetails as $spreadingFormDetail) {
+                            array_push($idFormDetailLapArr, $spreadingFormDetail->id);
+                        }
+
+                        $deleteSpreadingFormDetailLap = FormCutInputDetailLap::whereIn("form_cut_input_detail_id", $idFormDetailLapArr)->delete();
+                    }
+
+                    return array(
+                        "status" => 200,
+                        "message" => "Form berhasil dihapus",
+                        "table" => "datatable"
+                    );
+                }
+            }
+
+            return array(
+                "status" => 200,
+                "message" => "Form tidak berhasil dihapus",
+                "table" => "datatable"
+            );
+        }
     }
 }

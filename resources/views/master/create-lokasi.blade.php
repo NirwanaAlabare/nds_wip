@@ -13,7 +13,7 @@
 @section('content')
 <form action="{{ route('store-lokasi') }}" method="post" id="store-lokasi" onsubmit="submitForm(this, event)">
     @csrf
-    <div class="card card-sb card-outline">
+    <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold">
                 Add Data

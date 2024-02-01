@@ -53,7 +53,6 @@
                             <th class="align-bottom">Status</th>
                             <th>Size Ratio</th>
                             <th>Qty Ply</th>
-                            <th>Qty Actual</th>
                             <th>Ket.</th>
                             <th class="align-bottom">App</th>
                         </tr>
@@ -74,7 +73,7 @@
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body" style="max-height: 65vh !important;">
-                            <div class="row align-items-end">
+                            <div class="row">
                                 <input type="hidden" id="edit_id" name="edit_id">
                                 <input type="hidden" id="edit_marker_id" name="edit_marker_id">
                                 <div class="col-6 col-md-4">
@@ -189,6 +188,27 @@
                                             name="edit_cons_marker" value="" readonly />
                                     </div>
                                 </div>
+                                <div class="col-4 col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label"><small>Tipe Marker</small></label>
+                                        <input type="text" class="form-control" id="edit_tipe_marker"
+                                            name="edit_tipe_marker" value="" readonly />
+                                    </div>
+                                </div>
+                                <div class="col-4 col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label"><small>Meja</small></label>
+                                        <input type="text" class="form-control" id="edit_nama_meja"
+                                            name="edit_nama_meja" value="" readonly />
+                                    </div>
+                                </div>
+                                <div class="col-4 col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label"><small>Keterangan</small></label>
+                                        <textarea class="form-control" id="edit_notes"
+                                            name="edit_notes" readonly ></textarea>
+                                    </div>
+                                </div>
                                 <div class="col-md-12 table-responsive">
                                     <table id="datatable-ratio" class="table table-bordered table-striped table-sm w-100">
                                         <thead>
@@ -297,10 +317,7 @@
                     data: 'marker_details'
                 },
                 {
-                    data: 'qty_ply'
-                },
-                {
-                    data: 'total_lembar'
+                    data: undefined
                 },
                 {
                     data: 'notes'
@@ -310,31 +327,6 @@
                 },
             ],
             columnDefs: [
-                {
-                    targets: [3],
-                    render: (data, type, row, meta) => {
-                        let color = "";
-
-                        if (row.status == 'SELESAI PENGERJAAN') {
-                            color = '#087521';
-                        } else if (row.status == 'PENGERJAAN MARKER') {
-                            color = '#2243d6';
-                        } else if (row.status == 'PENGERJAAN FORM CUTTING') {
-                            color = '#2243d6';
-                        } else if (row.status == 'PENGERJAAN FORM CUTTING DETAIL') {
-                            color = '#2243d6';
-                        } else if (row.status == 'PENGERJAAN FORM CUTTING SPREAD') {
-                            color = '#2243d6';
-                        } else {
-                            if (row.app != 'Y') {
-                                color = '#616161';
-                            }
-                        }
-
-                        return data ? "<span style='color: " + color + "'>" + data.toUpperCase() +
-                            "</span>" : "<span style='color: " + color + "'>-</span>"
-                    }
-                },
                 {
                     targets: [9],
                     className: "text-center align-middle",
@@ -365,7 +357,18 @@
                     }
                 },
                 {
-                    targets: [14],
+                    targets: [11],
+                    render: (data, type, row, meta) => {
+                        return `
+                            <div class="progress border border-sb position-relative" style="min-width: 50px;height: 21px">
+                                <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">`+row.total_lembar+`/`+row.qty_ply+`</p>
+                                <div class="progress-bar" style="background-color: #75baeb;width: `+((row.total_lembar/row.qty_ply)*100)+`%" role="progressbar"></div>
+                            </div>
+                        `;
+                    }
+                },
+                {
+                    targets: [13],
                     className: "text-center align-middle",
                     render: (data, type, row, meta) => {
                         icon = "";
@@ -405,12 +408,16 @@
                 {
                     targets: [0],
                     render: (data, type, row, meta) => {
+                        console.log()
+
                         let btnEdit = "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"detailSpreadingModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-search'></i></a>";
 
                         let btnProcess = "";
 
                         if (row.tipe_form_cut == 'MANUAL') {
                             btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ? `<a class='btn btn-success btn-sm' href='{{ route('process-manual-form-cut') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa ` + (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) + `'></i></a>` : "";
+                        } else if (row.tipe_form_cut == 'PILOT') {
+                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ? `<a class='btn btn-success btn-sm' href='{{ route('process-pilot-form-cut') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>` : "";
                         } else {
                             btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ? `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa ` + (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) +`'></i></a>` :"";
                         }
@@ -450,6 +457,9 @@
             rowCallback: function(row, data, index) {
                 if (data['tipe_form_cut'] == 'MANUAL') {
                     $('td', row).css('background-color', '#e7dcf7');
+                    $('td', row).css('border', '0.15px solid #d0d0d0');
+                } else if (data['tipe_form_cut'] == 'PILOT') {
+                    $('td', row).css('background-color', '#c5e0fa');
                     $('td', row).css('border', '0.15px solid #d0d0d0');
                 }
             }

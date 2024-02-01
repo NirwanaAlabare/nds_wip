@@ -17,6 +17,6 @@ class ThisYearScope implements Scope
      */
     public function apply(Builder $builder, Model $model)
     {
-        $builder->whereRaw("YEAR(form_cut_input.tgl_form_cut) = '".date('Y')."'");
+        $builder->whereRaw("form_cut_input.tgl_form_cut >= DATE_SUB(CURRENT_DATE, INTERVAL 1 YEAR) AND form_cut_input.tgl_form_cut <= CURRENT_DATE");
     }
 }

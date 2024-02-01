@@ -10,6 +10,20 @@
                 <div class="row g-3 mt-3">
                     @if (auth()->user()->type == 'admin' || auth()->user()->type == 'marker' || auth()->user()->type == 'spreading')
                         <div class="col-md-2 col-3">
+                            <a href="{{ route('dashboard-marker') }}" class="home-item">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex h-100 flex-column justify-content-between">
+                                            <img src="{{ asset('dist/img/marker.png') }}" class="img-fluid p-3"
+                                                alt="cutting image">
+                                            <p class="text-center">Marker</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+
+                        <div class="col-md-2 col-3">
                             <a href="{{ route('dashboard-cutting') }}" class="home-item">
                                 <div class="card h-100">
                                     <div class="card-body">

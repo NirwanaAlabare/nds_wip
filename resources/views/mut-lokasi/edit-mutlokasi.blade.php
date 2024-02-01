@@ -13,7 +13,7 @@
 @section('content')
 <form action="{{ route('update-mutlokasi') }}" method="post" id="store-mutlokasi" onsubmit="submitForm(this, event)">
    @method('GET')
-    <div class="card card-sb card-outline">
+    <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold">
                 Data Header
@@ -135,10 +135,10 @@
                                 $isSelected  = ' selected="selected"';
                                 }else{
                                 $isSelected = '';
-                                } 
+                                }
                             ?>
                               <option value='{{$lok->kode_lok}}' <?= $isSelected; ?>>{{$lok->kode_lok}}</option>
-                              @endforeach  
+                              @endforeach
                             </select>
                         </td>
                         <td hidden><input style="width:100px;" class="form-control-sm" type="text" id="id_det<?= $i; ?>" name="id_det[<?= $i; ?>]" value="{{$detdata->id}}" /></td>
@@ -161,7 +161,7 @@
 
 
     </div>
-</div>   
+</div>
 </div>
 
 </form>
@@ -316,7 +316,7 @@
         }
 
 
-        
+
 
         function getrak() {
             document.getElementById('txt_rak').innerHTML = '';
@@ -398,7 +398,7 @@
                 jum_qty += parseFloat(qty_mut);
 
 
-                if (qty_mut > 0) {     
+                if (qty_mut > 0) {
                     if (parseFloat(qty_mut) > parseFloat(qty_roll)) {
                         $('#qty_mut'+i).val(qty_roll);
                     }else{
@@ -427,7 +427,7 @@
 
         } );
 
-        
+
         function tambahqty($val){
             var table = document.getElementById("datatable");
             var qty = 0;

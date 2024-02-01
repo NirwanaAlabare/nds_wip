@@ -72,22 +72,25 @@ class FormCutInputController extends Controller
                     CONCAT(b.panel, ' - ', b.urutan_marker) panel,
                     b.color color,
                     a.status,
-                    users.name nama_meja,
+                    UPPER(users.name) nama_meja,
                     b.panjang_marker panjang_marker,
                     UPPER(b.unit_panjang_marker) unit_panjang_marker,
                     b.comma_marker comma_marker,
                     UPPER(b.unit_comma_marker) unit_comma_marker,
                     b.lebar_marker lebar_marker,
                     UPPER(b.unit_lebar_marker) unit_lebar_marker,
-                    a.qty_ply,
-                    b.gelar_qty gelar_qty,
+                    CONCAT(COALESCE(a.total_lembar, '0'), '/', a.qty_ply) ply_progress,
+                    COALESCE(a.qty_ply, 0) qty_ply,
+                    COALESCE(b.gelar_qty, 0) gelar_qty,
+                    COALESCE(a.total_lembar, '0') total_lembar,
                     b.po_marker po_marker,
                     b.urutan_marker urutan_marker,
                     b.cons_marker cons_marker,
+                    UPPER(b.tipe_marker) tipe_marker,
                     cutting_plan.app,
                     a.tipe_form_cut,
-                    b.notes notes,
-                    GROUP_CONCAT(DISTINCT CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC) marker_details
+                    COALESCE(b.notes, '-') notes,
+                    GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ', ') marker_details
                 FROM cutting_plan
                 left join form_cut_input a on a.no_form = cutting_plan.no_form_cut_input
                 left outer join marker_input b on a.id_marker = b.kode and b.cancel = 'N'
@@ -481,8 +484,8 @@ class FormCutInputController extends Controller
             $status = 'need extension';
         }
 
-        $beforeData = FormCutInputDetail::select('group_roll', 'group_stocker')->where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->orderBy('id', 'desc')->first();
-        $groupStocker = $beforeData ? ($beforeData->group_roll  == $validatedRequest['current_group'] ? $beforeData->group_stocker : $beforeData->group_stocker + 1) : 1;
+        $beforeData = FormCutInputDetail::select('group_roll', 'group_stocker')->where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->whereRaw('(form_cut_input_detail.status = "complete" || form_cut_input_detail.status = "need extension" || form_cut_input_detail.status = "extension complete")')->orderBy('id', 'desc')->first();
+        $groupStocker = $beforeData ? ($beforeData->group_roll == $validatedRequest['current_group'] ? $beforeData->group_stocker : $beforeData->group_stocker + 1) : 1;
         $itemQty = ($validatedRequest["current_unit"] != "KGM" ? floatval($validatedRequest['current_qty']) : floatval($validatedRequest['current_qty_real']));
         $itemUnit = ($validatedRequest["current_unit"] != "KGM" ? "METER" : $validatedRequest['current_unit']);
 
@@ -697,7 +700,7 @@ class FormCutInputController extends Controller
             "current_sambungan" => "required"
         ]);
 
-        $beforeData = FormCutInputDetail::select('group_roll', 'group_stocker')->where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->orderBy('id', 'desc')->first();
+        $beforeData = FormCutInputDetail::select('group_roll', 'group_stocker')->where('no_form_cut_input', $validatedRequest['no_form_cut_input'])->whereRaw('(form_cut_input_detail.status = "complete" || form_cut_input_detail.status = "need extension" || form_cut_input_detail.status = "extension complete")')->orderBy('id', 'desc')->first();
         $groupStocker = $beforeData ? ($beforeData->group_roll  == $validatedRequest['current_group'] ? $beforeData->group_stocker : $beforeData->group_stocker + 1) : 1;
         $itemQty = ($validatedRequest["current_unit"] != "KGM" ? floatval($validatedRequest['current_qty']) : floatval($validatedRequest['current_qty_real']));
         $itemUnit = ($validatedRequest["current_unit"] != "KGM" ? "METER" : $validatedRequest['current_unit']);
@@ -775,7 +778,6 @@ class FormCutInputController extends Controller
                         "sambungan" => 0,
                         "status" => "not complete",
                         "metode" => $request->metode ? $request->metode : "scan",
-                        "group_stocker" => $groupStocker,
                     ]);
 
                     if ($storeTimeRecordSummaryNext) {
@@ -811,7 +813,12 @@ class FormCutInputController extends Controller
     {
         $formCutInputDetailData = FormCutInputDetail::selectRaw('
                 form_cut_input_detail.*
-            ')->leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->where('no_form_cut_input', $noForm)->where('no_meja', $noMeja)->orderBy('form_cut_input_detail.id', 'desc')->first();
+            ')->
+            leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->
+            where('no_form_cut_input', $noForm)->
+            where('no_meja', $noMeja)->
+            orderBy('form_cut_input_detail.id', 'desc')->
+            first();
 
         $formCutInputDetailCount = $formCutInputDetailData ? $formCutInputDetailData->count() : 0;
 
@@ -892,8 +899,14 @@ class FormCutInputController extends Controller
             "waktu_selesai" => $request->finishTime,
             "cons_act" => $request->consAct,
             "unit_cons_act" => $request->unitConsAct,
+            "cons_act_nosr" => $request->consActNoSr,
+            "unit_cons_act_nosr" => $request->unitConsActNoSr,
             "total_lembar" => $request->totalLembar,
             "no_cut" => $formCutInputSimilarCount + 1,
+            "cons_ws_uprate" => $request->consWsUprate,
+            "cons_marker_uprate" => $request->consMarkerUprate,
+            "cons_ws_uprate_nosr" => $request->consWsUprateNoSr,
+            "cons_marker_uprate_nosr" => $request->consMarkerUprateNoSr,
             "operator" => $request->operator,
         ]);
 
@@ -909,7 +922,7 @@ class FormCutInputController extends Controller
             where("act_costing_ws", $formCutInputData->marker->act_costing_ws)->
             where("panel", $formCutInputData->marker->panel)->
             where("buyer", $formCutInputData->marker->buyer)->
-            where("style", $formCutInputData->marker->style)->
+            // where("style", $formCutInputData->marker->style)->
             first();
 
         if ($partData) {

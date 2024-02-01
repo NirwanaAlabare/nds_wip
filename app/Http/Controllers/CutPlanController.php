@@ -123,7 +123,7 @@ class CutPlanController extends Controller
                     b.cons_marker,
                     a.tipe_form_cut,
                     CONCAT(b.panel, ' - ', b.urutan_marker) panel,
-                    GROUP_CONCAT(CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC) marker_details
+                    GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ', ') marker_details
                 FROM `form_cut_input` a
                 left join marker_input b on a.id_marker = b.kode
                 left join marker_input_detail on b.id = marker_input_detail.marker_id
@@ -214,7 +214,7 @@ class CutPlanController extends Controller
                     b.cons_marker,
                     a.tipe_form_cut,
                     CONCAT(b.panel, ' - ', b.urutan_marker) panel,
-                    GROUP_CONCAT(CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC) marker_details,
+                    GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ', ') marker_details,
                     sum(marker_input_detail.ratio) * a.qty_ply	qty_output,
                     coalesce(sum(marker_input_detail.ratio) * c.tot_lembar_akt,0) qty_act
                 FROM `form_cut_input` a
@@ -344,7 +344,7 @@ class CutPlanController extends Controller
                     'app_at' => $request['approve'] ? ((array_key_exists($noFormId, $request['approve'])) ? $approvedAt : null) : 'N',
                 ]);
 
-                if ($updateCutPlan) {
+                if ($updateCutPlan && $updateForm) {
                     array_push($success, $noFormVal);
                 } else {
                     array_push($fail, $noFormVal);
@@ -436,8 +436,6 @@ class CutPlanController extends Controller
                     $query->whereRaw("tgl_cutting <= '" . $tglAkhir . "'");
                 }
 
-                // dd($formInfoFilter, $markerInfoFilter, $mejaFilter, $approveFilter);
-
                 if ($formInfoFilter) {
                     $query->whereHas('formCutInput', function ($query) use ($formInfoFilter) {
                         $query->whereRaw("(
@@ -480,10 +478,13 @@ class CutPlanController extends Controller
                     $query->whereRaw("app = '" . $approveFilter . "'");
                 }
             })->addIndexColumn()->addColumn('form_info', function ($row) {
+                $totalLembar = ($row->formCutInput ? $row->formCutInput->total_lembar : 0);
+                $qtyPly = ($row->formCutInput ? $row->formCutInput->qty_ply : 0);
+
                 $formInfo = "<ul class='list-group'>";
                 $formInfo = $formInfo . "<li class='list-group-item'>Tanggal Form :<br><b>" . ($row->formCutInput ? $row->formCutInput->tgl_form_cut : '-') . "</b></li>";
                 $formInfo = $formInfo . "<li class='list-group-item'>No. Form :<br><b>" . $row->no_form_cut_input . "</b></li>";
-                $formInfo = $formInfo . "<li class='list-group-item'>Qty Ply :<br><b>" . ($row->formCutInput ? $row->formCutInput->qty_ply : '-') . "</b></li>";
+                $formInfo = $formInfo . "<li class='list-group-item'>Qty Ply :<br><b>".'<div class="progress border border-sb position-relative my-1" style="min-width: 50px;height: 21px"><p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">'.($totalLembar ? $totalLembar : 0).'/'.($qtyPly ? $qtyPly : 0).'</p><div class="progress-bar" style="background-color: #75baeb;width: '.((($totalLembar ? $totalLembar : 0)/($qtyPly ? $qtyPly : 1))*100).'%" role="progressbar"></div></div>' . "</b></li>";
                 $formInfo = $formInfo . "<li class='list-group-item'>Status :<br><b>" . ($row->formCutInput ? $row->formCutInput->status : '-') . "</b></li>";
                 $formInfo = $formInfo . "</ul>";
                 return $formInfo;
@@ -508,7 +509,7 @@ class CutPlanController extends Controller
                 $markerInfo = "<ul class='list-group'>";
                 $markerInfo = $markerInfo . "<li class='list-group-item'>Panjang : <br><b>" . ($markerData ? $markerData->panjang_marker . " " . $markerData->unit_panjang_marker . " " . $markerData->comma_marker . " " . $markerData->unit_comma_marker : "-") . "</b></li>";
                 $markerInfo = $markerInfo . "<li class='list-group-item'>Lebar : <br><b>" . ($markerData ? $markerData->lebar_marker . " " . $markerData->unit_lebar_marker : "-") . "</b></li>";
-                $markerInfo = $markerInfo . "<li class='list-group-item'>Gelar Qty : <br><b>" . ($markerData ? $markerData->gelar_qty : "-") . "</b></li>";
+                $markerInfo = $markerInfo . "<li class='list-group-item'>Gelar Qty : <br> <b>" . ($markerData ? $markerData->gelar_qty : "-") . "</b></li>";
                 $markerInfo = $markerInfo . "<li class='list-group-item'>Urutan : <br><b>" . ($markerData ? $markerData->urutan_marker : "-") . "</b></li>";
                 $markerInfo = $markerInfo . "<li class='list-group-item'>Cons WS : <br><b>" . ($markerData ? $markerData->cons_ws : "-") . "</b></li>";
                 $markerInfo = $markerInfo . "<li class='list-group-item'>Cons Marker : <br><b>" . ($markerData ? $markerData->cons_marker : "-") . "</b></li>";

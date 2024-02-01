@@ -29,6 +29,10 @@
 
 @section('content')
     <div style="{{ $page ? 'height: 100%;' : 'height: 75vh;' }}">
+        @if ($page == 'dashboard-marker')
+            <div style="height: 75vh;"></div>
+        @endif
+
         @if ($page == 'dashboard-cutting')
             <div style="height: 75vh;"></div>
         @endif
@@ -66,7 +70,7 @@
 
     {{-- <div class="row">
         <div class="col-lg-12">
-            <div class="card card-sb card-outline">
+            <div class="card card-sb">
                 <div class="card-header">
                     <h5 class="card-title">Card</h5>
                 </div>
@@ -141,7 +145,7 @@
         </div>
 
         <div class="col-md-12">
-            <div class="card card-sb card-outline">
+            <div class="card card-sb">
                 <div class="card-header">
                     <h5 class="card-title m-0">Data</h5>
                 </div>

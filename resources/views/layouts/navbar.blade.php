@@ -1,7 +1,7 @@
 @if (!isset($page))
-@php
-$page = '';
-@endphp
+    @php
+        $page = '';
+    @endphp
 @endif
 
 @if (!isset($subPage))
@@ -117,9 +117,36 @@ $page = '';
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
                             aria-haspopup="true"aria-expanded="false"
-                            class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-cutting' ? 'active' : '' }}">Proses</a>
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'master-marker' ? 'active' : '' }}">Master</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @marker
+                                <li>
+                                    <a href="{{ route('master-part') }}"
+                                        class="dropdown-item {{ $subPage == 'master-part' ? 'active' : '' }}">
+                                        Master Part <i class="fas fa-plus-square fa-sm"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('master-secondary') }}"
+                                        class="dropdown-item {{ $subPage == 'master-secondary' ? 'active' : '' }}">
+                                        Master Secondary <i class="fas fa-location-arrow fa-sm"></i>
+                                    </a>
+                                </li>
+                            @endmarker
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-marker' ? 'active' : '' }}">Proses</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @marker
+                                <li>
+                                    <a href="{{ route('part') }}"
+                                        class="dropdown-item {{ $subPage == 'part' ? 'active' : '' }}">
+                                        Part <i class="fas fa-th fa-sm"></i>
+                                    </a>
+                                </li>
                                 <li>
                                     <a href="{{ route('marker') }}"
                                         class="dropdown-item {{ $subPage == 'marker' ? 'active' : '' }}">
@@ -127,32 +154,41 @@ $page = '';
                                     </a>
                                 </li>
                             @endmarker
+                        </ul>
+                    </li>
+                @endif
+                @if ($page == 'dashboard-cutting')
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-cutting' ? 'active' : '' }}">Proses</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            {{-- @marker
+                                <li>
+                                    <a href="{{ route('marker') }}"
+                                        class="dropdown-item {{ $subPage == 'marker' ? 'active' : '' }}">
+                                        Marker <i class="fas fa-marker fa-sm"></i>
+                                    </a>
+                                </li>
+                            @endmarker --}}
 
-                            @spreading
+                            @admin
                                 <li>
                                     <a href="{{ route('spreading') }}"
                                         class="dropdown-item {{ $subPage == 'spreading' ? 'active' : '' }}">
                                         Spreading <i class="fas fa-scroll fa-sm"></i>
                                     </a>
                                 </li>
-                            @endspreading
+                            @endadmin
 
                             @meja
                                 <li>
                                     <a href="{{ route('form-cut-input') }}"
-                                        class="dropdown-item {{ $subPage == 'form-cut-input' ? 'active' : '' }}">
+                                        class="appeared dropdown-item {{ $subPage == 'form-cut-input' ? 'active' : '' }}">
                                         Form Cutting <i class="fas fa-cut fa-sm"></i>
                                     </a>
                                 </li>
                             @endmeja
-
-                            {{-- @admin
-                                <li>
-                                    <a href="{{ route('cut-plan') }}" class="dropdown-item">
-                                        Cutting Plan
-                                    </a>
-                                </li>
-                            @endadmin --}}
                         </ul>
                     </li>
 
@@ -186,35 +222,27 @@ $page = '';
                         </li>
                     @endadmin
 
-                    {{-- @manager
-                        <li class="nav-item">
-                            <a href="{{ route('manage-cutting') }}" class="nav-link">
-                                Generate <i class="fas fa-file-archive fa-sm"></i>
-                            </a>
-                        </li>
-                    @endmanager --}}
-
                     @admin
                         <li class="nav-item {{ $subPage == 'summary-cutting' ? 'active' : '' }}">
                             <a href="{{ route('summary') }}" class="nav-link">
                                 Summary <i class="fas fa-tasks fa-sm"></i>
                             </a>
                         </li>
+                        <li class="nav-item {{ $subPage == 'manage-cutting' ? 'active' : '' }}">
+                            <a href="{{ route('manage-cutting') }}" class="nav-link">
+                                Manage <i class="fa-solid fa-gear fa-sm"></i>
+                            </a>
+                        </li>
                     @endadmin
                 @endif
 
                 @if ($page == 'dashboard-stocker')
-                    <li class="nav-item dropdown">
+                    {{-- <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
                             aria-haspopup="true"aria-expanded="false"
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'master-stocker' ? 'active' : '' }}">Master</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @stocker
-                                {{-- <li>
-                                    <a href="{{ route('part') }}" class="dropdown-item">
-                                        Part
-                                    </a>
-                                </li> --}}
                                 <li>
                                     <a href="{{ route('master-part') }}"
                                         class="dropdown-item {{ $subPage == 'master-part' ? 'active' : '' }}">
@@ -223,7 +251,7 @@ $page = '';
                                 </li>
                             @endstocker
                         </ul>
-                    </li>
+                    </li> --}}
 
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
@@ -231,13 +259,8 @@ $page = '';
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-stocker' ? 'active' : '' }}">Proses</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @stocker
-                                {{-- <li>
-                                    <a href="{{ route('part') }}" class="dropdown-item">
-                                        Part
-                                    </a>
-                                </li> --}}
                                 <li>
-                                    <a href="{{ route('part') }}"
+                                    <a href="{{ route('stocker-part') }}"
                                         class="dropdown-item {{ $subPage == 'part' ? 'active' : '' }}">
                                         Part <i class="fas fa-th fa-sm"></i>
                                     </a>
@@ -254,23 +277,11 @@ $page = '';
                 @endif
 
                 @if ($page == 'dashboard-dc')
-                    {{-- <li class="nav-item dropdown">
-                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
-                            aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
-                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-                            @dc
-                                <li>
-                                    <a href="{{ route('stocker') }}" class="dropdown-item">
-                                        Stocker <i class="fas fa-receipt fa-sm"></i>
-                                    </a>
-                                </li>
-                            @enddc
-                        </ul>
-                    </li> --}}
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
                             aria-haspopup="true"aria-expanded="false"
-                            class="nav-link dropdown-toggle {{ $subPageGroup == 'dcin-dc' ? 'active' : '' }}">DC In</a>
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'dcin-dc' ? 'active' : '' }}">DC
+                            In</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @dc
                                 <li>
@@ -291,7 +302,7 @@ $page = '';
                                 <li>
                                     <a href="{{ route('secondary-inhouse') }}"
                                         class="dropdown-item {{ $subPage == 'secondary-inhouse' ? 'active' : '' }}">
-                                        Secondary Inhouse <i class="fas fa-house-user"></i>
+                                        Secondary Dalam <i class="fas fa-house-user"></i>
                                     </a>
                                 </li>
                                 <li>
@@ -299,6 +310,12 @@ $page = '';
                                         class="dropdown-item {{ $subPage == 'secondary-in' ? 'active' : '' }}">
                                         Secondary In <i class="fas fa-receipt fa-sm"></i>
                                     </a>
+                                </li>
+                                <li>
+                                    {{-- <a href="{{ route('summary-secondary') }}"
+                                        class="dropdown-item {{ $subPage == 'summary-secondary' ? 'active' : '' }}">
+                                        Summary Secondary <i class="fas fa-receipt fa-sm"></i>
+                                    </a> --}}
                                 </li>
                             @enddc
                         </ul>
@@ -364,6 +381,12 @@ $page = '';
                                         Trolley <i class="fas fa-dolly-flatbed"></i>
                                     </a>
                                 </li>
+                                <li>
+                                    <a href="{{ route('loading-line') }}"
+                                        class="dropdown-item {{ $subPage == 'loading-line' ? 'active' : '' }}">
+                                        Line <i class="fa-solid fa-users-line"></i>
+                                    </a>
+                                </li>
                             @enddc
                         </ul>
                     </li>
@@ -371,8 +394,8 @@ $page = '';
 
                 @if ($page == 'dashboard-mut-karyawan')
                     <li class="nav-item dropdown">
-                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
-                            aria-haspopup="true"aria-expanded="false"
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false"
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-karyawan' ? 'active' : '' }}">Proses</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @hr
@@ -542,13 +565,14 @@ $page = '';
             <a href="#" class="dropdown-item dropdown-footer">See All Notifications</a>
         </div>
     </li> --}}
-    <li class="nav-item">
-        <a class="nav-link" data-bs-toggle="offcanvas" href="#user-offcanvas" role="button" aria-controls="user-offcanvas">
-            {{ strtoupper(auth()->user()->name) }}
-            <i class="fas fa-user ps-1"></i>
-        </a>
-    </li>
-    </ul>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="offcanvas" href="#user-offcanvas" role="button"
+                    aria-controls="user-offcanvas">
+                    {{ strtoupper(auth()->user()->name) }}
+                    <i class="fas fa-user ps-1"></i>
+                </a>
+            </li>
+        </ul>
     </div>
 </nav>
 <!-- /.navbar -->

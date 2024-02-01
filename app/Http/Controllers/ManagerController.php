@@ -7,7 +7,12 @@ use Carbon\Carbon;
 use App\Models\Marker;
 use App\Models\MarkerDetail;
 use App\Models\FormCutInput;
+use App\Models\FormCutInputDetail;
 use App\Models\FormCutInputLostTime;
+use App\Models\ScannedItem;
+use App\Models\Part;
+use App\Models\PartForm;
+use App\Models\User;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Auth;
 use DB;
@@ -25,15 +30,15 @@ class ManagerController extends Controller
     }
 
     public function cutting(Request $request) {
-        if ($request->ajax()) {
-            $additionalQuery = "";
+        $additionalQuery = "";
 
+        if ($request->ajax()) {
             if ($request->dateFrom) {
-                $additionalQuery .= "and a.tgl_form_cut >= '" . $request->dateFrom . "' ";
+                $additionalQuery .= " and DATE(a.waktu_selesai) >= '" . $request->dateFrom . "' ";
             }
 
             if ($request->dateTo) {
-                $additionalQuery .= " and a.tgl_form_cut <= '" . $request->dateTo . "' ";
+                $additionalQuery .= " and DATE(a.waktu_selesai) <= '" . $request->dateTo . "' ";
             }
 
             $keywordQuery = "";
@@ -48,8 +53,7 @@ class ManagerController extends Controller
                         panel like '%" . $request->search["value"] . "%' OR
                         b.color like '%" . $request->search["value"] . "%' OR
                         a.status like '%" . $request->search["value"] . "%' OR
-                        meja.name like '%" . $request->search["value"] . "%' OR
-                        manager.name like '%" . $request->search["value"] . "%'
+                        users.name like '%" . $request->search["value"] . "%'
                     )
                 ";
             }
@@ -60,44 +64,49 @@ class ManagerController extends Controller
                     a.no_meja,
                     a.id_marker,
                     a.no_form,
+                    a.no_cut,
                     a.tgl_form_cut,
                     b.id marker_id,
                     b.act_costing_ws ws,
-                    panel,
+                    b.style,
+                    CONCAT(b.panel, ' - ', b.urutan_marker) panel,
                     b.color,
                     a.status,
-                    meja.name nama_meja,
+                    users.name nama_meja,
                     b.panjang_marker,
                     UPPER(b.unit_panjang_marker) unit_panjang_marker,
                     b.comma_marker,
                     UPPER(b.unit_comma_marker) unit_comma_marker,
                     b.lebar_marker,
                     UPPER(b.unit_lebar_marker) unit_lebar_marker,
-                    a.qty_ply,
-                    b.gelar_qty,
+                    CONCAT(COALESCE(a.total_lembar, '0'), '/', a.qty_ply) ply_progress,
+                    COALESCE(a.qty_ply, 0) qty_ply,
+                    COALESCE(b.gelar_qty, 0) gelar_qty,
+                    COALESCE(a.total_lembar, '0') total_lembar,
                     b.po_marker,
                     b.urutan_marker,
                     b.cons_marker,
-                    a.generated,
+                    UPPER(b.tipe_marker) tipe_marker,
                     a.tipe_form_cut,
-                    manager.name generated_by,
-                    GROUP_CONCAT(CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC) marker_details
+                    COALESCE(b.notes, '-') notes,
+                    GROUP_CONCAT(DISTINCT CONCAT(master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ', ') marker_details,
+                    cutting_plan.tgl_plan,
+                    cutting_plan.app
                 FROM `form_cut_input` a
-                left join marker_input b on a.id_marker = b.kode
+                left join cutting_plan on cutting_plan.no_form_cut_input = a.no_form
+                left join users on users.id = a.no_meja
+                left join marker_input b on a.id_marker = b.kode and b.cancel = 'N'
                 left join marker_input_detail on b.id = marker_input_detail.marker_id
                 left join master_size_new on marker_input_detail.size = master_size_new.size
-                left join users as meja on meja.id = a.no_meja
-                left join users as manager on manager.id = a.generated_by
                 where
-                    b.cancel = 'N' and
-                    a.status = 'SELESAI PENGERJAAN' and
-                    a.app = 'Y'
+                    a.id is not null and
+                    a.status = 'SELESAI PENGERJAAN'
                     " . $additionalQuery . "
                     " . $keywordQuery . "
                 GROUP BY a.id
                 ORDER BY
-                    FIELD(a.generated, 'N', 'Y'),
-                    FIELD(a.tipe_form_cut, null, 'NORMAL', 'MANUAL'),
+                    FIELD(a.tipe_form_cut, null, 'PILOT', 'NORMAL', 'MANUAL'),
+                    FIELD(a.app, 'Y', 'N', null),
                     a.no_form desc,
                     a.updated_at desc
             ");
@@ -105,7 +114,9 @@ class ManagerController extends Controller
             return DataTables::of($data_spreading)->toJson();
         }
 
-        return view('manager.cutting.cutting', ["page" => "dashboard-cutting"]);
+        $meja = User::select("id", "name", "username")->where('type', 'meja')->get();
+
+        return view('manager.cutting.cutting', ['meja' => $meja, 'page' => 'dashboard-cutting', "subPage" => "manage-cutting"]);
     }
 
     /**
@@ -192,36 +203,141 @@ class ManagerController extends Controller
         //
     }
 
-    public function generateStocker(Request $request, $id) {
-        $generatedBy = Auth::user()->id;
-        $generatedAt = Carbon::now();
-
+    public function updateCutting(Request $request) {
         $validatedRequest = $request->validate([
-            "generated_type" => "required"
+            "current_id" => "required",
+            "current_id_roll" => "nullable",
+            "no_form_cut_input" => "required",
+            "no_meja" => "required",
+            "current_id_item" => "required",
+            "current_group" => "required",
+            "current_group_stocker" => "nullable",
+            "current_roll" => "nullable",
+            "current_qty" => "required",
+            "current_qty_real" => "required",
+            "current_unit" => "required",
+            "current_sisa_gelaran" => "required",
+            "current_est_amparan" => "required",
+            "current_lembar_gelaran" => "required",
+            "current_kepala_kain" => "required",
+            "current_sisa_tidak_bisa" => "required",
+            "current_reject" => "required",
+            "current_sisa_kain" => "required",
+            "current_total_pemakaian_roll" => "required",
+            "current_short_roll" => "required",
+            "current_piping" => "required",
+            "current_remark" => "required",
+            "current_sambungan" => "required",
+            "p_act" => "required"
         ]);
 
-        $generateFormCut = FormCutInput::where("id", $id)->
+        $itemQty = ($validatedRequest["current_unit"] != "KGM" ? floatval($validatedRequest['current_qty']) : floatval($validatedRequest['current_qty_real']));
+        $itemUnit = ($validatedRequest["current_unit"] != "KGM" ? "METER" : $validatedRequest['current_unit']);
+
+        $updateTimeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->
+            leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->
+            where('form_cut_input.no_meja', $validatedRequest['no_meja'])->
+            where('form_cut_input_detail.id', $validatedRequest['current_id'])->
             update([
-                "generated" => $validatedRequest['generated_type'],
-                "generated_by" => $generatedBy,
-                "generated_at" => $generatedAt,
-                "generated_notes" => $request['generated_notes'],
+                "id_roll" => $validatedRequest['current_id_roll'],
+                "id_item" => $validatedRequest['current_id_item'],
+                "group_roll" => $validatedRequest['current_group'],
+                "lot" => $request["current_lot"],
+                "roll" => $validatedRequest['current_roll'],
+                "qty" => $itemQty,
+                "unit" => $itemUnit,
+                "sisa_gelaran" => $validatedRequest['current_sisa_gelaran'],
+                "sambungan" => $validatedRequest['current_sambungan'],
+                "est_amparan" => $validatedRequest['current_est_amparan'],
+                "lembar_gelaran" => $validatedRequest['current_lembar_gelaran'],
+                "kepala_kain" => $validatedRequest['current_kepala_kain'],
+                "sisa_tidak_bisa" => $validatedRequest['current_sisa_tidak_bisa'],
+                "reject" => $validatedRequest['current_reject'],
+                "sisa_kain" => $validatedRequest['current_sisa_kain'],
+                "total_pemakaian_roll" => $validatedRequest['current_total_pemakaian_roll'],
+                "short_roll" => $validatedRequest['current_short_roll'],
+                "piping" => $validatedRequest['current_piping'],
+                "remark" => $validatedRequest['current_remark'],
             ]);
 
-        $generateFormCut = true;
+        if ($updateTimeRecordSummary) {
+            $itemRemain = $validatedRequest['current_sisa_kain'];
 
-        if ($generateFormCut) {
+            ScannedItem::where("id_roll", $validatedRequest['current_id_roll'])->update([
+                "id_item" => $validatedRequest['current_id_item'],
+                "lot" => $request['current_lot'],
+                "roll" => $validatedRequest['current_roll'],
+                "qty" => $itemRemain,
+                "unit" => $itemUnit,
+            ]);
+
+            $formCutDetails = FormCutInputDetail::where("no_form_cut_input", $validatedRequest['no_form_cut_input'])->orderBy("id", "asc")->get();
+            $currentGroup = "";
+            $groupNumber = 0;
+            foreach ($formCutDetails as $formCutDetail) {
+                if ($currentGroup != $formCutDetail->group_roll) {
+                    $currentGroup = $formCutDetail->group_roll;
+                    $groupNumber += 1;
+                }
+
+                $formCutDetail->group_stocker = $groupNumber;
+                $formCutDetail->save();
+            }
+
             return array(
                 "status" => 200,
                 "message" => "alright",
-                "additional" => [],
+            );
+        }
+    }
+
+    public function updateFinish(Request $request, $id) {
+        $formCutInputData = FormCutInput::where("id", $id)->first();
+
+        $updateFormCutInput = FormCutInput::where("id", $id)->update([
+            "cons_act" => $request->consAct,
+            "unit_cons_act" => $request->unitConsAct,
+            "cons_act_nosr" => $request->consActNoSr,
+            "unit_cons_act_nosr" => $request->unitConsActNoSr,
+            "cons_ws_uprate" => $request->consWsUprate,
+            "cons_marker_uprate" => $request->consMarkerUprate,
+            "cons_ws_uprate_nosr" => $request->consWsUprateNoSr,
+            "cons_marker_uprate_nosr" => $request->consMarkerUprateNoSr,
+            "total_lembar" => $request->totalLembar,
+            "operator" => $request->operator,
+        ]);
+
+        // store to part form
+        $partData = Part::select('part.id')->
+            where("act_costing_id", $formCutInputData->marker->act_costing_id)->
+            where("act_costing_ws", $formCutInputData->marker->act_costing_ws)->
+            where("panel", $formCutInputData->marker->panel)->
+            where("buyer", $formCutInputData->marker->buyer)->
+            where("style", $formCutInputData->marker->style)->
+            first();
+
+        if ($updateFormCutInput && $partData) {
+            $lastPartForm = PartForm::select("kode")->orderBy("kode", "desc")->first();
+            $urutanPartForm = $lastPartForm ? intval(substr($lastPartForm->kode, -5)) + 1 : 1;
+            $kodePartForm = "PFM" . sprintf('%05s', $urutanPartForm);
+
+            $addToPartForm = PartForm::create([
+                "kode" => $kodePartForm,
+                "part_id" => $partData->id,
+                "form_id" => $formCutInputData->id,
+                "created_at" => Carbon::now(),
+                "updated_at" => Carbon::now(),
+            ]);
+
+            return array(
+                "status" => 200,
+                "message" => "alright",
             );
         }
 
         return array(
             "status" => 400,
             "message" => "nothing really matter anymore",
-            "additional" => [],
         );
     }
 
@@ -234,5 +350,21 @@ class ManagerController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    public function destroySpreadingRoll($id) {
+        $deleteRoll = FormCutInputDetail::where("id", $id)->delete();
+
+        if ($deleteRoll) {
+            return array(
+                "status" => 200,
+                "message" => "alright"
+            );
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "nothing really matter anymore"
+        );
     }
 }

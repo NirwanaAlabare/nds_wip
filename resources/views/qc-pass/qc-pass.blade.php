@@ -12,7 +12,7 @@
 @endsection
 
 @section('content')
-<div class="card card-sb card-outline">
+<div class="card card-sb">
     <div class="card-header">
         <h5 class="card-title fw-bold mb-0">Data QC Inspection</h5>
     </div>
@@ -60,7 +60,7 @@
             </div>
                 <input type="text"  id="cari_grdok" name="cari_grdok" autocomplete="off" placeholder="Search No Inspect..." onkeyup="carigrdok()">
         </div>
-        
+
         <div class="table-responsive" style="max-height: 500px">
             <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
                 <thead>
@@ -354,7 +354,7 @@
                 </div>
                 <div class="modal-body">
                     <div id="modal-data">
-                    
+
                 </div>
             </div>
         </div>
@@ -530,7 +530,7 @@ $('.select2roll').select2({
             {
                 data: 'id'
             },
-            
+
         ],
         columnDefs: [{
                 targets: [2],
@@ -558,24 +558,24 @@ $('.select2roll').select2({
                     console.log(data);
                     //<button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='showdata_det("` + row.id + `","` + row.no_insp + `")'><i class="fa-solid fa-table-list"></i></button>
                     if (row.inspektr != null) {
-                         return `<div class='d-flex gap-1 justify-content-center'> 
+                         return `<div class='d-flex gap-1 justify-content-center'>
                     <a href="{{ route('create-qcpass') }}/`+data+`"><button type='button' class='btn btn-sm btn-danger'><i class="fa-solid fa-pen-to-square"></i></button></a>
                     <a href="{{ route('show-qcpass') }}/`+data+`" target="_blank"><button type='button' class='btn btn-sm btn-info'><i class="fa-solid fa-table-list"></i></button></a>
                     <a href="{{ route('export-qcpass') }}/`+data+`" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-file-pdf"></i></button></a>
                      </div>`;
                     }
-                    return `<div class='d-flex gap-1 justify-content-center'> 
+                    return `<div class='d-flex gap-1 justify-content-center'>
                     <a href="{{ route('create-qcpass') }}/`+data+`"><button type='button' class='btn btn-sm btn-danger'><i class="fa-solid fa-pen-to-square"></i></button></a>
                      </div>`;
                    //  if (row.status == 'Active') {
-                   //  return `<div class='d-flex gap-1 justify-content-center'> 
+                   //  return `<div class='d-flex gap-1 justify-content-center'>
                    // <button type='button' class='btn btn-sm btn-warning' href='javascript:void(0)' onclick='editdata("` + row.id + `","` + row.kapasitas + `","` + row.inisial_lok + `","` + row.baris_lok + `","` + row.level_lok + `","` + row.no_lok + `","` + row.area_lok + `","` + row.unit + `","` + row.unit_roll + `","` + row.unit_bundle + `","` + row.unit_box + `","` + row.unit_pack + `")'><i class="fa-solid fa-pen-to-square"></i></button>
                    //  <button type='button' class='btn btn-sm btn-info' onclick='printlokasi("` + row.id + `")'><i class='fa fa-file-pdf'></i></button>
-                   //  <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='nonactive_lokasi("` + row.id + `","` + row.status + `","` + row.kode_lok + `")'><i class='fa fa-unlock-alt'></i></button> 
+                   //  <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='nonactive_lokasi("` + row.id + `","` + row.status + `","` + row.kode_lok + `")'><i class='fa fa-unlock-alt'></i></button>
                    //  </div>`;
                    //  }else{
-                   //      return `<div class='d-flex gap-1 justify-content-center'> 
-                   //  <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='nonactive_lokasi("` + row.id + `","` + row.status + `","` + row.kode_lok + `")'><i class='fa fa-lock'></i></button> 
+                   //      return `<div class='d-flex gap-1 justify-content-center'>
+                   //  <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='nonactive_lokasi("` + row.id + `","` + row.status + `","` + row.kode_lok + `")'><i class='fa fa-lock'></i></button>
                    //  </div>`;
                    //  }
                 }
@@ -590,8 +590,8 @@ $('.select2roll').select2({
 <script type="text/javascript">
     function showdata_det(id,no_insp){
 
-            $('#modal-show-data').modal('show'); 
-            document.getElementById('modal-title').innerHTML = no_insp; 
+            $('#modal-show-data').modal('show');
+            document.getElementById('modal-title').innerHTML = no_insp;
             return $.ajax({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -615,7 +615,7 @@ $('.select2roll').select2({
 <script type="text/javascript">
 
     function tambahdata(){
-    $('#modal-tambah-data').modal('show'); 
+    $('#modal-tambah-data').modal('show');
     initScan();
     $('#txt_color').val('');
     $('#txt_buyer').val('');

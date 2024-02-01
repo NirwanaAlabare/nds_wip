@@ -65,7 +65,7 @@
 
     {{-- <div class="row">
         <div class="col-lg-12">
-            <div class="card card-sb card-outline">
+            <div class="card card-sb">
                 <div class="card-header">
                     <h5 class="card-title">Card</h5>
                 </div>
@@ -140,7 +140,7 @@
         </div>
 
         <div class="col-md-12">
-            <div class="card card-sb card-outline">
+            <div class="card card-sb">
                 <div class="card-header">
                     <h5 class="card-title m-0">Data</h5>
                 </div>
@@ -2541,7 +2541,7 @@
                             },
                             subtitle: {
                                 // text: [dari+' / '+sampai, 'Total Orang : '+totalEmployee.toLocaleString()],
-                                text: ['Total Orang : ' + totalEmployee.toLocaleString()],
+                                text: ['Total Mesin : ' + totalEmployee.toLocaleString()],
                                 align: 'center',
                                 style: {
                                     fontSize: '13px',

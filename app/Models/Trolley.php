@@ -17,4 +17,8 @@ class Trolley extends Model
     public function userLine() {
         return $this->belongsTo(UserLine::class, 'line_id', 'line_id');
     }
+
+    public function trolleyStockers() {
+        return $this->hasMany(TrolleyStocker::class, 'trolley_id', 'id');
+    }
 }

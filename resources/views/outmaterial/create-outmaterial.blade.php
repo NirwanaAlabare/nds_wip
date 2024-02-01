@@ -13,7 +13,7 @@
 @section('content')
 <form action="{{ route('store-outmaterial-fabric') }}" method="post" id="store-outmaterial" onsubmit="submitForm(this, event)">
     @csrf
-    <div class="card card-sb card-outline">
+    <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold">
                 Data Header
@@ -222,10 +222,10 @@
         </div>
     </div>
     </div>
-</div>   
+</div>
 </div>
 
-    <div class="card card-sb card-outline">
+    <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold">
                 Data Detail
@@ -338,7 +338,7 @@
                     <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Tutup</button>
                     <button type="submit" class="btn btn-primary toastsDefaultDanger"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Simpan</button>
                 </div>
-    
+
             </div>
         </div>
     </form>
@@ -414,7 +414,7 @@
                     <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Tutup</button>
                     <button type="submit" class="btn btn-primary toastsDefaultDanger"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Simpan</button>
                 </div>
-    
+
             </div>
         </div>
     </form>
@@ -655,7 +655,7 @@ function submitFormScan(e, evt) {
                 if (cek.checked == true){
                 t_roll += parseFloat(cek.value);
                 $("#qty_out"+i).prop("disabled", false);
-                } 
+                }
             }
             $('#t_roll').val(t_roll);
         }
@@ -689,10 +689,10 @@ function submitFormScan(e, evt) {
                         $('#qty_out'+i).val(qty_out);
                         $('#qty_sisa'+i).val(sisa_qty.round(2) || 0);
                     }
-                    sum_out += parseFloat(qty_out); 
+                    sum_out += parseFloat(qty_out);
                 }
             }
-                h_qty_out = sum_out + ' ' + satuan; 
+                h_qty_out = sum_out + ' ' + satuan;
                 sum_bal = parseFloat(qty_req) - parseFloat(sum_out);
                 h_sum_bal = sum_bal + ' ' + satuan;
                 $('#m_qty_out').val(h_qty_out);
@@ -731,11 +731,11 @@ function submitFormScan(e, evt) {
                         $('#qty_out'+i).val(qty_out);
                         $('#qty_sisa'+i).val(sisa_qty.round(2) || 0);
                     }
-                    sum_out += parseFloat(qty_out); 
+                    sum_out += parseFloat(qty_out);
                 }
             }
 
-                h_qty_out = sum_out + ' ' + satuan; 
+                h_qty_out = sum_out + ' ' + satuan;
                 sum_bal = parseFloat(qty_req) - parseFloat(sum_out);
                 h_sum_bal = sum_bal + ' ' + satuan;
                 $('#m_qty_out2').val(h_qty_out);
@@ -868,9 +868,9 @@ function submitFormScan(e, evt) {
                 {
                     targets: [9],
                     render: (data, type, row, meta) => {
-                    return `<div class='d-flex gap-1 justify-content-center'> 
-                    <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='out_manual("` + row.id_item + `","` + row.id_jo + `","` + row.qty_sisa_out + `","` + row.unit + `")'><i class="fa-solid fa-table-list"></i></button> 
-                    <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='out_scan("` + row.id_item + `","` + row.id_jo + `","` + row.qty_sisa_out + `","` + row.unit + `","` + row.no_req + `")'><i class="fa-solid fa-barcode"></i></i></button> 
+                    return `<div class='d-flex gap-1 justify-content-center'>
+                    <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='out_manual("` + row.id_item + `","` + row.id_jo + `","` + row.qty_sisa_out + `","` + row.unit + `")'><i class="fa-solid fa-table-list"></i></button>
+                    <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='out_scan("` + row.id_item + `","` + row.id_jo + `","` + row.qty_sisa_out + `","` + row.unit + `","` + row.no_req + `")'><i class="fa-solid fa-barcode"></i></i></button>
                     </div>`;
                 }
                 },
@@ -911,12 +911,12 @@ function submitFormScan(e, evt) {
                     }
                 }
             });
-        
+
     }
 
     function out_scan($id_item,$id_jo,$qty_req,$unit,$noreq){
         let id_item = $id_item;
-        let id_jo = $id_jo; 
+        let id_jo = $id_jo;
         let qty_req = $qty_req;
         let unit = $unit;
         let no_bppb = $('#txt_nobppb').val();
@@ -941,8 +941,8 @@ function submitFormScan(e, evt) {
 
     function getlist_barcode($id_item,$id_jo,$noreq){
         let iditem = $id_item;
-        let idjo = $id_jo; 
-        let noreq = $noreq; 
+        let idjo = $id_jo;
+        let noreq = $noreq;
         return $.ajax({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -965,7 +965,7 @@ function submitFormScan(e, evt) {
 
     function out_manual($id_item,$id_jo,$qty_req,$unit){
         let id_item = $id_item;
-        let id_jo = $id_jo; 
+        let id_jo = $id_jo;
         let qty_req = $qty_req;
         let unit = $unit;
         let no_bppb = $('#txt_nobppb').val();
@@ -982,7 +982,7 @@ function submitFormScan(e, evt) {
 
     function getlist_showitem($id_item,$id_jo){
         let iditem = $id_item;
-        let idjo = $id_jo; 
+        let idjo = $id_jo;
         return $.ajax({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
