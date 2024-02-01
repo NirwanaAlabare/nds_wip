@@ -17,17 +17,22 @@
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-ticket-alt"></i> Stocker</h5>
         </div>
         <div class="card-body">
-            <div class="d-flex align-items-end gap-3 mb-3">
-                <div class="mb-3">
-                    <label class="form-label"><small>Tanggal Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="dataTableReload()" value="{{ date('Y-m-d') }}">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-end gap-3 mb-3">
+                    <div class="mb-3">
+                        <label class="form-label"><small>Tanggal Awal</small></label>
+                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="dataTableReload()" value="{{ date('Y-m-d') }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><small>Tanggal Akhir</small></label>
+                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" onchange="dataTableReload()" value="{{ date('Y-m-d') }}">
+                    </div>
+                    <div class="mb-3">
+                        <button class="btn btn-primary btn-sm" onclick="dataTableReload()"><i class="fa fa-search"></i></button>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label"><small>Tanggal Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" onchange="dataTableReload()" value="{{ date('Y-m-d') }}">
-                </div>
-                <div class="mb-3">
-                    <button class="btn btn-primary btn-sm" onclick="dataTableReload()"><i class="fa fa-search"></i></button>
+                <div>
+                    <button class="btn btn-success btn-sm" onclick="fixRedundant()"><i class="fa fa-cog"></i> Fix Redundant</button>
                 </div>
             </div>
             <div class="table-responsive">
@@ -184,5 +189,30 @@
         function dataTableReload() {
             datatable.ajax.reload();
         }
+
+        function fixRedundant() {
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Fixing Stocker Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                url: '{{ route('fix-redundant-stocker') }}',
+                type: 'post',
+                success: function (res) {
+                    console.log(res);
+
+                    swal.close();
+                },
+                error: function (jqXHR) {
+                    console.log(jqXHR);
+                }
+            });
+        }
+
     </script>
 @endsection

@@ -159,7 +159,7 @@ class DCInController extends Controller
         group by no_form_cut_input,group_roll
         ) b on f.no_form = b.no_form_cut_input
         where a.id_qr_stocker = '$request->txtqrstocker'");
-        return json_encode($data_header[0]);
+        return json_encode($data_header ? $data_header[0] : null);
     }
 
 

@@ -24,7 +24,7 @@
         </div>
     <div class="card-body">
     <div class="form-group row">
-    <div class="col-md-4">
+    <div class="col-6 col-md-4">
         <div class="row">
             <div class="col-md-12">
             <div class="mb-1">
@@ -64,7 +64,7 @@
                 <select class="form-control select2supp" id="txt_supp" name="txt_supp" style="width: 100%;" onchange="settype()">
                     <option selected="selected" value="">Pilih Supplier</option>
                         @foreach ($msupplier as $msupp)
-                    <option value="{{ $msupp->Supplier }}">
+                    <option value="{{ $msupp->id_supplier }}">
                                 {{ $msupp->Supplier }}
                     </option>
                         @endforeach
@@ -101,7 +101,7 @@
         </div>
     </div>
 
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <div class="row">
 
             <div class="col-md-12">
@@ -167,7 +167,7 @@
         </div>
     </div>
 
-    <div class="col-md-5">
+    <div class="col-12 col-md-5">
         <div class="row">
 
             <div class="col-md-7">
@@ -202,7 +202,7 @@
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>Tgl Daftar</small></label>
-                <input type="date" class="form-control form-control" id="txt_reg_aju" name="txt_reg_aju"
+                <input type="date" class="form-control form-control" id="txt_tgl_reg" name="txt_tgl_reg"
                         value="{{ date('Y-m-d') }}">
                 </div>
             </div>

@@ -25,7 +25,7 @@
             <div class="col-md-2">
             <div class="mb-1">
                 <div class="form-group">
-                <label class="form-label">Dari Tanggal</label>
+                <label class="form-label">From</label>
                     <input type="date" class="form-control form-control" id="tgl_awal" name="tgl_awal"
                         value="{{ date('Y-m-d') }}">
                 </div>
@@ -35,7 +35,7 @@
             <div class="col-md-2">
             <div class="mb-1">
                 <div class="form-group">
-                <label class="form-label">Sampai Tanggal</label>
+                <label class="form-label">To</label>
                     <input type="date" class="form-control form-control" id="tgl_akhir" name="tgl_akhir"
                         value="{{ date('Y-m-d') }}">
                 </div>
@@ -58,6 +58,23 @@
             </div>
             </div>
 
+            <div class="col-md-3">
+            <div class="mb-1">
+                <div class="form-group">
+                <label>Tipe Pembelian</label>
+                <select class="form-control select2pchtype" id="pch_type" name="pch_type" style="width: 100%;">
+                    <option selected="selected" value="ALL">ALL</option>
+                        @foreach ($pch_type as $pchtype)
+                    <option value="{{ $pchtype->nama_pilihan }}">
+                                {{ $pchtype->nama_pilihan }}
+                    </option>
+                        @endforeach
+                </select>
+                </div>
+            </div>
+            </div>
+            <div class="col-md-2"></div>
+
             <div class="col-md-2">
             <div class="mb-1">
                 <div class="form-group">
@@ -73,25 +90,7 @@
                 </div>
             </div>
             </div>
-            <div class="col-md-3">
-            </div>
-
-            <div class="col-md-4">
-            <div class="mb-1">
-                <div class="form-group">
-                <label>Tipe Pembelian</label>
-                <select class="form-control select2pchtype" id="pch_type" name="pch_type" style="width: 100%;">
-                    <option selected="selected" value="ALL">ALL</option>
-                        @foreach ($pch_type as $pchtype)
-                    <option value="{{ $pchtype->nama_pilihan }}">
-                                {{ $pchtype->nama_pilihan }}
-                    </option>
-                        @endforeach
-                </select>
-                </div>
-            </div>
-            </div>
-
+            
             <div class="col-md-2">
             <div class="mb-1">
                 <div class="form-group">
@@ -107,14 +106,14 @@
                 </div>
             </div>
             </div>
-
-            <div class="col-md-3" style="padding-top: 0.5rem;">
+            
+            <div class="col-md-6" style="padding-top: 0.5rem;">
             <div class="mt-4 ">
-                <button class="btn btn-primary " onclick="dataTableReload()"> <i class="fas fa-search"></i> Tampilkan</button>
+                <button class="btn btn-primary " onclick="dataTableReload()"> <i class="fas fa-search"></i> Search</button>
                 <!-- <button class="btn btn-info" onclick="tambahdata()"> <i class="fas fa-plus"></i> Add Data</button> -->
                 <a href="{{ route('create-inmaterial') }}" class="btn btn-info">
                 <i class="fas fa-plus"></i>
-                Tambah Data
+                Add Data
             </a>
             </div>
         </div>

@@ -12,27 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Enable bootstrap tooltip
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
-
-    if (document.getElementById('parent-produksi')) {
-        let parentProduksi = document.getElementById('parent-produksi');
-        if (parentProduksi.classList.contains('dropdown')) {
-            $('#produksi-dropdown').collapse('show');
-        }
-    };
-
-    if (document.getElementById('parent-master')) {
-        let parentMaster = document.getElementById('parent-master');
-        if (parentMaster.classList.contains('dropdown')) {
-            $('#master-dropdown').collapse('show');
-        }
-    };
-
-    if (document.getElementById('parent-report')) {
-        let parentReport = document.getElementById('parent-report');
-        if (parentReport.classList.contains('dropdown')) {
-            $('#report-dropdown').collapse('show');
-        }
-    };
 });
 
 // Capitalize
@@ -55,7 +34,7 @@ function pad(n) {
 }
 
 // Check if value is null
-function checkIfNull(value) {
+function isNotNull(value) {
     if (typeof value != "number") {
         if (value == "" || value == null) {
             return false
@@ -65,6 +44,7 @@ function checkIfNull(value) {
     return true;
 }
 
+// Format date to YYYY-MM-DD
 function formatDate(date) {
     return [
         date.getFullYear(),
@@ -108,7 +88,7 @@ function submitForm(e, evt) {
         success: function(res) {
             $("input[type=submit][clicked=true]").removeAttr('disabled');
 
-            if (res.status == 200) {
+            if (res.status == 200 || res.status == 999) {
                 $('.modal').modal('hide');
 
                 Swal.fire({
@@ -117,65 +97,28 @@ function submitForm(e, evt) {
                     showCancelButton: false,
                     showConfirmButton: true,
                     confirmButtonText: 'Oke',
-                    timer: 5000,
+                    timer: (res.status == 200 ? 5000 : 200),
                     timerProgressBar: true
                 }).then(() => {
-                    if (res.redirect && res.redirect != '') {
+                    if (isNotNull(res.redirect)) {
                         if (res.redirect != 'reload') {
                             location.href = res.redirect;
                         } else {
                             location.reload();
                         }
-                    }
-                    else
-                    {
+                    } else {
                         location.reload();
                     }
                 });
 
                 e.reset();
+                if (document.getElementsByClassName('select2')) {
+                    $(".select2").val('').trigger('change');
+                    $(".select2bs4").val('').trigger('change');
+                }
 
                 if (res.callback != '') {
                     eval(res.callback);
-                }
-
-                if (document.getElementsByClassName('select2')) {
-                    $(".select2").val('').trigger('change');
-                }
-            }
-            else if (res.status == 999) {
-                $('.modal').modal('hide');
-
-                Swal.fire({
-                    icon: 'success',
-                    title: res.message,
-                    showCancelButton: false,
-                    showConfirmButton: true,
-                    confirmButtonText: 'Oke',
-                    timer: 2000,
-                    timerProgressBar: true
-                }).then(() => {
-                    if (res.redirect != '') {
-                        if (res.redirect != 'reload') {
-                            location.href = res.redirect;
-                        } else {
-                            location.reload();
-                        }
-                    }
-                    else
-                    {
-                        location.reload();
-                    }
-                });
-
-                e.reset();
-
-                if (res.callback && res.callback != '') {
-                    eval(res.callback);
-                }
-
-                if (document.getElementsByClassName('select2')) {
-                    $(".select2").val('').trigger('change');
                 }
             } else if (res.status == 300) {
                 $('.modal').modal('hide');
@@ -187,9 +130,9 @@ function submitForm(e, evt) {
                 });
 
                 e.reset();
-
                 if (document.getElementsByClassName('select2')) {
                     $(".select2").val('').trigger('change');
+                    $(".select2bs4").val('').trigger('change');
                 }
             } else {
                 for(let i = 0;i < res.errors; i++) {
@@ -262,16 +205,12 @@ function submitForm(e, evt) {
 function editData(e, modal, addons = []) {
     let data = e;
 
-    console.log(e);
-
     for (let key in data) {
-
-        console.log(document.getElementById('edit_'+key));
         if (document.getElementById('edit_'+key)) {
             document.getElementById('edit_'+key).value = data[key];
             document.getElementById('edit_'+key).setAttribute('value', data[key]);
 
-            if (document.getElementById('edit_'+key).classList.contains('select2bs4') || document.getElementById('edit_'+key).classList.contains('select2') || document.getElementById('edit_'+key).classList.contains('select2bs4stat')) {
+            if (document.getElementById('edit_'+key).classList.contains('select2') || document.getElementById('edit_'+key).classList.contains('select2bs4') || document.getElementById('edit_'+key).classList.contains('select2bs4stat')) {
                 $('#edit_'+key).val(data[key]).trigger('change.select2');
             }
         } else {
@@ -280,7 +219,6 @@ function editData(e, modal, addons = []) {
                     if (typeof addons == "object") {
                         for (let addonsKey in addons[i]) {
                             if (addonsKey == "function") {
-                                console.log(addons[i][addonsKey]);
                                 eval(addons[i][addonsKey]);
                             }
                         }

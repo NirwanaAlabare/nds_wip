@@ -1332,13 +1332,13 @@
 
                 switch (method) {
                     case "scan" :
-                        validation = checkIfNull(document.getElementById("id_item").value) && checkIfNull(document.getElementById("detail_item").value) && checkIfNull(document.getElementById("color_act").value);
+                        validation = isNotNull(document.getElementById("id_item").value) && isNotNull(document.getElementById("detail_item").value) && isNotNull(document.getElementById("color_act").value);
                         break;
                     case "item" :
-                        validation = checkIfNull(document.getElementById("select_item").value);
+                        validation = isNotNull(document.getElementById("select_item").value);
                         break;
                     default :
-                        validation = checkIfNull(document.getElementById("id_item").value) && checkIfNull(document.getElementById("detail_item").value) && checkIfNull(document.getElementById("color_act").value);
+                        validation = isNotNull(document.getElementById("id_item").value) && isNotNull(document.getElementById("detail_item").value) && isNotNull(document.getElementById("color_act").value);
                         break;
                 }
 
@@ -2073,7 +2073,7 @@
             //     let commaActualVar = Number(document.getElementById("comma_act").value);
             //     let gramasiVar = Number(document.getElementById("gramasi").value);
 
-            //     if (checkIfNull(unitVar) && checkIfNull(pipingVar) && checkIfNull(lembarVar) && checkIfNull(pActualVar) && checkIfNull(totalQtyCutVar)) {
+            //     if (isNotNull(unitVar) && isNotNull(pipingVar) && isNotNull(lembarVar) && isNotNull(pActualVar) && isNotNull(totalQtyCutVar)) {
             //         let consActualGelaran = 0;
 
             //         let commaMeter = commaActualVar / 100;
@@ -2920,7 +2920,7 @@
                 document.getElementById("detail_item").value = "";
                 document.getElementById("color_act").value = "";
 
-                if (checkIfNull(id)) {
+                if (isNotNull(id)) {
                     return $.ajax({
                         url: '{{ route('get-scanned-form-cut-input') }}/' + id,
                         type: 'get',

@@ -25,7 +25,7 @@
             <div class="col-md-2">
             <div class="mb-1">
                 <div class="form-group">
-                <label class="form-label">Dari Tanggal</label>
+                <label class="form-label">From</label>
                     <input type="date" class="form-control form-control" id="tgl_awal" name="tgl_awal"
                         value="{{ date('Y-m-d') }}">
                 </div>
@@ -35,7 +35,7 @@
             <div class="col-md-2">
             <div class="mb-1">
                 <div class="form-group">
-                <label class="form-label">Sampai Tanggal</label>
+                <label class="form-label">To</label>
                     <input type="date" class="form-control form-control" id="tgl_akhir" name="tgl_akhir"
                         value="{{ date('Y-m-d') }}">
                 </div>
@@ -62,11 +62,11 @@
 
             <div class="col-md-3" style="padding-top: 0.5rem;">
             <div class="mt-4 ">
-                <button class="btn btn-primary " onclick="dataTableReload()"> <i class="fas fa-search"></i> Tampilkan</button>
+                <button class="btn btn-primary " onclick="dataTableReload()"> <i class="fas fa-search"></i> Search</button>
                 <!-- <button class="btn btn-info" onclick="tambahdata()"> <i class="fas fa-plus"></i> Add Data</button> -->
                 <a href="{{ route('create-mutlokasi') }}" class="btn btn-info">
                 <i class="fas fa-plus"></i>
-                Tambah Data
+                Add Data
             </a>
             </div>
         </div>
@@ -89,7 +89,7 @@
                         <th class="text-center">Notes</th>
                         <th class="text-center">User</th>
                         <th class="text-center">Status</th>
-                        <th class="text-center">Aksi</th>
+                        <th class="text-center">Action</th>
                         <th style="display:none;">Aksi</th>
                     </tr>
                 </thead>

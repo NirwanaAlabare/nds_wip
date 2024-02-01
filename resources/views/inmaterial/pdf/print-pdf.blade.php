@@ -3,9 +3,18 @@
 <head>
     <title>Stocker</title>
     <style>
-        @page { margin: 5px; }
+        @page { margin: 15px; }
 
-        body { margin: 5px; }
+        body { margin: 15px; 
+        font-family: sans-serif;}
+
+        td {
+        font-family: Helvetica, Arial, sans-serif;
+        }
+
+        tr {
+        font-family: Helvetica, Arial, sans-serif;
+        }
 
         /** {
             font-size: 13px;
@@ -60,14 +69,14 @@
     </table>
     @foreach ($dataHeader as $dheader)
     <table width="100%" style="border:none;">
-        <tr>
-            <td align="center" style="border:none;"><h2>Bukti Penerimaan Barang</h2></td>
+        <tr style="line-height: 8px;">
+            <td align="center" style="border:none;"><h3>Bukti Penerimaan Barang</h3></td>
         </tr>
-        <tr>
+        <tr style="line-height: 8px;">
             <td align="center" style="border:none; font-size:14pt;">{{ $dheader->no_dok }}</td>
         </tr>
     </table>
-    <table width="100%" style="border:none; font-size:10pt">
+    <table width="100%" style="border:none; font-size:9pt">
         <tr>
             <td width="10%"></td>
             <td></td>
@@ -111,7 +120,7 @@
                                 <td align="left">{{ $ddetail->desc_item }}</td>
                                 <td align="right">{{ $ddetail->qty }}</td>
                                 <td align="left">{{ $ddetail->unit }}</td>
-                                <td align="right">{{ $ddetail->qty }}</td>
+                                <td align="right">{{ $ddetail->deskripsi }}</td>
                             </tr>
                     <?php $x++; ?>
                         @endforeach
@@ -119,8 +128,7 @@
                             <tr>
                                 <td align="center" colspan="3">Total</td>
                                 <td align="right">{{ $dsum->qty_all }}</td>
-                                <td align="right"></td>
-                                <td align="right"></td>
+                                <td colspan="2" align="right"></td>
                             </tr>
                         @endforeach
                     </tbody>

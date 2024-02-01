@@ -185,7 +185,6 @@ class StockerController extends Controller
                 marker_input.color,
                 marker_input_detail.so_det_id,
                 marker_input_detail.ratio,
-                part_detail.id part_detail_id,
                 form_cut_input.no_cut,
                 stocker_input.id stocker_id,
                 stocker_input.shade,
@@ -195,18 +194,15 @@ class StockerController extends Controller
             ")->
             leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->
             leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
-            leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
-            leftJoin("part", "part.id", "=", "part_form.part_id")->
-            leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
             leftJoin("stocker_input", function ($join) {
                 $join->on("stocker_input.form_cut_id", "=", "form_cut_input.id");
-                $join->on("stocker_input.part_detail_id", "=", "part_detail.id");
                 $join->on("stocker_input.so_det_id", "=", "marker_input_detail.so_det_id");
             })->
             where("marker_input.act_costing_ws", $dataSpreading->ws)->
             where("marker_input.color", $dataSpreading->color)->
             where("marker_input.panel", $dataSpreading->panel)->
             where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
+            where("marker_input_detail.ratio", ">", "0")->
             groupBy("form_cut_input.no_cut", "marker_input_detail.so_det_id")->
             orderBy("form_cut_input.no_cut", "desc")->
             get();
@@ -228,6 +224,7 @@ class StockerController extends Controller
             where("marker_input.color", $dataSpreading->color)->
             where("marker_input.panel", $dataSpreading->panel)->
             where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
+            where("marker_input_detail.ratio", ">", "0")->
             groupBy("no_cut", "marker_input_detail.so_det_id")->
             orderBy("form_cut_input.no_cut", "desc")->
             get();
@@ -293,6 +290,7 @@ class StockerController extends Controller
         $formCutInputs = FormCutInput::selectRaw("
                 marker_input.color,
                 form_cut_input.id as id_form,
+                form_cut_input.no_cut,
                 form_cut_input.no_form as no_form
             ")->
             leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
@@ -314,13 +312,21 @@ class StockerController extends Controller
         $sizeRangeAkhir = collect();
 
         $currentColor = "";
+        $currentForm = 0;
         foreach ($formCutInputs as $formCut) {
             if ($formCut->color != $currentColor) {
                 $rangeAwal = 0;
                 $sizeRangeAkhir = collect();
 
                 $currentColor = $formCut->color;
+
+                $currentForm = 0;
             }
+
+            $currentForm++;
+            FormCutInput::where("id", $formCut->id_form)->update([
+                "no_cut" => $currentForm
+            ]);
 
             $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->orderBy("shade", "desc")->orderBy("size", "asc")->orderBy("ratio", "asc")->orderBy("group_stocker", "desc")->orderBy("part_detail_id", "asc")->get();
 
@@ -651,14 +657,15 @@ class StockerController extends Controller
     {
         ini_set('max_execution_time', 36000);
 
+        $stockerCount = Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first() ? str_replace("STK-", "", Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first()->id_qr_stocker) + 1 : 1;
+
         $partDetail = collect($request['part_detail_id']);
 
         $partDetailKeys = $partDetail->intersect($request['generate_stocker'])->keys();
 
+        $i = 0;
         $storeItemArr = [];
         foreach ($partDetailKeys as $index) {
-            $stockerCount = Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first() ? str_replace("STK-", "", Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first()->id_qr_stocker) + 1 : 1;
-
             $rangeAwal = $request['range_awal'][$index];
             $rangeAkhir = $request['range_akhir'][$index];
 
@@ -678,9 +685,11 @@ class StockerController extends Controller
                     ratio = " . ($j + 1) . "
                 ")->first();
 
-                $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j);
+                $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j + $i + 1);
                 $cumRangeAwal = $cumRangeAkhir + 1;
                 $cumRangeAkhir = $cumRangeAkhir + $request['qty_ply_group'][$index];
+
+                \Log::info($stockerId);
 
                 if (!$checkStocker) {
                     array_push($storeItemArr, [
@@ -703,6 +712,8 @@ class StockerController extends Controller
                     ]);
                 }
             }
+
+            $i += $j;
         }
 
         if (count($storeItemArr) > 0) {
@@ -807,7 +818,7 @@ class StockerController extends Controller
         }
 
         // generate pdf
-        $customPaper = array(0, 0, 56.70, 28.38);
+        $customPaper = array(0, 0, 56.70, 33.39);
         $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering', ["ws" => $request["no_ws"], "color" => $request["color"], "no_cut" => $request["no_cut"], "dataNumbering" => $detailItemArr])->setPaper($customPaper);
 
         $path = public_path('pdf/');
@@ -880,7 +891,7 @@ class StockerController extends Controller
         }
 
         // generate pdf
-        $customPaper = array(0, 0, 56.70, 28.38);
+        $customPaper = array(0, 0, 56.70, 33.39);
         $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering', ["ws" => $request["no_ws"], "color" => $request["color"], "no_cut" => $request["no_cut"], "dataNumbering" => $detailItemArr])->setPaper($customPaper);
 
         $path = public_path('pdf/');
@@ -1074,6 +1085,46 @@ class StockerController extends Controller
         }
 
         return $storeDetailItemArr;
+    }
+
+    public function fixRedundantStocker(Request $request)
+    {
+        $stockerCount = Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first() ? str_replace("STK-", "", Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first()->id_qr_stocker) + 1 : 1;
+
+        $redundantStockers = DB::select("
+            select
+                id_qr_stocker,
+                count(stocker_input.id)
+            from
+                stocker_input
+            group by id_qr_stocker having count(stocker_input.id) > 1
+        ");
+
+        if ($redundantStockers) {
+            $i = 0;
+            foreach($redundantStockers as $redundantStocker) {
+                $stockers = Stocker::where("id_qr_stocker", $redundantStocker->id_qr_stocker)->get();
+
+                $j = 0;
+                foreach ($stockers as $stocker) {
+                    if ($j != 0) {
+                        \Log::info($stockerCount + $i + $j +1);
+
+                        $stocker->id_qr_stocker = "STK-".($stockerCount + $i + $j +1);
+
+                        $stocker->save();
+                    } else {
+                        $stocker = $stocker->id_qr_stocker;
+                    }
+
+                    $j++;
+                }
+
+                $i += $j;
+            }
+        }
+
+        return $redundantStocker;
     }
 
     public function part(Request $request)

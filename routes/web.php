@@ -32,6 +32,9 @@ use App\Http\Controllers\TrolleyStockerController;
 use App\Http\Controllers\LoadingLineController;
 use App\Http\Controllers\SecondaryInhouseController;
 use App\Http\Controllers\MutasiMesinController;
+use App\Http\Controllers\ReqMaterialController;
+use App\Http\Controllers\ReturMaterialController;
+use App\Http\Controllers\ReturInMaterialController;
 use App\Http\Controllers\MasterSecondaryController;
 use App\Http\Controllers\GeneralController;
 
@@ -332,6 +335,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/rearrange-group', 'rearrangeGroup')->name('rearrange-group');
         Route::post('/reorder-stocker-numbering', 'reorderStockerNumbering')->name('reorder-stocker-numbering');
         Route::post('/full-generate-numbering', 'fullGenerateNumbering')->name('full-generate-numbering');
+        Route::post('/fix-redundant-stocker', 'fixRedundantStocker')->name('fix-redundant-stocker');
 
         Route::put('/count-stocker-update', 'countStockerUpdate')->name('count-stocker-update');
 
@@ -542,6 +546,26 @@ Route::middleware('auth')->group(function () {
         Route::get('/approve-material', 'approvematerial')->name('approve-material');
         Route::post('/print-barcode-inmaterial/{id?}', 'barcodeinmaterial')->name('print-barcode-inmaterial');
         Route::post('/print-pdf-inmaterial/{id?}', 'pdfinmaterial')->name('print-pdf-inmaterial');
+        Route::get('/upload-lokasi/{id?}', 'UploadLokasi')->name('upload-lokasi');
+        Route::get('/data-upload-lokasi', 'DataUploadLokasi')->name('data-upload-lokasi');
+        Route::get('/delete-upload', 'DeleteDataUpload')->name('delete-upload');
+        Route::post('/import-excel-material', 'import_excel')->name('import-excel-material');
+        Route::get('/get-qty-upload', 'getqtyupload')->name('get-qty-upload');
+        Route::post('/save-upload-lokasi', 'saveuploadlokasi')->name('save-upload-lokasi');
+    });
+
+    //permintaan
+    Route::controller(ReqMaterialController::class)->prefix("req-material")->middleware('req-material')->group(function () {
+        Route::get('/', 'index')->name('req-material');
+        Route::get('/create', 'create')->name('create-reqmaterial');
+        Route::get('/get-ws-req', 'getWSReq')->name('get-ws-req');
+        Route::get('/get-ws-act', 'getWSact')->name('get-ws-act');
+        Route::get('/show-detail', 'showdetail')->name('get-detail-req');
+        Route::get('/sum-detail', 'sumdetail')->name('get-sum-req');
+        Route::post('/store', 'store')->name('store-reqmaterial-fabric');
+        Route::post('/print-pdf-reqmaterial/{bppbno?}', 'pdfreqmaterial')->name('print-pdf-reqmaterial');
+        Route::get('/edit-request/{id?}', 'editrequest')->name('edit-reqmaterial');
+        Route::get('/update-req-fabric', 'updateReq')->name('update-reqmaterial-fabric');
     });
 
     //Pengeluaran
@@ -556,6 +580,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/save-out-manual', 'saveoutmanual')->name('save-out-manual');
         Route::post('/save-out-scan', 'saveoutscan')->name('save-out-scan');
         Route::post('/store', 'store')->name('store-outmaterial-fabric');
+        Route::get('/approve-outmaterial', 'approveOutMaterial')->name('approve-outmaterial');
+        Route::post('/print-pdf-outmaterial/{id?}', 'pdfoutmaterial')->name('print-pdf-outmaterial');
     });
 
 
@@ -570,6 +596,39 @@ Route::middleware('auth')->group(function () {
         Route::get('/approve-mutlok', 'approvemutlok')->name('approve-mutlok');
         Route::get('/edit-mutlok/{id?}', 'editmutlok')->name('edit-mutlok');
         Route::get('/update-mutlokasi', 'updatemutlok')->name('update-mutlokasi');
+    });
+
+    //Retur
+    Route::controller(ReturMaterialController::class)->prefix("retur-material")->middleware('retur-material')->group(function () {
+        Route::get('/', 'index')->name('retur-material');
+        Route::get('/create', 'create')->name('create-returmaterial');
+        Route::get('/get-no-bpb', 'getNobpb')->name('get-no-bpb');
+        Route::get('/get-detail', 'getDetailBpb')->name('get-detail-bpb');
+        Route::get('/show-detail-itemro', 'showdetailitemro')->name('get-detail-item-ro');
+        Route::get('/get-list-barcode-ro', 'getListbarcodero')->name('get-list-barcode-ro');
+        Route::get('/get-tujuan-pemasukan-ro', 'getTujuanRo')->name('get-tujuan-pemasukan-ro');
+        Route::get('/get-data-barcode-ro', 'showdetailbarcodeRo')->name('get-data-barcode-ro');
+        Route::post('/save-out-scan-ro', 'saveoutscanRo')->name('save-out-scan-ro');
+        Route::post('/save-out-manual-ro', 'saveoutmanualRo')->name('save-out-manual-ro');
+        Route::post('/store', 'store')->name('store-returmaterial-fabric');
+        Route::get('/get-supplier-ro', 'getSuppro')->name('get-supplier-ro');
+         Route::get('/approve-returmaterial', 'approveReturMaterial')->name('approve-returmaterial');
+    });
+
+    //Retur Penerimaan
+    Route::controller(ReturInMaterialController::class)->prefix("retur-inmaterial")->middleware('retur-inmaterial')->group(function () {
+        Route::get('/', 'index')->name('retur-inmaterial');
+        Route::get('/create', 'create')->name('create-retur-inmaterial');
+        Route::get('/get-no-bppb', 'getNobppb')->name('get-no-bppb');
+        Route::get('/get-tujuan-pemasukan', 'getTujuan')->name('get-tujuan-pemasukan');
+        Route::get('/get-supplier-ri', 'getSuppri')->name('get-supplier-ri');
+        Route::get('/get-list-bppb', 'getListBppb')->name('get-list-bppb');
+        Route::post('/store', 'store')->name('store-retur-inmaterial-fabric');
+        Route::get('/lokasi-retur-material/{id?}', 'lokreturmaterial')->name('lokasi-retur-inmaterial');
+        Route::post('/save-lokasi-retur', 'savelokasiretur')->name('save-lokasi-retur');
+        Route::get('/upload-lokasi-retur/{id?}', 'UploadLokasiRetur')->name('upload-lokasi-retur');
+        Route::post('/save-upload-lokasi-retur', 'saveuploadlokasirtr')->name('save-upload-lokasi-retur');
+        Route::get('/approve-material-retur', 'approvematerialretur')->name('approve-material-retur');
     });
 
     //qc pass
@@ -615,6 +674,8 @@ Route::get('/dashboard-stocker', function () {
 Route::get('/dashboard-warehouse', function () {
     return view('dashboard', ['page' => 'dashboard-warehouse']);
 })->middleware('auth')->name('dashboard-warehouse');
+
+
 
 Route::get('/dashboard-dc', [DashboardController::class, 'dc'])->middleware('auth')->name('dashboard-dc');
 
