@@ -319,6 +319,7 @@
                             @if($detdata->qty_sisa > 0)
                             <div class='d-flex gap-1 justify-content-center'>
                                 <button type='button' class='btn btn-sm btn-warning' href='javascript:void(0)' onclick='addlocation("{{$detdata->no_ws}}","{{$detdata->id_jo}}","{{$detdata->id_item}}","{{$detdata->kode_item}}","{{$detdata->qty_good}}","{{$detdata->unit}}","{{$detdata->qty_good}}","{{$detdata->desc_item}}","{{$detdata->qty_sisa}}")'><i class="fa-solid fa-circle-plus fa-lg"></i></button>
+                                <a href="{{ route('upload-lokasi') }}/{{$detdata->id}}"><button type='button' class='btn btn-sm btn-info'><i class="fa-solid fa-upload"></i></button></a>
                             </div>
                             @endif
                              @if($detdata->qty_sisa <= 0)
@@ -445,10 +446,10 @@
                         <div class="mb-1">
                         <div class="form-group">
                             <label><small>Lokasi</small></label>
-                                <select class="form-control select2supp" id="m_location" name="m_location" style="width: 100%;" onchange="getlist_addlokasi()">
+                                <select class="form-control select2bs4" id="m_location" name="m_location" style="width: 100%;" onchange="getlist_addlokasi()">
                                     <option selected="selected" value="">Pilih Lokasi</option>
                                         @foreach ($lokasi as $lok)
-                                    <option value="{{ $lok->kode_lok }}">{{ $lok->kode_lok }}</option>
+                                    <option value="{{ $lok->kode_lok }}">{{ $lok->lokasi }}</option>
                                         @endforeach
                                 </select>
                         </div>
@@ -615,33 +616,7 @@
             document.getElementById('store-inmaterial').reset();
         }
 
-        $('#ws_id').on('change', async function(e) {
-            await updateColorList();
-            await updateOrderInfo();
-        });
-
-        $('#color').on('change', async function(e) {
-            await updatePanelList();
-            await updateSizeList();
-        });
-
-        $('#panel').on('change', async function(e) {
-            await getMarkerCount();
-            await getNumber();
-            await updateSizeList();
-        });
-
-        $('#p_unit').on('change', async function(e) {
-            let unit = $('#p_unit').val();
-            if (unit == 'yard') {
-                $('#comma_unit').val('INCH');
-                $('#l_unit').val('inch').trigger("change");
-            } else if (unit == 'meter') {
-                $('#comma_unit').val('CM');
-                $('#l_unit').val('cm').trigger("change");
-            }
-        });
-
+    
         function sum_qty_aktual(){
             var table2 = document.getElementById("datatable_list");
             var qty2 = 0;
@@ -670,82 +645,6 @@
 
         }
 
-        function updateOrderInfo() {
-            return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: '{{ route("get-marker-order") }}',
-                type: 'get',
-                data: {
-                    act_costing_id: $('#ws_id').val(),
-                    color: $('#color').val(),
-                },
-                dataType: 'json',
-                success: function (res) {
-                    if (res) {
-                        document.getElementById('ws').value = res.kpno;
-                        document.getElementById('buyer').value = res.buyer;
-                        document.getElementById('style').value = res.styleno;
-                    }
-                },
-            });
-        }
-
-        function updateColorList() {
-            document.getElementById('color').value = null;
-            return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: '{{ route("get-marker-colors") }}',
-                type: 'get',
-                data: {
-                    act_costing_id: $('#ws_id').val(),
-                },
-                success: function (res) {
-                    if (res) {
-                        document.getElementById('color').innerHTML = res;
-                        document.getElementById('panel').innerHTML = null;
-                        document.getElementById('panel').value = null;
-
-                        $("#color").prop("disabled", false);
-                        $("#panel").prop("disabled", true);
-
-                        // input text
-                        document.getElementById('no_urut_marker').value = null;
-                        document.getElementById('cons_ws').value = null;
-                        document.getElementById('order_qty').value = null;
-                    }
-                },
-            });
-        }
-
-        function updatePanelList() {
-            document.getElementById('panel').value = null;
-            return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: '{{ route("get-marker-panels") }}',
-                type: 'get',
-                data: {
-                    act_costing_id: $('#ws_id').val(),
-                    color: $('#color').val(),
-                },
-                success: function (res) {
-                    if (res) {
-                        document.getElementById('panel').innerHTML = res;
-                        $("#panel").prop("disabled", false);
-
-                        // input text
-                        document.getElementById('no_urut_marker').value = null;
-                        document.getElementById('cons_ws').value = null;
-                        document.getElementById('order_qty').value = null;
-                    }
-                },
-            });
-        }
 
 
         function settype(){
@@ -808,73 +707,7 @@
             });
         }
 
-        function getMarkerCount() {
-            document.getElementById('no_urut_marker').value = "";
-            return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: '{{ route("get-marker-count") }}',
-                type: 'get',
-                data: {
-                    act_costing_id: $('#ws_id').val(),
-                    color: $('#color').val(),
-                    panel: $('#panel').val()
-                },
-                success: function (res) {
-                    if (res) {
-                        document.getElementById('no_urut_marker').value = res;
-                    }
-                }
-            });
-        }
 
-        function getNumber() {
-            document.getElementById('cons_ws').value = null;
-            document.getElementById('order_qty').value = null;
-            return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: ' {{ route("get-marker-number") }}',
-                type: 'get',
-                dataType: 'json',
-                data: {
-                    act_costing_id: $('#ws_id').val(),
-                    color: $('#color').val(),
-                    panel: $('#panel').val()
-                },
-                success: function (res) {
-                    if (res) {
-                        document.getElementById('cons_ws').value = res.cons_ws;
-                        document.getElementById('order_qty').value = res.order_qty;
-                    }
-                }
-            });
-
-        }
-
-        function calculateRatio(id) {
-            let ratio = document.getElementById('ratio-'+id).value;
-            let gelarQty = document.getElementById('gelar_marker_qty').value;
-            document.getElementById('cut-qty-'+id).value = ratio * gelarQty;
-        }
-
-        function calculateAllRatio(element) {
-            let gelarQty = element.value;
-
-            for (let i = 0; i < datatable.data().count(); i++) {
-                let ratio = document.getElementById('ratio-'+i).value;
-                document.getElementById('cut-qty-'+i).value = ratio * gelarQty;
-            }
-        }
-
-        document.getElementById("store-marker").onkeypress = function(e) {
-            var key = e.charCode || e.keyCode || 0;
-            if (key == 13) {
-                e.preventDefault();
-            }
-        }
 
         function submitLokasiForm(e, evt) {
             evt.preventDefault();

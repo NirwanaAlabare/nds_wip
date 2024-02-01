@@ -31,40 +31,89 @@
         <div class="collapse navbar-collapse order-3" id="navbarCollapse">
             <!-- Left navbar links -->
             <ul class="navbar-nav">
-                @if ($page == 'dashboard-warehouse')
-                    <li class="nav-item dropdown">
-                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
-                            aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
-                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-                            <li>
-                                <a href="{{ route('master-lokasi') }}" class="dropdown-item">
-                                    Master Lokasi
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('in-material') }}" class="dropdown-item">
-                                    Penerimaan Bahan Baku
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('out-material') }}" class="dropdown-item">
-                                    Pengeluaran Bahan Baku
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('mutasi-lokasi') }}" class="dropdown-item">
-                                    Mutasi Lokasi
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('qc-pass') }}" class="dropdown-item">
-                                    QC
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
+                {{-- <li class="nav-item">
+                    <a href="/marker" class="nav-link {{ $page == 'marker' ? 'active' : '' }}">Marker</a>
+                </li> --}}
+                @if ($page == "dashboard-warehouse")
+                <li class="nav-item dropdown">
+                    <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">Master</a>
+                    <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+
+                        <li>
+                            <a href="{{ route('master-lokasi') }}" class="dropdown-item">
+                                Master Lokasi
+                            </a>
+                        </li>
+            
+                    </ul>
+                </li>
                 @endif
-                @if ($page == 'dashboard-marker')
+
+                @if ($page == "dashboard-warehouse")
+                    <li class="nav-item dropdown">
+                    <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">Penerimaan</a>
+                    <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                       
+                        <li>
+                            <a href="{{ route('in-material') }}" class="dropdown-item">
+                                Penerimaan Bahan Baku
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('retur-inmaterial') }}" class="dropdown-item">
+                                Penerimaan Retur Bahan Baku
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('mutasi-lokasi') }}" class="dropdown-item">
+                                Mutasi Lokasi
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                @endif
+
+                @if ($page == "dashboard-warehouse")
+                    <li class="nav-item dropdown">
+                    <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">Pengeluaran</a>
+                    <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                       
+                        <li>
+                            <a href="{{ route('req-material') }}" class="dropdown-item">
+                                Permintaan Bahan Baku
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('out-material') }}" class="dropdown-item">
+                                Pengeluaran Bahan Baku
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="{{ route('retur-material') }}" class="dropdown-item">
+                                Retur Bahan Baku
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                @endif
+
+                @if ($page == "dashboard-warehouse")
+                    <li class="nav-item dropdown">
+                    <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">QC</a>
+                    <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                       
+                        <li>
+                            <a href="{{ route('qc-pass') }}" class="dropdown-item">
+                                QC Inspection
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                @endif
+
+    
+                @if ($page == 'dashboard-cutting')
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
                             aria-haspopup="true"aria-expanded="false"

@@ -63,13 +63,14 @@ class MutLokasiController extends Controller
      */
     public function create()
     {
-        $no_ws = DB::connection('mysql_sb')->select("select jd.kpno from (select * from bpb where bpbdate >= '2021-01-01' and LEFT(bpbno_int,2) = 'GK'  GROUP BY id_jo) a
-                 inner join (select ac.id_buyer, supplier buyer,ac.styleno,jd.id_jo, ac.kpno from jo_det jd
-         inner join so on jd.id_so = so.id
-         inner join act_costing ac on so.id_cost = ac.id
-                 inner join mastersupplier mb on ac.id_buyer = mb.id_supplier
-         where jd.cancel = 'N'
-         group by id_cost order by id_jo asc) jd on a.id_jo = jd.id_jo");
+        // $no_ws = DB::connection('mysql_sb')->select("select jd.kpno from (select * from bpb where bpbdate >= '2021-01-01' and LEFT(bpbno_int,2) = 'GK'  GROUP BY id_jo) a
+        //          inner join (select ac.id_buyer, supplier buyer,ac.styleno,jd.id_jo, ac.kpno from jo_det jd
+        //  inner join so on jd.id_so = so.id
+        //  inner join act_costing ac on so.id_cost = ac.id
+        //          inner join mastersupplier mb on ac.id_buyer = mb.id_supplier
+        //  where jd.cancel = 'N'
+        //  group by id_cost order by id_jo asc) jd on a.id_jo = jd.id_jo");
+        $no_ws = DB::connection('mysql_sb')->select("select DISTINCT no_ws kpno from whs_lokasi_inmaterial where LEFT(no_dok,2) = 'GK'");
         $kode_gr = DB::connection('mysql_sb')->select("
             select CONCAT(kode,'/',bulan,tahun,'/',nomor) kode from (select 'MT' kode, DATE_FORMAT(CURRENT_DATE(), '%m') bulan, DATE_FORMAT(CURRENT_DATE(), '%y') tahun,if(MAX(no_mut) is null,'00001',LPAD(SUBSTR(MAX(no_mut),9,5)+1,5,0)) nomor from whs_mut_lokasi_h where MONTH(tgl_mut) = MONTH(CURRENT_DATE()) and YEAR(tgl_mut) = YEAR(CURRENT_DATE())) a");
 
@@ -110,17 +111,19 @@ class MutLokasiController extends Controller
 
     public function getRakList(Request $request)
     {
-        $nomorrak = DB::connection('mysql_sb')->select("select DISTINCT br.id_rak_loc, kode_rak
-from bpb_roll br
-inner join bpb_roll_h brh on br.id_h = brh.id
-inner join masteritem mi on brh.id_item = mi.id_item
-inner join bpb on brh.bpbno = bpb.bpbno and brh.id_jo = bpb.id_jo and brh.id_item = bpb.id_item
-inner join mastersupplier ms on bpb.id_supplier = ms.Id_Supplier
-inner join jo_det jd on brh.id_jo = jd.id_jo
-inner join so on jd.id_so = so.id
-inner join act_costing ac on so.id_cost = ac.id
-inner join master_rak mr on br.id_rak_loc = mr.id
-where ac.kpno = '" . $request->no_ws . "' and LEFT(bpbno_int,2) = 'GK'  ");
+//         $nomorrak = DB::connection('mysql_sb')->select("select DISTINCT br.id_rak_loc, kode_rak
+// from bpb_roll br
+// inner join bpb_roll_h brh on br.id_h = brh.id
+// inner join masteritem mi on brh.id_item = mi.id_item
+// inner join bpb on brh.bpbno = bpb.bpbno and brh.id_jo = bpb.id_jo and brh.id_item = bpb.id_item
+// inner join mastersupplier ms on bpb.id_supplier = ms.Id_Supplier
+// inner join jo_det jd on brh.id_jo = jd.id_jo
+// inner join so on jd.id_so = so.id
+// inner join act_costing ac on so.id_cost = ac.id
+// inner join master_rak mr on br.id_rak_loc = mr.id
+// where ac.kpno = '" . $request->no_ws . "' and LEFT(bpbno_int,2) = 'GK'  ");
+
+        $nomorrak = DB::connection('mysql_sb')->select("select DISTINCT kode_lok kode_rak from whs_lokasi_inmaterial where no_ws = '" . $request->no_ws . "' and LEFT(no_dok,2) = 'GK' ");
 
         $html = "<option value=''>Pilih Rak</option>";
 
@@ -135,19 +138,21 @@ where ac.kpno = '" . $request->no_ws . "' and LEFT(bpbno_int,2) = 'GK'  ");
     public function getListroll(Request $request)
     {
         
-        $det_item = DB::connection('mysql_sb')->select("select br.id,mi.itemdesc, mi.id_item, goods_code, supplier, bpbno_int,pono,invno,ac.kpno,roll_no, roll_qty, lot_no, bpb.unit, kode_rak, CONCAT(mi.id_item,'-',goods_code,'-',mi.itemdesc,'-',ac.kpno,'-',bpbno_int,'-',bpb.unit) filter
-            from bpb_roll br
-            inner join bpb_roll_h brh on br.id_h = brh.id
-            inner join masteritem mi on brh.id_item = mi.id_item
-            inner join bpb on brh.bpbno = bpb.bpbno and brh.id_jo = bpb.id_jo and brh.id_item = bpb.id_item
-            inner join mastersupplier ms on bpb.id_supplier = ms.Id_Supplier
-            inner join jo_det jd on brh.id_jo = jd.id_jo
-            inner join so on jd.id_so = so.id
-            inner join act_costing ac on so.id_cost = ac.id
-            inner join master_rak mr on br.id_rak_loc = mr.id
-            where mr.kode_rak = '" . $request->rak . "' and ac.kpno = '" . $request->no_ws . "' and LEFT(bpbno_int,2) = 'GK' 
-            group by br.id
-            order by br.id");
+        // $det_item = DB::connection('mysql_sb')->select("select br.id,mi.itemdesc, mi.id_item, goods_code, supplier, bpbno_int,pono,invno,ac.kpno,roll_no, roll_qty, lot_no, bpb.unit, kode_rak, CONCAT(mi.id_item,'-',goods_code,'-',mi.itemdesc,'-',ac.kpno,'-',bpbno_int,'-',bpb.unit) filter
+        //     from bpb_roll br
+        //     inner join bpb_roll_h brh on br.id_h = brh.id
+        //     inner join masteritem mi on brh.id_item = mi.id_item
+        //     inner join bpb on brh.bpbno = bpb.bpbno and brh.id_jo = bpb.id_jo and brh.id_item = bpb.id_item
+        //     inner join mastersupplier ms on bpb.id_supplier = ms.Id_Supplier
+        //     inner join jo_det jd on brh.id_jo = jd.id_jo
+        //     inner join so on jd.id_so = so.id
+        //     inner join act_costing ac on so.id_cost = ac.id
+        //     inner join master_rak mr on br.id_rak_loc = mr.id
+        //     where mr.kode_rak = '" . $request->rak . "' and ac.kpno = '" . $request->no_ws . "' and LEFT(bpbno_int,2) = 'GK' 
+        //     group by br.id
+        //     order by br.id");
+
+        $det_item = DB::connection('mysql_sb')->select("select no_roll_buyer,id_jo,id,itemdesc, id_item, goods_code, supplier, bpbno_int,pono,invno,kpno,roll_no, roll_qty, lot_no, unit, kode_rak, filter from (select a.id_jo,a.id,a.item_desc itemdesc,a.id_item,a.kode_item goods_code,b.supplier,a.no_dok bpbno_int,b.no_po pono,b.no_invoice invno,a.no_ws kpno,a.no_roll roll_no,a.no_roll_buyer,a.qty_aktual roll_qty,a.no_lot lot_no,a.satuan unit,a.kode_lok kode_rak, CONCAT(a.id_item,'-',kode_item,'-',item_desc,'-',a.no_ws,'-',a.no_dok,'-',a.satuan) filter,COALESCE(c.qty_out,0) qty_out,(a.qty_aktual - COALESCE(c.qty_out,0)) qty_sisa from whs_lokasi_inmaterial a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok left join (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll) c on c.id_roll = a.id where a.kode_lok = '" . $request->rak . "' and a.no_ws = '" . $request->no_ws . "' and LEFT(a.no_dok,2) = 'GK') a where a.qty_sisa > 0");
 
         $lokasi = DB::connection('mysql_sb')->table('whs_master_lokasi')->select('id', 'kode_lok')->where('status', '=', 'active')->get();
         
@@ -175,7 +180,7 @@ where ac.kpno = '" . $request->no_ws . "' and LEFT(bpbno_int,2) = 'GK'  ");
                         <td ><select class="form-control select2lok" id="selectlok'.$x.'" name="selectlok['.$x.']" style="width: 150px;">
                                 '.$pilih_lokasi.'
                              </select></td>
-                        <td style="display: none">'.$detitem->filter.'</td>
+                        <td style="display: none">'.$detitem->filter.' <input type="hidden" id="idbpbdet'.$x.'" name="idbpbdet['.$x.']" value="'.$detitem->id.'" / readonly> <input type="hidden" id="id_jo'.$x.'" name="id_jo['.$x.']" value="'.$detitem->id_jo.'" / readonly> <input type="hidden" id="no_roll_buyer'.$x.'" name="no_roll_buyer['.$x.']" value="'.$detitem->no_roll_buyer.'" / readonly></td>
                        </tr>';
                        $x++;
         }
@@ -186,19 +191,7 @@ where ac.kpno = '" . $request->no_ws . "' and LEFT(bpbno_int,2) = 'GK'  ");
     public function getSumroll(Request $request)
     {
         
-        $det_item = DB::connection('mysql_sb')->select("select count(id) jml from (select br.id,mi.itemdesc, mi.id_item, goods_code, supplier, bpbno_int,pono,invno,ac.kpno,roll_no, roll_qty, lot_no, bpb.unit, kode_rak, CONCAT(mi.id_item,'-',goods_code,'-',mi.itemdesc,'-',ac.kpno,'-',bpbno_int,'-',bpb.unit) filter
-            from bpb_roll br
-            inner join bpb_roll_h brh on br.id_h = brh.id
-            inner join masteritem mi on brh.id_item = mi.id_item
-            inner join bpb on brh.bpbno = bpb.bpbno and brh.id_jo = bpb.id_jo and brh.id_item = bpb.id_item
-            inner join mastersupplier ms on bpb.id_supplier = ms.Id_Supplier
-            inner join jo_det jd on brh.id_jo = jd.id_jo
-            inner join so on jd.id_so = so.id
-            inner join act_costing ac on so.id_cost = ac.id
-            inner join master_rak mr on br.id_rak_loc = mr.id
-            where mr.kode_rak = '" . $request->rak . "' and ac.kpno = '" . $request->no_ws . "' and LEFT(bpbno_int,2) = 'GK' 
-            group by br.id
-            order by br.id) a");
+        $det_item = DB::connection('mysql_sb')->select("select count(id) jml from (select id,itemdesc, id_item, goods_code, supplier, bpbno_int,pono,invno,kpno,roll_no, roll_qty, lot_no, unit, kode_rak, filter from (select a.id,a.item_desc itemdesc,a.id_item,a.kode_item goods_code,b.supplier,a.no_dok bpbno_int,b.no_po pono,b.no_invoice invno,a.no_ws kpno,a.no_roll roll_no,a.qty_aktual roll_qty,a.no_lot lot_no,a.satuan unit,a.kode_lok kode_rak, CONCAT(a.id_item,'-',kode_item,'-',item_desc,'-',a.no_ws,'-',a.no_dok,'-',a.satuan) filter,COALESCE(c.qty_out,0) qty_out,(a.qty_aktual - COALESCE(c.qty_out,0)) qty_sisa from whs_lokasi_inmaterial a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok left join (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll) c on c.id_roll = a.id where a.kode_lok = '" . $request->rak . "' and a.no_ws = '" . $request->no_ws . "' and LEFT(a.no_dok,2) = 'GK') a where a.qty_sisa > 0) a");
 
         return $det_item;
     }
@@ -265,6 +258,7 @@ where ac.kpno = '" . $request->no_ws . "' and LEFT(bpbno_int,2) = 'GK'  ");
             $nodok = $request['txt_no_mut'];
             $tgldok = $request['txt_tgl_mut'];
             $mutasilokasi = [];
+            $lokasiMaterial = [];
             for ($i = 1; $i <= intval($request['txt_sum_roll']); $i++) {
             if ($request["qty_mut"][$i] > 0) {
                 array_push($mutasilokasi, [
@@ -283,13 +277,46 @@ where ac.kpno = '" . $request->no_ws . "' and LEFT(bpbno_int,2) = 'GK'  ");
                     "rak_asal" => $request["kode_rak"][$i],
                     "rak_tujuan" => $request["selectlok"][$i],
                     "status" => 'Y',
+                    "idbpb_det" => $request["idbpbdet"][$i],
                     "created_at" => $timestamp,
                     "updated_at" => $timestamp,
                 ]);
+
+                $Qmut = DB::connection('mysql_sb')->select("select coalesce(sum(qty_mutasi),0) qty from whs_lokasi_inmaterial where id = '".$request["idbpbdet"][$i]."'");
+                $qty_mutasi = $Qmut[0]->qty;
+                $ttl_Qmut = $qty_mutasi + $request["qty_mut"][$i];
+
+
+                $updateLokasi = InMaterialLokasi::where('id', $request["idbpbdet"][$i])->update([
+                'qty_mutasi' => $ttl_Qmut,
+                ]);
+
+                array_push($lokasiMaterial, [
+                    "no_dok" => $request["no_bpb"][$i],
+                    "no_ws" => $request["nows"][$i],
+                    "id_jo" => $request["id_jo"][$i],
+                    "id_item" => $request["id_item"][$i],
+                    "kode_item" => $request["kode_item"][$i],
+                    "item_desc" => $request["desk_item"][$i],
+                    "no_roll" => $request["roll_no"][$i],
+                    "no_roll_buyer" => $request["no_roll_buyer"][$i],
+                    "no_lot" => $request["lot_no"][$i],
+                    "qty_sj" => $request["qty_mut"][$i],
+                    "qty_aktual" => $request["qty_mut"][$i],
+                    "satuan" => $request["unit"][$i],
+                    "kode_lok" => $request["selectlok"][$i],
+                    "status" => 'Y',
+                    "no_mut" => $nodok,
+                    "created_by" => Auth::user()->name,
+                    "created_at" => $timestamp,
+                    "updated_at" => $timestamp,
+                ]);
+
             }
             }
 
             $inmaterialDetailStore = MutLokasi::insert($mutasilokasi);
+            $inmaterialLokasiStore = InMaterialLokasi::insert($lokasiMaterial);
 
 
             $massage = $request['txt_no_mut'] . ' Saved Succesfully';
