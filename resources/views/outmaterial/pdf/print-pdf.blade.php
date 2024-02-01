@@ -1,11 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Stocker</title>
+    <title>out material</title>
     <style>
-        @page { margin: 5px; }
+        @page { margin: 10px; }
 
-        body { margin: 5px; }
+        body { margin: 10px; 
+        font-family: sans-serif;}
+
+        td {
+        font-family: Helvetica, Arial, sans-serif;
+        }
+
+        tr {
+        font-family: Helvetica, Arial, sans-serif;
+        }
+
+        .td1{
+    border:1px solid black;
+    border-top: none;
+    border-bottom: none;
+    font-family: Helvetica, Arial, sans-serif;
+}
 
         /** {
             font-size: 13px;
@@ -42,7 +58,7 @@
                 </tr>
                 <tr>
                     <td width="400px" style="margin-right:-5px;border:none;" align="left">Jl. Raya Rancaekek - Majalaya No. 289</td>
-                    <td width="240px" style="margin-right:-5px;border:none;" align="left">{{ $dhead->supplier }}</td>
+                    <td width="240px" style="margin-right:-5px;border:none;" align="left">{{ $dhead->tujuan }}</td>
                 </tr>
                 <tr>
                     <td width="400px" style="margin-right:-5px;border:none;" align="left">Desa. Solokan Jeruk</td>
@@ -60,14 +76,14 @@
     </table>
     @foreach ($dataHeader as $dheader)
     <table width="100%" style="border:none;">
-        <tr>
-            <td align="center" style="border:none;"><h2>Bukti Penerimaan Barang</h2></td>
+        <tr style="line-height: 8px;">
+            <td align="center" style="border:none;"><h3>Surat jalan</h3></td>
         </tr>
-        <tr>
-            <td align="center" style="border:none; font-size:14pt;">{{ $dheader->no_dok }}</td>
+        <tr style="line-height: 8px;">
+            <td align="center" style="border:none; font-size:12pt;">{{ $dheader->no_bppb }}</td>
         </tr>
     </table>
-    <table width="100%" style="border:none; font-size:10pt">
+    <table width="100%" style="border:none; font-size:9pt">
         <tr>
             <td width="10%"></td>
             <td></td>
@@ -78,19 +94,25 @@
             <td>No PO</td>
             <td> : {{ $dheader->no_po }}</td>
             <td>Tgl. BPB</td>
-            <td> : {{ $dheader->tgl_dok }}</td>    
+            <td> : {{ $dheader->tgl_bppb }}</td>    
         </tr>
         <tr>
             <td>Dok. BC</td>
-            <td> : {{ $dheader->type_bc }} {{ $dheader->no_aju }}</td>
+            <td> : {{ $dheader->dok_bc }}</td>
             <td>Tgl. Dok BC</td>
             <td> : {{ $dheader->tgl_aju }}</td>
+        </tr>
+        <tr>
+            <td>WS Act</td>
+            <td> : {{ $dheader->no_ws_aktual }}</td>
+            <td>Jenis Trans</td>
+            <td> : {{ $dheader->jenis_pengeluaran }}</td>
         </tr>
     </table>
     @endforeach
     <br>
     <table class="main" repeat_header="1" border="1" cellspacing="0" width="100%" 
-                 style="border-collapse: collapse; width:100%; font-size: 11px;">
+                 style="border-collapse: collapse; width:100%; font-size: 10px;">
            <thead>
               <tr class="head">
                  <td align="center">No.</td>
@@ -108,10 +130,10 @@
                             <tr>
                                 <td align="center"><?= $x; ?></td>
                                 <td align="left">{{ $ddetail->no_ws }}</td>
-                                <td align="left">{{ $ddetail->desc_item }}</td>
+                                <td align="left">{{ $ddetail->item_desc }}</td>
                                 <td align="right">{{ $ddetail->qty }}</td>
                                 <td align="left">{{ $ddetail->unit }}</td>
-                                <td align="right">{{ $ddetail->qty }}</td>
+                                <td align="right">{{ $ddetail->catatan }}</td>
                             </tr>
                     <?php $x++; ?>
                         @endforeach
@@ -125,26 +147,49 @@
                         @endforeach
                     </tbody>
             </table>
-            <table width="70%" style="border:none;font-size: 11px;">
-                <tr>
-                    <td width="240px" style="margin-right:-5px;border:none;" align="left">Created By.</td>
-                    <td width="240px" style="margin-right:-5px;border:none;" align="left">Approved By.</td>
-                    <td width="240px" style="margin-right:-5px;border:none;" align="left">Received By.</td>
-                </tr>
-                <br>
-                <br>
-                @foreach ($dataUser as $duser)
-                <tr>
-                    <td width="240px" style="margin-right:-5px;border:none;" align="left">{{ $duser->created_by }}</td>
-                    <td width="240px" style="margin-right:-5px;border:none;" align="left">{{ $duser->approved_by }}</td>
-                    <td width="240px" style="margin-right:-5px;border:none;" align="left"></td>
-                </tr>
-                <tr>
-                    <td width="240px" style="margin-right:-5px;border:none;" align="left">{{ $duser->created_at }}</td>
-                    <td width="240px" style="margin-right:-5px;border:none;" align="left">{{ $duser->approved_date }}</td>
-                    <td width="240px" style="margin-right:-5px;border:none;" align="left"></td>
-                </tr>
-                @endforeach
+            <br>
+            <br>
+            <table width="100%" style="page-break-inside: avoid;" cellpadding="0" cellspacing="0" border="1">
+                <tr>  
+      <th style="font-size: 10px;">Created By : </th>
+      <th style="font-size: 10px;">Checked By : </th>
+      <th style="font-size: 10px;">Approved By : </th>
+      <th style="font-size: 10px;">Received By : </th>
+    </tr>
+    <tr>  
+      <td class="td1">&nbsp;</td>
+      <td class="td1">&nbsp;</td>
+      <td class="td1">&nbsp;</td>
+      <td class="td1">&nbsp;</td>           
+    </tr>   
+    <tr>  
+      <td class="td1">&nbsp;</td>
+      <td class="td1">&nbsp;</td>
+      <td class="td1">&nbsp; </td>
+      <td class="td1">&nbsp; </td>      
+    </tr>   
+    <tr>  
+      <td class="td1">&nbsp;</td>
+      <td class="td1">&nbsp;</td>
+      <td class="td1">&nbsp; </td>
+      <td class="td1">&nbsp;</td>
+    </tr>   
+
+    <tr style="border-collapse: collapse; border-top: none;"> 
+      <td style="font-size:10px;text-align:center">(________________________) </td>
+      <td style="font-size:10px;text-align:center">(________________________) </td>
+      <td style="font-size:10px;text-align:center">(________________________) </td>
+      <td style="font-size:10px;text-align:center">(________________________) </td>
+  
+    </tr>       
+    <tr>  
+      <td style="text-align:center;font-size:10px"></td>
+      <td style="text-align:center;font-size:10px">Kabag </td>
+      <td style="text-align:center;font-size:10px">Direktur </td>
+      <td style="text-align:center;font-size:10px"></td>
+  
+  
+    </tr>
             </table>
 </body>
 </html>

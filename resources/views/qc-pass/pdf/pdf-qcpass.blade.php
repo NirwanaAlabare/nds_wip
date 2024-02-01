@@ -3,13 +3,13 @@
 <head>
     <title>lokasi</title>
     <style>
-        @page { margin: 5px; }
+        @page { margin: 15px; }
 
-        body { margin: 5px; 
+        body { margin: 15px; 
                 font-family: Calibri, Helvetica, Arial, sans-serif;}
 
         * {
-            font-size: 13px;
+            font-size: 11px;
         }
 
         img {
@@ -36,6 +36,21 @@
             border: 1px solid;
             width: auto;
         }
+
+        .table2 {
+            border-collapse: collapse !important;
+            width: 100%;
+            max-width: 100%;
+            font-size: 10px;
+        }
+        .table2 td{
+            background-color: #fff;
+        }
+        .table2 th {
+            background-color: #fff;
+        }
+
+
     </style>
 </head>
 <body>
@@ -43,6 +58,12 @@
     <div class="card-body">
     <div class="form-group row">
     <div class="col-md-12 mb-3">
+        <table class="table2" style="border-bottom: 2px solid #000000; margin-bottom:5px;">
+    <tr>
+        <td><img src="{{ public_path('nag-logo.png') }}"  width="auto" height="auto"> </td>
+        <td style="text-align: right;vertical-align: bottom;font-size: 14px;"><?=strtoupper("PT. NIRWANA ALABARE GARMENT")?></td>
+    </tr>
+</table>
         <div class="table-responsive">
         @foreach ($data_header as $dheader)
         <table width="100%" class="text-nowrap">

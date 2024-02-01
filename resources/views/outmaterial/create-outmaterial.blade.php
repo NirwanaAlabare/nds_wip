@@ -99,6 +99,7 @@
                 <div class="form-group">
                 <label><small>Dikirim Ke</small></label>
                 <input type="text" class="form-control " id="txt_dikirim" name="txt_dikirim" value="" readonly>
+                <input type="hidden" class="form-control " id="txt_idsupp" name="txt_idsupp" value="" readonly>
                 </div>
             </div>
             </div>
@@ -249,8 +250,12 @@
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Request</th>
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Out</th>
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">Sisa Qty Request</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Input</th>
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">Satuan</th>
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">Lokasi</th>
+                        <th class="text-center" style="display: none;">Lokasi</th>
+                        <th class="text-center" style="display: none;">Lokasi</th>
+                        <th class="text-center" style="display: none;">Lokasi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -286,6 +291,7 @@
 
                     <div class="col-md-12">
                         <input type="hidden" class="form-control " id="m_no_bppb" name="m_no_bppb" value="" readonly>
+                        <input type="hidden" class="form-control " id="m_tgl_bppb" name="m_tgl_bppb" value="" readonly>
                         <input type="hidden" class="form-control " id="t_roll" name="t_roll" value="" readonly>
                     <div class="row">
                         <div class="col-4 col-md-4">
@@ -340,7 +346,7 @@
 
 
 <div class="modal fade" id="modal-out-barcode">
-    <form action="{{ route('save-out-scan') }}" method="post" onsubmit="submitForm(this, event)">
+    <form action="{{ route('save-out-scan') }}" method="post" onsubmit="submitFormScan(this, event)">
          @method('POST')
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
@@ -382,11 +388,12 @@
                         </div>
                         <div class="col-md-12">
                             <input type="hidden" class="form-control " id="m_no_bppb2" name="m_no_bppb2" value="" readonly>
+                            <input type="hidden" class="form-control " id="m_tgl_bppb2" name="m_tgl_bppb2" value="" readonly>
                         <input type="hidden" class="form-control " id="t_roll2" name="t_roll2" value="" readonly>
                         <div class="mb-1">
                         <div class="form-group">
                             <label><small>Scan Barcode</small></label>
-                            <select class='form-control select2barcode' multiple='multiple' style='width: 100%;height: 20px;' name='txt_barcode' id='txt_barcode' onchange='getdatabarcode(this.value)'>
+                            <select class='form-control select2barcode' multiple='multiple' style='width: 100%;height: 20px;' name='txt_barcode' id='txt_barcode' onchange='getdatabarcode(this.value)' >
                             </select>
                         </div>
                         </div>
@@ -485,6 +492,136 @@
             }
         });
 
+        // Form Submit
+function submitFormScan(e, evt) {
+    $("input[type=submit][clicked=true]").attr('disabled', true);
+
+    evt.preventDefault();
+
+    clearModified();
+
+    $.ajax({
+        url: e.getAttribute('action'),
+        type: e.getAttribute('method'),
+        data: new FormData(e),
+        processData: false,
+        contentType: false,
+        success: function(res) {
+            $("input[type=submit][clicked=true]").removeAttr('disabled');
+
+            if (res.status == 200) {
+                $('.modal').modal('hide');
+
+                Swal.fire({
+                    icon: 'success',
+                    title: res.message,
+                    showCancelButton: false,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Oke',
+                    timer: 5000,
+                    timerProgressBar: true
+                }).then(() => {
+                    if (res.redirect != '') {
+                        if (res.redirect != 'reload') {
+                            location.href = res.redirect;
+                        } else {
+                            location.reload();
+                        }
+                    }
+                    getlistdata();
+                });
+
+                e.reset();
+
+                if (res.callback != '') {
+                    eval(res.callback);
+                }
+
+                if (document.getElementsByClassName('select2')) {
+                    $(".select2").val('').trigger('change');
+                }
+            }
+          else if (res.status == 300) {
+            $('.modal').modal('hide');
+
+            iziToast.success({
+                title: 'success',
+                message: res.message,
+                position: 'topCenter'
+            });
+
+            e.reset();
+
+            if (document.getElementsByClassName('select2')) {
+                $(".select2").val('').trigger('change');
+            }
+        } else {
+                for(let i = 0;i < res.errors; i++) {
+                    document.getElementById(res.errors[i]).classList.add('is-invalid');
+                    modified.push([res.errors[i], 'classList', 'remove(', "'is-invalid')"])
+                }
+
+                iziToast.error({
+                    title: 'Error',
+                    message: res.message,
+                    position: 'topCenter'
+                });
+            }
+
+            if (res.table != '') {
+                $('#'+res.table).DataTable().ajax.reload();
+            }
+
+            if (Object.keys(res.additional).length > 0 ) {
+                for (let key in res.additional) {
+                    if (document.getElementById(key)) {
+                        document.getElementById(key).classList.add('is-invalid');
+
+                        if (res.additional[key].hasOwnProperty('message')) {
+                            document.getElementById(key+'_error').classList.remove('d-none');
+                            document.getElementById(key+'_error').innerHTML = res.additional[key]['message'];
+                        }
+
+                        if (res.additional[key].hasOwnProperty('value')) {
+                            document.getElementById(key).value = res.additional[key]['value'];
+                        }
+
+                        modified.push(
+                            [key, '.classList', '.remove(', "'is-invalid')"],
+                            [key+'_error', '.classList', '.add(', "'d-none')"],
+                            [key+'_error', '.innerHTML = ', "''"],
+                        )
+                    }
+                }
+            }
+        }, error: function (jqXHR) {
+            $("input[type=submit][clicked=true]").removeAttr('disabled');
+
+            let res = jqXHR.responseJSON;
+            let message = '';
+
+            for (let key in res.errors) {
+                message = res.errors[key];
+                document.getElementById(key).classList.add('is-invalid');
+                document.getElementById(key+'_error').classList.remove('d-none');
+                document.getElementById(key+'_error').innerHTML = res.errors[key];
+
+                modified.push(
+                    [key, '.classList', '.remove(', "'is-invalid')"],
+                    [key+'_error', '.classList', '.add(', "'d-none')"],
+                    [key+'_error', '.innerHTML = ', "''"],
+                )
+            };
+
+            iziToast.error({
+                title: 'Error',
+                message: 'Terjadi kesalahan.',
+                position: 'topCenter'
+            });
+        }
+    });
+}
+
         function updateOrderInfo() {
             return $.ajax({
                 headers: {
@@ -507,7 +644,7 @@
             });
         }
 
-        enableinput
+        // enableinput
         function enableinput(){
             var table = document.getElementById("tableshow");
             var t_roll = 0;
@@ -584,6 +721,7 @@
                 qty_stok = document.getElementById("qty_stok"+i).value || 0;
                 qty_out = document.getElementById("qty_out"+i).value || 0;
                 sisa_qty = parseFloat(qty_stok) - parseFloat(qty_out) ;
+                // alert(sisa_qty);
 
                 if ( qty_out > 0) {
                     if (parseFloat(qty_out) > parseFloat(qty_stok)) {
@@ -649,6 +787,7 @@
                         $('#txt_id_jo').val(res[0].id_jo);
                         $('#txt_nojo').val(res[0].jo_no);
                         $('#txt_dikirim').val(res[0].supplier);
+                        $('#txt_idsupp').val(res[0].id_supplier);
                         $('#txt_nows').val(res[0].idws_act);
                         $('#txt_buyer').val(res[0].buyer);
                         getlistdata();
@@ -665,8 +804,8 @@
 
         let datatable = $("#datatable").DataTable({
             ordering: false,
-            processing: true,
-            serverSide: true,
+            processing: false,
+            serverSide: false,
             paging: false,
             searching: false,
             ajax: {
@@ -702,21 +841,53 @@
                     data: 'qty_sisa_out'
                 },
                 {
+                    data: 'qty_input'
+                },
+                {
                     data: 'unit'
                 },
                 {
                     data: 'id_jo'
+                },
+                {
+                    data: 'id_item'
+                },
+                {
+                    data: 'qty_sdh_out'
+                },
+                {
+                    data: 'unit'
                 }
             ],
             columnDefs: [
                 {
-                    targets: [8],
+                    targets: [7],
+                    // className: "d-none",
+                    render: (data, type, row, meta) => '<input style="width:80px;text-align:center;" type="text" id="input_qty' + meta.row + '" name="input_qty['+meta.row+']" value="' + data + '" readonly />'
+                },
+                {
+                    targets: [9],
                     render: (data, type, row, meta) => {
                     return `<div class='d-flex gap-1 justify-content-center'> 
                     <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='out_manual("` + row.id_item + `","` + row.id_jo + `","` + row.qty_sisa_out + `","` + row.unit + `")'><i class="fa-solid fa-table-list"></i></button> 
                     <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='out_scan("` + row.id_item + `","` + row.id_jo + `","` + row.qty_sisa_out + `","` + row.unit + `","` + row.no_req + `")'><i class="fa-solid fa-barcode"></i></i></button> 
                     </div>`;
                 }
+                },
+                {
+                    targets: [10],
+                    className: "d-none",
+                    render: (data, type, row, meta) => '<input style="width:80px;text-align:center;" type="text" id="id_item' + meta.row + '" name="id_item['+meta.row+']" value="' + data + '" readonly />'
+                },
+                {
+                    targets: [11],
+                    className: "d-none",
+                    render: (data, type, row, meta) => '<input style="width:80px;text-align:center;" type="text" id="qty_sdh_out' + meta.row + '" name="qty_sdh_out['+meta.row+']" value="' + data + '" readonly />'
+                },
+                {
+                    targets: [12],
+                    className: "d-none",
+                    render: (data, type, row, meta) => '<input style="width:80px;text-align:center;" type="text" id="unit' + meta.row + '" name="unit['+meta.row+']" value="' + data + '" readonly />'
                 }
                 ]
         });
@@ -736,6 +907,7 @@
                 success: function (res) {
                     if (res) {
                         document.getElementById('detail_showbarcode').innerHTML = res;
+                        sum_qty_barcode('1');
                     }
                 }
             });
@@ -748,6 +920,7 @@
         let qty_req = $qty_req;
         let unit = $unit;
         let no_bppb = $('#txt_nobppb').val();
+        let tgl_bppb = $('#txt_tgl_bppb').val();
         let noreq = $noreq;
 
         getlist_barcode(id_item,id_jo,noreq);
@@ -758,6 +931,11 @@
         $('#m_qty_req2').val(qty_req + ' ' + unit);
         $('#m_qty_req_h2').val(qty_req);
         $('#m_no_bppb2').val(no_bppb);
+        $('#m_tgl_bppb2').val(tgl_bppb);
+        $('#m_qty_out2').val('');
+        $('#m_qty_out_h2').val('');
+        $('#m_qty_bal2').val('');
+        $('#m_qty_bal_h2').val('');
         $('#modal-out-barcode').modal('show');  
     }
 
@@ -779,6 +957,7 @@
                 success: function (res) {
                     if (res) {
                         document.getElementById('txt_barcode').innerHTML = res;
+                        $("#txt_barcode").focus();
                     }
                 }
             });
@@ -790,12 +969,14 @@
         let qty_req = $qty_req;
         let unit = $unit;
         let no_bppb = $('#txt_nobppb').val();
+        let tgl_bppb = $('#txt_tgl_bppb').val();
 
         getlist_showitem(id_item,id_jo);
 
         $('#m_qty_req').val(qty_req + ' ' + unit);
         $('#m_qty_req_h').val(qty_req);
         $('#m_no_bppb').val(no_bppb);
+        $('#m_tgl_bppb').val(tgl_bppb);
         $('#modal-out-manual').modal('show');  
     }
 
