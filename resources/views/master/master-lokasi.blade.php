@@ -38,8 +38,8 @@
 
             <div class="col-md-7" style="padding-top: 0.5rem;">
             <div class="mt-4">
-                <button class="btn btn-primary " onclick="dataTableReload()"> <i class="fas fa-search"></i> Tampilkan</button>
-                <button class="btn btn-info" onclick="tambahdata()"> <i class="fas fa-plus"></i> Tambah Data</button>
+                <button class="btn btn-primary " onclick="dataTableReload()"> <i class="fas fa-search"></i> Search</button>
+                <button class="btn btn-info" onclick="tambahdata()"> <i class="fas fa-plus"></i> Add Data</button>
             </div>
             </div>
         </div>

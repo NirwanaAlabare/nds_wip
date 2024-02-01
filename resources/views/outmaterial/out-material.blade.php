@@ -25,7 +25,7 @@
             <div class="col-md-2">
             <div class="mb-1">
                 <div class="form-group">
-                <label class="form-label">Dari Tanggal</label>
+                <label class="form-label">From</label>
                     <input type="date" class="form-control form-control" id="tgl_awal" name="tgl_awal"
                         value="{{ date('Y-m-d') }}">
                 </div>
@@ -35,7 +35,7 @@
             <div class="col-md-2">
             <div class="mb-1">
                 <div class="form-group">
-                <label class="form-label">Sampai Tanggal</label>
+                <label class="form-label">To</label>
                     <input type="date" class="form-control form-control" id="tgl_akhir" name="tgl_akhir"
                         value="{{ date('Y-m-d') }}">
                 </div>
@@ -58,24 +58,6 @@
             </div>
             </div>
 
-            <div class="col-md-2">
-            <div class="mb-1">
-                <div class="form-group">
-                <label>Jenis BC</label>
-                <select class="form-control select2type" id="jenis_bc" name="jenis_bc" style="width: 100%;">
-                    <option selected="selected" value="ALL">ALL</option>
-                        @foreach ($mtypebc as $type)
-                    <option value="{{ $type->nama_pilihan }}">
-                                {{ $type->nama_pilihan }}
-                    </option>
-                        @endforeach
-                </select>
-                </div>
-            </div>
-            </div>
-            <div class="col-md-3">
-            </div>
-
             <div class="col-md-4">
             <div class="mb-1">
                 <div class="form-group">
@@ -85,6 +67,22 @@
                         @foreach ($msupplier as $msupp)
                     <option value="{{ $msupp->Supplier }}">
                                 {{ $msupp->Supplier }}
+                    </option>
+                        @endforeach
+                </select>
+                </div>
+            </div>
+            </div>
+
+            <div class="col-md-2">
+            <div class="mb-1">
+                <div class="form-group">
+                <label>Jenis BC</label>
+                <select class="form-control select2type" id="jenis_bc" name="jenis_bc" style="width: 100%;">
+                    <option selected="selected" value="ALL">ALL</option>
+                        @foreach ($mtypebc as $type)
+                    <option value="{{ $type->nama_pilihan }}">
+                                {{ $type->nama_pilihan }}
                     </option>
                         @endforeach
                 </select>
@@ -107,14 +105,19 @@
                 </div>
             </div>
             </div>
+<<<<<<< HEAD
+            
+            <div class="col-md-6" style="padding-top: 0.5rem;">
+=======
 
             <div class="col-md-3" style="padding-top: 0.5rem;">
+>>>>>>> 74f97cd8e56c3138c0b36bbae506b89899bc5442
             <div class="mt-4 ">
-                <button class="btn btn-primary " onclick="dataTableReload()"> <i class="fas fa-search"></i> Tampilkan</button>
+                <button class="btn btn-primary " onclick="dataTableReload()"> <i class="fas fa-search"></i> Search</button>
                 <!-- <button class="btn btn-info" onclick="tambahdata()"> <i class="fas fa-plus"></i> Add Data</button> -->
                 <a href="{{ route('create-outmaterial') }}" class="btn btn-info">
                 <i class="fas fa-plus"></i>
-                Tambah Data
+                Add Data
             </a>
             </div>
         </div>
@@ -155,7 +158,7 @@
 </div>
 
 <div class="modal fade" id="modal-appv-material">
-    <form action="{{ route('approve-material') }}" method="post" onsubmit="submitForm(this, event)">
+    <form action="{{ route('approve-outmaterial') }}" method="post" onsubmit="submitForm(this, event)">
          @method('GET')
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -168,7 +171,7 @@
                 <div class="modal-body">
                     <!--  -->
                     <div class="form-group row">
-                        <label for="id_inv" class="col-sm-12 col-form-label" >Sure Approve Receive material Number :</label>
+                        <label for="id_inv" class="col-sm-12 col-form-label" >Sure Approve Out Material Number :</label>
                         <br>
                         <div class="col-sm-3">
                         </div>
@@ -506,12 +509,19 @@ $('.select2type').select2({
                 render: (data, type, row, meta) => {
                     console.log(row);
                     if (row.status == 'Pending') {
+<<<<<<< HEAD
+                        return `<div class='d-flex gap-1 justify-content-center'> 
+                   <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
+                    <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='approve_outmaterial("` + row.no_bppb + `")'><i class="fa-solid fa-person-circle-check"></i></button> 
+=======
                         return `<div class='d-flex gap-1 justify-content-center'>
                    <a href="{{ route('edit-mutlok') }}/`+data+`"><button type='button' class='btn btn-sm btn-danger'><i class="fa-solid fa-pen-to-square"></i></button></a>
                     <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='approve_mutlok("` + row.no_bppb + `")'><i class="fa-solid fa-person-circle-check"></i></button>
+>>>>>>> 74f97cd8e56c3138c0b36bbae506b89899bc5442
                     </div>`;
                     }else{
-                        return `<div class='d-flex gap-1 justify-content-center'> -
+                        return `<div class='d-flex gap-1 justify-content-center'> 
+                        <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
                     </div>`;
                     }
                 }
@@ -525,12 +535,19 @@ $('.select2type').select2({
     }
 </script>
 <script type="text/javascript">
-    function approve_inmaterial($nodok){
+    function approve_outmaterial($no_bppb){
         // alert($id);
+<<<<<<< HEAD
+        let no_bppb  = $no_bppb;
+    
+    $('#txt_nodok').val(no_bppb);
+    $('#modal-appv-material').modal('show');  
+=======
         let nodok  = $nodok;
 
     $('#txt_nodok').val(nodok);
     $('#modal-appv-material').modal('show');
+>>>>>>> 74f97cd8e56c3138c0b36bbae506b89899bc5442
     }
 
 
@@ -656,7 +673,7 @@ $('.select2type').select2({
     function printpdf(id) {
 
             $.ajax({
-                url: '{{ route('print-pdf-inmaterial') }}/'+id,
+                url: '{{ route('print-pdf-outmaterial') }}/'+id,
                 type: 'post',
                 processData: false,
                 contentType: false,
