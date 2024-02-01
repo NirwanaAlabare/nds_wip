@@ -276,7 +276,7 @@
 </form>
 
 <div class="modal fade" id="modal-out-manual">
-    <form action="{{ route('save-out-manual') }}" method="post" onsubmit="submitForm(this, event)">
+    <form action="{{ route('save-out-manual') }}" method="post" onsubmit="submitFormScan(this, event)">
          @method('POST')
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
@@ -996,9 +996,9 @@ function submitFormScan(e, evt) {
                 success: function (res) {
                     if (res) {
                         document.getElementById('detail_showitem').innerHTML = res;
-                        $('#tableshow').dataTable({
-                            "bFilter": false,
-                        });
+                        // $('#tableshow').dataTable({
+                        //     "bFilter": false,
+                        // });
                     }
                 }
             });
