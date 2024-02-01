@@ -113,7 +113,7 @@
                 @endif
 
     
-                @if ($page == 'dashboard-cutting')
+                @if ($page == 'dashboard-marker')
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
                             aria-haspopup="true"aria-expanded="false"
