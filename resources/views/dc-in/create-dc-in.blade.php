@@ -108,7 +108,7 @@
                                 <input type="text" class="form-control form-control-sm border-input" name="txtqr"
                                     id="txtqr" autocomplete="off" enterkeyhint="go"
                                     onkeyup="if (event.keyCode == 13)
-                                    document.getElementById('scan_line').click()"
+                                    document.getElementById('scan_qr').click()"
                                     autofocus>
                                 <button class="btn btn-sm btn-primary" type="button" id="scan_qr"
                                     onclick="scanqr()">Scan</button>
@@ -295,7 +295,7 @@
                     // store to input text
                     // let breakDecodedText = decodedText.split('-');
 
-                    document.getElementById('txtline').value = decodedText;
+                    document.getElementById('txtqr').value = decodedText;
 
                     scanqr();
 
