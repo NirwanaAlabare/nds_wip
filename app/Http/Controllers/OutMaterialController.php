@@ -338,6 +338,13 @@ select id_roll,id_item,id_jo,roll_no,lot_no,goods_code,itemdesc, qty_sisa, unit,
                 inner join master_rak mr on br.id_rak_loc=mr.id where br.id IN (" . $request->id_barcode . ") and br.id_rak_loc!='' 
                 order by br.id) a where qty_sisa > 0) a");
 
+    $sum_item = DB::connection('mysql_sb')->select("select count(id_roll) ttl_roll from (select id id_roll,id_item ,id_jo ,no_roll roll_no, no_lot lot_no,kode_item goods_code,item_desc itemdesc,qty_aktual sisa,satuan unit,kode_lok kode_rak,no_ws kpno from whs_lokasi_inmaterial where id in (" . $request->id_barcode . ")
+UNION
+select id_roll,id_item,id_jo,roll_no,lot_no,goods_code,itemdesc, qty_sisa, unit,kode_rak,'' ws from (select br.id id_roll,br.id_h,brh.id_item,brh.id_jo,roll_no,lot_no,roll_qty,roll_qty_used,roll_qty - roll_qty_used qty_sisa,roll_foc,br.unit, concat(kode_rak,' ',nama_rak) raknya,kode_rak,br.barcode, mi.itemdesc,mi.goods_code from bpb_roll br inner join 
+            bpb_roll_h brh on br.id_h=brh.id 
+            inner join masteritem mi on brh.id_item = mi.id_item
+            inner join master_rak mr on br.id_rak_loc=mr.id where br.id IN (" . $request->id_barcode . ") and br.id_rak_loc!='' 
+            order by br.id) a where qty_sisa > 0) a");
         foreach ($sum_item as $sumitem) {
         $html = '<input style="width:100%;align:center;" class="form-control" type="hidden" id="tot_roll" name="tot_roll" value="'.$sumitem->ttl_roll.'" / readonly>';
         }
@@ -418,8 +425,7 @@ select id_roll,id_item,id_jo,roll_no,lot_no,goods_code,itemdesc, qty_sisa, unit,
                         where id_jo in (".$request->no_jo.")  group by id_item,id_jo) as tbl_in 
                     on mi.id_item=tbl_in.id_item and breq.id_jo=tbl_in.id_jo      
                     left join 
-                    (select id_item,id_jo,sum(qty) qty_out from bppb where id_jo in (".$request->no_jo.")  
-                        group by id_item,id_jo union select id_item,id_jo,sum(qty_out) qty_out from whs_bppb_det where id_jo in (".$request->no_jo.")  
+                    (select id_item,id_jo,sum(qty_out) qty_out from whs_bppb_det where id_jo in (".$request->no_jo.")  
                         group by id_item,id_jo) as tbl_out
                     on tbl_in.id_item=tbl_out.id_item and tbl_in.id_jo=tbl_out.id_jo
                     INNER JOIN 
@@ -449,8 +455,7 @@ inner join masteritem mi on mi.id_item=breq.id_item inner join
     where id_jo in (".$request->no_jo.")  group by id_item,id_jo) as tbl_in 
 on mi.id_item=tbl_in.id_item and breq.id_jo_2=tbl_in.id_jo    
 left join 
-(select id_item,id_jo,sum(qty) qty_out from bppb where id_jo in (".$request->no_jo.")  
-    group by id_item,id_jo union select id_item,id_jo,sum(qty_out) qty_out from whs_bppb_det where id_jo in (".$request->no_jo.")  
+(select id_item,id_jo,sum(qty_out) qty_out from whs_bppb_det where id_jo in (".$request->no_jo.")  
                         group by id_item,id_jo) as tbl_out
 on tbl_in.id_item=tbl_out.id_item and tbl_in.id_jo=tbl_out.id_jo
 INNER JOIN 
@@ -705,26 +710,30 @@ where breq.bppbno='".$request->no_req."') a left join (select id_item iditem,sum
 
         $bppbno_int = $Mattype1[0]->bppbno_int;
 
+        $qtyOut = collect($request['qty_out']);
+
+        $qtyOutKeys = $qtyOut->keys();
+
         if (intval($request['t_roll']) > 0 && intval($request['m_qty_bal_h']) >= 0) {
             $timestamp = Carbon::now();
             $no_bppb = $request['m_no_bppb'];
             $bppb_temp_det = [];
             $data_aktual = 0;
-            for ($i = 1; $i <= intval($request['t_roll']); $i++) {
-            if ($request["qty_out"][$i] > 0) {
+            foreach ($qtyOut as $key => $value) {
+            if ($request['qty_out'][$key] > 0) {
                 // dd(intval($request["qty_ak"][$i]));
                 array_push($bppb_temp_det, [
                     "no_bppb" => $bppbno_int,
-                    "id_roll" => $request["id_roll"][$i],
-                    "id_jo" => $request["id_jo"][$i],
-                    "id_item" => $request["id_item"][$i],
-                    "no_rak" => $request["rak"][$i],
-                    "no_lot" => $request["no_lot"][$i],
-                    "no_roll" => $request["no_roll"][$i],
-                    "item_desc" => $request["itemdesc"][$i],
-                    "qty_stok" => $request["qty_stok"][$i],
-                    "satuan" => $request["unit"][$i],
-                    "qty_out" => $request["qty_out"][$i],
+                    "id_roll" => $request["id_roll"][$key],
+                    "id_jo" => $request["id_jo"][$key],
+                    "id_item" => $request["id_item"][$key],
+                    "no_rak" => $request["rak"][$key],
+                    "no_lot" => $request["no_lot"][$key],
+                    "no_roll" => $request["no_roll"][$key],
+                    "item_desc" => $request["itemdesc"][$key],
+                    "qty_stok" => $request["qty_stok"][$key],
+                    "satuan" => $request["unit"][$key],
+                    "qty_out" => $request["qty_out"][$key],
                     "status" => 'Y',
                     "created_by" => Auth::user()->name,
                     "deskripsi" => 'manual',

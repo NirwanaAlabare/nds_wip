@@ -105,13 +105,8 @@
                 </div>
             </div>
             </div>
-<<<<<<< HEAD
             
             <div class="col-md-6" style="padding-top: 0.5rem;">
-=======
-
-            <div class="col-md-3" style="padding-top: 0.5rem;">
->>>>>>> 74f97cd8e56c3138c0b36bbae506b89899bc5442
             <div class="mt-4 ">
                 <button class="btn btn-primary " onclick="dataTableReload()"> <i class="fas fa-search"></i> Search</button>
                 <!-- <button class="btn btn-info" onclick="tambahdata()"> <i class="fas fa-plus"></i> Add Data</button> -->
@@ -509,15 +504,9 @@ $('.select2type').select2({
                 render: (data, type, row, meta) => {
                     console.log(row);
                     if (row.status == 'Pending') {
-<<<<<<< HEAD
                         return `<div class='d-flex gap-1 justify-content-center'> 
                    <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
                     <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='approve_outmaterial("` + row.no_bppb + `")'><i class="fa-solid fa-person-circle-check"></i></button> 
-=======
-                        return `<div class='d-flex gap-1 justify-content-center'>
-                   <a href="{{ route('edit-mutlok') }}/`+data+`"><button type='button' class='btn btn-sm btn-danger'><i class="fa-solid fa-pen-to-square"></i></button></a>
-                    <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='approve_mutlok("` + row.no_bppb + `")'><i class="fa-solid fa-person-circle-check"></i></button>
->>>>>>> 74f97cd8e56c3138c0b36bbae506b89899bc5442
                     </div>`;
                     }else{
                         return `<div class='d-flex gap-1 justify-content-center'> 
@@ -537,17 +526,10 @@ $('.select2type').select2({
 <script type="text/javascript">
     function approve_outmaterial($no_bppb){
         // alert($id);
-<<<<<<< HEAD
         let no_bppb  = $no_bppb;
     
     $('#txt_nodok').val(no_bppb);
     $('#modal-appv-material').modal('show');  
-=======
-        let nodok  = $nodok;
-
-    $('#txt_nodok').val(nodok);
-    $('#modal-appv-material').modal('show');
->>>>>>> 74f97cd8e56c3138c0b36bbae506b89899bc5442
     }
 
 
