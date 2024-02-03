@@ -1089,6 +1089,8 @@ class StockerController extends Controller
 
     public function fixRedundantStocker(Request $request)
     {
+        ini_set('max_execution_time', 360000);
+
         $stockerCount = Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first() ? str_replace("STK-", "", Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first()->id_qr_stocker) + 1 : 1;
 
         $redundantStockers = DB::select("
@@ -1125,6 +1127,47 @@ class StockerController extends Controller
         }
 
         return $redundantStocker;
+    }
+
+    public function fixRedundantNumbering()
+    {
+        ini_set('max_execution_time', 360000);
+
+        $numberingCount = StockerDetail::select("kode")->orderBy("id", "desc")->first() ? str_replace("WIP-", "", StockerDetail::select("kode")->orderBy("id", "desc")->first()->kode) + 1 : 1;
+
+        $redundantNumberings = DB::select("
+            select
+                kode,
+                count(id)
+            from
+                stocker_numbering
+            group by kode having count(id) > 1
+        ");
+
+        if ($redundantNumberings) {
+            $i = 0;
+            foreach($redundantNumberings as $redundantNumbering) {
+                $numberings = StockerDetail::where("kode", $redundantNumbering->kode)->get();
+                $j = 0;
+                foreach ($numberings as $numbering) {
+                    if ($j != 0) {
+                        $numbering->kode = "WIP-".($numberingCount + $i + $j + 1);
+
+                        $numbering->save();
+
+                        \Log::info($numbering->kode.", "."WIP-".($numberingCount + $i + $j + 1).", ".$i.", ".$j);
+                    } else {
+                        // $numbering = $numbering->kode;
+
+                        \Log::info($numbering->kode.", ".$i.", ".$j);
+                    }
+
+                    $j++;
+                }
+
+                $i += $j;
+            }
+        }
     }
 
     public function part(Request $request)

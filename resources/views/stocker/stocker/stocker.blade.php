@@ -32,7 +32,10 @@
                     </div>
                 </div>
                 <div>
-                    <button class="btn btn-success btn-sm" onclick="fixRedundant()"><i class="fa fa-cog"></i> Fix Redundant</button>
+                    <div class="d-flex gap-1">
+                        <button class="btn btn-success btn-sm" onclick="fixRedundantStocker()"><i class="fa fa-cog"></i> Stocker Redundant</button>
+                        <button class="btn btn-primary btn-sm" onclick="fixRedundantNumbering()"><i class="fa fa-cog"></i> Numbering Redundant</button>
+                    </div>
                 </div>
             </div>
             <div class="table-responsive">
@@ -190,7 +193,7 @@
             datatable.ajax.reload();
         }
 
-        function fixRedundant() {
+        function fixRedundantStocker() {
             Swal.fire({
                 title: 'Please Wait...',
                 html: 'Fixing Stocker Data...',
@@ -202,6 +205,30 @@
 
             $.ajax({
                 url: '{{ route('fix-redundant-stocker') }}',
+                type: 'post',
+                success: function (res) {
+                    console.log(res);
+
+                    swal.close();
+                },
+                error: function (jqXHR) {
+                    console.log(jqXHR);
+                }
+            });
+        }
+
+        function fixRedundantNumbering() {
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Fixing Stocker Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                url: '{{ route('fix-redundant-numbering') }}',
                 type: 'post',
                 success: function (res) {
                     console.log(res);
