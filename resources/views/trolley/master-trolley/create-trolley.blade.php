@@ -38,7 +38,7 @@
                     </div>
                     <div class="col mb-3">
                         <label class="form-label">Jumlah</label>
-                        <input type="number" class="form-control" name="latest_trolley" id="latest_trolley" value="">
+                        <input type="hidden" class="form-control" name="latest_trolley" id="latest_trolley" value="">
                         <input type="number" class="form-control" name="jumlah" id="jumlah" value="" onchange="buildTrolleyTable()" onkeyup="buildTrolleyTable()">
                     </div>
                 </div>
