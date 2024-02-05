@@ -43,8 +43,14 @@ class TrolleyController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(Request $request)
     {
+        if ($request->ajax()) {
+            $latestLineTrolley = Trolley::select('nama_trolley')->where('line_id', $request->id)->orderBy('id', 'desc')->first();
+
+            return $latestLineTrolley;
+        }
+
         $lines = UserLine::where('Groupp', 'SEWING')->whereRaw('(Locked != 1 OR Locked IS NULL)')->orderBy('username', 'asc')->get();
 
         return view('trolley.master-trolley.create-trolley', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'trolley', 'lines' => $lines]);
@@ -61,6 +67,7 @@ class TrolleyController extends Controller
         $validatedRequest = $request->validate([
             "line_id" => "required",
             "nama_trolley" => "required",
+            "latest_trolley" => "nullable",
             "jumlah" => "required|numeric|min:1",
         ]);
 
@@ -71,7 +78,7 @@ class TrolleyController extends Controller
         if ($validatedRequest['jumlah'] > 0) {
             $now = Carbon::now();
 
-            for($i = 0; $i < $validatedRequest['jumlah']; $i++) {
+            for($i = $validatedRequest['latest_trolley']; $i < ($validatedRequest['latest_trolley'] + $validatedRequest['jumlah']); $i++) {
                 $trolleyCode = "TRL".sprintf('%05s', $trolleyNumber + $i);
 
                 array_push($trolleyData, [
@@ -175,9 +182,25 @@ class TrolleyController extends Controller
      * @param  \App\Models\Trolley  $trolley
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Trolley $trolley)
+    public function destroy($id)
     {
-        //
+        $deleteData = Trolley::where('id', $id)->delete();
+
+        if ($deleteData) {
+            return array(
+                'status' => 200,
+                'message' => 'Trolley berhasil disingkirkan',
+                'redirect' => '',
+                'table' => 'datatable-trolley',
+            );
+        }
+
+        return array(
+            'status' => 400,
+            'message' => 'Trolley gagal disingkirkan',
+            'redirect' => '',
+            'table' => 'datatable-trolley',
+        );
     }
 
     public function printTrolley(Request $request, $id = 0) {
