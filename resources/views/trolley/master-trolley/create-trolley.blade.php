@@ -38,6 +38,7 @@
                     </div>
                     <div class="col mb-3">
                         <label class="form-label">Jumlah</label>
+                        <input type="hidden" class="form-control" name="latest_trolley" id="latest_trolley" value="">
                         <input type="number" class="form-control" name="jumlah" id="jumlah" value="" onchange="buildTrolleyTable()" onkeyup="buildTrolleyTable()">
                     </div>
                 </div>
@@ -84,24 +85,47 @@
         $('#line_id').on('change', () => {
             if ($("#line_id option:selected").text() != "Pilih Line") {
                 $('#nama_trolley').val($("#line_id option:selected").text());
+                $('#latest_trolley').val(0);
+                $('#jumlah').val(0);
             } else {
                 $('#nama_trolley').val("");
             }
 
+            getLatestTrolley($('#line_id').val());
+
             buildTrolleyTable();
         });
 
+        function getLatestTrolley(id) {
+            $.ajax({
+                url: '{{ route('create-trolley') }}',
+                type: 'get',
+                data: {
+                    id:id
+                },
+                success: function(res) {
+                    if (res) {
+                        console.log(res);
+
+                        document.getElementById('latest_trolley').value = res.nama_trolley.substring(8);
+
+                        console.log(document.getElementById('latest_trolley').value);
+                    }
+                }
+            });
+        }
+
         function buildTrolleyTable() {
             let trolleyName = document.getElementById('nama_trolley').value;
-            let trolleyAmount = document.getElementById('jumlah').value;
+            let trolleyAmount = Number(document.getElementById('latest_trolley').value) + Number(document.getElementById('jumlah').value);
 
             let trolleyTable = document.getElementById('trolley-table');
             let trolleyTableTbody = trolleyTable.getElementsByTagName("tbody")[0];
 
             trolleyTableTbody.innerHTML = "";
 
-            if (trolleyAmount > 0 && trolleyName != '') {
-                for (let i = 0; i < trolleyAmount; i++) {
+            if (document.getElementById('jumlah').value > 0 && trolleyName != '') {
+                for (let i = Number(document.getElementById('latest_trolley').value); i < trolleyAmount; i++) {
                     let tr1 = document.createElement('tr');
 
                     let td1 = document.createElement('td');

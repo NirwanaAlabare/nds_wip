@@ -380,6 +380,7 @@
                         success: function(response) {
                             $("#txtqr").val('');
                             getdatatmp();
+                            initScan();
                         },
                         error: function(request, status, error) {
                             alert('cek');

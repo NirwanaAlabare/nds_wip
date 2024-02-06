@@ -132,11 +132,23 @@ class MarkerController extends Controller
                 master_sb_ws.qty order_qty,
                 COALESCE(marker_input_detail.ratio, 0) ratio,
                 COALESCE(marker_input_detail.cut_qty, 0) cut_qty
-            ")->where("master_sb_ws.id_act_cost", $request->act_costing_id)->where("master_sb_ws.color", $request->color)->leftJoin('marker_input_detail', 'marker_input_detail.so_det_id', '=', 'master_sb_ws.id_so_det')->leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size");
-
+            ")->
+            where("master_sb_ws.id_act_cost", $request->act_costing_id)->
+            where("master_sb_ws.color", $request->color);
 
         if ($request->marker_id) {
-            $sizeQuery->where("marker_input_detail.marker_id", $request->marker_id);
+            $sizeQuery->
+            leftJoin('marker_input_detail', function($join) use ($request) {
+                $join->on('marker_input_detail.so_det_id', '=', 'master_sb_ws.id_so_det');
+                $join->on('marker_input_detail.marker_id', '=', DB::raw($request->marker_id));
+            })->
+            leftJoin('master_size_new', 'master_size_new.size', '=', 'master_sb_ws.size')->
+            leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id');
+        } else {
+            $sizeQuery->
+            leftJoin('marker_input_detail', 'marker_input_detail.so_det_id', '=', 'master_sb_ws.id_so_det')->
+            leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->
+            leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size");
         }
 
         $sizes = $sizeQuery->groupBy("id_act_cost", "color", "size")->orderBy("master_size_new.urutan")->get();
@@ -609,7 +621,7 @@ class MarkerController extends Controller
             "cons_marker" => "required|numeric|gt:0",
             "gramasi" => "required|numeric|gt:0",
             "tipe_marker" => "required",
-            "cons_piping" => "required|numeric|min:0"
+            "cons_piping" => "nullable"
         ]);
         $totalQty = 0;
 
@@ -648,14 +660,27 @@ class MarkerController extends Controller
             $timestamp = Carbon::now();
             $markerDetailData = [];
             for ($i = 0; $i < intval($request['jumlah_so_det']); $i++) {
-                MarkerDetail::where('marker_id', $id)->where('so_det_id', $request["so_det_id"][$i])->update([
-                    "size" => $request["size"][$i],
-                    "ratio" => $request["ratio"][$i],
-                    "cut_qty" => $request["cut_qty"][$i],
-                    "cancel" => 'N',
-                    "created_at" => $timestamp,
-                    "updated_at" => $timestamp,
-                ]);
+                if (MarkerDetail::where('marker_id', $id)->where('so_det_id', $request["so_det_id"][$i])->first()) {
+                    MarkerDetail::where('marker_id', $id)->where('so_det_id', $request["so_det_id"][$i])->update([
+                        "size" => $request["size"][$i],
+                        "ratio" => $request["ratio"][$i],
+                        "cut_qty" => $request["cut_qty"][$i],
+                        "cancel" => 'N',
+                        "created_at" => $timestamp,
+                        "updated_at" => $timestamp,
+                    ]);
+                } else {
+                    MarkerDetail::create([
+                        "marker_id" => $id,
+                        'so_det_id' => $request["so_det_id"][$i],
+                        "size" => $request["size"][$i],
+                        "ratio" => $request["ratio"][$i],
+                        "cut_qty" => $request["cut_qty"][$i],
+                        "cancel" => 'N',
+                        "created_at" => $timestamp,
+                        "updated_at" => $timestamp,
+                    ]);
+                }
             }
 
             return array(
