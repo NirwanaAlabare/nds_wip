@@ -83,14 +83,22 @@ class DCInController extends Controller
             $tempat = '-';
         }
 
-        DB::insert(
-            "insert into tmp_dc_in_input_new (id_qr_stocker,qty_reject,qty_replace,tujuan,tempat,lokasi, user)
-            values ('" . $request->txtqrstocker . "','0','0','$tujuan','$tempat','$lokasi','$user')"
-        );
+        $cekdata =  DB::select("
+select * from tmp_dc_in_input_new where id_qr_stocker = '" . $request->txtqrstocker . "'
+        ");
 
-        DB::update(
-            "update stocker_input set status = 'dc' where id_qr_stocker = '" . $request->txtqrstocker . "'"
-        );
+        $cekdata_fix = $cekdata ? $cekdata[0] : null;
+        if ($cekdata_fix ==  null) {
+
+            DB::insert(
+                "insert into tmp_dc_in_input_new (id_qr_stocker,qty_reject,qty_replace,tujuan,tempat,lokasi, user)
+            values ('" . $request->txtqrstocker . "','0','0','$tujuan','$tempat','$lokasi','$user')"
+            );
+
+            DB::update(
+                "update stocker_input set status = 'dc' where id_qr_stocker = '" . $request->txtqrstocker . "'"
+            );
+        }
     }
 
     public function get_data_tmp(Request $request)
@@ -241,17 +249,6 @@ class DCInController extends Controller
 
     public function update_tmp_dc_in(Request $request)
     {
-        $update_tmp_dc_in = DB::update(
-            "update tmp_dc_in_input_new set
-            qty_reject = '" . $request->txtqtyreject . "',
-            qty_replace = '" . $request->txtqtyreplace . "',
-            tujuan = '" . $request->txttuj . "',
-            tempat = '" . $request->cbotempat . "',
-            lokasi = '" . $request->cbolokasi . "',
-            ket = '" . $request->txtket . "'
-            where id_qr_stocker = '" . $request->id_c . "'
-            "
-        );
 
         if ($request->txttuj == 'NON SECONDARY') {
             $update_stocker_input = DB::update(
@@ -264,6 +261,17 @@ class DCInController extends Controller
             );
         }
 
+        $update_tmp_dc_in = DB::update(
+            "update tmp_dc_in_input_new set
+            qty_reject = '" . $request->txtqtyreject . "',
+            qty_replace = '" . $request->txtqtyreplace . "',
+            tujuan = '" . $request->txttuj . "',
+            tempat = '" . $request->cbotempat . "',
+            lokasi = '" . $request->cbolokasi . "',
+            ket = '" . $request->txtket . "'
+            where id_qr_stocker = '" . $request->id_c . "'
+            "
+        );
 
         if ($update_tmp_dc_in) {
             return array(
@@ -272,6 +280,7 @@ class DCInController extends Controller
                 'redirect' => '',
                 'table' => 'datatable-scan',
                 'additional' => [],
+                'callback' => 'tmp_dc_input_new'
             );
         }
     }
