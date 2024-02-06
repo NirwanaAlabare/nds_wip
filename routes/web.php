@@ -37,6 +37,7 @@ use App\Http\Controllers\ReturMaterialController;
 use App\Http\Controllers\ReturInMaterialController;
 use App\Http\Controllers\MasterSecondaryController;
 use App\Http\Controllers\GeneralController;
+use App\Http\Controllers\LapDetPemasukanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -655,7 +656,17 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-no-form', 'getnoform')->name('get-no-form');
         Route::get('/delete-qc-det', 'deleteqcdet')->name('delete-qc-det');
     });
+
+    //laporan detail pemasukan
+    Route::controller(LapDetPemasukanController::class)->prefix("lap_det_pemasukan")->middleware('warehouse')->group(function () {
+        Route::get('/', 'index')->name('lap-det-pemasukan');
+        // export excel
+        Route::get('/export_excel_pemasukan', 'export_excel_pemasukan')->name('export_excel_pemasukan');
+        // Route::get('/export', 'export')->name('export');
+    });
+
 });
+
 
 // Dashboard
 Route::get('/dashboard-marker', function () {

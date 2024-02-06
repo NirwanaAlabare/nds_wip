@@ -61,7 +61,7 @@
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>Supplier</small></label>
-                <select class="form-control select2supp" id="txt_supp" name="txt_supp" style="width: 100%;" onchange="settype()">
+                <select class="form-control select2bs4" id="txt_supp" name="txt_supp" style="width: 100%;" onchange="settype()">
                     <option selected="selected" value="{{$kodegr->supplier}}">{{$kodegr->supplier}}</option>
                         @foreach ($msupplier as $msupp)
                     <option value="{{ $msupp->Supplier }}">
@@ -346,7 +346,7 @@
     </div>
 </form>
 
-<div class="modal fade" id="modal-add-lokasi">
+<div class="modal fade modal-add-lokasi" id="modal-add-lokasi">
     <form action="{{ route('save-lokasi') }}" method="post" onsubmit="submitForm(this, event)">
          @method('POST')
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
@@ -446,7 +446,7 @@
                         <div class="mb-1">
                         <div class="form-group">
                             <label><small>Lokasi</small></label>
-                                <select class="form-control select2bs4" id="m_location" name="m_location" style="width: 100%;" onchange="getlist_addlokasi()">
+                                <select class="form-control select2lok" id="m_location" name="m_location" style="width: 100%;" onchange="getlist_addlokasi()">
                                     <option selected="selected" value="">Pilih Lokasi</option>
                                         @foreach ($lokasi as $lok)
                                     <option value="{{ $lok->kode_lok }}">{{ $lok->lokasi }}</option>
@@ -605,6 +605,11 @@
 
         $('.select2supp').select2({
             theme: 'bootstrap4'
+        });
+
+        $('.select2lok').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $('.modal-add-lokasi')
         });
 
         $("#color").prop("disabled", true);
