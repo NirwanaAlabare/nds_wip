@@ -11,7 +11,7 @@
 @endsection
 
 @section('content')
-<form action="{{ route('store-outmaterial-fabric') }}" method="post" id="store-outmaterial" onsubmit="submitForm(this, event)">
+<form action="{{ route('store-outmaterial-fabric') }}" method="post" id="store-outmaterial-fabric" onsubmit="submitForm(this, event)">
     @csrf
     <div class="card card-sb">
         <div class="card-header">
@@ -436,10 +436,6 @@
             document.querySelector('.select2-search__field').focus();
         });
 
-        $(document).on('select2req:open', () => {
-            document.querySelector('.select2req-search__field').focus();
-        });
-
         //Initialize Select2 Elements
         $('.select2').select2()
 
@@ -461,36 +457,36 @@
         $('#p_unit').val("yard").trigger('change');
 
         //Reset Form
-        if (document.getElementById('store-outmaterial')) {
-            document.getElementById('store-outmaterial').reset();
+        if (document.getElementById('store-outmaterial-fabric')) {
+            document.getElementById('store-outmaterial-fabric').reset();
         }
 
-        $('#ws_id').on('change', async function(e) {
-            await updateColorList();
-            await updateOrderInfo();
-        });
+        // $('#ws_id').on('change', async function(e) {
+        //     await updateColorList();
+        //     await updateOrderInfo();
+        // });
 
-        $('#color').on('change', async function(e) {
-            await updatePanelList();
-            await updateSizeList();
-        });
+        // $('#color').on('change', async function(e) {
+        //     await updatePanelList();
+        //     await updateSizeList();
+        // });
 
-        $('#panel').on('change', async function(e) {
-            await getMarkerCount();
-            await getNumber();
-            await updateSizeList();
-        });
+        // $('#panel').on('change', async function(e) {
+        //     await getMarkerCount();
+        //     await getNumber();
+        //     await updateSizeList();
+        // });
 
-        $('#p_unit').on('change', async function(e) {
-            let unit = $('#p_unit').val();
-            if (unit == 'yard') {
-                $('#comma_unit').val('INCH');
-                $('#l_unit').val('inch').trigger("change");
-            } else if (unit == 'meter') {
-                $('#comma_unit').val('CM');
-                $('#l_unit').val('cm').trigger("change");
-            }
-        });
+        // $('#p_unit').on('change', async function(e) {
+        //     let unit = $('#p_unit').val();
+        //     if (unit == 'yard') {
+        //         $('#comma_unit').val('INCH');
+        //         $('#l_unit').val('inch').trigger("change");
+        //     } else if (unit == 'meter') {
+        //         $('#comma_unit').val('CM');
+        //         $('#l_unit').val('cm').trigger("change");
+        //     }
+        // });
 
         // Form Submit
 function submitFormScan(e, evt) {
@@ -648,13 +644,21 @@ function submitFormScan(e, evt) {
         function enableinput(){
             var table = document.getElementById("tableshow");
             var t_roll = 0;
-
             for (let i = 1; i < (table.rows.length); i++) {
                 var cek =  document.getElementById("pil_item"+i);
+                var qtyroll =  document.getElementById("qty_stok"+i).value;
 
                 if (cek.checked == true){
                 t_roll += parseFloat(cek.value);
                 $("#qty_out"+i).prop("disabled", false);
+                $("#qty_out"+i).val(qtyroll);
+                $("#qty_sisa"+i).val(0);
+                sum_qty_item('1');
+                }else if(cek.checked == false){
+                $("#qty_out"+i).val('');
+                $("#qty_sisa"+i).val('');
+                $("#qty_out"+i).prop("disabled", true);
+                sum_qty_item('1');
                 }
             }
             $('#t_roll').val(t_roll);
@@ -861,6 +865,10 @@ function submitFormScan(e, evt) {
             ],
             columnDefs: [
                 {
+                    targets: [3],
+                    render: (data, type, row, meta) => data ? data.round(2) : "0"
+                },
+                {
                     targets: [7],
                     // className: "d-none",
                     render: (data, type, row, meta) => '<input style="width:80px;text-align:center;" type="text" id="input_qty' + meta.row + '" name="input_qty['+meta.row+']" value="' + data + '" readonly />'
@@ -977,6 +985,10 @@ function submitFormScan(e, evt) {
         $('#m_qty_req_h').val(qty_req);
         $('#m_no_bppb').val(no_bppb);
         $('#m_tgl_bppb').val(tgl_bppb);
+        $('#m_qty_out').val('');
+        $('#m_qty_out_h').val('');
+        $('#m_qty_bal').val('');
+        $('#m_qty_bal_h').val('');
         $('#modal-out-manual').modal('show');  
     }
 

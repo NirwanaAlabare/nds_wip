@@ -281,6 +281,8 @@
                         <th class="text-center" style="font-size: 0.6rem;"></th>
                         <th class="text-center" style="font-size: 0.6rem;"></th>
                         <th class="text-center" style="font-size: 0.6rem;"></th>
+                        <th class="text-center" style="font-size: 0.6rem;"></th>
+                        <th class="text-center" style="font-size: 0.6rem;"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -551,7 +553,7 @@
                     data: 'itemdesc'
                 },
                 {
-                    data: 'qty'
+                    data: 'qty_po'
                 },
                 {
                     data: 'unit'
@@ -594,6 +596,12 @@
                 },
                 {
                     data: 'unit'
+                },
+                {
+                    data: 'price'
+                },
+                {
+                    data: 'curr'
                 }
             ],
             columnDefs: [
@@ -636,6 +644,16 @@
                     targets: [20],
                     className: "d-none",
                     render: (data, type, row, meta) => '<input type="hidden" id="det_unit' + meta.row + '" name="det_unit['+meta.row+']" value="' + data + '" readonly />'
+                },
+                {
+                    targets: [21],
+                    className: "d-none",
+                    render: (data, type, row, meta) => '<input type="hidden" id="det_price' + meta.row + '" name="det_price['+meta.row+']" value="' + data + '" readonly />'
+                },
+                {
+                    targets: [22],
+                    className: "d-none",
+                    render: (data, type, row, meta) => '<input type="hidden" id="det_curr' + meta.row + '" name="det_curr['+meta.row+']" value="' + data + '" readonly />'
                 },
 
                 {

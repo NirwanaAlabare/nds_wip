@@ -83,6 +83,13 @@ class DCInController extends Controller
             $tempat = '-';
         }
 
+        $cekdata =  DB::select("
+select * from tmp_dc_in_input_new where id_qr_stocker = '" . $request->txtqrstocker . "'
+        ");
+
+        $cekdata_fix = $cekdata ? $cekdata[0] : null;
+        if ($cekdata_fix ==  null) {
+
         DB::insert(
             "insert into tmp_dc_in_input_new (id_qr_stocker,qty_reject,qty_replace,tujuan,tempat,lokasi, user)
             values ('" . $request->txtqrstocker . "','0','0','$tujuan','$tempat','$lokasi','$user')"
@@ -91,6 +98,7 @@ class DCInController extends Controller
         DB::update(
             "update stocker_input set status = 'dc' where id_qr_stocker = '" . $request->txtqrstocker . "'"
         );
+    }
     }
 
     public function get_data_tmp(Request $request)
@@ -272,6 +280,7 @@ class DCInController extends Controller
                 'redirect' => '',
                 'table' => 'datatable-scan',
                 'additional' => [],
+                'callback' => 'tmp_dc_input_new'
             );
         }
     }
