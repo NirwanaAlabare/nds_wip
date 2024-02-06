@@ -104,7 +104,7 @@
 
 
                 <!-- warehouse -->
-                <div class="col-md-2 col-3">
+             <!--    <div class="col-md-2 col-3">
                     <a href="{{ route('dashboard-warehouse') }}" class="home-item">
                         <div class="card h-100">
                             <div class="card-body">
@@ -115,6 +115,19 @@
                             </div>
                         </div>
                     </a>
+                </div> -->
+
+                <div class="col-md-2 col-3">
+                    <!-- <a href="{{ route('dashboard-warehouse') }}" class="home-item"> -->
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex h-100 flex-column justify-content-between">
+                                    <img src="{{ asset('dist/img/warehouse.png') }}" class="img-fluid p-3" alt="cutting image" onclick="getmodalwarehouse()">
+                                    <p class="text-center">Warehouse</p>
+                                </div>
+                            </div>
+                        </div>
+                    <!-- </a> -->
                 </div>
 
 
@@ -143,4 +156,55 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="modal-pilih-gudang">
+    <form >
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <!-- <div class="modal-header bg-sb text-light">
+                    <h4 class="modal-title">Warehouse</h4>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div> -->
+                <div class="modal-body">
+
+                <div class="card h-100">
+                <div class="card-body">
+                   <div class="form-group row">
+                    <div class="col-md-6 col-3">
+                    <a href="{{ route('dashboard-warehouse') }}" class="home-item">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex h-100 flex-column justify-content-between">
+                                    <img src="{{ asset('dist/img/whs_fabric.png') }}" class="img-fluid p-3" alt="cutting image">
+                                    <p class="text-center">Fabric</p>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                    </div>
+
+                    <div class="col-md-6 col-3">
+                    <a href="#" class="home-item">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex h-100 flex-column justify-content-between">
+                                    <img src="{{ asset('dist/img/whs_accs.png') }}" class="img-fluid p-3" alt="cutting image">
+                                    <p class="text-center">Accesories</p>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                    </div>
+                </div>
+
+                </div>
+                </div>
+                  
+                </div>
+        </div>
+    </form>
+</div>
+
 @endsection

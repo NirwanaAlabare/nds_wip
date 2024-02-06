@@ -17,4 +17,10 @@
 <!-- HTML5 QR Code -->
 <script src="{{ asset('plugins/html5-qrcode/html5-qrcode.min.js') }}"></script>
 
+<script type="text/javascript">
+	function getmodalwarehouse(){
+		$('#modal-pilih-gudang').modal('show'); 
+	}
+</script>
+
 @yield('custom-script')

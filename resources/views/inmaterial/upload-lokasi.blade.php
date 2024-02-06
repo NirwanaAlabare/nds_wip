@@ -506,7 +506,7 @@ input[type=file]::file-selector-button:hover {
 
         function submitback() {
             let iddok = $('#txt_idgr').val();
-            window.location = '/laravel_develop/public/index.php/in-material/lokasi-material/'+iddok;
+            window.location = '/nds_wip/public/index.php/in-material/lokasi-material/'+iddok;
         }
 
 
