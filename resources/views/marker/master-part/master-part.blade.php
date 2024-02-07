@@ -37,7 +37,7 @@
             <div class="modal-content">
                 <form action="{{ route('store-master-part') }}" method="post" onsubmit="submitMasterPartForm(this, event)">
                     <div class="modal-header bg-sb text-light">
-                        <h1 class="modal-title fs-5" id="createMasterPartLabel">Tambah Data Master Part</h1>
+                        <h1 class="modal-title fs-5" id="createMasterPartLabel"><i class="fa fa-plus-square"></i> Tambah Data Master Part</h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
@@ -51,8 +51,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Simpan</button>
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Tutup</button>
+                        <button type="submit" class="btn btn-success"><i class="fa fa-save"></i> Simpan</button>
                     </div>
                 </form>
             </div>
@@ -65,7 +65,7 @@
                 <form action="{{ route('update-master-part') }}" method="post" onsubmit="submitForm(this, event)">
                     @method('PUT')
                     <div class="modal-header bg-sb text-light">
-                        <h1 class="modal-title fs-5" id="editMasterPartLabel">Ubah Data Master Part</h1>
+                        <h1 class="modal-title fs-5" id="editMasterPartLabel"><i class="fa fa-edit"></i> Ubah Data Master Part</h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
@@ -80,8 +80,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Simpan</button>
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Close</button>
+                        <button type="submit" class="btn btn-success"><i class="fa fa-save"></i> Simpan</button>
                     </div>
                 </form>
             </div>

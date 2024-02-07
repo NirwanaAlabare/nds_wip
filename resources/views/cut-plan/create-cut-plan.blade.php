@@ -259,7 +259,7 @@
                     }
                 },
                 {
-                    targets: [0,1,3,4],
+                    targets: [0,1,2,3,4],
                     className: "text-nowrap"
                 },
             ],
@@ -501,7 +501,7 @@
                     }
                 },
                 {
-                    targets: [0,1,3,4],
+                    targets: [0,1,2,3,4],
                     className: "text-nowrap"
                 },
                 {

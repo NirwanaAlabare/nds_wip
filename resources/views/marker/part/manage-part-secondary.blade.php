@@ -92,10 +92,10 @@
                         </div>
                     </div>
                 </div>
-                <form method="post" id="store-spreading" name='form' onsubmit="submitSpreadingForm(this, event)">
-                    <div class="card-body">
+                <div class="card-body">
+                    <form method="post" id="store-secondary" name='form'>
                         <div class="row">
-                            <div class="col-md-3">
+                            <div class="col-6 col-md-3">
                                 <div class="mb-4">
                                     <label><small><b>Part</b></small></label>
                                     <select class="form-control select2bs4" id="txtpart" name="txtpart"
@@ -109,18 +109,18 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-6 col-md-3">
                                 <div class="mb-4">
                                     <label><small><b>Cons</b></small></label>
                                     <div class="input-group mb-3">
                                         <input type="text" class="form-control" name="txtcons" id="txtcons">
                                         <div class="input-group-prepend">
-                                            <span class="input-group-text" id="inputGroup-sizing-sm">METER</span>
+                                            <span class="input-group-text" style="border-radius: 0 3px 3px 0;">METER</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-6 col-md-3">
                                 <div class="mb-4">
                                     <label><small><b>Tujuan</b></small></label>
                                     <select class="form-control select2bs4" id="cbotuj" name="cbotuj"
@@ -134,43 +134,44 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-3">
-                                <div class="mb-4">
-                                    <label><small><b>Proses</b></small></label>
-                                    <select class="form-control select2bs4" id="cboproses" name="cboproses"
-                                        style="width: 100%;">
-                                    </select>
+                            <div class="col-6 col-md-3">
+                                <div class="row align-items-end">
+                                    <div class="col-9">
+                                        <div class="mb-4">
+                                            <label><small><b>Proses</b></small></label>
+                                            <select class="form-control select2bs4 w-100" id="cboproses" name="cboproses" style="width: 100%;">
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="mb-4">
+                                            <label><small><b>&nbsp</b></small></label>
+                                            <button type="button" class="btn btn-block bg-primary" name="simpan" id="simpan" onclick="simpan_data();"><i class="fa fa-save"></i></button>
+                                            {{-- <input type="button" class="btn bg-primary w-100" name="simpan" id="simpan" value="Simpan" onclick="simpan_data();"> --}}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-1">
-                                <div class="mb-4">
-                                    <label><small><b>&nbsp</b></small></label>
-                                    <input type="button" class="form-control form-control-sm bg-primary" name="simpan"
-                                        id="simpan" value="Simpan"onclick="simpan_data();">
-                                </div>
-                            </div>
-                </form>
-                <div class="table-responsive">
-                    <table id="datatable_list_part" class="table table-bordered table-sm w-100">
-                        <thead>
-                            <tr>
-                                <th>Part</th>
-                                <th>Cons</th>
-                                <th>Satuan</th>
-                                <th>Tujuan</th>
-                                <th>Proses</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
+                        </div>
+                    </form>
+                    <div class="table-responsive">
+                        <table id="datatable_list_part" class="table table-bordered table-sm w-100">
+                            <thead>
+                                <tr>
+                                    <th>Part</th>
+                                    <th>Cons</th>
+                                    <th>Satuan</th>
+                                    <th>Tujuan</th>
+                                    <th>Proses</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-
             </div>
         </div>
-    </div>
-    </div>
-
     </div>
 @endsection
 
@@ -194,8 +195,6 @@
 
         cleardata();
         dataTableReload();
-
-        //Form Part Datatable
 
         function cleardata() {
             $("#cboproses").val('').trigger('change');
@@ -269,7 +268,7 @@
                     //     targets: [1],
                     //     render: (data, type, row, meta) => {
                     //         return `
-                //         <input type="text" class="form-control" style="width:auto" name="txtcons" id="txtcons">`;
+                    //         <input type="text" class="form-control" style="width:auto" name="txtcons" id="txtcons">`;
                     //     }
                     // },
                 ]

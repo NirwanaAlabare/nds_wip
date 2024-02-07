@@ -37,9 +37,6 @@
                     </div>
                     <div class="modal-body">
                         <div class='row'>
-                            <div class="col-sm-12 mb-3 d-none" id="advanced-edit-section">
-                                <a href="" class="btn btn-primary btn-sm btn-block" id="advanced-edit-link"><i class="fas fa-edit"></i> Advanced Edit</a>
-                            </div>
                             <div class='col-sm-12'>
                                 <div class='form-group'>
                                     <label class='form-label'><small class="fw-bold">Gramasi</small></label>
@@ -71,6 +68,9 @@
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                            <div class="col-sm-12 d-none" id="advanced-edit-section">
+                                <a href="" class="btn btn-primary btn-sm btn-block" id="advanced-edit-link"><i class="fas fa-edit"></i> Advanced Edit</a>
                             </div>
                         </div>
                     </div>
@@ -226,7 +226,7 @@
                     data: 'po_marker'
                 },
                 {
-                    data: 'tot_form',
+                    data: 'total_form',
                     searchable: false
                 },
                 {
@@ -238,7 +238,7 @@
                     targets: [0],
                     render: (data, type, row, meta) => {
                         let exportBtn = `
-                            <button type="button" class="btn btn-sm btn-secondary" onclick="printMarker('` + row.kode + `');">
+                            <button type="button" class="btn btn-sm btn-warning" onclick="printMarker('` + row.kode + `');">
                                 <i class="fa fa-print"></i>
                             </button>
                         `;
@@ -249,12 +249,12 @@
                                     <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
                                         <i class='fa fa-search'></i>
                                     </a>
-                                    ` + exportBtn + `
-                                </div>
-                                <div class='d-flex gap-1 justify-content-center'>
                                     <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editMarkerModal" onclick='edit(` + row.id + `);'>
                                         <i class='fa fa-edit'></i>
                                     </a>
+                                </div>
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    ` + exportBtn + `
                                 </div>
                             `;
                         } else if ((row.cancel != 'Y' && row.tot_form == 0) || (row.cancel != 'Y' && row.gelar_qty_balance > 0 && row.tipe_marker == "pilot marker")) {
@@ -263,16 +263,15 @@
                                     <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
                                         <i class='fa fa-search'></i>
                                     </a>
-                                    ` + exportBtn +
-                                `
-                                </div>
-                                <div class='d-flex gap-1 justify-content-center'>
                                     <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editMarkerModal" onclick='edit(` + row.id + `);'>
                                         <i class='fa fa-edit'></i>
                                     </a>
+                                </div>
+                                <div class='d-flex gap-1 justify-content-center'>
                                     <a class='btn btn-danger btn-sm' onclick='cancel(` + row.id + `);'>
                                         <i class='fa fa-ban'></i>
                                     </a>
+                                    ` + exportBtn + `
                                 </div>
                             `;
                         } else if (row.cancel == 'Y') {

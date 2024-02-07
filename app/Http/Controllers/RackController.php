@@ -28,7 +28,9 @@ class RackController extends Controller
                     COUNT(DISTINCT rack_detail.id) total_ruang
                 ")->
                 leftJoin("rack_detail", "rack_detail.rack_id", "=", "rack.id")->
-                groupBy("rack.id");
+                groupBy("rack.id")->toSql();
+
+            dd($rackQuery);
 
             return DataTables::eloquent($rackQuery)->
                 filterColumn('kode', function ($query, $keyword) {
