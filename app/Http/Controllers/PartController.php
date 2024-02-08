@@ -24,31 +24,40 @@ class PartController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
+            // Get Part Data
             $partQuery = Part::selectRaw("
                     part.id,
                     part.kode,
                     part.buyer,
-                    part.act_costing_ws ws,
+                    part.act_costing_ws,
                     part.style,
                     part.color,
                     part.panel,
                     COUNT(DISTINCT form_cut_input.id) total_form,
-                    GROUP_CONCAT(DISTINCT CONCAT(master_part.nama_part, ' - ', master_part.bag) ORDER BY master_part.nama_part SEPARATOR ', ') part_details,
+                    GROUP_CONCAT(DISTINCT CONCAT(master_part.nama_part, '-', master_part.bag) ORDER BY master_part.nama_part SEPARATOR ' || ') part_details,
                     a.sisa
                 ")->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")
                 ->leftJoin("master_part", "master_part.id", "part_detail.master_part_id")
                 ->leftJoin("part_form", "part_form.part_id", "part.id")
                 ->leftJoin("form_cut_input", "form_cut_input.id", "part_form.form_id")
-                ->leftJoin(DB::raw("(select
-                    part_id,
-                    count(id) total,
-                    SUM(CASE WHEN cons IS NULL THEN 0 ELSE 1 END) terisi,
-                    count(id) - SUM(CASE WHEN cons IS NULL THEN 0 ELSE 1 END) sisa
-                    from part_detail
-                    group by part_id) a"), "part.id", "=", "a.part_id")
+                ->leftJoin(
+                    DB::raw("
+                        (
+                            select
+                            part_id,
+                            count(id) total,
+                            SUM(CASE WHEN cons IS NULL THEN 0 ELSE 1 END) terisi,
+                            count(id) - SUM(CASE WHEN cons IS NULL THEN 0 ELSE 1 END) sisa
+                            from part_detail
+                            group by part_id
+                        ) a"
+                    ),
+                    "part.id", "=", "a.part_id"
+                )
                 ->groupBy("part.id");
 
-            return DataTables::eloquent($partQuery)->filterColumn('ws', function ($query, $keyword) {
+            return DataTables::eloquent($partQuery)->
+            filterColumn('act_costing_ws', function ($query, $keyword) {
                 $query->whereRaw("LOWER(act_costing_ws) LIKE LOWER('%" . $keyword . "%')");
             })->filterColumn('style', function ($query, $keyword) {
                 $query->whereRaw("LOWER(style) LIKE LOWER('%" . $keyword . "%')");
@@ -526,7 +535,8 @@ class PartController extends Controller
                 form_cut_input.no_cut
             ")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->where("form_cut_input.status", "SELESAI PENGERJAAN")->whereRaw("part_form.id is null")->where("marker_input.act_costing_ws", $request->act_costing_ws)->where("marker_input.panel", $request->panel)->groupBy("form_cut_input.id");
 
-        return Datatables::eloquent($formCutInputs)->filterColumn('act_costing_ws', function ($query, $keyword) {
+        return Datatables::eloquent($formCutInputs)->
+        filterColumn('act_costing_ws', function ($query, $keyword) {
             $query->whereRaw("LOWER(act_costing_ws) LIKE LOWER('%" . $keyword . "%')");
         })->filterColumn('buyer', function ($query, $keyword) {
             $query->whereRaw("LOWER(buyer) LIKE LOWER('%" . $keyword . "%')");
@@ -642,7 +652,7 @@ class PartController extends Controller
                 form_cut_input.id form_cut_id,
                 form_cut_input.id_marker,
                 form_cut_input.no_form,
-                form_cut_input.tgl_form_cut,
+                DATE(form_cut_input.waktu_selesai) tanggal_selesai,
                 users.name nama_meja,
                 marker_input.act_costing_ws,
                 marker_input.buyer,
@@ -650,15 +660,27 @@ class PartController extends Controller
                 marker_input.style,
                 marker_input.color,
                 marker_input.panel,
-                GROUP_CONCAT(DISTINCT CONCAT(master_size_new.size, '(', marker_input_detail.ratio, ')') SEPARATOR ', ') marker_details,
                 form_cut_input.no_cut,
                 form_cut_input.total_lembar,
                 part_form.kode kode_part_form,
                 part.kode kode_part,
-                GROUP_CONCAT(DISTINCT master_part.nama_part) nama_part
-            ")->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->leftJoin("part", "part.id", "=", "part_form.part_id")->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->whereRaw("part_form.id is not null")->where("part.id", $request->id)->groupBy("form_cut_input.id");
+                GROUP_CONCAT(DISTINCT master_part.nama_part ORDER BY master_part.nama_part ASC SEPARATOR ' || ') part_details,
+                GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') SEPARATOR ' / ') marker_details
+            ")->
+            leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
+            leftJoin("part", "part.id", "=", "part_form.part_id")->
+            leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
+            leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+            leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+            leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
+            leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->
+            leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
+            whereRaw("part_form.id is not null")->
+            where("part.id", $request->id)->
+            groupBy("form_cut_input.id");
 
-        return Datatables::of($formCutInputs)->filterColumn('id_marker', function ($query, $keyword) {
+        return Datatables::of($formCutInputs)->
+        filterColumn('id_marker', function ($query, $keyword) {
             $query->whereRaw("LOWER(form_cut_input.id_marker) LIKE LOWER('%" . $keyword . "%')");
         })->filterColumn('no_form', function ($query, $keyword) {
             $query->whereRaw("LOWER(form_cut_input.no_form) LIKE LOWER('%" . $keyword . "%')");

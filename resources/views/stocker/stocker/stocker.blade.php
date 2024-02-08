@@ -43,18 +43,18 @@
                     <thead>
                         <tr>
                             <th>Act</th>
-                            <th>No. Marker</th>
-                            <th>No. Form</th>
                             <th>Tgl Spreading</th>
+                            <th>No. Form</th>
                             <th>Meja</th>
-                            <th>WS</th>
-                            <th>Buyer</th>
                             <th>No. Cut</th>
                             <th>Style</th>
                             <th>Color</th>
                             <th>Part</th>
-                            <th>Size Ratio</th>
                             <th>Total Lembar</th>
+                            <th>Size Ratio</th>
+                            <th>No. Marker</th>
+                            <th>WS</th>
+                            <th>Buyer</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -83,7 +83,9 @@
     </script>
 
     <script>
+        // Initial Function
         $(document).ready(() => {
+            // Set Filter to 1 Week Ago
             let oneWeeksBefore = new Date(new Date().setDate(new Date().getDate() - 7));
             let oneWeeksBeforeDate = ("0" + oneWeeksBefore.getDate()).slice(-2);
             let oneWeeksBeforeMonth = ("0" + (oneWeeksBefore.getMonth() + 1)).slice(-2);
@@ -93,6 +95,7 @@
             $("#tgl-awal").val(oneWeeksBeforeFull).trigger("change");
         });
 
+        // Stocker Datatable
         let datatable = $("#datatable").DataTable({
             ordering: false,
             processing: true,
@@ -115,23 +118,14 @@
                     searchable: false
                 },
                 {
-                    data: 'id_marker'
+                    data: 'tanggal_selesai',
+                    searchable: false
                 },
                 {
                     data: 'no_form'
                 },
                 {
-                    data: 'tgl_form_cut',
-                    searchable: false
-                },
-                {
                     data: 'nama_meja'
-                },
-                {
-                    data: 'act_costing_ws'
-                },
-                {
-                    data: 'buyer'
                 },
                 {
                     data: 'no_cut',
@@ -143,36 +137,51 @@
                     data: 'color'
                 },
                 {
-                    data: 'nama_part'
+                    data: 'part_details'
+                },
+                {
+                    data: 'total_lembar',
+                    searchable: false
                 },
                 {
                     data: 'marker_details',
                     searchable: false
                 },
                 {
-                    data: 'total_lembar',
-                    searchable: false
+                    data: 'id_marker'
+                },
+                {
+                    data: 'act_costing_ws'
+                },
+                {
+                    data: 'buyer'
                 },
             ],
             columnDefs: [
-                // Nama Meja
-                {
-                    targets: [4],
-                    render: (data, type, row, meta) => data ? data.toUpperCase() : "-"
-                },
-                // Last Column
+                // Act Column
                 {
                     targets: [0],
                     render: (data, type, row, meta) => {
-                        return `<div class='d-flex gap-1 justify-content-center'> <a class='btn btn-info btn-sm' href='{{ route("show-stocker") }}/`+row.part_detail_id+`/`+row.form_cut_id+`' data-bs-toggle='tooltip'><i class='fa fa-eye'></i></a> </div>`;
+                        return `<div class='d-flex gap-1 justify-content-center'> <a class='btn btn-primary btn-sm' href='{{ route("show-stocker") }}/`+row.part_detail_id+`/`+row.form_cut_id+`' data-bs-toggle='tooltip'><i class='fa fa-search-plus'></i></a> </div>`;
                     }
+                },
+                // No. Meja Column
+                {
+                    targets: [3],
+                    className: "text-nowrap",
+                    render: (data, type, row, meta) => data ? data.toUpperCase() : "-"
+                },
+                // Text No Wrap
+                {
+                    targets: "_all",
+                    className: "text-nowrap"
                 }
             ]
         });
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8 || i == 9 || i == 11 || i == 12) {
+            if (i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8 || i == 10 || i == 11 || i == 12) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%"/>');
 
@@ -220,7 +229,7 @@
         function fixRedundantNumbering() {
             Swal.fire({
                 title: 'Please Wait...',
-                html: 'Fixing Stocker Data...',
+                html: 'Fixing Numbering Data...',
                 didOpen: () => {
                     Swal.showLoading()
                 },

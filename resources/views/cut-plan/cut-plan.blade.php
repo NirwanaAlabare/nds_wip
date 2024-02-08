@@ -51,10 +51,6 @@
                         </div>
                     </div>
                 </div>
-                {{-- <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    <button type="submit" class="btn btn-sb">Simpan</button>
-                </div> --}}
             </div>
         </div>
     </div>
@@ -273,6 +269,7 @@
             datatable.ajax.reload();
         }
 
+        // Cutting Plan Form Header Column Form
         $('#datatable-form thead tr').clone(true).appendTo('#datatable-form thead');
         $('#datatable-form thead tr:eq(1) th').each(function(i) {
             if (i != 8) {
@@ -292,6 +289,7 @@
             }
         });
 
+        // Cutting Plan Form Datatable
         let datatableForm = $("#datatable-form").DataTable({
             ordering: false,
             processing: true,
@@ -334,7 +332,7 @@
                     data: 'marker_details'
                 },
                 {
-                    data: 'qty_ply'
+                    data: undefined
                 },
                 {
                     data: 'qty_output'
@@ -388,7 +386,18 @@
                     }
                 },
                 {
-                    targets: [0, 1, 3],
+                    targets: [10],
+                    render: (data, type, row, meta) => {
+                        return `
+                            <div class="progress border border-sb position-relative" style="min-width: 50px;height: 21px">
+                                <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">`+row.total_lembar+`/`+row.qty_ply+`</p>
+                                <div class="progress-bar" style="background-color: #75baeb;width: `+((row.total_lembar/row.qty_ply)*100)+`%" role="progressbar"></div>
+                            </div>
+                        `;
+                    }
+                },
+                {
+                    targets: [0, 1, 2, 3, 4],
                     className: "text-nowrap"
                 },
                 {
