@@ -551,7 +551,7 @@ select id_roll,id_item,id_jo,roll_no,lot_no,goods_code,itemdesc, qty_sisa, unit,
             ]);
 
 
-        $bppb_detail = DB::connection('mysql_sb')->insert("insert into whs_bppb_det select id,'".$bppbno_int."' no_bppb, id_roll,id_jo,id_item, no_rak, no_lot,no_roll,item_desc,qty_stok,satuan,qty_out,status,created_by,deskripsi,created_at,updated_at from whs_bppb_det_temp where created_by = '".Auth::user()->name."'");
+        $bppb_detail = DB::connection('mysql_sb')->insert("insert into whs_bppb_det select id,'".$bppbno_int."' no_bppb, id_roll,id_jo,id_item, no_rak, no_lot,no_roll,item_desc,qty_stok,satuan,qty_out,'','0',status,created_by,deskripsi,created_at,updated_at from whs_bppb_det_temp where created_by = '".Auth::user()->name."'");
         $update_roll = DB::connection('mysql_sb')->insert("update whs_lokasi_inmaterial a INNER JOIN whs_bppb_det_temp b ON b.id_roll = a.id SET a.qty_out = b.qty_out where b.created_by = '".Auth::user()->name."'");
         $bppb_temp = BppbDetTemp::where('created_by',Auth::user()->name)->delete();
 
