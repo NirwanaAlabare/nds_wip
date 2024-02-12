@@ -79,5 +79,6 @@ class Kernel extends HttpKernel
         'qc-pass' => \App\Http\Middleware\IsQcpass::class,
         'manager' => \App\Http\Middleware\IsManager::class,
         'hr' => \App\Http\Middleware\IsHr::class,
+        'fg-stock' => \App\Http\Middleware\IsFGStock::class,
     ];
 }
