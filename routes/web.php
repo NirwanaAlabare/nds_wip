@@ -679,7 +679,7 @@ Route::middleware('auth')->group(function () {
     });
     Route::controller(FGStokBPBController::class)->prefix("bpb-fg-stock")->middleware('fg-stock')->group(function () {
         Route::get('/', 'index')->name('bpb-fg-stock');
-        Route::post('/store', 'store')->name('store-lokasi-fg-stock');
+        Route::post('/store', 'store')->name('store-lokasi-fg-stock-1');
         Route::get('/create', 'create')->name('create-bpb-fg-stock');
         // Route::put('/update/{id?}', 'update')->name('update-master-part');
         // Route::delete('/destroy/{id?}', 'destroy')->name('destroy-master-part');
