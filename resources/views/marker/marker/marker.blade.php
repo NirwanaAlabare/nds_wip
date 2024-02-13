@@ -238,7 +238,7 @@
                     targets: [0],
                     render: (data, type, row, meta) => {
                         let exportBtn = `
-                            <button type="button" class="btn btn-sm btn-warning" onclick="printMarker('` + row.kode + `');">
+                            <button type="button" class="btn btn-sm btn-secondary" onclick="printMarker('` + row.kode + `');">
                                 <i class="fa fa-print"></i>
                             </button>
                         `;
