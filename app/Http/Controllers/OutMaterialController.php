@@ -376,7 +376,7 @@ select id_roll,id_item,id_jo,roll_no,lot_no,goods_code,itemdesc, qty_sisa, unit,
                         <td> '.$detitem->kode_rak.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="rak'.$x.'" name="rak['.$x.']" value="'.$detitem->kode_rak.'" / readonly></td>
                         <td> '.$detitem->roll_no.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="no_roll'.$x.'" name="no_roll['.$x.']" value="'.$detitem->roll_no.'" / readonly></td>
                         <td> '.$detitem->lot_no.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="no_lot'.$x.'" name="no_lot['.$x.']" value="'.$detitem->lot_no.'" / readonly></td>
-                        <td> '.$detitem->id_item.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="rak'.$x.'" name="rak['.$x.']" value="'.$detitem->id_item.'" / readonly></td>
+                        <td> '.$detitem->id_item.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="id_item'.$x.'" name="id_item['.$x.']" value="'.$detitem->id_item.'" / readonly></td>
                         <td> '.$detitem->itemdesc.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="itemdesc'.$x.'" name="itemdesc['.$x.']" value="'.$detitem->itemdesc.'" / readonly></td>
                         <td> '.$detitem->sisa.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="qty_stok'.$x.'" name="qty_stok['.$x.']" value="'.$detitem->sisa.'" / readonly></td>
                         <td> '.$detitem->unit.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="unit'.$x.'" name="unit['.$x.']" value="'.$detitem->unit.'" / readonly></td>
@@ -683,7 +683,7 @@ where breq.bppbno='".$request->no_req."') a left join (select id_item iditem,sum
             ]);
 
 
-        $bppb_detail = DB::connection('mysql_sb')->insert("insert into whs_bppb_det select id,'".$bppbno_int."' no_bppb, id_roll,id_jo,id_item, no_rak, no_lot,no_roll,item_desc,qty_stok,satuan,qty_out,status,created_by,deskripsi,created_at,updated_at from whs_bppb_det_temp where created_by = '".Auth::user()->name."'");
+            $bppb_detail = DB::connection('mysql_sb')->insert("insert into whs_bppb_det select id,'".$bppbno_int."' no_bppb, id_roll,id_jo,id_item, no_rak, no_lot,no_roll,item_desc,qty_stok,satuan,qty_out,'','0',status,created_by,deskripsi,created_at,updated_at from whs_bppb_det_temp where created_by = '".Auth::user()->name."'");
         $bppb_temp = BppbDetTemp::where('created_by',Auth::user()->name)->delete();
 
             $massage = $bppbno_int . ' Saved Succesfully';

@@ -871,7 +871,7 @@ function submitFormScan(e, evt) {
                 {
                     targets: [7],
                     // className: "d-none",
-                    render: (data, type, row, meta) => '<input style="width:80px;text-align:center;" type="text" id="input_qty' + meta.row + '" name="input_qty['+meta.row+']" value="' + data + '" readonly />'
+                    render: (data, type, row, meta) => '<input style="width:80px;text-align:center;" type="text" id="input_qty' + meta.row + '" name="input_qty['+meta.row+']" value="' + data.round(2) + '" readonly />'
                 },
                 {
                     targets: [9],

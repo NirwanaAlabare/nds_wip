@@ -39,23 +39,25 @@ class LapPemakaianController extends Controller
             }
 
             $data_pemakaian = DB::select("
-            select
-            a.tgl_form_cut,
-            DATE_FORMAT(b.created_at, '%d-%m-%Y') tgl_input,
-            act_costing_ws,
-            id_item,
-            id_roll,
-            detail_item,
-            b.group,
-            b.lot,
-            b.roll,
-            b.qty qty_item,
-            b.unit unit_item,
-            lembar_gelaran
-            from form_cut_input a
-            inner join form_cut_input_detail b on a.no_form = b.no_form_cut_input
-            inner join marker_input mrk on a.id_marker = mrk.kode
-            where a.cancel = 'N' and mrk.cancel = 'N'
+                select
+                    a.tgl_form_cut,
+                    DATE_FORMAT(b.created_at, '%d-%m-%Y') tgl_input,
+                    act_costing_ws,
+                    id_item,
+                    id_roll,
+                    detail_item,
+                    b.group_roll,
+                    b.lot,
+                    b.roll,
+                    b.qty qty_item,
+                    b.unit unit_item,
+                    lembar_gelaran
+                from
+                    form_cut_input a
+                inner join form_cut_input_detail b on a.no_form = b.no_form_cut_input
+                inner join marker_input mrk on a.id_marker = mrk.kode
+                where
+                    a.cancel = 'N' and mrk.cancel = 'N'
                     " . $additionalQuery . "
                     " . $keywordQuery . "
                 ");
