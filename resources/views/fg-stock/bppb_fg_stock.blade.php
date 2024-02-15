@@ -57,20 +57,13 @@
 
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-box"></i> Penerimaan Barang Jadi Stok</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-box-open"></i> Pengeluaran Barang Jadi Stok</h5>
         </div>
         <div class="card-body">
             <div class="mb-3">
-                <a href="{{ route('create-bpb-fg-stock') }}" class="btn btn-outline-primary position-relative">
+                <a href="{{ route('create-bppb-fg-stock') }}" class="btn btn-outline-primary position-relative">
                     <i class="fas fa-plus"></i>
                     Baru
-                    @if ($cek_temp == null)
-                    @else
-                        <span
-                            class="position-absolute top-0 start-100 translate-middle p-2 bg-danger border border-light rounded-circle">
-                            <span class="visually-hidden">New alerts</span>
-                        </span>
-                    @endif
                 </a>
             </div>
             <div class="d-flex align-items-end gap-3 mb-3">
@@ -147,17 +140,17 @@
                 destroy: true,
                 scrollX: true,
                 ajax: {
-                    url: '{{ route('bpb-fg-stock') }}',
+                    url: '{{ route('bppb-fg-stock') }}',
                     data: function(d) {
                         d.dateFrom = $('#tgl-awal').val();
                         d.dateTo = $('#tgl-akhir').val();
                     },
                 },
                 columns: [{
-                        data: 'no_trans'
+                        data: 'no_trans_out'
 
                     }, {
-                        data: 'tgl_terima'
+                        data: 'tgl_pengeluaran'
                     },
                     {
                         data: 'lokasi'
@@ -184,7 +177,7 @@
                         data: 'size'
                     },
                     {
-                        data: 'qty'
+                        data: 'qty_out'
                     },
                 ],
                 columnDefs: [

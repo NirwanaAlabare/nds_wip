@@ -87,7 +87,6 @@ function submitForm(e, evt) {
         contentType: false,
         success: function(res) {
             $("input[type=submit][clicked=true]").removeAttr('disabled');
-
             if (res.status == 200 || res.status == 999) {
                 $('.modal').modal('hide');
 
@@ -134,7 +133,36 @@ function submitForm(e, evt) {
                     $(".select2").val('').trigger('change');
                     $(".select2bs4").val('').trigger('change');
                 }
-            } else {
+            } else if (res.status == 900) {
+                Swal.fire({
+                    icon: 'success',
+                    title: res.message,
+                    showCancelButton: false,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Oke'
+                }).then(() => {
+                    if (isNotNull(res.redirect)) {
+                        if (res.redirect != 'reload') {
+                            location.href = res.redirect;
+                        } else {
+                            location.reload();
+                        }
+                    } else {
+                        location.reload();
+                    }
+                });
+
+                e.reset();
+                if (document.getElementsByClassName('select2')) {
+                    $(".select2").val('').trigger('change');
+                    $(".select2bs4").val('').trigger('change');
+                }
+
+                if (res.callback != '') {
+                    eval(res.callback);
+                }
+            }
+            else {
                 for(let i = 0;i < res.errors; i++) {
                     document.getElementById(res.errors[i]).classList.add('is-invalid');
                     modified.push([res.errors[i], 'classList', 'remove(', "'is-invalid')"])

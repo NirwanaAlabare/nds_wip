@@ -447,6 +447,19 @@
                             </li>
                         </ul>
                     </li>
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'fgstock-bppb' ? 'active' : '' }}">Pengeluaran</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('bppb-fg-stock') }}"
+                                    class="dropdown-item {{ $subPage == 'bppb-fg-stock' ? 'active' : '' }}">
+                                    Pengeluaran Barang Jadi Stok <i class="fas fa-box fa-sm"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                 @endif
 
 
