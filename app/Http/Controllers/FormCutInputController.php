@@ -262,6 +262,15 @@ class FormCutInputController extends Controller
 
     public function getScannedItem($id = 0)
     {
+        $scannedItem = ScannedItem::where('id_roll', $id)->first();
+        if ($scannedItem) {
+            if (floatval($scannedItem->qty) > 0) {
+                return json_encode($scannedItem);
+            }
+
+            return json_encode(null);
+        }
+
         $newItem = DB::connection("mysql_sb")->select("
             SELECT
                 br.id id_roll,
@@ -296,15 +305,6 @@ class FormCutInputController extends Controller
         ");
         if ($newItem) {
             return json_encode($newItem ? $newItem[0] : null);
-        }
-
-        $scannedItem = ScannedItem::where('id_roll', $id)->first();
-        if ($scannedItem) {
-            if (floatval($scannedItem->qty) > 0) {
-                return json_encode($scannedItem);
-            }
-
-            return json_encode(null);
         }
 
         $item = DB::connection("mysql_sb")->select("
