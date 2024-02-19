@@ -566,25 +566,25 @@ $('.select2type').select2({
                         return `<div class='d-flex gap-1 justify-content-center'>
                    <a href="{{ route('edit-inmaterial') }}/`+data+`"><button type='button' class='btn btn-sm btn-danger'><i class="fa-solid fa-pen-to-square"></i></button></a>
                     <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
-                    <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs_saldo.php?id=`+row.no_dok+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
+                    <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs_saldo.php?id=`+row.id+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
                     <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='approve_inmaterial("` + row.no_dok + `")'><i class="fa-solid fa-person-circle-check"></i></button>
                     </div>`;
                     }else if (row.status == 'Pending' && row.qty_balance != 0) {
                         return `<div class='d-flex gap-1 justify-content-center'>
                    <a href="{{ route('edit-inmaterial') }}/`+data+`"><button type='button' class='btn btn-sm btn-danger'><i class="fa-solid fa-pen-to-square"></i></button></a>
                     <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
-                    <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs_saldo.php?id=`+row.no_dok+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
+                    <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs_saldo.php?id=`+row.id+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
                     <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='approve_inmaterial("` + row.no_dok + `")'><i class="fa-solid fa-person-circle-check"></i></button>
                     </div>`;
                     }else if (row.status == 'Approved' && row.qty_balance == 0) {
                         return `<div class='d-flex gap-1 justify-content-center'>
                     <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
-                    <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs_saldo.php?id=`+row.no_dok+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
+                    <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs_saldo.php?id=`+row.id+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
                     </div>`;
                     }else if (row.status == 'Approved' && row.qty_balance != 0) {
                         return `<div class='d-flex gap-1 justify-content-center'>
                     <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
-                    <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs_saldo.php?id=`+row.no_dok+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
+                    <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs_saldo.php?id=`+row.id+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
                     </div>`;
                     }else{
                         return `<div class='d-flex gap-1 justify-content-center'>

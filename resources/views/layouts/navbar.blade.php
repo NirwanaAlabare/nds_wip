@@ -130,30 +130,6 @@
                 </li>
                 @endif
 
-                @if ($page == 'dashboard-warehouse')
-                    <li class="nav-item dropdown">
-                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
-                            aria-expanded="false" class="nav-link dropdown-toggle">Laporan</a>
-                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-
-                            <li>
-                                <a href="{{ route('lap-det-pemasukan') }}" class="dropdown-item">
-                                    Pemasukan Detail
-                                </a>
-                                <a href="#" class="dropdown-item">
-                                    Pengeluaran Detail
-                                </a>
-                                <a href="#" class="dropdown-item">
-                                    Mutasi Global
-                                </a>
-                                <a href="#" class="dropdown-item">
-                                    Mutasi Detail
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                @endif
-
 
                 @if ($page == 'dashboard-marker')
                     <li class="nav-item dropdown">
