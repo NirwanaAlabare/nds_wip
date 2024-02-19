@@ -8,25 +8,20 @@
 @endsection
 
 @section('content')
+    {{-- Part Data --}}
     <div class="card">
         <div class="card-header bg-sb text-light">
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-th fa-sm"></i> Part</h5>
         </div>
         <div class="card-body">
-            {{-- <a href="{{ route('create-part') }}" class="btn btn-success btn-sm mb-3">
-                <i class="fas fa-plus"></i>
-                Baru
-            </a> --}}
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div>
                     <label class="form-label"><small>Tanggal Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
-                        onchange="datatablePartReload()">
+                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="datatablePartReload()">
                 </div>
                 <div>
                     <label class="form-label"><small>Tanggal Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                        value="{{ date('Y-m-d') }}" onchange="datatablePartReload()">
+                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="datatablePartReload()">
                 </div>
                 <div>
                     <button class="btn btn-primary btn-sm" onclick="datatablePartReload()"><i class="fa fa-search"></i></button>
@@ -52,6 +47,7 @@
         </div>
     </div>
 
+    {{-- Detail Part Modal --}}
     <div class="modal fade" id="detailPartModal" tabindex="-1" aria-labelledby="detailPartLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
@@ -65,36 +61,31 @@
                         <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label">No. WS</label>
-                                <input type="text" class="form-control" name="detail_ws" id="detail_ws" value=""
-                                    readonly>
+                                <input type="text" class="form-control" name="detail_act_costing_ws" id="detail_act_costing_ws" value="" readonly>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label">Style</label>
-                                <input type="text" class="form-control" name="detail_style" id="detail_style"
-                                    value="" readonly>
+                                <input type="text" class="form-control" name="detail_style" id="detail_style" value="" readonly>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label">Color</label>
-                                <input type="text" class="form-control" name="detail_color" id="detail_color"
-                                    value="" readonly>
+                                <input type="text" class="form-control" name="detail_color" id="detail_color" value="" readonly>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label">Panel</label>
-                                <input type="text" class="form-control" name="detail_panel" id="detail_panel"
-                                    value="" readonly>
+                                <input type="text" class="form-control" name="detail_panel" id="detail_panel" value="" readonly>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label">Part</label>
-                                <input type="text" class="form-control" name="detail_part" id="detail_part_details"
-                                    value="" readonly>
+                                <input type="text" class="form-control" name="detail_part" id="detail_part_details" value="" readonly>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -107,19 +98,19 @@
                                 <table class="table table-bordered table-sm w-100" id="datatable-part-form">
                                     <thead>
                                         <tr>
-                                            <th>No. Marker</th>
+                                            <th>Act</th>
+                                            <th>Tanggal</th>
                                             <th>No. Form</th>
-                                            <th>Tgl Spreading</th>
                                             <th>Meja</th>
-                                            <th>WS</th>
-                                            <th>Buyer</th>
                                             <th>No. Cut</th>
                                             <th>Style</th>
                                             <th>Color</th>
                                             <th>Part</th>
+                                            <th>Lembar</th>
                                             <th>Size Ratio</th>
-                                            <th>Total Lembar</th>
-                                            <th>Act</th>
+                                            <th>No. Marker</th>
+                                            <th>No. WS</th>
+                                            <th>Buyer</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -131,7 +122,6 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    {{-- <button type="button" class="btn btn-primary">Simpan</button> --}}
                 </div>
             </div>
         </div>
@@ -146,7 +136,9 @@
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
 
     <script>
+        // Initial Function
         document.addEventListener("DOMContentLoaded", () => {
+            // Set Filter to 1 Week Ago
             let oneWeeksBefore = new Date(new Date().setDate(new Date().getDate() - 7));
             let oneWeeksBeforeDate = ("0" + oneWeeksBefore.getDate()).slice(-2);
             let oneWeeksBeforeMonth = ("0" + (oneWeeksBefore.getMonth() + 1)).slice(-2);
@@ -160,6 +152,7 @@
             });
         });
 
+        // Part Datatable
         let datatablePart = $("#datatable-part").DataTable({
             ordering: false,
             processing: true,
@@ -178,7 +171,7 @@
                     data: 'kode',
                 },
                 {
-                    data: 'ws',
+                    data: 'act_costing_ws',
                 },
                 {
                     data: 'buyer'
@@ -203,6 +196,7 @@
             ],
             columnDefs: [
                 {
+                    // Act Column
                     targets: [0],
                     render: (data, type, row, meta) => {
                         return `
@@ -210,11 +204,7 @@
                                 <buton type="button" onclick='showPartForm(` + JSON.stringify(row) + `)' class='btn btn-primary btn-sm'>
                                     <i class='fa fa-search'></i>
                                 </buton>
-                                <a href='{{ route('manage-part-secondary') }}/` + row['id'] + `' class='btn btn-info btn-sm'>
-                                    <i class='fa fa-plus-circle'></i>
-                                </a>
-                                <a class='btn btn-danger btn-sm' data='` + JSON.stringify(row) +
-                            `' data-url='{{ route('destroy-part') }}/` + row['id'] + `' onclick='deleteData(this)'>
+                                <a class='btn btn-danger btn-sm' data='` + JSON.stringify(row) +`' data-url='{{ route('destroy-part') }}/` + row['id'] + `' onclick='deleteData(this)'>
                                     <i class='fa fa-trash'></i>
                                 </a>
                             </div>
@@ -222,7 +212,22 @@
                     }
                 },
                 {
+                    // No. Meja Column
+                    targets: [5],
+                    render: (data, type, row, meta) => {
+                        var color = '#2b2f3a';
+                        if (row.sisa == '0') {
+                            color = '#087521';
+                        } else {
+                            color = '#2b2f3a';
+                        }
+                        return '<span style="font-weight: 600; color:' + color + '">'+data.replace(/,/g, ' ||')+'</span>';
+                    }
+                },
+                {
+                    // All Column Colorization
                     targets: '_all',
+                    className: 'text-nowrap',
                     render: (data, type, row, meta) => {
                         var color = '#2b2f3a';
                         if (row.sisa == '0') {
@@ -236,10 +241,12 @@
             ],
         });
 
+        // Part Datatable Reload
         function datatablePartReload() {
             datatablePart.ajax.reload()
         }
 
+        // Part Datatable Header Column Filter
         $('#datatable-part thead tr').clone(true).appendTo('#datatable-part thead');
         $('#datatable-part thead tr:eq(1) th').each(function(i) {
             if (i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8) {
@@ -259,6 +266,8 @@
             }
         });
 
+
+        // Open Detail Part Modal
         function showPartForm(data) {
             for (let key in data) {
                 console.log(document.getElementById('detail_' + key));
@@ -276,6 +285,7 @@
             $("#detailPartModal").modal('show');
         };
 
+        // Part Detail Form Datatable
         let datatablePartForm = $("#datatable-part-form").DataTable({
             ordering: false,
             processing: true,
@@ -290,23 +300,18 @@
             },
             columns: [
                 {
-                    data: 'id_marker'
+                    data: null,
+                    searchable: false
+                },
+                {
+                    data: 'tanggal_selesai',
+                    searchable: false
                 },
                 {
                     data: 'no_form'
                 },
                 {
-                    data: 'tgl_form_cut',
-                    searchable: false
-                },
-                {
                     data: 'nama_meja'
-                },
-                {
-                    data: 'act_costing_ws'
-                },
-                {
-                    data: 'buyer'
                 },
                 {
                     data: 'no_cut',
@@ -318,42 +323,57 @@
                     data: 'color'
                 },
                 {
-                    data: 'nama_part'
-                },
-                {
-                    data: 'marker_details',
-                    searchable: false
+                    data: 'part_details'
                 },
                 {
                     data: 'total_lembar',
                     searchable: false
                 },
                 {
-                    data: null,
+                    data: 'marker_details',
                     searchable: false
+                },
+                {
+                    data: 'id_marker'
+                },
+                {
+                    data: 'act_costing_ws'
+                },
+                {
+                    data: 'buyer'
                 },
             ],
             columnDefs: [
-                // Nama Meja
+                // Act Column
+                {
+                    targets: [0],
+                    render: (data, type, row, meta) => {
+                        return `
+                            <div class='d-flex gap-1 justify-content-center'>
+                                <a class='btn btn-primary btn-sm' href='{{ route('show-stocker') }}/` + row.part_detail_id + `/` + row.form_cut_id + `' data-bs-toggle='tooltip' target='_blank'>
+                                    <i class='fa fa-search-plus'></i>
+                                </a>
+                            </div>
+                        `;
+                    }
+                },
+                // No. Meja Column
                 {
                     targets: [3],
                     render: (data, type, row, meta) => data ? data.toUpperCase() : "-"
                 },
-                // Last Column
+                // No Wrap
                 {
-                    targets: [12],
-                    render: (data, type, row, meta) => {
-                        return `<div class='d-flex gap-1 justify-content-center'>
-                            <a class='btn btn-info btn-sm' href='{{ route('show-stocker') }}/` + row.part_detail_id + `/` + row.form_cut_id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa fa-eye'></i></a> </div>`;
-                    }
+                    targets: '_all',
+                    className: 'text-nowrap',
                 }
             ]
         });
 
+        // Datatable Part Detail Form Header Column Filter
         $('#datatable-part-form thead tr').clone(true).appendTo('#datatable-part-form thead');
         $('#datatable-part-form thead tr:eq(1) th').each(function(i) {
-            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8 || i == 9 ||
-                i == 11) {
+            if (i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8 || i == 10 || i == 11 || i == 12) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%"/>');
 
@@ -370,10 +390,12 @@
             }
         });
 
+        // Datatable Part Detail Form Reload
         function dataTablePartFormReload() {
             datatablePartForm.ajax.reload();
         }
 
+        // Reorder Stocker & Numbering
         function reorderStockerNumbering() {
             Swal.fire({
                 title: 'Please Wait...',

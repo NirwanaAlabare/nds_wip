@@ -33,46 +33,61 @@ class MarkerController extends Controller
                 CONCAT(comma_marker, ' ', UPPER(unit_comma_marker)) comma_marker,
                 CONCAT(panjang_marker, ' ', UPPER(unit_panjang_marker), ' ',comma_marker, ' ', UPPER(unit_comma_marker)) panjang_marker_fix,
                 CONCAT(lebar_marker, ' ', UPPER(unit_lebar_marker)) lebar_marker,
-                gramasi,
+                COALESCE(gramasi, 0) gramasi,
                 gelar_qty,
-                COALESCE(b.total_lembar, 0) total_lembar,
                 gelar_qty_balance,
                 po_marker,
                 urutan_marker,
                 tipe_marker,
-                ifnull(b.tot_form,0) tot_form,
-                CONCAT(ifnull(b.total_lembar,0), '/', gelar_qty) ply_progress,
-                ifnull(notes, '-') notes,
+                COALESCE(b.total_form, 0) total_form,
+                COALESCE(b.total_lembar, 0) total_lembar,
+                CONCAT(COALESCE(b.total_lembar, 0), '/', gelar_qty) ply_progress,
+                COALESCE(notes, '-') notes,
                 cancel
-            ")->leftJoin(DB::raw("(select id_marker,coalesce(count(id_marker),0) tot_form,coalesce(sum(total_lembar),0) total_lembar from form_cut_input group by id_marker)b"), "marker_input.kode", "=", "b.id_marker");
+            ")->leftJoin(
+                    DB::raw("
+                (
+                    select
+                        id_marker,
+                        count(id_marker) total_form,
+                        sum(total_lembar) total_lembar
+                    from
+                        form_cut_input
+                    group by
+                        id_marker
+                ) b"),
+                    "marker_input.kode",
+                    "=",
+                    "b.id_marker"
+                );
 
             return DataTables::eloquent($markersQuery)->filter(function ($query) {
-                $tglAwal = request('tgl_awal');
-                $tglAkhir = request('tgl_akhir');
+                    $tglAwal = request('tgl_awal');
+                    $tglAkhir = request('tgl_akhir');
 
-                if ($tglAwal) {
-                    $query->whereRaw("tgl_cutting >= '" . $tglAwal . "'");
-                }
+                    if ($tglAwal) {
+                        $query->whereRaw("tgl_cutting >= '" . $tglAwal . "'");
+                    }
 
-                if ($tglAkhir) {
-                    $query->whereRaw("tgl_cutting <= '" . $tglAkhir . "'");
-                }
-            }, true)->filterColumn('kode', function ($query, $keyword) {
-                $query->whereRaw("LOWER(kode) LIKE LOWER('%" . $keyword . "%')");
-            })->filterColumn('act_costing_ws', function ($query, $keyword) {
-                $query->whereRaw("LOWER(act_costing_ws) LIKE LOWER('%" . $keyword . "%')");
-            })->filterColumn('color', function ($query, $keyword) {
-                $query->whereRaw("LOWER(color) LIKE LOWER('%" . $keyword . "%')");
-            })->filterColumn('panel', function ($query, $keyword) {
-                $query->whereRaw("LOWER(panel) LIKE LOWER('%" . $keyword . "%')");
-            })->filterColumn('po_marker', function ($query, $keyword) {
-                $query->whereRaw("LOWER(po_marker) LIKE LOWER('%" . $keyword . "%')");
-            })->order(function ($query) {
-                $query->orderBy('cancel', 'asc')->orderBy('updated_at', 'desc');
-            })->toJson();
+                    if ($tglAkhir) {
+                        $query->whereRaw("tgl_cutting <= '" . $tglAkhir . "'");
+                    }
+                }, true)->filterColumn('kode', function ($query, $keyword) {
+                    $query->whereRaw("LOWER(kode) LIKE LOWER('%" . $keyword . "%')");
+                })->filterColumn('act_costing_ws', function ($query, $keyword) {
+                    $query->whereRaw("LOWER(act_costing_ws) LIKE LOWER('%" . $keyword . "%')");
+                })->filterColumn('color', function ($query, $keyword) {
+                    $query->whereRaw("LOWER(color) LIKE LOWER('%" . $keyword . "%')");
+                })->filterColumn('panel', function ($query, $keyword) {
+                    $query->whereRaw("LOWER(panel) LIKE LOWER('%" . $keyword . "%')");
+                })->filterColumn('po_marker', function ($query, $keyword) {
+                    $query->whereRaw("LOWER(po_marker) LIKE LOWER('%" . $keyword . "%')");
+                })->order(function ($query) {
+                    $query->orderBy('cancel', 'asc')->orderBy('updated_at', 'desc');
+                })->toJson();
         }
 
-        return view('marker.marker.marker', ["page" => "dashboard-marker", "subPageGroup" => "proses-marker", "subPage" => "marker"]);
+        return view('marker.marker.marker', ["subPageGroup" => "proses-marker", "subPage" => "marker", "page" => "dashboard-marker"]);
     }
 
     /**
@@ -132,23 +147,15 @@ class MarkerController extends Controller
                 master_sb_ws.qty order_qty,
                 COALESCE(marker_input_detail.ratio, 0) ratio,
                 COALESCE(marker_input_detail.cut_qty, 0) cut_qty
-            ")->
-            where("master_sb_ws.id_act_cost", $request->act_costing_id)->
-            where("master_sb_ws.color", $request->color);
+            ")->where("master_sb_ws.id_act_cost", $request->act_costing_id)->where("master_sb_ws.color", $request->color);
 
         if ($request->marker_id) {
-            $sizeQuery->
-            leftJoin('marker_input_detail', function($join) use ($request) {
-                $join->on('marker_input_detail.so_det_id', '=', 'master_sb_ws.id_so_det');
-                $join->on('marker_input_detail.marker_id', '=', DB::raw($request->marker_id));
-            })->
-            leftJoin('master_size_new', 'master_size_new.size', '=', 'master_sb_ws.size')->
-            leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id');
+            $sizeQuery->leftJoin('marker_input_detail', function ($join) use ($request) {
+                    $join->on('marker_input_detail.so_det_id', '=', 'master_sb_ws.id_so_det');
+                    $join->on('marker_input_detail.marker_id', '=', DB::raw($request->marker_id));
+                })->leftJoin('master_size_new', 'master_size_new.size', '=', 'master_sb_ws.size')->leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id');
         } else {
-            $sizeQuery->
-            leftJoin('marker_input_detail', 'marker_input_detail.so_det_id', '=', 'master_sb_ws.id_so_det')->
-            leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->
-            leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size");
+            $sizeQuery->leftJoin('marker_input_detail', 'marker_input_detail.so_det_id', '=', 'master_sb_ws.id_so_det')->leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size");
         }
 
         $sizes = $sizeQuery->groupBy("id_act_cost", "color", "size")->orderBy("master_size_new.urutan")->get();
@@ -385,7 +392,7 @@ class MarkerController extends Controller
         <div class='row'>
             <div class='col-sm-3'>
                 <div class='form-group'>
-                    <label class='form-label'><small>Tgl Cutting</small></label>
+                    <label class='form-label'><small>Tanggal</small></label>
                     <input type='text' class='form-control' id='txttgl_cutting' name='txttgl_cutting' value = '" . $datanomarker->tgl_cut_fix . "' readonly>
                 </div>
             </div>

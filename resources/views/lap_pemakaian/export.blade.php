@@ -3,11 +3,50 @@
 
 <table class="table">
     <tr>
-        <td colspan='32'>Laporan Pemakaian Cutting</td>
+        <td style="vertical-align: middle; text-align: center; width: 100%;" colspan="2" rowspan="4"></td>
+        <td style="vertical-align: middle; font-size: 20px; text-align: center; font-weight: 800;" colspan="3" rowspan="4">FORM INSENTIF</td>
+        <td>Kode Dokumen</td>
+        <td>:</td>
     </tr>
     <tr>
-        <td colspan='32'>{{ date('d-M-Y', strtotime($from)) }} - {{ date('d-M-Y', strtotime($to)) }}
+        <td>Revisi</td>
+        <td>:</td>
+    </tr>
+    <tr>
+        <td>Tanggal Revisi</td>
+        <td>:</td>
+    </tr>
+    <tr>
+        <td>Tanggal Efektif</td>
+        <td>:</td>
+    </tr>
+    <tr>
+        <td colspan="7"></td>
+    </tr>
+    <tr>
+        <td>TANGGAL</td>
+        <td colspan='4'>
+            {{ date('d-M-Y', strtotime($from)) }} - {{ date('d-M-Y', strtotime($to)) }}
         </td>
+        <td>Target</td>
+        <td>0</td>
+    </tr>
+    <tr>
+        <td>BAGIAN</td>
+        <td colspan='4'>
+            SEWING LINE
+        </td>
+        <td>Actual</td>
+        <td>0</td>
+    </tr>
+    <tr>
+        <td>DEPARTEMEN</td>
+        <td colspan='4'>
+            PRODUKSI
+        </td>
+    </tr>
+    <tr>
+        <td colspan="7"></td>
     </tr>
     <thead>
         <tr>

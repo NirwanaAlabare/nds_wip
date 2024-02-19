@@ -44,6 +44,9 @@ use App\Http\Controllers\LapDetPengeluaranRollController;
 use App\Http\Controllers\LapDetPemasukanRollController;
 use App\Http\Controllers\LapMutasiDetailController;
 use App\Http\Controllers\DashboardFabricController;
+use App\Http\Controllers\FGStokMasterController;
+use App\Http\Controllers\FGStokBPBController;
+use App\Http\Controllers\FGStokBPPBController;
 
 /*
 |--------------------------------------------------------------------------
@@ -628,7 +631,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/save-out-manual-ro', 'saveoutmanualRo')->name('save-out-manual-ro');
         Route::post('/store', 'store')->name('store-returmaterial-fabric');
         Route::get('/get-supplier-ro', 'getSuppro')->name('get-supplier-ro');
-         Route::get('/approve-returmaterial', 'approveReturMaterial')->name('approve-returmaterial');
+        Route::get('/approve-returmaterial', 'approveReturMaterial')->name('approve-returmaterial');
     });
 
     //Retur Penerimaan
@@ -714,6 +717,35 @@ Route::middleware('auth')->group(function () {
         // Route::get('/export', 'export')->name('export');
     });
 
+
+    //FG Stock
+    // Master Lokasi FG Stock
+    Route::controller(FGStokMasterController::class)->prefix("master-lokasi-fg-stock")->middleware('fg-stock')->group(function () {
+        Route::get('/', 'index')->name('master-lokasi-fg-stock');
+        Route::post('/store', 'store')->name('store-lokasi-fg-stock');
+        // Route::put('/update/{id?}', 'update')->name('update-master-part');
+        // Route::delete('/destroy/{id?}', 'destroy')->name('destroy-master-part');
+    });
+    Route::controller(FGStokBPBController::class)->prefix("bpb-fg-stock")->middleware('fg-stock')->group(function () {
+        Route::get('/', 'index')->name('bpb-fg-stock');
+        Route::post('/store', 'store')->name('store-bpb-fg-stock');
+        Route::get('/create', 'create')->name('create-bpb-fg-stock');
+        Route::get('/getno_ws', 'getno_ws')->name('getno_ws');
+        Route::get('/getcolor', 'getcolor')->name('getcolor');
+        Route::get('/getsize', 'getsize')->name('getsize');
+        Route::get('/getproduct', 'getproduct')->name('getproduct');
+        Route::post('/store_tmp', 'store_tmp')->name('store_tmp');
+        Route::get('/show_tmp', 'show_tmp')->name('show_tmp');
+        Route::post('/undo', 'undo')->name('undo');
+        Route::get('/show_lok', 'show_lok')->name('show_lok');
+    });
+    Route::controller(FGStokBPPBController::class)->prefix("bppb-fg-stock")->middleware('fg-stock')->group(function () {
+        Route::get('/', 'index')->name('bppb-fg-stock');
+        Route::post('/store', 'store')->name('store-bppb-fg-stock');
+        Route::get('/create', 'create')->name('create-bppb-fg-stock');
+        Route::get('/getws', 'getws')->name('getws');
+        Route::get('/show_det', 'show_det')->name('show_det');
+    });
 });
 
 
@@ -736,8 +768,14 @@ Route::get('/dashboard-stocker', function () {
 // })->middleware('auth')->name('dashboard-warehouse');
 
 
-
+//dc in
 Route::get('/dashboard-dc', [DashboardController::class, 'dc'])->middleware('auth')->name('dashboard-dc');
+
+//fg stock
+Route::get('/dashboard-fg-stock', function () {
+    return view('dashboard', ['page' => 'dashboard-fg-stock']);
+})->middleware('auth')->name('dashboard-fg-stock');
+
 
 Route::get('/dashboard-mut-karyawan', function () {
     return view('dashboard', ['page' => 'dashboard-mut-karyawan']);

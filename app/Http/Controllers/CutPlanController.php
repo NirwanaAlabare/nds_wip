@@ -74,9 +74,18 @@ class CutPlanController extends Controller
             $thisStoredCutPlan = CutPlan::select("no_form_cut_input")->groupBy("no_form_cut_input")->get();
 
             if ($thisStoredCutPlan->count() > 0) {
+                $i = 0;
+                $additionalQuery .= " AND a.no_form NOT IN (";
                 foreach ($thisStoredCutPlan as $cutPlan) {
-                    $additionalQuery .= " and a.no_form != '" . $cutPlan->no_form_cut_input . "' ";
+                    if ($i+1 == count($thisStoredCutPlan)) {
+                        $additionalQuery .= "'".$cutPlan->no_form_cut_input . "' ";
+                    } else {
+                        $additionalQuery .= "'".$cutPlan->no_form_cut_input . "' , ";
+                    }
+
+                    $i++;
                 }
+                $additionalQuery .= ") ";
             }
 
             $keywordQuery = "";
@@ -216,14 +225,14 @@ class CutPlanController extends Controller
                     CONCAT(b.panel, ' - ', b.urutan_marker) panel,
                     GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ', ') marker_details,
                     sum(marker_input_detail.ratio) * a.qty_ply	qty_output,
-                    coalesce(sum(marker_input_detail.ratio) * c.tot_lembar_akt,0) qty_act
+                    coalesce(sum(marker_input_detail.ratio) * c.tot_lembar_akt,0) qty_act,
+                    COALESCE(a.total_lembar, '0') total_lembar
                 FROM `form_cut_input` a
                 left join marker_input b on a.id_marker = b.kode
                 left join marker_input_detail on b.id = marker_input_detail.marker_id
                 left join master_size_new on marker_input_detail.size = master_size_new.size
                 left join users on users.id = a.no_meja
-                left join (select no_form_cut_input,sum(lembar_gelaran) tot_lembar_akt from form_cut_input_detail
-                group by no_form_cut_input) c on a.no_form = c.no_form_cut_input
+                left join (select no_form_cut_input,sum(lembar_gelaran) tot_lembar_akt from form_cut_input_detail group by no_form_cut_input) c on a.no_form = c.no_form_cut_input
                 where
                     a.id is not null
                     " . $additionalQuery . "
