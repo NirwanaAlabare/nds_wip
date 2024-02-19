@@ -9,7 +9,8 @@
 
 @section('content')
     {{-- Show Detail Marker Modal --}}
-    <div class="modal fade" id="showMarkerModal" tabindex="-1" role="dialog" aria-labelledby="showMarkerModalLabel" aria-hidden="true">
+    <div class="modal fade" id="showMarkerModal" tabindex="-1" role="dialog" aria-labelledby="showMarkerModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 65%;">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-light">
@@ -26,7 +27,8 @@
     </div>
 
     {{-- Edit Marker Modal --}}
-    <div class="modal fade" id="editMarkerModal" tabindex="-1" role="dialog" aria-labelledby="editMarkerModalLabel" aria-hidden="true">
+    <div class="modal fade" id="editMarkerModal" tabindex="-1" role="dialog" aria-labelledby="editMarkerModalLabel"
+        aria-hidden="true">
         <form action="{{ route('update_marker') }}" method="post" onsubmit="submitForm(this, event)">
             @method('PUT')
             <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 35%;">
@@ -40,7 +42,8 @@
                             <div class='col-sm-12'>
                                 <div class='form-group'>
                                     <label class='form-label'><small class="fw-bold">Gramasi</small></label>
-                                    <input type='number' class='form-control' id='txt_gramasi' name='txt_gramasi' value = ''>
+                                    <input type='number' class='form-control' id='txt_gramasi' name='txt_gramasi'
+                                        value = ''>
                                     <input type='hidden' class='form-control' id='id_c' name='id_c' value = ''>
                                 </div>
                             </div>
@@ -49,28 +52,34 @@
                                     <label class='form-label'><small class="fw-bold">Status Pilot</small></label>
                                     <div class="d-flex gap-3 ms-1">
                                         <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="pilot_status" id="idle" value="idle">
+                                            <input class="form-check-input" type="radio" name="pilot_status"
+                                                id="idle" value="idle">
                                             <label class="form-check-label" for="idle">
                                                 <small class="fw-bold"><i class="fa fa-minus fa-sm"></i> Pilot Idle</small>
                                             </label>
                                         </div>
                                         <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="pilot_status" id="active" value="active">
+                                            <input class="form-check-input" type="radio" name="pilot_status"
+                                                id="active" value="active">
                                             <label class="form-check-label text-success" for="active">
-                                                <small class="fw-bold"><i class="fa fa-check fa-sm"></i> Pilot Approve</small>
+                                                <small class="fw-bold"><i class="fa fa-check fa-sm"></i> Pilot
+                                                    Approve</small>
                                             </label>
                                         </div>
                                         <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="pilot_status" id="not_active" value="not active">
+                                            <input class="form-check-input" type="radio" name="pilot_status"
+                                                id="not_active" value="not active">
                                             <label class="form-check-label text-danger" for="not_active">
-                                                <small class="fw-bold"><i class="fa fa-times fa-sm"></i> Pilot Disapprove</small>
+                                                <small class="fw-bold"><i class="fa fa-times fa-sm"></i> Pilot
+                                                    Disapprove</small>
                                             </label>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-sm-12 d-none" id="advanced-edit-section">
-                                <a href="" class="btn btn-primary btn-sm btn-block" id="advanced-edit-link"><i class="fas fa-edit"></i> Advanced Edit</a>
+                                <a href="" class="btn btn-primary btn-sm btn-block" id="advanced-edit-link"><i
+                                        class="fas fa-edit"></i> Advanced Edit</a>
                             </div>
                         </div>
                     </div>
@@ -95,11 +104,13 @@
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small>Tanggal Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-d') }}" onchange="filterTable()">
+                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
+                        value="{{ date('Y-m-d') }}" onchange="filterTable()">
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small>Tanggal Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="filterTable()">
+                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
+                        value="{{ date('Y-m-d') }}" onchange="filterTable()">
                 </div>
                 <div class="mb-3">
                     <button class="btn btn-primary btn-sm" onclick="filterTable()"><i class="fa fa-search"></i></button>
@@ -183,8 +194,7 @@
                     d.tgl_akhir = $('#tgl-akhir').val();
                 },
             },
-            columns: [
-                {
+            columns: [{
                     data: 'id'
                 },
                 {
@@ -233,8 +243,7 @@
                     data: 'notes',
                 },
             ],
-            columnDefs: [
-                {
+            columnDefs: [{
                     targets: [0],
                     render: (data, type, row, meta) => {
                         let exportBtn = `
@@ -246,10 +255,13 @@
                         if (row.cancel != 'Y' && row.tot_form != 0 && row.tipe_marker != "pilot marker") {
                             return `
                                 <div class='d-flex gap-1 justify-content-center mb-1'>
-                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
+                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` +
+                                row.id +
+                                `);'>
                                         <i class='fa fa-search'></i>
                                     </a>
-                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editMarkerModal" onclick='edit(` + row.id + `);'>
+                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editMarkerModal" onclick='edit(` +
+                                row.id + `);'>
                                         <i class='fa fa-edit'></i>
                                     </a>
                                 </div>
@@ -257,13 +269,17 @@
                                     ` + exportBtn + `
                                 </div>
                             `;
-                        } else if ((row.cancel != 'Y' && row.tot_form == 0) || (row.cancel != 'Y' && row.gelar_qty_balance > 0 && row.tipe_marker == "pilot marker")) {
+                        } else if ((row.cancel != 'Y' && row.tot_form == 0) || (row.cancel != 'Y' && row
+                                .gelar_qty_balance > 0 && row.tipe_marker == "pilot marker")) {
                             return `
                                 <div class='d-flex gap-1 justify-content-center mb-1'>
-                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
+                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` +
+                                row.id +
+                                `);'>
                                         <i class='fa fa-search'></i>
                                     </a>
-                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editMarkerModal" onclick='edit(` + row.id + `);'>
+                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editMarkerModal" onclick='edit(` +
+                                row.id + `);'>
                                         <i class='fa fa-edit'></i>
                                     </a>
                                 </div>
@@ -277,7 +293,8 @@
                         } else if (row.cancel == 'Y') {
                             return `
                                 <div class='d-flex gap-1 justify-content-center'>
-                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
+                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` +
+                                row.id + `);'>
                                         <i class='fa fa-search'></i>
                                     </a>
                                     ` + exportBtn + `
@@ -286,7 +303,8 @@
                         } else {
                             return `
                                 <div class='d-flex gap-1 justify-content-center'>
-                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
+                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` +
+                                row.id + `);'>
                                         <i class='fa fa-search'></i>
                                     </a>
                                     ` + exportBtn + `
@@ -300,8 +318,10 @@
                     render: (data, type, row, meta) => {
                         return `
                             <div class="progress border border-sb position-relative" style="height: 21px">
-                                <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">`+row.total_lembar+`/`+row.gelar_qty+`</p>
-                                <div class="progress-bar" style="background-color: #75baeb;width: `+((row.total_lembar/row.gelar_qty)*100)+`%" role="progressbar"></div>
+                                <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">` +
+                            row.total_lembar + `/` + row.gelar_qty + `</p>
+                                <div class="progress-bar" style="background-color: #75baeb;width: ` + ((row
+                                .total_lembar / row.gelar_qty) * 100) + `%" role="progressbar"></div>
                             </div>
                         `;
                     }
@@ -321,7 +341,7 @@
                     }
                 },
                 {
-                    targets: [1,2,3],
+                    targets: [1, 2, 3],
                     className: 'text-nowrap'
                 },
             ],
@@ -375,7 +395,8 @@
                         document.getElementById('txt_gramasi').removeAttribute('readonly');
                     }
 
-                    document.getElementById('advanced-edit-link').setAttribute('href', '{{ route('edit-marker') }}/'+response.id);
+                    document.getElementById('advanced-edit-link').setAttribute('href',
+                        '{{ route('edit-marker') }}/' + response.id);
                     document.getElementById('advanced-edit-section').classList.remove('d-none');
                 },
                 error: function(request, status, error) {

@@ -89,7 +89,11 @@
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
-
+    <script>
+        function notif() {
+            alert("Maaf, Fitur belum tersedia!");
+        }
+    </script>
     <script type="text/javascript">
         function setinisial() {
             let lok = $('#txtlok').val();
@@ -141,16 +145,15 @@
                         return `
                     <div
                     class='d-flex gap-1 justify-content-center'>
-                    <a class='btn btn-warning btn-sm' href='{{ route('create-dc-in') }}/` +
-                            row.id +
-                            `' data-bs-toggle='tooltip'><i class='fas fa-edit'></i></a>
-                        <a class='btn btn-success btn-sm' href='{{ route('create-dc-in') }}/` +
-                            row.id +
-                            `' data-bs-toggle='tooltip'><i class='fas fa-lock'></i></a>
+                    <a class='btn btn-warning btn-sm' data-bs-toggle='tooltip' onclick='notif()'><i class='fas fa-edit'></i></a>
+                    <a class='btn btn-success btn-sm' data-bs-toggle='tooltip' onclick='notif()'><i class='fas fa-lock'></i></a>
                     </div>
                         `;
                     }
                 },
+                // <a class='btn btn-warning btn-sm' href='{{ route('create-dc-in') }}/` +
+            //             row.id +
+            //             `' data-bs-toggle='tooltip'><i class='fas fa-edit'></i></a>
                 {
                     "className": "dt-center",
                     "targets": "_all"

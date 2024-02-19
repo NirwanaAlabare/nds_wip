@@ -14,8 +14,7 @@
 @section('content')
     <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
-        <form action="{{ route('store-lokasi-fg-stock') }}" method="post" onsubmit="submitForm(this, event)" name='form'
-            id='form'>
+        <form action="#" method="post" onsubmit="submitForm(this, event)" name='form' id='form'>
             @method('POST')
             <div class="modal-dialog modal-dialog-scrollable">
                 <div class="modal-content">
@@ -64,18 +63,20 @@
                 </a>
             </div>
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-3">
-                    <label><small><b>Tanggal Penerimaan</b></small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl_cutting" name="tgl_cutting"
-                        value="{{ date('Y-m-d') }}">
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
+        <form id="form_h" name='form_h' method='post'>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label><small><b>Tanggal Penerimaan</b></small></label>
+                        <input type="date" class="form-control" id="tgl_terima" name="tgl_terima"
+                            value="{{ date('Y-m-d') }}">
+                        <input type="hidden" class="form-control" id="user" name="user"
+                            value="{{ $user }}">
+                    </div>
+                    <div class="col-md-3">
                         <label><small><b>Lokasi</b></small></label>
-                        <select class="form-control select2bs4 form-control-sm" id="cbolok" name="cbolok"
-                            style="width: 100%;">
+                        <select class="form-control select2bs4" id="cbolok" name="cbolok" style="width: 100%;"
+                            onchange="showlok()">
                             <option selected="selected" value="" disabled="true">Pilih Lokasi</option>
                             @foreach ($data_lok as $datalok)
                                 <option value="{{ $datalok->isi }}">
@@ -85,114 +86,117 @@
                         </select>
                     </div>
                 </div>
+                <div class="row">
+                    <div class="col-6 col-md-3">
+                        <div class="mb-1">
+                            <label><small><b>Buyer</b></small></label>
+                            <select class="form-control select2bs4 form-control-sm" id="cbobuyer" name="cbobuyer"
+                                style="width: 100%;" onchange='getno_ws();'>
+                                <option selected="selected" value="" disabled="true">Pilih Buyer</option>
+                                @foreach ($data_buyer as $databuyer)
+                                    <option value="{{ $databuyer->isi }}">
+                                        {{ $databuyer->tampil }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="mb-1">
+                            <div class="form-group">
+                                <label><small><b>No. WS</b></small></label>
+                                <select class='form-control select2bs4 form-control-sm' style='width: 100%;'
+                                    name='cbows' id='cbows' onchange='getcolor();getproduct();'></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="mb-1">
+                            <div class="form-group">
+                                <label><small><b>Color</b></small></label>
+                                <select class='form-control select2bs4 form-control-sm' style='width: 100%;'
+                                    name='cbocolor' id='cbocolor' onchange='getsize();getproduct();'></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="mb-1">
+                            <div class="form-group">
+                                <label><small><b>Size</b></small></label>
+                                <select class='form-control select2bs4 form-control-sm' style='width: 100%;'
+                                    name='cbosize' id='cbosize'onchange='getproduct();'></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="row">
-                <div class="col-6 col-md-3">
-                    <div class="mb-1">
-                        <label><small><b>Buyer</b></small></label>
-                        <select class="form-control select2bs4 form-control-sm" id="cbobuyer" name="cbobuyer"
-                            style="width: 100%;" onchange='getno_ws();'>
-                            <option selected="selected" value="" disabled="true">Pilih Buyer</option>
-                            @foreach ($data_buyer as $databuyer)
-                                <option value="{{ $databuyer->isi }}">
-                                    {{ $databuyer->tampil }}
+        </form>
+    </div>
+    <form id="form_d" name='form_d' method='post'>
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <div class="align-items-center">
+                    <h6 class="card-title mb-0"><i class="fas fa-cart-plus"></i> Input Penerimaan Barang Jadi Stok
+                    </h6>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label><small><b>Produk</b></small></label>
+                        <select class='form-control  select2bs4 style='width: 100%;' name='cboproduct'
+                            id='cboproduct'></select>
+                    </div>
+                    <div class="col-md-2">
+                        <label><small><b>Qty</b></small></label>
+                        <div class="input-group  mb-3">
+                            <input type="number" class="form-control " name="txtqty" id="txtqty">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" id="inputGroup-sizing-sm">PCS</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <label><small><b>No. Karton</b></small></label>
+                        <input type="number" class="form-control" id="txtno_carton" name="txtno_carton"
+                            value="">
+                    </div>
+                    <div class="col-md-1">
+                        <label><small><b>Grade</b></small></label>
+                        <select class="form-control select2bs4 " id="cbograde" name="cbograde" style="width: 100%;">
+                            @foreach ($data_grade as $datagrade)
+                                <option value="{{ $datagrade->isi }}">
+                                    {{ $datagrade->tampil }}
                                 </option>
                             @endforeach
                         </select>
                     </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="mb-1">
-                        <div class="form-group">
-                            <label><small><b>No. WS</b></small></label>
-                            <select class="form-control select2bs4" id="cbows" name="cbows" style="width: 100%;">
-                                <option selected="selected" value="">Pilih No. WS</option>
-                            </select>
-                        </div>
+                    <div class="col-md-1">
+                        <label><small><b>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b></small></label>
+                        <input class="btn btn-outline-primary" type="button" value="Tambah" onclick="tambah_data();">
+                        {{-- <button class="btn btn-primary"><i class="fas fa-plus" onclick="tambah_data();"></i></button> --}}
+                        {{-- <a class="btn btn-outline-primary" onclick="tambah_data();">
+                            <i class="fas fa-plus"></i>
+                        </a> --}}
                     </div>
                 </div>
-                <div class="col-6 col-md-3">
-                    <div class="mb-1">
-                        <div class="form-group">
-                            <label><small><b>Color</b></small></label>
-                            <select class="form-control select2bs4 form-control-sm" id="ws_id" name="ws_id"
-                                style="width: 100%;">
-
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="mb-1">
-                        <div class="form-group">
-                            <label><small><b>Size</b></small></label>
-                            <select class="form-control select2bs4 form-control-sm" id="ws_id" name="ws_id"
-                                style="width: 100%;">
-
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <div class="card card-primary">
-        <div class="card-header">
-            <div class="align-items-center">
-                <h6 class="card-title fw-bold mb-0"><i class="fas fa-cart-plus"></i> Input Penerimaan Barang Jadi Stok
-                </h6>
             </div>
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <label><small><b>Produk</b></small></label>
-                    <input type="text" class="form-control form-control-sm" id="id_so_det" name="id_so_det"
-                        value="">
-                </div>
-                <div class="col-md-2">
-                    <label><small><b>Qty</b></small></label>
-                    <div class="input-group input-group-sm mb-3">
-                        <input type="number" class="form-control form-control-sm" name="txtqty" id="txtqty">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text" id="inputGroup-sizing-sm">PCS</span>
-                        </div>
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card card-primary card-outline">
+                    <div class="card-header">
+                        <h5 class="card-title"><i class="fas fa-box"></i> Temporary Penerimaan</h5>
                     </div>
-                </div>
-                <div class="col-md-2">
-                    <label><small><b>No. Carton</b></small></label>
-                    <input type="number" class="form-control form-control-sm" id="txtno_carton" name="txtno_carton"
-                        value="">
-                </div>
-                <div class="col-md-1">
-                    <label><small><b>Grade</b></small></label>
-                    <select class="form-control select2bs4 form-control-sm" id="cbograde" name="cbograde"
-                        style="width: 100%;">
-                        @foreach ($data_grade as $datagrade)
-                            <option value="{{ $datagrade->isi }}">
-                                {{ $datagrade->tampil }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-1">
-                    <label><small><b>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b></small></label>
-                    <input class="btn btn-primary btn-sm" type="button" value="Tambah">
-                </div>
-            </div>
-            <div class ="row g-3">
-                <div class="col-md-8">
-                    <div class="card card-warning">
-                        <div class="card-header">
-                            <h5 class="card-title"><i class="fas fa-box"></i> Temporary Penerimaan</h5>
-                        </div>
+                    <div class="card-body">
                         <div class="table-responsive">
                             <table id="datatable_tmp" class="table table-bordered table-sm w-100">
                                 <thead>
                                     <tr>
-                                        <th>Produk</th>
+                                        <th>No. Karton</th>
+                                        <th>Brand</th>
+                                        <th>Style</th>
+                                        <th>Grade</th>
                                         <th>WS</th>
                                         <th>Color</th>
                                         <th>Size</th>
@@ -200,34 +204,47 @@
                                         <th>Act</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                </tbody>
                             </table>
                         </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card card-info">
-                        <div class="card-header">
-                            <h5 class="card-title"><i class="fas fa-box-open"></i> List Karton</h5>
-                        </div>
-                        <div class="table-responsive">
-                            <table id="datatable_list_karton" class="table table-bordered table-sm w-100">
-                                <thead>
-                                    <tr>
-                                        <th>No. Carton</th>
-                                        <th>Total Qty</th>
-                                        <th>Act</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
-                            </table>
+                        <div class="d-flex justify-content-between">
+                            <div class="p-2 bd-highlight">
+                                <a class="btn btn-outline-warning" onclick="undo()">
+                                    <i class="fas fa-sync-alt
+                                    fa-spin"></i>
+                                    Undo
+                                </a>
+                            </div>
+                            <div class="p-2 bd-highlight">
+                                <a class="btn btn-outline-success" onclick="simpan()">
+                                    <i class="fas fa-check"></i>
+                                    Simpan
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+            <div class="col-md-4">
+                <div class="card card-info card-outline">
+                    <div class="card-header">
+                        <h5 class="card-title"><i class="fas fa-box-open"></i> List Karton</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="datatable_karton" class="table table-bordered table-hover ">
+                            <thead>
+                                <tr>
+                                    <th>Lokasi</th>
+                                    <th>No. Carton</th>
+                                    <th>Total Qty</th>
+                                    <th>Act</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
+    </form>
     </div>
 @endsection
 
@@ -253,31 +270,317 @@
         });
     </script>
     <script>
+        function notif() {
+            alert("Maaf, Fitur belum tersedia!");
+        }
+
         $(document).ready(function() {
             $("#cbolok").val('').trigger('change');
-            document.getElementById('txtno_carton').value = "";
+            $("#cbobuyer").val('').trigger('change');
+            dataTableReload();
+            cleardet();
         })
 
-        // function getno_ws() {
+        function cleardet() {
+            document.getElementById('txtno_carton').value = "";
+            document.getElementById('txtqty').value = "";
+            $("#cboproduct").val('').trigger('change');
 
-        //     let cbows = document.form.cbows.value;
-        //     let html = $.ajax({
-        //         type: "POST",
-        //         url: '{{ route('getno_marker') }}',
-        //         data: {
-        //             cbows: cbows
-        //         },
-        //         async: false
-        //     }).responseText;
+        }
 
-        //     console.log(html != "");
+        function getno_ws() {
+            let cbobuyer = document.form_h.cbobuyer.value;
+            let html = $.ajax({
+                type: "GET",
+                url: '{{ route('getno_ws') }}',
+                data: {
+                    cbobuyer: cbobuyer
+                },
+                async: false
+            }).responseText;
+            // console.log(html != "");
+            if (html != "") {
+                $("#cbows").html(html);
+                // $("#cbomarker").prop("disabled", false);
+                // $("#txtqtyply").prop("readonly", false);
+            }
+        };
 
-        //     if (html != "") {
-        //         $("#cbomarker").html(html);
+        function getcolor() {
+            let cbows = document.form_h.cbows.value;
+            let html = $.ajax({
+                type: "GET",
+                url: '{{ route('getcolor') }}',
+                data: {
+                    cbows: cbows
+                },
+                async: false
+            }).responseText;
+            if (html != "") {
+                $("#cbocolor").html(html);
+            }
+        };
 
-        //         $("#cbomarker").prop("disabled", false);
-        //         $("#txtqtyply").prop("readonly", false);
-        //     }
-        // };
+        function getsize() {
+            let cbows = document.form_h.cbows.value;
+            let cbocolor = document.form_h.cbocolor.value;
+            let html = $.ajax({
+                type: "GET",
+                url: '{{ route('getsize') }}',
+                data: {
+                    cbows: cbows,
+                    cbocolor: cbocolor
+                },
+                async: false
+            }).responseText;
+            if (html != "") {
+                $("#cbosize").html(html);
+            }
+        };
+
+        function getproduct() {
+            let cbobuyer = document.form_h.cbobuyer.value;
+            let cbows = document.form_h.cbows.value;
+            let cbocolor = document.form_h.cbocolor.value;
+            let cbosize = document.form_h.cbosize.value;
+            let html = $.ajax({
+                type: "GET",
+                url: '{{ route('getproduct') }}',
+                data: {
+                    cbobuyer: cbobuyer,
+                    cbows: cbows,
+                    cbocolor: cbocolor,
+                    cbosize: cbosize
+                },
+                async: false
+            }).responseText;
+            if (html != "") {
+                $("#cboproduct").html(html);
+            }
+        };
+
+        function tambah_data() {
+            let cboproduct = document.form_d.cboproduct.value;
+            let qty = document.form_d.txtqty.value;
+            let no_carton = document.form_d.txtno_carton.value;
+            let grade = document.form_d.cbograde.value;
+            $.ajax({
+                type: "post",
+                url: '{{ route('store_tmp') }}',
+                data: {
+                    cboproduct: cboproduct,
+                    qty: qty,
+                    no_carton: no_carton,
+                    grade: grade
+                },
+                success: function(response) {
+                    if (response.icon == 'salah') {
+                        iziToast.warning({
+                            message: response.msg,
+                            position: 'topCenter'
+                        });
+                    } else {
+                        iziToast.success({
+                            message: response.msg,
+                            position: 'topCenter'
+                        });
+                    }
+                    dataTableReload();
+                    cleardet();
+                },
+                // error: function(request, status, error) {
+                //     alert(request.responseText);
+                // },
+            });
+        };
+
+        function dataTableReload() {
+            let datatable = $("#datatable_tmp").DataTable({
+                ordering: false,
+                processing: true,
+                serverSide: true,
+                paging: false,
+                destroy: true,
+                ajax: {
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    url: '{{ route('show_tmp') }}',
+                    dataType: 'json',
+                    dataSrc: 'data',
+                    data: function(d) {
+                        d.id = $('#id').val();
+                    },
+                },
+                columns: [{
+                        data: 'no_carton',
+                    },
+                    {
+                        data: 'brand',
+                    },
+                    {
+                        data: 'styleno',
+                    },
+                    {
+                        data: 'grade',
+                    },
+                    {
+                        data: 'ws',
+                    },
+                    {
+                        data: 'color',
+                    },
+                    {
+                        data: 'size',
+                    },
+                    {
+                        data: 'qty',
+                    },
+                    {
+                        data: 'id',
+                    },
+                ],
+                columnDefs: [{
+                    targets: [8],
+                    render: (data, type, row, meta) => {
+                        return `
+                            <div class='d-flex gap-1 justify-content-center'>
+                            <a class='btn btn-warning btn-sm' onclick='notif()'><i class='fas fa-edit'></i></a>
+                            <a class='btn btn-danger btn-sm' onclick='notif()'><i class='fas fa-trash'></i></a>
+                                </div>`;
+                    }
+                }, ]
+            });
+        }
+
+        // <a class='btn btn-warning btn-sm' href='{{ route('create-dc-in') }}/` +
+    //                     row.id_so_det +
+    //                     `' data-bs-toggle='tooltip'><i class='fas fa-edit'></i></a>
+        // <a class='btn btn-danger btn-sm' href='{{ route('create-dc-in') }}/` +
+    //                     row.id_so_det +
+    //                     `' data-bs-toggle='tooltip'><i class='fas fa-trash'></i></a>
+
+
+        function simpan() {
+            let tgl_terima = document.form_h.tgl_terima.value;
+            let cbolok = document.form_h.cbolok.value;
+
+            if (cbolok == '') {
+                iziToast.warning({
+                    message: 'Lokasi masih kosong, Silahkan pilih lokasi',
+                    position: 'topCenter'
+                });
+            } else {
+                $.ajax({
+                    type: "post",
+                    url: '{{ route('store-bpb-fg-stock') }}',
+                    data: {
+                        tgl_terima: tgl_terima,
+                        cbolok: cbolok
+                    },
+                    success: function(response) {
+                        if (response.icon == 'salah') {
+                            iziToast.warning({
+                                message: response.msg,
+                                position: 'topCenter'
+                            });
+                        } else {
+                            Swal.fire({
+                                text: response.msg,
+                                icon: "success"
+                            });
+                        }
+                        dataTableReload();
+                        $("#cbolok").val('').trigger('change');
+                        $("#cbobuyer").val('').trigger('change');
+                        dataTableReload();
+                        cleardet();
+                    },
+                    error: function(request, status, error) {
+                        iziToast.warning({
+                            message: 'Data Temporary Kosong cek lagi',
+                            position: 'topCenter'
+                        });
+                    },
+                });
+            }
+        };
+
+        function undo() {
+            let user = document.form_h.user.value;
+            $.ajax({
+                type: "post",
+                url: '{{ route('undo') }}',
+                data: {
+                    user: user
+                },
+                success: function(response) {
+                    if (response.icon == 'salah') {
+                        iziToast.warning({
+                            message: response.msg,
+                            position: 'topCenter'
+                        });
+                    } else {
+                        iziToast.success({
+                            message: response.msg,
+                            position: 'topCenter'
+                        });
+                    }
+                    dataTableReload();
+                },
+                // error: function(request, status, error) {
+                //     alert(request.responseText);
+                // },
+            });
+        };
+
+        function showlok() {
+            let datatable = $("#datatable_karton").DataTable({
+                ordering: false,
+                processing: true,
+                serverSide: true,
+                paging: false,
+                destroy: true,
+                info: false,
+                searching: true,
+                "dom": 'ftip',
+                ajax: {
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    url: '{{ route('show_lok') }}',
+                    dataType: 'json',
+                    dataSrc: 'data',
+                    data: function(d) {
+                        d.cbolok = $('#cbolok').val();
+                    },
+                },
+                columns: [{
+                        data: 'lokasi',
+                    },
+                    {
+                        data: 'no_carton',
+                    },
+                    {
+                        data: 'qty_akhir',
+                    },
+                    {
+                        data: 'lokasi',
+                    },
+                ],
+                columnDefs: [{
+                    targets: [3],
+                    render: (data, type, row, meta) => {
+                        return `
+                        <div class='d-flex gap-1 justify-content-center'>
+                        <a class='btn btn-info btn-sm' onclick='notif()'><i class='fas fa-search'></i></a>
+                            </div>`;
+                    }
+                }, ]
+                // <a class='btn btn-info btn-sm' href='{{ route('create-dc-in') }}/` +
+            //             row.id_so_det +
+            //             `' data-bs-toggle='tooltip'><i class='fas fa-search'></i></a>
+            });
+        }
     </script>
 @endsection

@@ -12,10 +12,10 @@
 @endsection
 
 @section('content')
-    <form action="{{ route('export_excel_pemasukan') }}" method="get">
+    <form action="{{ route('export_excel_pemasukanroll') }}" method="get">
         <div class="card card-sb">
             <div class="card-header">
-                <h5 class="card-title fw-bold mb-0"><i class="fas fa-file-alt fa-sm"></i> Laporan Pemasukan</h5>
+                <h5 class="card-title fw-bold mb-0"><i class="fas fa-file-alt fa-sm"></i> Laporan Pemasukan Per Roll</h5>
             </div>
             <div class="card-body">
                 <div class="d-flex align-items-end gap-3 mb-3">
@@ -49,30 +49,26 @@
                 <tr>
                     <th>No BPB</th>
                     <th>Tgl BPB</th>
-                    <th>No Inv</th>
-                    <th>Jenis Dok</th>
+                    <th>No Mutasi</th>
                     <th>Supplier</th>
-                    <th>No PO</th>
-                    <th>Type</th>
+                    <th>Rak</th>
+                    <th>No Barcode</th>
+                    <th>No Roll</th>
+                    <th>No Lot</th>
+                    <th>Qty BPB</th>
+                    <th>Qty Mutasi</th>
+                    <th>Unit</th>
                     <th>Id Item</th>
+                    <th>Id Jo</th>
+                    <th>No WS</th>
                     <th>Kode Barang</th>
                     <th>Nama Barang</th>
                     <th>Warna</th>
                     <th>Ukuran</th>
-                    <th>Qty BPB</th>
-                    <th>Qty Good</th>
-                    <th>Qty Reject</th>
-                    <th>Satuan</th>
                     <th>Keterangan</th>
-                    <th>User</th>
+                    <th>Nama User</th>
                     <th>Approve By</th>
-                    <th>WS</th>
-                    <th>Style</th>
-                    <th>Curr</th>
-                    <th>Price</th>
-                    <th>Jenis Trans</th>
-                    <th>No Rak</th>
-                    <th hidden>No Rak</th>
+                    <th hidden>Approve By</th>
                 </tr>
             </thead>
             <tbody>
@@ -100,35 +96,53 @@
             paging: false,
             searching: false,
             ajax: {
-                url: '{{ route('lap-det-pemasukan') }}',
+                url: '{{ route('lap-det-pemasukanroll') }}',
                 data: function(d) {
                     d.dateFrom = $('#from').val();
                     d.dateTo = $('#to').val();
                 },
             },
             columns: [{
-                    data: 'bpbno'
+                    data: 'no_dok'
                 },
                 {
-                    data: 'bpbdate'
+                    data: 'tgl_dok'
                 },
                 {
-                    data: 'invno'
-                },
-                {
-                    data: 'jenis_dok'
+                    data: 'no_mut'
                 },
                 {
                     data: 'supplier'
                 },
                 {
-                    data: 'pono'
+                    data: 'rak'
                 },
                 {
-                    data: 'tipe_com'
+                    data: 'barcode'
+                },
+                {
+                    data: 'no_roll'
+                },
+                {
+                    data: 'no_lot'
+                },
+                {
+                    data: 'qty'
+                },
+                {
+                    data: 'qty_mut'
+                },
+                {
+                    data: 'satuan'
                 },
                 {
                     data: 'id_item'
+                },
+                {
+                    data: 'id_jo'
+                },
+                {
+                    data: 'no_ws'
                 },
                 {
                     data: 'goods_code'
@@ -143,19 +157,7 @@
                     data: 'size'
                 },
                 {
-                    data: 'qty'
-                },
-                {
-                    data: 'qty_good'
-                },
-                {
-                    data: 'qty_reject'
-                },
-                {
-                    data: 'unit'
-                },
-                {
-                    data: 'remark'
+                    data: 'deskripsi'
                 },
                 {
                     data: 'username'
@@ -164,30 +166,12 @@
                     data: 'confirm_by'
                 },
                 {
-                    data: 'ws'
-                },
-                {
-                    data: 'styleno'
-                },
-                {
-                    data: 'curr'
-                },
-                {
-                    data: 'price'
-                },
-                {
-                    data: 'jenis_trans'
-                },
-                {
-                    data: 'rak'
-                },
-                {
                     data: 'cari_data'
-                },
+                }
             ],
             columnDefs: [
             {
-                targets: [25],
+                targets: [21],
                 className: "d-none",
                 render: (data, type, row, meta) => data ? data : "-"
             },
@@ -208,7 +192,7 @@
 
         // Loop through all table rows, and hide those who don't match the search query
         for (i = 0; i < tr.length; i++) {
-            td = tr[i].getElementsByTagName("td")[25]; //kolom ke berapa
+            td = tr[i].getElementsByTagName("td")[21]; //kolom ke berapa
             if (td) {
                 txtValue = td.textContent || td.innerText;
                 if (txtValue.toUpperCase().indexOf(filter) > -1) {

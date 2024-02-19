@@ -3,7 +3,7 @@
 
 <table class="table">
     <tr>
-        <td colspan='36' style="font-size: 20px;"><b>Laporan Detail Transaksi</b></td>
+        <td colspan='36' style="font-size: 16px;"><b>Laporan Detail Transaksi</b></td>
     </tr>
     <tr>
         <td colspan='36' style="font-size: 12px;">Periode {{ date('d-M-Y', strtotime($from)) }} s/d {{ date('d-M-Y', strtotime($to)) }}

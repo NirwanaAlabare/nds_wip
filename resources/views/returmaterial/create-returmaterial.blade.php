@@ -857,7 +857,10 @@ function submitFormScan(e, evt) {
 
     function getdatabarcode(val){
         let id_barcode = $('#txt_barcode').val();
-        let kodebarcode = id_barcode.toString();
+        let text1 = "'";
+        let kodenya = text1.concat(id_barcode, "'");
+        let kodebarcode = kodenya.toString();
+        let barcode = kodebarcode.replace(/,/g,"','");
         return $.ajax({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -865,7 +868,7 @@ function submitFormScan(e, evt) {
                 url: '{{ route("get-data-barcode-ro") }}',
                 type: 'get',
                 data: {
-                    id_barcode: kodebarcode,
+                    id_barcode: barcode,
                 },
                 success: function (res) {
                     if (res) {

@@ -291,8 +291,7 @@ class FormCutInputController extends Controller
             FROM
                 whs_lokasi_inmaterial br
                 INNER JOIN masteritem mi ON br.id_item = mi.id_item
-                INNER JOIN bpb ON br.id_jo = bpb.id_jo
-                AND br.id_item = bpb.id_item
+                INNER JOIN bpb ON br.id_jo = bpb.id_jo AND br.id_item = bpb.id_item
                 INNER JOIN mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
                 INNER JOIN jo_det jd ON br.id_jo = jd.id_jo
                 INNER JOIN so ON jd.id_so = so.id
