@@ -12,26 +12,26 @@
 @endsection
 
 @section('content')
-    <form action="{{ route('export_excel_pemasukan') }}" method="get">
+    <form action="{{ route('export_excel_pengeluaran') }}" method="get">
         <div class="card card-sb">
             <div class="card-header">
-                <h5 class="card-title fw-bold mb-0"><i class="fas fa-file-alt fa-sm"></i> Laporan Pemasukan</h5>
+                <h5 class="card-title fw-bold mb-0"><i class="fas fa-file-alt fa-sm"></i> Laporan Pengeluaran</h5>
             </div>
             <div class="card-body">
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div class="mb-3">
-                        <label class="form-label"><small>Tanggal Awal</small></label>
+                        <label class="form-label"><small>From</small></label>
                         <input type="date" class="form-control form-control-sm" id="from" name="from"
                             value="{{ date('Y-m-d') }}">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label"><small>Tanggal Akhir</small></label>
+                        <label class="form-label"><small>To</small></label>
                         <input type="date" class="form-control form-control-sm" id="to" name="to"
                             value="{{ date('Y-m-d') }}">
                     </div>
                     <div class="mb-3">
-                        {{-- <button class="btn btn-primary btn-sm" onclick="export_excel()">Tampilkan</button> --}}
-                        <input type='button' class='btn btn-primary btn-sm' onclick="dataTableReload();" value="Tampilkan">
+                        {{-- <button class="btn btn-primary btn-sm" onclick="export_excel()">Search</button> --}}
+                        <input type='button' class='btn btn-primary btn-sm' onclick="dataTableReload();" value="Search">
                         <button type='submit' name='submit' class='btn btn-success btn-sm'>
                             <i class="fas fa-file-excel"></i> Export</button>
                     </div>
@@ -41,19 +41,18 @@
             <div class="ml-auto">
                 <span class="input-group-text"><i class="fas fa-search"></i></span>
             </div>
-                <input type="text"  id="cari_item" name="cari_item" autocomplete="off" placeholder="Search Item..." onkeyup="cariitem()">
+                <input type="text"  id="cari_item" name="cari_item" autocomplete="off" placeholder="Search Data..." onkeyup="caridata()">
         </div>
     <div class="table-responsive" style="max-height: 400px">
         <table id="datatable" class="table table-bordered table-striped table-head-fixed table-sm w-100 text-nowrap">
             <thead>
                 <tr>
-                    <th>No BPB</th>
-                    <th>Tgl BPB</th>
-                    <th>No Inv</th>
+                    <th>Trans #</th>
+                    <th>No Req</th>
+                    <th>Tgl. Trans</th>
+                    <th>Inv #</th>
                     <th>Jenis Dok</th>
-                    <th>Supplier</th>
-                    <th>No PO</th>
-                    <th>Type</th>
+                    <th>Tujuan</th>
                     <th>Id Item</th>
                     <th>Kode Barang</th>
                     <th>Nama Barang</th>
@@ -64,14 +63,15 @@
                     <th>Qty Reject</th>
                     <th>Satuan</th>
                     <th>Keterangan</th>
-                    <th>User</th>
+                    <th>Nama User</th>
                     <th>Approve By</th>
-                    <th>WS</th>
-                    <th>Style</th>
+                    <th>WS #</th>
+                    <th>Style #</th>
                     <th>Curr</th>
                     <th>Price</th>
+                    <th>Ws Actual</th>
                     <th>Jenis Trans</th>
-                    <th>No Rak</th>
+                    <th hidden>Jenis Trans</th>
                 </tr>
             </thead>
             <tbody>
@@ -99,17 +99,20 @@
             paging: false,
             searching: false,
             ajax: {
-                url: '{{ route('lap-det-pemasukan') }}',
+                url: '{{ route('lap-det-pengeluaran') }}',
                 data: function(d) {
                     d.dateFrom = $('#from').val();
                     d.dateTo = $('#to').val();
                 },
             },
             columns: [{
-                    data: 'bpbno'
+                    data: 'bppbno'
                 },
                 {
-                    data: 'bpbdate'
+                    data: 'bppbno_req'
+                },
+                {
+                    data: 'bppbdate'
                 },
                 {
                     data: 'invno'
@@ -119,12 +122,6 @@
                 },
                 {
                     data: 'supplier'
-                },
-                {
-                    data: 'pono'
-                },
-                {
-                    data: 'tipe_com'
                 },
                 {
                     data: 'id_item'
@@ -175,16 +172,63 @@
                     data: 'price'
                 },
                 {
+                    data: 'idws_act'
+                },
+                {
                     data: 'jenis_trans'
                 },
                 {
-                    data: 'rak'
-                },
+                    data: 'cari_data'
+                }
             ],
+            columnDefs: [{
+                targets: [11],
+                render: (data, type, row, meta) => data ? data.round(2) : "0.00"
+            },
+            {
+                targets: [12],
+                render: (data, type, row, meta) => data ? data.round(2) : "0.00"
+            },
+            {
+                targets: [13],
+                render: (data, type, row, meta) => data ? data.round(2) : "0.00"
+            },
+            {
+                targets: [21],
+                render: (data, type, row, meta) => data ? data.round(2) : "0.00"
+            },
+            {
+                targets: [24],
+                className: "d-none",
+                render: (data, type, row, meta) => data ? data : "-"
+            },
+            ]
         });
 
         function dataTableReload() {
             datatable.ajax.reload();
         }
+
+        function caridata() {
+        // Declare variables
+        var input, filter, table, tr, td, i, txtValue;
+        input = document.getElementById("cari_item");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("datatable");
+        tr = table.getElementsByTagName("tr");
+
+        // Loop through all table rows, and hide those who don't match the search query
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[24]; //kolom ke berapa
+            if (td) {
+                txtValue = td.textContent || td.innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
     </script>
 @endsection

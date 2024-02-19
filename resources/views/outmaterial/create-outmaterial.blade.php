@@ -871,7 +871,7 @@ function submitFormScan(e, evt) {
                 {
                     targets: [7],
                     // className: "d-none",
-                    render: (data, type, row, meta) => '<input style="width:80px;text-align:center;" type="text" id="input_qty' + meta.row + '" name="input_qty['+meta.row+']" value="' + data + '" readonly />'
+                    render: (data, type, row, meta) => '<input style="width:80px;text-align:center;" type="text" id="input_qty' + meta.row + '" name="input_qty['+meta.row+']" value="' + data.round(2) + '" readonly />'
                 },
                 {
                     targets: [9],
@@ -902,7 +902,10 @@ function submitFormScan(e, evt) {
 
     function getdatabarcode(val){
         let id_barcode = $('#txt_barcode').val();
-        let kodebarcode = id_barcode.toString();
+        let text1 = "'";
+        let kodenya = text1.concat(id_barcode, "'");
+        let kodebarcode = kodenya.toString();
+        let barcode = kodebarcode.replace(/,/g,"','");
         return $.ajax({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -910,7 +913,7 @@ function submitFormScan(e, evt) {
                 url: '{{ route("get-data-barcode") }}',
                 type: 'get',
                 data: {
-                    id_barcode: kodebarcode,
+                    id_barcode: barcode,
                 },
                 success: function (res) {
                     if (res) {

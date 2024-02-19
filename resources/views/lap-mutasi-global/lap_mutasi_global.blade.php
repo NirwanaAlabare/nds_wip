@@ -12,10 +12,10 @@
 @endsection
 
 @section('content')
-    <form action="{{ route('export_excel_pemasukan') }}" method="get">
+    <form action="{{ route('export_excel_mut_global') }}" method="get">
         <div class="card card-sb">
             <div class="card-header">
-                <h5 class="card-title fw-bold mb-0"><i class="fas fa-file-alt fa-sm"></i> Laporan Pemasukan</h5>
+                <h5 class="card-title fw-bold mb-0"><i class="fas fa-file-alt fa-sm"></i> Laporan Mutasi Global</h5>
             </div>
             <div class="card-body">
                 <div class="d-flex align-items-end gap-3 mb-3">
@@ -31,7 +31,7 @@
                     </div>
                     <div class="mb-3">
                         {{-- <button class="btn btn-primary btn-sm" onclick="export_excel()">Search</button> --}}
-                        <input type='button' class='btn btn-primary btn-sm' onclick="dataTableReload();" value="Tampilkan">
+                        <input type='button' class='btn btn-primary btn-sm' onclick="dataTableReload();" value="Search">
                         <button type='submit' name='submit' class='btn btn-success btn-sm'>
                             <i class="fas fa-file-excel"></i> Export</button>
                     </div>
@@ -47,32 +47,15 @@
         <table id="datatable" class="table table-bordered table-striped table-head-fixed table-sm w-100 text-nowrap">
             <thead>
                 <tr>
-                    <th>No BPB</th>
-                    <th>Tgl BPB</th>
-                    <th>No Inv</th>
-                    <th>Jenis Dok</th>
-                    <th>Supplier</th>
-                    <th>No PO</th>
-                    <th>Type</th>
                     <th>Id Item</th>
                     <th>Kode Barang</th>
                     <th>Nama Barang</th>
-                    <th>Warna</th>
-                    <th>Ukuran</th>
-                    <th>Qty BPB</th>
-                    <th>Qty Good</th>
-                    <th>Qty Reject</th>
-                    <th>Satuan</th>
-                    <th>Keterangan</th>
-                    <th>User</th>
-                    <th>Approve By</th>
-                    <th>WS</th>
-                    <th>Style</th>
-                    <th>Curr</th>
-                    <th>Price</th>
-                    <th>Jenis Trans</th>
-                    <th>No Rak</th>
-                    <th hidden>No Rak</th>
+                    <th>satuan</th>
+                    <th>Saldo Awal</th>
+                    <th>Pemasukan</th>
+                    <th>Pengeluaran</th>
+                    <th>Saldo Akhir</th>
+                    <th hidden>Saldo Akhir</th>
                 </tr>
             </thead>
             <tbody>
@@ -100,34 +83,13 @@
             paging: false,
             searching: false,
             ajax: {
-                url: '{{ route('lap-det-pemasukan') }}',
+                url: '{{ route('lap-mutasi-global') }}',
                 data: function(d) {
                     d.dateFrom = $('#from').val();
                     d.dateTo = $('#to').val();
                 },
             },
             columns: [{
-                    data: 'bpbno'
-                },
-                {
-                    data: 'bpbdate'
-                },
-                {
-                    data: 'invno'
-                },
-                {
-                    data: 'jenis_dok'
-                },
-                {
-                    data: 'supplier'
-                },
-                {
-                    data: 'pono'
-                },
-                {
-                    data: 'tipe_com'
-                },
-                {
                     data: 'id_item'
                 },
                 {
@@ -137,57 +99,42 @@
                     data: 'itemdesc'
                 },
                 {
-                    data: 'color'
-                },
-                {
-                    data: 'size'
-                },
-                {
-                    data: 'qty'
-                },
-                {
-                    data: 'qty_good'
-                },
-                {
-                    data: 'qty_reject'
-                },
-                {
                     data: 'unit'
                 },
                 {
-                    data: 'remark'
+                    data: 'sal_awal'
                 },
                 {
-                    data: 'username'
+                    data: 'qty_in'
                 },
                 {
-                    data: 'confirm_by'
+                    data: 'qty_out'
                 },
                 {
-                    data: 'ws'
+                    data: 'sal_akhir'
                 },
                 {
-                    data: 'styleno'
-                },
-                {
-                    data: 'curr'
-                },
-                {
-                    data: 'price'
-                },
-                {
-                    data: 'jenis_trans'
-                },
-                {
-                    data: 'rak'
-                },
-                {
-                    data: 'cari_data'
-                },
+                    data: 'cari_item'
+                }
             ],
-            columnDefs: [
+            columnDefs: [{
+                targets: [4],
+                render: (data, type, row, meta) => data ? data.round(2) : "0.00"
+            },
             {
-                targets: [25],
+                targets: [5],
+                render: (data, type, row, meta) => data ? data.round(2) : "0.00"
+            },
+            {
+                targets: [6],
+                render: (data, type, row, meta) => data ? data.round(2) : "0.00"
+            },
+            {
+                targets: [7],
+                render: (data, type, row, meta) => data ? data.round(2) : "0.00"
+            },
+            {
+                targets: [8],
                 className: "d-none",
                 render: (data, type, row, meta) => data ? data : "-"
             },
@@ -208,7 +155,7 @@
 
         // Loop through all table rows, and hide those who don't match the search query
         for (i = 0; i < tr.length; i++) {
-            td = tr[i].getElementsByTagName("td")[25]; //kolom ke berapa
+            td = tr[i].getElementsByTagName("td")[8]; //kolom ke berapa
             if (td) {
                 txtValue = td.textContent || td.innerText;
                 if (txtValue.toUpperCase().indexOf(filter) > -1) {

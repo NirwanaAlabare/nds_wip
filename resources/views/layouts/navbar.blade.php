@@ -119,15 +119,21 @@
                        
                         <li>
                             <a href="{{ route('lap-det-pemasukan') }}" class="dropdown-item">
-                                Pemasukan Detail
+                                Pemasukan Detail Item
                             </a>
-                            <a href="#" class="dropdown-item">
-                                Pengeluaran Detail
+                            <a href="{{ route('lap-det-pemasukanroll') }}" class="dropdown-item">
+                                Pemasukan Detail Roll
                             </a>
-                            <a href="#" class="dropdown-item">
+                            <a href="{{ route('lap-det-pengeluaran') }}" class="dropdown-item">
+                                Pengeluaran Detail Item
+                            </a>
+                            <a href="{{ route('lap-det-pengeluaranroll') }}" class="dropdown-item">
+                                Pengeluaran Detail Roll
+                            </a>
+                            <a href="{{ route('lap-mutasi-global') }}" class="dropdown-item">
                                 Mutasi Global
                             </a>
-                            <a href="#" class="dropdown-item">
+                            <a href="{{ route('lap-mutasi-detail') }}" class="dropdown-item">
                                 Mutasi Detail
                             </a>
                         </li>

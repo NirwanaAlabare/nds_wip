@@ -44,14 +44,14 @@ class LapDetPemasukanController extends Controller
             //     ";
             // }
 
-            $data_pemasukan = DB::connection('mysql_sb')->select("select a.no_dok bpbno,a.tgl_dok bpbdate,no_invoice invno,type_bc jenis_dok,right(no_aju,6) no_aju,tgl_aju, lpad(no_daftar,6,'0') bcno,tgl_daftar bcdate,a.supplier,a.no_po pono,z.tipe_com,no_invoice invno,b.id_item,goods_code,concat(itemdesc,' ',add_info) itemdesc,s.color,s.size, (b.qty_good + coalesce(b.qty_reject,0)) qty,b.qty_good as qty_good,coalesce(b.qty_reject,0) as qty_reject, b.unit,'' berat_bersih,a.deskripsi remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by,tmpjo.kpno ws,tmpjo.styleno,b.curr,if(z.tipe_com !='Regular','0',b.price)price, a.type_pch jenis_trans,lr.rak from whs_inmaterial_fabric a 
+            $data_pemasukan = DB::connection('mysql_sb')->select("select *,CONCAT_WS(bpbno,bpbdate,invno,jenis_dok,supplier,pono,tipe_com,id_item,goods_code,itemdesc,color,size,qty,qty_good,qty_reject,unit,remark,username,confirm_by,ws,styleno,curr,price,jenis_trans,rak) cari_data from (select a.no_dok bpbno,a.tgl_dok bpbdate,no_invoice invno,type_bc jenis_dok,right(no_aju,6) no_aju,tgl_aju, lpad(no_daftar,6,'0') bcno,tgl_daftar bcdate,a.supplier,a.no_po pono,z.tipe_com,b.id_item,goods_code,concat(itemdesc,' ',add_info) itemdesc,s.color,s.size, (b.qty_good + coalesce(b.qty_reject,0)) qty,b.qty_good as qty_good,coalesce(b.qty_reject,0) as qty_reject, b.unit,'' berat_bersih,a.deskripsi remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by,tmpjo.kpno ws,tmpjo.styleno,b.curr,if(z.tipe_com !='Regular','0',b.price)price, a.type_pch jenis_trans,lr.rak from whs_inmaterial_fabric a 
 inner join whs_inmaterial_fabric_det b on b.no_dok = a.no_dok
 left join po_header po on po.pono = a.no_po
 left join po_header_draft z on z.id = po.id_draft
 inner join masteritem s on b.id_item=s.id_item 
 left join (select no_dok,id_jo,id_item, CONCAT(kode_lok,' FABRIC WAREHOUSE RACK') rak from whs_lokasi_inmaterial  where status = 'Y' group by no_dok,id_jo,id_item) lr on b.no_dok = lr.no_dok and b.id_item = lr.id_item and b.id_jo = lr.id_jo  
 left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=so.id_cost inner join jo_det jod on so.id=jod.id_so group by id_jo) tmpjo on tmpjo.id_jo=b.id_jo 
-where left(a.no_dok,2) ='GK' " . $additionalQuery . " and matclass= 'FABRIC' and b.status != 'N' and a.status != 'cancel' order by bpbno");
+where left(a.no_dok,2) ='GK' " . $additionalQuery . " and matclass= 'FABRIC' and b.status != 'N' and a.status != 'cancel' order by bpbno) a");
 
 
 //             $data_pemasukan = DB::connection('mysql_sb')->select("

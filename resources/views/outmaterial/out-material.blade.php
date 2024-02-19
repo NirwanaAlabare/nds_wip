@@ -125,8 +125,8 @@
             </div>
                 <input type="text"  id="cari_grdok" name="cari_grdok" autocomplete="off" placeholder="Cari No BPPB..." onkeyup="carigrdok()">
         </div>
-        <div class="table-responsive">
-            <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+        <div class="table-responsive" style="max-height: 400px">
+            <table id="datatable" class="table table-bordered table-striped table-head-fixed table-sm w-100 text-nowrap">
                 <thead>
                     <tr>
                         <th class="text-center">No BPPB</th>
