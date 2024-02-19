@@ -328,7 +328,7 @@ select id_roll,id_item,id_jo,roll_no,lot_no,goods_code,itemdesc, qty_sisa, unit,
                 bpb_roll_h brh on br.id_h=brh.id 
                 inner join masteritem mi on brh.id_item = mi.id_item
                 inner join master_rak mr on br.id_rak_loc=mr.id where br.id in (" . $request->id_barcode . ") and br.id_rak_loc!='' 
-                order by br.id) a where qty_sisa > 0");
+                order by br.id) a where qty_sisa > 0 and id_roll > 4000");
 
         $sum_item = DB::connection('mysql_sb')->select("select count(id_roll) ttl_roll from (select id id_roll,id_item ,id_jo ,no_roll roll_no, no_lot lot_no,kode_item goods_code,item_desc itemdesc,qty_aktual sisa,satuan unit,kode_lok kode_rak,no_ws kpno from whs_lokasi_inmaterial where id in (" . $request->id_barcode . ")
 UNION
@@ -336,7 +336,7 @@ select id_roll,id_item,id_jo,roll_no,lot_no,goods_code,itemdesc, qty_sisa, unit,
                 bpb_roll_h brh on br.id_h=brh.id 
                 inner join masteritem mi on brh.id_item = mi.id_item
                 inner join master_rak mr on br.id_rak_loc=mr.id where br.id IN (" . $request->id_barcode . ") and br.id_rak_loc!='' 
-                order by br.id) a where qty_sisa > 0) a");
+                order by br.id) a where qty_sisa > 0 and id_roll > 4000) a");
 
     $sum_item = DB::connection('mysql_sb')->select("select count(id_roll) ttl_roll from (select id id_roll,id_item ,id_jo ,no_roll roll_no, no_lot lot_no,kode_item goods_code,item_desc itemdesc,qty_aktual sisa,satuan unit,kode_lok kode_rak,no_ws kpno from whs_lokasi_inmaterial where id in (" . $request->id_barcode . ")
 UNION
@@ -344,7 +344,7 @@ select id_roll,id_item,id_jo,roll_no,lot_no,goods_code,itemdesc, qty_sisa, unit,
             bpb_roll_h brh on br.id_h=brh.id 
             inner join masteritem mi on brh.id_item = mi.id_item
             inner join master_rak mr on br.id_rak_loc=mr.id where br.id IN (" . $request->id_barcode . ") and br.id_rak_loc!='' 
-            order by br.id) a where qty_sisa > 0) a");
+            order by br.id) a where qty_sisa > 0 and id_roll > 4000) a");
         foreach ($sum_item as $sumitem) {
         $html = '<input style="width:100%;align:center;" class="form-control" type="hidden" id="tot_roll" name="tot_roll" value="'.$sumitem->ttl_roll.'" / readonly>';
         }

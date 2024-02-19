@@ -262,6 +262,15 @@ class FormCutInputController extends Controller
 
     public function getScannedItem($id = 0)
     {
+        $scannedItem = ScannedItem::where('id_roll', $id)->first();
+        if ($scannedItem) {
+            if (floatval($scannedItem->qty) > 0) {
+                return json_encode($scannedItem);
+            }
+
+            return json_encode(null);
+        }
+
         $newItem = DB::connection("mysql_sb")->select("
             SELECT
                 br.id id_roll,
@@ -281,8 +290,7 @@ class FormCutInputController extends Controller
             FROM
                 whs_lokasi_inmaterial br
                 INNER JOIN masteritem mi ON br.id_item = mi.id_item
-                INNER JOIN bpb ON br.id_jo = bpb.id_jo
-                AND br.id_item = bpb.id_item
+                INNER JOIN bpb ON br.id_jo = bpb.id_jo AND br.id_item = bpb.id_item
                 INNER JOIN mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
                 INNER JOIN jo_det jd ON br.id_jo = jd.id_jo
                 INNER JOIN so ON jd.id_so = so.id
@@ -296,15 +304,6 @@ class FormCutInputController extends Controller
         ");
         if ($newItem) {
             return json_encode($newItem ? $newItem[0] : null);
-        }
-
-        $scannedItem = ScannedItem::where('id_roll', $id)->first();
-        if ($scannedItem) {
-            if (floatval($scannedItem->qty) > 0) {
-                return json_encode($scannedItem);
-            }
-
-            return json_encode(null);
         }
 
         $item = DB::connection("mysql_sb")->select("
