@@ -11,7 +11,7 @@
     {{-- Complete Stocker Data --}}
     <div class="card">
         <div class="card-header bg-sb text-light">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-check-circle fa-sm"></i> Stock Complete</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-spinner"></i> Stock DC Incomplete</h5>
         </div>
         <div class="card-body">
             <div class="d-flex align-items-end gap-3 mb-3">
@@ -28,7 +28,7 @@
                 </div>
             </div>
             <div class="table-responsive">
-                <table id="datatable-complete-stocker" class="table table-bordered table-sm w-100">
+                <table id="datatable-incomplete-stocker" class="table table-bordered table-sm w-100">
                     <thead>
                         <tr>
                             <th class="align-bottom">Action</th>
@@ -66,12 +66,12 @@
         });
 
         // Complete Stocker Datatable
-        let datatableCompleteStocker = $("#datatable-complete-stocker").DataTable({
+        let datatableCompleteStocker = $("#datatable-incomplete-stocker").DataTable({
             ordering: false,
             processing: true,
             serverSide: true,
             ajax: {
-                url: '{{ route('stock-dc-complete') }}',
+                url: '{{ route('stock-dc-incomplete') }}',
             },
             columns: [
                 {
@@ -87,10 +87,10 @@
                     data: 'size'
                 },
                 {
-                    data: 'stocker'
+                    data: 'bundle'
                 },
                 {
-                    data: 'qty'
+                    data: 'incomplete'
                 },
             ],
             columnDefs: [
@@ -100,7 +100,7 @@
                     render: (data, type, row, meta) => {
                         return  `
                             <div class='d-flex gap-1 justify-content-center'>
-                                <a href='{{ route('stock-dc-complete-detail') }}/`+row.part_id+`/`+row.color+`/`+row.size+`/' class='btn btn-primary btn-sm'>
+                                <a href='{{ route('stock-dc-incomplete-detail') }}/`+row.part_id+`/`+row.color+`/`+row.size+`/' class='btn btn-primary btn-sm'>
                                     <i class='fa fa-search-plus'></i>
                                 </a>
                             </div>

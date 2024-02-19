@@ -31,9 +31,6 @@
         <div class="collapse navbar-collapse order-3" id="navbarCollapse">
             <!-- Left navbar links -->
             <ul class="navbar-nav">
-                {{-- <li class="nav-item">
-                    <a href="/marker" class="nav-link {{ $page == 'marker' ? 'active' : '' }}">Marker</a>
-                </li> --}}
                 @if ($page == 'dashboard-warehouse')
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
@@ -105,7 +102,7 @@
                     <li class="nav-item dropdown">
                     <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">Laporan</a>
                     <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-                       
+
                         <li>
                             <a href="{{ route('lap-det-pemasukan') }}" class="dropdown-item">
                                 Pemasukan Detail Item
@@ -402,12 +399,12 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('stocker') }}" class="dropdown-item {{ $subPage == '-' ? 'active' : '' }}">
+                                    <a href="{{ route('stock-dc-incomplete') }}" class="dropdown-item {{ $subPage == 'stok-dc-incomplete' ? 'active' : '' }}">
                                         Stocker Incomplete <i class="fa-solid fa-spinner"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('stocker') }}" class="dropdown-item {{ $subPage == '-' ? 'active' : '' }}">
+                                    <a href="{{ route('stocker') }}" class="dropdown-item {{ $subPage == 'stok-dc-wip' ? 'active' : '' }}">
                                         WIP <i class="fa-solid fa-shirt"></i>
                                     </a>
                                 </li>
