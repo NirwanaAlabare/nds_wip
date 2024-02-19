@@ -103,17 +103,31 @@
 
                 @if ($page == 'dashboard-warehouse')
                     <li class="nav-item dropdown">
-                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
-                            aria-expanded="false" class="nav-link dropdown-toggle">QC</a>
-                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-
-                            <li>
-                                <a href="{{ route('qc-pass') }}" class="dropdown-item">
-                                    QC Inspection
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
+                    <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">Laporan</a>
+                    <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                       
+                        <li>
+                            <a href="{{ route('lap-det-pemasukan') }}" class="dropdown-item">
+                                Pemasukan Detail Item
+                            </a>
+                            <a href="{{ route('lap-det-pemasukanroll') }}" class="dropdown-item">
+                                Pemasukan Detail Roll
+                            </a>
+                            <a href="{{ route('lap-det-pengeluaran') }}" class="dropdown-item">
+                                Pengeluaran Detail Item
+                            </a>
+                            <a href="{{ route('lap-det-pengeluaranroll') }}" class="dropdown-item">
+                                Pengeluaran Detail Roll
+                            </a>
+                            <a href="{{ route('lap-mutasi-global') }}" class="dropdown-item">
+                                Mutasi Global
+                            </a>
+                            <a href="{{ route('lap-mutasi-detail') }}" class="dropdown-item">
+                                Mutasi Detail
+                            </a>
+                        </li>
+                    </ul>
+                </li>
                 @endif
 
                 @if ($page == 'dashboard-warehouse')

@@ -253,14 +253,18 @@ class OutMaterialController extends Controller
     public function showdetailitem(Request $request)
     {
         
-        $det_item = DB::connection('mysql_sb')->select("select id_roll,id_item,id_jo,kode_rak,itemdesc,raknya,lot_no, roll_no, qty_sisa, unit from (select br.id id_roll,br.id_h,brh.id_item,brh.id_jo,roll_no,lot_no,roll_qty,roll_qty_used,roll_qty - roll_qty_used qty_sisa,roll_foc,br.unit, concat(kode_rak,' ',nama_rak) raknya,kode_rak,br.barcode, mi.itemdesc from bpb_roll br inner join 
-                bpb_roll_h brh on br.id_h=brh.id 
-                inner join masteritem mi on brh.id_item = mi.id_item
-                inner join master_rak mr on br.id_rak_loc=mr.id where 
-                brh.id_jo='" . $request->id_jo . "' and brh.id_item='" . $request->id_item . "' and br.id_rak_loc!='' 
-                order by br.id) a where qty_sisa > 0
+        $det_item = DB::connection('mysql_sb')->select("select * from (select id_roll,id_item,id_jo,kode_rak,itemdesc,raknya,lot_no,roll_no,ROUND(COALESCE(qty_in,0) - COALESCE(qty_out,0),2) qty_sisa,unit from (select a.no_barcode id_roll,a.id_item,a.id_jo,a.kode_lok kode_rak,b.itemdesc,a.kode_lok raknya,no_lot lot_no,no_roll roll_no,sum(qty) qty_in,c.qty_out,a.unit from whs_sa_fabric a inner join masteritem b on b.id_item = a.id_item left join (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll) c on c.id_roll = a.no_barcode where a.qty != 0 and qty_mut is null GROUP BY a.no_barcode) a) a where a.id_jo='" . $request->id_jo . "' and a.id_item='" . $request->id_item . "' and a.qty_sisa > 0
                 UNION
-                select id, id_item, id_jo, kode_lok, item_desc, raknya, no_lot,no_roll, qty_aktual,satuan from (select a.id, a.id_item, a.id_jo, a.kode_lok, a.item_desc, a.kode_lok raknya, a.no_lot,a.no_roll, a.qty_aktual,a.satuan,COALESCE(c.qty_out,0) qty_out,(a.qty_aktual - COALESCE(c.qty_out,0)) qty_sisa from whs_lokasi_inmaterial a left join (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll) c on c.id_roll = a.id where a.id_jo='" . $request->id_jo . "' and a.id_item='" . $request->id_item . "') a where a.qty_sisa > 0");
+                select id, id_item, id_jo, kode_lok, item_desc, raknya, no_lot,no_roll, qty_aktual,satuan from (select a.nobarcode id, a.id_item, a.id_jo, a.kode_lok, a.item_desc, a.kode_lok raknya, a.no_lot,a.no_roll, a.qty_aktual,a.satuan,COALESCE(c.qty_out,0) qty_out,(a.qty_aktual - COALESCE(c.qty_out,0)) qty_sisa from whs_lokasi_inmaterial a left join (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll) c on c.id_roll = a.id where a.id_jo='" . $request->id_jo . "' and a.id_item='" . $request->id_item . "') a where a.qty_sisa > 0");
+
+        // $det_item = DB::connection('mysql_sb')->select("select id_roll,id_item,id_jo,kode_rak,itemdesc,raknya,lot_no, roll_no, qty_sisa, unit from (select br.id id_roll,br.id_h,brh.id_item,brh.id_jo,roll_no,lot_no,roll_qty,roll_qty_used,roll_qty - roll_qty_used qty_sisa,roll_foc,br.unit, concat(kode_rak,' ',nama_rak) raknya,kode_rak,br.barcode, mi.itemdesc from bpb_roll br inner join 
+        //         bpb_roll_h brh on br.id_h=brh.id 
+        //         inner join masteritem mi on brh.id_item = mi.id_item
+        //         inner join master_rak mr on br.id_rak_loc=mr.id where 
+        //         brh.id_jo='" . $request->id_jo . "' and brh.id_item='" . $request->id_item . "' and br.id_rak_loc!='' 
+        //         order by br.id) a where qty_sisa > 0
+        //         UNION
+        //         select id, id_item, id_jo, kode_lok, item_desc, raknya, no_lot,no_roll, qty_aktual,satuan from (select a.id, a.id_item, a.id_jo, a.kode_lok, a.item_desc, a.kode_lok raknya, a.no_lot,a.no_roll, a.qty_aktual,a.satuan,COALESCE(c.qty_out,0) qty_out,(a.qty_aktual - COALESCE(c.qty_out,0)) qty_sisa from whs_lokasi_inmaterial a left join (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll) c on c.id_roll = a.id where a.id_jo='" . $request->id_jo . "' and a.id_item='" . $request->id_item . "') a where a.qty_sisa > 0");
 
         $html = '<div class="table-responsive" style="max-height: 300px">
             <table id="tableshow" class="table table-head-fixed table-bordered table-striped table-sm w-100 text-nowrap">
@@ -321,30 +325,31 @@ class OutMaterialController extends Controller
 
     public function showdetailbarcode(Request $request)
     {
+        // dd(str_replace(",","','",$request->id_barcode));
         // dd($request->id_barcode);
-        $det_item = DB::connection('mysql_sb')->select("select id id_roll,id_item ,id_jo ,no_roll roll_no, no_lot lot_no,kode_item goods_code,item_desc itemdesc,qty_aktual sisa,satuan unit,kode_lok kode_rak,no_ws kpno from whs_lokasi_inmaterial where id in (" . $request->id_barcode . ")
+        $det_item = DB::connection('mysql_sb')->select("select no_barcode id_roll,id_item ,id_jo ,no_roll roll_no, no_lot lot_no,kode_item goods_code,item_desc itemdesc,qty_aktual sisa,satuan unit,kode_lok kode_rak,no_ws kpno from whs_lokasi_inmaterial where id in (" . $request->id_barcode . ")
             UNION
-select id_roll,id_item,id_jo,roll_no,lot_no,goods_code,itemdesc, qty_sisa, unit,kode_rak,'' ws from (select br.id id_roll,br.id_h,brh.id_item,brh.id_jo,roll_no,lot_no,roll_qty,roll_qty_used,roll_qty - roll_qty_used qty_sisa,roll_foc,br.unit, concat(kode_rak,' ',nama_rak) raknya,kode_rak,br.barcode, mi.itemdesc,mi.goods_code from bpb_roll br inner join 
-                bpb_roll_h brh on br.id_h=brh.id 
-                inner join masteritem mi on brh.id_item = mi.id_item
-                inner join master_rak mr on br.id_rak_loc=mr.id where br.id in (" . $request->id_barcode . ") and br.id_rak_loc!='' 
-                order by br.id) a where qty_sisa > 0 and id_roll > 4000");
+            select * from (select id_roll,id_item,id_jo,roll_no,lot_no,goods_code,itemdesc,ROUND(COALESCE(qty_in,0) - COALESCE(qty_out,0),2) qty_sisa,unit,kode_rak,no_ws from (select a.no_barcode id_roll,a.id_item,a.id_jo,a.kode_lok kode_rak,b.itemdesc, b.goods_code, a.no_ws,a.kode_lok raknya,no_lot lot_no,no_roll roll_no,sum(qty) qty_in,c.qty_out,a.unit from whs_sa_fabric a inner join masteritem b on b.id_item = a.id_item left join (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll) c on c.id_roll = a.no_barcode where a.qty != 0 and qty_mut is null GROUP BY a.no_barcode) a) a where a.id_roll in (" . $request->id_barcode . ") and a.qty_sisa > 0");
+
+//         $det_item = DB::connection('mysql_sb')->select("select id id_roll,id_item ,id_jo ,no_roll roll_no, no_lot lot_no,kode_item goods_code,item_desc itemdesc,qty_aktual sisa,satuan unit,kode_lok kode_rak,no_ws kpno from whs_lokasi_inmaterial where id in (" . $request->id_barcode . ")
+//             UNION
+// select id_roll,id_item,id_jo,roll_no,lot_no,goods_code,itemdesc, qty_sisa, unit,kode_rak,'' ws from (select br.id id_roll,br.id_h,brh.id_item,brh.id_jo,roll_no,lot_no,roll_qty,roll_qty_used,roll_qty - roll_qty_used qty_sisa,roll_foc,br.unit, concat(kode_rak,' ',nama_rak) raknya,kode_rak,br.barcode, mi.itemdesc,mi.goods_code from bpb_roll br inner join 
+//                 bpb_roll_h brh on br.id_h=brh.id 
+//                 inner join masteritem mi on brh.id_item = mi.id_item
+//                 inner join master_rak mr on br.id_rak_loc=mr.id where br.id in (" . $request->id_barcode . ") and br.id_rak_loc!='' 
+//                 order by br.id) a where qty_sisa > 0");
 
         $sum_item = DB::connection('mysql_sb')->select("select count(id_roll) ttl_roll from (select id id_roll,id_item ,id_jo ,no_roll roll_no, no_lot lot_no,kode_item goods_code,item_desc itemdesc,qty_aktual sisa,satuan unit,kode_lok kode_rak,no_ws kpno from whs_lokasi_inmaterial where id in (" . $request->id_barcode . ")
 UNION
-select id_roll,id_item,id_jo,roll_no,lot_no,goods_code,itemdesc, qty_sisa, unit,kode_rak,'' ws from (select br.id id_roll,br.id_h,brh.id_item,brh.id_jo,roll_no,lot_no,roll_qty,roll_qty_used,roll_qty - roll_qty_used qty_sisa,roll_foc,br.unit, concat(kode_rak,' ',nama_rak) raknya,kode_rak,br.barcode, mi.itemdesc,mi.goods_code from bpb_roll br inner join 
-                bpb_roll_h brh on br.id_h=brh.id 
-                inner join masteritem mi on brh.id_item = mi.id_item
-                inner join master_rak mr on br.id_rak_loc=mr.id where br.id IN (" . $request->id_barcode . ") and br.id_rak_loc!='' 
-                order by br.id) a where qty_sisa > 0 and id_roll > 4000) a");
+select * from (select id_roll,id_item,id_jo,roll_no,lot_no,goods_code,itemdesc,ROUND(COALESCE(qty_in,0) - COALESCE(qty_out,0),2) qty_sisa,unit,kode_rak,no_ws from (select a.no_barcode id_roll,a.id_item,a.id_jo,a.kode_lok kode_rak,b.itemdesc, b.goods_code, a.no_ws,a.kode_lok raknya,no_lot lot_no,no_roll roll_no,sum(qty) qty_in,c.qty_out,a.unit from whs_sa_fabric a inner join masteritem b on b.id_item = a.id_item left join (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll) c on c.id_roll = a.no_barcode where a.qty != 0 and qty_mut is null GROUP BY a.no_barcode) a) a where a.id_roll in (" . $request->id_barcode . ") and a.qty_sisa > 0) a");
 
-    $sum_item = DB::connection('mysql_sb')->select("select count(id_roll) ttl_roll from (select id id_roll,id_item ,id_jo ,no_roll roll_no, no_lot lot_no,kode_item goods_code,item_desc itemdesc,qty_aktual sisa,satuan unit,kode_lok kode_rak,no_ws kpno from whs_lokasi_inmaterial where id in (" . $request->id_barcode . ")
-UNION
-select id_roll,id_item,id_jo,roll_no,lot_no,goods_code,itemdesc, qty_sisa, unit,kode_rak,'' ws from (select br.id id_roll,br.id_h,brh.id_item,brh.id_jo,roll_no,lot_no,roll_qty,roll_qty_used,roll_qty - roll_qty_used qty_sisa,roll_foc,br.unit, concat(kode_rak,' ',nama_rak) raknya,kode_rak,br.barcode, mi.itemdesc,mi.goods_code from bpb_roll br inner join 
-            bpb_roll_h brh on br.id_h=brh.id 
-            inner join masteritem mi on brh.id_item = mi.id_item
-            inner join master_rak mr on br.id_rak_loc=mr.id where br.id IN (" . $request->id_barcode . ") and br.id_rak_loc!='' 
-            order by br.id) a where qty_sisa > 0 and id_roll > 4000) a");
+//     $sum_item = DB::connection('mysql_sb')->select("select count(id_roll) ttl_roll from (select id id_roll,id_item ,id_jo ,no_roll roll_no, no_lot lot_no,kode_item goods_code,item_desc itemdesc,qty_aktual sisa,satuan unit,kode_lok kode_rak,no_ws kpno from whs_lokasi_inmaterial where id in (" . $request->id_barcode . ")
+// UNION
+// select id_roll,id_item,id_jo,roll_no,lot_no,goods_code,itemdesc, qty_sisa, unit,kode_rak,'' ws from (select br.id id_roll,br.id_h,brh.id_item,brh.id_jo,roll_no,lot_no,roll_qty,roll_qty_used,roll_qty - roll_qty_used qty_sisa,roll_foc,br.unit, concat(kode_rak,' ',nama_rak) raknya,kode_rak,br.barcode, mi.itemdesc,mi.goods_code from bpb_roll br inner join 
+//             bpb_roll_h brh on br.id_h=brh.id 
+//             inner join masteritem mi on brh.id_item = mi.id_item
+//             inner join master_rak mr on br.id_rak_loc=mr.id where br.id IN (" . $request->id_barcode . ") and br.id_rak_loc!='' 
+//             order by br.id) a where qty_sisa > 0) a");
         foreach ($sum_item as $sumitem) {
         $html = '<input style="width:100%;align:center;" class="form-control" type="hidden" id="tot_roll" name="tot_roll" value="'.$sumitem->ttl_roll.'" / readonly>';
         }
@@ -479,27 +484,32 @@ where breq.bppbno='".$request->no_req."') a left join (select id_item iditem,sum
 
     public function getListbarcode(Request $request)
     {
-        $listbarcode = DB::connection('mysql_sb')->select("select br.id isi, concat(br.id,' - ' ,mi.itemdesc, ' - ', ac.kpno) tampil,concat(br.id,' - ', mi.itemdesc) tampil2 
-  from bpb_roll br 
-  inner join bpb_roll_h brh on br.id_h = brh.id 
-  inner join bppb_req breq on brh.id_item = breq.id_item and brh.id_jo = breq.id_jo 
-  inner join masteritem mi on brh.id_item = mi.id_item 
-  inner join jo_det jd on brh.id_jo = jd.id_jo 
-  inner join so on jd.id_so = so.id 
-  inner join act_costing ac on so.id_cost = ac.id
-  where (br.roll_qty - br.roll_qty_used) > 0 and breq.bppbno = '" . $request->noreq . "' 
-  union
-  select br.id isi, concat(br.id,' - ' ,mi.itemdesc, ' - ', ac.kpno) tampil,concat(br.id,' - ', mi.itemdesc) tampil2 
-  from bpb_roll br 
-  inner join bpb_roll_h brh on br.id_h = brh.id
-  inner join jo_det jd on brh.id_jo = jd.id_jo 
-  inner join so on jd.id_so = so.id 
-  inner join act_costing ac on so.id_cost = ac.id
-  inner join bppb_req breq on brh.id_item = breq.id_item and ac.kpno = breq.idws_act 
-  inner join masteritem mi on brh.id_item = mi.id_item 
-  where (br.roll_qty - br.roll_qty_used) > 0 and breq.bppbno = '" . $request->noreq . "'
+        $listbarcode = DB::connection('mysql_sb')->select("select id_roll isi, concat_ws('',id_roll,' - ' ,itemdesc, ' - ', no_ws) tampil,concat(id_roll,' - ', itemdesc) tampil2 from (select bppbno,id_roll,itemdesc,ROUND(COALESCE(qty_in,0) - COALESCE(qty_out,0),2) qty_sisa,no_ws from (select breq.bppbno,a.no_barcode id_roll,a.id_item,a.id_jo,a.kode_lok kode_rak,b.itemdesc, b.goods_code, a.no_ws,a.kode_lok raknya,no_lot lot_no,no_roll roll_no,sum(a.qty) qty_in,c.qty_out,a.unit from whs_sa_fabric a inner join masteritem b on b.id_item = a.id_item inner join (select bppbno,id_item,id_jo from bppb_req where bppbno = '" . $request->noreq . "' ) breq on a.id_item = breq.id_item and a.id_jo = breq.id_jo left join (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll) c on c.id_roll = a.no_barcode where a.qty != 0 and qty_mut is null GROUP BY a.no_barcode) a) a where a.qty_sisa > 0
   UNION
-  select id,tampil,tampil2 from (select a.id, concat(a.id,' - ' ,a.item_desc, ' - ', a.no_ws) tampil,concat(a.id,' - ', a.item_desc) tampil2 ,a.qty_aktual, COALESCE(c.qty_out,0) qty_out,(a.qty_aktual - COALESCE(c.qty_out,0)) qty_sisa from whs_lokasi_inmaterial a inner join bppb_req b on b.id_item = a.id_item and b.idws_act = a.no_ws left join (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll) c on c.id_roll = a.id where b.bppbno = '" . $request->noreq . "') a where a.qty_sisa > 0");
+  select id,tampil,tampil2 from (select a.no_barcode, concat(a.no_barcode,' - ' ,a.item_desc, ' - ', a.no_ws) tampil,concat(a.no_barcode,' - ', a.item_desc) tampil2 ,a.qty_aktual, COALESCE(c.qty_out,0) qty_out,(a.qty_aktual - COALESCE(c.qty_out,0)) qty_sisa from whs_lokasi_inmaterial a inner join bppb_req b on b.id_item = a.id_item and b.idws_act = a.no_ws left join (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll) c on c.id_roll = a.id where b.bppbno = '" . $request->noreq . "') a where a.qty_sisa > 0");
+
+
+  //       $listbarcode = DB::connection('mysql_sb')->select("select br.id isi, concat(br.id,' - ' ,mi.itemdesc, ' - ', ac.kpno) tampil,concat(br.id,' - ', mi.itemdesc) tampil2 
+  // from bpb_roll br 
+  // inner join bpb_roll_h brh on br.id_h = brh.id 
+  // inner join bppb_req breq on brh.id_item = breq.id_item and brh.id_jo = breq.id_jo 
+  // inner join masteritem mi on brh.id_item = mi.id_item 
+  // inner join jo_det jd on brh.id_jo = jd.id_jo 
+  // inner join so on jd.id_so = so.id 
+  // inner join act_costing ac on so.id_cost = ac.id
+  // where (br.roll_qty - br.roll_qty_used) > 0 and breq.bppbno = '" . $request->noreq . "' 
+  // union
+  // select br.id isi, concat(br.id,' - ' ,mi.itemdesc, ' - ', ac.kpno) tampil,concat(br.id,' - ', mi.itemdesc) tampil2 
+  // from bpb_roll br 
+  // inner join bpb_roll_h brh on br.id_h = brh.id
+  // inner join jo_det jd on brh.id_jo = jd.id_jo 
+  // inner join so on jd.id_so = so.id 
+  // inner join act_costing ac on so.id_cost = ac.id
+  // inner join bppb_req breq on brh.id_item = breq.id_item and ac.kpno = breq.idws_act 
+  // inner join masteritem mi on brh.id_item = mi.id_item 
+  // where (br.roll_qty - br.roll_qty_used) > 0 and breq.bppbno = '" . $request->noreq . "'
+  // UNION
+  // select id,tampil,tampil2 from (select a.id, concat(a.id,' - ' ,a.item_desc, ' - ', a.no_ws) tampil,concat(a.id,' - ', a.item_desc) tampil2 ,a.qty_aktual, COALESCE(c.qty_out,0) qty_out,(a.qty_aktual - COALESCE(c.qty_out,0)) qty_sisa from whs_lokasi_inmaterial a inner join bppb_req b on b.id_item = a.id_item and b.idws_act = a.no_ws left join (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll) c on c.id_roll = a.id where b.bppbno = '" . $request->noreq . "') a where a.qty_sisa > 0");
 
         $html = "";
 

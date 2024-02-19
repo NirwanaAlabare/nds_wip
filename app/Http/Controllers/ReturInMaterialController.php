@@ -309,12 +309,14 @@ class ReturInMaterialController extends Controller
             $inmaterialDetailData2 = [];
             for ($i = 0; $i < intval($request['jumlah_data']); $i++) {
             if ($request["qty_retur"][$i] > 0 || $request["qty_reject"][$i] > 0) {
-                 $detdata_whs = DB::connection('mysql_sb')->select("select a.id id_bppb,a.id_jo,a.id_item,ac.kpno,s.goods_code,s.itemdesc itemdesc,s.color,a.qty, a.unit,a.confirm,s.matclass produk from bppb a inner join masteritem s on a.id_item=s.id_item inner join jo_det jd on a.id_jo = jd.id_jo inner join so on jd.id_so = so.id inner join act_costing ac on so.id_cost = ac.id  where a.id='" . $request["id_bppb"][$i] . "' order by a.id_item desc ");
+                 $detdata_whs = DB::connection('mysql_sb')->select("select a.id,a.curr,a.price,id_bppb,a.id_jo,a.id_item,ac.kpno,s.goods_code,s.itemdesc itemdesc,s.color,a.qty, a.unit,a.confirm,s.matclass produk from bppb a inner join masteritem s on a.id_item=s.id_item inner join jo_det jd on a.id_jo = jd.id_jo inner join so on jd.id_so = so.id inner join act_costing ac on so.id_cost = ac.id  where a.id='" . $request["id_bppb"][$i] . "' order by a.id_item desc ");
                     
                     $whs_goods_code = $detdata_whs[0]->goods_code;
                     $whs_itemdesc = $detdata_whs[0]->itemdesc;
                     $whs_unit = $detdata_whs[0]->unit;
                     $whs_produk = $detdata_whs[0]->produk;
+                    $whs_curr = $detdata_whs[0]->curr;
+                    $whs_price = $detdata_whs[0]->price;
 
                 array_push($inmaterialDetailData2, [
                     "no_dok" => $bpbno_int,
@@ -329,6 +331,8 @@ class ReturInMaterialController extends Controller
                     "qty_good" => $request["qty_retur"][$i],
                     "qty_reject" => $request["qty_reject"][$i],
                     "unit" => $whs_unit,
+                    "curr" => $whs_curr,
+                    "price" => $whs_price,
                     "status" => 'Y',
                     "created_at" => $timestamp,
                     "updated_at" => $timestamp,
@@ -400,7 +404,10 @@ class ReturInMaterialController extends Controller
                 }else{
                     $data_aktual = $request["qty_ak"][$i]; 
                 }
-                array_push($lokasiMaterial, [
+                $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F',(if(kode is null,'19999',kode)  + 1)) kode from (select max(SUBSTR(no_barcode,2,10)) kode from whs_lokasi_inmaterial where no_barcode like '%F%') a");
+            $barcode = $sql_barcode[0]->kode;
+
+                $save_lokasi = InMaterialLokasi::create([
                     "no_dok" => $nodok,
                     "no_ws" => $nows,
                     "id_jo" => $idjo,
@@ -422,7 +429,7 @@ class ReturInMaterialController extends Controller
             }
             }
 
-            $inmaterialLokasiStore = InMaterialLokasi::insert($lokasiMaterial);
+            // $inmaterialLokasiStore = InMaterialLokasi::insert($lokasiMaterial);
 
 
             $massage = $request['m_gr_dok'] . ' Saved Location Succesfully';
@@ -488,7 +495,10 @@ class ReturInMaterialController extends Controller
                 }else{
                     $data_aktual = $request["qty_aktual"][$i]; 
                 }
-                array_push($lokasiMaterial, [
+                $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F',(if(kode is null,'19999',kode)  + 1)) kode from (select max(SUBSTR(no_barcode,2,10)) kode from whs_lokasi_inmaterial where no_barcode like '%F%') a");
+            $barcode = $sql_barcode[0]->kode;
+
+                $save_lokasi = InMaterialLokasi::create([
                     "no_dok" => $nodok,
                     "no_ws" => $nows,
                     "id_jo" => $idjo,
@@ -510,7 +520,7 @@ class ReturInMaterialController extends Controller
             }
             }
 
-            $inmaterialLokasiStore = InMaterialLokasi::insert($lokasiMaterial);
+            // $inmaterialLokasiStore = InMaterialLokasi::insert($lokasiMaterial);
 
 
             $delete_temp = InMaterialLokTemp::where('created_by',Auth::user()->name)->delete();

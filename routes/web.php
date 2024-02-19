@@ -38,6 +38,12 @@ use App\Http\Controllers\ReturInMaterialController;
 use App\Http\Controllers\MasterSecondaryController;
 use App\Http\Controllers\GeneralController;
 use App\Http\Controllers\LapDetPemasukanController;
+use App\Http\Controllers\LapDetPengeluaranController;
+use App\Http\Controllers\LapMutasiGlobalController;
+use App\Http\Controllers\LapDetPengeluaranRollController;
+use App\Http\Controllers\LapDetPemasukanRollController;
+use App\Http\Controllers\LapMutasiDetailController;
+use App\Http\Controllers\DashboardFabricController;
 use App\Http\Controllers\FGStokMasterController;
 use App\Http\Controllers\FGStokBPBController;
 use App\Http\Controllers\FGStokBPPBController;
@@ -534,6 +540,14 @@ Route::middleware('auth')->group(function () {
         Route::post('/print-lokasi/{id?}', 'printlokasi')->name('print-lokasi');
     });
 
+    //dashboard fabric
+    Route::controller(DashboardFabricController::class)->middleware('warehouse')->group(function () {
+        Route::get('/dashboard-warehouse', 'index')->name('dashboard-warehouse');
+        Route::get('/get-data-rak', 'getdatarak')->name('get-data-rak');
+        Route::get('/get-data-rak2', 'getdatarak2')->name('get-data-rak2');
+        Route::get('/get-data-rak3', 'getdatarak3')->name('get-data-rak3');
+    });
+
     //Penerimaan
     Route::controller(InMaterialController::class)->prefix("in-material")->middleware('in-material')->group(function () {
         Route::get('/', 'index')->name('in-material');
@@ -669,6 +683,40 @@ Route::middleware('auth')->group(function () {
         // Route::get('/export', 'export')->name('export');
     });
 
+    //laporan detail pemasukan roll
+    Route::controller(LapDetPemasukanRollController::class)->prefix("lap_det_pemasukanroll")->middleware('warehouse')->group(function () {
+        Route::get('/', 'index')->name('lap-det-pemasukanroll');
+        Route::get('/export_excel_pemasukanroll', 'export_excel_roll')->name('export_excel_pemasukanroll');
+    });
+
+    //laporan detail pengeluaran
+    Route::controller(LapDetPengeluaranController::class)->prefix("lap_det_pengeluaran")->middleware('warehouse')->group(function () {
+        Route::get('/', 'index')->name('lap-det-pengeluaran');
+        Route::get('/export_excel_pengeluaran', 'export_excel_pengeluaran')->name('export_excel_pengeluaran');
+    });
+
+    //laporan detail pengeluaran roll
+    Route::controller(LapDetPengeluaranRollController::class)->prefix("lap_det_pengeluaranroll")->middleware('warehouse')->group(function () {
+        Route::get('/', 'index')->name('lap-det-pengeluaranroll');
+        Route::get('/export_excel_pengeluaranroll', 'export_excel_roll')->name('export_excel_pengeluaranroll');
+    });
+
+    //laporan mutasi global
+    Route::controller(LapMutasiGlobalController::class)->prefix("lap-mutasi-global")->middleware('warehouse')->group(function () {
+        Route::get('/', 'index')->name('lap-mutasi-global');
+        // export excel
+        Route::get('/export_excel_mut_global', 'export_excel_mut_global')->name('export_excel_mut_global');
+        // Route::get('/export', 'export')->name('export');
+    });
+
+    //laporan mutasi detail
+    Route::controller(LapMutasiDetailController::class)->prefix("lap-mutasi-detail")->middleware('warehouse')->group(function () {
+        Route::get('/', 'index')->name('lap-mutasi-detail');
+        // export excel
+        Route::get('/export_excel_mut_detail', 'export_excel_mut_detail')->name('export_excel_mut_detail');
+        // Route::get('/export', 'export')->name('export');
+    });
+
 
     //FG Stock
     // Master Lokasi FG Stock
@@ -715,9 +763,9 @@ Route::get('/dashboard-stocker', function () {
 })->middleware('auth')->name('dashboard-stocker');
 
 //warehouse
-Route::get('/dashboard-warehouse', function () {
-    return view('dashboard', ['page' => 'dashboard-warehouse']);
-})->middleware('auth')->name('dashboard-warehouse');
+// Route::get('/dashboard-warehouse', function () {
+//     return view('dashboard-fabric', ['page' => 'dashboard-warehouse']);
+// })->middleware('auth')->name('dashboard-warehouse');
 
 
 //dc in
