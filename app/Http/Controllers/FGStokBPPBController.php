@@ -304,6 +304,43 @@ class FGStokBPPBController extends Controller
         }
     }
 
+    public function getstok(Request $request)
+    {
+        $det_stok = DB::select(
+            "
+            select lokasi,
+            no_carton,
+            s.id_so_det,
+            ws,
+            sum(s.qty_in) - sum(s.qty_out) saldo,
+            m.buyer,
+            m.color,
+            m.size,
+            m.styleno,
+            m.brand,
+            s.grade
+            from
+            (
+            select lokasi,no_carton,a.id_so_det,sum(a.qty) qty_in, '0' qty_out,grade  from fg_stok_bpb a
+            inner join master_sb_ws m on a.id_so_det = m.id_so_det
+            group by no_carton, a.id_so_det, a.grade, a.lokasi
+            union
+            select lokasi,no_carton,a.id_so_det,'0' qty_in,sum(a.qty_out) qty_out,grade  from fg_stok_bppb a
+            inner join master_sb_ws m on a.id_so_det = m.id_so_det
+            group by no_carton, a.id_so_det, a.grade, a.lokasi
+            )
+            s
+            inner join master_sb_ws m on s.id_so_det = m.id_so_det
+            group by no_carton, s.id_so_det, s.grade
+            having sum(s.qty_in) - sum(s.qty_out) != '0'
+			order by lokasi asc
+            "
+        );
+
+        return DataTables::of($det_stok)->toJson();
+    }
+
+
     // public function export_excel_mut_karyawan(Request $request)
     // {
     //     return Excel::download(new ExportLaporanMutasiKaryawan($request->from, $request->to), 'Laporan_Mutasi_Karyawan.xlsx');
