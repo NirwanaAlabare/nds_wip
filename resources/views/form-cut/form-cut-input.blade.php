@@ -356,6 +356,26 @@
                     }
                 },
                 {
+                    targets: [9],
+                    render: (data, type, row, meta) => {
+                        let color = "";
+
+                        if (row.status == 'SELESAI PENGERJAAN') {
+                            color = '#087521';
+                        } else if (row.status == 'PENGERJAAN MARKER') {
+                            color = '#2243d6';
+                        } else if (row.status == 'PENGERJAAN FORM CUTTING') {
+                            color = '#2243d6';
+                        } else if (row.status == 'PENGERJAAN FORM CUTTING DETAIL') {
+                            color = '#2243d6';
+                        } else if (row.status == 'PENGERJAAN FORM CUTTING SPREAD') {
+                            color = '#2243d6';
+                        }
+
+                        return  "<span style='font-weight: 600; color: "+ color + "' >" + (data ? data.replace(/,/g, '<br>') : '-') + "</span>"
+                    }
+                },
+                {
                     targets: [10],
                     render: (data, type, row, meta) => {
                         return `

@@ -176,7 +176,8 @@ class ManagerController extends Controller
             'actCostingData' => $actCostingData,
             'markerDetailData' => $markerDetailData,
             'lostTimeData' => $lostTimeData,
-            'page' => 'dashboard-cutting'
+            'page' => 'dashboard-cutting',
+            "subPage" => "manage-cutting"
         ]);
     }
 

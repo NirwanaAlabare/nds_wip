@@ -102,7 +102,11 @@ class MarkerController extends Controller
                     marker_input_detail.so_det_id,
                     marker_input.panel,
                     SUM(marker_input_detail.cut_qty) total_cut_qty
-                ")->leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->where('marker_input.cancel', 'N')->groupBy("marker_input_detail.so_det_id", "marker_input.panel")->get();
+                ")->
+                leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->
+                where('marker_input.cancel', 'N')->
+                groupBy("marker_input_detail.so_det_id", "marker_input.panel")->
+                get();
 
             return $markerDetail;
         }
@@ -389,197 +393,194 @@ class MarkerController extends Controller
 
             $html = "
 
-        <div class='row'>
-            <div class='col-sm-3'>
-                <div class='form-group'>
-                    <label class='form-label'><small>Tanggal</small></label>
-                    <input type='text' class='form-control' id='txttgl_cutting' name='txttgl_cutting' value = '" . $datanomarker->tgl_cut_fix . "' readonly>
-                </div>
-            </div>
-            <div class='col-sm-3'>
-                <div class='form-group'>
-                    <label class='form-label'><small>No. WS</small></label>
-                    <input type='text' class='form-control' id='txtno_ws' name='txtno_ws'  value = '" . $datanomarker->act_costing_ws . "' readonly>
-                </div>
-            </div>
-            <div class='col-sm-3'>
-                <div class='form-group'>
-                    <label class='form-label'><small>Color</small></label>
-                    <input type='text' class='form-control' id='txtcol' name='txtcol'  value = '" . $datanomarker->color . "' readonly>
-                </div>
-            </div>
-            <div class='col-sm-3'>
-                <div class='form-group'>
-                    <label class='form-label'><small>Panel</small></label>
-                    <input type='text' class='form-control' id='txtpanel' name='txtpanel'  value = '" . $datanomarker->panel . "' readonly>
-                </div>
-            </div>
-        </div>
-
-
-        <div class='row'>
-            <div class='col-sm-4'>
-                <div class='form-group'>
-                    <label class='form-label'><small>Buyer</small></label>
-                    <input type='text' class='form-control' id='txtbuyer' name='txtbuyer' value = '" . $datanomarker->buyer . "' readonly>
-                </div>
-            </div>
-            <div class='col-sm-4'>
-                <div class='form-group'>
-                    <label class='form-label'><small>Panjang Marker</small></label>
-                    <input type='text' class='form-control' id='txtp_marker' name='txtp_marker'  value = '" . $datanomarker->panjang_marker_fix . "' readonly>
-                </div>
-            </div>
-            <div class='col-sm-4'>
-                <div class='form-group'>
-                    <label class='form-label'><small>Lebar Marker</small></label>
-                    <input type='text' class='form-control' id='txtl_marker' name='txtl_marker'  value = '" . $datanomarker->lebar_marker_fix . "' readonly>
-                </div>
-            </div>
-        </div>
-
-        <div class='row'>
-            <div class='col-sm-6'>
-                <div class='form-group'>
-                    <label class='form-label'><small>Style</small></label>
-                    <input type='text' class='form-control' id='txtstyle' name='txtstyle' value = '" . $datanomarker->style . "' readonly>
-                </div>
-            </div>
-            <div class='col-sm-6'>
-                <div class='form-group'>
-                    <label class='form-label'><small>Qty Order</small></label>
-                    <input type='text' class='form-control' id='txtqty_order' name='txtqty_order' value = '" . $datanomarker->qty_order . "' readonly>
-                </div>
-            </div>
-        </div>
-
-        <div class='row'>
-            <div class='col-sm-3'>
-                <div class='form-group'>
-                    <label class='form-label'><small>Cons WS</small></label>
-                    <input type='text' class='form-control' id='txtcons_ws' name='txtcons_ws' value = '" . $datanomarker->cons_ws . "' readonly>
-                </div>
-            </div>
-            <div class='col-sm-3'>
-                <div class='form-group'>
-                    <label class='form-label'><small>Cons Piping</small></label>
-                    <input type='text' class='form-control' id='txtcons_piping' name='txtcons_piping' value = '" . $datanomarker->cons_piping . "' readonly>
-                </div>
-            </div>
-            <div class='col-sm-3'>
-                <div class='form-group'>
-                    <label class='form-label'><small>Cons Marker</small></label>
-                    <input type='text' class='form-control' id='txtcons_marker' name='txtcons_marker'  value = '" . $datanomarker->cons_marker . "' readonly>
-                </div>
-            </div>
-            <div class='col-sm-3'>
-                <div class='form-group'>
-                    <label class='form-label'><small>Qty Gelar Marker</small></label>
-                    <input type='text' class='form-control' id='txtgelar' name='txtgelar'  value = '" . $datanomarker->gelar_qty . "' readonly>
-                </div>
-            </div>
-        </div>
-
-        <div class='row'>
-            <div class='col-sm-4'>
-                <div class='form-group'>
-                    <label class='form-label'><small>PO</small></label>
-                    <input type='text' class='form-control' id='txtpo' name='txtpo' value = '" . $datanomarker->po_marker . "' readonly>
-                </div>
-            </div>
-            <div class='col-sm-4'>
-                <div class='form-group'>
-                    <label class='form-label'><small>Gramasi</small></label>
-                    <input type='text' class='form-control' id='txturutan' name='txturutan'  value = '" . $datanomarker->gramasi . "' readonly>
-                </div>
-            </div>
-            <div class='col-sm-4'>
-                <div class='form-group'>
-                    <label class='form-label'><small>Urutan</small></label>
-                    <input type='text' class='form-control' id='txturutan' name='txturutan'  value='" . $datanomarker->urutan_marker . "' readonly>
-                </div>
-            </div>
-            <div class='col-sm-6'>
-                <div class='form-group'>
-                    <label class='form-label'><small>Tipe Marker</small></label>
-                    <input type='text' class='form-control' id='tipemarker' name='tipemarker' value='" . strtoupper(str_replace(" marker", "", $datanomarker->tipe_marker)) . "' readonly>
-                </div>
-            </div>
-            <div class='col-sm-6'>
-                <div class='form-group'>
-                    <label class='form-label'><small>Catatan</small></label>
-                    <textarea class='form-control' id='txtarea' name='txtarea' readonly>" . ($datanomarker->notes ? $datanomarker->notes : '-') . "</textarea>
-                </div>
-            </div>
-        </div>
-        </div>
-
-
-        <div class='row'>
-        <div class='col-sm-12'>
-            <div class='card card-primary collapsed-card'>
-                <div class='card-header'>
-                <h1 class='card-title'>Detail Size</h1>
-                <div class='card-tools'>
-                <button type='button' class='btn btn-tool' data-card-widget='collapse'><i
-                        class='fas fa-plus'></i></button>
-            </div>
-                </div>
-                <div class='card-body' style='display: none;'>
-        <div class='table-responsive'>
-        <table class='table table-bordered table-striped table-sm w-100'>
-            <thead>
-                <tr>
-                    <th class='text-center'>Size</th>
-                    <th class='text-center'>Ratio</th>
-                </tr>
-            </thead>
-            <tbody>
-                $html_table
-            </tbody>
-        </table>
-        </div>
-            </div>
-    </div>
-    </div>
-    </div>
-
-
-    <div class='row'>
-        <div class='col-md-12'>
-            <div class='card card-warning collapsed-card'>
-                <div class='card-header'>
-                    <h1 class='card-title'>Status Form</h1>
-                    <div class='card-tools'>
-                        <button type='button' class='btn btn-tool' data-card-widget='collapse'>
-                            <i class='fas fa-plus'></i>
-                        </button>
+                <div class='row'>
+                    <div class='col-sm-3'>
+                        <div class='form-group'>
+                            <label class='form-label'><small>Tanggal</small></label>
+                            <input type='text' class='form-control' id='txttgl_cutting' name='txttgl_cutting' value = '" . $datanomarker->tgl_cut_fix . "' readonly>
+                        </div>
+                    </div>
+                    <div class='col-sm-3'>
+                        <div class='form-group'>
+                            <label class='form-label'><small>No. WS</small></label>
+                            <input type='text' class='form-control' id='txtno_ws' name='txtno_ws'  value = '" . $datanomarker->act_costing_ws . "' readonly>
+                        </div>
+                    </div>
+                    <div class='col-sm-3'>
+                        <div class='form-group'>
+                            <label class='form-label'><small>Color</small></label>
+                            <input type='text' class='form-control' id='txtcol' name='txtcol'  value = '" . $datanomarker->color . "' readonly>
+                        </div>
+                    </div>
+                    <div class='col-sm-3'>
+                        <div class='form-group'>
+                            <label class='form-label'><small>Panel</small></label>
+                            <input type='text' class='form-control' id='txtpanel' name='txtpanel'  value = '" . $datanomarker->panel . "' readonly>
+                        </div>
                     </div>
                 </div>
-                <div class='card-body' style='display: none;'>
-                    <div class='table-responsive'>
-                        <table class='table table-bordered table-striped'>
-                            <thead>
-                                <tr>
-                                    <th>Tanggal Form</th>
-                                    <th>No. Form</th>
-                                    <th>No. Meja</th>
-                                    <th>Waktu Mulai</th>
-                                    <th>Waktu Selesai</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                $html_tracking
-                            </tbody>
-                        </table>
+
+
+                <div class='row'>
+                    <div class='col-sm-4'>
+                        <div class='form-group'>
+                            <label class='form-label'><small>Buyer</small></label>
+                            <input type='text' class='form-control' id='txtbuyer' name='txtbuyer' value = '" . $datanomarker->buyer . "' readonly>
+                        </div>
+                    </div>
+                    <div class='col-sm-4'>
+                        <div class='form-group'>
+                            <label class='form-label'><small>Panjang Marker</small></label>
+                            <input type='text' class='form-control' id='txtp_marker' name='txtp_marker'  value = '" . $datanomarker->panjang_marker_fix . "' readonly>
+                        </div>
+                    </div>
+                    <div class='col-sm-4'>
+                        <div class='form-group'>
+                            <label class='form-label'><small>Lebar Marker</small></label>
+                            <input type='text' class='form-control' id='txtl_marker' name='txtl_marker'  value = '" . $datanomarker->lebar_marker_fix . "' readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <div class='row'>
+                    <div class='col-sm-6'>
+                        <div class='form-group'>
+                            <label class='form-label'><small>Style</small></label>
+                            <input type='text' class='form-control' id='txtstyle' name='txtstyle' value = '" . $datanomarker->style . "' readonly>
+                        </div>
+                    </div>
+                    <div class='col-sm-6'>
+                        <div class='form-group'>
+                            <label class='form-label'><small>Qty Order</small></label>
+                            <input type='text' class='form-control' id='txtqty_order' name='txtqty_order' value = '" . $datanomarker->qty_order . "' readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <div class='row'>
+                    <div class='col-sm-3'>
+                        <div class='form-group'>
+                            <label class='form-label'><small>Cons WS</small></label>
+                            <input type='text' class='form-control' id='txtcons_ws' name='txtcons_ws' value = '" . $datanomarker->cons_ws . "' readonly>
+                        </div>
+                    </div>
+                    <div class='col-sm-3'>
+                        <div class='form-group'>
+                            <label class='form-label'><small>Cons Piping</small></label>
+                            <input type='text' class='form-control' id='txtcons_piping' name='txtcons_piping' value = '" . $datanomarker->cons_piping . "' readonly>
+                        </div>
+                    </div>
+                    <div class='col-sm-3'>
+                        <div class='form-group'>
+                            <label class='form-label'><small>Cons Marker</small></label>
+                            <input type='text' class='form-control' id='txtcons_marker' name='txtcons_marker'  value = '" . $datanomarker->cons_marker . "' readonly>
+                        </div>
+                    </div>
+                    <div class='col-sm-3'>
+                        <div class='form-group'>
+                            <label class='form-label'><small>Qty Gelar Marker</small></label>
+                            <input type='text' class='form-control' id='txtgelar' name='txtgelar'  value = '" . $datanomarker->gelar_qty . "' readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <div class='row'>
+                    <div class='col-sm-4'>
+                        <div class='form-group'>
+                            <label class='form-label'><small>PO</small></label>
+                            <input type='text' class='form-control' id='txtpo' name='txtpo' value = '" . $datanomarker->po_marker . "' readonly>
+                        </div>
+                    </div>
+                    <div class='col-sm-4'>
+                        <div class='form-group'>
+                            <label class='form-label'><small>Gramasi</small></label>
+                            <input type='text' class='form-control' id='txturutan' name='txturutan'  value = '" . $datanomarker->gramasi . "' readonly>
+                        </div>
+                    </div>
+                    <div class='col-sm-4'>
+                        <div class='form-group'>
+                            <label class='form-label'><small>Urutan</small></label>
+                            <input type='text' class='form-control' id='txturutan' name='txturutan'  value='" . $datanomarker->urutan_marker . "' readonly>
+                        </div>
+                    </div>
+                    <div class='col-sm-6'>
+                        <div class='form-group'>
+                            <label class='form-label'><small>Tipe Marker</small></label>
+                            <input type='text' class='form-control' id='tipemarker' name='tipemarker' value='" . strtoupper(str_replace(" marker", "", $datanomarker->tipe_marker)) . "' readonly>
+                        </div>
+                    </div>
+                    <div class='col-sm-6'>
+                        <div class='form-group'>
+                            <label class='form-label'><small>Catatan</small></label>
+                            <textarea class='form-control' id='txtarea' name='txtarea' readonly>" . ($datanomarker->notes ? $datanomarker->notes : '-') . "</textarea>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
 
+            <div class='row'>
+                <div class='col-sm-12'>
+                    <div class='card card-primary collapsed-card'>
+                        <div class='card-header'>
+                            <h1 class='card-title'>Detail Size</h1>
+                            <div class='card-tools'>
+                                <button type='button' class='btn btn-tool' data-card-widget='collapse'><i class='fas fa-plus'></i></button>
+                            </div>
+                        </div>
+                        <div class='card-body' style='display: none;'>
+                            <div class='table-responsive'>
+                                <table class='table table-bordered table-striped table-sm w-100'>
+                                    <thead>
+                                        <tr>
+                                            <th class='text-center'>Size</th>
+                                            <th class='text-center'>Ratio</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        $html_table
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class='row'>
+                <div class='col-md-12'>
+                    <div class='card card-warning collapsed-card'>
+                        <div class='card-header'>
+                            <h1 class='card-title'>Status Form</h1>
+                            <div class='card-tools'>
+                                <button type='button' class='btn btn-tool' data-card-widget='collapse'>
+                                    <i class='fas fa-plus'></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class='card-body' style='display: none;'>
+                            <div class='table-responsive'>
+                                <table class='table table-bordered table-striped'>
+                                    <thead>
+                                        <tr>
+                                            <th>Tanggal Form</th>
+                                            <th>No. Form</th>
+                                            <th>No. Meja</th>
+                                            <th>Waktu Mulai</th>
+                                            <th>Waktu Selesai</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        $html_tracking
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         ";
         }
         return $html;
@@ -811,7 +812,7 @@ class MarkerController extends Controller
         if ($markerData) {
             // generate pdf
             PDF::setOption(['dpi' => 150]);
-            $pdf = PDF::loadView('marker.pdf.print-marker', ["markerData" => $markerData, "actCostingData" => $actCostingData, "soDetData" => $soDetData, "orderQty" => $orderQty])->setPaper('a4', 'landscape');
+            $pdf = PDF::loadView('marker.marker.pdf.print-marker', ["markerData" => $markerData, "actCostingData" => $actCostingData, "soDetData" => $soDetData, "orderQty" => $orderQty])->setPaper('a4', 'landscape');
 
             $path = public_path('pdf/');
             $fileName = 'stocker-' . str_replace("/", "_", $kodeMarker) . '.pdf';

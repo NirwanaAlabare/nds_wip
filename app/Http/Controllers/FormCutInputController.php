@@ -125,7 +125,8 @@ class FormCutInputController extends Controller
                 *
             from
                 marker_input_detail
-            where marker_id = '" . $markerId . "'
+            where
+                marker_id = '" . $markerId . "'
         ");
 
         return DataTables::of($data_ratio)->toJson();
@@ -297,7 +298,7 @@ class FormCutInputController extends Controller
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
                 INNER JOIN master_rak mr ON br.kode_lok = mr.kode_rak
             WHERE
-                br.id = '".$id."'
+                br.no_barcode = '".$id."'
                 AND cast(
                 qty_aktual AS DECIMAL ( 11, 3 )) > 0.000
                 LIMIT 1
@@ -357,35 +358,6 @@ class FormCutInputController extends Controller
 
         return json_encode($items ? $items : null);
     }
-//     SELECT
-//     item.id_item,
-//     item.itemdesc
-// FROM
-//     jo_det jd
-//     INNER JOIN so ON jd.id_so = so.id
-//     INNER JOIN act_costing ac ON so.id_cost = ac.id
-//     INNER JOIN (
-//     SELECT
-//         mi.id_item,
-//         mi.itemdesc,
-//         k.id_jo
-//     FROM
-//         bom_jo_item k
-//         INNER JOIN masteritem mi ON k.id_item = mi.id_gen
-//     WHERE
-//         mi.Mattype = 'F'
-//     GROUP BY
-//         k.id_jo,
-//         k.id_item
-//     ) item ON item.id_jo = jd.id
-// WHERE
-//     jd.cancel = 'N'
-//     AND ac.id = '".$request->act_costing_id."'
-// GROUP BY
-//     item.id_item,
-//     id_cost
-// ORDER BY
-//     jd.id_jo ASC
 
     public function startProcess($id = 0, Request $request)
     {
