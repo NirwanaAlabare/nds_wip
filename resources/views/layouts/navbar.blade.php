@@ -39,13 +39,11 @@
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
                             aria-expanded="false" class="nav-link dropdown-toggle">Master</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-
                             <li>
                                 <a href="{{ route('master-lokasi') }}" class="dropdown-item">
                                     Master Lokasi
                                 </a>
                             </li>
-
                         </ul>
                     </li>
                 @endif
@@ -432,6 +430,18 @@
                                     Master Lokasi <i class="fas fa-search-location fa-sm"></i>
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('master-lokasi-fg-stock') }}"
+                                    class="dropdown-item {{ $subPage == 'fg-stock' ? 'active' : '' }}">
+                                    Master Sumber Penerimaan <i class="fas fa-search-location fa-sm"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('master-lokasi-fg-stock') }}"
+                                    class="dropdown-item {{ $subPage == 'fg-stock' ? 'active' : '' }}">
+                                    Master Tujuan Pengeluaran <i class="fas fa-search-location fa-sm"></i>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
@@ -455,7 +465,7 @@
                             <li>
                                 <a href="{{ route('bppb-fg-stock') }}"
                                     class="dropdown-item {{ $subPage == 'bppb-fg-stock' ? 'active' : '' }}">
-                                    Pengeluaran Barang Jadi Stok <i class="fas fa-box fa-sm"></i>
+                                    Pengeluaran Barang Jadi Stok <i class="fas fa-box-open fa-sm"></i>
                                 </a>
                             </li>
                         </ul>

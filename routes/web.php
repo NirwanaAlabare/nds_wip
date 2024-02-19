@@ -690,6 +690,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/show_tmp', 'show_tmp')->name('show_tmp');
         Route::post('/undo', 'undo')->name('undo');
         Route::get('/show_lok', 'show_lok')->name('show_lok');
+        Route::get('/getdet_carton', 'getdet_carton')->name('getdet_carton');
     });
     Route::controller(FGStokBPPBController::class)->prefix("bppb-fg-stock")->middleware('fg-stock')->group(function () {
         Route::get('/', 'index')->name('bppb-fg-stock');
@@ -697,6 +698,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/create', 'create')->name('create-bppb-fg-stock');
         Route::get('/getws', 'getws')->name('getws');
         Route::get('/show_det', 'show_det')->name('show_det');
+        Route::get('/getstok', 'getstok')->name('getstok-bppb-fg-stock');
     });
 });
 

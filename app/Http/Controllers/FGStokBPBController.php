@@ -131,14 +131,9 @@ class FGStokBPBController extends Controller
         $user = Auth::user()->name;
         $data_lok = DB::select("select kode_lok_fg_stok isi , kode_lok_fg_stok tampil from fg_stok_master_lok");
 
-        $data_buyer = DB::connection('mysql_sb')->select("select id_buyer isi, ms.supplier tampil
-        from act_costing ac
-        inner join mastersupplier ms on ac.id_buyer = ms.id_supplier
-		inner join so on ac.id = so.id_cost
-		inner join so_det sd on so.id = sd.id_so
-        where sd.cancel = 'N'
-        group by id_buyer
-        order by supplier asc");
+        $data_buyer = DB::select("select buyer isi, buyer tampil from master_sb_ws
+        group by buyer
+        order by buyer asc");
 
         $data_grade = DB::select("select grade isi , grade tampil from fg_stok_master_grade");
 
@@ -150,13 +145,12 @@ class FGStokBPBController extends Controller
 
     public function getno_ws(Request $request)
     {
-        $data_ws = DB::connection('mysql_sb')->select("select ac.kpno isi, ac.kpno tampil
-        from so_det sd
-        inner join so on so.id = sd.id_so
-        inner join act_costing ac on so.id_cost = ac.id
-        where id_buyer = '" . $request->cbobuyer . "' and sd.cancel = 'N'
-        group by ac.kpno
-        order by ac.kpno desc");
+        $data_ws = DB::select("
+        select a.ws isi, a.ws tampil
+        from master_sb_ws a where a.buyer = '" . $request->cbobuyer . "'
+        group by ws
+        order by ws desc
+        ");
 
         $html = "<option value=''>Pilih No WS</option>";
 
@@ -169,12 +163,10 @@ class FGStokBPBController extends Controller
 
     public function getcolor(Request $request)
     {
-        $data_color = DB::connection('mysql_sb')->select("select sd.color isi, sd.color tampil
-        from so_det sd
-        inner join so on so.id = sd.id_so
-        inner join act_costing ac on so.id_cost = ac.id
-        where ac.kpno = '" . $request->cbows . "' and sd.cancel = 'N'
-        group by sd.color	");
+        $data_color = DB::select("select a.color isi, a.color tampil
+        from master_sb_ws a where a.ws = '" . $request->cbows . "'
+group by color
+order by color desc");
 
         $html = "<option value=''>Pilih Color</option>";
 
@@ -187,12 +179,10 @@ class FGStokBPBController extends Controller
 
     public function getsize(Request $request)
     {
-        $data_size = DB::connection('mysql_sb')->select("select sd.size isi, sd.size tampil
-        from so_det sd
-        inner join so on so.id = sd.id_so
-        inner join act_costing ac on so.id_cost = ac.id
-        where ac.kpno = '" . $request->cbows . "' and sd.color = '" . $request->cbocolor . "'  and sd.cancel = 'N'
-        group by sd.size");
+        $data_size = DB::select("select a.size isi, a.size tampil
+        from master_sb_ws a
+        where a.ws = '" . $request->cbows . "' and a.color = '" . $request->cbocolor . "'
+        group by a.size");
 
         $html = "<option value=''>Pilih Size</option>";
 
@@ -205,12 +195,10 @@ class FGStokBPBController extends Controller
 
     public function getproduct(Request $request)
     {
-        $data_product = DB::connection('mysql_sb')->select("select sd.id isi, concat(ac.kpno,' - ', color,' - ',size) tampil
-        from so_det sd
-        inner join so on so.id = sd.id_so
-        inner join act_costing ac on so.id_cost = ac.id
-        where ac.kpno = '" . $request->cbows . "' and color like '%" . $request->cbocolor . "%'
-        and size like '%" . $request->cbosize . "%' and sd.cancel = 'N'");
+        $data_product = DB::select("select a.id_so_det isi, concat(ws,' - ', color,' - ',size) tampil
+        from master_sb_ws a
+        where a.ws= '" . $request->cbows . "' and a.color like '%" . $request->cbocolor . "%'
+        and a.size like '%" . $request->cbosize . "%'");
 
         $html = "<option value=''>Pilih Product</option>";
 
@@ -317,6 +305,41 @@ class FGStokBPBController extends Controller
 
             return DataTables::of($data_list_lok)->toJson();
         }
+    }
+
+    public function getdet_carton(Request $request)
+    {
+        $det_carton = DB::select(
+            "select lokasi,
+            no_carton,
+            s.id_so_det,
+            ws,
+            sum(s.qty_in) - sum(s.qty_out) saldo,
+            m.buyer,
+            m.color,
+            m.size,
+            m.styleno,
+            m.brand,
+            s.grade
+            from
+            (
+            select lokasi,no_carton,a.id_so_det,sum(a.qty) qty_in, '0' qty_out,grade  from fg_stok_bpb a
+            inner join master_sb_ws m on a.id_so_det = m.id_so_det
+            where lokasi = '" . $request->lokasi . "' and no_carton = '" . $request->karton . "'
+            group by no_carton, a.id_so_det, a.grade
+            union
+            select lokasi,no_carton,a.id_so_det,'0' qty_in,sum(a.qty_out) qty_out,grade  from fg_stok_bppb a
+            inner join master_sb_ws m on a.id_so_det = m.id_so_det
+            where lokasi = '" . $request->lokasi . "' and no_carton = '" . $request->karton . "'
+            group by no_carton, a.id_so_det, a.grade
+            )
+            s
+            inner join master_sb_ws m on s.id_so_det = m.id_so_det
+            group by no_carton, s.id_so_det, s.grade
+            having sum(s.qty_in) - sum(s.qty_out) != '0'"
+        );
+
+        return DataTables::of($det_carton)->toJson();
     }
 
 

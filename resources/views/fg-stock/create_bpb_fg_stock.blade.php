@@ -14,44 +14,52 @@
 @section('content')
     <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
-        <form action="#" method="post" onsubmit="submitForm(this, event)" name='form' id='form'>
-            @method('POST')
-            <div class="modal-dialog modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header bg-sb text-light">
-                        <h3 class="modal-title fs-5">Tambah Lokasi FG Stock</h3>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label class="form-label">Kode Lokasi :</label>
-                            <input type='text' class='form-control form-control-sm' id="txtkode_lok" name="txtkode_lok"
-                                value="" readonly>
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-light">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Detail Karton</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class='row'>
+                        <div class='col-sm-3'>
+                            <div class='form-group'>
+                                <label class='form-label'><small>Lokasi</small></label>
+                                <input type='text' class='form-control' id='id_l' name='id_l' value=''
+                                    readonly>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="recipient-name" class="col-form-label">Lokasi :</label>
-                            <input type='text' class='form-control form-control-sm' id="txtlok" name="txtlok"
-                                style="text-transform: uppercase" oninput="setinisial()" value = '' autocomplete="off">
-                        </div>
-                        <div class="form-group">
-                            <label for="recipient-name" class="col-form-label">Tingkat :</label>
-                            <input type='number' class='form-control form-control-sm' id='txttingkat' name='txttingkat'
-                                oninput="setinisial()" value = '' autocomplete="off">
-                        </div>
-                        <div class="form-group">
-                            <label for="recipient-name" class="col-form-label">Baris :</label>
-                            <input type='number' class='form-control form-control-sm' id='txtbaris' name='txtbaris'
-                                oninput="setinisial()" value = '' autocomplete="off">
+                        <div class='col-sm-3'>
+                            <div class='form-group'>
+                                <label class='form-label'><small>No. Karton</small></label>
+                                <input type='text' class='form-control' id='id_k' name='id_k' value=''
+                                    readonly>
+                            </div>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal"><i
-                                class="fas fa-times-circle"></i> Tutup</button>
-                        <button type="submit" class="btn btn-outline-success"><i class="fas fa-check"></i> Simpan </button>
+                    <div class="col-md-12 table-responsive">
+                        <table id="datatable_modal" class="table table-bordered table-hover table-sm w-100">
+                            <thead>
+                                <tr>
+                                    <th>Brand</th>
+                                    <th>Style</th>
+                                    <th>Grade</th>
+                                    <th>WS</th>
+                                    <th>Color</th>
+                                    <th>Style</th>
+                                    <th>Size</th>
+                                    <th>Saldo</th>
+
+                                </tr>
+                            </thead>
+                        </table>
                     </div>
                 </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                </div>
             </div>
-        </form>
+        </div>
     </div>
 
     <div class="card card-sb">
@@ -573,13 +581,63 @@
                     render: (data, type, row, meta) => {
                         return `
                         <div class='d-flex gap-1 justify-content-center'>
-                        <a class='btn btn-info btn-sm' onclick='notif()'><i class='fas fa-search'></i></a>
+                        <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModal"
+                        onclick="getdetail('` + row.lokasi + `','` + row.no_carton + `');"><i class='fas fa-search'></i></a>
                             </div>`;
                     }
                 }, ]
-                // <a class='btn btn-info btn-sm' href='{{ route('create-dc-in') }}/` +
-            //             row.id_so_det +
-            //             `' data-bs-toggle='tooltip'><i class='fas fa-search'></i></a>
+            });
+        }
+
+        function getdetail(id_l, id_k) {
+            document.getElementById('id_l').value = id_l;
+            document.getElementById('id_k').value = id_k;
+            let datatable = $("#datatable_modal").DataTable({
+                ordering: false,
+                processing: true,
+                serverSide: true,
+                paging: false,
+                destroy: true,
+                info: false,
+                searching: true,
+                "dom": 'ftip',
+                ajax: {
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    url: '{{ route('getdet_carton') }}',
+                    dataType: 'json',
+                    dataSrc: 'data',
+                    data: function(d) {
+                        d.lokasi = id_l,
+                            d.karton = id_k;
+                    },
+                },
+                columns: [{
+                        data: 'brand',
+                    },
+                    {
+                        data: 'styleno',
+                    },
+                    {
+                        data: 'grade',
+                    },
+                    {
+                        data: 'ws',
+                    },
+                    {
+                        data: 'color',
+                    },
+                    {
+                        data: 'styleno',
+                    },
+                    {
+                        data: 'size',
+                    },
+                    {
+                        data: 'saldo',
+                    },
+                ],
             });
         }
     </script>
