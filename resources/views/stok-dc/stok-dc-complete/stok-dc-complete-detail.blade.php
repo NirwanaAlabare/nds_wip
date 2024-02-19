@@ -20,6 +20,7 @@
         </div>
         <div class="card-body">
             <div class="row align-items-end g-3 mb-3">
+                <input type="hidden" class="form-control form-control-sm" id="part_id" name="part_id" value="{{ $stockDcComplete[0]->part_id }}">
                 <div class="col-6 col-md-3">
                     <label class="form-label"><small>No. WS</small></label>
                     <input type="text" class="form-control form-control-sm" id="no_ws" name="no_ws" value="{{ $stockDcComplete[0]->act_costing_ws }}" readonly>
@@ -173,7 +174,7 @@
                 url: '{{ route('reorder-stocker-numbering') }}',
                 type: 'post',
                 data: {
-                    id : $("#detail_id").val()
+                    id : $("#part_id").val()
                 },
                 success: function (res) {
                     console.log(res);

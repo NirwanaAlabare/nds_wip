@@ -80,10 +80,10 @@
                     data: 'act_costing_ws'
                 },
                 {
-                    data: 'color'
+                    data: 'complete'
                 },
                 {
-                    data: 'size'
+                    data: 'stocker'
                 },
                 {
                     data: 'qty'

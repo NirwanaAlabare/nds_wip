@@ -821,7 +821,7 @@ class MarkerController extends Controller
         if ($markerData) {
             // generate pdf
             PDF::setOption(['dpi' => 150]);
-            $pdf = PDF::loadView('marker.pdf.print-marker', ["markerData" => $markerData, "actCostingData" => $actCostingData, "soDetData" => $soDetData, "orderQty" => $orderQty])->setPaper('a4', 'landscape');
+            $pdf = PDF::loadView('marker.marker.pdf.print-marker', ["markerData" => $markerData, "actCostingData" => $actCostingData, "soDetData" => $soDetData, "orderQty" => $orderQty])->setPaper('a4', 'landscape');
 
             $path = public_path('pdf/');
             $fileName = 'stocker-' . str_replace("/", "_", $kodeMarker) . '.pdf';

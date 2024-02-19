@@ -344,22 +344,22 @@ class StockerController extends Controller
             ]);
 
             // Adjust form cut detail data
-            $formCutDetails = FormCutInputDetail::where("no_form_cut_input", $formCut->no_form)->orderBy("id", "asc")->get();
+            $formCutInputDetails = FormCutInputDetail::where("no_form_cut_input", $formCut->no_form)->orderBy("id", "asc")->get();
 
             $currentGroup = "";
             $currentGroupNumber = 0;
-            foreach ($formCutDetails as $formCutDetail) {
-                if ($currentGroup != $formCutDetail->group_roll) {
-                    $currentGroup = $formCutDetail->group_roll;
+            foreach ($formCutInputDetails as $formCutInputDetail) {
+                if ($currentGroup != $formCutInputDetail->group_roll) {
+                    $currentGroup = $formCutInputDetail->group_roll;
                     $currentGroupNumber += 1;
                 }
 
-                $formCutDetail->group_stocker = $currentGroupNumber;
-                $formCutDetail->save();
+                $formCutInputDetail->group_stocker = $currentGroupNumber;
+                $formCutInputDetail->save();
             }
 
             // Adjust stocker data
-            $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->orderBy("group_stocker", "desc")->orderBy("shade", "desc")->orderBy("size", "asc")->orderBy("ratio", "asc")->orderBy("part_detail_id", "asc")->get();
+            $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->orderBy("group_stocker", "desc")->orderBy("size", "asc")->orderBy("ratio", "asc")->orderBy("part_detail_id", "asc")->get();
 
             $currentStockerPart = $stockerForm->first() ? $stockerForm->first()->part_detail_id : "";
             $currentStockerSize = "";
@@ -367,9 +367,9 @@ class StockerController extends Controller
             $currentStockerRatio = 0;
 
             foreach ($stockerForm as $stocker) {
-                $lembarGelaran = 0;
+                $lembarGelaran = 1;
 
-                if ($stocker->group_stocker && str_replace(" ", "", $stocker->group_stocker) != "") {
+                if ($stocker->group_stocker) {
                     $lembarGelaran = FormCutInputDetail::where("no_form_cut_input", $formCut->no_form)->where('group_stocker', $stocker->group_stocker)->sum('lembar_gelaran');
                 } else {
                     $lembarGelaran = FormCutInputDetail::where("no_form_cut_input", $formCut->no_form)->where('group_roll', $stocker->shade)->sum('lembar_gelaran');
@@ -399,7 +399,7 @@ class StockerController extends Controller
                     "Size ".$stocker->size,
                     "Ratio ".$stocker->ratio,
                     "Awal ".$rangeAwal,
-                    "Form ".$formCutInputDetails->filter(function($data) use ($stocker) {return $data->group_roll == $stocker->shade;}),
+                    "Form ".FormCutInputDetail::where("no_form_cut_input", $formCut->no_form)->where('group_stocker', $stocker->group_stocker)->get(),
                     "Lembar ".$lembarGelaran,
                     "Akhir ".($sizeRangeAkhir[$stocker->size]),
                     "sizeRangeAkhir ". $sizeRangeAkhir,

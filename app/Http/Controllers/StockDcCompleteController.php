@@ -27,9 +27,13 @@ class StockDcCompleteController extends Controller
                     stk.act_costing_ws,
                     stk.color,
                     stk.size,
-                    sum(stk.qty) qty,
-                    sum(stk.complete) complete
-                FROM (
+                    sum( stk.qty ) qty,
+                    group_concat(stk.complete) completesum,
+                    sum( stk.complete ) complete,
+                    group_concat(stk.stocker) stockersum,
+                    sum( stk.stocker ) stocker
+                FROM
+                    (
                     SELECT
                         stocker_input.id,
                         part.id part_id,
@@ -38,16 +42,17 @@ class StockDcCompleteController extends Controller
                         stocker_input.act_costing_ws,
                         stocker_input.color,
                         stocker_input.size,
-                        MIN(CAST(stocker_input.range_awal AS INTEGER)) range_awal,
-                        MAX(CAST(stocker_input.range_akhir AS INTEGER)) range_akhir,
-                        (MAX(CAST(stocker_input.range_akhir AS INTEGER)) - MIN(CAST(stocker_input.range_awal AS INTEGER)) + 1) qty,
-                        COUNT(dc_in_input.id) complete
+                        MIN(CAST( stocker_input.range_awal AS INTEGER )) range_awal,
+                        MAX(CAST( stocker_input.range_akhir AS INTEGER )) range_akhir,
+                        (MAX( CAST( stocker_input.range_akhir AS INTEGER )) - MIN( CAST( stocker_input.range_awal AS INTEGER )) + 1 ) qty,
+                        COUNT( dc_in_input.id ) complete,
+                        COUNT( stocker_input.id ) stocker
                     FROM
                         part
-                    LEFT JOIN part_form on part_form.part_id = part.id
-                    LEFT JOIN form_cut_input on form_cut_input.id = part_form.form_id
-                    LEFT JOIN stocker_input on stocker_input.form_cut_id = form_cut_input.id
-                    LEFT JOIN dc_in_input on dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                        LEFT JOIN part_form ON part_form.part_id = part.id
+                        LEFT JOIN form_cut_input ON form_cut_input.id = part_form.form_id
+                        LEFT JOIN stocker_input ON stocker_input.form_cut_id = form_cut_input.id
+                        LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
                     GROUP BY
                         part_form.part_id,
                         form_cut_input.id,
@@ -55,18 +60,17 @@ class StockDcCompleteController extends Controller
                         stocker_input.size,
                         stocker_input.group_stocker
                     HAVING
-                        stocker_input.id is not null
+                        stocker_input.id IS NOT NULL
                     ORDER BY
                         stocker_input.id
-                ) stk
-                LEFT JOIN
-                    master_size_new ON master_size_new.size = stk.size
+                    ) stk
+                    LEFT JOIN master_size_new ON master_size_new.size = stk.size
                 GROUP BY
                     stk.part_id,
                     stk.color,
                     stk.size
                 HAVING
-                    sum(complete) > 0
+                    sum( stk.complete ) = sum( stk.stocker )
                 ORDER BY
                     stk.part_id ASC,
                     stk.color ASC,
@@ -112,6 +116,7 @@ class StockDcCompleteController extends Controller
             SELECT
                 stocker_input.id,
                 GROUP_CONCAT(stocker_input.id_qr_stocker) stockers,
+                part.id part_id,
                 part.act_costing_ws,
                 part.buyer,
                 part.style,
@@ -125,7 +130,8 @@ class StockDcCompleteController extends Controller
                 MAX(CAST(stocker_input.range_akhir AS INTEGER)) range_akhir,
                 COALESCE(stocker_input.lokasi, dc_in_input.det_alokasi, dc_in_input.lokasi) lokasi,
                 (MAX(CAST(stocker_input.range_akhir AS INTEGER)) - MIN(CAST(stocker_input.range_awal AS INTEGER)) + 1) qty,
-                COUNT(dc_in_input.id) complete
+                COUNT(dc_in_input.id) complete,
+                COUNT(stocker_input.id) stocker
             FROM
                 part
             LEFT JOIN part_form on part_form.part_id = part.id
@@ -144,8 +150,8 @@ class StockDcCompleteController extends Controller
                 stocker_input.size
             ORDER BY
                 form_cut_input.no_cut ASC,
-                stocker_input.shade DESC,
-                stocker_input.group_stocker DESC
+                stocker_input.group_stocker DESC,
+                stocker_input.shade DESC
         ");
 
         return view('stok-dc.stok-dc-complete.stok-dc-complete-detail', ["page" => "dashboard-dc", "subPageGroup" => "stok-dc", "subPage" => "stok-dc-complete", "stockDcComplete" => $stockDcComplete]);
