@@ -161,7 +161,18 @@ class StockerController extends Controller
                 GROUP_CONCAT(DISTINCT master_size_new.size ORDER BY master_size_new.urutan ASC SEPARATOR ', ') sizes,
                 GROUP_CONCAT(DISTINCT CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio * form_cut_input.total_lembar, ')') ORDER BY master_size_new.urutan ASC) marker_details,
                 GROUP_CONCAT(DISTINCT CONCAT(master_part.nama_part, ' - ', master_part.bag) SEPARATOR ', ') part
-            ")->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->leftJoin("part", "part.id", "=", "part_form.part_id")->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->where("form_cut_input.id", $formCutId)->groupBy("form_cut_input.id")->first();
+            ")->
+            leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
+            leftJoin("part", "part.id", "=", "part_form.part_id")->
+            leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
+            leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+            leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+            leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
+            leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->
+            leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
+            where("form_cut_input.id", $formCutId)->
+            groupBy("form_cut_input.id")->
+            first();
 
         $dataPartDetail = PartDetail::selectRaw("part_detail.id, master_part.nama_part, master_part.bag, COALESCE(master_secondary.tujuan, '-') tujuan, COALESCE(master_secondary.proses, '-') proses")->leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->leftJoin("part", "part.id", "part_detail.part_id")->leftJoin("part_form", "part_form.part_id", "part.id")->leftJoin("form_cut_input", "form_cut_input.id", "part_form.form_id")->leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->where("form_cut_input.id", $formCutId)->groupBy("master_part.id")->get();
 
@@ -268,7 +279,7 @@ class StockerController extends Controller
     }
 
     public function rearrangeGroup(Request $request) {
-        $formCutDetails = FormCutInputDetail::where("no_form_cut_input", $request['no_form'])->orderBy("id", "asc")->get();
+        $formCutDetails = FormCutInputDetail::where("no_form_cut_input", $request->no_form)->orderBy("id", "asc")->get();
 
         $currentGroup = "";
         $groupNumber = 0;
@@ -313,48 +324,65 @@ class StockerController extends Controller
         $sizeRangeAkhir = collect();
 
         $currentColor = "";
-        $currentForm = 0;
+        $currentNumber = 0;
+
+        // Loop over all forms
         foreach ($formCutInputs as $formCut) {
+            // Reset cumulative data on color switch
             if ($formCut->color != $currentColor) {
                 $rangeAwal = 0;
                 $sizeRangeAkhir = collect();
 
                 $currentColor = $formCut->color;
-
-                $currentForm = 0;
+                $currentNumber = 0;
             }
 
-            $currentForm++;
+            // Adjust form data
+            $currentNumber++;
             FormCutInput::where("id", $formCut->id_form)->update([
-                "no_cut" => $currentForm
+                "no_cut" => $currentNumber
             ]);
 
-            $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->orderBy("shade", "desc")->orderBy("size", "asc")->orderBy("ratio", "asc")->orderBy("group_stocker", "desc")->orderBy("part_detail_id", "asc")->get();
+            // Adjust form cut detail data
+            $formCutDetails = FormCutInputDetail::where("no_form_cut_input", $formCut->no_form)->orderBy("id", "asc")->get();
 
-            $formCutInputDetails = FormCutInputDetail::where("no_form_cut_input", $formCut->no_form)->get();
+            $currentGroup = "";
+            $currentGroupNumber = 0;
+            foreach ($formCutDetails as $formCutDetail) {
+                if ($currentGroup != $formCutDetail->group_roll) {
+                    $currentGroup = $formCutDetail->group_roll;
+                    $currentGroupNumber += 1;
+                }
 
-            $currentPart = $stockerForm->first() ? $stockerForm->first()->part_detail_id : "";
-            $currentSize = "";
-            $currentGroup = "initial";
-            $currentRatio = 0;
+                $formCutDetail->group_stocker = $currentGroupNumber;
+                $formCutDetail->save();
+            }
+
+            // Adjust stocker data
+            $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->orderBy("group_stocker", "desc")->orderBy("shade", "desc")->orderBy("size", "asc")->orderBy("ratio", "asc")->orderBy("part_detail_id", "asc")->get();
+
+            $currentStockerPart = $stockerForm->first() ? $stockerForm->first()->part_detail_id : "";
+            $currentStockerSize = "";
+            $currentStockerGroup = "initial";
+            $currentStockerRatio = 0;
+
             foreach ($stockerForm as $stocker) {
-                // $lembarGelaran = 0;
-                // if ($stocker->group_stocker && $stocker->group_stocker != null && str_replace(" ", "", $stocker->group_stocker) != "") {
-                //     $lembarGelaran = $formCutInputDetails->filter(function($data) use ($stocker) {return $data->group_stocker == $stocker->group_stocker;})->sum('lembar_gelaran');
-                // } else {
-                //     $lembarGelaran = $formCutInputDetails->filter(function($data) use ($stocker) {return $data->group_roll == $stocker->shade;})->sum('lembar_gelaran');
-                // }
+                $lembarGelaran = 0;
 
-                $lembarGelaran = $formCutInputDetails->filter(function($data) use ($stocker) {return $data->group_roll == $stocker->shade;})->sum('lembar_gelaran');
+                if ($stocker->group_stocker && str_replace(" ", "", $stocker->group_stocker) != "") {
+                    $lembarGelaran = FormCutInputDetail::where("no_form_cut_input", $formCut->no_form)->where('group_stocker', $stocker->group_stocker)->sum('lembar_gelaran');
+                } else {
+                    $lembarGelaran = FormCutInputDetail::where("no_form_cut_input", $formCut->no_form)->where('group_roll', $stocker->shade)->sum('lembar_gelaran');
+                }
 
-                if ($currentPart == $stocker->part_detail_id) {
-                    if (isset($sizeRangeAkhir[$stocker->size]) && ($currentSize != $stocker->size || $currentGroup != $stocker->shade || $currentRatio != $stocker->ratio)) {
+                if ($currentStockerPart == $stocker->part_detail_id) {
+                    if (isset($sizeRangeAkhir[$stocker->size]) && ($currentStockerSize != $stocker->size || $currentStockerGroup != $stocker->group_stocker || $currentStockerRatio != $stocker->ratio)) {
                         $rangeAwal = $sizeRangeAkhir[$stocker->size] + 1;
                         $sizeRangeAkhir[$stocker->size] = $sizeRangeAkhir[$stocker->size] + $lembarGelaran;
 
-                        $currentSize = $stocker->size;
-                        $currentGroup = $stocker->shade;
-                        $currentRatio = $stocker->ratio;
+                        $currentStockerSize = $stocker->size;
+                        $currentStockerGroup = $stocker->group_stocker;
+                        $currentStockerRatio = $stocker->ratio;
                     } else if (!isset($sizeRangeAkhir[$stocker->size])) {
                         $rangeAwal =  1;
                         $sizeRangeAkhir->put($stocker->size, $lembarGelaran);
@@ -379,6 +407,7 @@ class StockerController extends Controller
                 ]);
             }
 
+            // Adjust numbering data
             $numbers = StockerDetail::selectRaw("
                     form_cut_id,
                     act_costing_ws,

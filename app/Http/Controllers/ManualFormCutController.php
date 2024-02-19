@@ -116,7 +116,8 @@ class ManualFormCutController extends Controller
                 *
             from
                 marker_input_detail
-            where marker_id = '" . $markerId . "'
+            where
+                marker_id = '" . $markerId . "'
         ");
 
         return DataTables::of($data_ratio)->toJson();
@@ -394,7 +395,6 @@ class ManualFormCutController extends Controller
     public function getScannedItem($id = 0)
     {
         $scannedItem = ScannedItem::where('id_roll', $id)->first();
-
         if ($scannedItem) {
             if (floatval($scannedItem->qty) > 0) {
                 return json_encode($scannedItem);
@@ -403,33 +403,75 @@ class ManualFormCutController extends Controller
             return json_encode(null);
         }
 
+        $newItem = DB::connection("mysql_sb")->select("
+            SELECT
+                br.id id_roll,
+                mi.itemdesc detail_item,
+                mi.id_item,
+                goods_code,
+                supplier,
+                bpbno_int,
+                pono,
+                invno,
+                ac.kpno,
+                no_roll roll,
+                qty_aktual qty,
+                no_lot lot,
+                bpb.unit,
+                kode_rak
+            FROM
+                whs_lokasi_inmaterial br
+                INNER JOIN masteritem mi ON br.id_item = mi.id_item
+                INNER JOIN bpb ON br.id_jo = bpb.id_jo
+                AND br.id_item = bpb.id_item
+                INNER JOIN mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
+                INNER JOIN jo_det jd ON br.id_jo = jd.id_jo
+                INNER JOIN so ON jd.id_so = so.id
+                INNER JOIN act_costing ac ON so.id_cost = ac.id
+                INNER JOIN master_rak mr ON br.kode_lok = mr.kode_rak
+            WHERE
+                br.no_barcode = '".$id."'
+                AND cast(
+                qty_aktual AS DECIMAL ( 11, 3 )) > 0.000
+                LIMIT 1
+        ");
+        if ($newItem) {
+            return json_encode($newItem ? $newItem[0] : null);
+        }
+
         $item = DB::connection("mysql_sb")->select("
-            select br.id id_roll,
-            mi.itemdesc detail_item,
-            mi.id_item,
-            goods_code,
-            supplier,
-            bpbno_int,
-            pono,
-            invno,
-            ac.kpno,
-            roll_no roll,
-            roll_qty qty,
-            lot_no lot,
-            bpb.unit,
-            kode_rak
-            from bpb_roll br
-            inner join bpb_roll_h brh on br.id_h = brh.id
-            inner join masteritem mi on brh.id_item = mi.id_item
-            inner join bpb on brh.bpbno = bpb.bpbno and brh.id_jo = bpb.id_jo and brh.id_item = bpb.id_item
-            inner join mastersupplier ms on bpb.id_supplier = ms.Id_Supplier
-            inner join jo_det jd on brh.id_jo = jd.id_jo
-            inner join so on jd.id_so = so.id
-            inner join act_costing ac on so.id_cost = ac.id
-            inner join master_rak mr on br.id_rak_loc = mr.id
-            where br.id = '" . $id . "'
-            and cast(roll_qty as decimal(11,3)) > 0.000
-            limit 1
+            SELECT
+                br.id id_roll,
+                mi.itemdesc detail_item,
+                mi.id_item,
+                goods_code,
+                supplier,
+                bpbno_int,
+                pono,
+                invno,
+                ac.kpno,
+                roll_no roll,
+                roll_qty qty,
+                lot_no lot,
+                bpb.unit,
+                kode_rak
+            FROM
+                bpb_roll br
+                INNER JOIN bpb_roll_h brh ON br.id_h = brh.id
+                INNER JOIN masteritem mi ON brh.id_item = mi.id_item
+                INNER JOIN bpb ON brh.bpbno = bpb.bpbno
+                AND brh.id_jo = bpb.id_jo
+                AND brh.id_item = bpb.id_item
+                INNER JOIN mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
+                INNER JOIN jo_det jd ON brh.id_jo = jd.id_jo
+                INNER JOIN so ON jd.id_so = so.id
+                INNER JOIN act_costing ac ON so.id_cost = ac.id
+                INNER JOIN master_rak mr ON br.id_rak_loc = mr.id
+            WHERE
+                br.id = '" . $id . "'
+                AND cast(
+                roll_qty AS DECIMAL ( 11, 3 )) > 0.000
+                LIMIT 1
         ");
 
         return json_encode($item ? $item[0] : null);

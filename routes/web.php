@@ -40,6 +40,7 @@ use App\Http\Controllers\GeneralController;
 use App\Http\Controllers\LapDetPemasukanController;
 use App\Http\Controllers\FGStokMasterController;
 use App\Http\Controllers\FGStokBPBController;
+use App\Http\Controllers\StockDcCompleteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -501,7 +502,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/line-chart-data', 'lineChartData')->name('line-chart-data');
     });
 
-
     Route::controller(SummaryController::class)->prefix("summary")->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('summary');
         Route::get('/secondary', 'index')->name('summary-secondary');
@@ -677,12 +677,18 @@ Route::middleware('auth')->group(function () {
         // Route::put('/update/{id?}', 'update')->name('update-master-part');
         // Route::delete('/destroy/{id?}', 'destroy')->name('destroy-master-part');
     });
+
     Route::controller(FGStokBPBController::class)->prefix("bpb-fg-stock")->middleware('fg-stock')->group(function () {
         Route::get('/', 'index')->name('bpb-fg-stock');
         Route::post('/store', 'store')->name('store-lokasi-fg-stock-1');
         Route::get('/create', 'create')->name('create-bpb-fg-stock');
         // Route::put('/update/{id?}', 'update')->name('update-master-part');
         // Route::delete('/destroy/{id?}', 'destroy')->name('destroy-master-part');
+    });
+
+    Route::controller(StockDcCompleteController::class)->prefix("stock-dc-complete")->middleware('admin')->group(function () {
+        Route::get('/', 'index')->name('stock-dc-complete');
+        Route::get('/show/{partId?}/{color?}/{size?}', 'show')->name('stock-dc-complete-detail');
     });
 });
 
