@@ -98,6 +98,21 @@
 
                 @if ($page == 'dashboard-warehouse')
                     <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false" class="nav-link dropdown-toggle">Qc</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+
+                            <li>
+                                <a href="{{ route('qc-pass') }}" class="dropdown-item">
+                                    Qc Inspect
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endif
+
+                @if ($page == 'dashboard-warehouse')
+                    <li class="nav-item dropdown">
                     <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">Laporan</a>
                     <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
 
