@@ -3092,7 +3092,6 @@
                 totalRemark += Number(data.remark);
 
                 let averageTotalAverageTime = totalAverageTime / totalRow;
-                let averageTotalAverageTime = totalAverageTime / totalRow;
                 let averageTotalAverageTimeMinute = averageTotalAverageTime.round(0) >= 60 ? pad((averageTotalAverageTime.round(0) / 60).round(0)) : pad(0);
                 let averageTotalAverageTimeSecond = averageTotalAverageTime.round(0) >= 60 ? pad((averageTotalAverageTime.round(0) % 60).round(0)) : pad(averageTotalAverageTime.round(0));
 
