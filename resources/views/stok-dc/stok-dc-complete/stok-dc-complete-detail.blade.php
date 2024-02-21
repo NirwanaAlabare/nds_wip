@@ -67,25 +67,25 @@
                 <table id="datatable-complete-stocker" class="table table-bordered table-sm w-100">
                     <thead>
                         <tr>
-                            <th class="w-25">No. Stocker</th>
                             <th>No. Cut</th>
                             <th>Group</th>
                             <th>Range Awal</th>
                             <th>Range Akhir</th>
                             <th>Qty</th>
                             <th>Lokasi</th>
+                            <th>No. Stocker</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($stockDcComplete as $stock)
                             <tr>
-                                <td>{{ $stock->stockers }}</td>
                                 <td>{{ $stock->no_cut }}</td>
                                 <td>{{ $stock->shade }}</td>
                                 <td>{{ $stock->range_awal }}</td>
                                 <td>{{ $stock->range_akhir }}</td>
                                 <td>{{ $stock->qty }}</td>
                                 <td>{{ $stock->lokasi }}</td>
+                                <td>{{ $stock->stockers }}</td>
                             </tr>
                         @endforeach
                     </tbody>

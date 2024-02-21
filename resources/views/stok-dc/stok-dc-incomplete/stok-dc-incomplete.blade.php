@@ -24,7 +24,7 @@
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" {{-- onchange="datatablePartReload()" --}}>
                 </div>
                 <div>
-                    <button class="btn btn-primary btn-sm" {{-- onclick="datatableCompleteStockerReload()" --}}><i class="fa fa-search"></i></button>
+                    <button class="btn btn-primary btn-sm" onclick="datatableIncompleteStockerReload()"><i class="fa fa-search"></i></button>
                 </div>
             </div>
             <div class="table-responsive">
@@ -66,7 +66,7 @@
         });
 
         // Complete Stocker Datatable
-        let datatableCompleteStocker = $("#datatable-incomplete-stocker").DataTable({
+        let datatableIncompleteStocker = $("#datatable-incomplete-stocker").DataTable({
             ordering: false,
             processing: true,
             serverSide: true,
@@ -90,7 +90,7 @@
                     data: 'bundle'
                 },
                 {
-                    data: 'incomplete'
+                    data: 'qty'
                 },
             ],
             columnDefs: [
@@ -125,20 +125,20 @@
         });
 
         // Complete Stocker Datatable Reload
-        function datatableCompleteStockerReload() {
-            datatableCompleteStocker.ajax.reload()
+        function datatableIncompleteStockerReload() {
+            datatableIncompleteStocker.ajax.reload()
         }
 
         // Complete Stocker Datatable Header Column Filter
-        $('#datatable-complete-stocker thead tr').clone(true).appendTo('#datatable-complete-stocker thead');
-        $('#datatable-complete-stocker thead tr:eq(1) th').each(function(i) {
+        $('#datatable-incomplete-stocker thead tr').clone(true).appendTo('#datatable-incomplete-stocker thead');
+        $('#datatable-incomplete-stocker thead tr:eq(1) th').each(function(i) {
             if (i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" />');
 
                 $('input', this).on('keyup change', function() {
-                    if (datatableCompleteStocker.column(i).search() !== this.value) {
-                        datatableCompleteStocker
+                    if (datatableIncompleteStocker.column(i).search() !== this.value) {
+                        datatableIncompleteStocker
                             .column(i)
                             .search(this.value)
                             .draw();

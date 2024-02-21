@@ -49,6 +49,7 @@ use App\Http\Controllers\FGStokBPBController;
 use App\Http\Controllers\FGStokBPPBController;
 use App\Http\Controllers\StockDcCompleteController;
 use App\Http\Controllers\StockDcIncompleteController;
+use App\Http\Controllers\StockDcWipController;
 
 /*
 |--------------------------------------------------------------------------
@@ -759,6 +760,11 @@ Route::middleware('auth')->group(function () {
     Route::controller(StockDcIncompleteController::class)->prefix("stock-dc-incomplete")->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('stock-dc-incomplete');
         Route::get('/show/{partId?}/{color?}/{size?}', 'show')->name('stock-dc-incomplete-detail');
+    });
+
+    Route::controller(StockDcWipController::class)->prefix("stock-dc-wip")->middleware('admin')->group(function () {
+        Route::get('/', 'index')->name('stock-dc-wip');
+        Route::get('/show/{partId?}', 'show')->name('stock-dc-wip-detail');
     });
 });
 
