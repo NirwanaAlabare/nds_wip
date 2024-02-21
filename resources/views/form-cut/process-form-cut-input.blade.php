@@ -3056,8 +3056,8 @@
 
                 scannedItemTableTbody.appendChild(tr);
 
-                latestStatus != 'extension complete' ? totalScannedItem++ : '';
                 totalRow++;
+                latestStatus != 'extension complete' ? totalScannedItem++ : '';
 
                 totalSisaGelaran += Number(data.sisa_gelaran);
                 totalSambungan += Number(data.sambungan);
@@ -3081,7 +3081,7 @@
                 document.getElementById("total-sambungan").innerText = Number(totalSambungan).round(2);
                 document.getElementById("total-est-amparan").innerText = Number(totalEstAmparan).round(2);
                 document.getElementById("total-lembar").innerText = Number(totalLembar).round(2);
-            document.getElementById("total-average-time").innerText = (averageTotalAverageTimeMinute + ":" +averageTotalAverageTimeSecond);
+                document.getElementById("total-average-time").innerText = (averageTotalAverageTimeMinute + ":" +averageTotalAverageTimeSecond);
                 document.getElementById("total-kepala-kain").innerText = Number(totalKepalaKain).round(2);
                 document.getElementById("total-sisa-tidak-bisa").innerText = Number(totalSisaTidakBisa).round(2);
                 document.getElementById("total-reject").innerText = Number(totalReject).round(2);

@@ -3468,8 +3468,8 @@
 
                     scannedItemTableTbody.appendChild(tr);
 
-                    latestStatus != 'extension complete' ? totalScannedItem++ : '';
                     totalRow++;
+                    latestStatus != 'extension complete' ? totalScannedItem++ : '';
 
                     totalSisaGelaran += Number(data.sisa_gelaran);
                     totalSambungan += Number(data.sambungan);
