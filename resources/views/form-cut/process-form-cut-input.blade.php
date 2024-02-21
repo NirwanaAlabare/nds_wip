@@ -2888,6 +2888,7 @@
             // Variable List :
             var scannedItemTable = document.getElementById("scannedItemTable");
             var scannedItemTableTbody = scannedItemTable.getElementsByTagName("tbody")[0];
+            var totalRow = 0;
             var totalScannedItem = 0;
             var totalSisaGelaran = 0;
             var totalSambungan = 0;
@@ -3056,6 +3057,7 @@
                 scannedItemTableTbody.appendChild(tr);
 
                 latestStatus != 'extension complete' ? totalScannedItem++ : '';
+                totalRow++;
 
                 totalSisaGelaran += Number(data.sisa_gelaran);
                 totalSambungan += Number(data.sambungan);
@@ -3069,7 +3071,7 @@
                 Number(data.short_roll) < 0 ? totalShortRoll += Number(data.short_roll) : "";
                 totalRemark += Number(data.remark);
 
-                let averageTotalAverageTime = totalAverageTime / totalScannedItem;
+                let averageTotalAverageTime = totalAverageTime / totalRow;
                 let averageTotalAverageTimeMinute = pad((averageTotalAverageTime / 60).round(0));
                 let averageTotalAverageTimeSecond = pad((averageTotalAverageTime % 60).round(0));
 
@@ -3079,7 +3081,7 @@
                 document.getElementById("total-sambungan").innerText = Number(totalSambungan).round(2);
                 document.getElementById("total-est-amparan").innerText = Number(totalEstAmparan).round(2);
                 document.getElementById("total-lembar").innerText = Number(totalLembar).round(2);
-                document.getElementById("total-average-time").innerText = averageTotalAverageTimeMinute + ":" +averageTotalAverageTimeSecond;
+            document.getElementById("total-average-time").innerText = (averageTotalAverageTimeMinute + ":" +averageTotalAverageTimeSecond);
                 document.getElementById("total-kepala-kain").innerText = Number(totalKepalaKain).round(2);
                 document.getElementById("total-sisa-tidak-bisa").innerText = Number(totalSisaTidakBisa).round(2);
                 document.getElementById("total-reject").innerText = Number(totalReject).round(2);
