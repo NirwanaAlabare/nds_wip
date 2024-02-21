@@ -3072,8 +3072,8 @@
                 totalRemark += Number(data.remark);
 
                 let averageTotalAverageTime = totalAverageTime / totalRow;
-                let averageTotalAverageTimeMinute = pad((averageTotalAverageTime / 60).round(0));
-                let averageTotalAverageTimeSecond = pad((averageTotalAverageTime % 60).round(0));
+                let averageTotalAverageTimeMinute = averageTotalAverageTime.round(0) >= 60 ? pad((averageTotalAverageTime.round(0) / 60).round(0)) : pad(0);
+                let averageTotalAverageTimeSecond = averageTotalAverageTime.round(0) >= 60 ? pad((averageTotalAverageTime.round(0) % 60).round(0)) : pad(averageTotalAverageTime.round(0));
 
                 document.getElementById("total-qty").innerText = Number(totalQtyFabric).round(2);
                 document.getElementById("total-unit").innerText = latestUnit;
