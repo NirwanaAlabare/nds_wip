@@ -114,7 +114,7 @@ class StockDcWipController extends Controller
                 stocker_input.size,
                 MIN(CAST(stocker_input.range_awal AS INTEGER)) range_awal,
                 MAX(CAST(stocker_input.range_akhir AS INTEGER)) range_akhir,
-                (MAX(CASE WHEN dc_in_input.id is not null THEN (CAST(stocker_input.range_akhir AS INTEGER)) ELSE 0 END) - MIN(CASE WHEN dc_in_input.id is not null THEN (CAST(stocker_input.range_awal AS INTEGER)) ELSE 0 END) + (CASE WHEN dc_in_input.id is null THEN 1 ELSE 0 END)) qty
+                ( MAX( (CASE WHEN dc_in_input.id is not null THEN CAST(stocker_input.range_akhir AS INTEGER) ELSE 0 END) ) - MIN( (CASE WHEN dc_in_input.id is not null THEN CAST(stocker_input.range_awal AS INTEGER) ELSE 0 END) ) + (CASE WHEN dc_in_input.id is not null THEN 1 ELSE 0 END) ) qty_complete, qty
             FROM
                 part
                 LEFT JOIN part_form on part_form.part_id = part.id
@@ -124,8 +124,7 @@ class StockDcWipController extends Controller
                 LEFT JOIN master_size_new on master_size_new.size = stocker_input.size
             WHERE
                 part.id = '".$partId."' AND
-                stocker_input.id is not null AND
-                dc_in_input.id is not null
+                stocker_input.id is not null
             GROUP BY
                 part.id,
                 stocker_input.color,

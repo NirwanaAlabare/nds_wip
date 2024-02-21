@@ -19,8 +19,8 @@
             </div>
         </div>
         <div class="card-body">
-            <div class="row align-items-end g-3 mb-3">
-                <input type="hidden" class="form-control form-control-sm" id="part_id" name="part_id" value="{{ $detail->part_id }}">
+            <div class="row justify-content-end align-items-end g-3 mb-3">
+                <input type="hidden" class="form-control form-control-sm" id="part_id" name="part_id" value="{{ $detail->id }}">
                 <div class="col-6 col-md-4">
                     <label class="form-label"><small>No. WS</small></label>
                     <input type="text" class="form-control form-control-sm" id="no_ws" name="no_ws" value="{{ $detail->act_costing_ws }}" readonly>
@@ -33,7 +33,7 @@
                     <label class="form-label"><small>Style</small></label>
                     <input type="text" class="form-control form-control-sm" id="style" name="style" value="{{ $detail->style }}" readonly>
                 </div>
-                <div class="col-6 col-md-4">
+                <div class="col-12 col-md-12">
                     <button class="btn btn-sb-secondary btn-block btn-sm" onclick="reorderStockerNumbering()"><i class="fa-solid fa-arrow-up-wide-short"></i> Reorder Stocker Numbering</button>
                 </div>
             </div>
