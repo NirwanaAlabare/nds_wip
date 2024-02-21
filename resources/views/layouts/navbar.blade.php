@@ -393,7 +393,7 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('stocker') }}" class="dropdown-item {{ $subPage == 'stok-dc-wip' ? 'active' : '' }}">
+                                    <a href="{{ route('stock-dc-wip') }}" class="dropdown-item {{ $subPage == 'stok-dc-wip' ? 'active' : '' }}">
                                         WIP <i class="fa-solid fa-shirt"></i>
                                     </a>
                                 </li>
