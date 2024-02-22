@@ -104,6 +104,10 @@
                     }
                 },
                 {
+                    targets: [3, 4],
+                    render: (data, type, row, meta) => Number(data).toLocaleString('id-ID')
+                },
+                {
                     // All Column Colorization
                     targets: '_all',
                     className: 'text-nowrap',
