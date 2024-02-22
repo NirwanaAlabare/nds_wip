@@ -57,14 +57,26 @@
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        @php
+                                            $sumQtyComplete = 0;
+                                        @endphp
                                         @foreach ($stockDcComplete as $stock)
+                                            @php
+                                                $sumQtyComplete += $stock->qty;
+                                            @endphp
                                             <tr>
                                                 <td>{{ $stock->color }}</td>
                                                 <td>{{ $stock->size }}</td>
-                                                <td>{{ $stock->qty }}</td>
+                                                <td>{{ num($stock->qty) }}</td>
                                             </tr>
                                         @endforeach
                                     </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td class="fw-bold" colspan="2">Total</td>
+                                            <td class="fw-bold">{{ num($sumQtyComplete) }}</td>
+                                        </tr>
+                                    </tfoot>
                                 </table>
                             </div>
                         </div>
@@ -89,14 +101,26 @@
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        @php
+                                            $sumQtyIncomplete = 0;
+                                        @endphp
                                         @foreach ($stockDcIncomplete as $stock)
+                                            @php
+                                                $sumQtyIncomplete += $stock->qty;
+                                            @endphp
                                             <tr>
                                                 <td>{{ $stock->color }}</td>
                                                 <td>{{ $stock->size }}</td>
-                                                <td class="text-danger">{{ $stock->qty }}</td>
+                                                <td class="text-danger">{{ num($stock->qty) }}</td>
                                             </tr>
                                         @endforeach
                                     </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td class="fw-bold" colspan="2">Total</td>
+                                            <td class="fw-bold text-danger">{{ num($sumQtyIncomplete) }}</td>
+                                        </tr>
+                                    </tfoot>
                                 </table>
                             </div>
                         </div>
