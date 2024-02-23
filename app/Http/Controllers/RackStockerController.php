@@ -25,7 +25,32 @@ class RackStockerController extends Controller
     {
         $racks = Rack::all();
 
-        return view('rack.stock-rack', ['page' => 'dashboard-dc', "subPageGroup" => "rak-dc", "subPage" => "stock-rack", 'racks' => $racks]);
+        $stockers = Stocker::selectRaw("
+            CONCAT(stocker_input.id_qr_stocker) stockers,
+            rack_detail_stocker.detail_rack_id,
+            stocker_input.act_costing_ws,
+            marker_input.buyer,
+            marker_input.style,
+            stocker_input.form_cut_id,
+            stocker_input.color,
+            stocker_input.size,
+            stocker_input.so_det_id,
+            form_cut_input.no_cut,
+            stocker_input.shade,
+            stocker_input.group_stocker,
+            stocker_input.ratio,
+            stocker_input.qty_ply,
+            CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir) as full_range
+        ")->
+        leftJoin("rack_detail_stocker", "rack_detail_stocker.stocker_id", "=", "stocker_input.id_qr_stocker")->
+        leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+        leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+        leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+        leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+        groupBy("rack_detail_stocker.detail_rack_id", "stocker_input.form_cut_id", "stocker_input.so_det_id", "stocker_input.group_stocker")->
+        get();
+
+        return view('rack.stock-rack', ['page' => 'dashboard-dc', "subPageGroup" => "rak-dc", "subPage" => "stock-rack", 'racks' => $racks, 'stockers' => $stockers]);
     }
 
     /**

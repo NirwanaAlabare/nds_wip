@@ -17,6 +17,9 @@
             <a href="{{ route('allocate-rack') }}" class="btn btn-success btn-sm mb-3"><i class="fa fa-plus"></i> Alokasi Rak</a>
             <div class="accordion" id="accordionPanelsStayOpenExample">
                 @foreach ($racks as $rack)
+                    @php
+                        $rackDetails = $rack->rackDetails;
+                    @endphp
                     <div class="accordion-item">
                         <h2 class="accordion-header">
                             <button class="accordion-button {{ $loop->index % 2 != 0 ? 'accordion-blue' : 'accordion-blue-sec' }}" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen{{ $loop->index }}" aria-expanded="true" aria-controls="panelsStayOpen{{ $loop->index }}">
@@ -30,156 +33,50 @@
                                         <thead>
                                             <tr>
                                                 <th>Rak</th>
-                                                @foreach ($rack->rackDetails as $rackDetail)
-                                                    <th colspan="{{ $rackDetail->rackDetailStockers->count() > 0 ? $rackDetail->rackDetailStockers->count() : 1 }}">{{ $rackDetail->nama_detail_rak }}</th>
-                                                @endforeach
-                                            </tr>
-                                            <tr>
                                                 <th>No. Stocker</th>
-                                                @foreach ($rack->rackDetails as $rackDetail)
-                                                    @if ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0)
-                                                        @foreach ($rackDetail->rackDetailStockers as $rackDetailStocker)
-                                                            <td>{{ $rackDetailStocker->stocker ? $rackDetailStocker->stocker->id_qr_stocker : "-" }}</td>
-                                                        @endforeach
-                                                    @else
-                                                        <td>&nbsp;</td>
-                                                    @endif
-                                                @endforeach
-                                            </tr>
-                                            <tr>
                                                 <th>No. WS</th>
-                                                @foreach ($rack->rackDetails as $rackDetail)
-                                                    @if ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0)
-                                                        @foreach ($rackDetail->rackDetailStockers as $rackDetailStocker)
-                                                            <td>{{ $rackDetailStocker->stocker ? $rackDetailStocker->stocker->act_costing_ws : "-" }}</td>
-                                                        @endforeach
-                                                    @else
-                                                        <td>&nbsp;</td>
-                                                    @endif
-                                                @endforeach
-                                            </tr>
-                                            <tr>
                                                 <th>No. Cut</th>
-                                                @foreach ($rack->rackDetails as $rackDetail)
-                                                    @if ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0)
-                                                        @foreach ($rackDetail->rackDetailStockers as $rackDetailStocker)
-                                                            <td>{{ $rackDetailStocker->stocker ? $rackDetailStocker->stocker->formCut->no_cut : "-" }}</td>
-                                                        @endforeach
-                                                    @else
-                                                        <td>&nbsp;</td>
-                                                    @endif
-                                                @endforeach
-                                            </tr>
-                                            <tr>
                                                 <th>Shade</th>
-                                                @foreach ($rack->rackDetails as $rackDetail)
-                                                    @if ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0)
-                                                        @foreach ($rackDetail->rackDetailStockers as $rackDetailStocker)
-                                                            <td>{{ $rackDetailStocker->stocker ? $rackDetailStocker->stocker->shade : "-" }}</td>
-                                                        @endforeach
-                                                    @else
-                                                        <td>&nbsp;</td>
-                                                    @endif
-                                                @endforeach
-                                            </tr>
-                                            <tr>
                                                 <th>Style</th>
-                                                @foreach ($rack->rackDetails as $rackDetail)
-                                                    @if ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0)
-                                                        @foreach ($rackDetail->rackDetailStockers as $rackDetailStocker)
-                                                            <td>{{ $rackDetailStocker->stocker ? $rackDetailStocker->stocker->formCut->marker->style : "-" }}</td>
-                                                        @endforeach
-                                                    @else
-                                                        <td>&nbsp;</td>
-                                                    @endif
-                                                @endforeach
-                                            </tr>
-                                            <tr>
                                                 <th>Color</th>
-                                                @foreach ($rack->rackDetails as $rackDetail)
-                                                    @if ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0)
-                                                        @foreach ($rackDetail->rackDetailStockers as $rackDetailStocker)
-                                                            <td>{{ $rackDetailStocker->stocker ? $rackDetailStocker->stocker->formCut->marker->color : "-" }}</td>
-                                                        @endforeach
-                                                    @else
-                                                        <td>&nbsp;</td>
-                                                    @endif
-                                                @endforeach
-                                            </tr>
-                                            <tr>
                                                 <th>Size</th>
-                                                @foreach ($rack->rackDetails as $rackDetail)
-                                                    @if ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0)
-                                                        @foreach ($rackDetail->rackDetailStockers as $rackDetailStocker)
-                                                            <td>{{ $rackDetailStocker->stocker ? $rackDetailStocker->stocker->size : "-" }}</td>
-                                                        @endforeach
-                                                    @else
-                                                        <td>&nbsp;</td>
-                                                    @endif
-                                                @endforeach
-                                            </tr>
-                                            <tr>
                                                 <th>Qty</th>
-                                                @foreach ($rack->rackDetails as $rackDetail)
-                                                    @if ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0)
-                                                        @foreach ($rackDetail->rackDetailStockers as $rackDetailStocker)
-                                                            <td>{{ $rackDetailStocker->stocker ? $rackDetailStocker->stocker->range_awal."-".$rackDetailStocker->stocker->range_akhir : "-" }}</td>
-                                                        @endforeach
-                                                    @else
-                                                        <td>&nbsp;</td>
-                                                    @endif
-                                                @endforeach
-                                            </tr>
-                                            <tr>
                                                 <th>Part Tersedia</th>
-                                                @foreach ($rack->rackDetails as $rackDetail)
-                                                    @if ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0)
-                                                        @foreach ($rackDetail->rackDetailStockers as $rackDetailStocker)
-                                                            <td>
-                                                                @php
-                                                                    echo $rackDetailStocker->stocker ? $rackDetailStocker->stocker->partDetail && $rackDetailStocker->stocker->partDetail->masterPart->nama_part : '-';
-                                                                @endphp
-                                                            </td>
-                                                        @endforeach
-                                                    @else
-                                                        <td>&nbsp;</td>
-                                                    @endif
-                                                @endforeach
-                                            </tr>
-                                            <tr>
                                                 <th>Part Belum Lengkap</th>
-                                                @foreach ($rack->rackDetails as $rackDetail)
-                                                    @php
-                                                        $availablePart = [];
-                                                    @endphp
-                                                    @if ($rackDetail->rackDetailStockers && $rackDetail->rackDetailStockers->count() > 0)
-                                                        @foreach ($rackDetail->rackDetailStockers as $rackDetailStocker)
-                                                            @php
-                                                                if ($rackDetailStocker->stocker && $rackDetailStocker->stocker->partDetail && !(in_array($rackDetailStocker->stocker->partDetail->masterPart->nama_part, $availablePart))) {
-                                                                    array_push($availablePart, $rackDetailStocker->stocker->partDetail->masterPart->nama_part);
-                                                                }
-                                                            @endphp
-                                                            <td>
-                                                                @if ($rackDetailStocker->stocker && $rackDetailStocker->stocker->partDetail && $rackDetailStocker->stocker->partDetail->part && $rackDetailStocker->stocker->partDetail->part->partDetails)
-                                                                    @foreach ($rackDetailStocker->stocker->partDetail->part->partDetails as $partDetail)
-                                                                        @php
-                                                                            if (!(in_array($partDetail->masterPart->nama_part, $availablePart))) {
-
-                                                                                echo (!($loop->last) ? $partDetail->masterPart->nama_part.", " : $partDetail->masterPart->nama_part);
-                                                                            }
-                                                                        @endphp
-                                                                    @endforeach
-                                                                @endif
-                                                            </td>
-                                                        @endforeach
-                                                    @else
-                                                        <td>&nbsp;</td>
-                                                    @endif
-                                                @endforeach
                                             </tr>
                                         </thead>
                                         <tbody>
+                                            @foreach ($rackDetails as $rackDetail)
+                                                @php
+                                                    $stockerData = $stockers->where('detail_rack_id', $rackDetail->id);
+                                                @endphp
 
+                                                @if ($stockerData)
+                                                    <tr>
+                                                        <td class="fw-bold" {{ $stockerData->where('detail_rack_id', $rackDetail->id)->count() > 0 ? 'rowspan='.$stockerData->where('detail_rack_id', $rackDetail->id)->count() .'' : '' }}>{{ $rackDetail->nama_detail_rak }}</td>
+                                                        @foreach ($stockerData as $stocker)
+                                                            @if ($loop->index != 0)
+                                                                <tr>
+                                                            @endif
+
+                                                            <td>{{ $stocker->stockers }}</td>
+                                                            <td>{{ $stocker->act_costing_ws }}</td>
+                                                            <td>{{ $stocker->no_cut }}</td>
+                                                            <td>{{ $stocker->shade }}</td>
+                                                            <td>{{ $stocker->style }}</td>
+                                                            <td>{{ $stocker->color }}</td>
+                                                            <td>{{ $stocker->act_costing_ws }}</td>
+                                                            <td>{{ $stocker->qty_ply }}</td>
+                                                            <td>{{ '-' }}</td>
+                                                            <td>{{ '-' }}</td>
+
+                                                            @if ($loop->index != 0)
+                                                                </tr>
+                                                            @endif
+                                                        @endforeach
+                                                    <tr>
+                                                @endif
+                                            @endforeach
                                         </tbody>
                                     </table>
                                 </div>
