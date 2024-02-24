@@ -101,31 +101,32 @@
 
                 @if ($page == 'dashboard-warehouse')
                     <li class="nav-item dropdown">
-                    <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">Laporan</a>
-                    <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-                       
-                        <li>
-                            <a href="{{ route('lap-det-pemasukan') }}" class="dropdown-item">
-                                Pemasukan Detail Item
-                            </a>
-                            <a href="{{ route('lap-det-pemasukanroll') }}" class="dropdown-item">
-                                Pemasukan Detail Roll
-                            </a>
-                            <a href="{{ route('lap-det-pengeluaran') }}" class="dropdown-item">
-                                Pengeluaran Detail Item
-                            </a>
-                            <a href="{{ route('lap-det-pengeluaranroll') }}" class="dropdown-item">
-                                Pengeluaran Detail Roll
-                            </a>
-                            <a href="{{ route('lap-mutasi-global') }}" class="dropdown-item">
-                                Mutasi Global
-                            </a>
-                            <a href="{{ route('lap-mutasi-detail') }}" class="dropdown-item">
-                                Mutasi Detail
-                            </a>
-                        </li>
-                    </ul>
-                </li>
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false" class="nav-link dropdown-toggle">Laporan</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+
+                            <li>
+                                <a href="{{ route('lap-det-pemasukan') }}" class="dropdown-item">
+                                    Pemasukan Detail Item
+                                </a>
+                                <a href="{{ route('lap-det-pemasukanroll') }}" class="dropdown-item">
+                                    Pemasukan Detail Roll
+                                </a>
+                                <a href="{{ route('lap-det-pengeluaran') }}" class="dropdown-item">
+                                    Pengeluaran Detail Item
+                                </a>
+                                <a href="{{ route('lap-det-pengeluaranroll') }}" class="dropdown-item">
+                                    Pengeluaran Detail Roll
+                                </a>
+                                <a href="{{ route('lap-mutasi-global') }}" class="dropdown-item">
+                                    Mutasi Global
+                                </a>
+                                <a href="{{ route('lap-mutasi-detail') }}" class="dropdown-item">
+                                    Mutasi Detail
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                 @endif
 
 
@@ -371,17 +372,20 @@
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @dc
                                 <li>
-                                    <a href="{{ route('stock-dc-complete') }}" class="dropdown-item {{ $subPage == 'stok-dc-complete' ? 'active' : '' }}">
+                                    <a href="{{ route('stock-dc-complete') }}"
+                                        class="dropdown-item {{ $subPage == 'stok-dc-complete' ? 'active' : '' }}">
                                         Stocker Complete <i class="fa-solid fa-circle-check"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('stocker') }}" class="dropdown-item {{ $subPage == '-' ? 'active' : '' }}">
+                                    <a href="{{ route('stocker') }}"
+                                        class="dropdown-item {{ $subPage == '-' ? 'active' : '' }}">
                                         Stocker Incomplete <i class="fa-solid fa-spinner"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('stocker') }}" class="dropdown-item {{ $subPage == '-' ? 'active' : '' }}">
+                                    <a href="{{ route('stocker') }}"
+                                        class="dropdown-item {{ $subPage == '-' ? 'active' : '' }}">
                                         WIP <i class="fa-solid fa-shirt"></i>
                                     </a>
                                 </li>
@@ -430,15 +434,15 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('master-lokasi-fg-stock') }}"
-                                    class="dropdown-item {{ $subPage == 'fg-stock' ? 'active' : '' }}">
-                                    Master Sumber Penerimaan <i class="fas fa-search-location fa-sm"></i>
+                                <a href="{{ route('master-sumber-penerimaan') }}"
+                                    class="dropdown-item {{ $subPage == 'master-sumber-penerimaan' ? 'active' : '' }}">
+                                    Master Sumber Penerimaan <i class="fas fa-indent fa-sm"></i>
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('master-lokasi-fg-stock') }}"
-                                    class="dropdown-item {{ $subPage == 'fg-stock' ? 'active' : '' }}">
-                                    Master Tujuan Pengeluaran <i class="fas fa-search-location fa-sm"></i>
+                                <a href="{{ route('master-tujuan-pengeluaran') }}"
+                                    class="dropdown-item {{ $subPage == 'master-tujuan-pengeluaran' ? 'active' : '' }}">
+                                    Master Tujuan Pengeluaran <i class="fas fa-outdent fa-sm"></i>
                                 </a>
                             </li>
                         </ul>
@@ -465,6 +469,32 @@
                                 <a href="{{ route('bppb-fg-stock') }}"
                                     class="dropdown-item {{ $subPage == 'bppb-fg-stock' ? 'active' : '' }}">
                                     Pengeluaran Barang Jadi Stok <i class="fas fa-box-open fa-sm"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'fgstock-mutasi' ? 'active' : '' }}">Mutasi</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('mutasi-fg-stock') }}"
+                                    class="dropdown-item {{ $subPage == 'mutasi-fg-stock' ? 'active' : '' }}">
+                                    Mutasi Karton <i class="fas fa-exchange-alt"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'fgstock-laporan' ? 'active' : '' }}">Laporan</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('laporan-fg-stock') }}"
+                                    class="dropdown-item {{ $subPage == 'laporan-fg-stock' ? 'active' : '' }}">
+                                    List Laporan <i class="fas fa-list fa-sm"></i>
                                 </a>
                             </li>
                         </ul>

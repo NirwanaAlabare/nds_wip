@@ -47,6 +47,8 @@ use App\Http\Controllers\DashboardFabricController;
 use App\Http\Controllers\FGStokMasterController;
 use App\Http\Controllers\FGStokBPBController;
 use App\Http\Controllers\FGStokBPPBController;
+use App\Http\Controllers\FGStokLaporanController;
+use App\Http\Controllers\FGStokMutasiController;
 use App\Http\Controllers\StockDcCompleteController;
 
 /*
@@ -723,6 +725,10 @@ Route::middleware('auth')->group(function () {
     Route::controller(FGStokMasterController::class)->prefix("master-lokasi-fg-stock")->middleware('fg-stock')->group(function () {
         Route::get('/', 'index')->name('master-lokasi-fg-stock');
         Route::post('/store', 'store')->name('store-lokasi-fg-stock');
+        Route::get('/master_sumber_penerimaan', 'master_sumber_penerimaan')->name('master-sumber-penerimaan');
+        Route::post('/store_master_sumber_penerimaan', 'store_master_sumber_penerimaan')->name('store-master-sumber-penerimaan');
+        Route::get('/master_tujuan_pengeluaran', 'master_tujuan_pengeluaran')->name('master-tujuan-pengeluaran');
+        Route::post('/store_master_tujuan_pengeluaran', 'store_master_tujuan_pengeluaran')->name('store-master-tujuan-pengeluaran');
         // Route::put('/update/{id?}', 'update')->name('update-master-part');
         // Route::delete('/destroy/{id?}', 'destroy')->name('destroy-master-part');
     });
@@ -740,6 +746,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/undo', 'undo')->name('undo');
         Route::get('/show_lok', 'show_lok')->name('show_lok');
         Route::get('/getdet_carton', 'getdet_carton')->name('getdet_carton');
+        Route::get('/export_excel_bpb_fg_stok', 'export_excel_bpb_fg_stok')->name('export_excel_bpb_fg_stok');
     });
     Route::controller(FGStokBPPBController::class)->prefix("bppb-fg-stock")->middleware('fg-stock')->group(function () {
         Route::get('/', 'index')->name('bppb-fg-stock');
@@ -748,6 +755,17 @@ Route::middleware('auth')->group(function () {
         Route::get('/getws', 'getws')->name('getws');
         Route::get('/show_det', 'show_det')->name('show_det');
         Route::get('/getstok', 'getstok')->name('getstok-bppb-fg-stock');
+        Route::get('/export_excel_bppb_fg_stok', 'export_excel_bppb_fg_stok')->name('export_excel_bppb_fg_stok');
+    });
+
+    Route::controller(FGStokLaporanController::class)->prefix("laporan-fg-stock")->middleware('fg-stock')->group(function () {
+        Route::get('/', 'index')->name('laporan-fg-stock');
+        Route::get('/export_excel_mutasi_fg_stok', 'export_excel_mutasi_fg_stok')->name('export_excel_mutasi_fg_stok');
+    });
+
+    Route::controller(FGStokMutasiController::class)->prefix("mutasi-fg-stock")->middleware('fg-stock')->group(function () {
+        Route::get('/', 'index')->name('mutasi-fg-stock');
+        Route::get('/create', 'create')->name('create-mutasi-fg-stock');
     });
 
     Route::controller(StockDcCompleteController::class)->prefix("stock-dc-complete")->middleware('admin')->group(function () {

@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ExportLaporanPenerimaanFGStokBPB;
 
-class FGStokBPBController extends Controller
+class FGStokMutasiController extends Controller
 {
     public function index(Request $request)
     {
@@ -48,11 +48,7 @@ class FGStokBPBController extends Controller
             return DataTables::of($data_input)->toJson();
         }
 
-        $sql_temp = DB::select("select * from fg_tmp_stok_bpb where created_by = '$user' group by created_by");
-        $cek_temp = $sql_temp ? $sql_temp[0]->id : null;
-
-
-        return view('fg-stock.bpb_fg_stock', ['page' => 'dashboard-fg-stock', "subPageGroup" => "fgstock-bpb", "subPage" => "bpb-fg-stock", "cek_temp" => $cek_temp]);
+        return view('fg-stock.mutasi_fg_stock', ['page' => 'dashboard-fg-stock', "subPageGroup" => "fgstock-mutasi", "subPage" => "mutasi-fg-stock"]);
     }
 
     public function store(Request $request)
@@ -142,8 +138,8 @@ class FGStokBPBController extends Controller
 
         $data_grade = DB::select("select grade isi , grade tampil from fg_stok_master_grade");
 
-        return view('fg-stock.create_bpb_fg_stock', [
-            'page' => 'dashboard-fg-stock', "subPageGroup" => "fgstock-bpb", "subPage" => "bpb-fg-stock",
+        return view('fg-stock.create_mutasi_fg_stock', [
+            'page' => 'dashboard-fg-stock', "subPageGroup" => "fgstock-mutasi", "subPage" => "mutasi-fg-stock",
             "data_lok" => $data_lok, "data_buyer" => $data_buyer, "data_grade" => $data_grade, "user" => $user
         ]);
     }

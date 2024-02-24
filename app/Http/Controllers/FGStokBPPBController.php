@@ -8,6 +8,9 @@ use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ExportLaporanPengeluaranFGStokBPPB;
+
 
 class FGStokBPPBController extends Controller
 {
@@ -23,6 +26,8 @@ class FGStokBPPBController extends Controller
             a.id,
             no_trans_out,
             tgl_pengeluaran,
+            concat((DATE_FORMAT(tgl_pengeluaran,  '%d')), '-', left(DATE_FORMAT(tgl_pengeluaran,  '%M'),3),'-',DATE_FORMAT(tgl_pengeluaran,  '%Y')
+            ) tgl_pengeluaran_fix,
             buyer,
             ws,
             brand,
@@ -33,12 +38,13 @@ class FGStokBPPBController extends Controller
             a.grade,
             no_carton,
             lokasi,
+            tuj_pengeluaran,
             a.created_by,
             created_at
             from fg_stok_bppb a
             inner join master_sb_ws m on a.id_so_det = m.id_so_det
             where tgl_pengeluaran >= '$tgl_awal' and tgl_pengeluaran <= '$tgl_akhir'
-            order by substr(no_trans_out,14) desc
+            order by tgl_pengeluaran desc,substr(no_trans_out,14) desc
             ");
 
             return DataTables::of($data_input)->toJson();
@@ -333,7 +339,7 @@ class FGStokBPPBController extends Controller
             inner join master_sb_ws m on s.id_so_det = m.id_so_det
             group by no_carton, s.id_so_det, s.grade
             having sum(s.qty_in) - sum(s.qty_out) != '0'
-			order by lokasi asc
+			order by lokasi asc, no_carton asc
             "
         );
 
@@ -341,8 +347,8 @@ class FGStokBPPBController extends Controller
     }
 
 
-    // public function export_excel_mut_karyawan(Request $request)
-    // {
-    //     return Excel::download(new ExportLaporanMutasiKaryawan($request->from, $request->to), 'Laporan_Mutasi_Karyawan.xlsx');
-    // }
+    public function export_excel_bppb_fg_stok(Request $request)
+    {
+        return Excel::download(new ExportLaporanPengeluaranFGStokBPPB($request->from, $request->to), 'Laporan_Pengeluaran FG_Stok.xlsx');
+    }
 }

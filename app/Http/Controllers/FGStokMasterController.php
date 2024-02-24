@@ -14,27 +14,6 @@ class FGStokMasterController extends Controller
     {
         if ($request->ajax()) {
             $additionalQuery = '';
-
-            // if ($request->dateFrom) {
-            //     $additionalQuery .= " and a.tgl_form_cut >= '" . $request->dateFrom . "' ";
-            // }
-
-            // if ($request->dateTo) {
-            //     $additionalQuery .= " and a.tgl_form_cut <= '" . $request->dateTo . "' ";
-            // }
-
-            // $keywordQuery = '';
-            // if ($request->search['value']) {
-            //     $keywordQuery =
-            //         "
-            //          (
-            //             line like '%" .
-            //         $request->search['value'] .
-            //         "%'
-            //         )
-            //     ";
-            // }
-
             $data_input = DB::select("
                 select * from fg_stok_master_lok
             ");
@@ -44,6 +23,83 @@ class FGStokMasterController extends Controller
 
         return view('fg-stock.master_lokasi_fg_stock', ['page' => 'dashboard-fg-stock', "subPageGroup" => "fgstock-masterlokasi", "subPage" => "fg-stock"]);
     }
+
+    public function master_sumber_penerimaan(Request $request)
+    {
+        if ($request->ajax()) {
+            $additionalQuery = '';
+            $data_input = DB::select("
+                select * from fg_stok_master_sumber_penerimaan
+            ");
+
+            return DataTables::of($data_input)->toJson();
+        }
+
+        return view('fg-stock.master_sumber_penerimaan_fg_stock', ['page' => 'dashboard-fg-stock', "subPageGroup" => "fgstock-masterlokasi", "subPage" => "master-sumber-penerimaan"]);
+    }
+
+    public function store_master_sumber_penerimaan(Request $request)
+    {
+        $tgltrans = date('Y-m-d');
+        $timestamp = Carbon::now();
+        $user = Auth::user()->name;
+        $sumber = strtoupper($request->txtsumber);
+
+        DB::insert(
+            "insert into fg_stok_master_sumber_penerimaan
+            (sumber,cancel,created_by,created_at,updated_at)
+            VALUES ('$sumber','N','$user','$timestamp','$timestamp')
+            "
+        );
+
+        return array(
+            'status' => 300,
+            'message' => 'Data Sudah ' . $request->txtsumber . ' Berhasil Ditambahkan',
+            'redirect' => '',
+            'table' => 'datatable',
+            'additional' => [],
+        );
+    }
+
+
+    public function master_tujuan_pengeluaran(Request $request)
+    {
+        if ($request->ajax()) {
+            $additionalQuery = '';
+            $data_input = DB::select("
+                select * from fg_stok_master_tujuan
+            ");
+
+            return DataTables::of($data_input)->toJson();
+        }
+
+        return view('fg-stock.master_tujuan_pengeluaran_fg_stock', ['page' => 'dashboard-fg-stock', "subPageGroup" => "fgstock-masterlokasi", "subPage" => "master-tujuan-pengeluaran"]);
+    }
+
+    public function store_master_tujuan_pengeluaran(Request $request)
+    {
+        $tgltrans = date('Y-m-d');
+        $timestamp = Carbon::now();
+        $user = Auth::user()->name;
+        $tujuan = strtoupper($request->txttujuan);
+
+        DB::insert(
+            "insert into fg_stok_master_tujuan
+            (tujuan,cancel,created_by,created_at,updated_at)
+            VALUES ('$tujuan','N','$user','$timestamp','$timestamp')
+            "
+        );
+
+        return array(
+            'status' => 300,
+            'message' => 'Data Sudah ' . $request->txttujuan . ' Berhasil Ditambahkan',
+            'redirect' => '',
+            'table' => 'datatable',
+            'additional' => [],
+        );
+    }
+
+
 
     public function store(Request $request)
     {

@@ -12,43 +12,47 @@
 @endsection
 
 @section('content')
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header bg-sb text-light">
-                    <h1 class="modal-title fs-5" id="exampleModalLabel"> <i class="fas fa-shopping-cart"></i> Cek Stok</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class='row'>
-                        <div class="col-md-12 table-responsive">
-                            <table id="datatable_modal"
-                                class="table table-bordered table-hover table-sm w-100 display nowrap">
-                                <thead>
-                                    <tr>
-                                        <th>Lokasi</th>
-                                        <th>Brand</th>
-                                        <th>Style</th>
-                                        <th>Grade</th>
-                                        <th>WS</th>
-                                        <th>Color</th>
-                                        <th>Style</th>
-                                        <th>Size</th>
-                                        <th>Saldo</th>
+    <form name='form_modal'id='form_modal'>
+        <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header bg-sb text-light">
+                        <h1 class="modal-title fs-5" id="exampleModalLabel"> <i class="fas fa-shopping-cart"></i> Cek Stok
+                        </h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class='row'>
+                            <div class="col-md-12 table-responsive">
+                                <table id="datatable_modal" class="table table-bordered table-hover table-sm w-100">
+                                    <thead>
+                                        <tr>
+                                            <th>Lokasi</th>
+                                            <th>No. Carton</th>
+                                            <th>Buyer</th>
+                                            <th>Brand</th>
+                                            <th>Style</th>
+                                            <th>Grade</th>
+                                            <th>WS</th>
+                                            <th>Color</th>
+                                            <th>Style</th>
+                                            <th>Size</th>
+                                            <th>Saldo</th>
 
-                                    </tr>
-                                </thead>
-                            </table>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </form>
 
 
     <form id="form" name='form' method='post' action="{{ route('store-bppb-fg-stock') }}"
@@ -198,6 +202,23 @@
             $("#cbolok").val('').trigger('change');
         })
 
+        $('#datatable_modal thead tr').clone(true).appendTo('#datatable_modal thead');
+        $('#datatable_modal thead tr:eq(1) th').each(function(i) {
+            var title = $(this).text();
+            $(this).html('<input type="text" class="form-control form-control-sm" />');
+
+            $('input', this).on('keyup change', function() {
+                if (datatable.column(i).search() !== this.value) {
+                    datatable
+                        .column(i)
+                        .search(this.value)
+                        .draw();
+                }
+            });
+
+        });
+
+
         function get_ws() {
             let cbolok = document.form.cbolok.value;
             let html = $.ajax({
@@ -297,32 +318,16 @@
 
         function cekstok() {
 
-            $('#datatable_modal thead tr').clone(true).appendTo('#datatable_modal thead');
-            $('#datatable_modal thead tr:eq(1) th').each(function(i) {
-                var title = $(this).text();
-                $(this).html('<input type="text" class="form-control form-control-sm" />');
-
-                $('input', this).on('keyup change', function() {
-                    if (datatable.column(i).search() !== this.value) {
-                        datatable
-                            .column(i)
-                            .search(this.value)
-                            .draw();
-                    }
-                });
-
-            });
             let datatable = $("#datatable_modal").DataTable({
                 ordering: false,
                 processing: true,
                 serverSide: true,
                 scrollCollapse: true,
                 scroller: true,
-                paging: false,
+                paging: true,
                 destroy: true,
                 info: false,
                 searching: true,
-                scrollY: 200,
                 ajax: {
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -333,7 +338,14 @@
                 },
                 columns: [{
                         data: 'lokasi',
-                    }, {
+                    },
+                    {
+                        data: 'no_carton',
+                    },
+                    {
+                        data: 'buyer',
+                    },
+                    {
                         data: 'brand',
                     },
                     {
