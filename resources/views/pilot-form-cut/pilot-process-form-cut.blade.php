@@ -2908,6 +2908,7 @@
             // Variable List :
             var scannedItemTable = document.getElementById("scannedItemTable");
             var scannedItemTableTbody = scannedItemTable.getElementsByTagName("tbody")[0];
+            var totalRow = 0;
             var totalScannedItem = 0;
             var totalSisaGelaran = 0;
             var totalSambungan = 0;
@@ -3075,6 +3076,7 @@
 
                 scannedItemTableTbody.appendChild(tr);
 
+                totalRow++;
                 latestStatus != 'extension complete' ? totalScannedItem++ : '';
 
                 totalSisaGelaran += Number(data.sisa_gelaran);
@@ -3089,9 +3091,9 @@
                 Number(data.short_roll) < 0 ? totalShortRoll += Number(data.short_roll) : "";
                 totalRemark += Number(data.remark);
 
-                let averageTotalAverageTime = totalAverageTime / totalScannedItem;
-                let averageTotalAverageTimeMinute = pad((averageTotalAverageTime / 60).round(0));
-                let averageTotalAverageTimeSecond = pad((averageTotalAverageTime % 60).round(0));
+                let averageTotalAverageTime = totalAverageTime / totalRow;
+                let averageTotalAverageTimeMinute = averageTotalAverageTime.round(0) >= 60 ? pad((averageTotalAverageTime.round(0) / 60).round(0)) : pad(0);
+                let averageTotalAverageTimeSecond = averageTotalAverageTime.round(0) >= 60 ? pad((averageTotalAverageTime.round(0) % 60).round(0)) : pad(averageTotalAverageTime.round(0));
 
                 document.getElementById("total-qty").innerText = Number(totalQtyFabric).round(2);
                 document.getElementById("total-unit").innerText = latestUnit;
