@@ -98,74 +98,47 @@
 
                 @if ($page == 'dashboard-warehouse')
                     <li class="nav-item dropdown">
-                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" <<<<<<<
-                            HEAD aria-expanded="false" class="nav-link dropdown-toggle">Laporan</a>
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false" class="nav-link dropdown-toggle">QC</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
 
                             <li>
-                                <a href="{{ route('lap-det-pemasukan') }}" class="dropdown-item">
-                                    Pemasukan Detail Item
+                                <a href="{{ route('qc-pass') }}" class="dropdown-item">
+                                    QC Inspect
                                 </a>
-                                <a href="{{ route('lap-det-pemasukanroll') }}" class="dropdown-item">
-                                    Pemasukan Detail Roll
-                                </a>
-                                <a href="{{ route('lap-det-pengeluaran') }}" class="dropdown-item">
-                                    Pengeluaran Detail Item
-                                </a>
-                                <a href="{{ route('lap-det-pengeluaranroll') }}" class="dropdown-item">
-                                    Pengeluaran Detail Roll
-                                </a>
-                                <a href="{{ route('lap-mutasi-global') }}" class="dropdown-item">
-                                    Mutasi Global
-                                </a>
-                                <a href="{{ route('lap-mutasi-detail') }}" class="dropdown-item">
-                                    Mutasi Detail
-                                    =======
-                                    aria-expanded="false" class="nav-link dropdown-toggle">Qc</a>
-                                <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-
-                                    <li>
-                                        <a href="{{ route('qc-pass') }}" class="dropdown-item">
-                                            Qc Inspect
-                                            >>>>>>> e5bbad2172daa498160e5eaff5d08e4a4ff9ebe5
-                                        </a>
-                                    </li>
-                                </ul>
                             </li>
-                            <<<<<<< HEAD=======@endif
+                        </ul>
+                    </li>
+                @endif
 
-                                @if ($page == 'dashboard-warehouse')
-                                    <li class="nav-item dropdown">
-                                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
-                                            aria-haspopup="true" aria-expanded="false"
-                                            class="nav-link dropdown-toggle">Laporan</a>
-                                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-
-                                            <li>
-                                                <a href="{{ route('lap-det-pemasukan') }}" class="dropdown-item">
-                                                    Pemasukan Detail Item
-                                                </a>
-                                                <a href="{{ route('lap-det-pemasukanroll') }}" class="dropdown-item">
-                                                    Pemasukan Detail Roll
-                                                </a>
-                                                <a href="{{ route('lap-det-pengeluaran') }}" class="dropdown-item">
-                                                    Pengeluaran Detail Item
-                                                </a>
-                                                <a href="{{ route('lap-det-pengeluaranroll') }}"
-                                                    class="dropdown-item">
-                                                    Pengeluaran Detail Roll
-                                                </a>
-                                                <a href="{{ route('lap-mutasi-global') }}" class="dropdown-item">
-                                                    Mutasi Global
-                                                </a>
-                                                <a href="{{ route('lap-mutasi-detail') }}" class="dropdown-item">
-                                                    Mutasi Detail
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </li>
-                                    >>>>>>> e5bbad2172daa498160e5eaff5d08e4a4ff9ebe5
-                                @endif
+                @if ($page == 'dashboard-warehouse')
+                    <li class="nav-item dropdown">
+                    <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">Laporan</a>
+                    <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                       
+                        <li>
+                            <a href="{{ route('lap-det-pemasukan') }}" class="dropdown-item">
+                                Pemasukan Detail Item
+                            </a>
+                            <a href="{{ route('lap-det-pemasukanroll') }}" class="dropdown-item">
+                                Pemasukan Detail Roll
+                            </a>
+                            <a href="{{ route('lap-det-pengeluaran') }}" class="dropdown-item">
+                                Pengeluaran Detail Item
+                            </a>
+                            <a href="{{ route('lap-det-pengeluaranroll') }}" class="dropdown-item">
+                                Pengeluaran Detail Roll
+                            </a>
+                            <a href="{{ route('lap-mutasi-global') }}" class="dropdown-item">
+                                Mutasi Global
+                            </a>
+                            <a href="{{ route('lap-mutasi-detail') }}" class="dropdown-item">
+                                Mutasi Detail
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                @endif
 
 
                                 @if ($page == 'dashboard-marker')

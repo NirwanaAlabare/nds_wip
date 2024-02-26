@@ -3,10 +3,10 @@
 
 <table class="table">
     <tr>
-        <td colspan='22' style="font-size: 16px;"><b>Laporan Detail Pemasukan Barcode</b></td>
+        <td colspan='25' style="font-size: 16px;"><b>Laporan Detail Pemasukan Barcode</b></td>
     </tr>
     <tr>
-        <td colspan='22' style="font-size: 12px;">Periode {{ date('d-M-Y', strtotime($from)) }} s/d {{ date('d-M-Y', strtotime($to)) }}
+        <td colspan='25' style="font-size: 12px;">Periode {{ date('d-M-Y', strtotime($from)) }} s/d {{ date('d-M-Y', strtotime($to)) }}
         </td>
     </tr>
     <thead>
@@ -16,6 +16,9 @@
             <th>Tgl BPB</th>
             <th>No Mutasi</th>
             <th>Supplier</th>
+            <th>No SJ</th>
+            <th>No PO</th>
+            <th>Styleno</th>
             <th>Rak</th>
             <th>No Barcode</th>
             <th>No Roll</th>
@@ -46,6 +49,9 @@
                 <td>{{ $item->tgl_dok }}</td>
                 <td>{{ $item->no_mut }}</td>
                 <td>{{ $item->supplier }}</td>
+                <td>{{ $item->no_invoice }}</td>
+                <td>{{ $item->no_po }}</td>
+                <td>{{ $item->styleno }}</td>
                 <td>{{ $item->rak }}</td>
                 <td>{{ $item->barcode }}</td>
                 <td>{{ $item->no_roll }}</td>
