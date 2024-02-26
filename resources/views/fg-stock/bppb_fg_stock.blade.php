@@ -12,49 +12,6 @@
 @endsection
 
 @section('content')
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <form action="{{ route('store-lokasi-fg-stock') }}" method="post" onsubmit="submitForm(this, event)" name='form'
-            id='form'>
-            @method('POST')
-            <div class="modal-dialog modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header bg-sb text-light">
-                        <h3 class="modal-title fs-5">Tambah Lokasi FG Stock</h3>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label class="form-label">Kode Lokasi :</label>
-                            <input type='text' class='form-control form-control-sm' id="txtkode_lok" name="txtkode_lok"
-                                value="" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="recipient-name" class="col-form-label">Lokasi :</label>
-                            <input type='text' class='form-control form-control-sm' id="txtlok" name="txtlok"
-                                style="text-transform: uppercase" oninput="setinisial()" value = '' autocomplete="off">
-                        </div>
-                        <div class="form-group">
-                            <label for="recipient-name" class="col-form-label">Tingkat :</label>
-                            <input type='number' class='form-control form-control-sm' id='txttingkat' name='txttingkat'
-                                oninput="setinisial()" value = '' autocomplete="off">
-                        </div>
-                        <div class="form-group">
-                            <label for="recipient-name" class="col-form-label">Baris :</label>
-                            <input type='number' class='form-control form-control-sm' id='txtbaris' name='txtbaris'
-                                oninput="setinisial()" value = '' autocomplete="off">
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal"><i
-                                class="fas fa-times-circle"></i> Tutup</button>
-                        <button type="submit" class="btn btn-outline-success"><i class="fas fa-check"></i> Simpan </button>
-                    </div>
-                </div>
-            </div>
-        </form>
-    </div>
-
     <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-box-open"></i> Pengeluaran Barang Jadi Stok</h5>
@@ -77,6 +34,12 @@
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
                         oninput="dataTableReload()" value="{{ date('Y-m-d') }}">
                 </div>
+                <div class="mb-3">
+                    <a onclick="export_excel_bppb()" class="btn btn-outline-success position-relative btn-sm">
+                        <i class="fas fa-file-excel fa-sm"></i>
+                        Export Excel
+                    </a>
+                </div>
             </div>
 
             <div class="table-responsive">
@@ -87,6 +50,7 @@
                             <th>Tgl. Trans</th>
                             <th>Lokasi</th>
                             <th>No. Karton</th>
+                            <th>Buyer</th>
                             <th>Brand</th>
                             <th>Style</th>
                             <th>Grade</th>
@@ -94,6 +58,8 @@
                             <th>Color</th>
                             <th>Size</th>
                             <th>Qty</th>
+                            <th>Tujuan</th>
+                            <th>Tujuan Pengeluaran</th>
                         </tr>
                     </thead>
                 </table>
@@ -150,13 +116,16 @@
                         data: 'no_trans_out'
 
                     }, {
-                        data: 'tgl_pengeluaran'
+                        data: 'tgl_pengeluaran_fix'
                     },
                     {
                         data: 'lokasi'
                     },
                     {
                         data: 'no_carton'
+                    },
+                    {
+                        data: 'buyer'
                     },
                     {
                         data: 'brand'
@@ -178,6 +147,12 @@
                     },
                     {
                         data: 'qty_out'
+                    },
+                    {
+                        data: 'tujuan'
+                    },
+                    {
+                        data: 'tujuan_pengeluaran'
                     },
                 ],
                 columnDefs: [
@@ -202,6 +177,50 @@
                         "targets": "_all"
                     },
                 ]
+            });
+        }
+
+        function export_excel_bppb() {
+            let from = document.getElementById("tgl-awal").value;
+            let to = document.getElementById("tgl-akhir").value;
+
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                type: "get",
+                url: '{{ route('export_excel_bppb_fg_stok') }}',
+                data: {
+                    from: from,
+                    to: to
+                },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(response) {
+                    {
+                        swal.close();
+                        Swal.fire({
+                            title: 'Data Sudah Di Export!',
+                            icon: "success",
+                            showConfirmButton: true,
+                            allowOutsideClick: false
+                        });
+                        var blob = new Blob([response]);
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = from + " sampai " +
+                            to + "Laporan Pengeluaran FG Stock.xlsx";
+                        link.click();
+
+                    }
+                },
             });
         }
     </script>

@@ -125,7 +125,8 @@ class FormCutInputController extends Controller
                 *
             from
                 marker_input_detail
-            where marker_id = '" . $markerId . "'
+            where
+                marker_id = '" . $markerId . "'
         ");
 
         return DataTables::of($data_ratio)->toJson();
@@ -262,6 +263,15 @@ class FormCutInputController extends Controller
 
     public function getScannedItem($id = 0)
     {
+        $scannedItem = ScannedItem::where('id_roll', $id)->first();
+        if ($scannedItem) {
+            if (floatval($scannedItem->qty) > 0) {
+                return json_encode($scannedItem);
+            }
+
+            return json_encode(null);
+        }
+
         $newItem = DB::connection("mysql_sb")->select("
             SELECT
                 br.id id_roll,
@@ -281,30 +291,20 @@ class FormCutInputController extends Controller
             FROM
                 whs_lokasi_inmaterial br
                 INNER JOIN masteritem mi ON br.id_item = mi.id_item
-                INNER JOIN bpb ON br.id_jo = bpb.id_jo
-                AND br.id_item = bpb.id_item
+                INNER JOIN bpb ON br.id_jo = bpb.id_jo AND br.id_item = bpb.id_item
                 INNER JOIN mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
                 INNER JOIN jo_det jd ON br.id_jo = jd.id_jo
                 INNER JOIN so ON jd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
                 INNER JOIN master_rak mr ON br.kode_lok = mr.kode_rak
             WHERE
-                br.id = '".$id."'
+                br.no_barcode = '".$id."'
                 AND cast(
                 qty_aktual AS DECIMAL ( 11, 3 )) > 0.000
                 LIMIT 1
         ");
         if ($newItem) {
             return json_encode($newItem ? $newItem[0] : null);
-        }
-
-        $scannedItem = ScannedItem::where('id_roll', $id)->first();
-        if ($scannedItem) {
-            if (floatval($scannedItem->qty) > 0) {
-                return json_encode($scannedItem);
-            }
-
-            return json_encode(null);
         }
 
         $item = DB::connection("mysql_sb")->select("
@@ -358,35 +358,6 @@ class FormCutInputController extends Controller
 
         return json_encode($items ? $items : null);
     }
-//     SELECT
-//     item.id_item,
-//     item.itemdesc
-// FROM
-//     jo_det jd
-//     INNER JOIN so ON jd.id_so = so.id
-//     INNER JOIN act_costing ac ON so.id_cost = ac.id
-//     INNER JOIN (
-//     SELECT
-//         mi.id_item,
-//         mi.itemdesc,
-//         k.id_jo
-//     FROM
-//         bom_jo_item k
-//         INNER JOIN masteritem mi ON k.id_item = mi.id_gen
-//     WHERE
-//         mi.Mattype = 'F'
-//     GROUP BY
-//         k.id_jo,
-//         k.id_item
-//     ) item ON item.id_jo = jd.id
-// WHERE
-//     jd.cancel = 'N'
-//     AND ac.id = '".$request->act_costing_id."'
-// GROUP BY
-//     item.id_item,
-//     id_cost
-// ORDER BY
-//     jd.id_jo ASC
 
     public function startProcess($id = 0, Request $request)
     {

@@ -14,7 +14,7 @@
 @section('content')
     <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable" style="max-width: 75%;">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable" style="max-width: 85%;">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-light">
                     <h1 class="modal-title fs-5" id="exampleModalLabel"></h1>
@@ -28,6 +28,7 @@
                                     <th>No</th>
                                     <th>Tgl</th>
                                     <th>Line</th>
+                                    <th>ID QR</th>
                                     <th>Jenis Mesin</th>
                                     <th>Brand</th>
                                     <th>Tipe Mesin</th>
@@ -210,6 +211,9 @@
                     },
                     {
                         data: 'line'
+                    },
+                    {
+                        data: 'id_qr'
                     },
                     {
                         data: 'jenis_mesin'
