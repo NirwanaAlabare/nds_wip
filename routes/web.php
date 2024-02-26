@@ -767,7 +767,11 @@ Route::middleware('auth')->group(function () {
 
     Route::controller(FGStokMutasiController::class)->prefix("mutasi-fg-stock")->middleware('fg-stock')->group(function () {
         Route::get('/', 'index')->name('mutasi-fg-stock');
+        Route::post('/store', 'store')->name('store-mutasi-fg-stock');
         Route::get('/create', 'create')->name('create-mutasi-fg-stock');
+        Route::get('/getno_karton_asal', 'getno_karton_asal')->name('getno-karton-asal-fg-stock');
+        Route::get('/show_det', 'show_det')->name('show_det-fg-stock');
+        Route::get('/export_excel_mutasi_int_fg_stok', 'export_excel_mutasi_int_fg_stok')->name('export_excel_mutasi_int_fg_stok');
     });
 
     Route::controller(StockDcCompleteController::class)->prefix("stock-dc-complete")->middleware('admin')->group(function () {

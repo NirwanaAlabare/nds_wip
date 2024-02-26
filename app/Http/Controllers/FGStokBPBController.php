@@ -76,6 +76,7 @@ class FGStokBPBController extends Controller
         $validatedRequest = $request->validate([
             "cbolok" => "required",
             "tgl_terima" => "required",
+            "cbosumber" => "required",
 
         ]);
 
@@ -91,8 +92,8 @@ class FGStokBPBController extends Controller
         } else {
             $insert = DB::insert(
                 "insert into fg_stok_bpb
-                (no_trans,tgl_terima,id_so_det,qty,grade,no_carton,lokasi,cancel,created_by,created_at,updated_at)
-                SELECT '$kode_trans','$tglterima',id_so_det,qty,grade,no_carton,'" . $validatedRequest['cbolok'] . "','N','$user','$timestamp','$timestamp'
+                (no_trans,tgl_terima,id_so_det,qty,grade,no_carton,lokasi,sumber_pemasukan,mutasi,cancel,created_by,created_at,updated_at)
+                SELECT '$kode_trans','$tglterima',id_so_det,qty,grade,no_carton,'" . $validatedRequest['cbolok'] . "','" . $validatedRequest['cbosumber'] . "','N','N','$user','$timestamp','$timestamp'
                 from fg_tmp_stok_bpb
                 where created_by = '$user'
                 "
@@ -134,7 +135,10 @@ class FGStokBPBController extends Controller
     public function create(Request $request)
     {
         $user = Auth::user()->name;
-        $data_lok = DB::select("select kode_lok_fg_stok isi , kode_lok_fg_stok tampil from fg_stok_master_lok");
+
+        $data_lok = DB::select("select kode_lok_fg_stok isi , kode_lok_fg_stok tampil from fg_stok_master_lok where cancel = 'N'");
+
+        $data_terima = DB::select("SELECT sumber isi, sumber tampil  FROM `fg_stok_master_sumber_penerimaan` where cancel = 'N'");
 
         $data_buyer = DB::select("select buyer isi, buyer tampil from master_sb_ws
         group by buyer
@@ -144,7 +148,7 @@ class FGStokBPBController extends Controller
 
         return view('fg-stock.create_bpb_fg_stock', [
             'page' => 'dashboard-fg-stock', "subPageGroup" => "fgstock-bpb", "subPage" => "bpb-fg-stock",
-            "data_lok" => $data_lok, "data_buyer" => $data_buyer, "data_grade" => $data_grade, "user" => $user
+            "data_lok" => $data_lok, "data_buyer" => $data_buyer, "data_grade" => $data_grade, "data_terima" => $data_terima, "user" => $user
         ]);
     }
 

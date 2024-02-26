@@ -115,110 +115,117 @@
 
             console.log(cbojns_lap);
 
-            Swal.fire({
-                title: 'Please Wait...',
-                html: 'Exporting Data...',
-                didOpen: () => {
-                    Swal.showLoading()
-                },
-                allowOutsideClick: false,
-            });
-
-            if (cbojns_lap == 'Penerimaan') {
-                $.ajax({
-                    type: "get",
-                    url: '{{ route('export_excel_bpb_fg_stok') }}',
-                    data: {
-                        from: from,
-                        to: to
-                    },
-                    xhrFields: {
-                        responseType: 'blob'
-                    },
-                    success: function(response) {
-                        {
-                            swal.close();
-                            Swal.fire({
-                                title: 'Data Sudah Di Export!',
-                                icon: "success",
-                                showConfirmButton: true,
-                                allowOutsideClick: false
-                            });
-                            var blob = new Blob([response]);
-                            var link = document.createElement('a');
-                            link.href = window.URL.createObjectURL(blob);
-                            link.download = from + " sampai " +
-                                to + "Laporan Penerimaan FG Stock.xlsx";
-                            link.click();
-
-                        }
-                    },
+            if (cbojns_lap == '') {
+                Swal.fire({
+                    title: 'Jenis Laporan Belum Di isi!',
+                    icon: "warning",
+                    showConfirmButton: true,
                 });
-            } else
-            if (cbojns_lap == 'Pengeluaran') {
-                $.ajax({
-                    type: "get",
-                    url: '{{ route('export_excel_bppb_fg_stok') }}',
-                    data: {
-                        from: from,
-                        to: to
+            } else {
+                Swal.fire({
+                    title: 'Please Wait...',
+                    html: 'Exporting Data...',
+                    didOpen: () => {
+                        Swal.showLoading()
                     },
-                    xhrFields: {
-                        responseType: 'blob'
-                    },
-                    success: function(response) {
-                        {
-                            swal.close();
-                            Swal.fire({
-                                title: 'Data Sudah Di Export!',
-                                icon: "success",
-                                showConfirmButton: true,
-                                allowOutsideClick: false
-                            });
-                            var blob = new Blob([response]);
-                            var link = document.createElement('a');
-                            link.href = window.URL.createObjectURL(blob);
-                            link.download = from + " sampai " +
-                                to + "Laporan Pengeluaran FG Stock.xlsx";
-                            link.click();
-
-                        }
-                    },
+                    allowOutsideClick: false,
                 });
-            } else
-            if (cbojns_lap == 'Mutasi') {
-                $.ajax({
-                    type: "get",
-                    url: '{{ route('export_excel_mutasi_fg_stok') }}',
-                    data: {
-                        from: from,
-                        to: to
-                    },
-                    xhrFields: {
-                        responseType: 'blob'
-                    },
-                    success: function(response) {
-                        {
-                            swal.close();
-                            Swal.fire({
-                                title: 'Data Sudah Di Export!',
-                                icon: "success",
-                                showConfirmButton: true,
-                                allowOutsideClick: false
-                            });
-                            var blob = new Blob([response]);
-                            var link = document.createElement('a');
-                            link.href = window.URL.createObjectURL(blob);
-                            link.download = from + " sampai " +
-                                to + "Laporan Mutasi FG Stock.xlsx";
-                            link.click();
 
-                        }
-                    },
-                });
+                if (cbojns_lap == 'Penerimaan') {
+                    $.ajax({
+                        type: "get",
+                        url: '{{ route('export_excel_bpb_fg_stok') }}',
+                        data: {
+                            from: from,
+                            to: to
+                        },
+                        xhrFields: {
+                            responseType: 'blob'
+                        },
+                        success: function(response) {
+                            {
+                                swal.close();
+                                Swal.fire({
+                                    title: 'Data Sudah Di Export!',
+                                    icon: "success",
+                                    showConfirmButton: true,
+                                    allowOutsideClick: false
+                                });
+                                var blob = new Blob([response]);
+                                var link = document.createElement('a');
+                                link.href = window.URL.createObjectURL(blob);
+                                link.download = from + " sampai " +
+                                    to + "Laporan Penerimaan FG Stock.xlsx";
+                                link.click();
+
+                            }
+                        },
+                    });
+                } else
+                if (cbojns_lap == 'Pengeluaran') {
+                    $.ajax({
+                        type: "get",
+                        url: '{{ route('export_excel_bppb_fg_stok') }}',
+                        data: {
+                            from: from,
+                            to: to
+                        },
+                        xhrFields: {
+                            responseType: 'blob'
+                        },
+                        success: function(response) {
+                            {
+                                swal.close();
+                                Swal.fire({
+                                    title: 'Data Sudah Di Export!',
+                                    icon: "success",
+                                    showConfirmButton: true,
+                                    allowOutsideClick: false
+                                });
+                                var blob = new Blob([response]);
+                                var link = document.createElement('a');
+                                link.href = window.URL.createObjectURL(blob);
+                                link.download = from + " sampai " +
+                                    to + "Laporan Pengeluaran FG Stock.xlsx";
+                                link.click();
+
+                            }
+                        },
+                    });
+                } else
+                if (cbojns_lap == 'Mutasi') {
+                    $.ajax({
+                        type: "get",
+                        url: '{{ route('export_excel_mutasi_fg_stok') }}',
+                        data: {
+                            from: from,
+                            to: to
+                        },
+                        xhrFields: {
+                            responseType: 'blob'
+                        },
+                        success: function(response) {
+                            {
+                                swal.close();
+                                Swal.fire({
+                                    title: 'Data Sudah Di Export!',
+                                    icon: "success",
+                                    showConfirmButton: true,
+                                    allowOutsideClick: false
+                                });
+                                var blob = new Blob([response]);
+                                var link = document.createElement('a');
+                                link.href = window.URL.createObjectURL(blob);
+                                link.download = from + " sampai " +
+                                    to + "Laporan Mutasi FG Stock.xlsx";
+                                link.click();
+
+                            }
+                        },
+                    });
+                }
+
             }
-
-
         }
     </script>
 @endsection

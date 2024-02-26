@@ -101,6 +101,7 @@
                             <th>Lokasi</th>
                             <th>No. Karton</th>
                             <th>Buyer</th>
+                            <th>Brand</th>
                             <th>Style</th>
                             <th>Grade</th>
                             <th>WS</th>
@@ -174,6 +175,9 @@
                     },
                     {
                         data: 'buyer'
+                    },
+                    {
+                        data: 'brand'
                     },
                     {
                         data: 'styleno'

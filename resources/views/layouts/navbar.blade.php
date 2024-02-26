@@ -519,7 +519,7 @@
                                             <li>
                                                 <a href="{{ route('mutasi-fg-stock') }}"
                                                     class="dropdown-item {{ $subPage == 'mutasi-fg-stock' ? 'active' : '' }}">
-                                                    Mutasi Karton <i class="fas fa-exchange-alt"></i>
+                                                    Mutasi Internal <i class="fas fa-exchange-alt"></i>
                                                 </a>
                                             </li>
                                         </ul>

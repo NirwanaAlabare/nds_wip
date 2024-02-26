@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ExportLaporanFGStokMutasiInternal;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
@@ -22,27 +23,31 @@ class FGStokMutasiController extends Controller
             $data_input = DB::select("
             select
             a.id,
-            no_trans,
-            tgl_terima,
-            concat((DATE_FORMAT(tgl_terima,  '%d')), '-', left(DATE_FORMAT(tgl_terima,  '%M'),3),'-',DATE_FORMAT(tgl_terima,  '%Y')
-            ) tgl_terima_fix,
+            no_mut,
+            tgl_mut,
+            concat((DATE_FORMAT(tgl_mut,  '%d')), '-', left(DATE_FORMAT(tgl_mut,  '%M'),3),'-',DATE_FORMAT(tgl_mut,  '%Y')) tgl_mut_fix,
             buyer,
             ws,
             brand,
             styleno,
             color,
             size,
-            a.qty,
+            a.qty_mut,
             a.grade,
-            no_carton,
-            lokasi,
-            sumber_pemasukan,
+            lokasi_asal,
+			no_carton_asal,
+            lokasi_tujuan,
+            no_carton_tujuan,
             a.created_by,
-            created_at
-            from fg_stok_bpb a
+            created_at,
+			bpb.no_trans,
+			bppb.no_trans_out
+            from fg_stok_mutasi_log a
             inner join master_sb_ws m on a.id_so_det = m.id_so_det
-            where tgl_terima >= '$tgl_awal' and tgl_terima <= '$tgl_akhir'
-            order by substr(no_trans,13) desc
+            inner join (select no_mutasi,no_trans from fg_stok_bpb where cancel = 'N' and mutasi = 'Y' group by no_trans) bpb on a.no_mut = bpb.no_mutasi
+            inner join (select no_mutasi,no_trans_out from fg_stok_bppb where cancel = 'N' and mutasi = 'Y' group by no_trans_out) bppb on a.no_mut = bpb.no_mutasi
+            where tgl_mut >= '$tgl_awal' and tgl_mut <= '$tgl_akhir'
+            order by substr(no_trans,14) desc
             ");
 
             return DataTables::of($data_input)->toJson();
@@ -53,76 +58,83 @@ class FGStokMutasiController extends Controller
 
     public function store(Request $request)
     {
-        $user = Auth::user()->name;
         $timestamp = Carbon::now();
-        $tglterima = $request->tgl_terima;
-        $tahun = date('Y', strtotime($tglterima));
-        $no = date('ym', strtotime($tglterima));
-        $kode = 'FGS/IN/';
+        $user               =  Auth::user()->name;
+        $JmlArray         = $_POST['txtqty'];
+        $id_so_detArray         = $_POST['id_so_det'];
+        $no_cartonArray         = $_POST['no_carton'];
+        $gradeArray         = $_POST['grade'];
+        $lokasi_asal             = $request->cbolok_asal;
+        $lokasi_tuj             = $request->cbolok_tuj;
+        $no_carton_tuj             = $request->txtno_carton_tuj;
+        $tgl_pengeluaran = Carbon::now()->isoFormat('YYYY-MM-DD');
+
+        $tahun = date('Y', strtotime($tgl_pengeluaran));
+        $no = date('ym', strtotime($tgl_pengeluaran));
+        $kode = 'FGS/MUT/';
         $cek_nomor = DB::select("
-        select max(right(no_trans,5))nomor from fg_stok_bpb where year(tgl_terima) = '" . $tahun . "'
+        select max(right(no_mut,5))nomor from fg_stok_mutasi_log where year(tgl_mut) = '" . $tahun . "'
         ");
         $nomor_tr = $cek_nomor[0]->nomor;
         $urutan = (int)($nomor_tr);
         $urutan++;
         $kodepay = sprintf("%05s", $urutan);
-
         $kode_trans = $kode . $no . '/' . $kodepay;
 
-        $validatedRequest = $request->validate([
-            "cbolok" => "required",
-            "tgl_terima" => "required",
+        $kode_bppb = 'FGS/OUT/';
+        $cek_nomor_bppb = DB::select("
+        select max(right(no_trans_out,5))nomor from fg_stok_bppb where year(tgl_pengeluaran) = '" . $tahun . "'
+        ");
+        $nomor_tr_bppb = $cek_nomor_bppb[0]->nomor;
+        $urutan_bppb = (int)($nomor_tr_bppb);
+        $urutan_bppb++;
+        $kodepay_bppb = sprintf("%05s", $urutan_bppb);
+        $kode_trans_bppb = $kode_bppb . $no . '/' . $kodepay_bppb;
 
-        ]);
+        $kode_bpb = 'FGS/IN/';
+        $cek_nomor_bpb = DB::select("
+        select max(right(no_trans,5))nomor from fg_stok_bpb where year(tgl_terima) = '" . $tahun . "'
+        ");
+        $nomor_tr_bpb = $cek_nomor_bpb[0]->nomor;
+        $urutan_bpb = (int)($nomor_tr_bpb);
+        $urutan_bpb++;
+        $kodepay_bpb = sprintf("%05s", $urutan_bpb);
+        $kode_trans_bpb = $kode_bpb . $no . '/' . $kodepay_bpb;
 
-        $cek = DB::select("select * from fg_tmp_stok_bpb where created_by = '$user'");
 
-        $cekinput = $cek[0]->id_so_det;
 
-        if ($cekinput == '') {
-            return array(
-                'icon' => 'salah',
-                'msg' => 'Tidak ada yang disimpan',
-            );
-        } else {
-            $insert = DB::insert(
-                "insert into fg_stok_bpb
-                (no_trans,tgl_terima,id_so_det,qty,grade,no_carton,lokasi,cancel,created_by,created_at,updated_at)
-                SELECT '$kode_trans','$tglterima',id_so_det,qty,grade,no_carton,'" . $validatedRequest['cbolok'] . "','N','$user','$timestamp','$timestamp'
-                from fg_tmp_stok_bpb
-                where created_by = '$user'
-                "
-            );
-
-            if ($insert) {
-                $delete =  DB::delete(
-                    "DELETE FROM fg_tmp_stok_bpb where created_by = '$user'"
-                );
-                return array(
-                    'icon' => 'benar',
-                    'msg' => 'No Transaksi ' . $kode_trans . ' Sudah Terbuat',
-                );
+        foreach ($JmlArray as $key => $value) {
+            if ($value != '0' && $value != '') {
+                $txtqty         = $JmlArray[$key];
+                $txtid_so_det   = $id_so_detArray[$key];
+                $txtno_carton   = $no_cartonArray[$key];
+                $txtgrade       = $gradeArray[$key]; {
+                    $insert_mut =  DB::insert("
+                insert into fg_stok_mutasi_log(no_mut,tgl_mut,id_so_det,qty_mut,grade,lokasi_asal,no_carton_asal,lokasi_tujuan,no_carton_tujuan,cancel,created_by,created_at,updated_at)
+                values('$kode_trans','$tgl_pengeluaran','$txtid_so_det','$txtqty','$txtgrade','$lokasi_asal','$txtno_carton','$lokasi_tuj','$no_carton_tuj','N','$user','$timestamp','$timestamp')");
+                }
+                $insert_bppb =  DB::insert("
+                insert into fg_stok_bppb(no_trans_out,tgl_pengeluaran,id_so_det,qty_out,grade,no_carton,lokasi,tujuan,mutasi,no_mutasi,cancel,created_by,created_at,updated_at)
+                values('$kode_trans_bppb','$tgl_pengeluaran','$txtid_so_det','$txtqty','$txtgrade','$txtno_carton','$lokasi_asal','MUTASI INTERNAL','Y','$kode_trans','N','$user','$timestamp','$timestamp')");
+                $insert_bpb =  DB::insert("
+                insert into fg_stok_bpb(no_trans,tgl_terima,id_so_det,qty,grade,no_carton,lokasi,sumber_pemasukan,mutasi,no_mutasi,cancel,created_by,created_at,updated_at)
+                values('$kode_trans_bpb','$tgl_pengeluaran','$txtid_so_det','$txtqty','$txtgrade','$no_carton_tuj','$lokasi_tuj','MUTASI INTERNAL','Y','$kode_trans','N','$user','$timestamp','$timestamp')");
             }
         }
-    }
 
-    public function undo(Request $request)
-    {
-        $user = Auth::user()->name;
-
-        $undo =  DB::delete(
-            "DELETE FROM fg_tmp_stok_bpb where created_by = '$user'"
-        );
-
-        if ($undo) {
+        if ($insert_mut != '') {
             return array(
-                'icon' => 'benar',
-                'msg' => 'Data berhasil diundo',
+                "status" => 900,
+                "message" => 'No Transaksi :
+                 ' . $kode_trans . '
+                 Sudah Terbuat',
+                "additional" => [],
             );
         } else {
             return array(
-                'icon' => 'salah',
-                'msg' => 'Tidak ada yang diundo',
+                "status" => 200,
+                "message" => 'Tidak ada Data',
+                "additional" => [],
             );
         }
     }
@@ -130,222 +142,53 @@ class FGStokMutasiController extends Controller
     public function create(Request $request)
     {
         $user = Auth::user()->name;
-        $data_lok = DB::select("select kode_lok_fg_stok isi , kode_lok_fg_stok tampil from fg_stok_master_lok");
 
-        $data_buyer = DB::select("select buyer isi, buyer tampil from master_sb_ws
-        group by buyer
-        order by buyer asc");
+        $data_lok_asal = DB::select("select kode_lok_fg_stok isi , kode_lok_fg_stok tampil from fg_stok_master_lok");
 
-        $data_grade = DB::select("select grade isi , grade tampil from fg_stok_master_grade");
+        $data_lok_tuj = DB::select("select kode_lok_fg_stok isi , kode_lok_fg_stok tampil from fg_stok_master_lok");
 
         return view('fg-stock.create_mutasi_fg_stock', [
             'page' => 'dashboard-fg-stock', "subPageGroup" => "fgstock-mutasi", "subPage" => "mutasi-fg-stock",
-            "data_lok" => $data_lok, "data_buyer" => $data_buyer, "data_grade" => $data_grade, "user" => $user
+            "data_lok_asal" => $data_lok_asal, "data_lok_tuj" => $data_lok_tuj, "user" => $user
         ]);
     }
 
-    public function getno_ws(Request $request)
+    public function getno_karton_asal(Request $request)
     {
-        $data_ws = DB::select("
-        select a.ws isi, a.ws tampil
-        from master_sb_ws a where a.buyer = '" . $request->cbobuyer . "'
-        group by ws
-        order by ws desc
+        $data_no_karton_asal = DB::select("
+        select lokasi,
+        no_carton isi,
+        sum(s.qty_in) - sum(s.qty_out) saldo,
+                    concat (no_carton, ' ( ',sum(s.qty_in) - sum(s.qty_out), ' )' ) tampil
+        from
+        (
+        select lokasi,no_carton,a.id_so_det,sum(a.qty) qty_in, '0' qty_out,grade  from fg_stok_bpb a
+        inner join master_sb_ws m on a.id_so_det = m.id_so_det
+        where lokasi = '" . $request->cbolok_asal . "'
+        group by no_carton, a.id_so_det, a.grade
+        union
+        select lokasi,no_carton,a.id_so_det,'0' qty_in,sum(a.qty_out) qty_out,grade  from fg_stok_bppb a
+        inner join master_sb_ws m on a.id_so_det = m.id_so_det
+        where lokasi = '" . $request->cbolok_asal . "'
+        group by no_carton, a.id_so_det, a.grade
+        )
+        s
+        inner join master_sb_ws m on s.id_so_det = m.id_so_det
+        group by no_carton
+        having sum(s.qty_in) - sum(s.qty_out) != '0'
         ");
 
-        $html = "<option value=''>Pilih No WS</option>";
+        $html = "<option value=''  selected='true' disabled='true'>Pilih No Karton Asal</option>";
 
-        foreach ($data_ws as $dataws) {
-            $html .= " <option value='" . $dataws->isi . "'>" . $dataws->tampil . "</option> ";
+        foreach ($data_no_karton_asal as $datanokartonasal) {
+            $html .= " <option value='" . $datanokartonasal->isi . "'>" . $datanokartonasal->tampil . "</option> ";
         }
 
         return $html;
     }
 
-    public function getcolor(Request $request)
+    public function export_excel_mutasi_int_fg_stok(Request $request)
     {
-        $data_color = DB::select("select a.color isi, a.color tampil
-        from master_sb_ws a where a.ws = '" . $request->cbows . "'
-group by color
-order by color desc");
-
-        $html = "<option value=''>Pilih Color</option>";
-
-        foreach ($data_color as $datacolor) {
-            $html .= " <option value='" . $datacolor->isi . "'>" . $datacolor->tampil . "</option> ";
-        }
-
-        return $html;
-    }
-
-    public function getsize(Request $request)
-    {
-        $data_size = DB::select("select a.size isi, a.size tampil
-        from master_sb_ws a
-        where a.ws = '" . $request->cbows . "' and a.color = '" . $request->cbocolor . "'
-        group by a.size");
-
-        $html = "<option value=''>Pilih Size</option>";
-
-        foreach ($data_size as $datasize) {
-            $html .= " <option value='" . $datasize->isi . "'>" . $datasize->tampil . "</option> ";
-        }
-
-        return $html;
-    }
-
-    public function getproduct(Request $request)
-    {
-        $data_product = DB::select("select a.id_so_det isi, concat(ws,' - ', color,' - ',size) tampil
-        from master_sb_ws a
-        where a.ws= '" . $request->cbows . "' and a.color like '%" . $request->cbocolor . "%'
-        and a.size like '%" . $request->cbosize . "%'");
-
-        $html = "<option value=''>Pilih Product</option>";
-
-        foreach ($data_product as $dataproduct) {
-            $html .= " <option value='" . $dataproduct->isi . "'>" . $dataproduct->tampil . "</option> ";
-        }
-
-        return $html;
-    }
-
-    public function store_tmp(Request $request)
-    {
-        $user = Auth::user()->name;
-        $timestamp = Carbon::now();
-        $validatedRequest = $request->validate([
-            "cboproduct" => "required",
-            "qty" => "required",
-            "no_carton" => "required",
-            "grade" => "required",
-        ]);
-
-        // $cek_data = DB::select("
-        // select sd.color from so_det sd
-        // where id = '" . $validatedRequest['cboproduct'] . "'
-        // ");
-
-        // $color = $cek_data[0]->color;
-
-        $insert_tmp = DB::insert("
-            insert into fg_tmp_stok_bpb
-            (id_so_det,qty,no_carton,grade,created_by,created_at,updated_at)
-            values
-            (
-                '" . $validatedRequest['cboproduct'] . "',
-                '" . $validatedRequest['qty'] . "',
-                '" . $validatedRequest['no_carton'] . "',
-                '" . $validatedRequest['grade'] . "',
-                '$user',
-                '$timestamp',
-                '$timestamp'
-            )
-            ");
-
-        if ($insert_tmp) {
-            return array(
-                'icon' => 'benar',
-                'msg' => 'Data Produk Berhasil Ditambahkan',
-            );
-        } else {
-            return array(
-                'icon' => 'salah',
-                'msg' => 'Tidak ada yang ditambahkan',
-            );
-        }
-    }
-
-    public function show_tmp(Request $request)
-    {
-        $user = Auth::user()->name;
-        if ($request->ajax()) {
-
-            $data_tmp = DB::select("
-            select
-            tmp.id,
-            tmp.id_so_det,
-            tmp.qty,
-            tmp.grade,
-            tmp.no_carton,
-            m.color,
-            m.size,
-            m.ws,
-            m.styleno,
-            m.brand
-            from fg_tmp_stok_bpb tmp
-            inner join master_sb_ws m on tmp.id_so_det = m.id_so_det
-            where tmp.created_by = '$user'
-            order by tmp.id desc
-            ");
-
-            return DataTables::of($data_tmp)->toJson();
-        }
-    }
-
-    public function show_lok(Request $request)
-    {
-
-        if ($request->ajax()) {
-
-            $data_list_lok = DB::select("
-            select lokasi,no_carton,sum(qty_in) - sum(qty_out) qty_akhir
-            from
-            (
-            SELECT no_carton,sum(qty) qty_in,'0' qty_out,grade,lokasi FROM `fg_stok_bpb`
-            where lokasi = '" . $request->cbolok . "'
-            group by no_carton
-            union
-            SELECT no_carton,'0' qty_in,sum(qty_out) qty_out,grade,lokasi FROM `fg_stok_bppb`
-            where lokasi = '" . $request->cbolok . "'
-            group by no_carton
-            )
-            mut_lok
-            group by no_carton
-            ");
-
-            return DataTables::of($data_list_lok)->toJson();
-        }
-    }
-
-    public function getdet_carton(Request $request)
-    {
-        $det_carton = DB::select(
-            "select lokasi,
-            no_carton,
-            s.id_so_det,
-            ws,
-            sum(s.qty_in) - sum(s.qty_out) saldo,
-            m.buyer,
-            m.color,
-            m.size,
-            m.styleno,
-            m.brand,
-            s.grade
-            from
-            (
-            select lokasi,no_carton,a.id_so_det,sum(a.qty) qty_in, '0' qty_out,grade  from fg_stok_bpb a
-            inner join master_sb_ws m on a.id_so_det = m.id_so_det
-            where lokasi = '" . $request->lokasi . "' and no_carton = '" . $request->karton . "'
-            group by no_carton, a.id_so_det, a.grade
-            union
-            select lokasi,no_carton,a.id_so_det,'0' qty_in,sum(a.qty_out) qty_out,grade  from fg_stok_bppb a
-            inner join master_sb_ws m on a.id_so_det = m.id_so_det
-            where lokasi = '" . $request->lokasi . "' and no_carton = '" . $request->karton . "'
-            group by no_carton, a.id_so_det, a.grade
-            )
-            s
-            inner join master_sb_ws m on s.id_so_det = m.id_so_det
-            group by no_carton, s.id_so_det, s.grade
-            having sum(s.qty_in) - sum(s.qty_out) != '0'"
-        );
-
-        return DataTables::of($det_carton)->toJson();
-    }
-
-
-    public function export_excel_bpb_fg_stok(Request $request)
-    {
-        return Excel::download(new ExportLaporanPenerimaanFGStokBPB($request->from, $request->to), 'Laporan_Penerimaan FG_Stok.xlsx');
+        return Excel::download(new ExportLaporanFGStokMutasiInternal($request->from, $request->to), 'Laporan_Mutasi_Internal_FG_Stok.xlsx');
     }
 }
