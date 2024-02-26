@@ -27,7 +27,7 @@ Sheet::macro('styleCells', function (Sheet $sheet, string $cellRange, array $sty
 //     }
 // }
 
-class ExportLaporanPengeluaranFGStokBPPB implements FromView, WithEvents, ShouldAutoSize
+class ExportLaporanFGStokMutasiInternal implements FromView, WithEvents, ShouldAutoSize
 {
     use Exportable;
 
@@ -49,35 +49,38 @@ class ExportLaporanPengeluaranFGStokBPPB implements FromView, WithEvents, Should
         $data = DB::select("
         select
         a.id,
-        no_trans_out,
-        tgl_pengeluaran,
-        concat((DATE_FORMAT(tgl_pengeluaran,  '%d')), '-', left(DATE_FORMAT(tgl_pengeluaran,  '%M'),3),'-',DATE_FORMAT(tgl_pengeluaran,  '%Y')
-        ) tgl_pengeluaran_fix,
+        no_mut,
+        tgl_mut,
+        concat((DATE_FORMAT(tgl_mut,  '%d')), '-', left(DATE_FORMAT(tgl_mut,  '%M'),3),'-',DATE_FORMAT(tgl_mut,  '%Y')) tgl_mut_fix,
         buyer,
         ws,
         brand,
         styleno,
         color,
         size,
-        a.qty_out,
+        a.qty_mut,
         a.grade,
-        no_carton,
-        lokasi,
-        tujuan_pengeluaran,
-        tujuan,
+        lokasi_asal,
+        no_carton_asal,
+        lokasi_tujuan,
+        no_carton_tujuan,
         a.created_by,
-        created_at
-        from fg_stok_bppb a
+        created_at,
+        bpb.no_trans,
+        bppb.no_trans_out
+        from fg_stok_mutasi_log a
         inner join master_sb_ws m on a.id_so_det = m.id_so_det
-        where tgl_pengeluaran >= '$this->from' and tgl_pengeluaran <= '$this->to'
-        order by tgl_pengeluaran desc,substr(no_trans_out,14) desc
+        inner join (select no_mutasi,no_trans from fg_stok_bpb where cancel = 'N' and mutasi = 'Y' group by no_trans) bpb on a.no_mut = bpb.no_mutasi
+        inner join (select no_mutasi,no_trans_out from fg_stok_bppb where cancel = 'N' and mutasi = 'Y' group by no_trans_out) bppb on a.no_mut = bpb.no_mutasi
+        where tgl_mut >= '$this->from' and tgl_mut <= '$this->to'
+        order by substr(no_trans,14) desc
         ");
 
 
         $this->rowCount = count($data) + 4;
 
 
-        return view('fg-stock.export_bppb_fg_stock', [
+        return view('fg-stock.export_mutasi_int_fg_stock', [
             'data' => $data,
             'from' => $this->from,
             'to' => $this->to
@@ -97,7 +100,7 @@ class ExportLaporanPengeluaranFGStokBPPB implements FromView, WithEvents, Should
     {
 
         $event->sheet->styleCells(
-            'A4:O' . $event->getConcernable()->rowCount,
+            'A4:Q' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [

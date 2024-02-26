@@ -41,6 +41,7 @@
                         <table id="datatable_modal" class="table table-bordered table-hover table-sm w-100">
                             <thead>
                                 <tr>
+                                    <th>Buyer</th>
                                     <th>Brand</th>
                                     <th>Style</th>
                                     <th>Grade</th>
@@ -49,9 +50,14 @@
                                     <th>Style</th>
                                     <th>Size</th>
                                     <th>Saldo</th>
-
                                 </tr>
                             </thead>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="8"></th>
+                                    <th></th>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>
@@ -75,38 +81,57 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-3">
-                        <label><small><b>Tanggal Penerimaan</b></small></label>
-                        <input type="date" class="form-control" id="tgl_terima" name="tgl_terima"
-                            value="{{ date('Y-m-d') }}">
-                        <input type="hidden" class="form-control" id="user" name="user"
-                            value="{{ $user }}">
+                        <div class="form-group">
+                            <label><small><b>Tanggal Penerimaan</b></small></label>
+                            <input type="date" class="form-control" id="tgl_terima" name="tgl_terima"
+                                value="{{ date('Y-m-d') }}">
+                            <input type="hidden" class="form-control" id="user" name="user"
+                                value="{{ $user }}">
+                        </div>
                     </div>
                     <div class="col-md-3">
-                        <label><small><b>Lokasi</b></small></label>
-                        <select class="form-control select2bs4" id="cbolok" name="cbolok" style="width: 100%;"
-                            onchange="showlok()">
-                            <option selected="selected" value="" disabled="true">Pilih Lokasi</option>
-                            @foreach ($data_lok as $datalok)
-                                <option value="{{ $datalok->isi }}">
-                                    {{ $datalok->tampil }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <div class="form-group">
+                            <label><small><b>Lokasi</b></small></label>
+                            <select class="form-control select2bs4" id="cbolok" name="cbolok" style="width: 100%;"
+                                onchange="showlok()">
+                                <option selected="selected" value="" disabled="true">Pilih Lokasi</option>
+                                @foreach ($data_lok as $datalok)
+                                    <option value="{{ $datalok->isi }}">
+                                        {{ $datalok->tampil }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label><small><b>Sumber Penerimaan</b></small></label>
+                            <select class="form-control select2bs4" id="cbosumber" name="cbosumber" style="width: 100%;">
+                                <option selected="selected" value="" disabled="true">Pilih Sumber Penerimaan</option>
+                                @foreach ($data_terima as $dataterima)
+                                    <option value="{{ $dataterima->isi }}">
+                                        {{ $dataterima->tampil }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-6 col-md-3">
                         <div class="mb-1">
-                            <label><small><b>Buyer</b></small></label>
-                            <select class="form-control select2bs4 form-control-sm" id="cbobuyer" name="cbobuyer"
-                                style="width: 100%;" onchange='getno_ws();'>
-                                <option selected="selected" value="" disabled="true">Pilih Buyer</option>
-                                @foreach ($data_buyer as $databuyer)
-                                    <option value="{{ $databuyer->isi }}">
-                                        {{ $databuyer->tampil }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <div class="form-group">
+                                <label><small><b>Buyer</b></small></label>
+                                <select class="form-control select2bs4 form-control-sm" id="cbobuyer" name="cbobuyer"
+                                    style="width: 100%;" onchange='getno_ws();'>
+                                    <option selected="selected" value="" disabled="true">Pilih Buyer</option>
+                                    @foreach ($data_buyer as $databuyer)
+                                        <option value="{{ $databuyer->isi }}">
+                                            {{ $databuyer->tampil }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
@@ -152,13 +177,13 @@
                 <div class="row">
                     <div class="col-md-6">
                         <label><small><b>Produk</b></small></label>
-                        <select class='form-control  select2bs4 style='width: 100%;' name='cboproduct'
+                        <select class='form-control  select2bs4' style='width: 100%;' name='cboproduct'
                             id='cboproduct'></select>
                     </div>
                     <div class="col-md-2">
                         <label><small><b>Qty</b></small></label>
-                        <div class="input-group  mb-3">
-                            <input type="number" class="form-control " name="txtqty" id="txtqty">
+                        <div class="input-group mb-3">
+                            <input type="number" class="form-control " name="txtqty" id="txtqty" min = "0">
                             <div class="input-group-prepend">
                                 <span class="input-group-text" id="inputGroup-sizing-sm">PCS</span>
                             </div>
@@ -285,12 +310,16 @@
         $(document).ready(function() {
             $("#cbolok").val('').trigger('change');
             $("#cbobuyer").val('').trigger('change');
+            $("#cbosumber").val('').trigger('change');
             dataTableReload();
             cleardet();
+            $('input[type=number]').on('wheel', function(e) {
+                return false;
+            });
         })
 
         function cleardet() {
-            document.getElementById('txtno_carton').value = "";
+            // document.getElementById('txtno_carton').value = "";
             document.getElementById('txtqty').value = "";
             $("#cboproduct").val('').trigger('change');
 
@@ -472,19 +501,28 @@
         function simpan() {
             let tgl_terima = document.form_h.tgl_terima.value;
             let cbolok = document.form_h.cbolok.value;
+            let cbosumber = document.form_h.cbosumber.value;
 
             if (cbolok == '') {
                 iziToast.warning({
                     message: 'Lokasi masih kosong, Silahkan pilih lokasi',
                     position: 'topCenter'
                 });
-            } else {
+            }
+            if (cbosumber == '') {
+                iziToast.warning({
+                    message: 'Sumber Penerimaan masih kosong, Silahkan pilih sumber penerimaan',
+                    position: 'topCenter'
+                });
+            }
+            if (cbolok != '' && cbosumber != '') {
                 $.ajax({
                     type: "post",
                     url: '{{ route('store-bpb-fg-stock') }}',
                     data: {
                         tgl_terima: tgl_terima,
-                        cbolok: cbolok
+                        cbolok: cbolok,
+                        cbosumber: cbosumber
                     },
                     success: function(response) {
                         if (response.icon == 'salah') {
@@ -501,6 +539,7 @@
                         dataTableReload();
                         $("#cbolok").val('').trigger('change');
                         $("#cbobuyer").val('').trigger('change');
+                        $("#cbosumber").val('').trigger('change');
                         dataTableReload();
                         cleardet();
                     },
@@ -593,6 +632,32 @@
             document.getElementById('id_l').value = id_l;
             document.getElementById('id_k').value = id_k;
             let datatable = $("#datatable_modal").DataTable({
+
+                "footerCallback": function(row, data, start, end, display) {
+                    var api = this.api(),
+                        data;
+
+                    // converting to interger to find total
+                    var intVal = function(i) {
+                        return typeof i === 'string' ?
+                            i.replace(/[\$,]/g, '') * 1 :
+                            typeof i === 'number' ?
+                            i : 0;
+                    };
+
+                    // computing column Total of the complete result
+                    var sumTotal = api
+                        .column(8)
+                        .data()
+                        .reduce(function(a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+
+                    // Update footer by showing the total with the reference of the column index
+                    $(api.column(0).footer()).html('Total');
+                    $(api.column(8).footer()).html(sumTotal);
+                },
+
                 ordering: false,
                 processing: true,
                 serverSide: true,
@@ -614,6 +679,8 @@
                     },
                 },
                 columns: [{
+                        data: 'buyer',
+                    }, {
                         data: 'brand',
                     },
                     {

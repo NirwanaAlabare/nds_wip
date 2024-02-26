@@ -35,7 +35,7 @@
                         oninput="dataTableReload()" value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
-                    <a onclick="export_excel_bpb()" class="btn btn-outline-success position-relative btn-sm">
+                    <a onclick="export_excel_mutasi_int()" class="btn btn-outline-success position-relative btn-sm">
                         <i class="fas fa-file-excel fa-sm"></i>
                         Export Excel
                     </a>
@@ -48,16 +48,20 @@
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>No. Trans</th>
                             <th>Tgl. Trans</th>
-                            <th>Lokasi</th>
-                            <th>No. Karton</th>
                             <th>Buyer</th>
+                            <th>Brand</th>
                             <th>Style</th>
                             <th>Grade</th>
                             <th>WS</th>
                             <th>Color</th>
                             <th>Size</th>
                             <th>Qty</th>
-                            <th>Sumber</th>
+                            <th>Lokasi Asal</th>
+                            <th>No. Karton Asal</th>
+                            <th>Lokasi Tujuan</th>
+                            <th>No. Karton Tujuan</th>
+                            <th>No. BPB</th>
+                            <th>No. BPPB</th>
                         </tr>
                     </thead>
                 </table>
@@ -104,7 +108,7 @@
                 destroy: true,
                 scrollX: true,
                 ajax: {
-                    url: '{{ route('bpb-fg-stock') }}',
+                    url: '{{ route('mutasi-fg-stock') }}',
                     data: function(d) {
                         d.dateFrom = $('#tgl-awal').val();
                         d.dateTo = $('#tgl-akhir').val();
@@ -114,16 +118,13 @@
                         data: 'no_trans'
 
                     }, {
-                        data: 'tgl_terima_fix'
-                    },
-                    {
-                        data: 'lokasi'
-                    },
-                    {
-                        data: 'no_carton'
+                        data: 'tgl_mut_fix'
                     },
                     {
                         data: 'buyer'
+                    },
+                    {
+                        data: 'brand'
                     },
                     {
                         data: 'styleno'
@@ -141,10 +142,25 @@
                         data: 'size'
                     },
                     {
-                        data: 'qty'
+                        data: 'qty_mut'
                     },
                     {
-                        data: 'sumber_pemasukan'
+                        data: 'lokasi_asal'
+                    },
+                    {
+                        data: 'no_carton_asal'
+                    },
+                    {
+                        data: 'lokasi_tujuan'
+                    },
+                    {
+                        data: 'no_carton_tujuan'
+                    },
+                    {
+                        data: 'no_trans'
+                    },
+                    {
+                        data: 'no_trans_out'
                     },
                 ],
                 columnDefs: [
@@ -172,7 +188,7 @@
             });
         }
 
-        function export_excel_bpb() {
+        function export_excel_mutasi_int() {
             let from = document.getElementById("tgl-awal").value;
             let to = document.getElementById("tgl-akhir").value;
 
@@ -187,7 +203,7 @@
 
             $.ajax({
                 type: "get",
-                url: '{{ route('export_excel_bpb_fg_stok') }}',
+                url: '{{ route('export_excel_mutasi_int_fg_stok') }}',
                 data: {
                     from: from,
                     to: to
@@ -208,7 +224,7 @@
                         var link = document.createElement('a');
                         link.href = window.URL.createObjectURL(blob);
                         link.download = from + " sampai " +
-                            to + "Laporan Penerimaan FG Stock.xlsx";
+                            to + "Laporan Mutasi Internal FG Stock.xlsx";
                         link.click();
 
                     }

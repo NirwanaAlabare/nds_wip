@@ -12,249 +12,135 @@
 @endsection
 
 @section('content')
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header bg-sb text-light">
-                    <h1 class="modal-title fs-5" id="exampleModalLabel">Detail Karton</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class='row'>
-                        <div class='col-sm-3'>
-                            <div class='form-group'>
-                                <label class='form-label'><small>Lokasi</small></label>
-                                <input type='text' class='form-control' id='id_l' name='id_l' value=''
-                                    readonly>
-                            </div>
-                        </div>
-                        <div class='col-sm-3'>
-                            <div class='form-group'>
-                                <label class='form-label'><small>No. Karton</small></label>
-                                <input type='text' class='form-control' id='id_k' name='id_k' value=''
-                                    readonly>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-12 table-responsive">
-                        <table id="datatable_modal" class="table table-bordered table-hover table-sm w-100">
-                            <thead>
-                                <tr>
-                                    <th>Brand</th>
-                                    <th>Style</th>
-                                    <th>Grade</th>
-                                    <th>WS</th>
-                                    <th>Color</th>
-                                    <th>Style</th>
-                                    <th>Size</th>
-                                    <th>Saldo</th>
-
-                                </tr>
-                            </thead>
-                        </table>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="card card-sb">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center ">
-                <h5 class="card-title fw-bold mb-0"><i class="fas fa-search"></i> Filter Karton Barang Jadi Stok</h5>
-                <a href="{{ route('bpb-fg-stock') }}" class="btn btn-sm btn-primary">
+                <h5 class="card-title fw-bold mb-0"><i class="fas fa-exchange"></i> Mutasi Internal
+                    Barang Jadi Stok
+                    <i class="fas fa-exchange fa-flip-horizontal"></i>
+                </h5>
+                <a href="{{ route('mutasi-fg-stock') }}" class="btn btn-light">
                     <i class="fa fa-reply"></i> Kembali
                 </a>
             </div>
         </div>
     </div>
-    <div class="row">
-        <div class="col-md-6">
-            <div class="card card-primary card-outline">
-                <div class="card-header">
-                    <h5 class="card-title"><i class="fas fa-exchange" style="color:blue;"></i> Posisi Asal</h5>
-                </div>
-                <div class="card-body">
-
-                    <div class="d-flex justify-content-between">
-                        <div class="p-2 bd-highlight">
-                            <a class="btn btn-outline-warning" onclick="undo()">
-                                <i class="fas fa-sync-alt
-                            fa-spin"></i>
-                                Undo
-                            </a>
-                        </div>
-                        <div class="p-2 bd-highlight">
-                            <a class="btn btn-outline-success" onclick="simpan()">
-                                <i class="fas fa-check"></i>
-                                Simpan
-                            </a>
+    <form id="form_h" name='form_h' method='post' action="{{ route('store-mutasi-fg-stock') }}"
+        onsubmit="submitForm(this, event)">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card card-primary card-outline">
+                    <div class="card-header">
+                        <h6 class="card-title"><i class="fas fa-exchange" style="color:blue;"></i> Posisi Asal</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label><small><b>Lokasi</b></small></label>
+                                    <select class="form-control select2bs4" id="cbolok_asal" name="cbolok_asal"
+                                        style="width: 100%;" onchange="getno_karton_asal()">
+                                        <option selected="selected" value="" disabled="true">Pilih Lokasi Asal
+                                        </option>
+                                        @foreach ($data_lok_asal as $datalok_asal)
+                                            <option value="{{ $datalok_asal->isi }}">
+                                                {{ $datalok_asal->tampil }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label><small><b>No. Karton</b></small></label>
+                                    <select class='form-control select2bs4 form-control-sm' style='width: 100%;'
+                                        name='cbono_carton_asal' id='cbono_carton_asal'
+                                        onchange="dataTableReload()"></select>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card card-primary card-outline">
-                <div class="card-header">
-                    <h5 class="card-title"><i class="fas fa-exchange" style="color:red;"></i> Posisi Tujuan</h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table id="datatable_tmp" class="table table-bordered table-sm w-100">
-                            <thead>
-                                <tr>
-                                    <th>No. Karton</th>
-                                    <th>Brand</th>
-                                    <th>Style</th>
-                                    <th>Grade</th>
-                                    <th>WS</th>
-                                    <th>Color</th>
-                                    <th>Size</th>
-                                    <th>Qty</th>
-                                    <th>Act</th>
-                                </tr>
-                            </thead>
-                        </table>
+            <div class="col-md-6">
+                <div class="card card-primary card-outline">
+                    <div class="card-header">
+                        <h6 class="card-title"><i class="fas fa-exchange fa-flip-horizontal" style="color:red;"></i> Posisi
+                            Tujuan</h6>
                     </div>
-                    <div class="d-flex justify-content-between">
-                        <div class="p-2 bd-highlight">
-                            <a class="btn btn-outline-warning" onclick="undo()">
-                                <i class="fas fa-sync-alt
-                            fa-spin"></i>
-                                Undo
-                            </a>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label><small><b>Lokasi</b></small></label>
+                                    <select class="form-control select2bs4" id="cbolok_tuj" name="cbolok_tuj"
+                                        style="width: 100%;">
+                                        <option selected="selected" value="" disabled="true">Pilih Lokasi Tujuan
+                                        </option>
+                                        @foreach ($data_lok_tuj as $datalok_tuj)
+                                            <option value="{{ $datalok_tuj->isi }}">
+                                                {{ $datalok_tuj->tampil }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label><small><b>No. Karton Tujuan</b></small></label>
+                                    <input type="text" class="form-control" id="txtno_carton_tuj" name="txtno_carton_tuj"
+                                        value="" autocomplete="off" placeholder="Pilih No Kartun Tujuan">
+                                </div>
+                            </div>
                         </div>
-                        <div class="p-2 bd-highlight">
-                            <a class="btn btn-outline-success" onclick="simpan()">
-                                <i class="fas fa-check"></i>
-                                Simpan
-                            </a>
-                        </div>
+
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <form id="form_d" name='form_d' method='post'>
         <div class="card card-primary card-outline">
             <div class="card-header">
                 <div class="align-items-center">
-                    <h6 class="card-title mb-0"><i class="fas fa-cart-plus"></i> Input Penerimaan Barang Jadi Stok
+                    <h6 class="card-title mb-0"><i class="fas fa-cart-plus"></i> List Detail Barang Jadi Stok
                     </h6>
                 </div>
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <label><small><b>Produk</b></small></label>
-                        <select class='form-control  select2bs4 style='width: 100%;' name='cboproduct'
-                            id='cboproduct'></select>
-                    </div>
-                    <div class="col-md-2">
-                        <label><small><b>Qty</b></small></label>
-                        <div class="input-group  mb-3">
-                            <input type="number" class="form-control " name="txtqty" id="txtqty">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text" id="inputGroup-sizing-sm">PCS</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <label><small><b>No. Karton</b></small></label>
-                        <input type="number" class="form-control" id="txtno_carton" name="txtno_carton"
-                            value="">
-                    </div>
-                    <div class="col-md-1">
-                        <label><small><b>Grade</b></small></label>
-                        <select class="form-control select2bs4 " id="cbograde" name="cbograde" style="width: 100%;">
-                            @foreach ($data_grade as $datagrade)
-                                <option value="{{ $datagrade->isi }}">
-                                    {{ $datagrade->tampil }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-1">
-                        <label><small><b>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b></small></label>
-                        <input class="btn btn-outline-primary" type="button" value="Tambah" onclick="tambah_data();">
-                        {{-- <button class="btn btn-primary"><i class="fas fa-plus" onclick="tambah_data();"></i></button> --}}
-                        {{-- <a class="btn btn-outline-primary" onclick="tambah_data();">
-                            <i class="fas fa-plus"></i>
-                        </a> --}}
-                    </div>
+                <div class="table-responsive">
+                    <table id="datatable_det" class="table table-bordered table-sm w-100">
+                        <thead class="table-primary">
+                            <tr>
+                                <th>Lokasi</th>
+                                <th>No. Karton</th>
+                                <th>Buyer</th>
+                                <th>Brand</th>
+                                <th>Style</th>
+                                <th>Grade</th>
+                                <th>WS</th>
+                                <th>Color</th>
+                                <th>Size</th>
+                                <th>Qty</th>
+                                <th>Qty Transfer</th>
+                            </tr>
+                        </thead>
+                    </table>
                 </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-8">
-                <div class="card card-primary card-outline">
-                    <div class="card-header">
-                        <h5 class="card-title"><i class="fas fa-box"></i> Temporary Penerimaan</h5>
+                <div class="d-flex justify-content-between">
+                    <div class="p-2 bd-highlight">
+                        <a class="btn btn-outline-warning" onclick="undo()">
+                            <i class="fas fa-sync-alt
+                                fa-spin"></i>
+                            Undo
+                        </a>
                     </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table id="datatable_tmp" class="table table-bordered table-sm w-100">
-                                <thead>
-                                    <tr>
-                                        <th>No. Karton</th>
-                                        <th>Brand</th>
-                                        <th>Style</th>
-                                        <th>Grade</th>
-                                        <th>WS</th>
-                                        <th>Color</th>
-                                        <th>Size</th>
-                                        <th>Qty</th>
-                                        <th>Act</th>
-                                    </tr>
-                                </thead>
-                            </table>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <div class="p-2 bd-highlight">
-                                <a class="btn btn-outline-warning" onclick="undo()">
-                                    <i class="fas fa-sync-alt
-                                    fa-spin"></i>
-                                    Undo
-                                </a>
-                            </div>
-                            <div class="p-2 bd-highlight">
-                                <a class="btn btn-outline-success" onclick="simpan()">
-                                    <i class="fas fa-check"></i>
-                                    Simpan
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card card-info card-outline">
-                    <div class="card-header">
-                        <h5 class="card-title"><i class="fas fa-box-open"></i> List Karton</h5>
-                    </div>
-                    <div class="table-responsive">
-                        <table id="datatable_karton" class="table table-bordered table-hover ">
-                            <thead>
-                                <tr>
-                                    <th>Lokasi</th>
-                                    <th>No. Carton</th>
-                                    <th>Total Qty</th>
-                                    <th>Act</th>
-                                </tr>
-                            </thead>
-                        </table>
+                    <div class="p-2 bd-highlight">
+                        <button type="submit" class="btn btn-outline-success">Simpan </button>
                     </div>
                 </div>
             </div>
         </div>
     </form>
-    </div>
 @endsection
 
 @section('custom-script')
@@ -283,146 +169,59 @@
             alert("Maaf, Fitur belum tersedia!");
         }
 
-        $(document).ready(function() {
-            $("#cbolok").val('').trigger('change');
-            $("#cbobuyer").val('').trigger('change');
-            dataTableReload();
-            cleardet();
-        })
-
-        function cleardet() {
-            document.getElementById('txtno_carton').value = "";
-            document.getElementById('txtqty').value = "";
-            $("#cboproduct").val('').trigger('change');
-
+        function undo() {
+            location.reload();
         }
 
-        function getno_ws() {
-            let cbobuyer = document.form_h.cbobuyer.value;
-            let html = $.ajax({
-                type: "GET",
-                url: '{{ route('getno_ws') }}',
-                data: {
-                    cbobuyer: cbobuyer
-                },
-                async: false
-            }).responseText;
-            // console.log(html != "");
-            if (html != "") {
-                $("#cbows").html(html);
-                // $("#cbomarker").prop("disabled", false);
-                // $("#txtqtyply").prop("readonly", false);
-            }
-        };
+        $(document).ready(function() {
+            $("#cbolok_asal").val('').trigger('change');
+            $("#cbolok_tuj").val('').trigger('change');
+            $("#txtno_carton_tuj").val('');
+        })
 
-        function getcolor() {
-            let cbows = document.form_h.cbows.value;
+        function getno_karton_asal() {
+            let cbolok_asal = document.form_h.cbolok_asal.value;
             let html = $.ajax({
                 type: "GET",
-                url: '{{ route('getcolor') }}',
+                url: '{{ route('getno-karton-asal-fg-stock') }}',
                 data: {
-                    cbows: cbows
+                    cbolok_asal: cbolok_asal
                 },
                 async: false
             }).responseText;
             if (html != "") {
-                $("#cbocolor").html(html);
+                $("#cbono_carton_asal").html(html);
             }
-        };
-
-        function getsize() {
-            let cbows = document.form_h.cbows.value;
-            let cbocolor = document.form_h.cbocolor.value;
-            let html = $.ajax({
-                type: "GET",
-                url: '{{ route('getsize') }}',
-                data: {
-                    cbows: cbows,
-                    cbocolor: cbocolor
-                },
-                async: false
-            }).responseText;
-            if (html != "") {
-                $("#cbosize").html(html);
-            }
-        };
-
-        function getproduct() {
-            let cbobuyer = document.form_h.cbobuyer.value;
-            let cbows = document.form_h.cbows.value;
-            let cbocolor = document.form_h.cbocolor.value;
-            let cbosize = document.form_h.cbosize.value;
-            let html = $.ajax({
-                type: "GET",
-                url: '{{ route('getproduct') }}',
-                data: {
-                    cbobuyer: cbobuyer,
-                    cbows: cbows,
-                    cbocolor: cbocolor,
-                    cbosize: cbosize
-                },
-                async: false
-            }).responseText;
-            if (html != "") {
-                $("#cboproduct").html(html);
-            }
-        };
-
-        function tambah_data() {
-            let cboproduct = document.form_d.cboproduct.value;
-            let qty = document.form_d.txtqty.value;
-            let no_carton = document.form_d.txtno_carton.value;
-            let grade = document.form_d.cbograde.value;
-            $.ajax({
-                type: "post",
-                url: '{{ route('store_tmp') }}',
-                data: {
-                    cboproduct: cboproduct,
-                    qty: qty,
-                    no_carton: no_carton,
-                    grade: grade
-                },
-                success: function(response) {
-                    if (response.icon == 'salah') {
-                        iziToast.warning({
-                            message: response.msg,
-                            position: 'topCenter'
-                        });
-                    } else {
-                        iziToast.success({
-                            message: response.msg,
-                            position: 'topCenter'
-                        });
-                    }
-                    dataTableReload();
-                    cleardet();
-                },
-                // error: function(request, status, error) {
-                //     alert(request.responseText);
-                // },
-            });
         };
 
         function dataTableReload() {
-            let datatable = $("#datatable_tmp").DataTable({
+            let datatable = $("#datatable_det").DataTable({
                 ordering: false,
                 processing: true,
                 serverSide: true,
                 paging: false,
                 destroy: true,
+                autoWidth: true,
                 ajax: {
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
-                    url: '{{ route('show_tmp') }}',
+                    url: '{{ route('show_det-fg-stock') }}',
                     dataType: 'json',
                     dataSrc: 'data',
                     data: function(d) {
-                        d.id = $('#id').val();
+                        d.cbolok_asal = $('#cbolok_asal').val();
+                        d.cbono_carton_asal = $('#cbono_carton_asal').val();
                     },
                 },
                 columns: [{
+                        data: 'lokasi',
+                    },
+                    {
                         data: 'no_carton',
+                    },
+                    {
+                        data: 'buyer',
                     },
                     {
                         data: 'brand',
@@ -438,199 +237,6 @@
                     },
                     {
                         data: 'color',
-                    },
-                    {
-                        data: 'size',
-                    },
-                    {
-                        data: 'qty',
-                    },
-                    {
-                        data: 'id',
-                    },
-                ],
-                columnDefs: [{
-                    targets: [8],
-                    render: (data, type, row, meta) => {
-                        return `
-                            <div class='d-flex gap-1 justify-content-center'>
-                            <a class='btn btn-warning btn-sm' onclick='notif()'><i class='fas fa-edit'></i></a>
-                            <a class='btn btn-danger btn-sm' onclick='notif()'><i class='fas fa-trash'></i></a>
-                                </div>`;
-                    }
-                }, ]
-            });
-        }
-
-        // <a class='btn btn-warning btn-sm' href='{{ route('create-dc-in') }}/` +
-    //                     row.id_so_det +
-    //                     `' data-bs-toggle='tooltip'><i class='fas fa-edit'></i></a>
-        // <a class='btn btn-danger btn-sm' href='{{ route('create-dc-in') }}/` +
-    //                     row.id_so_det +
-    //                     `' data-bs-toggle='tooltip'><i class='fas fa-trash'></i></a>
-
-
-        function simpan() {
-            let tgl_terima = document.form_h.tgl_terima.value;
-            let cbolok = document.form_h.cbolok.value;
-
-            if (cbolok == '') {
-                iziToast.warning({
-                    message: 'Lokasi masih kosong, Silahkan pilih lokasi',
-                    position: 'topCenter'
-                });
-            } else {
-                $.ajax({
-                    type: "post",
-                    url: '{{ route('store-bpb-fg-stock') }}',
-                    data: {
-                        tgl_terima: tgl_terima,
-                        cbolok: cbolok
-                    },
-                    success: function(response) {
-                        if (response.icon == 'salah') {
-                            iziToast.warning({
-                                message: response.msg,
-                                position: 'topCenter'
-                            });
-                        } else {
-                            Swal.fire({
-                                text: response.msg,
-                                icon: "success"
-                            });
-                        }
-                        dataTableReload();
-                        $("#cbolok").val('').trigger('change');
-                        $("#cbobuyer").val('').trigger('change');
-                        dataTableReload();
-                        cleardet();
-                    },
-                    error: function(request, status, error) {
-                        iziToast.warning({
-                            message: 'Data Temporary Kosong cek lagi',
-                            position: 'topCenter'
-                        });
-                    },
-                });
-            }
-        };
-
-        function undo() {
-            let user = document.form_h.user.value;
-            $.ajax({
-                type: "post",
-                url: '{{ route('undo') }}',
-                data: {
-                    user: user
-                },
-                success: function(response) {
-                    if (response.icon == 'salah') {
-                        iziToast.warning({
-                            message: response.msg,
-                            position: 'topCenter'
-                        });
-                    } else {
-                        iziToast.success({
-                            message: response.msg,
-                            position: 'topCenter'
-                        });
-                    }
-                    dataTableReload();
-                },
-                // error: function(request, status, error) {
-                //     alert(request.responseText);
-                // },
-            });
-        };
-
-        function showlok() {
-            let datatable = $("#datatable_karton").DataTable({
-                ordering: false,
-                processing: true,
-                serverSide: true,
-                paging: false,
-                destroy: true,
-                info: false,
-                searching: true,
-                "dom": 'ftip',
-                ajax: {
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    url: '{{ route('show_lok') }}',
-                    dataType: 'json',
-                    dataSrc: 'data',
-                    data: function(d) {
-                        d.cbolok = $('#cbolok').val();
-                    },
-                },
-                columns: [{
-                        data: 'lokasi',
-                    },
-                    {
-                        data: 'no_carton',
-                    },
-                    {
-                        data: 'qty_akhir',
-                    },
-                    {
-                        data: 'lokasi',
-                    },
-                ],
-                columnDefs: [{
-                    targets: [3],
-                    render: (data, type, row, meta) => {
-                        return `
-                        <div class='d-flex gap-1 justify-content-center'>
-                        <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModal"
-                        onclick="getdetail('` + row.lokasi + `','` + row.no_carton + `');"><i class='fas fa-search'></i></a>
-                            </div>`;
-                    }
-                }, ]
-            });
-        }
-
-        function getdetail(id_l, id_k) {
-            document.getElementById('id_l').value = id_l;
-            document.getElementById('id_k').value = id_k;
-            let datatable = $("#datatable_modal").DataTable({
-                ordering: false,
-                processing: true,
-                serverSide: true,
-                paging: false,
-                destroy: true,
-                info: false,
-                searching: true,
-                "dom": 'ftip',
-                ajax: {
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    url: '{{ route('getdet_carton') }}',
-                    dataType: 'json',
-                    dataSrc: 'data',
-                    data: function(d) {
-                        d.lokasi = id_l,
-                            d.karton = id_k;
-                    },
-                },
-                columns: [{
-                        data: 'brand',
-                    },
-                    {
-                        data: 'styleno',
-                    },
-                    {
-                        data: 'grade',
-                    },
-                    {
-                        data: 'ws',
-                    },
-                    {
-                        data: 'color',
-                    },
-                    {
-                        data: 'styleno',
                     },
                     {
                         data: 'size',
@@ -639,6 +245,36 @@
                         data: 'saldo',
                     },
                 ],
+                columnDefs: [{
+                        targets: [10],
+                        render: (data, type, row, meta) => {
+                            // return '<input type="text" id="txtqty' + meta.row + '" name="txtqty[' + meta
+                            //     .row + ']" value = "0"  />'
+                            // return '<input type="number" size="10" id="txtqty[' + row.kode +
+                            //     ']" name="txtqty[' + row
+                            //     .kode + ']" autocomplete="off" />'
+                            return `
+                        <div>
+                            <input type="number" size="10" id="txtqty[` + row.kode + `]"
+                            name="txtqty[` + row.kode + `]" value = "0" autocomplete="off" max = "` + row.saldo + `" min = "0"/>
+                        </div>
+                        <div>
+                            <input type="hidden" size="10" id="id_so_det[` + row.kode + `]"
+                            name="id_so_det[` + row.kode + `]" value = "` + row.id_so_det + `"/>
+                        </div>
+                        <div>
+                            <input type="hidden" size="10" id="no_carton[` + row.kode + `]"
+                            name="no_carton[` + row.kode + `]" value = "` + row.no_carton + `"/>
+                        </div>
+                        <div>
+                            <input type="hidden" size="10" id="grade[` + row.kode + `]"
+                            name="grade[` + row.kode + `]" value = "` + row.grade + `"/>
+                        </div>
+                        `;
+                        }
+                    },
+
+                ]
             });
         }
     </script>
