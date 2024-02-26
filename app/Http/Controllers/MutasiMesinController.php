@@ -199,25 +199,25 @@ class MutasiMesinController extends Controller
         ");
         $line_asal_data = $line_asal ? $line_asal[0]->line : null;
 
-        if ($line_asal_data == $request->nm_line) {
-            return [
-                'icon' => 'error',
-                'msg' => 'Data Sudah Ada',
-                'timer' => false,
-                'prog' => true,
-            ];
-        } else {
-            $savemutasi = MutMesin::create([
-                'tgl_pindah' => $tglpindah,
-                'id_qr' => $request['txtenroll_id'],
-                'line' => $request['nm_line'],
-                'line_asal' => $line_asal_data,
-                'created_at' => $timestamp,
-                'updated_at' => $timestamp,
-            ]);
-            // dd($savemutasi);
-            // $message .= "$tglpindah <br>";
-        }
+        // if ($line_asal_data == $request->nm_line) {
+        //     return [
+        //         'icon' => 'error',
+        //         'msg' => 'Data Sudah Ada',
+        //         'timer' => false,
+        //         'prog' => true,
+        //     ];
+        // } else {
+        $savemutasi = MutMesin::create([
+            'tgl_pindah' => $tglpindah,
+            'id_qr' => $request['txtenroll_id'],
+            'line' => $request['nm_line'],
+            'line_asal' => $line_asal_data,
+            'created_at' => $timestamp,
+            'updated_at' => $timestamp,
+        ]);
+        // dd($savemutasi);
+        // $message .= "$tglpindah <br>";
+        // }
 
         return [
             'icon' => 'success',
