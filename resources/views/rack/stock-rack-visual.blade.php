@@ -16,6 +16,10 @@
         .tooltip-inner {
             text-align: left !important;
         }
+
+        .stock-rack-visual {
+            cursor: pointer;
+        }
     </style>
 @endsection
 
@@ -67,7 +71,7 @@
 
                                                             @if ($stockerData)
                                                                 @foreach ($stockerData as $data)
-                                                                    <div class="col">
+                                                                    <div class="col stock-rack-visual">
                                                                         <div class="card h-100"
                                                                             data-bs-toggle="tooltip"
                                                                             data-bs-placement="right"
