@@ -14,11 +14,11 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-box-open"></i> Pengeluaran Barang Jadi Stok</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-exchange"></i> Mutasi Barang Jadi Stok</h5>
         </div>
         <div class="card-body">
             <div class="mb-3">
-                <a href="{{ route('create-bppb-fg-stock') }}" class="btn btn-outline-primary position-relative">
+                <a href="{{ route('create-mutasi-fg-stock') }}" class="btn btn-outline-primary position-relative">
                     <i class="fas fa-plus"></i>
                     Baru
                 </a>
@@ -35,7 +35,7 @@
                         oninput="dataTableReload()" value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
-                    <a onclick="export_excel_bppb()" class="btn btn-outline-success position-relative btn-sm">
+                    <a onclick="export_excel_mutasi_int()" class="btn btn-outline-success position-relative btn-sm">
                         <i class="fas fa-file-excel fa-sm"></i>
                         Export Excel
                     </a>
@@ -48,8 +48,6 @@
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>No. Trans</th>
                             <th>Tgl. Trans</th>
-                            <th>Lokasi</th>
-                            <th>No. Karton</th>
                             <th>Buyer</th>
                             <th>Brand</th>
                             <th>Style</th>
@@ -58,8 +56,12 @@
                             <th>Color</th>
                             <th>Size</th>
                             <th>Qty</th>
-                            <th>Tujuan</th>
-                            <th>Tujuan Pengeluaran</th>
+                            <th>Lokasi Asal</th>
+                            <th>No. Karton Asal</th>
+                            <th>Lokasi Tujuan</th>
+                            <th>No. Karton Tujuan</th>
+                            <th>No. BPB</th>
+                            <th>No. BPPB</th>
                         </tr>
                     </thead>
                 </table>
@@ -106,23 +108,17 @@
                 destroy: true,
                 scrollX: true,
                 ajax: {
-                    url: '{{ route('bppb-fg-stock') }}',
+                    url: '{{ route('mutasi-fg-stock') }}',
                     data: function(d) {
                         d.dateFrom = $('#tgl-awal').val();
                         d.dateTo = $('#tgl-akhir').val();
                     },
                 },
                 columns: [{
-                        data: 'no_trans_out'
+                        data: 'no_trans'
 
                     }, {
-                        data: 'tgl_pengeluaran_fix'
-                    },
-                    {
-                        data: 'lokasi'
-                    },
-                    {
-                        data: 'no_carton'
+                        data: 'tgl_mut_fix'
                     },
                     {
                         data: 'buyer'
@@ -146,13 +142,25 @@
                         data: 'size'
                     },
                     {
-                        data: 'qty_out'
+                        data: 'qty_mut'
                     },
                     {
-                        data: 'tujuan'
+                        data: 'lokasi_asal'
                     },
                     {
-                        data: 'tujuan_pengeluaran'
+                        data: 'no_carton_asal'
+                    },
+                    {
+                        data: 'lokasi_tujuan'
+                    },
+                    {
+                        data: 'no_carton_tujuan'
+                    },
+                    {
+                        data: 'no_trans'
+                    },
+                    {
+                        data: 'no_trans_out'
                     },
                 ],
                 columnDefs: [
@@ -180,7 +188,7 @@
             });
         }
 
-        function export_excel_bppb() {
+        function export_excel_mutasi_int() {
             let from = document.getElementById("tgl-awal").value;
             let to = document.getElementById("tgl-akhir").value;
 
@@ -195,7 +203,7 @@
 
             $.ajax({
                 type: "get",
-                url: '{{ route('export_excel_bppb_fg_stok') }}',
+                url: '{{ route('export_excel_mutasi_int_fg_stok') }}',
                 data: {
                     from: from,
                     to: to
@@ -216,7 +224,7 @@
                         var link = document.createElement('a');
                         link.href = window.URL.createObjectURL(blob);
                         link.download = from + " sampai " +
-                            to + "Laporan Pengeluaran FG Stock.xlsx";
+                            to + "Laporan Mutasi Internal FG Stock.xlsx";
                         link.click();
 
                     }

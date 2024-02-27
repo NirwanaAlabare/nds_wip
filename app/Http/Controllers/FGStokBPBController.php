@@ -7,6 +7,8 @@ use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ExportLaporanPenerimaanFGStokBPB;
 
 class FGStokBPBController extends Controller
 {
@@ -22,6 +24,8 @@ class FGStokBPBController extends Controller
             a.id,
             no_trans,
             tgl_terima,
+            concat((DATE_FORMAT(tgl_terima,  '%d')), '-', left(DATE_FORMAT(tgl_terima,  '%M'),3),'-',DATE_FORMAT(tgl_terima,  '%Y')
+            ) tgl_terima_fix,
             buyer,
             ws,
             brand,
@@ -32,6 +36,7 @@ class FGStokBPBController extends Controller
             a.grade,
             no_carton,
             lokasi,
+            sumber_pemasukan,
             a.created_by,
             created_at
             from fg_stok_bpb a
@@ -71,6 +76,7 @@ class FGStokBPBController extends Controller
         $validatedRequest = $request->validate([
             "cbolok" => "required",
             "tgl_terima" => "required",
+            "cbosumber" => "required",
 
         ]);
 
@@ -86,8 +92,8 @@ class FGStokBPBController extends Controller
         } else {
             $insert = DB::insert(
                 "insert into fg_stok_bpb
-                (no_trans,tgl_terima,id_so_det,qty,grade,no_carton,lokasi,cancel,created_by,created_at,updated_at)
-                SELECT '$kode_trans','$tglterima',id_so_det,qty,grade,no_carton,'" . $validatedRequest['cbolok'] . "','N','$user','$timestamp','$timestamp'
+                (no_trans,tgl_terima,id_so_det,qty,grade,no_carton,lokasi,sumber_pemasukan,mutasi,cancel,created_by,created_at,updated_at)
+                SELECT '$kode_trans','$tglterima',id_so_det,qty,grade,no_carton,'" . $validatedRequest['cbolok'] . "','" . $validatedRequest['cbosumber'] . "','N','N','$user','$timestamp','$timestamp'
                 from fg_tmp_stok_bpb
                 where created_by = '$user'
                 "
@@ -129,7 +135,10 @@ class FGStokBPBController extends Controller
     public function create(Request $request)
     {
         $user = Auth::user()->name;
-        $data_lok = DB::select("select kode_lok_fg_stok isi , kode_lok_fg_stok tampil from fg_stok_master_lok");
+
+        $data_lok = DB::select("select kode_lok_fg_stok isi , kode_lok_fg_stok tampil from fg_stok_master_lok where cancel = 'N'");
+
+        $data_terima = DB::select("SELECT sumber isi, sumber tampil  FROM `fg_stok_master_sumber_penerimaan` where cancel = 'N'");
 
         $data_buyer = DB::select("select buyer isi, buyer tampil from master_sb_ws
         group by buyer
@@ -139,7 +148,7 @@ class FGStokBPBController extends Controller
 
         return view('fg-stock.create_bpb_fg_stock', [
             'page' => 'dashboard-fg-stock', "subPageGroup" => "fgstock-bpb", "subPage" => "bpb-fg-stock",
-            "data_lok" => $data_lok, "data_buyer" => $data_buyer, "data_grade" => $data_grade, "user" => $user
+            "data_lok" => $data_lok, "data_buyer" => $data_buyer, "data_grade" => $data_grade, "data_terima" => $data_terima, "user" => $user
         ]);
     }
 
@@ -343,8 +352,8 @@ order by color desc");
     }
 
 
-    // public function export_excel_mut_karyawan(Request $request)
-    // {
-    //     return Excel::download(new ExportLaporanMutasiKaryawan($request->from, $request->to), 'Laporan_Mutasi_Karyawan.xlsx');
-    // }
+    public function export_excel_bpb_fg_stok(Request $request)
+    {
+        return Excel::download(new ExportLaporanPenerimaanFGStokBPB($request->from, $request->to), 'Laporan_Penerimaan FG_Stok.xlsx');
+    }
 }
