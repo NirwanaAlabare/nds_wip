@@ -32,7 +32,7 @@ class FormCutInputController extends Controller
             $additionalQuery = "";
 
             if ($request->dateFrom) {
-                $additionalQuery .= "and (cutting_plan.tgl_plan >= '" . $request->dateFrom . "' or a.updated_at >= '". $request->dateFrom ."')";
+                $additionalQuery .= " and (cutting_plan.tgl_plan >= '" . $request->dateFrom . "' or a.updated_at >= '". $request->dateFrom ."')";
             }
 
             if ($request->dateTo) {
@@ -410,7 +410,7 @@ class FormCutInputController extends Controller
             "unit_p_act" => "required",
             "comma_act" => "required",
             "unit_comma_act" => "required",
-            "l_act" => "required",
+            "l_act" => "required|min:0.1",
             "unit_l_act" => "required",
             "cons_act" => "required",
             "cons_pipping" => "required",
@@ -421,29 +421,31 @@ class FormCutInputController extends Controller
             "est_kain_unit" => "required",
         ]);
 
-        $updateFormCutInput = FormCutInput::where("id", $id)->update([
-            "status" => "PENGERJAAN FORM CUTTING SPREAD",
-            "p_act" => $validatedRequest['p_act'],
-            "unit_p_act" => $validatedRequest['unit_p_act'],
-            "comma_p_act" => $validatedRequest['comma_act'],
-            "unit_comma_p_act" => $validatedRequest['unit_comma_act'],
-            "l_act" => $validatedRequest['l_act'],
-            "unit_l_act" => $validatedRequest['unit_l_act'],
-            "cons_act" => $validatedRequest['cons_act'],
-            "cons_pipping" => $validatedRequest['cons_pipping'],
-            "cons_ampar" => $validatedRequest['cons_ampar'],
-            "est_pipping" => $validatedRequest['est_pipping'],
-            "est_pipping_unit" => $validatedRequest['est_pipping_unit'],
-            "est_kain" => $validatedRequest['est_kain'],
-            "est_kain_unit" => $validatedRequest['est_kain_unit']
-        ]);
+        if ($validatedRequest["p_act"] + $validatedRequest["comma_act"] > 0 && $validatedRequest["l_act"] > 0) {
+            $updateFormCutInput = FormCutInput::where("id", $id)->update([
+                "status" => "PENGERJAAN FORM CUTTING SPREAD",
+                "p_act" => $validatedRequest['p_act'],
+                "unit_p_act" => $validatedRequest['unit_p_act'],
+                "comma_p_act" => $validatedRequest['comma_act'],
+                "unit_comma_p_act" => $validatedRequest['unit_comma_act'],
+                "l_act" => $validatedRequest['l_act'],
+                "unit_l_act" => $validatedRequest['unit_l_act'],
+                "cons_act" => $validatedRequest['cons_act'],
+                "cons_pipping" => $validatedRequest['cons_pipping'],
+                "cons_ampar" => $validatedRequest['cons_ampar'],
+                "est_pipping" => $validatedRequest['est_pipping'],
+                "est_pipping_unit" => $validatedRequest['est_pipping_unit'],
+                "est_kain" => $validatedRequest['est_kain'],
+                "est_kain_unit" => $validatedRequest['est_kain_unit']
+            ]);
 
-        if ($updateFormCutInput) {
-            return array(
-                "status" => 200,
-                "message" => "alright",
-                "additional" => [],
-            );
+            if ($updateFormCutInput) {
+                return array(
+                    "status" => 200,
+                    "message" => "alright",
+                    "additional" => [],
+                );
+            }
         }
 
         return array(
