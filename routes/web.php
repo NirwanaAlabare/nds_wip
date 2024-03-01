@@ -324,6 +324,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/get_proses', 'get_proses')->name('get_proses');
         Route::post('/store_part_secondary', 'store_part_secondary')->name('store_part_secondary');
 
+        // part detail
+        Route::delete('/destroy-part-detail/{id?}', 'destroyPartDetail')->name('destroy-part-detail');
+
         // get order
         Route::get('/get-order', 'getOrderInfo')->name('get-part-order');
         // get colors

@@ -455,7 +455,12 @@ class PartController extends Controller
                 part.color,
                 part.panel,
                 GROUP_CONCAT(DISTINCT CONCAT(master_part.nama_part, ' - ', master_part.bag) ORDER BY master_part.nama_part SEPARATOR ', ') part_details
-            ")->leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->leftJoin("master_part", "master_part.id", "part_detail.master_part_id")->where("part.id", $id)->groupBy("part.id")->first();
+            ")->
+            leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
+            leftJoin("master_part", "master_part.id", "part_detail.master_part_id")->
+            where("part.id", $id)->
+            groupBy("part.id")->
+            first();
 
         // $data_part = DB::select("select pd.id isi, concat(nama_part,' - ',bag) tampil from part_detail pd
         // inner join master_part mp on pd.master_part_id = mp.id
@@ -730,5 +735,27 @@ class PartController extends Controller
         );
 
         return DataTables::of($list_part)->toJson();
+    }
+
+    public function destroyPartDetail($id=0) {
+        $partDetail = PartDetail::with('masterPart')->find($id);
+
+        if ($partDetail->delete()) {
+            return array(
+                'status' => 200,
+                'message' => 'Part Detail <br> "'.$partDetail->masterPart->nama_part.'" <br> berhasil dihapus. <br> "'.$partDetail->id.'"',
+                'redirect' => '',
+                'table' => 'datatable_list_part',
+                'additional' => [],
+            );
+        }
+
+        return array(
+            'status' => 400,
+            'message' => 'Master Part <br> "'.$partDetail->masterPart->nama_part.'" <br> gagal dihapus. <br> "'.$partDetail->id.'"',
+            'redirect' => '',
+            'table' => 'datatable_list_part',
+            'additional' => [],
+        );
     }
 }
