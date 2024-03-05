@@ -12,6 +12,7 @@ use App\Models\ScannedItem;
 use App\Models\CutPlan;
 use App\Models\Part;
 use App\Models\PartForm;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
@@ -136,8 +137,11 @@ class ManualFormCutController extends Controller
 
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
+        $meja = User::select("id", "name", "username")->where('type', 'meja')->get();
+
         return view("manual-form-cut.manual-create-form-cut", [
             "orders" => $orders,
+            "meja" => $meja,
             'page' => 'dashboard-cutting',
             "subPageGroup" => "proses-cutting",
             "subPage" => "form-cut-input"
@@ -354,6 +358,8 @@ class ManualFormCutController extends Controller
             return Redirect::to('/home');
         }
 
+        $meja = User::select("id", "name", "username")->where('type', 'meja')->get();
+
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
         return view("manual-form-cut.manual-process-form-cut", [
@@ -362,6 +368,7 @@ class ManualFormCutController extends Controller
             'actCostingData' => $actCostingData,
             'markerDetailData' => $markerDetailData,
             'orders' => $orders,
+            'meja' => $meja,
             'page' => 'dashboard-cutting',
             "subPageGroup" => "proses-cutting",
             "subPage" => "form-cut-input"
@@ -506,7 +513,6 @@ class ManualFormCutController extends Controller
         $storeFormCutInput = FormCutInput::create([
             "tgl_form_cut" => $date,
             "no_form" => $noForm,
-            "no_meja" => Auth::user()->id,
             "status" => "PENGERJAAN MARKER",
             "tipe_form_cut" => "MANUAL",
             "waktu_mulai" => $request->startTime,
@@ -558,6 +564,7 @@ class ManualFormCutController extends Controller
 
         $validatedRequest = $request->validate([
             "id" => "required",
+            "no_meja" => "required",
             "no_form" => "required",
             "tgl_form" => "required",
             "act_costing_id" => "required",
@@ -618,6 +625,7 @@ class ManualFormCutController extends Controller
                 $markerDetailStore = MarkerDetail::insert($markerDetailData);
 
                 $updateFormCutInput = FormCutInput::where("id", $idForm)->update([
+                    "no_meja" => $validatedRequest['no_meja'],
                     "id_marker" => $markerCode,
                     "status" => "PENGERJAAN FORM CUTTING DETAIL",
                     "shell" => $request->shell,
