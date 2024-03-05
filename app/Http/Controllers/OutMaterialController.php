@@ -474,6 +474,57 @@ inner join mastersupplier mbuyer on ac.id_buyer=mbuyer.id_supplier
 where breq.bppbno='".$request->no_req."') a left join (select id_item iditem,sum(qty_out) qty_input from whs_bppb_det_temp where created_by = '".$user."' GROUP BY id_item) b on b.iditem = a.id_item");
 
 
+// $data_detail = DB::connection('mysql_sb')->select("select no_req,jo_no ,id_supplier,qtyreq,qty_sdh_out,qty_sisa_out,id_item,goods_code,itemdesc,id_jo,qty_in,qty_out,(qty_in - qty_out) qty_sisa,unit,kpno,styleno,buyer,rak,(qty_in - qty_out) qtyitem_sisa,Coalesce(qty_input,0) qty_input from (select breq.bppbno no_req,jod.jo_no,breq.id_supplier,breq.qty qtyreq,breq.qty_out qty_sdh_out,breq.qty - breq.qty_out qty_sisa_out,mi.id_item,mi.goods_code,
+// concat(mi.itemdesc,' ',mi.color,' ',mi.size,' ',mi.add_info) itemdesc,
+// tbl_in.id_jo,tbl_in.qty_in,
+// ifnull(tbl_out.qty_out,0) qty_out,
+// tbl_in.unit,
+// ac.kpno,ac.styleno,mbuyer.supplier buyer,tbl_in.rak
+// from bppb_req breq  
+// inner join masteritem mi on mi.id_item=breq.id_item inner join 
+// (select id_item,id_jo,sum(qty) qty_in,unit,group_concat(kode_lok) rak from whs_sa_fabric 
+//     where id_jo in (".$request->no_jo.")  group by id_item,id_jo) as tbl_in 
+// on mi.id_item=tbl_in.id_item and breq.id_jo=tbl_in.id_jo      
+// left join 
+// (select id_item,id_jo,sum(qty_out) qty_out from whs_bppb_det where id_jo in (".$request->no_jo.")  
+//     group by id_item,id_jo) as tbl_out
+// on tbl_in.id_item=tbl_out.id_item and tbl_in.id_jo=tbl_out.id_jo
+// INNER JOIN 
+// (select jo_no,id_so,id_jo from jo_det a inner join jo s on a.id_jo=s.id where id_jo in (".$request->no_jo.") 
+//     group by id_jo)  jod on breq.id_jo=jod.id_jo 
+// inner join 
+// (select so.id,id_cost,min(sod.deldate_det) mindeldate from so inner join so_det sod on 
+// so.id=sod.id_so group by so.id) so on jod.id_so=so.id 
+// inner join act_costing ac on so.id_cost=ac.id
+// inner join mastersupplier mbuyer on ac.id_buyer=mbuyer.id_supplier
+// where breq.bppbno='".$request->no_req."'
+// union                                    
+// select breq.bppbno no_req,jod.jo_no,breq.id_supplier,breq.qty qtyreq,breq.qty_out qty_sdh_out,breq.qty - breq.qty_out qty_sisa_out,mi.id_item,mi.goods_code,
+// concat(mi.itemdesc,' ',mi.color,' ',mi.size,' ',mi.add_info) itemdesc,
+// tbl_in.id_jo,tbl_in.qty_in,
+// ifnull(tbl_out.qty_out,0) qty_out,
+// tbl_in.unit,
+// ac.kpno,ac.styleno,mbuyer.supplier buyer,tbl_in.rak
+// from bppb_req breq  
+// inner join masteritem mi on mi.id_item=breq.id_item inner join 
+// (select id_item,id_jo,sum(qty) qty_in,unit,group_concat(nomor_rak) rak from bpb 
+//     where id_jo in (".$request->no_jo.")  group by id_item,id_jo) as tbl_in 
+// on mi.id_item=tbl_in.id_item and breq.id_jo=tbl_in.id_jo      
+// left join 
+// (select id_item,id_jo,sum(qty_out) qty_out from whs_bppb_det where id_jo in (".$request->no_jo.")  
+//     group by id_item,id_jo) as tbl_out
+// on tbl_in.id_item=tbl_out.id_item and tbl_in.id_jo=tbl_out.id_jo
+// INNER JOIN 
+// (select jo_no,id_so,id_jo from jo_det a inner join jo s on a.id_jo=s.id where id_jo in (".$request->no_jo.") 
+//     group by id_jo)  jod on breq.id_jo=jod.id_jo 
+// inner join 
+// (select so.id,id_cost,min(sod.deldate_det) mindeldate from so inner join so_det sod on 
+// so.id=sod.id_so group by so.id) so on jod.id_so=so.id 
+// inner join act_costing ac on so.id_cost=ac.id
+// inner join mastersupplier mbuyer on ac.id_buyer=mbuyer.id_supplier
+// where breq.bppbno='".$request->no_req."') a left join (select id_item iditem,sum(qty_out) qty_input from whs_bppb_det_temp where created_by = '".$user."' GROUP BY id_item) b on b.iditem = a.id_item");
+
+
         return json_encode([
             "draw" => intval($request->input('draw')),
             "recordsTotal" => intval(count($data_detail)),
