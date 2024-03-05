@@ -411,6 +411,7 @@ class PilotFormCutController extends Controller
     public function getScannedItem($id = 0)
     {
         $scannedItem = ScannedItem::where('id_roll', $id)->first();
+
         if ($scannedItem) {
             if (floatval($scannedItem->qty) > 0) {
                 return json_encode($scannedItem);
@@ -421,7 +422,7 @@ class PilotFormCutController extends Controller
 
         $newItem = DB::connection("mysql_sb")->select("
             SELECT
-                br.id id_roll,
+                br.id_roll id_roll,
                 mi.itemdesc detail_item,
                 mi.id_item,
                 goods_code,
@@ -431,24 +432,23 @@ class PilotFormCutController extends Controller
                 invno,
                 ac.kpno,
                 no_roll roll,
-                qty_aktual qty,
+                qty_out qty,
                 no_lot lot,
                 bpb.unit,
                 kode_rak
             FROM
-                whs_lokasi_inmaterial br
+                whs_bppb_det br
                 INNER JOIN masteritem mi ON br.id_item = mi.id_item
-                INNER JOIN bpb ON br.id_jo = bpb.id_jo
-                AND br.id_item = bpb.id_item
+                INNER JOIN bpb ON br.id_jo = bpb.id_jo AND br.id_item = bpb.id_item
                 INNER JOIN mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
                 INNER JOIN jo_det jd ON br.id_jo = jd.id_jo
                 INNER JOIN so ON jd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
-                INNER JOIN master_rak mr ON br.kode_lok = mr.kode_rak
+                INNER JOIN master_rak mr ON br.no_rak = mr.kode_rak
             WHERE
-                br.no_barcode = '".$id."'
+                br.id_roll = '".$id."'
                 AND cast(
-                qty_aktual AS DECIMAL ( 11, 3 )) > 0.000
+                qty_out AS DECIMAL ( 11, 3 )) > 0.000
                 LIMIT 1
         ");
         if ($newItem) {
