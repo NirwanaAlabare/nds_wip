@@ -40,14 +40,16 @@
                                 <input type="hidden" name="no_meja" id="no_meja" value="{{ isset($formCutInputData) ? ($formCutInputData->no_meja ? $formCutInputData->no_meja : Auth::user()->id) : Auth::user()->id }}" readonly>
                             @else
                                 <div class="col-12 col-md-12">
-                                    <label class="form-label"><small><b>Meja</b></small></label>
-                                    <select class="form-control select2bs4" id="no_meja" name="no_meja" style="width: 100%;" disabled>
-                                        <option value="">Pilih Meja</option>
-                                            @foreach ($meja as $m)
-                                                <option value="{{ $m->id }}" {{ isset($formCutInputData) ? ($formCutInputData->no_meja ? ($formCutInputData->no_meja == $m->id ? "selected" : "") : "") : "" }}>{{ strtoupper($m->name) }}</option>
-                                            @endforeach
-                                        </option>
-                                    </select>
+                                    <div class="mb-3">
+                                        <label class="form-label"><small><b>Meja</b></small></label>
+                                        <select class="form-control select2bs4" id="no_meja" name="no_meja" style="width: 100%;" disabled>
+                                            <option value="">Pilih Meja</option>
+                                                @foreach ($meja as $m)
+                                                    <option value="{{ $m->id }}" {{ isset($formCutInputData) ? ($formCutInputData->no_meja ? ($formCutInputData->no_meja == $m->id ? "selected" : "") : "") : "" }}>{{ strtoupper($m->name) }}</option>
+                                                @endforeach
+                                            </option>
+                                        </select>
+                                    </div>
                                 </div>
                             @endif
                             <div class="col-6 col-md-4">
