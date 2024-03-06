@@ -40,7 +40,7 @@
             <div class="col-md-6">
             <div class="mb-1">
                 <div class="form-group">
-                <label><small>Tgl BPB</small></label>
+                <label><small>Tgl RI</small></label>
                 <input type="date" class="form-control form-control" id="txt_tgl_gr" name="txt_tgl_gr"
                         value="{{ $kodegr->tgl_dok }}">
                 </div>
@@ -50,7 +50,7 @@
             <div class="col-md-6">
             <div class="mb-1">
                 <div class="form-group">
-                <label><small>Tgl Pengiriman</small></label>
+                <label><small>Tgl SJ</small></label>
                 <input type="date" class="form-control form-control" id="txt_tgl_ship" name="txt_tgl_ship"
                         value="{{ $kodegr->tgl_shipp }}">
                 </div>
@@ -60,50 +60,28 @@
             <div class="col-md-12">
             <div class="mb-1">
                 <div class="form-group">
+                <label><small>Surat Jalan Asal</small></label>
+                <select class="form-control select2supp" id="txt_supp" name="txt_supp" style="width: 100%;">
+                    @foreach ($no_bppb as $nobppb)
+                    <option value="{{ $nobppb->bppbno_int }}">
+                                {{ $nobppb->bppbno_int }}
+                    </option>
+                        @endforeach
+                </select>
+                </div>
+            </div>
+            </div>
+
+            <div class="col-md-12">
+            <div class="mb-1">
+                <div class="form-group">
                 <label><small>Supplier</small></label>
-                <select class="form-control select2supp" id="txt_supp" name="txt_supp" style="width: 100%;" onchange="settype()">
-                    <option selected="selected" value="{{$kodegr->supplier}}">{{$kodegr->supplier}}</option>
-                        @foreach ($msupplier as $msupp)
-                    <option value="{{ $msupp->Supplier }}">
-                                {{ $msupp->Supplier }}
-                    </option>
-                        @endforeach
-                </select>
+                <input type="text" class="form-control form-control" id="txt_supp" name="txt_supp"
+                        value="{{ $kodegr->supplier }}">
                 </div>
             </div>
             </div>
 
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Tipe BPB</small></label>
-                <select class="form-control select2bs4" id="txt_type_gr" name="txt_type_gr" style="width: 100%;" onchange="settype()">
-                    <option selected="selected" value="{{$kodegr->type_dok}}">{{$kodegr->type_dok}}</option>
-                        @foreach ($gr_type as $grtype)
-                    <option value="{{ $grtype->nama_pilihan }}">
-                                {{ $grtype->nama_pilihan }}
-                    </option>
-                        @endforeach
-                </select>
-                </div>
-            </div>
-            </div>
-
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>No PO</small></label>
-                @if ($kodegr->type_dok == "CMT")
-                <select class="form-control select2bs4" id="txt_po" name="txt_po" style="width: 100%;"  disabled></select>
-                @endif
-                @if ($kodegr->type_dok == "FOB")
-                <select class="form-control select2bs4" id="txt_po" name="txt_po" style="width: 100%;" >
-                    <option selected="selected" value="{{$kodegr->no_po}}">{{$kodegr->no_po}}</option>
-                </select>
-                @endif
-                </div>
-            </div>
-            </div>
         </div>
     </div>
 
@@ -113,16 +91,9 @@
             <div class="col-md-12">
             <div class="mb-1">
                 <div class="form-group">
-                <label><small>WS (Global)</small></label>
-                @if ($kodegr->type_dok == "CMT")
-                <select class="form-control select2bs4" id="txt_wsglobal" name="txt_wsglobal" style="width: 100%;" >
-                    <option selected="selected" value="{{$kodegr->no_ws}}">{{$kodegr->no_ws}}</option>
+                <label><small>Jenis Retur</small></label>
+                <select class="form-control select2bs4" id="txt_jns_rtr" name="txt_jns_rtr" style="width: 100%;" >
                 </select>
-                @endif
-                @if ($kodegr->type_dok == "FOB")
-                <select class="form-control select2bs4" id="txt_wsglobal" name="txt_wsglobal" style="width: 100%;"  disabled>
-                </select>
-                @endif
                 </div>
             </div>
             </div>
@@ -151,19 +122,9 @@
             <div class="col-md-12">
             <div class="mb-1">
                 <div class="form-group">
-                <label><small>Tipe Pembelian</small></label>
+                <label><small>Tujuan Pemasukan</small></label>
                 <select class="form-control select2bs4" id="txt_type_pch" name="txt_type_pch" style="width: 100%;">
-                    @if ($kodegr->type_pch == "")
-                    <option selected="selected" value="">Select Type</option>
-                    @endif
-                    @if ($kodegr->type_pch != "")
                     <option selected="selected" value="{{$kodegr->type_pch}}">{{$kodegr->type_pch}}</option>
-                    @endif
-                        @foreach ($pch_type as $pch)
-                    <option value="{{ $pch->nama_pilihan }}">
-                                {{ $pch->nama_pilihan }}
-                    </option>
-                        @endforeach
                 </select>
                 </div>
             </div>
@@ -172,21 +133,13 @@
             <div class="col-md-12">
             <div class="mb-1">
                 <div class="form-group">
-                <label><small>Dokumen Asli</small></label>
-                <select class="form-control select2bs4" id="txt_oridok" name="txt_oridok" style="width: 100%;">
+                <label><small>Nomor KK BC</small></label>
+                 <input type="text" class="form-control " id="txt_no_kk" name="txt_no_kk" value="{{$kodegr->no_kontrak}}" >
                 </select>
                 </div>
             </div>
             </div>
 
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>No Invoice</small></label>
-                <input type="text" class="form-control " id="txt_invdok" name="txt_invdok" value="{{$kodegr->no_invoice}}" >
-                </div>
-            </div>
-            </div>
         </div>
     </div>
 
@@ -215,8 +168,27 @@
             <div class="col-md-7">
             <div class="mb-1">
                 <div class="form-group">
+                <label><small>No Faktur Pajak</small></label>
+                <input type="text" class="form-control " id="txt_faktur" name="txt_faktur" value="{{$kodegr->no_faktur}}" >
+                </div>
+            </div>
+            </div>
+
+            <div class="col-md-5">
+            <div class="mb-1">
+                <div class="form-group">
+                <label><small>Tgl Faktur Pajak</small></label>
+                <input type="date" class="form-control form-control" id="txt_tgl_faktur" name="txt_tgl_faktur"
+                        value="{{$kodegr->tgl_faktur}}">
+                </div>
+            </div>
+            </div>
+
+            <div class="col-md-7">
+            <div class="mb-1">
+                <div class="form-group">
                 <label><small>No Daftar</small></label>
-                <input type="text" class="form-control " id="txt_reg_num" name="txt_reg_num" value="{{$kodegr->no_daftar}}" >
+                <input type="text" class="form-control " id="txt_reg" name="txt_reg" value="{{$kodegr->no_daftar}}" >
                 </div>
             </div>
             </div>
@@ -225,7 +197,7 @@
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>Tgl Daftar</small></label>
-                <input type="date" class="form-control form-control" id="txt_reg_aju" name="txt_reg_aju"
+                <input type="date" class="form-control form-control" id="txt_tgl_reg" name="txt_tgl_reg"
                         value="{{$kodegr->tgl_daftar}}">
                 </div>
             </div>
@@ -234,8 +206,8 @@
             <div class="col-md-7">
             <div class="mb-1">
                 <div class="form-group">
-                <label><small>Contract Number</small></label>
-                <input type="text" class="form-control " id="txt_kontrak" name="txt_kontrak" value="{{$kodegr->no_kontrak}}" >
+                <label><small>No Invoice/ No SJ</small></label>
+                <input type="text" class="form-control " id="txt_noinvoice" name="txt_noinvoice" value="{{$kodegr->no_invoice}}" >
                 </div>
             </div>
             </div>
@@ -243,22 +215,12 @@
             <div class="col-md-5">
             <div class="mb-1">
                 <div class="form-group">
-                <label><small>Jenis Bahan Baku</small></label>
-<!--            <select class="form-control select2bs4" id="txt_tom" name="txt_tom" style="width: 100%;"></select> -->                      <input type="text" class="form-control " id="txt_tom" name="txt_tom" value="Fabric" readonly>
+                <label><small>Jenis Material</small></label>
+                    <input type="text" class="form-control " id="txt_tom" name="txt_tom" value="Fabric" readonly>
+                    <input type="hidden" class="form-control" id="jumlah_data" name="jumlah_data" readonly>
                </div>
             </div>
             </div>
-
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Catatan</small></label>
-                <textarea type="text" rows="4" class="form-control " id="txt_notes" name="txt_notes" value="{{$kodegr->deskripsi}}" > </textarea>
-                <input type="hidden" class="form-control" id="jumlah_data" name="jumlah_data" readonly>
-                </div>
-            </div>
-            </div>
-        </div>
     </div>
     </div>
 </div>   
@@ -318,7 +280,8 @@
                         <td>
                             @if($detdata->qty_sisa > 0)
                             <div class='d-flex gap-1 justify-content-center'>
-                                <button type='button' class='btn btn-sm btn-warning' href='javascript:void(0)' onclick='addlocation("{{$detdata->no_ws}}","{{$detdata->id_jo}}","{{$detdata->id_item}}","{{$detdata->kode_item}}","{{$detdata->qty_good}}","{{$detdata->unit}}","{{$detdata->qty_good}}","{{$detdata->desc_item}}","{{$detdata->qty_sisa}}")'><i class="fa-solid fa-circle-plus fa-lg"></i></button> 
+                                <button type='button' class='btn btn-sm btn-warning' href='javascript:void(0)' onclick='addlocation("{{$detdata->no_ws}}","{{$detdata->id_jo}}","{{$detdata->id_item}}","{{$detdata->kode_item}}","{{$detdata->qty_good}}","{{$detdata->unit}}","{{$detdata->qty_good}}","{{$detdata->desc_item}}","{{$detdata->qty_sisa}}")'><i class="fa-solid fa-circle-plus fa-lg"></i></button>
+                                <a href="{{ route('upload-lokasi-retur') }}/{{$detdata->id}}"><button type='button' class='btn btn-sm btn-info'><i class="fa-solid fa-upload"></i></button></a>
                             </div>
                             @endif
                              @if($detdata->qty_sisa <= 0)
@@ -336,7 +299,7 @@
             <div class="mb-1">
                 <div class="form-group">
                     <!-- <button class="btn btn-sb float-end mt-2 ml-2"><i class="fa fa-plus" aria-hidden="true"></i> Save</button> -->
-                    <a href="{{ route('in-material') }}" class="btn btn-danger float-end mt-2">
+                    <a href="{{ route('retur-inmaterial') }}" class="btn btn-danger float-end mt-2">
                     <i class="fas fa-arrow-circle-left"></i> Kembali</a>
                 </div>
             </div>
@@ -345,8 +308,8 @@
     </div>
 </form>
 
-<div class="modal fade" id="modal-add-lokasi">
-    <form action="{{ route('save-lokasi') }}" method="post" onsubmit="submitForm(this, event)">
+<div class="modal fade modal-add-lokasi" id="modal-add-lokasi">
+    <form action="{{ route('save-lokasi-retur') }}" method="post" onsubmit="submitForm(this, event)">
          @method('POST')
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
@@ -445,10 +408,10 @@
                         <div class="mb-1">
                         <div class="form-group">
                             <label><small>Lokasi</small></label>
-                                <select class="form-control select2supp" id="m_location" name="m_location" style="width: 100%;" onchange="getlist_addlokasi()">
+                                <select class="form-control select2lok" id="m_location" name="m_location" style="width: 100%;" onchange="getlist_addlokasi()">
                                     <option selected="selected" value="">Pilih Lokasi</option>
                                         @foreach ($lokasi as $lok)
-                                    <option value="{{ $lok->kode_lok }}">{{ $lok->kode_lok }}</option>
+                                    <option value="{{ $lok->kode_lok }}">{{ $lok->lokasi }}</option>
                                         @endforeach
                                 </select>
                         </div>
@@ -606,6 +569,11 @@
             theme: 'bootstrap4'
         });
 
+        $('.select2lok').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $('.modal-add-lokasi')
+        });
+
         $("#color").prop("disabled", true);
         $("#panel").prop("disabled", true);
         $('#p_unit').val("yard").trigger('change');
@@ -615,33 +583,7 @@
             document.getElementById('store-inmaterial').reset();
         }
 
-        $('#ws_id').on('change', async function(e) {
-            await updateColorList();
-            await updateOrderInfo();
-        });
-
-        $('#color').on('change', async function(e) {
-            await updatePanelList();
-            await updateSizeList();
-        });
-
-        $('#panel').on('change', async function(e) {
-            await getMarkerCount();
-            await getNumber();
-            await updateSizeList();
-        });
-
-        $('#p_unit').on('change', async function(e) {
-            let unit = $('#p_unit').val();
-            if (unit == 'yard') {
-                $('#comma_unit').val('INCH');
-                $('#l_unit').val('inch').trigger("change");
-            } else if (unit == 'meter') {
-                $('#comma_unit').val('CM');
-                $('#l_unit').val('cm').trigger("change");
-            }
-        });
-
+    
         function sum_qty_aktual(){
             var table2 = document.getElementById("datatable_list");
             var qty2 = 0;
@@ -670,82 +612,6 @@
 
         }
 
-        function updateOrderInfo() {
-            return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: '{{ route("get-marker-order") }}',
-                type: 'get',
-                data: {
-                    act_costing_id: $('#ws_id').val(),
-                    color: $('#color').val(),
-                },
-                dataType: 'json',
-                success: function (res) {
-                    if (res) {
-                        document.getElementById('ws').value = res.kpno;
-                        document.getElementById('buyer').value = res.buyer;
-                        document.getElementById('style').value = res.styleno;
-                    }
-                },
-            });
-        }
-
-        function updateColorList() {
-            document.getElementById('color').value = null;
-            return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: '{{ route("get-marker-colors") }}',
-                type: 'get',
-                data: {
-                    act_costing_id: $('#ws_id').val(),
-                },
-                success: function (res) {
-                    if (res) {
-                        document.getElementById('color').innerHTML = res;
-                        document.getElementById('panel').innerHTML = null;
-                        document.getElementById('panel').value = null;
-
-                        $("#color").prop("disabled", false);
-                        $("#panel").prop("disabled", true);
-
-                        // input text
-                        document.getElementById('no_urut_marker').value = null;
-                        document.getElementById('cons_ws').value = null;
-                        document.getElementById('order_qty').value = null;
-                    }
-                },
-            });
-        }
-
-        function updatePanelList() {
-            document.getElementById('panel').value = null;
-            return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: '{{ route("get-marker-panels") }}',
-                type: 'get',
-                data: {
-                    act_costing_id: $('#ws_id').val(),
-                    color: $('#color').val(),
-                },
-                success: function (res) {
-                    if (res) {
-                        document.getElementById('panel').innerHTML = res;
-                        $("#panel").prop("disabled", false);
-
-                        // input text
-                        document.getElementById('no_urut_marker').value = null;
-                        document.getElementById('cons_ws').value = null;
-                        document.getElementById('order_qty').value = null;
-                    }
-                },
-            });
-        }
 
 
         function settype(){
@@ -808,73 +674,7 @@
             });
         }
 
-        function getMarkerCount() {
-            document.getElementById('no_urut_marker').value = "";
-            return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: '{{ route("get-marker-count") }}',
-                type: 'get',
-                data: {
-                    act_costing_id: $('#ws_id').val(),
-                    color: $('#color').val(),
-                    panel: $('#panel').val()
-                },
-                success: function (res) {
-                    if (res) {
-                        document.getElementById('no_urut_marker').value = res;
-                    }
-                }
-            });
-        }
 
-        function getNumber() {
-            document.getElementById('cons_ws').value = null;
-            document.getElementById('order_qty').value = null;
-            return $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: ' {{ route("get-marker-number") }}',
-                type: 'get',
-                dataType: 'json',
-                data: {
-                    act_costing_id: $('#ws_id').val(),
-                    color: $('#color').val(),
-                    panel: $('#panel').val()
-                },
-                success: function (res) {
-                    if (res) {
-                        document.getElementById('cons_ws').value = res.cons_ws;
-                        document.getElementById('order_qty').value = res.order_qty;
-                    }
-                }
-            });
-
-        }
-
-        function calculateRatio(id) {
-            let ratio = document.getElementById('ratio-'+id).value;
-            let gelarQty = document.getElementById('gelar_marker_qty').value;
-            document.getElementById('cut-qty-'+id).value = ratio * gelarQty;
-        }
-
-        function calculateAllRatio(element) {
-            let gelarQty = element.value;
-
-            for (let i = 0; i < datatable.data().count(); i++) {
-                let ratio = document.getElementById('ratio-'+i).value;
-                document.getElementById('cut-qty-'+i).value = ratio * gelarQty;
-            }
-        }
-
-        document.getElementById("store-marker").onkeypress = function(e) {
-            var key = e.charCode || e.keyCode || 0;
-            if (key == 13) {
-                e.preventDefault();
-            }
-        }
 
         function submitLokasiForm(e, evt) {
             evt.preventDefault();
@@ -988,7 +788,8 @@
                     if (res) {
                         document.getElementById('detail_addlok').innerHTML = res;
                         $('.select2lok').select2({
-                            theme: 'bootstrap4'
+                            theme: 'bootstrap4',
+                            dropdownParent: $('.modal-add-lokasi')
                         });
                     }
                 }

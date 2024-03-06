@@ -826,7 +826,8 @@
                     if (res) {
                         document.getElementById('detail_addlok').innerHTML = res;
                         $('.select2lok').select2({
-                            theme: 'bootstrap4'
+                            theme: 'bootstrap4',
+                            dropdownParent: $('.modal-add-lokasi')
                         });
                     }
                 }
