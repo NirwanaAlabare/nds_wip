@@ -596,12 +596,12 @@
                                                 onkeyup="
                                                     calculateTotalPemakaian();
                                                     calculateShortRoll();
-                                                    // calculateSisaKain();
+                                                    calculateSisaKain();
                                                 "
                                                 onchange="
                                                     calculateTotalPemakaian();
                                                     calculateShortRoll();
-                                                    // calculateSisaKain();
+                                                    calculateSisaKain();
                                                 ">
                                         </div>
                                         <div style="width: 40%">
@@ -639,14 +639,14 @@
                                             calculateShortRoll();
                                             calculateRemark();
                                             updatePlyProgress();
-                                            // calculateSisaKain();
+                                            calculateSisaKain();
                                         "
                                         onchange="
                                             calculateTotalPemakaian();
                                             calculateShortRoll();
                                             calculateRemark();
                                             updatePlyProgress();
-                                            // calculateSisaKain();
+                                            calculateSisaKain();
                                         ">
                                 </div>
                             </div>
@@ -670,12 +670,12 @@
                                             onkeyup="
                                                 calculateTotalPemakaian();
                                                 calculateShortRoll();
-                                                // calculateSisaKain();
+                                                calculateSisaKain();
                                             "
                                             onchange="
                                                 calculateTotalPemakaian();
                                                 calculateShortRoll();
-                                                // calculateSisaKain();
+                                                calculateSisaKain();
                                             ">
                                         <span class="input-group-text input-group-unit"></span>
                                     </div>
@@ -690,13 +690,13 @@
                                                 calculateTotalPemakaian();
                                                 calculateShortRoll();
                                                 calculateRemark();
-                                                // calculateSisaKain();
+                                                calculateSisaKain();
                                             "
                                             onchange="
                                                 calculateTotalPemakaian();
                                                 calculateShortRoll();
                                                 calculateRemark();
-                                                // calculateSisaKain();
+                                                calculateSisaKain();
                                             ">
                                         <span class="input-group-text input-group-unit"></span>
                                     </div>
@@ -711,13 +711,13 @@
                                                 calculateTotalPemakaian();
                                                 calculateShortRoll();
                                                 calculateRemark();
-                                                // calculateSisaKain();
+                                                calculateSisaKain();
                                             "
                                             onchange="
                                                 calculateTotalPemakaian();
                                                 calculateShortRoll();
                                                 calculateRemark();
-                                                // calculateSisaKain();
+                                                calculateSisaKain();
                                             ">
                                         <span class="input-group-text input-group-unit"></span>
                                     </div>
@@ -731,12 +731,12 @@
                                             onkeyup="
                                                 calculateShortRoll();
                                                 calculateRemark();
-                                                // calculateSisaKain();
+                                                calculateSisaKain();
                                             "
                                             onchange="
                                                 calculateShortRoll();
                                                 calculateRemark();
-                                                // calculateSisaKain();
+                                                calculateSisaKain();
                                             ">
                                         <span class="input-group-text input-group-unit"></span>
                                     </div>

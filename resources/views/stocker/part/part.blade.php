@@ -89,8 +89,17 @@
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="mb-3">
-                                <button class="btn btn-sb-secondary btn-block" onclick="reorderStockerNumbering()"><i class="fa-solid fa-arrow-up-wide-short"></i> Reorder Stocker Numbering</button>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <button class="btn btn-sb-secondary btn-block" onclick="reorderStockerNumbering()"><i class="fa-solid fa-arrow-up-wide-short"></i> Reorder Stocker Numberings</button>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <button class="btn btn-sb-secondary btn-block" onclick="generateFullStockerNumbering()"><i class="fa-solid fa-list-check"></i> Generate Full Stocker Numbering</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-12">
@@ -414,6 +423,34 @@
 
             $.ajax({
                 url: '{{ route('reorder-stocker-numbering') }}',
+                type: 'post',
+                data: {
+                    id : $("#detail_id").val()
+                },
+                success: function (res) {
+                    console.log(res);
+
+                    swal.close();
+                },
+                error: function (jqXHR) {
+                    console.log(jqXHR);
+                }
+            });
+        }
+
+        // Generate Full Stocker & Numbering
+        function generateFullStockerNumbering() {
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Generating Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                url: '{{ route('full-generate-numbering') }}',
                 type: 'post',
                 data: {
                     id : $("#detail_id").val()

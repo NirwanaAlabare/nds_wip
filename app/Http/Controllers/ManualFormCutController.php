@@ -12,6 +12,7 @@ use App\Models\ScannedItem;
 use App\Models\CutPlan;
 use App\Models\Part;
 use App\Models\PartForm;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
@@ -136,8 +137,11 @@ class ManualFormCutController extends Controller
 
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
+        $meja = User::select("id", "name", "username")->where('type', 'meja')->get();
+
         return view("manual-form-cut.manual-create-form-cut", [
             "orders" => $orders,
+            "meja" => $meja,
             'page' => 'dashboard-cutting',
             "subPageGroup" => "proses-cutting",
             "subPage" => "form-cut-input"
@@ -354,6 +358,8 @@ class ManualFormCutController extends Controller
             return Redirect::to('/home');
         }
 
+        $meja = User::select("id", "name", "username")->where('type', 'meja')->get();
+
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
         return view("manual-form-cut.manual-process-form-cut", [
@@ -362,6 +368,7 @@ class ManualFormCutController extends Controller
             'actCostingData' => $actCostingData,
             'markerDetailData' => $markerDetailData,
             'orders' => $orders,
+            'meja' => $meja,
             'page' => 'dashboard-cutting',
             "subPageGroup" => "proses-cutting",
             "subPage" => "form-cut-input"
@@ -395,6 +402,7 @@ class ManualFormCutController extends Controller
     public function getScannedItem($id = 0)
     {
         $scannedItem = ScannedItem::where('id_roll', $id)->first();
+
         if ($scannedItem) {
             if (floatval($scannedItem->qty) > 0) {
                 return json_encode($scannedItem);
@@ -405,7 +413,7 @@ class ManualFormCutController extends Controller
 
         $newItem = DB::connection("mysql_sb")->select("
             SELECT
-                br.id id_roll,
+                br.id_roll id_roll,
                 mi.itemdesc detail_item,
                 mi.id_item,
                 goods_code,
@@ -415,24 +423,23 @@ class ManualFormCutController extends Controller
                 invno,
                 ac.kpno,
                 no_roll roll,
-                qty_aktual qty,
+                qty_out qty,
                 no_lot lot,
                 bpb.unit,
                 kode_rak
             FROM
-                whs_lokasi_inmaterial br
+                whs_bppb_det br
                 INNER JOIN masteritem mi ON br.id_item = mi.id_item
-                INNER JOIN bpb ON br.id_jo = bpb.id_jo
-                AND br.id_item = bpb.id_item
+                INNER JOIN bpb ON br.id_jo = bpb.id_jo AND br.id_item = bpb.id_item
                 INNER JOIN mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
                 INNER JOIN jo_det jd ON br.id_jo = jd.id_jo
                 INNER JOIN so ON jd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
-                INNER JOIN master_rak mr ON br.kode_lok = mr.kode_rak
+                INNER JOIN master_rak mr ON br.no_rak = mr.kode_rak
             WHERE
-                br.no_barcode = '".$id."'
+                br.id_roll = '".$id."'
                 AND cast(
-                qty_aktual AS DECIMAL ( 11, 3 )) > 0.000
+                qty_out AS DECIMAL ( 11, 3 )) > 0.000
                 LIMIT 1
         ");
         if ($newItem) {
@@ -506,7 +513,6 @@ class ManualFormCutController extends Controller
         $storeFormCutInput = FormCutInput::create([
             "tgl_form_cut" => $date,
             "no_form" => $noForm,
-            "no_meja" => Auth::user()->id,
             "status" => "PENGERJAAN MARKER",
             "tipe_form_cut" => "MANUAL",
             "waktu_mulai" => $request->startTime,

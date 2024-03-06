@@ -354,13 +354,24 @@ class ManagerController extends Controller
     }
 
     public function destroySpreadingRoll($id) {
-        $deleteRoll = FormCutInputDetail::where("id", $id)->delete();
+        $formCutDetail = FormCutInputDetail::find($id);
 
-        if ($deleteRoll) {
-            return array(
-                "status" => 200,
-                "message" => "alright"
-            );
+        if ($formCutDetail) {
+            if ($formCutDetail->id_roll) {
+                $formCutDetailRoll = ScannedItem::where("id_roll", $formCutDetail->id_roll)->first();
+
+                if ($formCutDetailRoll) {
+                    $formCutDetailRoll->qty += ($formCutDetail->qty - $formCutDetail->sisa_kain);
+                    $formCutDetailRoll->save();
+                }
+            }
+
+            if ($formCutDetail->delete()) {
+                return array(
+                    "status" => 200,
+                    "message" => "alright"
+                );
+            }
         }
 
         return array(

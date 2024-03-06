@@ -14,7 +14,7 @@
 @section('content')
     <div class="row g-3">
         <div class="d-flex gap-3 align-items-center">
-            <h5 class="mb-1">Form Cut Manual - {{ strtoupper(Auth::user()->name) }}</h5>
+            <h5 class="mb-1">Form Cut Manual {{ Auth::user()->type != "admin" ? "- ".strtoupper(Auth::user()->name) : "" }}</h5>
             <button class="btn btn-sm btn-success" id="start-process" onclick="startProcess()">Mulai Pengerjaan</button>
             <button class="btn btn-sm btn-sb d-none" id="create-new-form" onclick="createNewForm()">Buat Form Manual Baru</button>
         </div>
@@ -33,7 +33,20 @@
                             {{-- Form Information --}}
                             <input type="hidden" name="id" id="id" value="" readonly>
                             <input type="hidden" name="status" id="status" value="" readonly>
-                            <input type="hidden" name="no_meja" id="no_meja" value="{{ isset($formCutInputData) ? ($formCutInputData->no_meja ? $formCutInputData->no_meja : Auth::user()->id) : Auth::user()->id }}" readonly>
+                            @if (Auth::user()->type != 'admin')
+                                <input type="hidden" name="no_meja" id="no_meja" value="{{ isset($formCutInputData) ? ($formCutInputData->no_meja ? $formCutInputData->no_meja : Auth::user()->id) : Auth::user()->id }}" readonly>
+                            @else
+                                <div class="col-12 col-md-12">
+                                    <label class="form-label"><small><b>Meja</b></small></label>
+                                    <select class="form-control select2bs4" id="no_meja" name="no_meja" style="width: 100%;">
+                                        <option selected="selected" value="">Pilih Meja</option>
+                                            @foreach ($meja as $m)
+                                                <option value="{{ $m->id }}">{{ strtoupper($m->name) }}</option>
+                                            @endforeach
+                                        </option>
+                                    </select>
+                                </div>
+                            @endif
                             <div class="col-6 col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Start</b></small></label>
