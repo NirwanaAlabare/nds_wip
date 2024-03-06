@@ -997,27 +997,27 @@ class StockerController extends Controller
             $dataPartDetail = PartDetail::selectRaw("part_detail.id, master_part.nama_part, master_part.bag, COALESCE(master_secondary.tujuan, '-') tujuan, COALESCE(master_secondary.proses, '-') proses")->leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->leftJoin("part", "part.id", "part_detail.part_id")->leftJoin("part_form", "part_form.part_id", "part.id")->leftJoin("form_cut_input", "form_cut_input.id", "part_form.form_id")->leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->where("form_cut_input.id", $formCut->id_form)->groupBy("master_part.id")->get();
 
             $dataRatio = MarkerDetail::selectRaw("
-                marker_input_detail.id marker_detail_id,
-                marker_input_detail.so_det_id,
-                marker_input_detail.size,
-                marker_input_detail.ratio,
-                stocker_input.id stocker_id
+                    marker_input_detail.id marker_detail_id,
+                    marker_input_detail.so_det_id,
+                    marker_input_detail.size,
+                    marker_input_detail.ratio,
+                    stocker_input.id stocker_id
                 ")->
-            leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->
-            leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
-            leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
-            leftJoin("part", "part.id", "=", "part_form.part_id")->
-            leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
-            leftJoin("stocker_input", function ($join) {
-                $join->on("stocker_input.form_cut_id", "=", "form_cut_input.id");
-                $join->on("stocker_input.part_detail_id", "=", "part_detail.id");
-                $join->on("stocker_input.so_det_id", "=", "marker_input_detail.so_det_id");
-            })->
-            where("marker_input.id", $dataSpreading->marker_id)->
-            where("marker_input_detail.ratio", ">", "0")->
-            orderBy("marker_input_detail.id", "asc")->
-            groupBy("marker_input_detail.id")->
-            get();
+                leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->
+                leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
+                leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
+                leftJoin("part", "part.id", "=", "part_form.part_id")->
+                leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
+                leftJoin("stocker_input", function ($join) {
+                    $join->on("stocker_input.form_cut_id", "=", "form_cut_input.id");
+                    $join->on("stocker_input.part_detail_id", "=", "part_detail.id");
+                    $join->on("stocker_input.so_det_id", "=", "marker_input_detail.so_det_id");
+                })->
+                where("marker_input.id", $dataSpreading->marker_id)->
+                where("marker_input_detail.ratio", ">", "0")->
+                orderBy("marker_input_detail.id", "asc")->
+                groupBy("marker_input_detail.id")->
+                get();
 
             $dataStocker = MarkerDetail::selectRaw("
                     marker_input.color,

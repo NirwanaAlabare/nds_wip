@@ -299,6 +299,8 @@
             let thisSelected = element.options[element.selectedIndex];
             let thisTujuan = document.getElementById('tujuan_'+thisIndex);
 
+            console.log(thisTujuan);
+
             if (thisTujuan.value != thisSelected.getAttribute('data-tujuan')) {
                 $('#tujuan_'+thisIndex).val(thisSelected.getAttribute('data-tujuan')).trigger("change");
             }

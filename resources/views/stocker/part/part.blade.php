@@ -92,7 +92,7 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <button class="btn btn-sb-secondary btn-block" onclick="reorderStockerNumbering()"><i class="fa-solid fa-arrow-up-wide-short"></i> Reorder Stocker Numberings</button>
+                                        <button class="btn btn-sb-secondary btn-block" onclick="reorderStockerNumbering()"><i class="fa-solid fa-arrow-up-wide-short"></i> Reorder Stocker Numbering</button>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
