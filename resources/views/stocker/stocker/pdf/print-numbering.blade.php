@@ -50,7 +50,7 @@
                 </td>
             </tr>
             <tr>
-                <td>{{ $numbering['no_cut_size'] }}</td>
+                <td>{{ strtoupper(substr($numbering['no_cut_size'], 0, 8)).(strlen($numbering['no_cut_size']) > 8 ? '...' : '') }}</td>
             </tr>
             <tr>
                 <td>{{ $ws }}</td>
@@ -59,7 +59,7 @@
                 <td>{{ strtoupper(substr($color, 0, 8)).(strlen($color) > 8 ? '...' : '') }}</td>
             </tr>
             <tr>
-                <td style="font-size: 11px; line-height: 6px; padding-top: 6px;">{{ $numbering['size'] }}</td>
+                <td style="line-height: 6px; padding-top: 6px; {{ (strlen(str_replace(" ", "", $numbering['size'])) > 6 ? 'font-size: 7px;' : 'font-size: 11px;') }}">{{ strtoupper(substr(str_replace(" ", "", $numbering['size']), 0, 6)).(strlen(str_replace(" ", "", $numbering['size'])) > 6 ? '...' : '') }}</td>
             </tr>
         </table>
     @endforeach

@@ -806,7 +806,7 @@ class StockerController extends Controller
         $rangeAkhir = $request['range_akhir'][$index] + 1;
 
         $now = Carbon::now();
-        $noCutSize = $request["size"][$index] . "" . sprintf('%02s', $request['no_cut']);
+        $noCutSize = str_replace(" ", "", $request["size"][$index]) . "" . sprintf('%02s', $request['no_cut']);
         $detailItemArr = [];
         $storeDetailItemArr = [];
 
@@ -879,7 +879,7 @@ class StockerController extends Controller
             $rangeAkhir = $request['range_akhir'][$index] + 1;
 
             $now = Carbon::now();
-            $noCutSize = $request["size"][$index] . "" . sprintf('%02s', $request['no_cut']);
+            $noCutSize = str_replace(" ", "", $request["size"][$index]) . "" . sprintf('%02s', $request['no_cut']);
 
             for ($i = $rangeAwal; $i < $rangeAkhir; $i++) {
                 $checkStockerDetailData = StockerDetail::where('form_cut_id', $request['form_cut_id'])->where('act_costing_ws', $request["no_ws"])->where('color', $request['color'])->where('panel', $request['panel'])->where('so_det_id', $request['so_det_id'])->where('no_cut_size', $i)->first();
