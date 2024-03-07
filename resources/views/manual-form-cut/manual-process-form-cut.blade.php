@@ -31,7 +31,7 @@
                         $thisActCosting = $actCostingData->where('id', $formCutInputData->act_costing_id)->first();
                         $thisMarkerDetails = $markerDetailData->where('kode_marker', $formCutInputData->id_marker);
                     @endphp
-                    <form action="{{ route('store-marker-manual-form-cut') }}" method="post" onsubmit="submitMarkerForm(this, event)" id="store-marker">
+                    <form action="{{ route('jump-to-detail-manual-form-cut') }}" method="post" onsubmit="submitMarkerForm(this, event)" id="store-marker">
                         <div class="row align-items-end">
                             {{-- Form Information --}}
                             <input type="hidden" name="id" id="id" value="{{ $id }}" readonly>
@@ -116,6 +116,7 @@
                             <div class="col-6 col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label "><small><b>Color</b></small></label>
+                                    <input type="hidden" class="form-control form-control-sm" name="color" id="color" value="{{ $formCutInputData->color }}" readonly>
                                     @if ($formCutInputData->color)
                                         <input type="text" class="form-control form-control-sm" name="color" id="color" value="{{ $formCutInputData->color }}" readonly>
                                     @else
@@ -129,6 +130,7 @@
                             <div class="col-6 col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label "><small><b>Panel</b></small></label>
+                                    <input type="hidden" class="form-control form-control-sm" name="panel" id="panel" value="{{ $formCutInputData->panel }}" readonly>
                                     @if ($formCutInputData->panel)
                                         <input type="text" class="form-control form-control-sm" name="panel" id="panel" value="{{ $formCutInputData->panel }}" readonly>
                                     @else

@@ -498,7 +498,7 @@ class ManualFormCutController extends Controller
         return json_encode($items ? $items : null);
     }
 
-    public function startProcess(Request $request)
+    public function startProcess(Request $request, $id = 0)
     {
         $date = date('Y-m-d');
         $hari = substr($date, 8, 2);
@@ -510,40 +510,64 @@ class ManualFormCutController extends Controller
 
         $noForm = "$hari-$bulan-$urutan";
 
-        $storeFormCutInput = FormCutInput::create([
-            "tgl_form_cut" => $date,
-            "no_form" => $noForm,
-            "status" => "PENGERJAAN MARKER",
-            "tipe_form_cut" => "MANUAL",
-            "waktu_mulai" => $request->startTime,
-            "app" => "Y",
-            "app_by" => Auth::user()->id,
-            "app_notes" => "MANUAL FORM CUT",
-            "app_at" => $now,
-        ]);
+        if ($id) {
+            $updateFormCutInput = FormCutInput::where("id", $id)->
+                update([
+                    "status" => "PENGERJAAN FORM CUTTING DETAIL",
+                    "waktu_mulai" => $request->startTime,
+                    "app" => "Y",
+                    "app_by" => Auth::user()->id,
+                    "app_notes" => "MANUAL FORM CUT",
+                    "app_at" => $now,
+                ]);
 
-        if ($storeFormCutInput) {
-            $dateFormat = date("dmY", strtotime($date));
-            $noCutPlan = "CP-" . $dateFormat;
-
-            $addToCutPlan = CutPlan::create([
-                "no_cut_plan" => $noCutPlan,
-                "tgl_plan" => $date,
-                "no_form_cut_input" => $noForm,
-                "app" => "Y",
-                "app_by" => Auth::user()->id,
-                "app_at" => $now,
-            ]);
-
-            if ($addToCutPlan) {
-                session(['currentManualForm' => $storeFormCutInput->id]);
+            if ($updateFormCutInput) {
+                session(['currentManualForm' => $id]);
 
                 return array(
                     "status" => 200,
                     "message" => "alright",
-                    "data" => $storeFormCutInput,
-                    "additional" => ['id' => $storeFormCutInput->id, 'no_form' => $noForm],
+                    "data" => $updateFormCutInput,
+                    "additional" => ['id' => $id, 'no_form' => $noForm],
                 );
+            }
+        } else {
+            $storeFormCutInput = FormCutInput::create([
+                "tgl_form_cut" => $date,
+                "no_form" => $noForm,
+                "no_meja" => Auth::user()->type != "admin" ? Auth::user()->id : null,
+                "status" => "PENGERJAAN MARKER",
+                "tipe_form_cut" => "MANUAL",
+                "waktu_mulai" => $request->startTime,
+                "app" => "Y",
+                "app_by" => Auth::user()->id,
+                "app_notes" => "MANUAL FORM CUT",
+                "app_at" => $now,
+            ]);
+
+            if ($storeFormCutInput) {
+                $dateFormat = date("dmY", strtotime($date));
+                $noCutPlan = "CP-" . $dateFormat;
+    
+                $addToCutPlan = CutPlan::create([
+                    "no_cut_plan" => $noCutPlan,
+                    "tgl_plan" => $date,
+                    "no_form_cut_input" => $noForm,
+                    "app" => "Y",
+                    "app_by" => Auth::user()->id,
+                    "app_at" => $now,
+                ]);
+    
+                if ($addToCutPlan) {
+                    session(['currentManualForm' => $storeFormCutInput->id]);
+    
+                    return array(
+                        "status" => 200,
+                        "message" => "alright",
+                        "data" => $storeFormCutInput,
+                        "additional" => ['id' => $storeFormCutInput->id, 'no_form' => $noForm],
+                    );
+                }
             }
         }
 
@@ -552,6 +576,25 @@ class ManualFormCutController extends Controller
             "message" => "nothing really matter anymore",
             "data" => null,
             "additional" => [],
+        );
+    }
+
+    public function jumpToDetail(Request $request, $id = 0) {
+        $updateFormCutInput = FormCutInput::where("id", $request->id)->update([
+            "status" => "PENGERJAAN FORM CUTTING DETAIL",
+            "shell" => $request->shell,
+        ]);
+
+        if ($updateFormCutInput) {
+            return array(
+                "status" => 200,
+                "message" => "alright",
+            );
+        } 
+
+        return array(
+            "status" => 400,
+            "message" => "fkin hell",
         );
     }
 

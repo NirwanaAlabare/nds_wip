@@ -185,7 +185,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-number-data', 'getNumberData')->name('get-number-manual-form-cut');
         Route::get('/get-scanned-item/{id?}', 'getScannedItem')->name('get-scanned-manual-form-cut');
         Route::get('/get-item', 'getItem')->name('get-item-manual-form-cut');
-        Route::put('/start-process', 'startProcess')->name('start-process-manual-form-cut');
+        Route::put('/start-process/{id?}', 'startProcess')->name('start-process-manual-form-cut');
+        Route::post('/jump-to-detail/{id?}', 'jumpToDetail')->name('jump-to-detail-manual-form-cut');
         Route::post('/store-marker/{id?}', 'storeMarker')->name('store-marker-manual-form-cut');
         Route::put('/next-process-one/{id?}', 'nextProcessOne')->name('next-process-one-manual-form-cut');
         Route::put('/next-process-two/{id?}', 'nextProcessTwo')->name('next-process-two-manual-form-cut');

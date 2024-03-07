@@ -1573,7 +1573,7 @@
             // -Start Process Transaction-
             function updateToStartProcess() {
                 return $.ajax({
-                    url: '{{ route('start-process-manual-form-cut') }}/' + id,
+                    url: '{{ route('start-process-manual-form-cut') }}',
                     type: 'put',
                     dataType: 'json',
                     data: {
