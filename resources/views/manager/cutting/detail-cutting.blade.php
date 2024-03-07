@@ -632,8 +632,8 @@
                             <div class="col-4">
                                 <div class="mb-3">
                                     <label class="form-label label-sb"><small><b>Lembar Gelaran</b></small></label>
-                                    <input type="number" class="form-control form-control-sm border-sb"
-                                        id="current_lembar_gelaran" name="current_lembar_gelaran"
+                                    <input type="hidden" id="lembar_gelaran" name="lembar_gelaran">
+                                    <input type="number" class="form-control form-control-sm border-sb" id="current_lembar_gelaran" name="current_lembar_gelaran"
                                         onkeyup="
                                             calculateTotalPemakaian();
                                             calculateShortRoll();
@@ -1149,6 +1149,7 @@
             data.sisa_gelaran ? document.getElementById("current_sisa_gelaran").value = data.sisa_gelaran : '';
             data.sambungan ? document.getElementById("current_sambungan").value = data.sambungan : '';
             data.est_amparan ? document.getElementById("current_est_amparan").value = data.est_amparan : '';
+            data.lembar_gelaran ? document.getElementById("lembar_gelaran").value = data.lembar_gelaran : '';
             data.lembar_gelaran ? document.getElementById("current_lembar_gelaran").value = data.lembar_gelaran : '';
             data.kepala_kain ? document.getElementById("current_kepala_kain").value = data.kepala_kain : '';
             data.sisa_tidak_bisa ? document.getElementById("current_sisa_tidak_bisa").value = data.sisa_tidak_bisa : '';
@@ -1619,11 +1620,12 @@
 
         // -Update Ply Progress-
         function updatePlyProgress() {
+            let originalLembar = Number($("#lembar_gelaran").val());
             let currentLembar = Number($("#current_lembar_gelaran").val());
             let qtyPly = Number($("#qty_ply").val());
 
-            document.getElementById("current_ply_progress_txt").innerText = (totalLembar - currentLembar) + "/" + qtyPly;
-            document.getElementById("current_ply_progress").style.width = Number(qtyPly) > 0 ? (Number( totalLembar - currentLembar) / Number(qtyPly) * 100) + "%" : "0%";
+            document.getElementById("current_ply_progress_txt").innerText = ((totalLembar - originalLembar) + currentLembar) + "/" + qtyPly;
+            document.getElementById("current_ply_progress").style.width = Number(qtyPly) > 0 ? ((Number( totalLembar - originalLembar) + currentLembar) / Number(qtyPly) * 100) + "%" : "0%";
         }
 
         // -Store Time Record Transaction-
