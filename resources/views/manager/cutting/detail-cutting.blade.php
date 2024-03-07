@@ -1,5 +1,11 @@
 @extends('layouts.index')
 
+@section('custom-link')
+    <!-- Select2 -->
+    <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+@endsection
+
 @section('content')
     <div class="row g-3">
         <div class="d-flex gap-3 justify-content-between align-items-center">
@@ -23,7 +29,19 @@
                         <input type="hidden" name="id" id="id" value="{{ $id }}" readonly>
                         <input type="hidden" name="act_costing_id" id="act_costing_id" value="{{ $formCutInputData->act_costing_id }}" readonly>
                         <input type="hidden" name="status" id="status" value="{{ $formCutInputData->status }}" readonly>
-                        <input type="hidden" name="no_meja" id="no_meja" value="{{ $formCutInputData->no_meja }}" readonly>
+                        <!-- <input type="hidden" name="no_meja" id="no_meja" value="{{ $formCutInputData->no_meja }}" readonly> -->
+                        <div class="col-12 col-md-12">
+                            <div class="mb-3">
+                            <label class="form-label"><small><b>Meja</b></small></label>
+                                <select class="form-control select2bs4" id="no_meja" name="no_meja" style="width: 100%;">
+                                    <option value="">Pilih Meja</option>
+                                        @foreach ($meja as $m)
+                                            <option value="{{ $m->id }}" {{ isset($formCutInputData) ? ($formCutInputData->no_meja ? ($formCutInputData->no_meja == $m->id ? "selected" : "") : "") : "" }}>{{ strtoupper($m->name) }}</option>
+                                        @endforeach
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
                         <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Start</b></small></label>
@@ -799,6 +817,8 @@
 @endsection
 
 @section('custom-script')
+    <!-- Select2 -->
+    <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
         var id = document.getElementById("id").value;
 
@@ -821,6 +841,20 @@
             await getSummary();
 
             document.getElementById("loading").classList.add("d-none");
+
+            // Select2 Autofocus
+            $(document).on('select2:open', () => {
+                document.querySelector('.select2-search__field').focus();
+            });
+
+            // Initialize Select2 Elements
+            $('.select2').select2()
+
+            // Initialize Select2BS4 Elements
+            $('.select2bs4').select2({
+                theme: 'bootstrap4',
+                containerCssClass: 'form-control-sm'
+            })
         });
 
         function fetchScan() {
