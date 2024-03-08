@@ -33,20 +33,19 @@
                             {{-- Form Information --}}
                             <input type="hidden" name="id" id="id" value="" readonly>
                             <input type="hidden" name="status" id="status" value="" readonly>
-                            @if (Auth::user()->type != 'admin')
-                                <input type="hidden" name="no_meja" id="no_meja" value="{{ isset($formCutInputData) ? ($formCutInputData->no_meja ? $formCutInputData->no_meja : Auth::user()->id) : Auth::user()->id }}" readonly>
-                            @else
-                                <div class="col-12 col-md-12">
+                            <input type="hidden" name="no_meja" id="no_meja" value="{{ isset($formCutInputData) ? ($formCutInputData->no_meja ? $formCutInputData->no_meja : Auth::user()->id) : Auth::user()->id }}" {{ Auth::user()->type != 'admin' ? '' : 'disabled' }}>
+                            <div class="col-12 col-md-12">
+                                <div class="mb-3">
                                     <label class="form-label"><small><b>Meja</b></small></label>
-                                    <select class="form-control select2bs4" id="no_meja" name="no_meja" style="width: 100%;">
-                                        <option selected="selected" value="">Pilih Meja</option>
+                                    <select class="form-control select2bs4" id="no_meja" name="no_meja" style="width: 100%;" {{ Auth::user()->type != 'admin' ? 'disabled' : '' }}>
+                                        <option value="">Pilih Meja</option>
                                             @foreach ($meja as $m)
-                                                <option value="{{ $m->id }}">{{ strtoupper($m->name) }}</option>
+                                                <option value="{{ $m->id }}" {{ isset($formCutInputData) ? ($formCutInputData->no_meja ? ($formCutInputData->no_meja == $m->id ? "selected" : "") : "") : "" }}>{{ strtoupper($m->name) }}</option>
                                             @endforeach
                                         </option>
                                     </select>
                                 </div>
-                            @endif
+                            </div>
                             <div class="col-6 col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Start</b></small></label>
@@ -1076,6 +1075,8 @@
         // Update Color Select Option Based on Order WS
         function updateColorList() {
             document.getElementById('color').value = null;
+
+            console.log($('#act_costing_id').val());
 
             return $.ajax({
                 url: '{{ route("manual-form-cut-get-colors") }}',
