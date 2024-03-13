@@ -432,7 +432,8 @@ select 'OUT' id,b.id_item,b.goods_code,a.id_jo,b.mattype, b.matclass, b.itemdesc
     public function store(Request $request)
     {
 
-    if (intval($request['jumlah_qty']) > 0) {
+    // if () {
+        // if (intval($request['jumlah_qty']) > 0) {
 
         $tglbpb = $request['txt_tgl_gr'];
         $Mattype1 = DB::connection('mysql_sb')->select("select CONCAT('RQ-F', IF(MAX(bppbno) IS NULL,'00001',LPAD(MAX(SUBSTR(bppbno,5,5))+1,5,0))) no_dok, IF(MAX(bppbno) IS NULL,'00001',LPAD(MAX(SUBSTR(bppbno,5,5))+1,5,0)) nomor FROM bppb_req WHERE LEFT(bppbno,4) = 'RQ-F'");
@@ -500,10 +501,10 @@ select 'OUT' id,b.id_item,b.goods_code,a.id_jo,b.mattype, b.matclass, b.itemdesc
 
             $massage = $no_dok . ' Saved Succesfully';
             $stat = 200;
-    }else{
-        $massage = ' Please Input Data';
-        $stat = 400;
-    }
+    // }else{
+    //     $massage = ' Please Input Data';
+    //     $stat = 400;
+    // }
 
 
             return array(
