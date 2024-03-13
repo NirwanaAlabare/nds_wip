@@ -70,7 +70,7 @@ class FGStokMutasiController extends Controller
         $tgl_pengeluaran = Carbon::now()->isoFormat('YYYY-MM-DD');
 
         $tahun = date('Y', strtotime($tgl_pengeluaran));
-        $no = date('ym', strtotime($tgl_pengeluaran));
+        $no = date('my', strtotime($tgl_pengeluaran));
         $kode = 'FGS/MUT/';
         $cek_nomor = DB::select("
         select max(right(no_mut,5))nomor from fg_stok_mutasi_log where year(tgl_mut) = '" . $tahun . "'

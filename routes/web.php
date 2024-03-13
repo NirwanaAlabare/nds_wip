@@ -750,6 +750,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/getdet_carton', 'getdet_carton')->name('getdet_carton');
         Route::get('/export_excel_bpb_fg_stok', 'export_excel_bpb_fg_stok')->name('export_excel_bpb_fg_stok');
     });
+
     Route::controller(FGStokBPPBController::class)->prefix("bppb-fg-stock")->middleware('fg-stock')->group(function () {
         Route::get('/', 'index')->name('bppb-fg-stock');
         Route::post('/store', 'store')->name('store-bppb-fg-stock');
