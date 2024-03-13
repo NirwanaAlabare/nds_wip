@@ -187,6 +187,48 @@ class FGStokMutasiController extends Controller
         return $html;
     }
 
+
+    public function show_det_mutasi(Request $request)
+    {
+        $user = Auth::user()->name;
+        if ($request->ajax()) {
+
+            $data_det = DB::select("
+            select lokasi,
+            no_carton,
+            s.id_so_det,
+            ws,
+            sum(s.qty_in) - sum(s.qty_out) saldo,
+            m.buyer,
+            m.color,
+            m.size,
+            m.styleno,
+            m.brand,
+            s.grade,
+            concat(s.id_so_det,'_',no_carton,'_',grade) kode
+            from
+            (
+            select lokasi,no_carton,a.id_so_det,sum(a.qty) qty_in, '0' qty_out,grade  from fg_stok_bpb a
+            inner join master_sb_ws m on a.id_so_det = m.id_so_det
+            where lokasi = '" . $request->cbolok_asal . "' and no_carton = '" . $request->cbono_carton_asal . "'
+            group by no_carton, a.id_so_det, a.grade
+            union
+            select lokasi,no_carton,a.id_so_det,'0' qty_in,sum(a.qty_out) qty_out,grade  from fg_stok_bppb a
+            inner join master_sb_ws m on a.id_so_det = m.id_so_det
+            where lokasi = '" . $request->cbolok_asal . "'  and no_carton = '" . $request->cbono_carton_asal . "'
+            group by no_carton, a.id_so_det, a.grade
+            )
+            s
+            inner join master_sb_ws m on s.id_so_det = m.id_so_det
+            group by no_carton, s.id_so_det, s.grade
+            having sum(s.qty_in) - sum(s.qty_out) != '0'
+            ");
+
+            return DataTables::of($data_det)->toJson();
+        }
+    }
+
+
     public function export_excel_mutasi_int_fg_stok(Request $request)
     {
         return Excel::download(new ExportLaporanFGStokMutasiInternal($request->from, $request->to), 'Laporan_Mutasi_Internal_FG_Stok.xlsx');
