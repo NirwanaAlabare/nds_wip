@@ -158,6 +158,7 @@
                         <table id="datatable_list_part" class="table table-bordered table-sm w-100">
                             <thead>
                                 <tr>
+                                    <th>Delete</th>
                                     <th>Part</th>
                                     <th>Cons</th>
                                     <th>Satuan</th>
@@ -239,7 +240,11 @@
                         d.id = $('#id').val();
                     },
                 },
-                columns: [{
+                columns: [
+                    {
+                        data: 'id',
+                    },
+                    {
                         data: 'nama_part',
                     },
                     {
@@ -256,21 +261,17 @@
                     },
                 ],
                 columnDefs: [
-                    // {
-                    //     targets: [5],
-                    //     render: (data, type, row, meta) => {
-                    //         return `<div class='d-flex gap-1 justify-content-center'> <a class='btn btn-warning btn-sm' href='{{ route('create-dc-in') }}/` +
-                    //             row.no_form +
-                    //             `' data-bs-toggle='tooltip'><i class='fas fa-qrcode'></i></a> </div>`;
-                    //     }
-                    // },
-                    // {
-                    //     targets: [1],
-                    //     render: (data, type, row, meta) => {
-                    //         return `
-                    //         <input type="text" class="form-control" style="width:auto" name="txtcons" id="txtcons">`;
-                    //     }
-                    // },
+                    {
+                        targets: [0],
+                        className: "text-center",
+                        render: (data, type, row, meta) => {
+                            return `
+                                <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['id']+`' onclick='deleteData(this)'>
+                                    <i class='fa fa-trash'></i>
+                                </a>
+                            `;
+                        }
+                    },
                 ]
             });
         }

@@ -502,12 +502,12 @@ select * from (select id_roll,id_item,id_jo,roll_no,lot_no,goods_code,itemdesc,R
         if ( $request["input_qty"][$i] > 0) {
             $detdata = DB::connection('mysql_sb')->select("select * from bpb where id ='" . $request["id_bpb"][$i] . "' ");
              // dd($request["id_bpb"][$i]);       
-            $txtid_item_fg = $detdata[0]->id_item_fg;
-            $txtunit = $detdata[0]->unit;
-            $txtcurr = $detdata[0]->curr;
-            $txtprice = $detdata[0]->price;
-            $txtid_supplier = $detdata[0]->id_supplier;
-            $txtbpbno = $detdata[0]->bpbno;
+            $txtid_item_fg = $detdata ? $detdata[0]->id_item_fg : '';
+            $txtunit = $detdata ? $detdata[0]->unit : '';
+            $txtcurr = $detdata ? $detdata[0]->curr : '';
+            $txtprice = $detdata ? $detdata[0]->price : 0;
+            $txtid_supplier = $detdata ? $detdata[0]->id_supplier : '';
+            $txtbpbno = $detdata ? $detdata[0]->bpbno : '';
 
         $bppb_headerSB = BppbSB::create([
                 'id_item' => $request["id_item"][$i],
@@ -516,10 +516,10 @@ select * from (select id_roll,id_item,id_jo,roll_no,lot_no,goods_code,itemdesc,R
                 'unit' => $txtunit,
                 'curr' => $txtcurr,
                 'price' => $txtprice,
-                'remark' => $request["input_qty"][$i],
-                'berat_bersih' => $request['txt_notes'],
+                'remark' => $request["txt_notes"],
+                'berat_bersih' => '0',
                 'berat_kotor' => '0',
-                'nomor_mobil' => '0',
+                'nomor_mobil' => '',
                 'id_supplier' => $txtid_supplier,
                 'invno' => '',
                 'bcno' => $no_reg,
@@ -538,10 +538,28 @@ select * from (select id_roll,id_item,id_jo,roll_no,lot_no,goods_code,itemdesc,R
                 'bpbno_ro' => $txtbpbno,
                 'id_jo' => $request["id_jo"][$i],
             ]);
+
+        $whsdetdata = DB::connection('mysql_sb')->select("select itemdesc from masteritem where id_item ='" . $request["id_item"][$i] . "' GROUP BY id_item ");
+        $whsdet = $whsdetdata[0]->itemdesc;
+
+
+        $Bppb_Det = BppbDet::create([
+                'no_bppb' => $bppbno_int,
+                'id_jo' => $request["id_jo"][$i],
+                'id_item' => $request["id_item"][$i],
+                'item_desc' => $whsdet,
+                'qty_stok' => $request["input_qty"][$i],
+                'satuan' => $txtunit,
+                'qty_out' => $request["input_qty"][$i],
+                'curr' => $txtcurr,
+                'price' => $txtprice,
+                'status' => 'Y',
+                'created_by' => Auth::user()->name,
+                'deskripsi' => $request["txt_notes"],
+            ]);
         
     }
     }
-
 
         $bppb_header = BppbHeader::create([
                 'no_bppb' => $bppbno_int,
@@ -551,6 +569,7 @@ select * from (select id_roll,id_item,id_jo,roll_no,lot_no,goods_code,itemdesc,R
                 'tujuan' => $nama_supp,
                 'dok_bc' => $tipe_bc,
                 'no_ws' => $txt_nows,
+                'no_ws_aktual' => $txt_nows,
                 'no_aju' => $no_aju,
                 'tgl_aju' => $tgl_aju,
                 'no_daftar' => $no_reg,
@@ -562,7 +581,7 @@ select * from (select id_roll,id_item,id_jo,roll_no,lot_no,goods_code,itemdesc,R
             ]);
 
 
-        $bppb_detail = DB::connection('mysql_sb')->insert("insert into whs_bppb_det select id,'".$bppbno_int."' no_bppb, id_roll,id_jo,id_item, no_rak, no_lot,no_roll,item_desc,qty_stok,satuan,qty_out,'','0',status,created_by,deskripsi,created_at,updated_at from whs_bppb_det_temp where created_by = '".Auth::user()->name."'");
+        // $bppb_detail = DB::connection('mysql_sb')->insert("insert into whs_bppb_det select id,'".$bppbno_int."' no_bppb, id_roll,id_jo,id_item, no_rak, no_lot,no_roll,item_desc,qty_stok,satuan,qty_out,'','0',status,created_by,deskripsi,created_at,updated_at from whs_bppb_det_temp where created_by = '".Auth::user()->name."'");
         $update_roll = DB::connection('mysql_sb')->insert("update whs_lokasi_inmaterial a INNER JOIN whs_bppb_det_temp b ON b.id_roll = a.id SET a.qty_out = b.qty_out where b.created_by = '".Auth::user()->name."'");
         $bppb_temp = BppbDetTemp::where('created_by',Auth::user()->name)->delete();
 

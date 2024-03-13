@@ -13,7 +13,7 @@
 @section('content')
     <div class="row g-3">
         <div class="d-flex gap-3 align-items-center">
-            <h5 class="mb-1">Form Cut Manual - {{ strtoupper($formCutInputData->name) }}</h5>
+            <h5 class="mb-1">Form Cut Manual {{ Auth::user()->type != "admin" ? "- ".strtoupper(Auth::user()->name) : "" }}</h5>
             <button class="btn btn-sm btn-success" id="start-process" onclick="startProcess()">Mulai Pengerjaan</button>
             <button class="btn btn-sm btn-sb" id="create-new-form" onclick="createNewForm()">Buat Form Manual Baru</button>
         </div>
@@ -36,7 +36,19 @@
                             {{-- Form Information --}}
                             <input type="hidden" name="id" id="id" value="{{ $id }}" readonly>
                             <input type="hidden" name="status" id="status" value="{{ $formCutInputData->status }}" readonly>
-                            <input type="hidden" name="no_meja" id="no_meja" value="{{ $formCutInputData ? ($formCutInputData->no_meja ? $formCutInputData->no_meja : Auth::user()->id) : Auth::user()->id }}" readonly>
+                            <input type="hidden" name="no_meja" id="no_meja" value="{{ isset($formCutInputData) ? ($formCutInputData->no_meja ? $formCutInputData->no_meja : Auth::user()->id) : Auth::user()->id }}" {{ Auth::user()->type != 'admin' ? '' : 'disabled' }}>
+                            <div class="col-12 col-md-12">
+                                <div class="mb-3">
+                                    <label class="form-label"><small><b>Meja</b></small></label>
+                                    <select class="form-control select2bs4" id="no_meja" name="no_meja" style="width: 100%;" {{ Auth::user()->type != 'admin' ? 'disabled' : '' }}>
+                                        <option value="">Pilih Meja</option>
+                                            @foreach ($meja as $m)
+                                                <option value="{{ $m->id }}" {{ isset($formCutInputData) ? ($formCutInputData->no_meja ? ($formCutInputData->no_meja == $m->id ? "selected" : "") : "") : "" }}>{{ strtoupper($m->name) }}</option>
+                                            @endforeach
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
                             <div class="col-6 col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Start</b></small></label>
@@ -76,7 +88,7 @@
                             <div class="col-6 col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label "><small><b>Kode Marker</b></small></label>
-                                    <input type="text" class="form-control form-control-sm" id="id_marker" value="{{ $formCutInputData->id_marker }}" readonly>
+                                    <input type="text" class="form-control form-control-sm" id="id_marker" name="id_marker" value="{{ $formCutInputData->id_marker }}" readonly>
                                 </div>
                             </div>
                             <div class="col-6 col-md-6">
@@ -101,10 +113,11 @@
                             <div class="col-6 col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label "><small><b>Color</b></small></label>
+                                    <input type="hidden" class="form-control form-control-sm" name="color" id="color" value="{{ $formCutInputData->color }}">
                                     @if ($formCutInputData->color)
-                                        <input type="text" class="form-control form-control-sm" name="color" id="color" value="{{ $formCutInputData->color }}" readonly>
+                                        <input type="text" class="form-control form-control-sm" name="color-select" id="color-select" value="{{ $formCutInputData->color }}" readonly>
                                     @else
-                                        <select class="form-control select2bs4" id="color" name="color" style="width: 100%;">
+                                        <select class="form-control select2bs4" id="color-select" name="color-select" style="width: 100%;">
                                             <option selected="selected" value="">Pilih Color</option>
                                             {{-- select 2 option --}}
                                         </select>
@@ -114,10 +127,11 @@
                             <div class="col-6 col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label "><small><b>Panel</b></small></label>
+                                    <input type="hidden" class="form-control form-control-sm" name="panel" id="panel" value="{{ $formCutInputData->panel }}" readonly>
                                     @if ($formCutInputData->panel)
-                                        <input type="text" class="form-control form-control-sm" name="panel" id="panel" value="{{ $formCutInputData->panel }}" readonly>
+                                        <input type="text" class="form-control form-control-sm" name="panel-select" id="panel-select" value="{{ $formCutInputData->panel }}" readonly>
                                     @else
-                                        <select class="form-control select2bs4" id="panel" name="panel" style="width: 100%;">
+                                        <select class="form-control select2bs4" id="panel-select" name="panel-select" style="width: 100%;">
                                             <option selected="selected" value="">Pilih Panel</option>
                                             {{-- select 2 option --}}
                                         </select>
@@ -1086,7 +1100,9 @@
         });
 
         // Step Two (Color) on change event
-        $('#color').on('change', function(e) {
+        $('#color-select').on('change', function(e) {
+            $('#color').val(this.value).trigger('change');
+
             if (this.value) {
                 updatePanelList();
                 updateSizeList();
@@ -1094,7 +1110,9 @@
         });
 
         // Step Three (Panel) on change event
-        $('#panel').on('change', function(e) {
+        $('#panel-select').on('change', function(e) {
+            $('#panel').val(this.value).trigger('change');
+
             if (this.value) {
                 getNumber();
                 updateSizeList();
@@ -1135,17 +1153,17 @@
                 success: function (res) {
                     if (res) {
                         // Update this step
-                        document.getElementById('color').innerHTML = res;
+                        document.getElementById('color-select').innerHTML = res;
 
                         // Reset next step
-                        document.getElementById('panel').innerHTML = null;
-                        document.getElementById('panel').value = null;
+                        document.getElementById('panel-select').innerHTML = null;
+                        document.getElementById('panel-select').value = null;
 
                         // Open this step
-                        $("#color").prop("disabled", false);
+                        $("#color-select").prop("disabled", false);
 
                         // Close next step
-                        $("#panel").prop("disabled", true);
+                        $("#panel-select").prop("disabled", true);
 
                         // Reset order information
                         document.getElementById('cons_ws_marker').value = null;
@@ -1167,11 +1185,11 @@
                 success: function (res) {
                     if (res) {
                         // Update this step
-                        document.getElementById('panel').innerHTML = res;
+                        document.getElementById('panel-select').innerHTML = res;
                         document.getElementById('cons_ws').innerHTML = res;
 
                         // Open this step
-                        $("#panel").prop("disabled", false);
+                        $("#panel-select").prop("disabled", false);
 
                         // Reset order information
                         document.getElementById('cons_ws_marker').value = null;
@@ -1454,16 +1472,16 @@
         // Reset Step
         async function resetStep() {
             await $("#act_costing_id").val(null).trigger("change");
-            await $("#color").val(null).trigger("change");
-            await $("#panel").val(null).trigger("change");
-            await $("#color").prop("disabled", true);
-            await $("#panel").prop("disabled", true);
+            await $("#color-select").val(null).trigger("change");
+            await $("#panel-select").val(null).trigger("change");
+            await $("#color-select").prop("disabled", true);
+            await $("#panel-select").prop("disabled", true);
         }
 
         function disableMarkerForm() {
             $("#act_costing_id").prop("disabled", true);
-            $("#color").prop("disabled", true);
-            $("#panel").prop("disabled", true);
+            $("#color-select").prop("disabled", true);
+            $("#panel-select").prop("disabled", true);
             $("#tipe_marker").prop("readonly", true);
             $("#po").prop("readonly", true);
             $("#gelar_qty").prop("readonly", true);
@@ -1562,8 +1580,8 @@
                 });
 
                 // -Select2 Prevent Step-Jump Input ( Step = WS -> Color -> Panel )-
-                $("#color").prop("disabled", true);
-                $("#panel").prop("disabled", true);
+                $("#color-select").prop("disabled", true);
+                $("#panel-select").prop("disabled", true);
 
                 // -Default Method-
                 $('#switch-method').prop('checked', true);
@@ -1689,8 +1707,6 @@
                 var consMarker = document.getElementById('cons_marker').value;
 
                 clearModified();
-
-                console.log(id);
 
                 return $.ajax({
                     url: '{{ route('next-process-two-manual-form-cut') }}/' + id,

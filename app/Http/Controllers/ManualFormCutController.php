@@ -12,6 +12,7 @@ use App\Models\ScannedItem;
 use App\Models\CutPlan;
 use App\Models\Part;
 use App\Models\PartForm;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
@@ -136,8 +137,11 @@ class ManualFormCutController extends Controller
 
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
+        $meja = User::select("id", "name", "username")->where('type', 'meja')->get();
+
         return view("manual-form-cut.manual-create-form-cut", [
             "orders" => $orders,
+            "meja" => $meja,
             'page' => 'dashboard-cutting',
             "subPageGroup" => "proses-cutting",
             "subPage" => "form-cut-input"
@@ -354,6 +358,8 @@ class ManualFormCutController extends Controller
             return Redirect::to('/home');
         }
 
+        $meja = User::select("id", "name", "username")->where('type', 'meja')->get();
+
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
         return view("manual-form-cut.manual-process-form-cut", [
@@ -362,6 +368,7 @@ class ManualFormCutController extends Controller
             'actCostingData' => $actCostingData,
             'markerDetailData' => $markerDetailData,
             'orders' => $orders,
+            'meja' => $meja,
             'page' => 'dashboard-cutting',
             "subPageGroup" => "proses-cutting",
             "subPage" => "form-cut-input"
@@ -395,6 +402,7 @@ class ManualFormCutController extends Controller
     public function getScannedItem($id = 0)
     {
         $scannedItem = ScannedItem::where('id_roll', $id)->first();
+
         if ($scannedItem) {
             if (floatval($scannedItem->qty) > 0) {
                 return json_encode($scannedItem);
@@ -405,7 +413,7 @@ class ManualFormCutController extends Controller
 
         $newItem = DB::connection("mysql_sb")->select("
             SELECT
-                br.id id_roll,
+                br.id_roll id_roll,
                 mi.itemdesc detail_item,
                 mi.id_item,
                 goods_code,
@@ -415,24 +423,23 @@ class ManualFormCutController extends Controller
                 invno,
                 ac.kpno,
                 no_roll roll,
-                qty_aktual qty,
+                qty_out qty,
                 no_lot lot,
                 bpb.unit,
                 kode_rak
             FROM
-                whs_lokasi_inmaterial br
+                whs_bppb_det br
                 INNER JOIN masteritem mi ON br.id_item = mi.id_item
-                INNER JOIN bpb ON br.id_jo = bpb.id_jo
-                AND br.id_item = bpb.id_item
+                INNER JOIN bpb ON br.id_jo = bpb.id_jo AND br.id_item = bpb.id_item
                 INNER JOIN mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
                 INNER JOIN jo_det jd ON br.id_jo = jd.id_jo
                 INNER JOIN so ON jd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
-                INNER JOIN master_rak mr ON br.kode_lok = mr.kode_rak
+                INNER JOIN master_rak mr ON br.no_rak = mr.kode_rak
             WHERE
-                br.no_barcode = '".$id."'
+                br.id_roll = '".$id."'
                 AND cast(
-                qty_aktual AS DECIMAL ( 11, 3 )) > 0.000
+                qty_out AS DECIMAL ( 11, 3 )) > 0.000
                 LIMIT 1
         ");
         if ($newItem) {
@@ -491,7 +498,7 @@ class ManualFormCutController extends Controller
         return json_encode($items ? $items : null);
     }
 
-    public function startProcess(Request $request)
+    public function startProcess(Request $request, $id = 0)
     {
         $date = date('Y-m-d');
         $hari = substr($date, 8, 2);
@@ -503,41 +510,65 @@ class ManualFormCutController extends Controller
 
         $noForm = "$hari-$bulan-$urutan";
 
-        $storeFormCutInput = FormCutInput::create([
-            "tgl_form_cut" => $date,
-            "no_form" => $noForm,
-            "no_meja" => Auth::user()->id,
-            "status" => "PENGERJAAN MARKER",
-            "tipe_form_cut" => "MANUAL",
-            "waktu_mulai" => $request->startTime,
-            "app" => "Y",
-            "app_by" => Auth::user()->id,
-            "app_notes" => "MANUAL FORM CUT",
-            "app_at" => $now,
-        ]);
+        if ($id) {
+            $updateFormCutInput = FormCutInput::where("id", $id)->
+                update([
+                    "no_meja" => $request->no_meja,
+                    "status" => "PENGERJAAN MARKER",
+                    "waktu_mulai" => $request->startTime,
+                    "app" => "Y",
+                    "app_by" => Auth::user()->id,
+                    "app_notes" => "MANUAL FORM CUT",
+                    "app_at" => $now,
+                ]);
 
-        if ($storeFormCutInput) {
-            $dateFormat = date("dmY", strtotime($date));
-            $noCutPlan = "CP-" . $dateFormat;
-
-            $addToCutPlan = CutPlan::create([
-                "no_cut_plan" => $noCutPlan,
-                "tgl_plan" => $date,
-                "no_form_cut_input" => $noForm,
-                "app" => "Y",
-                "app_by" => Auth::user()->id,
-                "app_at" => $now,
-            ]);
-
-            if ($addToCutPlan) {
-                session(['currentManualForm' => $storeFormCutInput->id]);
+            if ($updateFormCutInput) {
+                session(['currentManualForm' => $id]);
 
                 return array(
                     "status" => 200,
                     "message" => "alright",
-                    "data" => $storeFormCutInput,
-                    "additional" => ['id' => $storeFormCutInput->id, 'no_form' => $noForm],
+                    "data" => FormCutInput::where("id", $id)->first(),
+                    "additional" => ['id' => $id, 'no_form' => $noForm],
                 );
+            }
+        } else {
+            $storeFormCutInput = FormCutInput::create([
+                "tgl_form_cut" => $date,
+                "no_form" => $noForm,
+                "no_meja" => Auth::user()->type != "admin" ? Auth::user()->id : $request->no_meja,
+                "status" => "PENGERJAAN MARKER",
+                "tipe_form_cut" => "MANUAL",
+                "waktu_mulai" => $request->startTime,
+                "app" => "Y",
+                "app_by" => Auth::user()->id,
+                "app_notes" => "MANUAL FORM CUT",
+                "app_at" => $now,
+            ]);
+
+            if ($storeFormCutInput) {
+                $dateFormat = date("dmY", strtotime($date));
+                $noCutPlan = "CP-" . $dateFormat;
+
+                $addToCutPlan = CutPlan::create([
+                    "no_cut_plan" => $noCutPlan,
+                    "tgl_plan" => $date,
+                    "no_form_cut_input" => $noForm,
+                    "app" => "Y",
+                    "app_by" => Auth::user()->id,
+                    "app_at" => $now,
+                ]);
+
+                if ($addToCutPlan) {
+                    session(['currentManualForm' => $storeFormCutInput->id]);
+
+                    return array(
+                        "status" => 200,
+                        "message" => "alright",
+                        "data" => $storeFormCutInput,
+                        "additional" => ['id' => $storeFormCutInput->id, 'no_form' => $noForm],
+                    );
+                }
             }
         }
 
@@ -549,12 +580,33 @@ class ManualFormCutController extends Controller
         );
     }
 
+    public function jumpToDetail(Request $request, $id = 0) {
+        $updateFormCutInput = FormCutInput::where("id", $request->id)->update([
+            "no_meja" => Auth::user()->type != "admin" ? Auth::user()->id : $request->no_meja,
+            "status" => "PENGERJAAN FORM CUTTING DETAIL",
+            "shell" => $request->shell,
+        ]);
+
+        if ($updateFormCutInput) {
+            return array(
+                "status" => 200,
+                "message" => "alright",
+            );
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "fkin hell",
+        );
+    }
+
     public function storeMarker(Request $request)
     {
         $markerCount = Marker::selectRaw("MAX(kode) latest_kode")->whereRaw("kode LIKE 'MRK/" . date('ym') . "/%'")->first();
         $markerNumber = intval(substr($markerCount->latest_kode, -5)) + 1;
         $markerCode = 'MRK/' . date('ym') . '/' . sprintf('%05s', $markerNumber);
         $totalQty = 0;
+        $totalQtyEach = 0;
 
         $validatedRequest = $request->validate([
             "id" => "required",
@@ -577,31 +629,61 @@ class ManualFormCutController extends Controller
         $tglForm = $validatedRequest['tgl_form'];
 
         foreach ($request["cut_qty"] as $qty) {
-            $totalQty += $qty;
+            $totalQtyEach += $qty;
+        }
+
+        if ($totalQtyEach == 0) {
+            $totalQty = $request['total_qty_cut_ply'];
+        } else if ($totalQtyEach > 0) {
+            $totalQty = $totalQtyEach;
         }
 
         if ($totalQty > 0) {
-            $markerStore = Marker::create([
-                'tgl_cutting' => $tglForm,
-                'kode' => $markerCode,
-                'act_costing_id' => $validatedRequest['act_costing_id'],
-                'act_costing_ws' => $validatedRequest['no_ws'],
-                'buyer' => $validatedRequest['buyer'],
-                'style' => $validatedRequest['style'],
-                'cons_ws' => $validatedRequest['cons_ws_marker'],
-                'color' => $validatedRequest['color'],
-                'panel' => $validatedRequest['panel'],
-                'gelar_qty' => $validatedRequest['gelar_qty'],
-                'po_marker' => $request->po ? $request->po : '-',
-                'urutan_marker' => $validatedRequest['urutan_marker'],
-                'tipe_marker' => $validatedRequest['tipe_marker'],
-                'cancel' => 'N',
-            ]);
+            if ($request->id_marker) {
+                $markerStore = Marker::where('kode', $request->id_marker)->first();
 
-            if ($markerStore) {
+                if ($markerStore) {
+                    $markerUpdate = Marker::where('kode', $request->id_marker)->
+                        update([
+                            'tgl_cutting' => $tglForm,
+                            'act_costing_id' => $validatedRequest['act_costing_id'],
+                            'act_costing_ws' => $validatedRequest['no_ws'],
+                            'buyer' => $validatedRequest['buyer'],
+                            'style' => $validatedRequest['style'],
+                            'cons_ws' => $validatedRequest['cons_ws_marker'],
+                            'color' => $validatedRequest['color'],
+                            'panel' => $validatedRequest['panel'],
+                            'gelar_qty' => $validatedRequest['gelar_qty'],
+                            'po_marker' => $request->po ? $request->po : '-',
+                            'urutan_marker' => $validatedRequest['urutan_marker'],
+                            'tipe_marker' => $validatedRequest['tipe_marker'],
+                            'cancel' => 'N',
+                        ]);
+                }
+            } else {
+                $markerStore = Marker::create([
+                    'tgl_cutting' => $tglForm,
+                    'kode' => $markerCode,
+                    'act_costing_id' => $validatedRequest['act_costing_id'],
+                    'act_costing_ws' => $validatedRequest['no_ws'],
+                    'buyer' => $validatedRequest['buyer'],
+                    'style' => $validatedRequest['style'],
+                    'cons_ws' => $validatedRequest['cons_ws_marker'],
+                    'color' => $validatedRequest['color'],
+                    'panel' => $validatedRequest['panel'],
+                    'gelar_qty' => $validatedRequest['gelar_qty'],
+                    'po_marker' => $request->po ? $request->po : '-',
+                    'urutan_marker' => $validatedRequest['urutan_marker'],
+                    'tipe_marker' => $validatedRequest['tipe_marker'],
+                    'cancel' => 'N',
+                ]);
+            }
+
+            if ($totalQtyEach > 0) {
                 $timestamp = Carbon::now();
                 $markerId = $markerStore->id;
                 $markerDetailData = [];
+
                 for ($i = 0; $i < intval($request['total_size']); $i++) {
                     array_push($markerDetailData, [
                         "marker_id" => $markerId,
@@ -616,21 +698,22 @@ class ManualFormCutController extends Controller
                 }
 
                 $markerDetailStore = MarkerDetail::insert($markerDetailData);
+            }
 
-                $updateFormCutInput = FormCutInput::where("id", $idForm)->update([
-                    "id_marker" => $markerCode,
-                    "status" => "PENGERJAAN FORM CUTTING DETAIL",
-                    "shell" => $request->shell,
-                    "qty_ply" => $validatedRequest['gelar_qty']
-                ]);
+            $updateFormCutInput = FormCutInput::where("id", $idForm)->update([
+                "no_meja" => $request->no_meja,
+                "id_marker" => $request->id_marker ? $request->id_marker : $markerCode,
+                "status" => "PENGERJAAN FORM CUTTING DETAIL",
+                "shell" => $request->shell,
+                "qty_ply" => $validatedRequest['gelar_qty']
+            ]);
 
-                if ($updateFormCutInput) {
-                    return array(
-                        "status" => 200,
-                        "message" => "alright",
-                        "additional" => ["id_marker" => $markerCode]
-                    );
-                }
+            if ($updateFormCutInput) {
+                return array(
+                    "status" => 200,
+                    "message" => "alright",
+                    "additional" => ["id_marker" => ($request->id_marker ? $request->id_marker : $markerCode)]
+                );
             }
 
             return array(
@@ -650,6 +733,7 @@ class ManualFormCutController extends Controller
     public function nextProcessOne($id = 0, Request $request)
     {
         $updateFormCutInput = FormCutInput::where("id", $id)->update([
+            "no_meja" => Auth::user()->type != "admin" ? Auth::user()->id : $request->no_meja,
             "status" => "PENGERJAAN FORM CUTTING DETAIL",
             "shell" => $request->shell
         ]);
@@ -705,6 +789,7 @@ class ManualFormCutController extends Controller
 
         if ($updateMarker) {
             $updateFormCutInput = FormCutInput::where("id", $id)->update([
+                "no_meja" => (Auth::user()->type != "admin" ? Auth::user()->id : $request->no_meja),
                 "status" => "PENGERJAAN FORM CUTTING SPREAD",
                 "p_act" => $validatedRequest['p_act'],
                 "unit_p_act" => $validatedRequest['unit_p_act'],
@@ -1179,6 +1264,7 @@ class ManualFormCutController extends Controller
             count();
 
         $updateFormCutInput = FormCutInput::where("id", $id)->update([
+            "no_meja" => $request->no_meja,
             "status" => "SELESAI PENGERJAAN",
             "waktu_selesai" => $request->finishTime,
             "cons_act" => $request->consAct,

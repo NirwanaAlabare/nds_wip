@@ -1,5 +1,11 @@
 @extends('layouts.index')
 
+@section('custom-link')
+    <!-- Select2 -->
+    <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+@endsection
+
 @section('content')
     <div class="row g-3">
         <div class="d-flex gap-3 justify-content-between align-items-center">
@@ -23,7 +29,19 @@
                         <input type="hidden" name="id" id="id" value="{{ $id }}" readonly>
                         <input type="hidden" name="act_costing_id" id="act_costing_id" value="{{ $formCutInputData->act_costing_id }}" readonly>
                         <input type="hidden" name="status" id="status" value="{{ $formCutInputData->status }}" readonly>
-                        <input type="hidden" name="no_meja" id="no_meja" value="{{ $formCutInputData->no_meja }}" readonly>
+                        <!-- <input type="hidden" name="no_meja" id="no_meja" value="{{ $formCutInputData->no_meja }}" readonly> -->
+                        <div class="col-12 col-md-12">
+                            <div class="mb-3">
+                            <label class="form-label"><small><b>Meja</b></small></label>
+                                <select class="form-control select2bs4" id="no_meja" name="no_meja" style="width: 100%;">
+                                    <option value="">Pilih Meja</option>
+                                        @foreach ($meja as $m)
+                                            <option value="{{ $m->id }}" {{ isset($formCutInputData) ? ($formCutInputData->no_meja ? ($formCutInputData->no_meja == $m->id ? "selected" : "") : "") : "" }}>{{ strtoupper($m->name) }}</option>
+                                        @endforeach
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
                         <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Start</b></small></label>
@@ -596,12 +614,12 @@
                                                 onkeyup="
                                                     calculateTotalPemakaian();
                                                     calculateShortRoll();
-                                                    // calculateSisaKain();
+                                                    calculateSisaKain();
                                                 "
                                                 onchange="
                                                     calculateTotalPemakaian();
                                                     calculateShortRoll();
-                                                    // calculateSisaKain();
+                                                    calculateSisaKain();
                                                 ">
                                         </div>
                                         <div style="width: 40%">
@@ -632,21 +650,21 @@
                             <div class="col-4">
                                 <div class="mb-3">
                                     <label class="form-label label-sb"><small><b>Lembar Gelaran</b></small></label>
-                                    <input type="number" class="form-control form-control-sm border-sb"
-                                        id="current_lembar_gelaran" name="current_lembar_gelaran"
+                                    <input type="hidden" id="lembar_gelaran" name="lembar_gelaran">
+                                    <input type="number" class="form-control form-control-sm border-sb" id="current_lembar_gelaran" name="current_lembar_gelaran"
                                         onkeyup="
                                             calculateTotalPemakaian();
                                             calculateShortRoll();
                                             calculateRemark();
                                             updatePlyProgress();
-                                            // calculateSisaKain();
+                                            calculateSisaKain();
                                         "
                                         onchange="
                                             calculateTotalPemakaian();
                                             calculateShortRoll();
                                             calculateRemark();
                                             updatePlyProgress();
-                                            // calculateSisaKain();
+                                            calculateSisaKain();
                                         ">
                                 </div>
                             </div>
@@ -670,12 +688,12 @@
                                             onkeyup="
                                                 calculateTotalPemakaian();
                                                 calculateShortRoll();
-                                                // calculateSisaKain();
+                                                calculateSisaKain();
                                             "
                                             onchange="
                                                 calculateTotalPemakaian();
                                                 calculateShortRoll();
-                                                // calculateSisaKain();
+                                                calculateSisaKain();
                                             ">
                                         <span class="input-group-text input-group-unit"></span>
                                     </div>
@@ -690,13 +708,13 @@
                                                 calculateTotalPemakaian();
                                                 calculateShortRoll();
                                                 calculateRemark();
-                                                // calculateSisaKain();
+                                                calculateSisaKain();
                                             "
                                             onchange="
                                                 calculateTotalPemakaian();
                                                 calculateShortRoll();
                                                 calculateRemark();
-                                                // calculateSisaKain();
+                                                calculateSisaKain();
                                             ">
                                         <span class="input-group-text input-group-unit"></span>
                                     </div>
@@ -711,13 +729,13 @@
                                                 calculateTotalPemakaian();
                                                 calculateShortRoll();
                                                 calculateRemark();
-                                                // calculateSisaKain();
+                                                calculateSisaKain();
                                             "
                                             onchange="
                                                 calculateTotalPemakaian();
                                                 calculateShortRoll();
                                                 calculateRemark();
-                                                // calculateSisaKain();
+                                                calculateSisaKain();
                                             ">
                                         <span class="input-group-text input-group-unit"></span>
                                     </div>
@@ -731,12 +749,12 @@
                                             onkeyup="
                                                 calculateShortRoll();
                                                 calculateRemark();
-                                                // calculateSisaKain();
+                                                calculateSisaKain();
                                             "
                                             onchange="
                                                 calculateShortRoll();
                                                 calculateRemark();
-                                                // calculateSisaKain();
+                                                calculateSisaKain();
                                             ">
                                         <span class="input-group-text input-group-unit"></span>
                                     </div>
@@ -799,6 +817,8 @@
 @endsection
 
 @section('custom-script')
+    <!-- Select2 -->
+    <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
         var id = document.getElementById("id").value;
 
@@ -821,6 +841,20 @@
             await getSummary();
 
             document.getElementById("loading").classList.add("d-none");
+
+            // Select2 Autofocus
+            $(document).on('select2:open', () => {
+                document.querySelector('.select2-search__field').focus();
+            });
+
+            // Initialize Select2 Elements
+            $('.select2').select2()
+
+            // Initialize Select2BS4 Elements
+            $('.select2bs4').select2({
+                theme: 'bootstrap4',
+                containerCssClass: 'form-control-sm'
+            })
         });
 
         function fetchScan() {
@@ -1149,6 +1183,7 @@
             data.sisa_gelaran ? document.getElementById("current_sisa_gelaran").value = data.sisa_gelaran : '';
             data.sambungan ? document.getElementById("current_sambungan").value = data.sambungan : '';
             data.est_amparan ? document.getElementById("current_est_amparan").value = data.est_amparan : '';
+            data.lembar_gelaran ? document.getElementById("lembar_gelaran").value = data.lembar_gelaran : '';
             data.lembar_gelaran ? document.getElementById("current_lembar_gelaran").value = data.lembar_gelaran : '';
             data.kepala_kain ? document.getElementById("current_kepala_kain").value = data.kepala_kain : '';
             data.sisa_tidak_bisa ? document.getElementById("current_sisa_tidak_bisa").value = data.sisa_tidak_bisa : '';
@@ -1619,11 +1654,12 @@
 
         // -Update Ply Progress-
         function updatePlyProgress() {
+            let originalLembar = Number($("#lembar_gelaran").val());
             let currentLembar = Number($("#current_lembar_gelaran").val());
             let qtyPly = Number($("#qty_ply").val());
 
-            document.getElementById("current_ply_progress_txt").innerText = (totalLembar - currentLembar) + "/" + qtyPly;
-            document.getElementById("current_ply_progress").style.width = Number(qtyPly) > 0 ? (Number( totalLembar - currentLembar) / Number(qtyPly) * 100) + "%" : "0%";
+            document.getElementById("current_ply_progress_txt").innerText = ((totalLembar - originalLembar) + currentLembar) + "/" + qtyPly;
+            document.getElementById("current_ply_progress").style.width = Number(qtyPly) > 0 ? ((Number( totalLembar - originalLembar) + currentLembar) / Number(qtyPly) * 100) + "%" : "0%";
         }
 
         // -Store Time Record Transaction-

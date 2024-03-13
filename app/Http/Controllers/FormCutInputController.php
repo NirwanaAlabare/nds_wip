@@ -32,7 +32,7 @@ class FormCutInputController extends Controller
             $additionalQuery = "";
 
             if ($request->dateFrom) {
-                $additionalQuery .= "and (cutting_plan.tgl_plan >= '" . $request->dateFrom . "' or a.updated_at >= '". $request->dateFrom ."')";
+                $additionalQuery .= " and (cutting_plan.tgl_plan >= '" . $request->dateFrom . "' or a.updated_at >= '". $request->dateFrom ."')";
             }
 
             if ($request->dateTo) {
@@ -264,6 +264,7 @@ class FormCutInputController extends Controller
     public function getScannedItem($id = 0)
     {
         $scannedItem = ScannedItem::where('id_roll', $id)->first();
+
         if ($scannedItem) {
             if (floatval($scannedItem->qty) > 0) {
                 return json_encode($scannedItem);
@@ -274,7 +275,7 @@ class FormCutInputController extends Controller
 
         $newItem = DB::connection("mysql_sb")->select("
             SELECT
-                br.id id_roll,
+                br.id_roll id_roll,
                 mi.itemdesc detail_item,
                 mi.id_item,
                 goods_code,
@@ -284,23 +285,23 @@ class FormCutInputController extends Controller
                 invno,
                 ac.kpno,
                 no_roll roll,
-                qty_aktual qty,
+                qty_out qty,
                 no_lot lot,
                 bpb.unit,
                 kode_rak
             FROM
-                whs_lokasi_inmaterial br
+                whs_bppb_det br
                 INNER JOIN masteritem mi ON br.id_item = mi.id_item
                 INNER JOIN bpb ON br.id_jo = bpb.id_jo AND br.id_item = bpb.id_item
                 INNER JOIN mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
                 INNER JOIN jo_det jd ON br.id_jo = jd.id_jo
                 INNER JOIN so ON jd.id_so = so.id
                 INNER JOIN act_costing ac ON so.id_cost = ac.id
-                INNER JOIN master_rak mr ON br.kode_lok = mr.kode_rak
+                INNER JOIN master_rak mr ON br.no_rak = mr.kode_rak
             WHERE
-                br.no_barcode = '".$id."'
+                br.id_roll = '".$id."'
                 AND cast(
-                qty_aktual AS DECIMAL ( 11, 3 )) > 0.000
+                qty_out AS DECIMAL ( 11, 3 )) > 0.000
                 LIMIT 1
         ");
         if ($newItem) {
@@ -410,7 +411,7 @@ class FormCutInputController extends Controller
             "unit_p_act" => "required",
             "comma_act" => "required",
             "unit_comma_act" => "required",
-            "l_act" => "required",
+            "l_act" => "required|min:0.1",
             "unit_l_act" => "required",
             "cons_act" => "required",
             "cons_pipping" => "required",
@@ -421,29 +422,31 @@ class FormCutInputController extends Controller
             "est_kain_unit" => "required",
         ]);
 
-        $updateFormCutInput = FormCutInput::where("id", $id)->update([
-            "status" => "PENGERJAAN FORM CUTTING SPREAD",
-            "p_act" => $validatedRequest['p_act'],
-            "unit_p_act" => $validatedRequest['unit_p_act'],
-            "comma_p_act" => $validatedRequest['comma_act'],
-            "unit_comma_p_act" => $validatedRequest['unit_comma_act'],
-            "l_act" => $validatedRequest['l_act'],
-            "unit_l_act" => $validatedRequest['unit_l_act'],
-            "cons_act" => $validatedRequest['cons_act'],
-            "cons_pipping" => $validatedRequest['cons_pipping'],
-            "cons_ampar" => $validatedRequest['cons_ampar'],
-            "est_pipping" => $validatedRequest['est_pipping'],
-            "est_pipping_unit" => $validatedRequest['est_pipping_unit'],
-            "est_kain" => $validatedRequest['est_kain'],
-            "est_kain_unit" => $validatedRequest['est_kain_unit']
-        ]);
+        if ($validatedRequest["p_act"] + $validatedRequest["comma_act"] > 0 && $validatedRequest["l_act"] > 0) {
+            $updateFormCutInput = FormCutInput::where("id", $id)->update([
+                "status" => "PENGERJAAN FORM CUTTING SPREAD",
+                "p_act" => $validatedRequest['p_act'],
+                "unit_p_act" => $validatedRequest['unit_p_act'],
+                "comma_p_act" => $validatedRequest['comma_act'],
+                "unit_comma_p_act" => $validatedRequest['unit_comma_act'],
+                "l_act" => $validatedRequest['l_act'],
+                "unit_l_act" => $validatedRequest['unit_l_act'],
+                "cons_act" => $validatedRequest['cons_act'],
+                "cons_pipping" => $validatedRequest['cons_pipping'],
+                "cons_ampar" => $validatedRequest['cons_ampar'],
+                "est_pipping" => $validatedRequest['est_pipping'],
+                "est_pipping_unit" => $validatedRequest['est_pipping_unit'],
+                "est_kain" => $validatedRequest['est_kain'],
+                "est_kain_unit" => $validatedRequest['est_kain_unit']
+            ]);
 
-        if ($updateFormCutInput) {
-            return array(
-                "status" => 200,
-                "message" => "alright",
-                "additional" => [],
-            );
+            if ($updateFormCutInput) {
+                return array(
+                    "status" => 200,
+                    "message" => "alright",
+                    "additional" => [],
+                );
+            }
         }
 
         return array(

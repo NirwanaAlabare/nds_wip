@@ -220,7 +220,6 @@
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">Satuan</th>
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">Stok</th>
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty RO</th>
-                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Lokasi</th>
                         <th class="text-center" style="display: none;">Keterangan</th>
                         <th class="text-center" style="display: none;">Keterangan</th>
                         <th class="text-center" style="display: none;">Keterangan</th>
@@ -790,9 +789,6 @@ function submitFormScan(e, evt) {
                     data: 'id_item'
                 },
                 {
-                    data: 'id_item'
-                },
-                {
                     data: 'id_jo'
                 },
                 {
@@ -806,34 +802,25 @@ function submitFormScan(e, evt) {
                 {
                     targets: [6],
                     // className: "d-none",
-                    render: (data, type, row, meta) => '<input style="width:80px;text-align:center;" type="text" id="input_qty' + meta.row + '" name="input_qty['+meta.row+']" value="' + data + '" readonly />'
+                    render: (data, type, row, meta) => '<input style="width:80px;text-align:center;" type="text" id="input_qty' + meta.row + '" name="input_qty['+meta.row+']" value="" />'
                 },
                 {
                     targets: [7],
-                    render: (data, type, row, meta) => {
-                    return `<div class='d-flex gap-1 justify-content-center'> 
-                    <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='out_manual("` + row.id_item + `","` + row.id_jo + `","` + row.qty + `","` + row.unit + `")'><i class="fa-solid fa-table-list"></i></button> 
-                    <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='out_scan("` + row.id_item + `","` + row.id_jo + `","` + row.qty + `","` + row.unit + `","` + row.no_req + `")'><i class="fa-solid fa-barcode"></i></i></button> 
-                    </div>`;
-                }
-                },
-                {
-                    targets: [8],
                     className: "d-none",
                     render: (data, type, row, meta) => '<input type="hidden" id="id_item' + meta.row + '" name="id_item['+meta.row+']" value="' + data + '" readonly />'
                 },
                 {
-                    targets: [9],
+                    targets: [8],
                     className: "d-none",
                     render: (data, type, row, meta) => '<input type="hidden" id="id_jo' + meta.row + '" name="id_jo['+meta.row+']" value="' + data + '" readonly />'
                 },
                 {
-                    targets: [10],
+                    targets: [9],
                     className: "d-none",
                     render: (data, type, row, meta) => '<input type="hidden" id="id_bpb' + meta.row + '" name="id_bpb['+meta.row+']" value="' + data + '" readonly />'
                 },
                 {
-                    targets: [11],
+                    targets: [10],
                     className: "d-none",
                     render: (data, type, row, meta) => '<input type="hidden" id="no_ws' + meta.row + '" name="no_ws['+meta.row+']" value="' + data + '" readonly />'
                 }

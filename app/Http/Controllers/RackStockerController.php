@@ -23,7 +23,7 @@ class RackStockerController extends Controller
      */
     public function index(Request $request)
     {
-        $racks = Rack::all();
+        $racks = Rack::with('rackDetails')->get();
 
         $stockers = Stocker::selectRaw("
             CONCAT(stocker_input.id_qr_stocker) stockers,
@@ -93,7 +93,7 @@ class RackStockerController extends Controller
     }
 
     public function stockRackVisual() {
-        $racks = Rack::all();
+        $racks = Rack::with('rackDetails', 'rackDetails.rackDetailStockers')->get();
 
         $stockers = Stocker::selectRaw("
             rack_detail_stocker.detail_rack_id,
