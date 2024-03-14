@@ -71,7 +71,7 @@ class FGStokBPPBController extends Controller
         ]);
 
         $tahun = date('Y', strtotime($tgl_pengeluaran));
-        $no = date('ym', strtotime($tgl_pengeluaran));
+        $no = date('my', strtotime($tgl_pengeluaran));
         $kode = 'FGS/OUT/';
         $cek_nomor = DB::select("
         select max(right(no_trans_out,5))nomor from fg_stok_bppb where year(tgl_pengeluaran) = '" . $tahun . "'

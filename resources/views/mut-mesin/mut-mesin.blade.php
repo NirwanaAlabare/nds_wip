@@ -139,9 +139,13 @@
     </script>
 
     <script>
-        window.addEventListener("focus", () => {
+        // window.addEventListener("focus", () => {
+        //     dataTableReload();
+        // });
+
+        $(document).ready(function() {
             dataTableReload();
-        });
+        })
 
         let datatable = $("#datatable").DataTable({
             ordering: false,

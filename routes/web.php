@@ -754,6 +754,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/getdet_carton', 'getdet_carton')->name('getdet_carton');
         Route::get('/export_excel_bpb_fg_stok', 'export_excel_bpb_fg_stok')->name('export_excel_bpb_fg_stok');
     });
+
     Route::controller(FGStokBPPBController::class)->prefix("bppb-fg-stock")->middleware('fg-stock')->group(function () {
         Route::get('/', 'index')->name('bppb-fg-stock');
         Route::post('/store', 'store')->name('store-bppb-fg-stock');
@@ -774,7 +775,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-mutasi-fg-stock');
         Route::get('/create', 'create')->name('create-mutasi-fg-stock');
         Route::get('/getno_karton_asal', 'getno_karton_asal')->name('getno-karton-asal-fg-stock');
-        Route::get('/show_det', 'show_det')->name('show_det-fg-stock');
+        Route::get('/show_det_mutasi', 'show_det_mutasi')->name('show_det-fg-stock');
         Route::get('/export_excel_mutasi_int_fg_stok', 'export_excel_mutasi_int_fg_stok')->name('export_excel_mutasi_int_fg_stok');
     });
 

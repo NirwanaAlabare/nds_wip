@@ -70,7 +70,7 @@ class FGStokMutasiController extends Controller
         $tgl_pengeluaran = Carbon::now()->isoFormat('YYYY-MM-DD');
 
         $tahun = date('Y', strtotime($tgl_pengeluaran));
-        $no = date('ym', strtotime($tgl_pengeluaran));
+        $no = date('my', strtotime($tgl_pengeluaran));
         $kode = 'FGS/MUT/';
         $cek_nomor = DB::select("
         select max(right(no_mut,5))nomor from fg_stok_mutasi_log where year(tgl_mut) = '" . $tahun . "'
@@ -186,6 +186,48 @@ class FGStokMutasiController extends Controller
 
         return $html;
     }
+
+
+    public function show_det_mutasi(Request $request)
+    {
+        $user = Auth::user()->name;
+        if ($request->ajax()) {
+
+            $data_det = DB::select("
+            select lokasi,
+            no_carton,
+            s.id_so_det,
+            ws,
+            sum(s.qty_in) - sum(s.qty_out) saldo,
+            m.buyer,
+            m.color,
+            m.size,
+            m.styleno,
+            m.brand,
+            s.grade,
+            concat(s.id_so_det,'_',no_carton,'_',grade) kode
+            from
+            (
+            select lokasi,no_carton,a.id_so_det,sum(a.qty) qty_in, '0' qty_out,grade  from fg_stok_bpb a
+            inner join master_sb_ws m on a.id_so_det = m.id_so_det
+            where lokasi = '" . $request->cbolok_asal . "' and no_carton = '" . $request->cbono_carton_asal . "'
+            group by no_carton, a.id_so_det, a.grade
+            union
+            select lokasi,no_carton,a.id_so_det,'0' qty_in,sum(a.qty_out) qty_out,grade  from fg_stok_bppb a
+            inner join master_sb_ws m on a.id_so_det = m.id_so_det
+            where lokasi = '" . $request->cbolok_asal . "'  and no_carton = '" . $request->cbono_carton_asal . "'
+            group by no_carton, a.id_so_det, a.grade
+            )
+            s
+            inner join master_sb_ws m on s.id_so_det = m.id_so_det
+            group by no_carton, s.id_so_det, s.grade
+            having sum(s.qty_in) - sum(s.qty_out) != '0'
+            ");
+
+            return DataTables::of($data_det)->toJson();
+        }
+    }
+
 
     public function export_excel_mutasi_int_fg_stok(Request $request)
     {

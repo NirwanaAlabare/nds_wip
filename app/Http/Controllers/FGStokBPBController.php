@@ -61,7 +61,7 @@ class FGStokBPBController extends Controller
         $timestamp = Carbon::now();
         $tglterima = $request->tgl_terima;
         $tahun = date('Y', strtotime($tglterima));
-        $no = date('ym', strtotime($tglterima));
+        $no = date('my', strtotime($tglterima));
         $kode = 'FGS/IN/';
         $cek_nomor = DB::select("
         select max(right(no_trans,5))nomor from fg_stok_bpb where year(tgl_terima) = '" . $tahun . "'
@@ -269,7 +269,7 @@ order by color desc");
         $user = Auth::user()->name;
         if ($request->ajax()) {
 
-            $data_tmp = DB::select("
+            $data_list = DB::select("
             select
             tmp.id,
             tmp.id_so_det,
@@ -287,7 +287,7 @@ order by color desc");
             order by tmp.id desc
             ");
 
-            return DataTables::of($data_tmp)->toJson();
+            return DataTables::of($data_list)->toJson();
         }
     }
 
