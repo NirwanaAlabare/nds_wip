@@ -53,6 +53,7 @@ class ExportLaporanPengeluaranFGStokBPPB implements FromView, WithEvents, Should
         tgl_pengeluaran,
         concat((DATE_FORMAT(tgl_pengeluaran,  '%d')), '-', left(DATE_FORMAT(tgl_pengeluaran,  '%M'),3),'-',DATE_FORMAT(tgl_pengeluaran,  '%Y')
         ) tgl_pengeluaran_fix,
+        a.id_so_det,
         buyer,
         ws,
         brand,
@@ -97,7 +98,7 @@ class ExportLaporanPengeluaranFGStokBPPB implements FromView, WithEvents, Should
     {
 
         $event->sheet->styleCells(
-            'A4:O' . $event->getConcernable()->rowCount,
+            'A4:Q' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [

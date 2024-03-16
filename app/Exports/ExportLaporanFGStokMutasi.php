@@ -119,7 +119,7 @@ class ExportLaporanFGStokMutasi implements FromView, WithEvents, ShouldAutoSize
     {
 
         $event->sheet->styleCells(
-            'A4:N' . $event->getConcernable()->rowCount,
+            'A4:O' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [
