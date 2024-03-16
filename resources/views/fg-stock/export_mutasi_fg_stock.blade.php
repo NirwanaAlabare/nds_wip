@@ -15,6 +15,7 @@
     <thead>
         <tr style ="width:100%">
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">No</th>
+            <th style="background-color: yellow;border:1px solid black;font-weight:bold">ID SO Det</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold;width:100%">Buyer</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">WS</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">Brand</th>
@@ -37,6 +38,7 @@
         @foreach ($data as $item)
             <tr>
                 <td>{{ $no++ }}.</td>
+                <td>{{ $item->id_so_det }}</td>
                 <td>{{ $item->buyer }}</td>
                 <td>{{ $item->ws }}</td>
                 <td>{{ $item->brand }}</td>
