@@ -376,6 +376,7 @@ class StockerController extends Controller
                 }
 
                 if ($currentStockerPart == $stocker->part_detail_id) {
+                    \Log::info([isset($sizeRangeAkhir[$stocker->size]), $stocker->size]);
                     if (isset($sizeRangeAkhir[$stocker->size]) && ($currentStockerSize != $stocker->size || $currentStockerGroup != $stocker->group_stocker || $currentStockerRatio != $stocker->ratio)) {
                         $rangeAwal = $sizeRangeAkhir[$stocker->size] + 1;
                         $sizeRangeAkhir[$stocker->size] = $sizeRangeAkhir[$stocker->size] + $lembarGelaran;
@@ -392,19 +393,6 @@ class StockerController extends Controller
                 $stocker->range_awal = $rangeAwal;
                 $stocker->range_akhir = $sizeRangeAkhir[$stocker->size];
                 $stocker->save();
-
-                \Log::info([
-                    $formCut->no_form,
-                    "Shade ".$stocker->shade,
-                    "Size ".$stocker->size,
-                    "Ratio ".$stocker->ratio,
-                    "Awal ".$rangeAwal,
-                    "Form ".FormCutInputDetail::where("no_form_cut_input", $formCut->no_form)->where('group_stocker', $stocker->group_stocker)->get(),
-                    "Lembar ".$lembarGelaran,
-                    "Akhir ".($sizeRangeAkhir[$stocker->size]),
-                    "sizeRangeAkhir ". $sizeRangeAkhir,
-                    "stocker ". $stocker->id_qr_stocker ." : ". $stocker->range_awal." - ".$stocker->range_akhir
-                ]);
             }
 
             // Adjust numbering data
@@ -423,29 +411,31 @@ class StockerController extends Controller
                 get();
 
             foreach ($numbers as $number) {
-                if ($number->number > $sizeRangeAkhir[$number->size]) {
-                    StockerDetail::where("form_cut_id", $number->form_cut_id)->where("size", $number->size)->where("number", ">", $sizeRangeAkhir[$number->size])->delete();
-                }
-
-                if ($number->number < $sizeRangeAkhir[$number->size]) {
-                    $stockerDetailCount = StockerDetail::select("kode")->orderBy("id", "desc")->first() ? str_replace("WIP-", "", StockerDetail::select("kode")->orderBy("id", "desc")->first()->kode) + 1 : 1;
-                    $noCutSize = substr($number->no_cut_size, 0, strlen($number->size)+2);
-
-                    $no = 0;
-                    for ($i = $number->number; $i < $sizeRangeAkhir[$number->size]; $i++) {
-                        StockerDetail::create([
-                            "kode" => "WIP-".($stockerDetailCount+$no),
-                            "form_cut_id" => $number->form_cut_id,
-                            "act_costing_ws" => $number->act_costing_ws,
-                            "color" => $number->color,
-                            "panel" => $number->panel,
-                            "so_det_id" => $number->so_det_id,
-                            "size" => $number->size,
-                            "no_cut_size" => $noCutSize. sprintf('%04s', ($i+1)),
-                            "number" => $i+1
-                        ]);
-
-                        $no++;
+                if (isset($sizeRangeAkhir[$number->size])) {
+                    if ($number->number > $sizeRangeAkhir[$number->size]) {
+                        StockerDetail::where("form_cut_id", $number->form_cut_id)->where("size", $number->size)->where("number", ">", $sizeRangeAkhir[$number->size])->delete();
+                    }
+    
+                    if ($number->number < $sizeRangeAkhir[$number->size]) {
+                        $stockerDetailCount = StockerDetail::select("kode")->orderBy("id", "desc")->first() ? str_replace("WIP-", "", StockerDetail::select("kode")->orderBy("id", "desc")->first()->kode) + 1 : 1;
+                        $noCutSize = substr($number->no_cut_size, 0, strlen($number->size)+2);
+    
+                        $no = 0;
+                        for ($i = $number->number; $i < $sizeRangeAkhir[$number->size]; $i++) {
+                            StockerDetail::create([
+                                "kode" => "WIP-".($stockerDetailCount+$no),
+                                "form_cut_id" => $number->form_cut_id,
+                                "act_costing_ws" => $number->act_costing_ws,
+                                "color" => $number->color,
+                                "panel" => $number->panel,
+                                "so_det_id" => $number->so_det_id,
+                                "size" => $number->size,
+                                "no_cut_size" => $noCutSize. sprintf('%04s', ($i+1)),
+                                "number" => $i+1
+                            ]);
+    
+                            $no++;
+                        }
                     }
                 }
             }
