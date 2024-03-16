@@ -415,11 +415,11 @@ class StockerController extends Controller
                     if ($number->number > $sizeRangeAkhir[$number->size]) {
                         StockerDetail::where("form_cut_id", $number->form_cut_id)->where("size", $number->size)->where("number", ">", $sizeRangeAkhir[$number->size])->delete();
                     }
-    
+
                     if ($number->number < $sizeRangeAkhir[$number->size]) {
                         $stockerDetailCount = StockerDetail::select("kode")->orderBy("id", "desc")->first() ? str_replace("WIP-", "", StockerDetail::select("kode")->orderBy("id", "desc")->first()->kode) + 1 : 1;
                         $noCutSize = substr($number->no_cut_size, 0, strlen($number->size)+2);
-    
+
                         $no = 0;
                         for ($i = $number->number; $i < $sizeRangeAkhir[$number->size]; $i++) {
                             StockerDetail::create([
@@ -433,7 +433,7 @@ class StockerController extends Controller
                                 "no_cut_size" => $noCutSize. sprintf('%04s', ($i+1)),
                                 "number" => $i+1
                             ]);
-    
+
                             $no++;
                         }
                     }
