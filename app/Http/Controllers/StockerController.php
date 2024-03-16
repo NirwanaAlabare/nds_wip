@@ -872,7 +872,7 @@ class StockerController extends Controller
             $noCutSize = str_replace(" ", "", $request["size"][$index]) . "" . sprintf('%02s', $request['no_cut']);
 
             for ($i = $rangeAwal; $i < $rangeAkhir; $i++) {
-                $checkStockerDetailData = StockerDetail::where('form_cut_id', $request['form_cut_id'])->where('act_costing_ws', $request["no_ws"])->where('color', $request['color'])->where('panel', $request['panel'])->where('so_det_id', $request['so_det_id'][$index])->where('no_cut_size', $i)->orderBy("updated_at", "desc")->first();
+                $checkStockerDetailData = StockerDetail::where('form_cut_id', $request['form_cut_id'])->where('act_costing_ws', $request["no_ws"])->where('color', $request['color'])->where('panel', $request['panel'])->where('so_det_id', $request['so_det_id'][$index])->where('no_cut_size', $noCutSize . sprintf('%04s', ($i))    )->orderBy("updated_at", "desc")->first();
 
                 if (!$checkStockerDetailData) {
                     array_push($storeDetailItemArr, [
