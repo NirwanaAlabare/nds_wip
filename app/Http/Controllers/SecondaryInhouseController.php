@@ -50,6 +50,7 @@ class SecondaryInhouseController extends Controller
             s.color,
             p.buyer,
             p.style,
+            s.size,
             a.qty_awal,
             a.qty_reject,
             a.qty_replace,
@@ -59,6 +60,7 @@ class SecondaryInhouseController extends Controller
             dc.lokasi,
             dc.tempat,
             f.no_cut,
+            s.size,
             a.user
             from secondary_inhouse_input a
             inner join stocker_input s on a.id_qr_stocker = s.id_qr_stocker

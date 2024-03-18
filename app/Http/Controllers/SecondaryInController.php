@@ -60,6 +60,7 @@ class SecondaryInController extends Controller
             a.qty_in,
             a.created_at,
             f.no_cut,
+            s.size,
             a.user
             from secondary_in_input a
             inner join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
@@ -105,7 +106,7 @@ class SecondaryInController extends Controller
             where dc.tujuan = 'SECONDARY LUAR' and dc.qty_awal - dc.qty_reject + dc.qty_replace -  si.qty_in != '0'
             group by m.ws,m.buyer,m.styleno,m.color,dc.lokasi
             union
-            select s.act_costing_ws, buyer,s.color,  styleno , sii.qty_in qty_in, si.qty_in qty_out,sii.qty_in - si.qty_in balance, dc.tujuan, dc.lokasi
+            select s.act_costing_ws, buyer,s.color,styleno, COALESCE(sii.qty_in, 0) qty_in, COALESCE(si.qty_in, 0) qty_out, COALESCE((sii.qty_in - si.qty_in), 0) balance, dc.tujuan, dc.lokasi
             from dc_in_input dc
             inner join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
             inner join master_sb_ws m on s.so_det_id = m.id_so_det

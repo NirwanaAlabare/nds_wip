@@ -250,6 +250,7 @@
                             <th>Buyer</th>
                             <th>Style</th>
                             <th>Color</th>
+                            <th>Size</th>
                             <th>No. Cut</th>
                             <th>Tujuan Asal</th>
                             <th>Lokasi Asal</th>
@@ -333,6 +334,9 @@
                 },
                 {
                     data: 'color',
+                },
+                {
+                    data: 'size',
                 },
                 {
                     data: 'no_cut',
