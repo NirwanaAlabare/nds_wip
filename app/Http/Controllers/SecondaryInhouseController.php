@@ -58,9 +58,11 @@ class SecondaryInhouseController extends Controller
             dc.tujuan,
             dc.lokasi,
             dc.tempat,
-            user
+            f.no_cut,
+            a.user
             from secondary_inhouse_input a
             inner join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+            left join form_cut_input f on f.id = s.form_cut_id  
             inner join part_detail pd on s.part_detail_id = pd.id
             inner join part p on pd.part_id = p.id
             inner join (select id_qr_stocker,tujuan, lokasi, tempat from dc_in_input) dc on a.id_qr_stocker = dc.id_qr_stocker

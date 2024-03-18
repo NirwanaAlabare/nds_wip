@@ -59,9 +59,11 @@ class SecondaryInController extends Controller
             a.qty_replace,
             a.qty_in,
             a.created_at,
+            f.no_cut,
             a.user
             from secondary_in_input a
             inner join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+            left join form_cut_input f on f.id = s.form_cut_id
             inner join part_detail pd on s.part_detail_id = pd.id
             inner join part p on pd.part_id = p.id
 						left join dc_in_input dc on a.id_qr_stocker = dc.id_qr_stocker
