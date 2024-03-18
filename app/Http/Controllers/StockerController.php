@@ -237,6 +237,7 @@ class StockerController extends Controller
             where("marker_input.panel", $dataSpreading->panel)->
             where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
             where("marker_input_detail.ratio", ">", "0")->
+            whereRaw("(stocker_numbering.cancel IS NULL OR stocker_numbering.cancel != 'Y')")->
             groupBy("no_cut", "marker_input_detail.so_det_id")->
             orderBy("form_cut_input.no_cut", "desc")->
             get();
@@ -413,7 +414,12 @@ class StockerController extends Controller
             foreach ($numbers as $number) {
                 if (isset($sizeRangeAkhir[$number->size])) {
                     if ($number->number > $sizeRangeAkhir[$number->size]) {
-                        StockerDetail::where("form_cut_id", $number->form_cut_id)->where("size", $number->size)->where("number", ">", $sizeRangeAkhir[$number->size])->delete();
+                        StockerDetail::where("form_cut_id", $number->form_cut_id)->
+                            where("size", $number->size)->
+                            where("number", ">", $sizeRangeAkhir[$number->size])->
+                            update([
+                                "cancel" => "Y"
+                            ]);
                     }
 
                     if ($number->number < $sizeRangeAkhir[$number->size]) {
@@ -1079,6 +1085,7 @@ class StockerController extends Controller
                 where("marker_input.color", $dataSpreading->color)->
                 where("marker_input.panel", $dataSpreading->panel)->
                 where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
+                whereRaw("(stocker_numbering.cancel IS NULL OR stocker_numbering.cancel != 'Y')")->
                 groupBy("form_cut_input.no_cut", "marker_input.color", "marker_input_detail.so_det_id")->
                 orderBy("form_cut_input.no_cut", "desc")->
                 get();
@@ -1097,7 +1104,7 @@ class StockerController extends Controller
                     $now = Carbon::now();
                     $noCutSize = $ratio->size . "" . sprintf('%02s', $dataSpreading->no_cut);
 
-                    if (is_numeric($rangeAwal) && is_numeric($rangeAwal))
+                    if (is_numeric($rangeAwal) && is_numeric($rangeAkhir))
                     for ($i = $rangeAwal; $i <= $rangeAkhir; $i++) {
                         array_push($storeDetailItemArr, [
                             'kode' => "WIP-" . ($stockerDetailCount + $n),
