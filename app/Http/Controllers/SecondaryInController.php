@@ -97,13 +97,13 @@ class SecondaryInController extends Controller
             }
 
             $data_input = DB::select("
-            select s.act_costing_ws, buyer,s.color,styleno, dc.qty_awal - dc.qty_reject + dc.qty_replace qty_in, si.qty_in qty_out, dc.qty_awal - dc.qty_reject + dc.qty_replace -  si.qty_in balance, dc.tujuan,dc.lokasi
+            select s.act_costing_ws, buyer,s.color,styleno, COALESCE(dc.qty_awal - dc.qty_reject + dc.qty_replace, 0) qty_in, COALESCE(si.qty_in, 0) qty_out, COALESCE((dc.qty_awal - dc.qty_reject + dc.qty_replace -  si.qty_in), 0) balance, dc.tujuan,dc.lokasi
             from dc_in_input dc
             inner join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
             inner join master_sb_ws m on s.so_det_id = m.id_so_det
             left join secondary_in_input si on dc.id_qr_stocker = si.id_qr_stocker
             where dc.tujuan = 'SECONDARY LUAR' and dc.qty_awal - dc.qty_reject + dc.qty_replace -  si.qty_in != '0'
-            group by dc.lokasi
+            group by m.ws,m.buyer,m.styleno,m.color,dc.lokasi
             union
             select s.act_costing_ws, buyer,s.color,  styleno , sii.qty_in qty_in, si.qty_in qty_out,sii.qty_in - si.qty_in balance, dc.tujuan, dc.lokasi
             from dc_in_input dc
@@ -112,7 +112,7 @@ class SecondaryInController extends Controller
             left join secondary_inhouse_input sii on dc.id_qr_stocker = sii.id_qr_stocker
             left join secondary_in_input si on dc.id_qr_stocker = si.id_qr_stocker
             where dc.tujuan = 'SECONDARY DALAM'
-            group by dc.lokasi
+            group by m.ws,m.buyer,m.styleno,m.color,dc.lokasi
             having sum(sii.qty_in) - sum(dc.qty_awal - dc.qty_reject + dc.qty_replace) != '0'
             ");
 
