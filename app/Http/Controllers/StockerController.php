@@ -415,11 +415,11 @@ class StockerController extends Controller
                     if ($number->number > $sizeRangeAkhir[$number->size]) {
                         StockerDetail::where("form_cut_id", $number->form_cut_id)->where("size", $number->size)->where("number", ">", $sizeRangeAkhir[$number->size])->delete();
                     }
-    
+
                     if ($number->number < $sizeRangeAkhir[$number->size]) {
                         $stockerDetailCount = StockerDetail::select("kode")->orderBy("id", "desc")->first() ? str_replace("WIP-", "", StockerDetail::select("kode")->orderBy("id", "desc")->first()->kode) + 1 : 1;
                         $noCutSize = substr($number->no_cut_size, 0, strlen($number->size)+2);
-    
+
                         $no = 0;
                         for ($i = $number->number; $i < $sizeRangeAkhir[$number->size]; $i++) {
                             StockerDetail::create([
@@ -433,7 +433,7 @@ class StockerController extends Controller
                                 "no_cut_size" => $noCutSize. sprintf('%04s', ($i+1)),
                                 "number" => $i+1
                             ]);
-    
+
                             $no++;
                         }
                     }
@@ -872,7 +872,7 @@ class StockerController extends Controller
             $noCutSize = str_replace(" ", "", $request["size"][$index]) . "" . sprintf('%02s', $request['no_cut']);
 
             for ($i = $rangeAwal; $i < $rangeAkhir; $i++) {
-                $checkStockerDetailData = StockerDetail::where('form_cut_id', $request['form_cut_id'])->where('act_costing_ws', $request["no_ws"])->where('color', $request['color'])->where('panel', $request['panel'])->where('so_det_id', $request['so_det_id'][$index])->where('no_cut_size', $i)->orderBy("updated_at", "desc")->first();
+                $checkStockerDetailData = StockerDetail::where('form_cut_id', $request['form_cut_id'])->where('act_costing_ws', $request["no_ws"])->where('color', $request['color'])->where('panel', $request['panel'])->where('so_det_id', $request['so_det_id'][$index])->where('no_cut_size', $noCutSize . sprintf('%04s', ($i))    )->orderBy("updated_at", "desc")->first();
 
                 if (!$checkStockerDetailData) {
                     array_push($storeDetailItemArr, [
