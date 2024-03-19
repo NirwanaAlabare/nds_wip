@@ -56,6 +56,12 @@ class TrolleyStockerController extends Controller
                         $query->where("tanggal_alokasi", "<=", request('dateTo'));
                     }
                 })
+                ->order(function ($query) {
+                    $query->orderByRaw("ISNULL(SUM(stocker_input.qty_ply)) asc");
+                    $query->orderByRaw("CAST(trolley.nama_trolley AS UNSIGNED) asc");
+                    $query->orderByRaw("trolley.id asc");
+                })
+                ->orderByNullsLast()
                 ->toJson();
         }
 
