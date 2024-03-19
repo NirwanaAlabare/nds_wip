@@ -616,7 +616,7 @@ class ManualFormCutController extends Controller
             "no_ws" => "required",
             "buyer" => "required",
             "style" => "required",
-            "cons_ws_marker" => "required|numeric|min:0",
+            "cons_ws_marker" => "nullable",
             "color" => "required",
             "panel" => "required",
             "gelar_qty" => "required|numeric|gt:0",
