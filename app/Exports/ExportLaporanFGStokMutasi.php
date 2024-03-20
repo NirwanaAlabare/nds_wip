@@ -60,7 +60,9 @@ class ExportLaporanFGStokMutasi implements FromView, WithEvents, ShouldAutoSize
         m.size,
         ws,
         brand,
-        styleno
+        styleno,
+        m.product_group,
+        m.product_item
         from
         (
             select id_so_det,sum(qty_in) - sum(qty_out) qty_awal,'0' qty_in,'0' qty_out, grade, lokasi, no_carton
@@ -119,7 +121,7 @@ class ExportLaporanFGStokMutasi implements FromView, WithEvents, ShouldAutoSize
     {
 
         $event->sheet->styleCells(
-            'A4:O' . $event->getConcernable()->rowCount,
+            'A4:Q' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [
