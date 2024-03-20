@@ -494,7 +494,7 @@ class ManualFormCutController extends Controller
             return json_encode($item ? $item[0] : null);
         }
 
-        return  null;
+        return null;
     }
 
     public function getItem(Request $request) {
