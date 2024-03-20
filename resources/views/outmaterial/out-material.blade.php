@@ -136,7 +136,7 @@
                         <th class="text-center">Buyer</th>
                         <th class="text-center">Penerima</th>
                         <th class="text-center">Jenis BC</th>
-                        <th class="text-center">Release Type</th>
+                        <th class="text-center">Jenis Trans</th>
                         <th class="text-center">No Invoice</th>
                         <th class="text-center">Tanggal Daftar</th>
                         <th class="text-center">No Daftar</th>
