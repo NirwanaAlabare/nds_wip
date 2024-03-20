@@ -17,7 +17,10 @@
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">No</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">No. Trans</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">Tgl. Terima</th>
+            <th style="background-color: yellow;border:1px solid black;font-weight:bold">ID SO Det</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">Buyer</th>
+            <th style="background-color: yellow;border:1px solid black;font-weight:bold">Product Group</th>
+            <th style="background-color: yellow;border:1px solid black;font-weight:bold">Product Item</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">WS</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">Brand</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">Style</th>
@@ -41,7 +44,10 @@
                 <td>{{ $no++ }}.</td>
                 <td>{{ $item->no_trans }}</td>
                 <td>{{ $item->tgl_terima_fix }}</td>
+                <td>{{ $item->id_so_det }}</td>
                 <td>{{ $item->buyer }}</td>
+                <td>{{ $item->product_group }}</td>
+                <td>{{ $item->product_item }}</td>
                 <td>{{ $item->ws }}</td>
                 <td>{{ $item->brand }}</td>
                 <td>{{ $item->styleno }}</td>

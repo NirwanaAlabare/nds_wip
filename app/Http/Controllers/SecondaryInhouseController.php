@@ -50,6 +50,7 @@ class SecondaryInhouseController extends Controller
             s.color,
             p.buyer,
             p.style,
+            s.size,
             a.qty_awal,
             a.qty_reject,
             a.qty_replace,
@@ -58,9 +59,12 @@ class SecondaryInhouseController extends Controller
             dc.tujuan,
             dc.lokasi,
             dc.tempat,
-            user
+            f.no_cut,
+            s.size,
+            a.user
             from secondary_inhouse_input a
             inner join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+            left join form_cut_input f on f.id = s.form_cut_id  
             inner join part_detail pd on s.part_detail_id = pd.id
             inner join part p on pd.part_id = p.id
             inner join (select id_qr_stocker,tujuan, lokasi, tempat from dc_in_input) dc on a.id_qr_stocker = dc.id_qr_stocker
@@ -102,11 +106,11 @@ class SecondaryInhouseController extends Controller
             }
 
             $data_detail = DB::select("
-            select s.act_costing_ws, buyer,s.color,  styleno, sum(sii.qty_in) qty_out, sum(dc.qty_awal - dc.qty_reject + dc.qty_replace) qty_in,sum(sii.qty_in) - sum(dc.qty_awal - dc.qty_reject + dc.qty_replace) balance, dc.lokasi from dc_in_input dc
+            select s.act_costing_ws, buyer,s.color,  styleno, COALESCE(sum(sii.qty_in), 0) qty_out, COALESCE(sum(dc.qty_awal - dc.qty_reject + dc.qty_replace), 0) qty_in,COALESCE((sum(sii.qty_in) - sum(dc.qty_awal - dc.qty_reject + dc.qty_replace)), 0) balance, dc.lokasi from dc_in_input dc
             inner join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
             inner join master_sb_ws m on s.so_det_id = m.id_so_det
             left join secondary_inhouse_input sii on dc.id_qr_stocker = sii.id_qr_stocker
-            where dc.tujuan = 'SECONDARY DALAM' group by dc.lokasi
+            where dc.tujuan = 'SECONDARY DALAM' group by m.ws,m.buyer,m.styleno,m.color,dc.lokasi
             having sum(sii.qty_in) - sum(dc.qty_awal - dc.qty_reject + dc.qty_replace) != '0'
             ");
 

@@ -53,6 +53,9 @@ class ExportLaporanPenerimaanFGStokBPB implements FromView, WithEvents, ShouldAu
         tgl_terima,
         concat((DATE_FORMAT(tgl_terima,  '%d')), '-', left(DATE_FORMAT(tgl_terima,  '%M'),3),'-',DATE_FORMAT(tgl_terima,  '%Y')
         ) tgl_terima_fix,
+        a.id_so_det,
+        m.product_group,
+        m.product_item,
         buyer,
         ws,
         brand,
@@ -96,7 +99,7 @@ class ExportLaporanPenerimaanFGStokBPB implements FromView, WithEvents, ShouldAu
     {
 
         $event->sheet->styleCells(
-            'A4:P' . $event->getConcernable()->rowCount,
+            'A4:S' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [

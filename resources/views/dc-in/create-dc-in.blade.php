@@ -27,24 +27,20 @@
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Qty In</small></label>
-                                    <input type='hidden' class='form-control' id='txtqtyply' name='txtqtyply'
-                                        value='' readonly>
-                                    <input type='text' class='form-control' id='txtqty' name='txtqty' value=''
-                                        readonly>
+                                    <input type='hidden' class='form-control' id='txtqtyply' name='txtqtyply' value='' readonly>
+                                    <input type='text' class='form-control' id='txtqty' name='txtqty' value='' readonly>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Reject</small></label>
-                                    <input type='number' class='form-control' id='txtqtyreject' name='txtqtyreject'
-                                        oninput='sum();' autocomplete='off'>
+                                    <input type='number' class='form-control' id='txtqtyreject' name='txtqtyreject' oninput='sum();' autocomplete='off'>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Replacement</small></label>
-                                    <input type='number' class='form-control' id='txtqtyreplace' name='txtqtyreplace'
-                                        oninput='sum();' autocomplete='off'>
+                                    <input type='number' class='form-control' id='txtqtyreplace' name='txtqtyreplace' oninput='sum();' autocomplete='off'>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
@@ -60,22 +56,19 @@
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Tujuan</small></label>
-                                    <input type='text' class='form-control' id='txttuj' name='txttuj' value=''
-                                        readonly>
+                                    <input type='text' class='form-control' id='txttuj' name='txttuj' value='' readonly>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Tempat</small></label>
-                                    <select class='form-control select2bs4' style='width: 100%;' name='cbotempat'
-                                        id='cbotempat' onchange='getlokasi();'></select>
+                                    <select class='form-control select2bs4' style='width: 100%;' name='cbotempat' id='cbotempat' onchange='getlokasi();'></select>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Lokasi</small></label>
-                                    <select class='form-control select2bs4' style='width: 100%;' name='cbolokasi'
-                                        id='cbolokasi'></select>
+                                    <select class='form-control select2bs4' style='width: 100%;' name='cbolokasi' id='cbolokasi'></select>
                                 </div>
                             </div>
                         </div>
@@ -92,8 +85,7 @@
 
 
 
-    <form action="{{ route('store-dc-in') }}" method="post" id="store-dc-in" name='form'
-        onsubmit="submitForm(this, event)">
+    <form action="{{ route('store-dc-in') }}" method="post" id="store-dc-in" name='form' onsubmit="submitForm(this, event)">
         @csrf
         <div class="card card-sb">
             <div class="card-header">
@@ -105,13 +97,8 @@
                         <div class="mb-3">
                             <label class="form-label label-input"><small><b>Stocker</b></small></label>
                             <div class="input-group">
-                                <input type="text" class="form-control form-control-sm border-input" name="txtqr"
-                                    id="txtqr" autocomplete="off" enterkeyhint="go"
-                                    onkeyup="if (event.keyCode == 13)
-                                    document.getElementById('scan_qr').click()"
-                                    autofocus>
-                                <button class="btn btn-sm btn-primary" type="button" id="scan_qr"
-                                    onclick="scanqr()">Scan</button>
+                                <input type="text" class="form-control form-control-sm border-input" name="txtqr" id="txtqr" autocomplete="off" enterkeyhint="go" onkeyup="if (event.keyCode == 13) document.getElementById('scan_qr').click()" autofocus>
+                                <button class="btn btn-sm btn-primary" type="button" id="scan_qr" onclick="scanqr()">Scan</button>
                             </div>
                         </div>
                     </div>
@@ -128,29 +115,25 @@
                     <div class="col-md-3">
                         <label class="form-label label-input"><small><b>WS</b></small></label>
                         <div class="input-group">
-                            <input type='text' class='form-control form-control-sm border-input' id='txtws'
-                                name='txtws' value='' readonly>
+                            <input type='text' class='form-control form-control-sm border-input' id='txtws' name='txtws' value='' readonly>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label label-input"><small><b>Buyer</b></small></label>
                         <div class="input-group">
-                            <input type='text' class='form-control form-control-sm border-input' id='txtbuyer'
-                                name='txtbuyer' value='' readonly>
+                            <input type='text' class='form-control form-control-sm border-input' id='txtbuyer' name='txtbuyer' value='' readonly>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label label-input"><small><b>Style</b></small></label>
                         <div class="input-group">
-                            <input type='text' class='form-control form-control-sm border-input' id='txtstyle'
-                                name='txtstyle' value='' readonly>
+                            <input type='text' class='form-control form-control-sm border-input' id='txtstyle' name='txtstyle' value='' readonly>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label label-input"><small><b>Color</b></small></label>
                         <div class="input-group">
-                            <input type='text' class='form-control form-control-sm border-input' id='txtcolor'
-                                name='txtcolor' value='' readonly>
+                            <input type='text' class='form-control form-control-sm border-input' id='txtcolor' name='txtcolor' value='' readonly>
                         </div>
                     </div>
                 </div>
@@ -159,29 +142,25 @@
                     <div class="col-md-3">
                         <label class="form-label label-input"><small><b>Shell</b></small></label>
                         <div class="input-group">
-                            <input type='text' class='form-control form-control-sm border-input' id='txtshell'
-                                name='txtshell' value='' readonly>
+                            <input type='text' class='form-control form-control-sm border-input' id='txtshell' name='txtshell' value='' readonly>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label label-input"><small><b>No Cut</b></small></label>
                         <div class="input-group">
-                            <input type='text' class='form-control form-control-sm border-input' id='txtnocut'
-                                name='txtnocut' value='' readonly>
+                            <input type='text' class='form-control form-control-sm border-input' id='txtnocut' name='txtnocut' value='' readonly>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label label-input"><small><b>Size</b></small></label>
                         <div class="input-group">
-                            <input type='text' class='form-control form-control-sm border-input' id='txtsize'
-                                name='txtsize' value='' readonly>
+                            <input type='text' class='form-control form-control-sm border-input' id='txtsize' name='txtsize' value='' readonly>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label label-input"><small><b>Group/Lot</b></small></label>
                         <div class="input-group">
-                            <input type='text' class='form-control form-control-sm border-input' id='txtgroup'
-                                name='txtgroup' value='' readonly>
+                            <input type='text' class='form-control form-control-sm border-input' id='txtgroup' name='txtgroup' value='' readonly>
                         </div>
                     </div>
                 </div>
@@ -190,31 +169,24 @@
                     <div class="col-md-3">
                         <label class="form-label label-input"><small><b>Qty</b></small></label>
                         <div class="input-group">
-                            <input type='text' class='form-control form-control-sm border-input' id='txtqtyply_h'
-                                name='txtqtyply_h' value='' readonly>
+                            <input type='text' class='form-control form-control-sm border-input' id='txtqtyply_h' name='txtqtyply_h' value='' readonly>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label label-input"><small><b>Range Awal</b></small></label>
                         <div class="input-group">
-                            <input type='text' class='form-control form-control-sm border-input' id='txtrange_awal'
-                                name='txtrange_awal' value='' readonly>
+                            <input type='text' class='form-control form-control-sm border-input' id='txtrange_awal' name='txtrange_awal' value='' readonly>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label label-input"><small><b>Range Akhir</b></small></label>
                         <div class="input-group">
-                            <input type='text' class='form-control form-control-sm border-input' id='txtrange_akhir'
-                                name='txtrange_akhir' value='' readonly>
+                            <input type='text' class='form-control form-control-sm border-input' id='txtrange_akhir' name='txtrange_akhir' value='' readonly>
                         </div>
-                        <input type='hidden' class='form-control form-control-sm border-input' id='txtkode'
-                            name='txtkode' value='' readonly>
-                        <input type='hidden' class='form-control form-control-sm border-input' id='txttuj_h'
-                            name='txttuj_h' value='' readonly>
-                        <input type='hidden' class='form-control form-control-sm border-input' id='txtlok_h'
-                            name='txtlok_h' value='' readonly>
-                        <input type='hidden' class='form-control form-control-sm border-input' id='txttempat_h'
-                            name='txttempat_h' value='' readonly>
+                        <input type='hidden' class='form-control form-control-sm border-input' id='txtkode' name='txtkode' value='' readonly>
+                        <input type='hidden' class='form-control form-control-sm border-input' id='txttuj_h' name='txttuj_h' value='' readonly>
+                        <input type='hidden' class='form-control form-control-sm border-input' id='txtlok_h' name='txtlok_h' value='' readonly>
+                        <input type='hidden' class='form-control form-control-sm border-input' id='txttempat_h' name='txttempat_h' value='' readonly>
                     </div>
                 </div>
 

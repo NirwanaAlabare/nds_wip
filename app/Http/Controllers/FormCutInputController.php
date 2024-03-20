@@ -263,16 +263,6 @@ class FormCutInputController extends Controller
 
     public function getScannedItem($id = 0)
     {
-        $scannedItem = ScannedItem::where('id_roll', $id)->first();
-
-        if ($scannedItem) {
-            if (floatval($scannedItem->qty) > 0) {
-                return json_encode($scannedItem);
-            }
-
-            return json_encode(null);
-        }
-
         $newItem = DB::connection("mysql_sb")->select("
             SELECT
                 br.id_roll id_roll,
@@ -305,6 +295,16 @@ class FormCutInputController extends Controller
                 LIMIT 1
         ");
         if ($newItem) {
+            $scannedItem = ScannedItem::where('id_roll', $id)->where('id_item', $newItem[0]->id_item)->first();
+
+            if ($scannedItem) {
+                if (floatval($scannedItem->qty) > 0) {
+                    return json_encode($scannedItem);
+                }
+
+                return json_encode(null);
+            }
+
             return json_encode($newItem ? $newItem[0] : null);
         }
 
@@ -342,8 +342,21 @@ class FormCutInputController extends Controller
                 roll_qty AS DECIMAL ( 11, 3 )) > 0.000
                 LIMIT 1
         ");
+        if ($item) {
+            $scannedItem = ScannedItem::where('id_roll', $id)->where('id_item', $item[0]->id_item)->first();
 
-        return json_encode($item ? $item[0] : null);
+            if ($scannedItem) {
+                if (floatval($scannedItem->qty) > 0) {
+                    return json_encode($scannedItem);
+                }
+
+                return json_encode(null);
+            }
+
+            return json_encode($item ? $item[0] : null);
+        }
+
+        return  null;
     }
 
     public function getItem(Request $request) {

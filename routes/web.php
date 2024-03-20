@@ -187,7 +187,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-number-data', 'getNumberData')->name('get-number-manual-form-cut');
         Route::get('/get-scanned-item/{id?}', 'getScannedItem')->name('get-scanned-manual-form-cut');
         Route::get('/get-item', 'getItem')->name('get-item-manual-form-cut');
-        Route::put('/start-process', 'startProcess')->name('start-process-manual-form-cut');
+        Route::put('/start-process/{id?}', 'startProcess')->name('start-process-manual-form-cut');
+        Route::post('/jump-to-detail/{id?}', 'jumpToDetail')->name('jump-to-detail-manual-form-cut');
         Route::post('/store-marker/{id?}', 'storeMarker')->name('store-marker-manual-form-cut');
         Route::put('/next-process-one/{id?}', 'nextProcessOne')->name('next-process-one-manual-form-cut');
         Route::put('/next-process-two/{id?}', 'nextProcessTwo')->name('next-process-two-manual-form-cut');
@@ -772,6 +773,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/getdet_carton', 'getdet_carton')->name('getdet_carton');
         Route::get('/export_excel_bpb_fg_stok', 'export_excel_bpb_fg_stok')->name('export_excel_bpb_fg_stok');
     });
+
     Route::controller(FGStokBPPBController::class)->prefix("bppb-fg-stock")->middleware('fg-stock')->group(function () {
         Route::get('/', 'index')->name('bppb-fg-stock');
         Route::post('/store', 'store')->name('store-bppb-fg-stock');
@@ -792,7 +794,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-mutasi-fg-stock');
         Route::get('/create', 'create')->name('create-mutasi-fg-stock');
         Route::get('/getno_karton_asal', 'getno_karton_asal')->name('getno-karton-asal-fg-stock');
-        Route::get('/show_det', 'show_det')->name('show_det-fg-stock');
+        Route::get('/show_det_mutasi', 'show_det_mutasi')->name('show_det-fg-stock');
         Route::get('/export_excel_mutasi_int_fg_stok', 'export_excel_mutasi_int_fg_stok')->name('export_excel_mutasi_int_fg_stok');
     });
 

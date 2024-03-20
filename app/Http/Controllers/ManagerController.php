@@ -170,8 +170,11 @@ class ManagerController extends Controller
 
         $lostTimeData = FormCutInputLostTime::where('form_cut_input_id', $id)->get();
 
+        $meja = User::select("id", "name", "username")->where('type', 'meja')->get();
+
         return view("manager.cutting.detail-cutting", [
             'id' => $id,
+            'meja' => $meja,
             'formCutInputData' => $formCutInputData,
             'actCostingData' => $actCostingData,
             'markerDetailData' => $markerDetailData,
@@ -237,7 +240,7 @@ class ManagerController extends Controller
 
         $updateTimeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->
             leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->
-            where('form_cut_input.no_meja', $validatedRequest['no_meja'])->
+            where('form_cut_input.no_form', $validatedRequest['no_form_cut_input'])->
             where('form_cut_input_detail.id', $validatedRequest['current_id'])->
             update([
                 "id_roll" => $validatedRequest['current_id_roll'],
@@ -284,6 +287,10 @@ class ManagerController extends Controller
                 $formCutDetail->group_stocker = $groupNumber;
                 $formCutDetail->save();
             }
+
+            $updateFormCut = FormCutInput::where('no_form', $validatedRequest['no_form_cut_input'])->update([
+                "no_meja" => $validatedRequest['no_meja']
+            ]);
 
             return array(
                 "status" => 200,
