@@ -272,7 +272,7 @@
                     }
 
                     function getStockerData(id) {
-                        if (checkIfNull(id)) {
+                        if (isNotNull(id)) {
                             return $.ajax({
                                 url: '{{ route('get-stocker-data-trolley-stock') }}/' + id,
                                 type: 'get',

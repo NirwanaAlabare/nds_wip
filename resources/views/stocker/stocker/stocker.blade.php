@@ -31,12 +31,12 @@
                         <button class="btn btn-primary btn-sm" onclick="dataTableReload()"><i class="fa fa-search"></i></button>
                     </div>
                 </div>
-                <div>
+                {{-- <div class="d-none">
                     <div class="d-flex gap-1">
                         <button class="btn btn-success btn-sm" onclick="fixRedundantStocker()"><i class="fa fa-cog"></i> Stocker Redundant</button>
                         <button class="btn btn-primary btn-sm" onclick="fixRedundantNumbering()"><i class="fa fa-cog"></i> Numbering Redundant</button>
                     </div>
-                </div>
+                </div> --}}
             </div>
             <div class="table-responsive">
                 <table id="datatable" class="table table-bordered table-sm w-100">

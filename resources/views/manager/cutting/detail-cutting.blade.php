@@ -865,7 +865,7 @@
 
         // -Get Scanned Item Data-
         function getScannedItem(id) {
-            if (checkIfNull(id)) {
+            if (isNotNull(id)) {
                 return $.ajax({
                     url: '{{ route('get-scanned-form-cut-input') }}/' + id,
                     type: 'get',

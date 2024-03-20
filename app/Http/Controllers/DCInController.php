@@ -147,11 +147,41 @@ select * from tmp_dc_in_input_new where id_qr_stocker = '" . $request->txtqrstoc
 
     public function show_data_header(Request $request)
     {
+        // $data_header = DB::select("
+        // SELECT
+        // a.act_costing_ws,
+        // m.buyer,
+        // m.styleno,
+        // a.color,
+        // a.size,
+        // a.panel,
+        // f.no_cut,
+        // f.id,
+        // b.grouplot,
+        // a.qty_ply,
+        // a.range_awal,
+        // a.range_akhir,
+        // concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade)kode,
+        // ms.tujuan,
+        // IF(ms.tujuan = 'NON SECONDARY',a.lokasi,ms.proses) lokasi ,
+        // a.tempat
+        // FROM `stocker_input` a
+        // inner join master_sb_ws m on a.so_det_id = m.id_so_det
+        // inner join form_cut_input f on a.form_cut_id = f.id
+        // inner join part_detail pd on a.part_detail_id = pd.id
+        // inner join master_secondary ms on pd.master_secondary_id = ms.id
+        // inner join
+        // (
+        // select no_form_cut_input, group_concat(distinct(upper(group_roll))) grouplot from form_cut_input_detail
+        // group by no_form_cut_input,group_roll
+        // ) b on f.no_form = b.no_form_cut_input
+        // where a.id_qr_stocker = '$request->txtqrstocker'");
+
         $data_header = DB::select("
         SELECT
         a.act_costing_ws,
         m.buyer,
-        m.styleno,
+        m.style styleno,
         a.color,
         a.size,
         a.panel,
@@ -166,8 +196,8 @@ select * from tmp_dc_in_input_new where id_qr_stocker = '" . $request->txtqrstoc
         IF(ms.tujuan = 'NON SECONDARY',a.lokasi,ms.proses) lokasi ,
         a.tempat
         FROM `stocker_input` a
-        inner join master_sb_ws m on a.so_det_id = m.id_so_det
         inner join form_cut_input f on a.form_cut_id = f.id
+        INNER JOIN marker_input m ON m.kode = f.id_marker
         inner join part_detail pd on a.part_detail_id = pd.id
         inner join master_secondary ms on pd.master_secondary_id = ms.id
         inner join
