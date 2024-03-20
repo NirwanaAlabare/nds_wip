@@ -25,7 +25,8 @@
                     <div class="modal-body">
                         <div class='row'>
                             <div class="col-md-12 table-responsive">
-                                <table id="datatable_modal" class="table table-bordered table-hover table-sm w-100">
+                                <table id="datatable_modal"
+                                    class="table table-bordered table-hover table-sm w-100 text-wrap">
                                     <thead>
                                         <tr>
                                             <th>Lokasi</th>
@@ -365,14 +366,13 @@
             }
         };
 
-
         $('#datatable_modal thead tr').clone(true).appendTo('#datatable_modal thead');
         $('#datatable_modal thead tr:eq(1) th').each(function(i) {
             var title = $(this).text();
             $(this).html('<input type="text" class="form-control form-control-sm"/>');
             $('input', this).on('keyup change', function() {
-                if (datatable.column(i).search() !== this.value) {
-                    datatable
+                if (datatable_modal.column(i).search() !== this.value) {
+                    datatable_modal
                         .column(i)
                         .search(this.value)
                         .draw();
