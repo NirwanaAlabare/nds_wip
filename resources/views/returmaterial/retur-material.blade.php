@@ -111,8 +111,8 @@
             </div>
                 <input type="text"  id="cari_grdok" name="cari_grdok" autocomplete="off" placeholder="Cari No BPPB..." onkeyup="carigrdok()">
         </div>
-        <div class="table-responsive">
-            <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+        <div class="table-responsive" style="max-height: 400px;">
+            <table id="datatable" class="table table-bordered table-striped table-head-fixed table-sm w-100 text-nowrap">
                 <thead>
                     <tr>
                         <th class="text-center">No RO</th>
@@ -123,6 +123,7 @@
                         <th class="text-center">Jenis Retur</th>
                         <th class="text-center">Dokumen BC</th>
                         <th class="text-center">Tujuan Pemasukan</th>
+                        <th class="text-center">Out Barcode</th>
                         <th class="text-center">User</th>
                         <th class="text-center">Status</th>
                         <th class="text-center">Action</th>
@@ -461,6 +462,9 @@ $('.select2type').select2({
                 data: 'jns_pemasukan'
             },
             {
+                data: 'id'
+            },
+            {
                 data: 'user_create'
             },
             {
@@ -472,13 +476,38 @@ $('.select2type').select2({
             
         ],
         columnDefs: [{
-                targets: [10],
+                targets: [5],
+                render: (data, type, row, meta) => data ? data : "-"
+            },
+            {
+                targets: [7],
+                render: (data, type, row, meta) => data ? data : "-"
+            },
+            {
+                targets: [8],
+                render: (data, type, row, meta) => {
+                 if (row.balance == 0) {
+                    return `<div class='d-flex gap-1 justify-content-center'>
+                    <a href="{{ route('barcode-ro') }}/`+data+`"><i class="fas fa-check-circle fa-lg" style='color:green;'></i></a>
+                    </div>`;
+                }else if(row.qty_barcode  == 0){
+                   return `<div class='d-flex gap-1 justify-content-center'>
+                    <a href="{{ route('barcode-ro') }}/`+data+`"><i class="fas fa-times-circle fa-lg" aria-hidden="true" style='color:red;'></i></a>
+                    </div>`;
+                }else{
+                    return `<div class='d-flex gap-1 justify-content-center'>
+                    <a href="{{ route('barcode-ro') }}/`+data+`"><i class="fas fa-times-circle fa-lg" aria-hidden="true" style='color:#FFD700;'></i></a>
+                    </div>`;
+                }
+                }
+            },
+            {
+                targets: [11],
                 render: (data, type, row, meta) => {
                     console.log(row);
                     if (row.status == 'Pending') {
                         return `<div class='d-flex gap-1 justify-content-center'> 
                    <button type='button' class='btn btn-sm btn-warning' onclick='printpdf("` + row.id + `")'><i class="fa-solid fa-print "></i></button>
-                    <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='approve_outmaterial("` + row.no_bppb + `")'><i class="fa-solid fa-person-circle-check"></i></button> 
                     </div>`;
                     }else{
                         return `<div class='d-flex gap-1 justify-content-center'> 
@@ -490,6 +519,7 @@ $('.select2type').select2({
        
         ]
     });
+    //<button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='approve_outmaterial("` + row.no_bppb + `")'><i class="fa-solid fa-person-circle-check"></i></button> 
 
     function dataTableReload() {
         datatable.ajax.reload();

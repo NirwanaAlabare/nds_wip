@@ -408,6 +408,7 @@ class ReturInMaterialController extends Controller
             $barcode = $sql_barcode[0]->kode;
 
                 $save_lokasi = InMaterialLokasi::create([
+                    "no_barcode" => $barcode,
                     "no_dok" => $nodok,
                     "no_ws" => $nows,
                     "id_jo" => $idjo,

@@ -140,6 +140,27 @@
                 </li>
                 @endif
 
+                @if ($page == 'dashboard-warehouse')
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false" class="nav-link dropdown-toggle">Konfirmasi</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+
+                            <li>
+                                <a href="{{ route('konfirmasi-pemasukan') }}" class="dropdown-item">
+                                    Konfirmasi Pemasukan
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('konfirmasi-pengeluaran') }}" class="dropdown-item">
+                                    Konfirmasi Pengeluaran
+                                </a>
+                            </li>
+
+                        </ul>
+                    </li>
+                @endif
+
 
                                 @if ($page == 'dashboard-marker')
                                     <li class="nav-item dropdown">

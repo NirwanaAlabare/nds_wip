@@ -22,69 +22,17 @@
               <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
             </div>
         </div>
-@foreach ($kode_gr as $kodegr)
+@foreach ($d_header as $data_header)
     <div class="card-body">
     <div class="form-group row">
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="row">
             <div class="col-md-12">
             <div class="mb-1">
                 <div class="form-group">
-                <label><small>No BPB</small></label>
-                <input type="text" class="form-control " id="txt_gr_dok" name="txt_gr_dok" value="{{ $kodegr->no_dok }}" readonly>
-                <input type="hidden" class="form-control " id="txt_idgr" name="txt_idgr" value="{{ $kodegr->id }}" readonly>
-                </div>
-            </div>
-            </div>
-
-            <div class="col-md-6">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Tgl BPB</small></label>
-                <input type="date" class="form-control form-control" id="txt_tgl_gr" name="txt_tgl_gr"
-                        value="{{ $kodegr->tgl_dok }}">
-                </div>
-            </div>
-            </div>
-
-            <div class="col-md-6">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Tgl Pengiriman</small></label>
-                <input type="date" class="form-control form-control" id="txt_tgl_ship" name="txt_tgl_ship"
-                        value="{{ $kodegr->tgl_shipp }}">
-                </div>
-            </div>
-            </div>
-
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Supplier</small></label>
-                <select class="form-control select2bs4" id="txt_supp" name="txt_supp" style="width: 100%;" onchange="settype()">
-                    <option selected="selected" value="{{$kodegr->supplier}}">{{$kodegr->supplier}}</option>
-                        @foreach ($msupplier as $msupp)
-                    <option value="{{ $msupp->Supplier }}">
-                                {{ $msupp->Supplier }}
-                    </option>
-                        @endforeach
-                </select>
-                </div>
-            </div>
-            </div>
-
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Tipe BPB</small></label>
-                <select class="form-control select2bs4" id="txt_type_gr" name="txt_type_gr" style="width: 100%;" onchange="settype()">
-                    <option selected="selected" value="{{$kodegr->type_dok}}">{{$kodegr->type_dok}}</option>
-                        @foreach ($gr_type as $grtype)
-                    <option value="{{ $grtype->nama_pilihan }}">
-                                {{ $grtype->nama_pilihan }}
-                    </option>
-                        @endforeach
-                </select>
+                <label><small>No Return</small></label>
+                <input type="text" class="form-control " id="txt_no_bppb" name="txt_no_bppb" value="{{ $data_header->no_bppb }}" readonly>
+                <input type="hidden" class="form-control " id="txt_idbppb" name="txt_idbppb" value="{{ $data_header->id }}" readonly>
                 </div>
             </div>
             </div>
@@ -93,14 +41,7 @@
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>No PO</small></label>
-                @if ($kodegr->type_dok == "CMT")
-                <select class="form-control select2bs4" id="txt_po" name="txt_po" style="width: 100%;"  disabled></select>
-                @endif
-                @if ($kodegr->type_dok == "FOB")
-                <select class="form-control select2bs4" id="txt_po" name="txt_po" style="width: 100%;" >
-                    <option selected="selected" value="{{$kodegr->no_po}}">{{$kodegr->no_po}}</option>
-                </select>
-                @endif
+                <input type="text" class="form-control " id="txt_no_po" name="txt_no_po" value="{{ $data_header->no_po }}" readonly>
                 </div>
             </div>
             </div>
@@ -109,20 +50,11 @@
 
     <div class="col-md-3">
         <div class="row">
-
             <div class="col-md-12">
             <div class="mb-1">
                 <div class="form-group">
-                <label><small>WS (Global)</small></label>
-                @if ($kodegr->type_dok == "CMT")
-                <select class="form-control select2bs4" id="txt_wsglobal" name="txt_wsglobal" style="width: 100%;" >
-                    <option selected="selected" value="{{$kodegr->no_ws}}">{{$kodegr->no_ws}}</option>
-                </select>
-                @endif
-                @if ($kodegr->type_dok == "FOB")
-                <select class="form-control select2bs4" id="txt_wsglobal" name="txt_wsglobal" style="width: 100%;"  disabled>
-                </select>
-                @endif
+                <label><small>Tgl Return</small></label>
+                <input type="date" class="form-control form-control" id="tgl_return" name="tgl_return" value="{{ $data_header->tgl_bppb }}">
                 </div>
             </div>
             </div>
@@ -130,137 +62,58 @@
             <div class="col-md-12">
             <div class="mb-1">
                 <div class="form-group">
-                <label><small>Tipe BC</small></label>
-                <select class="form-control select2bs4" id="txt_type_bc" name="txt_type_bc" style="width: 100%;">
-                    @if ($kodegr->type_bc == "")
-                    <option selected="selected" value="">Select Type</option>
-                    @endif
-                    @if ($kodegr->type_bc != "")
-                    <option selected="selected" value="{{$kodegr->type_bc}}">{{$kodegr->type_bc}}</option>
-                    @endif
-                        @foreach ($mtypebc as $bc)
-                    <option value="{{ $bc->nama_pilihan }}">
-                                {{ $bc->nama_pilihan }}
-                    </option>
-                        @endforeach
-                </select>
-                </div>
-            </div>
-            </div>
-
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Tipe Pembelian</small></label>
-                <select class="form-control select2bs4" id="txt_type_pch" name="txt_type_pch" style="width: 100%;">
-                    @if ($kodegr->type_pch == "")
-                    <option selected="selected" value="">Select Type</option>
-                    @endif
-                    @if ($kodegr->type_pch != "")
-                    <option selected="selected" value="{{$kodegr->type_pch}}">{{$kodegr->type_pch}}</option>
-                    @endif
-                        @foreach ($pch_type as $pch)
-                    <option value="{{ $pch->nama_pilihan }}">
-                                {{ $pch->nama_pilihan }}
-                    </option>
-                        @endforeach
-                </select>
-                </div>
-            </div>
-            </div>
-
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Dokumen Asli</small></label>
-                <select class="form-control select2bs4" id="txt_oridok" name="txt_oridok" style="width: 100%;">
-                </select>
-                </div>
-            </div>
-            </div>
-
-            <div class="col-md-12">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>No Invoice</small></label>
-                <input type="text" class="form-control " id="txt_invdok" name="txt_invdok" value="{{$kodegr->no_invoice}}" >
+                <label><small>Jenis Defect</small></label>
+                <input type="text" class="form-control " id="txt_jns_defect" name="txt_jns_defect" value="{{ $data_header->jns_defect }}" readonly>
                 </div>
             </div>
             </div>
         </div>
     </div>
 
-    <div class="col-md-5">
+    <div class="col-md-3">
         <div class="row">
-
-            <div class="col-md-7">
+            <div class="col-md-12">
             <div class="mb-1">
                 <div class="form-group">
-                <label><small>No Aju</small></label>
-                <input type="text" class="form-control " id="txt_aju_num" name="txt_aju_num" value="{{$kodegr->no_aju}}" >
+                <label><small>Tujuan</small></label>
+                <input type="text" class="form-control " id="txt_tujuan" name="txt_tujuan" value="{{ $data_header->tujuan }}" readonly>
                 </div>
-            </div>
-            </div>
-
-            <div class="col-md-5">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Tgl Aju</small></label>
-                <input type="date" class="form-control form-control" id="txt_tgl_aju" name="txt_tgl_aju"
-                        value="{{$kodegr->tgl_aju}}">
-                </div>
-            </div>
-            </div>
-
-            <div class="col-md-7">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>No Daftar</small></label>
-                <input type="text" class="form-control " id="txt_reg_num" name="txt_reg_num" value="{{$kodegr->no_daftar}}" >
-                </div>
-            </div>
-            </div>
-
-            <div class="col-md-5">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Tgl Daftar</small></label>
-                <input type="date" class="form-control form-control" id="txt_reg_aju" name="txt_reg_aju"
-                        value="{{$kodegr->tgl_daftar}}">
-                </div>
-            </div>
-            </div>
-
-            <div class="col-md-7">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Contract Number</small></label>
-                <input type="text" class="form-control " id="txt_kontrak" name="txt_kontrak" value="{{$kodegr->no_kontrak}}" >
-                </div>
-            </div>
-            </div>
-
-            <div class="col-md-5">
-            <div class="mb-1">
-                <div class="form-group">
-                <label><small>Jenis Bahan Baku</small></label>
-<!--            <select class="form-control select2bs4" id="txt_tom" name="txt_tom" style="width: 100%;"></select> -->                      <input type="text" class="form-control " id="txt_tom" name="txt_tom" value="Fabric" readonly>
-               </div>
             </div>
             </div>
 
             <div class="col-md-12">
             <div class="mb-1">
                 <div class="form-group">
-                <label><small>Catatan</small></label>
-                <textarea type="text" rows="4" class="form-control " id="txt_notes" name="txt_notes" value="{{$kodegr->deskripsi}}" > </textarea>
-                <input type="hidden" class="form-control" id="jumlah_data" name="jumlah_data" readonly>
+                <label><small>No BPB</small></label>
+                <input type="text" class="form-control " id="txt_no_bpb" name="txt_no_bpb" value="{{ $data_header->no_bpb }}" readonly>
                 </div>
             </div>
             </div>
         </div>
     </div>
+
+    <div class="col-md-3">
+        <div class="row">
+            <div class="col-md-12">
+            <div class="mb-1">
+                <div class="form-group">
+                <label><small>Dokumen BC</small></label>
+                <input type="text" class="form-control " id="txt_dok_bc" name="txt_dok_bc" value="{{ $data_header->dok_bc }}" readonly>
+                </div>
+            </div>
+            </div>
+
+            <div class="col-md-12">
+            <div class="mb-1">
+                <div class="form-group">
+                <label><small>Tgl BPB</small></label>
+                <input type="date" class="form-control form-control" id="tgl_bpb" name="tgl_bpb" value="{{ $data_header->tgl_dok }}">
+                </div>
+            </div>
+            </div>
+        </div>
     </div>
+</div>
 </div>
 </div>
 @endforeach
@@ -279,7 +132,7 @@
             </div>
                 <input type="text"  id="cari_item" name="cari_item" autocomplete="off" placeholder="Search Item..." onkeyup="cariitem()">
         </div>
-    <div class="table-responsive"style="max-height: 500px">
+    <div class="table-responsive" style="max-height: 400px">
             <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
                 <thead>
                     <tr>
@@ -318,8 +171,7 @@
                         <td>
                             @if($detdata->qty_sisa > 0)
                             <div class='d-flex gap-1 justify-content-center'>
-                                <button type='button' class='btn btn-sm btn-warning' href='javascript:void(0)' onclick='addlocation("{{$detdata->no_ws}}","{{$detdata->id_jo}}","{{$detdata->id_item}}","{{$detdata->kode_item}}","{{$detdata->qty_good}}","{{$detdata->unit}}","{{$detdata->qty_good}}","{{$detdata->desc_item}}","{{$detdata->qty_sisa}}")'><i class="fa-solid fa-circle-plus fa-lg"></i></button>
-                                <a href="{{ route('upload-lokasi') }}/{{$detdata->id}}"><button type='button' class='btn btn-sm btn-info'><i class="fa-solid fa-upload"></i></button></a>
+                                <button type='button' class='btn btn-sm btn-warning' href='javascript:void(0)' onclick="out_scan('{{$detdata->id_item}}','{{$detdata->id_jo}}','{{$detdata->qty_sisa}}','{{$detdata->unit}}','{{$detdata->no_ws}}')"><i class="fa-solid fa-circle-plus fa-lg"></i></button>
                             </div>
                             @endif
                             @if($detdata->qty_sisa <= 0)
@@ -337,7 +189,7 @@
             <div class="mb-1">
                 <div class="form-group">
                     <!-- <button class="btn btn-sb float-end mt-2 ml-2"><i class="fa fa-plus" aria-hidden="true"></i> Save</button> -->
-                    <a href="{{ route('in-material') }}" class="btn btn-danger float-end mt-2">
+                    <a href="{{ route('retur-material') }}" class="btn btn-danger float-end mt-2">
                     <i class="fas fa-arrow-circle-left"></i> Kembali</a>
                 </div>
             </div>
@@ -346,141 +198,76 @@
     </div>
 </form>
 
-<div class="modal fade modal-add-lokasi" id="modal-add-lokasi">
-    <form action="{{ route('save-lokasi') }}" method="post" onsubmit="submitForm(this, event)">
+<div class="modal fade" id="modal-out-barcode">
+    <form action="{{ route('save-ro-scan') }}" method="post" onsubmit="submitForm(this, event)">
          @method('POST')
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-light">
-                    <h4 class="modal-title">Set Lokasi</h4>
+                    <h4 class="modal-title">List Item</h4>
                     <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
             <div class="modal-body">
                 <div class="form-group row">
-
-                    <div class="col-md-7">
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-4 col-md-4">
                         <div class="mb-1">
                         <div class="form-group">
-                            <label><small>No BPB</small></label>
-                                <input type="text" class="form-control " id="m_gr_dok" name="m_gr_dok" value="" readonly>
-                                <input type="hidden" class="form-control " id="txtidgr" name="txtidgr" value="" readonly>
+                            <label><small>Qty Request</small></label>
+                                <input type="text" class="form-control " id="m_qty_req2" name="m_qty_req2" value="" readonly>
+                                <input type="hidden" class="form-control " id="m_qty_req_h2" name="m_qty_req_h2" value="" readonly>
                         </div>
                         </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-4 col-md-4">
                         <div class="mb-1">
                         <div class="form-group">
-                            <label><small>No WS</small></label>
-                                <input type="text" class="form-control " id="m_no_ws" name="m_no_ws" value="" readonly>
+                            <label><small>Qty Out</small></label>
+                                <input type="text" class="form-control " id="m_qty_out2" name="m_qty_out2" value="" readonly>
+                                <input type="hidden" class="form-control " id="m_qty_out_h2" name="m_qty_out_h2" value="" readonly>
                         </div>
                         </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-4 col-md-4">
                         <div class="mb-1">
                         <div class="form-group">
-                            <label><small>Kode barang</small></label>
-                                <input type="text" class="form-control " id="m_kode_item" name="m_kode_item" value="" readonly>
-                        </div>
-                        </div>
-                        </div>
-                        <div class="col-md-3">
-                        <div class="mb-1">
-                        <div class="form-group">
-                            <label><small>Balance</small></label>
-                                <input type="text" class="form-control" id="m_balance" name="m_balance" value="" readonly>
-                        </div>
-                        </div>
-                        </div>
-                        <div class="col-md-3">
-                        <div class="mb-1">
-                        <div class="form-group">
-                            <label><small>Qty Lokasi</small></label>
-                                <input type="text" class="form-control" id="ttl_qty_sj" name="ttl_qty_sj" value="" readonly>
-                                <!-- <input style="width:100%;text-align:right;" class="form-control-sm" type="text" id="ttl_qty_sj" name="ttl_qty_sj" value="" readonly/> -->
+                            <label><small>Qty Balance</small></label>
+                                <input type="text" class="form-control " id="m_qty_bal2" name="m_qty_bal2" value="" readonly>
+                                <input type="hidden" class="form-control " id="m_qty_bal_h2" name="m_qty_bal_h2" value="" readonly>
                         </div>
                         </div>
                         </div>
                         <div class="col-md-12">
+                            <input type="hidden" class="form-control " id="m_no_bppb2" name="m_no_bppb2" value="" readonly>
+                            <input type="hidden" class="form-control " id="m_tgl_bppb2" name="m_tgl_bppb2" value="" readonly>
+                        <input type="hidden" class="form-control " id="t_roll2" name="t_roll2" value="" readonly>
                         <div class="mb-1">
                         <div class="form-group">
-                            <label><small>Deskripsi</small></label>
-                                <input type="text" class="form-control " id="m_desc" name="m_desc" value="" readonly>
+                            <label><small>Scan Barcode</small></label>
+                            <select class='form-control select2barcode' multiple='multiple' style='width: 100%;height: 20px;' name='txt_barcode' id='txt_barcode' onchange='getdatabarcode(this.value)' >
+                            </select>
                         </div>
                         </div>
                         </div>
-                    </div>
-                    </div>
-
-                    <div class="col-md-5">
-                    <div class="row">
-                        <div class="col-md-6">
-                        <div class="mb-1">
-                            <div class="form-group">
-                            <label><small>Quantity</small></label>
-                                <input type="text" class="form-control" id="m_qty" name="m_qty" value="" readonly>
-                        </div>
-                        </div>
-                        </div>
-                        <div class="col-md-6">
-                        <div class="mb-1">
-                        <div class="form-group">
-                            <label><small>Unit Detail</small></label>
-                                <input type="text" class="form-control " id="m_unit" name="m_unit" value="" readonly>
-                        </div>
-                        </div>
-                        </div>
-                        <div class="col-md-6">
-                        <div class="mb-1">
-                        <div class="form-group">
-                            <label><small>Quantity Detail</small></label>
-                                <input type="text" class="form-control " style="text-align:right;" id="m_qty_det" name="m_qty_det" value="" onkeyup="getlist_addlokasi()">
-                        </div>
-                        </div>
-                        </div>
-                        <div class="col-md-6">
-                        <div class="mb-1">
-                        <div class="form-group">
-                            <label><small>Lot</small></label>
-                                <input type="text" class="form-control " id="m_lot" name="m_lot" value="" onkeyup="getlist_addlokasi()">
-                                <input type="hidden" id="m_idjo" name="m_idjo" value="">
-                                <input type="hidden" id="m_iditem" name="m_iditem" value="">
-                        </div>
-                        </div>
-                        </div>
-                        <div class="col-md-12">
-                        <div class="mb-1">
-                        <div class="form-group">
-                            <label><small>Lokasi</small></label>
-                                <select class="form-control select2lok" id="m_location" name="m_location" style="width: 100%;" onchange="getlist_addlokasi()">
-                                    <option selected="selected" value="">Pilih Lokasi</option>
-                                        @foreach ($lokasi as $lok)
-                                    <option value="{{ $lok->kode_lok }}">{{ $lok->lokasi }}</option>
-                                        @endforeach
-                                </select>
-                        </div>
-                        </div>
-                        </div>
-                    </div>
                     </div>
 
                     <div class="col-md-12">
                     <div class="row">
-                        <div class="col-md-12" id="detail_addlok">
+                        <div class="col-md-12" id="detail_showbarcode">
                         </div>
-                        <input style="width:100%;text-align:right;" class="form-control-sm" type="hidden" id="ttl_qty_ak" name="ttl_qty_ak" value="" readonly/>
                     </div>
                     </div>
 
                 </div>
             </div>
-                <div class="modal-footer justify-content-between">
+
+            <div class="modal-footer justify-content-between">
                     <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Tutup</button>
                     <button type="submit" class="btn btn-primary toastsDefaultDanger"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Simpan</button>
                 </div>
+
             </div>
         </div>
     </form>
@@ -611,6 +398,10 @@
             theme: 'bootstrap4'
         });
 
+        $('.select2barcode').select2({
+            theme: 'bootstrap4'
+        })
+
         $('.select2supp').select2({
             theme: 'bootstrap4'
         });
@@ -655,6 +446,125 @@
 
             $('#ttl_qty_sj').val(jml_qty);
             }
+
+        }
+
+        function out_scan($id_item,$id_jo,$qty_req,$unit,$noreq){
+        let id_item = $id_item;
+        let id_jo = $id_jo;
+        let qty_req = $qty_req;
+        let unit = $unit;
+        let no_bppb = $('#txt_no_bppb').val();
+        let no_bpb = $('#txt_no_bpb').val();
+        let tgl_bppb = $('#tgl_return').val();
+        let noreq = $noreq;
+
+        getlist_barcode(id_item,id_jo,no_bpb);
+
+        // $('#m_qty_req').val(qty_req + ' ' + unit);
+        document.getElementById('txt_barcode').innerHTML = '';
+        document.getElementById('detail_showbarcode').innerHTML = '';
+        $('#m_qty_req2').val(qty_req + ' ' + unit);
+        $('#m_qty_req_h2').val(qty_req);
+        $('#m_no_bppb2').val(no_bppb);
+        $('#m_tgl_bppb2').val(tgl_bppb);
+        $('#m_qty_out2').val('');
+        $('#m_qty_out_h2').val('');
+        $('#m_qty_bal2').val('');
+        $('#m_qty_bal_h2').val('');
+        $('#modal-out-barcode').modal('show');  
+    }
+
+
+    function getlist_barcode($id_item,$id_jo,$no_bpb){
+        let iditem = $id_item;
+        let idjo = $id_jo;
+        let no_bpb = $no_bpb;
+        return $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '{{ route("ro-list-barcode") }}',
+                type: 'get',
+                data: {
+                    id_item: iditem,
+                    id_jo: idjo,
+                    no_bpb: no_bpb,
+                },
+                success: function (res) {
+                    if (res) {
+                        document.getElementById('txt_barcode').innerHTML = res;
+                        $("#txt_barcode").focus();
+                    }
+                }
+            });
+    }
+
+    function getdatabarcode(val){
+        let id_barcode = $('#txt_barcode').val();
+        let text1 = "'";
+        let kodenya = text1.concat(id_barcode, "'");
+        let kodebarcode = kodenya.toString();
+        let barcode = kodebarcode.replace(/,/g,"','");
+        return $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '{{ route("get-data-barcode-ro") }}',
+                type: 'get',
+                data: {
+                    id_barcode: barcode,
+                },
+                success: function (res) {
+                    if (res) {
+                        document.getElementById('detail_showbarcode').innerHTML = res;
+                        sum_qty_barcode('1');
+                    }
+                }
+            });
+
+    }
+
+    function sum_qty_barcode(val){
+            var table = document.getElementById("tableshow");
+            var qty_stok = 0;
+            var satuan = '';
+            var qty_out = 0;
+            var qty = 0;
+            var sisa_qty = 0;
+            var nol = 0;
+            var qty_req = $('#m_qty_req_h2').val();
+            var h_qty_out = '';
+            var h_sum_bal = '';
+            var sum_bal = 0;
+            var sum_out = 0;
+
+            for (let i = 1; i < (table.rows.length); i++) {
+                satuan = document.getElementById("tableshow").rows[i].cells[6].children[0].value;
+                qty_stok = document.getElementById("qty_stok"+i).value || 0;
+                qty_out = document.getElementById("qty_out"+i).value || 0;
+                sisa_qty = parseFloat(qty_stok) - parseFloat(qty_out) ;
+                // alert(sisa_qty);
+
+                if ( qty_out > 0) {
+                    if (parseFloat(qty_out) > parseFloat(qty_stok)) {
+                        $('#qty_out'+i).val(qty_stok);
+                        $('#qty_sisa'+i).val(nol);
+                    }else{
+                        $('#qty_out'+i).val(qty_out);
+                        $('#qty_sisa'+i).val(sisa_qty.round(2) || 0);
+                    }
+                    sum_out += parseFloat(qty_out);
+                }
+            }
+
+                h_qty_out = sum_out + ' ' + satuan;
+                sum_bal = parseFloat(qty_req) - parseFloat(sum_out);
+                h_sum_bal = sum_bal + ' ' + satuan;
+                $('#m_qty_out2').val(h_qty_out);
+                $('#m_qty_out_h2').val(sum_out);
+                $('#m_qty_bal2').val(h_sum_bal);
+                $('#m_qty_bal_h2').val(sum_bal);
 
         }
 
@@ -756,8 +666,7 @@
 
                         Swal.fire({
                             icon: 'success',
-                            title: 'Data Spreading berhasil disimpan',
-                            html: "No. Form Cut : <br>" + res.message,
+                            title: 'Add data Succesfully',
                             showCancelButton: false,
                             showConfirmButton: true,
                             confirmButtonText: 'Oke',
@@ -765,6 +674,7 @@
                             timerProgressBar: true
                         })
 
+                        $('#modal-add-lokasi').modal('hide');
                         datatable.ajax.reload();
                     }
                 },

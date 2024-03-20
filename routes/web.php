@@ -52,6 +52,8 @@ use App\Http\Controllers\FGStokMutasiController;
 use App\Http\Controllers\StockDcCompleteController;
 use App\Http\Controllers\StockDcIncompleteController;
 use App\Http\Controllers\StockDcWipController;
+use App\Http\Controllers\KonfPemasukanController;
+use App\Http\Controllers\KonfPengeluaranController;
 
 /*
 |--------------------------------------------------------------------------
@@ -639,6 +641,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-returmaterial-fabric');
         Route::get('/get-supplier-ro', 'getSuppro')->name('get-supplier-ro');
         Route::get('/approve-returmaterial', 'approveReturMaterial')->name('approve-returmaterial');
+        Route::get('/barcode-ro/{id?}', 'barcodeRO')->name('barcode-ro');
+        Route::get('/ro-list-barcode', 'ROListbarcode')->name('ro-list-barcode');
+        Route::post('/save-ro-scan', 'saveroscan')->name('save-ro-scan');
     });
 
     //Retur Penerimaan
@@ -722,6 +727,20 @@ Route::middleware('auth')->group(function () {
         // export excel
         Route::get('/export_excel_mut_detail', 'export_excel_mut_detail')->name('export_excel_mut_detail');
         // Route::get('/export', 'export')->name('export');
+    });
+
+    //konfirmasi penerimaan
+    Route::controller(KonfPemasukanController::class)->prefix("konfirmasi-pemasukan")->middleware('warehouse')->group(function () {
+        Route::get('/', 'index')->name('konfirmasi-pemasukan');
+        Route::get('/approve-material-all', 'approvematerialall')->name('approve-material-all');
+        Route::get('/get-data-penerimaan', 'getdatapenerimaan')->name('get-data-penerimaan');
+    });
+
+    //konfirmasi pengeluaran
+    Route::controller(KonfPengeluaranController::class)->prefix("konfirmasi-pengeluaran")->middleware('warehouse')->group(function () {
+        Route::get('/', 'index')->name('konfirmasi-pengeluaran');
+        Route::get('/approve-pengeluaran-all', 'approvepengeluaranall')->name('approve-pengeluaran-all');
+        Route::get('/get-data-pengeluaran', 'getdatapengeluaran')->name('get-data-pengeluaran');
     });
 
 
