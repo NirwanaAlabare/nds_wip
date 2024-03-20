@@ -72,7 +72,7 @@
                     <div class="col-md-3">
                         <div class="form-group">
                             <a class="btn btn-outline-info position-relative" data-bs-toggle="modal"
-                                data-bs-target="#exampleModal" onclick="cekstok()">
+                                data-bs-target="#exampleModal" onclick="dataTableModalReload()">
                                 <i class="fas fa-shopping-cart"></i>
                                 <small> Cek Stock</small>
                             </a>
@@ -157,7 +157,7 @@
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table id="datatable_det" class="table table-bordered table-sm w-100 table-hover">
+                            <table id="datatable_det" class="table table-bordered table-sm w-100 table-hover text-nowrap">
                                 <thead class="table-primary">
                                     <tr>
                                         <th>Lokasi</th>
@@ -232,23 +232,118 @@
             $("#cbolok").val('').trigger('change');
             $("#cbotuj").val('').trigger('change');
             $("#cbotuj_pengeluaran").val('').trigger('change');
+
         })
 
-        $('#datatable_modal thead tr').clone(true).appendTo('#datatable_modal thead');
-        $('#datatable_modal thead tr:eq(1) th').each(function(i) {
-            var title = $(this).text();
-            $(this).html('<input type="text" class="form-control form-control-sm" />');
+        function dataTableReload() {
+            datatable.ajax.reload();
+        }
 
-            $('input', this).on('keyup change', function() {
-                if (datatable.column(i).search() !== this.value) {
-                    datatable
-                        .column(i)
-                        .search(this.value)
-                        .draw();
-                }
-            });
+        function dataTableModalReload() {
+            datatable_modal.ajax.reload();
+        }
 
+        $('#datatable_det thead tr').clone(true).appendTo('#datatable_det thead');
+        $('#datatable_det thead tr:eq(1) th').each(function(i) {
+            if (i != 9 && i != 10) {
+                var title = $(this).text();
+                $(this).html('<input type="text" class="form-control form-control-sm"/>');
+
+                $('input', this).on('keyup change', function() {
+                    if (datatable.column(i).search() !== this.value) {
+                        datatable
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            } else {
+                $(this).empty();
+            }
         });
+
+        let datatable = $("#datatable_det").DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            paging: false,
+            destroy: true,
+            autoWidth: true,
+            ajax: {
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '{{ route('show_det') }}',
+                dataType: 'json',
+                dataSrc: 'data',
+                data: function(d) {
+                    d.cbolok = $('#cbolok').val();
+                },
+            },
+            columns: [{
+                    data: 'lokasi',
+                },
+                {
+                    data: 'no_carton',
+                },
+                {
+                    data: 'buyer',
+                },
+                {
+                    data: 'brand',
+                },
+                {
+                    data: 'styleno',
+                },
+                {
+                    data: 'grade',
+                },
+                {
+                    data: 'ws',
+                },
+                {
+                    data: 'color',
+                },
+                {
+                    data: 'size',
+                },
+                {
+                    data: 'saldo',
+                },
+                {
+                    data: 'kode',
+                },
+            ],
+            columnDefs: [{
+                targets: [10],
+                render: (data, type, row, meta) => {
+                    // return '<input type="text" id="txtqty' + meta.row + '" name="txtqty[' + meta
+                    //     .row + ']" value = "0"  />'
+                    // return '<input type="number" size="10" id="txtqty[' + row.kode +
+                    //     ']" name="txtqty[' + row
+                    //     .kode + ']" autocomplete="off" />'
+                    return `
+                        <div>
+                            <input type="number" size="4" id="txtqty[` + row.kode + `]"
+                            name="txtqty[` + row.kode + `]" value = "0" autocomplete="off"  max = "` + row.saldo + `" min = "0" />
+                        </div>
+                        <div>
+                            <input type="hidden" size="4" id="id_so_det[` + row.kode + `]"
+                            name="id_so_det[` + row.kode + `]" value = "` + row.id_so_det + `"/>
+                        </div>
+                        <div>
+                            <input type="hidden" size="4" id="no_carton[` + row.kode + `]"
+                            name="no_carton[` + row.kode + `]" value = "` + row.no_carton + `"/>
+                        </div>
+                        <div>
+                            <input type="hidden" size="4" id="grade[` + row.kode + `]"
+                            name="grade[` + row.kode + `]" value = "` + row.grade + `"/>
+                        </div>
+                        `;
+                }
+            }, ]
+        });
+
 
 
         function get_ws() {
@@ -270,145 +365,73 @@
             }
         };
 
-        function dataTableReload() {
-            let datatable = $("#datatable_det").DataTable({
-                ordering: false,
-                processing: true,
-                serverSide: true,
-                paging: false,
-                destroy: true,
-                autoWidth: true,
-                ajax: {
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    url: '{{ route('show_det') }}',
-                    dataType: 'json',
-                    dataSrc: 'data',
-                    data: function(d) {
-                        d.cbolok = $('#cbolok').val();
-                    },
-                },
-                columns: [{
-                        data: 'lokasi',
-                    },
-                    {
-                        data: 'no_carton',
-                    },
-                    {
-                        data: 'buyer',
-                    },
-                    {
-                        data: 'brand',
-                    },
-                    {
-                        data: 'styleno',
-                    },
-                    {
-                        data: 'grade',
-                    },
-                    {
-                        data: 'ws',
-                    },
-                    {
-                        data: 'color',
-                    },
-                    {
-                        data: 'size',
-                    },
-                    {
-                        data: 'saldo',
-                    },
-                    {
-                        data: 'kode',
-                    },
-                ],
-                columnDefs: [{
-                    targets: [10],
-                    render: (data, type, row, meta) => {
-                        // return '<input type="text" id="txtqty' + meta.row + '" name="txtqty[' + meta
-                        //     .row + ']" value = "0"  />'
-                        // return '<input type="number" size="10" id="txtqty[' + row.kode +
-                        //     ']" name="txtqty[' + row
-                        //     .kode + ']" autocomplete="off" />'
-                        return `
-                        <div>
-                            <input type="number" size="10" id="txtqty[` + row.kode + `]"
-                            name="txtqty[` + row.kode + `]" value = "0" autocomplete="off"  max = "` + row.saldo + `" min = "0" />
-                        </div>
-                        <div>
-                            <input type="hidden" size="10" id="id_so_det[` + row.kode + `]"
-                            name="id_so_det[` + row.kode + `]" value = "` + row.id_so_det + `"/>
-                        </div>
-                        <div>
-                            <input type="hidden" size="10" id="no_carton[` + row.kode + `]"
-                            name="no_carton[` + row.kode + `]" value = "` + row.no_carton + `"/>
-                        </div>
-                        <div>
-                            <input type="hidden" size="10" id="grade[` + row.kode + `]"
-                            name="grade[` + row.kode + `]" value = "` + row.grade + `"/>
-                        </div>
-                        `;
-                    }
-                }, ]
-            });
-        }
 
-        function cekstok() {
-
-            let datatable = $("#datatable_modal").DataTable({
-                ordering: false,
-                processing: true,
-                serverSide: true,
-                scrollCollapse: true,
-                scroller: true,
-                paging: true,
-                destroy: true,
-                info: false,
-                searching: true,
-                ajax: {
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    url: '{{ route('getstok-bppb-fg-stock') }}',
-                    dataType: 'json',
-                    dataSrc: 'data',
-                },
-                columns: [{
-                        data: 'lokasi',
-                    },
-                    {
-                        data: 'no_carton',
-                    },
-                    {
-                        data: 'buyer',
-                    },
-                    {
-                        data: 'brand',
-                    },
-                    {
-                        data: 'styleno',
-                    },
-                    {
-                        data: 'grade',
-                    },
-                    {
-                        data: 'ws',
-                    },
-                    {
-                        data: 'color',
-                    },
-                    {
-                        data: 'styleno',
-                    },
-                    {
-                        data: 'size',
-                    },
-                    {
-                        data: 'saldo',
-                    },
-                ],
+        $('#datatable_modal thead tr').clone(true).appendTo('#datatable_modal thead');
+        $('#datatable_modal thead tr:eq(1) th').each(function(i) {
+            var title = $(this).text();
+            $(this).html('<input type="text" class="form-control form-control-sm"/>');
+            $('input', this).on('keyup change', function() {
+                if (datatable.column(i).search() !== this.value) {
+                    datatable
+                        .column(i)
+                        .search(this.value)
+                        .draw();
+                }
             });
-        }
+        });
+
+        let datatable_modal = $("#datatable_modal").DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            scrollCollapse: true,
+            scroller: true,
+            paging: true,
+            destroy: true,
+            info: false,
+            searching: true,
+            ajax: {
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '{{ route('getstok-bppb-fg-stock') }}',
+                dataType: 'json',
+                dataSrc: 'data',
+            },
+            columns: [{
+                    data: 'lokasi',
+                },
+                {
+                    data: 'no_carton',
+                },
+                {
+                    data: 'buyer',
+                },
+                {
+                    data: 'brand',
+                },
+                {
+                    data: 'styleno',
+                },
+                {
+                    data: 'grade',
+                },
+                {
+                    data: 'ws',
+                },
+                {
+                    data: 'color',
+                },
+                {
+                    data: 'styleno',
+                },
+                {
+                    data: 'size',
+                },
+                {
+                    data: 'saldo',
+                },
+            ],
+        });
     </script>
 @endsection
