@@ -81,9 +81,7 @@
         // })
 
         $(document).ready(() => {
-            window.addEventListener("focus", () => {
-                dataTableReload();
-            });
+            dataTableReload();
         });
 
         function dataTableReload() {
