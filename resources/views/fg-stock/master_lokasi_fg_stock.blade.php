@@ -35,13 +35,13 @@
                                 style="text-transform: uppercase" oninput="setinisial()" value = '' autocomplete="off">
                         </div>
                         <div class="form-group">
-                            <label for="recipient-name" class="col-form-label">Tingkat :</label>
-                            <input type='number' class='form-control form-control-sm' id='txttingkat' name='txttingkat'
+                            <label for="recipient-name" class="col-form-label">Baris :</label>
+                            <input type='number' class='form-control form-control-sm' id='txtbaris' name='txtbaris'
                                 oninput="setinisial()" value = '' autocomplete="off">
                         </div>
                         <div class="form-group">
-                            <label for="recipient-name" class="col-form-label">Baris :</label>
-                            <input type='number' class='form-control form-control-sm' id='txtbaris' name='txtbaris'
+                            <label for="recipient-name" class="col-form-label">Tingkat :</label>
+                            <input type='number' class='form-control form-control-sm' id='txttingkat' name='txttingkat'
                                 oninput="setinisial()" value = '' autocomplete="off">
                         </div>
                     </div>
@@ -72,8 +72,8 @@
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>Kode Lokasi</th>
                             <th>Lokasi</th>
-                            <th>Tingkat</th>
                             <th>Baris</th>
+                            <th>Tingkat</th>
                             <th>Act</th>
                         </tr>
                     </thead>
@@ -99,7 +99,7 @@
             let lok = $('#txtlok').val();
             let tingkat = $('#txttingkat').val();
             let baris = $('#txtbaris').val();
-            let kode = lok.toUpperCase() + '.' + tingkat + '.' + baris;
+            let kode = lok.toUpperCase() + '.' + baris + '.' + tingkat;
 
             $('#txtkode_lok').val(kode);
         }
@@ -130,10 +130,10 @@
                     data: 'lokasi'
                 },
                 {
-                    data: 'tingkat'
+                    data: 'baris'
                 },
                 {
-                    data: 'baris'
+                    data: 'tingkat'
                 },
                 {
                     data: 'baris'

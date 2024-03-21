@@ -772,6 +772,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/show_lok', 'show_lok')->name('show_lok');
         Route::get('/getdet_carton', 'getdet_carton')->name('getdet_carton');
         Route::get('/export_excel_bpb_fg_stok', 'export_excel_bpb_fg_stok')->name('export_excel_bpb_fg_stok');
+        Route::post('/hapus_data_temp_bpb_fg_stok', 'hapus_data_temp_bpb_fg_stok')->name('hapus-data-temp-bpb-fg-stok');
     });
 
     Route::controller(FGStokBPPBController::class)->prefix("bppb-fg-stock")->middleware('fg-stock')->group(function () {

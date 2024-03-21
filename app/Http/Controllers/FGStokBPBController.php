@@ -351,6 +351,14 @@ order by color desc");
         return DataTables::of($det_carton)->toJson();
     }
 
+    public function hapus_data_temp_bpb_fg_stok(Request $request)
+    {
+        $id = $request->id;
+
+        $del_tmp =  DB::delete("
+        delete from fg_tmp_stok_bpb where id = '$id'");
+    }
+
 
     public function export_excel_bpb_fg_stok(Request $request)
     {
