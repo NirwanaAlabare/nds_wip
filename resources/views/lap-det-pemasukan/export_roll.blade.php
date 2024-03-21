@@ -3,10 +3,10 @@
 
 <table class="table">
     <tr>
-        <td colspan='25' style="font-size: 16px;"><b>Laporan Detail Pemasukan Barcode</b></td>
+        <td colspan='26' style="font-size: 16px;"><b>Laporan Detail Pemasukan Barcode</b></td>
     </tr>
     <tr>
-        <td colspan='25' style="font-size: 12px;">Periode {{ date('d-M-Y', strtotime($from)) }} s/d {{ date('d-M-Y', strtotime($to)) }}
+        <td colspan='26' style="font-size: 12px;">Periode {{ date('d-M-Y', strtotime($from)) }} s/d {{ date('d-M-Y', strtotime($to)) }}
         </td>
     </tr>
     <thead>
@@ -22,6 +22,7 @@
             <th>Rak</th>
             <th>No Barcode</th>
             <th>No Roll</th>
+            <th>No Roll Buyer</th>
             <th>No Lot</th>
             <th>Qty BPB</th>
             <th>Qty Mutasi</th>
@@ -55,6 +56,7 @@
                 <td>{{ $item->rak }}</td>
                 <td>{{ $item->barcode }}</td>
                 <td>{{ $item->no_roll }}</td>
+                <td>{{ $item->no_roll_buyer }}</td>
                 <td>{{ $item->no_lot }}</td>
                 <td>{{ $item->qty }}</td>
                 <td>{{ $item->qty_mut }}</td>

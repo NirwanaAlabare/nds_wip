@@ -133,7 +133,7 @@
                                 <td align="left">{{ $ddetail->item_desc }}</td>
                                 <td align="right">{{ $ddetail->qty }}</td>
                                 <td align="left">{{ $ddetail->unit }}</td>
-                                <td align="right">{{ $ddetail->catatan }}</td>
+                                <td align="right">Retur</td>
                             </tr>
                     <?php $x++; ?>
                         @endforeach

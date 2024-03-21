@@ -125,106 +125,108 @@
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
 
     <script>
-        $(document).ready(function() {
+        $(document).ready(() => {
             dataTableReload();
-        })
+        });
 
         function dataTableReload() {
-            $('#datatable thead tr').clone(true).appendTo('#datatable thead');
-            $('#datatable thead tr:eq(1) th').each(function(i) {
-                var title = $(this).text();
-                $(this).html('<input type="text" class="form-control form-control-sm" />');
-
-                $('input', this).on('keyup change', function() {
-                    if (datatable.column(i).search() !== this.value) {
-                        datatable
-                            .column(i)
-                            .search(this.value)
-                            .draw();
-                    }
-                });
-
-            });
-
-            let datatable = $("#datatable").DataTable({
-                ordering: false,
-                processing: true,
-                serverSide: true,
-                paging: true,
-                searching: true,
-                destroy: true,
-                scrollX: true,
-                ajax: {
-                    url: '{{ route('bpb-fg-stock') }}',
-                    data: function(d) {
-                        d.dateFrom = $('#tgl-awal').val();
-                        d.dateTo = $('#tgl-akhir').val();
-                    },
-                },
-                columns: [{
-                        data: 'no_trans'
-
-                    }, {
-                        data: 'tgl_terima_fix'
-                    },
-                    {
-                        data: 'lokasi'
-                    },
-                    {
-                        data: 'no_carton'
-                    },
-                    {
-                        data: 'buyer'
-                    },
-                    {
-                        data: 'brand'
-                    },
-                    {
-                        data: 'styleno'
-                    },
-                    {
-                        data: 'grade'
-                    },
-                    {
-                        data: 'ws'
-                    },
-                    {
-                        data: 'color'
-                    },
-                    {
-                        data: 'size'
-                    },
-                    {
-                        data: 'qty'
-                    },
-                    {
-                        data: 'sumber_pemasukan'
-                    },
-                ],
-                columnDefs: [
-                    // {
-                    //     targets: [10],
-                    //     render: (data, type, row, meta) => {
-                    //         return `
-                // <div
-                // class='d-flex gap-1 justify-content-center'>
-                // <a class='btn btn-warning btn-sm' href='{{ route('create-dc-in') }}/` +
-                    //             row.id +
-                    //             `' data-bs-toggle='tooltip'><i class='fas fa-edit'></i></a>
-                //     <a class='btn btn-success btn-sm' href='{{ route('create-dc-in') }}/` +
-                    //             row.id +
-                    //             `' data-bs-toggle='tooltip'><i class='fas fa-lock'></i></a>
-                // </div>
-                //     `;
-                    //     }
-                    // },
-                    {
-                        "className": "dt-center",
-                        "targets": "_all"
-                    },
-                ]
-            });
+            datatable.ajax.reload();
         }
+
+        $('#datatable thead tr').clone(true).appendTo('#datatable thead');
+        $('#datatable thead tr:eq(1) th').each(function(i) {
+            var title = $(this).text();
+            $(this).html('<input type="text" class="form-control form-control-sm" />');
+
+            $('input', this).on('keyup change', function() {
+                if (datatable.column(i).search() !== this.value) {
+                    datatable
+                        .column(i)
+                        .search(this.value)
+                        .draw();
+                }
+            });
+
+        });
+
+        let datatable = $("#datatable").DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            paging: true,
+            searching: true,
+            destroy: true,
+            scrollX: true,
+            ajax: {
+                url: '{{ route('bpb-fg-stock') }}',
+                data: function(d) {
+                    d.dateFrom = $('#tgl-awal').val();
+                    d.dateTo = $('#tgl-akhir').val();
+                },
+            },
+            columns: [{
+                    data: 'no_trans'
+
+                }, {
+                    data: 'tgl_terima_fix'
+                },
+                {
+                    data: 'lokasi'
+                },
+                {
+                    data: 'no_carton'
+                },
+                {
+                    data: 'buyer'
+                },
+                {
+                    data: 'brand'
+                },
+                {
+                    data: 'styleno'
+                },
+                {
+                    data: 'grade'
+                },
+                {
+                    data: 'ws'
+                },
+                {
+                    data: 'color'
+                },
+                {
+                    data: 'size'
+                },
+                {
+                    data: 'qty'
+                },
+                {
+                    data: 'sumber_pemasukan'
+                },
+            ],
+            columnDefs: [
+                // {
+                //     targets: [10],
+                //     render: (data, type, row, meta) => {
+                //         return `
+            // <div
+            // class='d-flex gap-1 justify-content-center'>
+            // <a class='btn btn-warning btn-sm' href='{{ route('create-dc-in') }}/` +
+                //             row.id +
+                //             `' data-bs-toggle='tooltip'><i class='fas fa-edit'></i></a>
+            //     <a class='btn btn-success btn-sm' href='{{ route('create-dc-in') }}/` +
+                //             row.id +
+                //             `' data-bs-toggle='tooltip'><i class='fas fa-lock'></i></a>
+            // </div>
+            //     `;
+                //     }
+                // },
+                {
+                    "className": "dt-center",
+                    "targets": "_all"
+                },
+            ]
+        });
 
         function export_excel_bpb() {
             let from = document.getElementById("tgl-awal").value;

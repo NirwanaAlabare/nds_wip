@@ -483,7 +483,7 @@
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
                             <a class='btn btn-warning btn-sm' onclick='notif()'><i class='fas fa-edit'></i></a>
-                            <a class='btn btn-danger btn-sm' onclick='notif()'><i class='fas fa-trash'></i></a>
+                            <a class='btn btn-danger btn-sm'  onclick="hapus('` + row.id + `');"><i class='fas fa-trash'></i></a>
                                 </div>`;
                     }
                 }, ]
@@ -706,6 +706,25 @@
                     },
                 ],
             });
+        }
+
+        function hapus(id) {
+            $.ajax({
+                type: "post",
+                url: '{{ route('hapus-data-temp-bpb-fg-stok') }}',
+                data: {
+                    id: id
+                },
+                success: async function(res) {
+                    iziToast.success({
+                        message: 'Data Berhasil Dihapus',
+                        position: 'topCenter'
+                    });
+                    $('#datatable-modal').DataTable().ajax.reload();
+                    dataTableReload();
+                }
+            });
+
         }
     </script>
 @endsection

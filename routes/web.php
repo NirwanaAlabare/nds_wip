@@ -52,6 +52,8 @@ use App\Http\Controllers\FGStokMutasiController;
 use App\Http\Controllers\StockDcCompleteController;
 use App\Http\Controllers\StockDcIncompleteController;
 use App\Http\Controllers\StockDcWipController;
+use App\Http\Controllers\KonfPemasukanController;
+use App\Http\Controllers\KonfPengeluaranController;
 
 /*
 |--------------------------------------------------------------------------
@@ -640,6 +642,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-returmaterial-fabric');
         Route::get('/get-supplier-ro', 'getSuppro')->name('get-supplier-ro');
         Route::get('/approve-returmaterial', 'approveReturMaterial')->name('approve-returmaterial');
+        Route::get('/barcode-ro/{id?}', 'barcodeRO')->name('barcode-ro');
+        Route::get('/ro-list-barcode', 'ROListbarcode')->name('ro-list-barcode');
+        Route::post('/save-ro-scan', 'saveroscan')->name('save-ro-scan');
     });
 
     //Retur Penerimaan
@@ -725,6 +730,20 @@ Route::middleware('auth')->group(function () {
         // Route::get('/export', 'export')->name('export');
     });
 
+    //konfirmasi penerimaan
+    Route::controller(KonfPemasukanController::class)->prefix("konfirmasi-pemasukan")->middleware('warehouse')->group(function () {
+        Route::get('/', 'index')->name('konfirmasi-pemasukan');
+        Route::get('/approve-material-all', 'approvematerialall')->name('approve-material-all');
+        Route::get('/get-data-penerimaan', 'getdatapenerimaan')->name('get-data-penerimaan');
+    });
+
+    //konfirmasi pengeluaran
+    Route::controller(KonfPengeluaranController::class)->prefix("konfirmasi-pengeluaran")->middleware('warehouse')->group(function () {
+        Route::get('/', 'index')->name('konfirmasi-pengeluaran');
+        Route::get('/approve-pengeluaran-all', 'approvepengeluaranall')->name('approve-pengeluaran-all');
+        Route::get('/get-data-pengeluaran', 'getdatapengeluaran')->name('get-data-pengeluaran');
+    });
+
 
     //FG Stock
     // Master Lokasi FG Stock
@@ -753,6 +772,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/show_lok', 'show_lok')->name('show_lok');
         Route::get('/getdet_carton', 'getdet_carton')->name('getdet_carton');
         Route::get('/export_excel_bpb_fg_stok', 'export_excel_bpb_fg_stok')->name('export_excel_bpb_fg_stok');
+        Route::post('/hapus_data_temp_bpb_fg_stok', 'hapus_data_temp_bpb_fg_stok')->name('hapus-data-temp-bpb-fg-stok');
     });
 
     Route::controller(FGStokBPPBController::class)->prefix("bppb-fg-stock")->middleware('fg-stock')->group(function () {

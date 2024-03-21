@@ -56,6 +56,18 @@
                 <td>{{ $ws }}</td>
             </tr>
             <tr>
+                @php
+                    if (strlen($color) > 16) {
+                        $colorArray = explode(" ", $color);
+                        $newColorArray = [];
+
+                        for ($i = (count($colorArray)-1); $i > 0; $i--) {
+                            array_push($newColorArray, $colorArray[$i]); 
+                        }
+                        
+                        $color = implode(" ", $newColorArray);
+                    }
+                @endphp
                 <td>{{ strtoupper(substr($color, 0, 8)).(strlen($color) > 8 ? '...' : '') }}</td>
             </tr>
             <tr>
