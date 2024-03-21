@@ -116,7 +116,7 @@ class TrolleyStockerController extends Controller
                 where('trolley_id', $request->trolley_id)->
                 where('trolley_stocker.status', "active")->
                 where('stocker_input.status', "trolley")->
-                groupBy('form_cut_input.no_cut', 'stocker_input.size')->
+                groupBy('form_cut_input.no_cut', 'stocker_input.form_cut_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio')->
                 get();
 
             return DataTables::of($trolley)->toJson();
@@ -149,7 +149,7 @@ class TrolleyStockerController extends Controller
                 where('trolley_id', $id)->
                 where('trolley_stocker.status', "active")->
                 where('stocker_input.status', "trolley")->
-                groupBy('form_cut_input.no_cut', 'stocker_input.size')->
+                groupBy('form_cut_input.no_cut', 'stocker_input.form_cut_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio')->
                 get();
 
             return DataTables::of($trolley)->toJson();
