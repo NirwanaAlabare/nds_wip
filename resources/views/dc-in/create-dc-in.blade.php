@@ -12,14 +12,14 @@
 @endsection
 
 @section('content')
-    <div class="modal fade" id="exampleModalEdit" tabindex="-1" role="dialog" aria-labelledby="exampleModalEditLabel"
+    <div class="modal fade" id="updateTmpDcModal" tabindex="-1" role="dialog" aria-labelledby="updateTmpDcModalLabel"
         aria-hidden="true">
         <form action="{{ route('update_tmp_dc_in') }}" method="post" name='form_modal' onsubmit="submitForm(this, event)">
             @method('PUT')
             <div class="modal-dialog modal-lg modal-dialog-scrollable">
                 <div class="modal-content">
                     <div class="modal-header bg-sb text-light">
-                        <h1 class="modal-title fs-5" id="exampleModalEditLabel"></h1>
+                        <h1 class="modal-title fs-5" id="updateTmpDcModalLabel"></h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
@@ -191,33 +191,34 @@
                 </div>
 
             </div>
-            <div class="card card-primary">
-                <div class="card-header">
-                    <h5 class="card-title fw-bold mb-0">List Data</h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table id="datatable-scan" class="table table-bordered table-sm w-100 display nowrap">
-                            <thead>
-                                <tr>
-                                    <th>Stocker</th>
-                                    <th>Part</th>
-                                    <th>Tujuan</th>
-                                    <th>Tempat</th>
-                                    <th>Proses / Lokasi</th>
-                                    <th>Qty In</th>
-                                    <th>Act</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-sb">Simpan </button>
+        </div>
+
+        <div class="card card-sb">
+            <div class="card-header">
+                <h5 class="card-title fw-bold mb-0">List Data</h5>
             </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="datatable-scan" class="table table-bordered table-sm w-100 display nowrap">
+                        <thead>
+                            <tr>
+                                <th>Stocker</th>
+                                <th>Part</th>
+                                <th>Tujuan</th>
+                                <th>Tempat</th>
+                                <th>Proses / Lokasi</th>
+                                <th>Qty In</th>
+                                <th>Act</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+                <button type="submit" class="btn btn-sb btn-block">Simpan </button>
+            </div>
+        </div>
     </form>
-    </div>
 @endsection
 
 @section('custom-script')
@@ -241,12 +242,12 @@
             document.querySelector('.select2-search__field').focus();
         });
 
-        $('.select2').select2()
+        $('.select2').select2();
 
-        // $('.select2bs4').select2({
-        //     theme: 'bootstrap4',
-        //     dropdownParent: $("#editMejaModal")
-        // })
+        $('.select2bs4').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $("#updateTmpDcModal")
+        });
 
         // Scan QR Module :
         // Variable List :
@@ -294,9 +295,7 @@
                 html5QrcodeScanner.render(onScanSuccess, onScanFailure);
             }
         }
-    </script>
 
-    <script>
         function clearh() {
             $("#txtws").val('');
             $("#txtbuyer").val('');
@@ -408,7 +407,7 @@
                             if (row.cek_stat != 'x') {
                                 return `
                             <div class='d-flex gap-1 justify-content-center'>
-                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#exampleModalEdit"
+                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#updateTmpDcModal"
                                     onclick="getdetail('` + row.id_qr_stocker + `','` + row.kode_stocker + `');">
                                         <i class='fa fa-search'></i>
                                     </a>
@@ -450,7 +449,7 @@
                 },
                 dataType: 'json',
                 success: async function(response) {
-                    $("#exampleModalEditLabel").html(id_b);
+                    $("#updateTmpDcModalLabel").html(id_b);
                     document.getElementById('txtqty').value = response.qty_in;
                     document.getElementById('id_c').value = response.id_qr_stocker;
                     document.getElementById('txtqtyreject').value = response.qty_reject;
@@ -463,7 +462,7 @@
                     $("#cbotempat").val(response.tempat).trigger('change');
                     $("#cbolokasi").val(response.lokasi).trigger('change');
                     // getlokasi();
-                    // $("#exampleModalEditLabel").html(response.nama_stocker);
+                    // $("#updateTmpDcModalLabel").html(response.nama_stocker);
                     // // document.getElementById('cbotuj').value = response.tujuan;
                     // $("#cbotuj").val(response.tujuan).trigger('change');
                     // $("#cboalokasi").val(response.alokasi).trigger('change');

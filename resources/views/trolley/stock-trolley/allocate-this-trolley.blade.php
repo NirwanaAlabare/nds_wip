@@ -114,6 +114,7 @@
                         <th>Part</th>
                         <th>Size</th>
                         <th>Qty</th>
+                        <th>Range</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -190,6 +191,9 @@
                 {
                     data: 'qty',
                 },
+                {
+                    data: 'rangeAwalAkhir',
+                },
             ],
             columnDefs: [
                 {
@@ -205,6 +209,10 @@
                         `;
                     }
                 },
+                {
+                    targets: [2,9],
+                    className: "text-nowrap"
+                }
             ]
         });
 
