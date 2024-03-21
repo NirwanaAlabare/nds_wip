@@ -106,7 +106,8 @@ class TrolleyStockerController extends Controller
                     stocker_input.color,
                     GROUP_CONCAT(DISTINCT master_part.nama_part) nama_part,
                     stocker_input.size,
-                    SUM(stocker_input.qty_ply) qty
+                    SUM(stocker_input.qty_ply) qty,
+                    CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir) range
                 ")->
                 leftJoin("stocker_input", "stocker_input.id", "=", "trolley_stocker.stocker_id")->
                 leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
@@ -139,7 +140,8 @@ class TrolleyStockerController extends Controller
                     stocker_input.color,
                     GROUP_CONCAT(DISTINCT master_part.nama_part) nama_part,
                     stocker_input.size,
-                    stocker_input.qty_ply qty
+                    stocker_input.qty_ply qty,
+                    CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir) range
                 ")->
                 leftJoin("stocker_input", "stocker_input.id", "=", "trolley_stocker.stocker_id")->
                 leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->

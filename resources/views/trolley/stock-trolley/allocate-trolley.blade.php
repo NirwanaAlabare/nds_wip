@@ -139,6 +139,7 @@
                         <th>Part</th>
                         <th>Size</th>
                         <th>Qty</th>
+                        <th>Range</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -319,6 +320,9 @@
                 },
                 {
                     data: 'qty',
+                },
+                {
+                    data: 'range',
                 },
             ],
             columnDefs: [
