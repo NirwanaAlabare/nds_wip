@@ -3,11 +3,16 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Carbon\Carbon;
-use Yajra\DataTables\Facades\DataTables;
-use App\Models\SecondaryInhouse;
-use DB;
 use Illuminate\Support\Facades\Auth;
+
+use App\Models\SecondaryInhouse;
+use App\Models\Stocker;
+use App\Models\Trolley;
+use App\Models\TrolleyStocker;
+
+use Yajra\DataTables\Facades\DataTables;
+use Carbon\Carbon;
+use DB;
 
 class DCInController extends Controller
 {
@@ -298,6 +303,47 @@ select * from tmp_dc_in_input_new where id_qr_stocker = '" . $request->txtqrstoc
                 where concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) = '" . $request->id_kode . "'
                 "
             );
+
+            if ($request->cbotempat == "TROLLEY") {
+                $lastTrolleyStock = TrolleyStocker::select('kode')->orderBy('id', 'desc')->first();
+                $trolleyStockNumber = $lastTrolleyStock ? intval(substr($lastTrolleyStock->kode, -5)) + 1 : 1;
+
+                $stockerData = Stocker::whereRaw("concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) = '" . $request->id_kode . "'")->get();
+
+                $trolleyStockArr = [];
+
+                $thisTrolley = Trolley::where("nama_trolley", $request->cbolokasi)->first();
+                if ($thisTrolley) {
+
+                    $i = 0;
+                    foreach ($stockerData as $stocker) {
+                        $trolleyCheck = TrolleyStocker::where('stocker_id', $stocker->id)->first();
+                        if (!$trolleyCheck) {
+                            array_push($trolleyStockArr, [
+                                "kode" => "TLS".sprintf('%05s', ($trolleyStockNumber+$i)),
+                                "trolley_id" => $thisTrolley->id,
+                                "stocker_id" => $stocker->id,
+                                "status" => "active",
+                                "tanggal_alokasi" => date('Y-m-d'),
+                                "created_at" => Carbon::now(),
+                                "updated_at" => Carbon::now(),
+                            ]);
+
+                            $i++;
+                        }
+                    }
+
+                    $storeTrolleyStock = TrolleyStocker::insert($trolleyStockArr);
+
+                    if (count($trolleyStockArr) > 0) {
+                        $updateStocker = Stocker::whereRaw("concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) = '" . $request->id_kode . "'")->
+                            update([
+                                "status" => "trolley",
+                                "latest_alokasi" => Carbon::now()
+                            ]);
+                    }
+                }
+            }
         }
 
         $update_tmp_dc_in = DB::update(

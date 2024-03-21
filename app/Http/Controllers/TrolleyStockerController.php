@@ -29,11 +29,12 @@ class TrolleyStockerController extends Controller
 
             $trolleyStock = Trolley::selectRaw("
                     trolley.id,
-                    stocker_input.act_costing_ws,
+                    trolley_stocker.tanggal_alokasi,
+                    stocker.act_costing_ws,
                     marker_input.style,
-                    stocker_input.color,
+                    stocker.color,
                     trolley.nama_trolley,
-                    SUM(stocker_input.qty_ply) qty
+                    SUM(stocker.qty_ply) qty
                 ")->
                 leftJoin("trolley_stocker", function($join)
                     {
@@ -41,12 +42,33 @@ class TrolleyStockerController extends Controller
                         $join->on('trolley_stocker.status', '=', DB::raw('"active"'));
                     }
                 )->
-                leftJoin('stocker_input', 'stocker_input.id', '=', 'trolley_stocker.stocker_id')->
-                leftJoin('form_cut_input', 'form_cut_input.id', '=', 'stocker_input.form_cut_id')->
-                leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')->
-                groupBy('trolley.id', 'stocker_input.act_costing_ws', 'marker_input.style', 'stocker_input.color');
+                leftJoin(
+                    DB::raw('
+                        (
+                            SELECT
+                                stocker_input.id,
+                                stocker_input.form_cut_id,
+                                stocker_input.act_costing_ws,
+                                stocker_input.color,
+                                stocker_input.qty_ply,
+                                form_cut_input.id_marker
+                            FROM
+                                stocker_input
+                            LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
+                            GROUP BY
+                                stocker_input.form_cut_id, stocker_input.so_det_id, stocker_input.group_stocker, stocker_input.ratio
+                        ) stocker
+                    '),
+                    'stocker.id', '=', 'trolley_stocker.stocker_id'
+                )->
+                leftJoin("marker_input", "marker_input.kode", "=", "stocker.id_marker")->
+                groupBy('trolley.id', 'stocker.act_costing_ws', 'marker_input.style', 'stocker.color')->
+                orderByRaw("ISNULL(SUM(stocker.qty_ply)) asc")->
+                orderByRaw("CAST(trolley.nama_trolley AS UNSIGNED) asc")->
+                orderByRaw("trolley.id asc")->
+                get();
 
-            return DataTables::eloquent($trolleyStock)
+            return DataTables::of($trolleyStock)
                 ->filter(function ($query) {
                     if (request()->has('dateFrom') && request('dateFrom') != null && request('dateFrom') != "") {
                         $query->where("tanggal_alokasi", ">=", request('dateFrom'));
@@ -56,12 +78,6 @@ class TrolleyStockerController extends Controller
                         $query->where("tanggal_alokasi", "<=", request('dateTo'));
                     }
                 })
-                ->order(function ($query) {
-                    $query->orderByRaw("ISNULL(SUM(stocker_input.qty_ply)) asc");
-                    $query->orderByRaw("CAST(trolley.nama_trolley AS UNSIGNED) asc");
-                    $query->orderByRaw("trolley.id asc");
-                })
-                ->orderByNullsLast()
                 ->toJson();
         }
 
@@ -123,7 +139,7 @@ class TrolleyStockerController extends Controller
                     stocker_input.color,
                     GROUP_CONCAT(DISTINCT master_part.nama_part) nama_part,
                     stocker_input.size,
-                    SUM(stocker_input.qty_ply) qty
+                    stocker_input.qty_ply qty
                 ")->
                 leftJoin("stocker_input", "stocker_input.id", "=", "trolley_stocker.stocker_id")->
                 leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
@@ -253,13 +269,17 @@ class TrolleyStockerController extends Controller
 
         $i = 0;
         foreach ($similarStockerData as $stocker) {
-            array_push($trolleyStockArr, [
-                "kode" => "TLS".sprintf('%05s', ($trolleyStockNumber+$i)),
-                "trolley_id" => $validatedRequest['trolley_id'],
-                "stocker_id" => $stocker['id'],
-                "status" => "active",
-                "tanggal_alokasi" => date('Y-m-d')
-            ]);
+
+            $trolleyStockCheck = TrolleyStocker::where("stocker_id", $stocker['id'])->first();
+            if (!$trolleyStockCheck) {
+                array_push($trolleyStockArr, [
+                    "kode" => "TLS".sprintf('%05s', ($trolleyStockNumber+$i)),
+                    "trolley_id" => $validatedRequest['trolley_id'],
+                    "stocker_id" => $stocker['id'],
+                    "status" => "active",
+                    "tanggal_alokasi" => date('Y-m-d')
+                ]);
+            }
 
             $i++;
         }
