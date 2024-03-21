@@ -192,7 +192,7 @@
                     data: 'qty',
                 },
                 {
-                    data: 'range',
+                    data: 'rangeAwalAkhir',
                 },
             ],
             columnDefs: [
@@ -209,6 +209,10 @@
                         `;
                     }
                 },
+                {
+                    targets: [2,9],
+                    className: "text-nowrap"
+                }
             ]
         });
 

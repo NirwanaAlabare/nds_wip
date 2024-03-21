@@ -104,10 +104,10 @@ class TrolleyStockerController extends Controller
                     form_cut_input.no_cut,
                     marker_input.style,
                     stocker_input.color,
-                    GROUP_CONCAT(DISTINCT master_part.nama_part) nama_part,
+                    GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') nama_part,
                     stocker_input.size,
                     SUM(stocker_input.qty_ply) qty,
-                    CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir) range
+                    CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir) rangeAwalAkhir
                 ")->
                 leftJoin("stocker_input", "stocker_input.id", "=", "trolley_stocker.stocker_id")->
                 leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
@@ -138,10 +138,10 @@ class TrolleyStockerController extends Controller
                     form_cut_input.no_cut,
                     marker_input.style,
                     stocker_input.color,
-                    GROUP_CONCAT(DISTINCT master_part.nama_part) nama_part,
+                    GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') nama_part,
                     stocker_input.size,
                     stocker_input.qty_ply qty,
-                    CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir) range
+                    CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir) rangeAwalAkhir
                 ")->
                 leftJoin("stocker_input", "stocker_input.id", "=", "trolley_stocker.stocker_id")->
                 leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
@@ -434,9 +434,10 @@ class TrolleyStockerController extends Controller
                     form_cut_input.no_cut,
                     marker_input.style,
                     stocker_input.color,
-                    GROUP_CONCAT(DISTINCT master_part.nama_part) nama_part,
+                    GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') nama_part,
                     stocker_input.size,
-                    SUM(stocker_input.qty_ply) qty
+                    stocker_input.qty_ply qty,
+                    CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir)) rangeAwalAkhir
                 ")->
                 leftJoin("stocker_input", "stocker_input.id", "=", "trolley_stocker.stocker_id")->
                 leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
@@ -446,7 +447,7 @@ class TrolleyStockerController extends Controller
                 where('trolley_id', $id)->
                 where('trolley_stocker.status', 'active')->
                 where('stocker_input.status', "!=", "line")->
-                groupBy('form_cut_input.no_cut', 'stocker_input.size')->
+                groupBy('form_cut_input.no_cut', 'stocker_input.form_cut_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio')->
                 get();
 
             return DataTables::of($trolley)->toJson();

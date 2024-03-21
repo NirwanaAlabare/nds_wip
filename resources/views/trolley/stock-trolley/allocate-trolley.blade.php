@@ -147,9 +147,6 @@
             </table>
         </div>
     </div>
-    <button class="btn btn-success btn-block btn-sm mb-3 fw-bold">
-        <i class="fas fa-check"></i> SELESAI
-    </button>
 @endsection
 
 @section('custom-script')
@@ -322,7 +319,7 @@
                     data: 'qty',
                 },
                 {
-                    data: 'range',
+                    data: 'rangeAwalAkhir',
                 },
             ],
             columnDefs: [
@@ -339,6 +336,10 @@
                         `;
                     }
                 },
+                {
+                    targets: [2,9],
+                    className: "text-nowrap"
+                }
             ]
         });
 
