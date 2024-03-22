@@ -12,8 +12,7 @@
 @endsection
 
 @section('content')
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <form action="{{ route('store-secondary-in') }}" method="post" onsubmit="submitForm(this, event)" name='form'
             id='form'>
             @method('POST')
@@ -168,15 +167,27 @@
                         </div>
 
                         <div class="row">
-                            <div class='col-md-6'>
+                            <div class='col-md-6' id="rak-input">
                                 <div class='form-group'>
                                     <label class='form-label'><small>Rak</small></label>
-                                    <select class="form-control select2bs4" name="cborak" id="cborak"
-                                        style="width: 100%;">
+                                    <select class="form-control select2bs4" name="cborak" id="cborak" style="width: 100%;">
                                         <option selected="selected" value="">Pilih Rak Tujuan</option>
                                         @foreach ($data_rak as $datarak)
                                             <option value="{{ $datarak->isi }}">
                                                 {{ $datarak->tampil }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class='col-md-6 d-none' id="trolley-input">
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Trolley</small></label>
+                                    <select class="form-control select2bs4" name="cbotrolley" id="cbotrolley" style="width: 100%;">
+                                        <option selected="selected" value="">Pilih Trolley Tujuan</option>
+                                        @foreach ($data_trolley as $datatrolley)
+                                            <option value="{{ $datatrolley->isi }}">
+                                                {{ $datatrolley->tampil }}
                                             </option>
                                         @endforeach
                                     </select>
@@ -476,6 +487,7 @@
 
                     document.getElementById('txtqrstocker').value = decodedText;
 
+
                     scan_qr();
 
                     html5QrcodeScanner.clear();
@@ -552,7 +564,18 @@
                     document.getElementById('txttujuan').value = response.tujuan;
                     document.getElementById('txtalokasi').value = response.lokasi;
                     document.getElementById('txtqtyawal').value = response.qty_awal;
-                    $("#cborak").val(response.lokasi_rak).trigger('change');
+
+                    console.log(response.tempat_tujuan);
+
+                    if (response.tempat_tujuan == "RAK") {
+                        $("#rak-input").removeClass("d-none");
+                        $("#trolley-input").addClass("d-none");
+                        $("#cborak").val(response.lokasi_tujuan).trigger('change');
+                    } else {
+                        $("#trolley-input").removeClass("d-none");
+                        $("#rak-input").addClass("d-none");
+                        $("#cbotrolley").val(response.lokasi_tujuan).trigger('change');
+                    }
                     // let txtqtyreject = $("#txtqtyreject").val();
                     // let txtqtyreplace = $("#txtqtyreplace").val();
                     // let txtqtyin = $("#txtqtyin").val();

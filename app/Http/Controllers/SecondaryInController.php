@@ -20,6 +20,7 @@ class SecondaryInController extends Controller
         $tglskrg = date('Y-m-d');
 
         $data_rak = DB::select("select nama_detail_rak isi, nama_detail_rak tampil from rack_detail");
+        $data_trolley = DB::select("select nama_trolley isi, nama_trolley tampil from trolley");
         // dd($data_rak);
         if ($request->ajax()) {
             $additionalQuery = '';
@@ -74,7 +75,7 @@ class SecondaryInController extends Controller
 
             return DataTables::of($data_input)->toJson();
         }
-        return view('secondary-in.secondary-in', ['page' => 'dashboard-dc', "subPageGroup" => "secondary-dc", "subPage" => "secondary-in", "data_rak" => $data_rak], ['tgl_skrg' => $tgl_skrg]);
+        return view('secondary-in.secondary-in', ['page' => 'dashboard-dc', "subPageGroup" => "secondary-dc", "subPage" => "secondary-in", "data_rak" => $data_rak, "data_trolley" => $data_trolley], ['tgl_skrg' => $tgl_skrg]);
     }
 
     public function detail_stocker_in(Request $request)
@@ -138,7 +139,8 @@ class SecondaryInController extends Controller
         dc.lokasi,
         mp.nama_part,
         if(dc.tujuan = 'SECONDARY LUAR',dc.qty_awal, si.qty_awal) qty_awal,
-        s.lokasi lokasi_rak
+        s.lokasi lokasi_tujuan,
+        s.tempat tempat_tujuan
         from
         (
         select dc.id_qr_stocker,ifnull(si.id_qr_stocker,'x') cek_1, ifnull(sii.id_qr_stocker,'x') cek_2  from dc_in_input dc
