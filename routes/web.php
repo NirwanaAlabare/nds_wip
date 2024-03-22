@@ -32,6 +32,7 @@ use App\Http\Controllers\TrolleyStockerController;
 use App\Http\Controllers\LoadingLineController;
 use App\Http\Controllers\SecondaryInhouseController;
 use App\Http\Controllers\MutasiMesinController;
+use App\Http\Controllers\MutasiMesinMasterController;
 use App\Http\Controllers\ReqMaterialController;
 use App\Http\Controllers\ReturMaterialController;
 use App\Http\Controllers\ReturInMaterialController;
@@ -518,6 +519,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/export_excel_mut_mesin', 'export_excel_mut_mesin')->name('export_excel_mut_mesin');
         Route::get('/line-chart-data', 'lineChartData')->name('line-chart-data');
     });
+    // Mutasi Mesin Master
+    Route::controller(MutasiMesinMasterController::class)->prefix("master-mut-mesin")->middleware('hr')->group(function () {
+        Route::get('/', 'index')->name('master-mut-mesin');
+        Route::post('/store', 'store')->name('store-master-mut-mesin');
+        Route::get('/export_excel_master_mesin', 'export_excel_master_mesin')->name('export_excel_master_mesin');
+    });
+
 
     Route::controller(SummaryController::class)->prefix("summary")->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('summary');
