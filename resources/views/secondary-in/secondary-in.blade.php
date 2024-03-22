@@ -312,7 +312,8 @@
                     d.dateTo = $('#tgl-akhir').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'tgl_trans_fix',
                 },
                 {
@@ -371,6 +372,20 @@
             // }]
         });
 
+        $('#datatable-input thead tr').clone(true).appendTo('#datatable-input thead');
+        $('#datatable-input thead tr:eq(1) th').each(function(i) {
+            var title = $(this).text();
+            $(this).html('<input type="text" class="form-control form-control-sm"/>');
+
+            $('input', this).on('keyup change', function() {
+                if (datatable.column(i).search() !== this.value) {
+                    datatable
+                        .column(i)
+                        .search(this.value)
+                        .draw();
+                }
+            });
+        });
 
         let datatable_detail = $("#datatable-detail").DataTable({
             ordering: false,
@@ -390,7 +405,8 @@
                     d.dateTo = $('#tgl-akhir').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'act_costing_ws',
                 },
                 {
@@ -416,10 +432,22 @@
                 },
             ],
         });
+
+        $('#datatable-detail thead tr').clone(true).appendTo('#datatable-detail thead');
+        $('#datatable-detail thead tr:eq(1) th').each(function(i) {
+            var title = $(this).text();
+            $(this).html('<input type="text" class="form-control form-control-sm"/>');
+
+            $('input', this).on('keyup change', function() {
+                if (datatable_detail.column(i).search() !== this.value) {
+                    datatable_detail
+                        .column(i)
+                        .search(this.value)
+                        .draw();
+                }
+            });
+        });
     </script>
-
-
-
 
     <script>
         // $('.select2bs4').select2({
