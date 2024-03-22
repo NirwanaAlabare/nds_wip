@@ -413,10 +413,10 @@
                     data: 'buyer',
                 },
                 {
-                    data: 'color',
+                    data: 'styleno',
                 },
                 {
-                    data: 'styleno',
+                    data: 'color',
                 },
                 {
                     data: 'qty_out',
