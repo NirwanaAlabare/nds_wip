@@ -441,6 +441,10 @@
         };
 
         function getdetail(id_c, id_b) {
+            if (document.getElementById("loading")) {
+                document.getElementById("loading").classList.remove("d-none");
+            }
+
             jQuery.ajax({
                 url: '{{ route('show_tmp_dc_in') }}',
                 method: 'get',
@@ -449,6 +453,10 @@
                 },
                 dataType: 'json',
                 success: async function(response) {
+                    if (document.getElementById("loading")) {
+                        document.getElementById("loading").classList.add("d-none");
+                    }
+
                     $("#updateTmpDcModalLabel").html(id_b);
                     document.getElementById('txtqty').value = response.qty_in;
                     document.getElementById('id_c').value = response.id_qr_stocker;
@@ -470,6 +478,10 @@
                     // $("#cbodetalokasi").val(response.det_alokasi).trigger('change');
                 },
                 error: function(request, status, error) {
+                    if (document.getElementById("loading")) {
+                        document.getElementById("loading").classList.add("d-none");
+                    }
+
                     alert(request.responseText);
                 },
             });

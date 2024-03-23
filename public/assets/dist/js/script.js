@@ -73,6 +73,10 @@ function clearModified() {
 
 // Form Submit
 function submitForm(e, evt) {
+    if (document.getElementById("loading")) {
+        document.getElementById("loading").classList.remove("d-none");
+    }
+
     $("input[type=submit][clicked=true]").attr('disabled', true);
 
     evt.preventDefault();
@@ -86,7 +90,10 @@ function submitForm(e, evt) {
         processData: false,
         contentType: false,
         success: function(res) {
-            console.log(res);
+            if (document.getElementById("loading")) {
+                document.getElementById("loading").classList.add("d-none");
+            }
+
             $("input[type=submit][clicked=true]").removeAttr('disabled');
             if (res.status == 200 || res.status == 999) {
                 $('.modal').modal('hide');
@@ -203,6 +210,10 @@ function submitForm(e, evt) {
                 }
             }
         }, error: function (jqXHR) {
+            if (document.getElementById("loading")) {
+                document.getElementById("loading").classList.add("d-none");
+            }
+
             $("input[type=submit][clicked=true]").removeAttr('disabled');
 
             let res = jqXHR.responseJSON;
