@@ -239,18 +239,26 @@ class SecondaryInController extends Controller
             }
         }
 
-        $saveinhouse = SecondaryIn::create([
-            'tgl_trans' => $tgltrans,
-            'id_qr_stocker' => $request['txtno_stocker'],
-            'qty_awal' => $request['txtqtyawal'],
-            'qty_reject' => $request['txtqtyreject'],
-            'qty_replace' => $request['txtqtyreplace'],
-            'qty_in' => $request['txtqtyin'],
-            'user' => Auth::user()->name,
-            'ket' => $request['txtket'],
-            'created_at' => $timestamp,
-            'updated_at' => $timestamp,
-        ]);
+        $saveinhouse = SecondaryIn::updateOrCreate(
+            ['id_qr_stocker' => $request['txtno_stocker']],
+            [
+                'tgl_trans' => $tgltrans,
+                'qty_awal' => $request['txtqtyawal'],
+                'qty_reject' => $request['txtqtyreject'],
+                'qty_replace' => $request['txtqtyreplace'],
+                'qty_in' => $request['txtqtyin'],
+                'user' => Auth::user()->name,
+                'ket' => $request['txtket'],
+                'created_at' => $timestamp,
+                'updated_at' => $timestamp,
+            ]
+        );
+
+        $similarStockerData = Stocker::where("form_cut_id", $stockerData->form_cut_id)->
+            where("so_det_id", $stockerData->so_det_id)->
+            where("group_stocker", $stockerData->group_stocker)->
+            where("ratio", $stockerData->ratio)->
+            get();
 
         DB::update(
             "update stocker_input set status = 'non secondary' where id_qr_stocker = '" . $request->txtno_stocker . "'"
