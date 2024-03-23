@@ -180,7 +180,7 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class='col-md-6 d-none' id="trolley-input">
+                            <div class='col-md-6' id="trolley-input">
                                 <div class='form-group'>
                                     <label class='form-label'><small>Trolley</small></label>
                                     <select class="form-control select2bs4" name="cbotrolley" id="cbotrolley" style="width: 100%;">
@@ -533,7 +533,8 @@
                 dropdownParent: $("#exampleModal")
             })
             $('#cbotuj').val('').trigger('change');
-
+            $('#rak-input').removeClass('d-none');
+            $('#trolley-input').removeClass('d-none');
         })
     </script>
     <script>
