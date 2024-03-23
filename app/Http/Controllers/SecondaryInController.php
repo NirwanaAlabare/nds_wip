@@ -8,6 +8,9 @@ use Yajra\DataTables\Facades\DataTables;
 use App\Exports\ExportLaporanMutasiKaryawan;
 use App\Models\RackDetailStocker;
 use App\Models\SecondaryIn;
+use App\Models\Trolley;
+use App\Models\TrolleyStocker;
+use App\Models\Stocker;
 use Maatwebsite\Excel\Facades\Excel;
 use DB;
 use Illuminate\Support\Facades\Auth;
@@ -190,36 +193,63 @@ class SecondaryInController extends Controller
         $timestamp = Carbon::now();
 
         $validatedRequest = $request->validate([
-            "cborak" => "required",
             "txtqtyreject" => "required"
         ]);
 
-        $rak = DB::table('rack_detail')
+        if ($request['cborak']) {
+            $rak = DB::table('rack_detail')
             ->select('id')
             ->where('nama_detail_rak', '=', $validatedRequest['cborak'])
             ->get();
-        $rak_data = $rak ? $rak[0]->id : null;
+            $rak_data = $rak ? $rak[0]->id : null;
 
-        $insert_rak = RackDetailStocker::create([
-            'nm_rak' => $validatedRequest['cborak'],
-            'detail_rack_id' => $rak_data,
-            'stocker_id' => $request['txtno_stocker'],
-            'qty_in' => $request['txtqtyin'],
-            'created_at' => $timestamp,
-            'updated_at' => $timestamp,
-        ]);
-        $saveinhouse = SecondaryIn::create([
-            'tgl_trans' => $tgltrans,
-            'id_qr_stocker' => $request['txtno_stocker'],
-            'qty_awal' => $request['txtqtyawal'],
-            'qty_reject' => $request['txtqtyreject'],
-            'qty_replace' => $request['txtqtyreplace'],
-            'qty_in' => $request['txtqtyin'],
-            'user' => Auth::user()->name,
-            'ket' => $request['txtket'],
-            'created_at' => $timestamp,
-            'updated_at' => $timestamp,
-        ]);
+            $insert_rak = RackDetailStocker::create([
+                'nm_rak' => $validatedRequest['cborak'],
+                'detail_rack_id' => $rak_data,
+                'stocker_id' => $request['txtno_stocker'],
+                'qty_in' => $request['txtqtyin'],
+                'created_at' => $timestamp,
+                'updated_at' => $timestamp,
+            ]);
+            $saveinhouse = SecondaryIn::create([
+                'tgl_trans' => $tgltrans,
+                'id_qr_stocker' => $request['txtno_stocker'],
+                'qty_awal' => $request['txtqtyawal'],
+                'qty_reject' => $request['txtqtyreject'],
+                'qty_replace' => $request['txtqtyreplace'],
+                'qty_in' => $request['txtqtyin'],
+                'user' => Auth::user()->name,
+                'ket' => $request['txtket'],
+                'created_at' => $timestamp,
+                'updated_at' => $timestamp,
+            ]);
+        }
+
+        if ($request['cbotrolley']) {
+            $lastTrolleyStock = TrolleyStocker::select('kode')->orderBy('id', 'desc')->first();
+            $trolleyStockNumber = $lastTrolleyStock ? intval(substr($lastTrolleyStock->kode, -5)) + 1 : 1;
+
+            $trolleyStockArr = [];
+
+            $thisStocker = Stocker::whereRaw("id_qr_stocker = '" . $request['txtno_stocker'] . "'")->first();
+            $thisTrolley = Trolley::where("nama_trolley", $request['cbotrolley'])->first();
+            if ($thisTrolley && $thisStocker) {
+                $trolleyCheck = TrolleyStocker::where('stocker_id', $thisStocker->id)->first();
+                if (!$trolleyCheck) {
+                    TrolleyStocker::create([
+                        "kode" => "TLS".sprintf('%05s', ($trolleyStockNumber+$i)),
+                        "trolley_id" => $thisTrolley->id,
+                        "stocker_id" => $thisStocker->id,
+                        "status" => "active",
+                        "tanggal_alokasi" => date('Y-m-d'),
+                    ]);
+                }
+
+                $thisStocker->status = "trolley";
+                $thisStocker->latest_alokasi = Carbon::now();
+                $thisStocker->save();
+            }
+        }
 
         DB::update(
             "update stocker_input set status = 'non secondary' where id_qr_stocker = '" . $request->txtno_stocker . "'"
