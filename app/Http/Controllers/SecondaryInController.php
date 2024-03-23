@@ -211,18 +211,6 @@ class SecondaryInController extends Controller
                 'created_at' => $timestamp,
                 'updated_at' => $timestamp,
             ]);
-            $saveinhouse = SecondaryIn::create([
-                'tgl_trans' => $tgltrans,
-                'id_qr_stocker' => $request['txtno_stocker'],
-                'qty_awal' => $request['txtqtyawal'],
-                'qty_reject' => $request['txtqtyreject'],
-                'qty_replace' => $request['txtqtyreplace'],
-                'qty_in' => $request['txtqtyin'],
-                'user' => Auth::user()->name,
-                'ket' => $request['txtket'],
-                'created_at' => $timestamp,
-                'updated_at' => $timestamp,
-            ]);
         }
 
         if ($request['cbotrolley']) {
@@ -250,6 +238,19 @@ class SecondaryInController extends Controller
                 $thisStocker->save();
             }
         }
+
+        $saveinhouse = SecondaryIn::create([
+            'tgl_trans' => $tgltrans,
+            'id_qr_stocker' => $request['txtno_stocker'],
+            'qty_awal' => $request['txtqtyawal'],
+            'qty_reject' => $request['txtqtyreject'],
+            'qty_replace' => $request['txtqtyreplace'],
+            'qty_in' => $request['txtqtyin'],
+            'user' => Auth::user()->name,
+            'ket' => $request['txtket'],
+            'created_at' => $timestamp,
+            'updated_at' => $timestamp,
+        ]);
 
         DB::update(
             "update stocker_input set status = 'non secondary' where id_qr_stocker = '" . $request->txtno_stocker . "'"
