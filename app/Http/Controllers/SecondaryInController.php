@@ -199,12 +199,12 @@ class SecondaryInController extends Controller
         if ($request['cborak']) {
             $rak = DB::table('rack_detail')
             ->select('id')
-            ->where('nama_detail_rak', '=', $validatedRequest['cborak'])
+            ->where('nama_detail_rak', '=', $request['cborak'])
             ->get();
             $rak_data = $rak ? $rak[0]->id : null;
 
             $insert_rak = RackDetailStocker::create([
-                'nm_rak' => $validatedRequest['cborak'],
+                'nm_rak' => $request['cborak'],
                 'detail_rack_id' => $rak_data,
                 'stocker_id' => $request['txtno_stocker'],
                 'qty_in' => $request['txtqtyin'],
