@@ -346,19 +346,18 @@ select * from tmp_dc_in_input_new where id_qr_stocker = '" . $request->txtqrstoc
             }
         }
 
-        $update_tmp_dc_in = DB::update(
-            "update tmp_dc_in_input_new set
-            qty_reject = '" . $request->txtqtyreject . "',
-            qty_replace = '" . $request->txtqtyreplace . "',
-            tujuan = '" . $request->txttuj . "',
-            tempat = '" . $request->cbotempat . "',
-            lokasi = '" . $request->cbolokasi . "',
-            ket = '" . $request->txtket . "'
-            where id_qr_stocker = '" . $request->id_c . "'
-            "
-        );
+        $update_tmp_dc_in = DB::table("tmp_dc_in_input_new")->
+            where("id_qr_stocker", $request->id_c )->
+            update([
+                "qty_reject" => $request->txtqtyreject,
+                "qty_replace" => $request->txtqtyreplace,
+                "tujuan" => $request->txttuj,
+                "tempat" => $request->cbotempat,
+                "lokasi" => $request->cbolokasi,
+                "ket" => $request->txtket
+            ]);
 
-        if ($update_tmp_dc_in) {
+        if (!(is_nan($update_tmp_dc_in))) {
             return array(
                 'status' => 300,
                 'message' => 'Data Stocker "' . $request->id_c . '" berhasil diubah',

@@ -86,6 +86,7 @@ function submitForm(e, evt) {
         processData: false,
         contentType: false,
         success: function(res) {
+            console.log(res);
             $("input[type=submit][clicked=true]").removeAttr('disabled');
             if (res.status == 200 || res.status == 999) {
                 $('.modal').modal('hide');
