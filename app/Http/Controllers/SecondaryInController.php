@@ -225,7 +225,7 @@ class SecondaryInController extends Controller
                 $trolleyCheck = TrolleyStocker::where('stocker_id', $thisStocker->id)->first();
                 if (!$trolleyCheck) {
                     TrolleyStocker::create([
-                        "kode" => "TLS".sprintf('%05s', ($trolleyStockNumber+$i)),
+                        "kode" => "TLS".sprintf('%05s', ($trolleyStockNumber)),
                         "trolley_id" => $thisTrolley->id,
                         "stocker_id" => $thisStocker->id,
                         "status" => "active",
