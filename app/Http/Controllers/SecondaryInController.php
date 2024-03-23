@@ -254,12 +254,6 @@ class SecondaryInController extends Controller
             ]
         );
 
-        $similarStockerData = Stocker::where("form_cut_id", $stockerData->form_cut_id)->
-            where("so_det_id", $stockerData->so_det_id)->
-            where("group_stocker", $stockerData->group_stocker)->
-            where("ratio", $stockerData->ratio)->
-            get();
-
         DB::update(
             "update stocker_input set status = 'non secondary' where id_qr_stocker = '" . $request->txtno_stocker . "'"
         );
