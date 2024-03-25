@@ -152,6 +152,7 @@
                             <th>Buyer</th>
                             <th>Style</th>
                             <th>Color</th>
+                            <th>No. Cut</th>
                             <th>Tujuan</th>
                             <th>Tempat</th>
                             <th>Lokasi</th>
@@ -214,6 +215,9 @@
                 },
                 {
                     data: 'color',
+                },
+                {
+                    data: 'no_cut',
                 },
                 {
                     data: 'tujuan',

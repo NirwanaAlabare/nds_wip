@@ -62,9 +62,11 @@ class DCInController extends Controller
             a.lokasi,
             a.tempat,
             a.created_at,
-            user
+            a.user,
+            f.no_cut
             from dc_in_input a
             inner join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+            inner join form_cut_input f on f.id = s.form_cut_id
             inner join part_detail pd on s.part_detail_id = pd.id
             inner join part p on pd.part_id = p.id
             order by a.tgl_trans desc
