@@ -409,7 +409,7 @@
             processing: true,
             serverSide: true,
             ajax: {
-                url: '{{ route("get-marker-sizes") }}',
+                url: '{{ route("get-general-sizes") }}',
                 data: function (d) {
                     d.act_costing_id = $('#ws_id').val();
                     d.color = $('#color').val();
@@ -423,7 +423,7 @@
                     data: 'color'
                 },
                 {
-                    data: 'size'
+                    data: 'size_dest'
                 },
                 {
                     data: 'size' // size input

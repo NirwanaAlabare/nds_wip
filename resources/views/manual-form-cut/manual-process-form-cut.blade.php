@@ -1967,6 +1967,8 @@
 
             // -Store This Time Record Transaction-
             function storeThisTimeRecord() {
+                document.getElementById("loading").classList.remove("d-none");
+
                 let spreadingForm = new FormData(document.getElementById("spreading-form"));
 
                 let dataObj = {
@@ -1986,9 +1988,24 @@
                     dataType: 'json',
                     data: dataObj,
                     success: function(res) {
+                        document.getElementById("loading").classList.add("d-none");
+
                         if (res) {
                             console.log(res);
                         }
+                    }, error: function(jqXHR) {
+                        document.getElementById("loading").classList.add("d-none");
+
+                        console.log(jqXHR);
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Koneksi Hilang',
+                            text: 'Terjadi Kesalahan',
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                            confirmButtonColor: "#6531a0",
+                        });
                     }
                 });
             }

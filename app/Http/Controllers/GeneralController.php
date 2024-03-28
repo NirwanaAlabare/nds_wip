@@ -72,17 +72,24 @@ class GeneralController extends Controller
                 master_sb_ws.ws no_ws,
                 master_sb_ws.color,
                 master_sb_ws.size,
+                master_sb_ws.dest,
+                CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) size_dest,
                 master_sb_ws.qty order_qty,
                 COALESCE(marker_input_detail.ratio, 0) ratio,
                 COALESCE(marker_input_detail.cut_qty, 0) cut_qty
-            ")->where("master_sb_ws.id_act_cost", $request->act_costing_id)->where("master_sb_ws.color", $request->color)->leftJoin('marker_input_detail', 'marker_input_detail.so_det_id', '=', 'master_sb_ws.id_so_det')->leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size");
+            ")->
+            where("master_sb_ws.id_act_cost", $request->act_costing_id)->
+            where("master_sb_ws.color", $request->color)->
+            leftJoin('marker_input_detail', 'marker_input_detail.so_det_id', '=', 'master_sb_ws.id_so_det')->
+            leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->
+            leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size");
 
 
         if ($request->marker_id) {
             $sizeQuery->where("marker_input_detail.marker_id", $request->marker_id);
         }
 
-        $sizes = $sizeQuery->groupBy("id_act_cost", "color", "size")->orderBy("master_size_new.urutan")->get();
+        $sizes = $sizeQuery->groupBy("so_det_id", "size", "color")->orderBy("master_sb_ws.dest")->orderBy("master_size_new.urutan")->get();
 
         return json_encode([
             "draw" => intval($request->input('draw')),
