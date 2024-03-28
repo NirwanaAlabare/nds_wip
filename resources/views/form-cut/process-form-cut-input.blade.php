@@ -1563,7 +1563,7 @@
 
             // -Finish Process-
             function finishProcess() {
-                let now = new Date();f
+                let now = new Date();
                 finishTime.value = now.getFullYear().toString() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate()) +" " + pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds());
 
                 if ($("#operator").val() == "" || $("#cons_actual_gelaran").val() == "") {
