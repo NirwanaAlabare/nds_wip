@@ -552,6 +552,7 @@ class FormCutInputController extends Controller
                 ]
             );
 
+            \Log::info(array("process" => "Store Time Record", "object" => $storeTimeRecordSummary, "user" => Auth::user()->username));
         if ($storeTimeRecordSummary) {
             // $itemRemain = $itemQty - floatval($validatedRequest['current_total_pemakaian_roll']) - floatval($validatedRequest['current_kepala_kain']) - floatval($validatedRequest['current_sisa_tidak_bisa']) - floatval($validatedRequest['current_reject']) - floatval($validatedRequest['current_piping']);
             $itemRemain = $validatedRequest['current_sisa_kain'];
@@ -578,6 +579,7 @@ class FormCutInputController extends Controller
                     "group_stocker" => $groupStocker
                 ]);
 
+                \Log::info(array("process" => "Store Time Record + Extension ", "object" => $storeTimeRecordSummaryExt, "user" => Auth::user()->username));
                 if ($storeTimeRecordSummaryExt) {
                     return array(
                         "status" => 200,
@@ -601,6 +603,8 @@ class FormCutInputController extends Controller
                         "unit" => $itemUnit,
                     ]
                 );
+
+                \Log::info(array("process" => "Store Time Record Only ", "object" => $storeTimeRecordSummary, "user" => Auth::user()->username));
             }
 
             return array(
@@ -661,6 +665,7 @@ class FormCutInputController extends Controller
                 ]
             );
 
+            \Log::info(array("process" => "Store Current Time Record", "object" => $storeTimeRecordSummary, "user" => Auth::user()->username));
         if ($storeTimeRecordSummary) {
             $now = Carbon::now();
 
@@ -764,6 +769,8 @@ class FormCutInputController extends Controller
             ]
         );
 
+        \Log::info(array("process" => "Store Time Record Extension ", "object" => $storeTimeRecordSummary, "user" => Auth::user()->username));
+
         if ($storeTimeRecordSummary) {
             $itemRemain = $itemQty - floatval($validatedRequest['current_total_pemakaian_roll']) - floatval($validatedRequest['current_kepala_kain']) - floatval($validatedRequest['current_sisa_tidak_bisa']) - floatval($validatedRequest['current_reject']) - floatval($validatedRequest['current_piping']);;
             // $itemRemain = $validatedRequest['current_sisa_kain'];
@@ -807,6 +814,8 @@ class FormCutInputController extends Controller
                         "status" => "not complete",
                         "metode" => $request->metode ? $request->metode : "scan",
                     ]);
+
+                    \Log::info(array("process" => "Store Time Record Extension on After ", "object" => $storeTimeRecordSummaryNext, "user" => Auth::user()->username));
 
                     if ($storeTimeRecordSummaryNext) {
                         return array(
@@ -854,6 +863,15 @@ class FormCutInputController extends Controller
             if ($formCutInputDetailData->status == 'extension') {
                 $thisFormCutInputDetail = FormCutInputDetail::select("sisa_gelaran", "unit")->where('id', $formCutInputDetailData->id_sambungan)->first();
 
+                \Log::info(array(
+                    "process" => "Check Spreading Form",
+                    "count" => $formCutInputDetailCount,
+                    "data" => $formCutInputDetailData,
+                    "sisaGelaran" => $thisFormCutInputDetail->sisa_gelaran,
+                    "unitSisaGelaran" => $thisFormCutInputDetail->unit,
+                    "meja" => Auth::user()->username
+                ));
+
                 return array(
                     "count" => $formCutInputDetailCount,
                     "data" => $formCutInputDetailData,
@@ -861,6 +879,14 @@ class FormCutInputController extends Controller
                     "unitSisaGelaran" => $thisFormCutInputDetail->unit,
                 );
             } else if ($formCutInputDetailData->status == 'not complete') {
+                \Log::info(array(
+                    "process" => "Check Spreading Form",
+                    "count" => $formCutInputDetailCount,
+                    "data" => $formCutInputDetailData,
+                    "sisaGelaran" => 0,
+                    "unitSisaGelaran" => null,
+                ));
+
                 return array(
                     "count" => $formCutInputDetailCount,
                     "data" => $formCutInputDetailData,
