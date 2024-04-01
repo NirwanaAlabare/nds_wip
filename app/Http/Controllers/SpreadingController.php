@@ -399,8 +399,10 @@ class SpreadingController extends Controller
                     where("marker_input.panel", $checkMarker->panel)->
                     where("form_cut_input.status", "SELESAI PENGERJAAN")->
                     orderBy("form_cut_input.waktu_selesai", "asc")->
+                    orderBy("form_cut_input.no_cut", "asc")->
                     get();
 
+                $i=0;
                 foreach ($formCuts as $formCut) {
                     $i++;
 
