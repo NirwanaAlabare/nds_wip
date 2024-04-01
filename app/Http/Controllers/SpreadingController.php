@@ -384,6 +384,7 @@ class SpreadingController extends Controller
     {
         $spreadingForm = FormCutInput::where('id', $id)->first();
 
+        $checkMarker = Marker::where("kode", $spreadingForm->id_marker);
         $checkStocker = Stocker::where("form_cut_id", $id)->get();
         $checkNumbering = StockerDetail::where("form_cut_id", $id)->get();
 
@@ -391,6 +392,28 @@ class SpreadingController extends Controller
             $deleteSpreadingForm = FormCutInput::where('id', $id)->delete();
 
             if ($deleteSpreadingForm) {
+                // Similar Form No. Cutting Update
+                $formCuts = FormCutInput::selectRaw("form_cut_input.id as id, form_cut_input.no_form, form_cut_input.status")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+                    where("marker_input.act_costing_ws", $checkMarker->act_costing_ws)->
+                    where("marker_input.color", $checkMarker->color)->
+                    where("marker_input.panel", $checkMarker->panel)->
+                    where("form_cut_input.status", "SELESAI PENGERJAAN")->
+                    orderBy("form_cut_input.waktu_selesai", "asc")->
+                    get();
+
+                foreach ($formCuts as $formCut) {
+                    $i++;
+
+                    $updateFormCut = FormCutInput::where("id", $formCut->id)->
+                        update([
+                            "no_cut" => $i
+                        ]);
+
+                    if ($updateFormCut) {
+                        array_push($updatedForm, ["ws_no_form" => $markerGroup->act_costing_ws."-".$markerGroup->color."-".$markerGroup->panel."-".$formCut->no_form."-".$formCut->status."-".$i]);
+                    }
+                }
+
                 $updateMarkerBalance = Marker::where("kode", $spreadingForm->id_marker)->update([
                     "gelar_qty_balance" => DB::raw('gelar_qty_balance + '.$spreadingForm->qty_ply)
                 ]);

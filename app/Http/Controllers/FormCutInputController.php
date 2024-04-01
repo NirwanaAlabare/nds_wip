@@ -1000,7 +1000,6 @@ class FormCutInputController extends Controller
         $updatedForm = [];
 
         $markerGroups = Marker::select("act_costing_ws", "color", "panel")->groupBy("act_costing_ws", "color", "panel")->get();
-
         foreach ($markerGroups as $markerGroup) {
             $i = 0;
 
