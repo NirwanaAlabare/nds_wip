@@ -318,6 +318,7 @@ class StockerController extends Controller
             where("part.id", $request->id)->
             groupBy("form_cut_input.id")->
             orderBy("marker_input.color", "asc")->
+            orderBy("form_cut_input.waktu_selesai", "asc")->
             orderBy("form_cut_input.no_cut", "asc")->
             get();
 
