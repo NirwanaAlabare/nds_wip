@@ -419,8 +419,6 @@ class SpreadingController extends Controller
                 if ($updateMarkerBalance) {
                     $spreadingFormDetails = FormCutInputDetail::where('no_form_cut_input', $spreadingForm->no_form_cut_input)->get();
                     $deleteSpreadingFormDetail = FormCutInputDetail::where('no_form_cut_input', $spreadingForm->no_form_cut_input)->delete();
-                    $deleteCutPlan = CutPlan::where('no_form_cut_input', $spreadingForm->no_form_cut_input)->delete();
-
                     if ($deleteSpreadingFormDetail) {
                         $idFormDetailLapArr = [];
                         foreach ($spreadingFormDetails as $spreadingFormDetail) {
@@ -429,6 +427,8 @@ class SpreadingController extends Controller
 
                         $deleteSpreadingFormDetailLap = FormCutInputDetailLap::whereIn("form_cut_input_detail_id", $idFormDetailLapArr)->delete();
                     }
+
+                    $deleteCutPlan = CutPlan::where('no_form_cut_input', $spreadingForm->no_form_cut_input)->delete();
 
                     return array(
                         "status" => 200,
