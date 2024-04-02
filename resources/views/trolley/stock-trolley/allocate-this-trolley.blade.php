@@ -232,17 +232,17 @@
                             if (stockerScannerInitialized == false) {
                                 if (stockerScanner == null || (stockerScanner && (stockerScanner.getState() && stockerScanner.getState() != 2))) {
                                     const stockerScanSuccessCallback = (decodedText, decodedResult) => {
-                                            // handle the scanned code as you like, for example:
+                                        // handle the scanned code as you like, for example:
                                         console.log(`Code matched = ${decodedText}`, decodedResult);
 
                                         // store to input text
-                                        let breakDecodedText = decodedText.split('-');
+                                        $('#kode_stocker').val(decodedText).trigger('change');
 
-                                        $('#kode_stocker').val(breakDecodedText[0]).trigger('change');
-
-                                        getStockerData(breakDecodedText[0]);
+                                        getStockerData(decodedText);
 
                                         clearStockerScan();
+
+                                        console.log(decodedText);
                                     };
                                     const stockerScanConfig = { fps: 10, qrbox: { width: 250, height: 250 } };
 
