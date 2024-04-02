@@ -44,22 +44,24 @@ class MarkerController extends Controller
                 CONCAT(COALESCE(b.total_lembar, 0), '/', gelar_qty) ply_progress,
                 COALESCE(notes, '-') notes,
                 cancel
-            ")->leftJoin(
-                    DB::raw("
-                (
-                    select
-                        id_marker,
-                        count(id_marker) total_form,
-                        sum(total_lembar) total_lembar
-                    from
-                        form_cut_input
-                    group by
-                        id_marker
-                ) b"),
-                    "marker_input.kode",
-                    "=",
-                    "b.id_marker"
-                );
+            ")->
+            leftJoin(
+                DB::raw("
+                    (
+                        select
+                            id_marker,
+                            count(id_marker) total_form,
+                            sum(total_lembar) total_lembar
+                        from
+                            form_cut_input
+                        group by
+                            id_marker
+                    ) b"
+                ),
+                "marker_input.kode",
+                "=",
+                "b.id_marker"
+            );
 
             return DataTables::eloquent($markersQuery)->filter(function ($query) {
                     $tglAwal = request('tgl_awal');
@@ -821,5 +823,66 @@ class MarkerController extends Controller
 
             return response()->download($generatedFilePath);
         }
+    }
+
+    public function fixMarkerBalanceQty() {
+        $markers = Marker::selectRaw("
+                id,
+                tgl_cutting,
+                DATE_FORMAT(tgl_cutting, '%d-%m-%Y') tgl_cut_fix,
+                kode,
+                act_costing_ws,
+                style,
+                color,
+                panel,
+                CONCAT(panjang_marker, ' ', UPPER(unit_panjang_marker)) panjang_marker,
+                CONCAT(comma_marker, ' ', UPPER(unit_comma_marker)) comma_marker,
+                CONCAT(panjang_marker, ' ', UPPER(unit_panjang_marker), ' ',comma_marker, ' ', UPPER(unit_comma_marker)) panjang_marker_fix,
+                CONCAT(lebar_marker, ' ', UPPER(unit_lebar_marker)) lebar_marker,
+                COALESCE(gramasi, 0) gramasi,
+                gelar_qty,
+                gelar_qty_balance,
+                po_marker,
+                urutan_marker,
+                tipe_marker,
+                COALESCE(b.total_form, 0) total_form,
+                COALESCE(b.total_lembar, 0) total_lembar,
+                CONCAT(COALESCE(b.total_lembar, 0), '/', gelar_qty) ply_progress,
+                COALESCE(notes, '-') notes,
+                cancel
+            ")->
+            leftJoin(
+                DB::raw("
+                    (
+                        select
+                            id_marker,
+                            count(id_marker) total_form,
+                            sum(qty_ply) total_lembar
+                        from
+                            form_cut_input
+                        group by
+                            id_marker
+                    ) b"
+                ),
+                "marker_input.kode",
+                "=",
+                "b.id_marker"
+            )->
+            where("b.total_lembar", "<", DB::raw("gelar_qty"))->
+            where("gelar_qty_balance", "!=", DB::raw("(gelar_qty - b.total_lembar)"))->
+            get();
+
+        foreach ($markers as $marker) {
+            $thisMarker = Marker::where("id", $marker->id)->first();
+            $thisMarker->gelar_qty_balance = $marker->gelar_qty - $marker->total_lembar;
+            $thisMarker->save();
+        }
+
+        return array(
+            "status" => 200,
+            "message" => $markers->count()." marker telah diperbaiki.",
+            "redirect" => '',
+            "additional" => []
+        );
     }
 }

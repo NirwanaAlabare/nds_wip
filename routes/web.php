@@ -107,6 +107,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/update_status', 'update_status')->name('update_status');
         Route::put('/update_marker', 'update_marker')->name('update_marker');
         Route::post('/print-marker/{kodeMarker?}', 'printMarker')->name('print-marker');
+        Route::post('/fix-marker-balance-qty', 'fixMarkerBalanceQty')->name('fix-marker-balance-qty');
 
         // get order
         Route::get('/get-order', 'getOrderInfo')->name('get-marker-order');

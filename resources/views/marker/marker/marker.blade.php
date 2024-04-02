@@ -101,19 +101,27 @@
                 <i class="fas fa-plus"></i>
                 Baru
             </a>
-            <div class="d-flex align-items-end gap-3 mb-3">
-                <div class="mb-3">
-                    <label class="form-label"><small>Tanggal Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
-                        value="{{ date('Y-m-d') }}" onchange="filterTable()">
+            <div class="d-flex justify-content-between">
+                <div class="d-flex justify-content-start align-items-end gap-3 mb-3">
+                    <div class="mb-3">
+                        <label class="form-label"><small>Tanggal Awal</small></label>
+                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
+                            value="{{ date('Y-m-d') }}" onchange="filterTable()">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><small>Tanggal Akhir</small></label>
+                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
+                            value="{{ date('Y-m-d') }}" onchange="filterTable()">
+                    </div>
+                    <div class="mb-3">
+                        <button class="btn btn-primary btn-sm" onclick="filterTable()"><i class="fa fa-search"></i></button>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label"><small>Tanggal Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                        value="{{ date('Y-m-d') }}" onchange="filterTable()">
-                </div>
-                <div class="mb-3">
-                    <button class="btn btn-primary btn-sm" onclick="filterTable()"><i class="fa fa-search"></i></button>
+                <div class="d-flex justify-content-end align-items-end gap-3 mb-3">
+                    <button class="btn btn-sb-secondary btn-sm mb-3" onclick="fixMarkerBalanceQty()">
+                        <i class="fa-solid fa-screwdriver-wrench fa-sm"></i>
+                        Fix Marker Balance Qty
+                    </button>
                 </div>
             </div>
             <div class="table-responsive">
@@ -461,6 +469,51 @@
                         swal.close();
                     }
                 }
+            });
+        }
+
+        function fixMarkerBalanceQty() {
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Fixing Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                url: '{{ route('fix-marker-balance-qty') }}',
+                method: 'POST',
+                dataType: 'json',
+                success: async function(res) {
+                    console.log(res);
+
+                    await swal.close();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: res.message,
+                        showCancelButton: false,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Oke',
+                        timer: (res.status == 200 ? 5000 : 200),
+                        timerProgressBar: true
+                    }).then(() => {
+                        if (isNotNull(res.redirect)) {
+                            if (res.redirect != 'reload') {
+                                location.href = res.redirect;
+                            } else {
+                                location.reload();
+                            }
+                        } else {
+                            location.reload();
+                        }
+                    });
+                },
+                error: function(jqXHR) {
+                    console.log(jqXHR);
+                },
             });
         }
     </script>
