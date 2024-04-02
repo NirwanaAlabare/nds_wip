@@ -826,6 +826,8 @@ class MarkerController extends Controller
     }
 
     public function fixMarkerBalanceQty() {
+        ini_set("maximum_execution_time", 3600);
+
         $markers = Marker::selectRaw("
                 id,
                 tgl_cutting,
