@@ -456,11 +456,13 @@
         }
 
         function submitSpreadingForm(e, evt) {
+            if (document.getElementById("loading")) {
+                document.getElementById("loading").classList.remove("d-none");
+            }
+
             evt.preventDefault();
 
             $("input[type=submit][clicked=true]").attr('disabled', true);
-
-            evt.preventDefault();
 
             clearModified();
 
@@ -471,6 +473,10 @@
                 processData: false,
                 contentType: false,
                 success: async function(res) {
+                    if (document.getElementById("loading")) {
+                        document.getElementById("loading").classList.add("d-none");
+                    }
+
                     $("input[type=submit][clicked=true]").removeAttr('disabled');
 
                     if (res.status == 200) {
@@ -496,7 +502,11 @@
 
                         datatable.ajax.reload();
                     }
-                },
+                }, error: function(jqXHR) {
+                    if (document.getElementById("loading")) {
+                        document.getElementById("loading").classList.add("d-none");
+                    }
+                }
 
             });
         }

@@ -286,6 +286,10 @@ function deleteData(e) {
             confirmButtonColor: '#fa4456',
         }).then((result) => {
             if (result.isConfirmed) {
+                if (document.getElementById("loading")) {
+                    document.getElementById("loading").classList.remove("d-none");
+                }
+
                 $.ajax({
                     url: e.getAttribute('data-url'),
                     type: 'POST',
@@ -293,6 +297,10 @@ function deleteData(e) {
                         _method: 'DELETE'
                     },
                     success: function(res) {
+                        if (document.getElementById("loading")) {
+                            document.getElementById("loading").classList.add("d-none");
+                        }
+
                         if (res.status == 200) {
                             iziToast.success({
                                 title: 'Success',
@@ -313,6 +321,10 @@ function deleteData(e) {
                             $('#'+res.table).DataTable().ajax.reload();
                         }
                     }, error: function (jqXHR) {
+                        if (document.getElementById("loading")) {
+                            document.getElementById("loading").classList.add("d-none");
+                        }
+
                         let res = jqXHR.responseJSON;
                         let message = '';
 

@@ -384,7 +384,7 @@ class SpreadingController extends Controller
     {
         $spreadingForm = FormCutInput::where('id', $id)->first();
 
-        $checkMarker = Marker::where("kode", $spreadingForm->id_marker);
+        $checkMarker = Marker::where("kode", $spreadingForm->id_marker)->first();
         $checkStocker = Stocker::where("form_cut_id", $id)->get();
         $checkNumbering = StockerDetail::where("form_cut_id", $id)->get();
 
@@ -410,10 +410,6 @@ class SpreadingController extends Controller
                         update([
                             "no_cut" => $i
                         ]);
-
-                    if ($updateFormCut) {
-                        array_push($updatedForm, ["ws_no_form" => $markerGroup->act_costing_ws."-".$markerGroup->color."-".$markerGroup->panel."-".$formCut->no_form."-".$formCut->status."-".$i]);
-                    }
                 }
 
                 $updateMarkerBalance = Marker::where("kode", $spreadingForm->id_marker)->update([
