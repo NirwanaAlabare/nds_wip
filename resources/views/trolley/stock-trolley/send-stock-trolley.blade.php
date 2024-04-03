@@ -156,10 +156,12 @@
 
             let selectedStockerTable = $('#datatable-trolley-stock').DataTable().rows('.selected').data();
             let selectedStocker = [];
+
             for (let key in selectedStockerTable) {
                 if (!isNaN(key)) {
+                    console.log(selectedStockerTable[key]);
                     selectedStocker.push({
-                        stocker_ids: selectedStockerTable[key]['stocker_id']
+                        stocker_ids: selectedStockerTable[key][0]
                     });
                 }
             }
@@ -167,6 +169,10 @@
             let lineId = document.getElementById('line_id').value;
 
             if (tanggalLoading && selectedStocker.length > 0) {
+                if (document.getElementById("loading")) {
+                    document.getElementById("loading").classList.remove("d-none");
+                }
+
                 element.setAttribute('disabled', true);
 
                 $.ajax({
@@ -178,6 +184,10 @@
                         line_id: lineId
                     },
                     success: function(res) {
+                        if (document.getElementById("loading")) {
+                            document.getElementById("loading").classList.add("d-none");
+                        }
+
                         element.removeAttribute('disabled');
 
                         if (res.status == 200) {
@@ -191,12 +201,6 @@
                                 title: 'Error',
                                 message: res.message,
                                 position: 'topCenter'
-                            });
-                        }
-
-                        if (res.table != '') {
-                            $('#' + res.table).DataTable().ajax.reload(() => {
-                                document.getElementById('selected-row-count-1').innerText = $('#' + res.table).DataTable().rows('.selected').data().length;
                             });
                         }
 
@@ -221,19 +225,31 @@
                                 });
                             }
 
-                            if ((res.additional['success'].length + res.additional['fail'].length + res.additional['exist'].length) > 1) {
-                                Swal.fire({
-                                    icon: 'info',
-                                    title: 'Hasil Transfer',
-                                    html: message,
-                                    showCancelButton: false,
-                                    showConfirmButton: true,
-                                    confirmButtonText: 'Oke',
-                                });
-                            }
+                            Swal.fire({
+                                icon: 'info',
+                                title: 'Hasil Transfer',
+                                html: message,
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                            }).then(() => {
+                                if (isNotNull(res.redirect)) {
+                                    if (res.redirect != 'reload') {
+                                        location.href = res.redirect;
+                                    } else {
+                                        location.reload();
+                                    }
+                                } else {
+                                    location.reload();
+                                }
+                            });
                         }
                     },
                     error: function(jqXHR) {
+                        if (document.getElementById("loading")) {
+                            document.getElementById("loading").classList.add("d-none");
+                        }
+
                         element.removeAttribute('disabled');
 
                         // let res = jqXHR.responseJSON;

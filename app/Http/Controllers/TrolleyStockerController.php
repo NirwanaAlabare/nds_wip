@@ -511,10 +511,11 @@ class TrolleyStockerController extends Controller
 
         $lineData = UserLine::where("line_id", $request->line_id)->first();
 
+        // if ($request->selectedStocker)
         foreach ($request->selectedStocker as $req) {
             $loadingStockArr = [];
 
-            $stockerIds = explode(",", $req['stocker_ids']);
+            $stockerIds = explode(',', $req['stocker_ids']);
 
             for ($i = 0; $i < count($stockerIds); $i++) {
                 $thisStockerData = Stocker::where('id', $stockerIds[$i])->first();
@@ -598,7 +599,6 @@ class TrolleyStockerController extends Controller
                 'status' => 200,
                 'message' => 'Stocker berhasil dikirim',
                 'redirect' => '',
-                'table' => 'datatable-trolley-stock',
                 'additional' => ["success" => $success, "fail" => $fail, "exist" => $exist],
             );
         } else {
@@ -606,7 +606,6 @@ class TrolleyStockerController extends Controller
                 'status' => 400,
                 'message' => 'Data tidak ditemukan',
                 'redirect' => '',
-                'table' => 'datatable-trolley-stock',
                 'additional' => ["success" => $success, "fail" => $fail, "exist" => $exist],
             );
         }
