@@ -31,7 +31,7 @@
                 <div class="my-3">
                     <label class="form-label">List Trolley</label>
                     <div class="input-group">
-                        <select class="form-select select2bs4" name="trolley_id" id="trolley_id" onchange="trolleyStockDatatableReload();">
+                        <select class="form-select select2bs4" name="trolley_id" id="trolley_id" onchange="trolleyStockDatatableReload();" data-prevent-submit="true">
                             <option value="">Pilih Trolley</option>
                             @foreach ($trolleys as $trolley)
                                 <option value="{{ $trolley->id }}">{{ $trolley->nama_trolley }}</option>
@@ -55,7 +55,7 @@
                 <div class="mb-3">
                     <label class="form-label">Stocker</label>
                     <div class="input-group">
-                        <input type="text" class="form-control form-control-sm" name="kode_stocker" id="kode_stocker">
+                        <input type="text" class="form-control form-control-sm" name="kode_stocker" id="kode_stocker" data-prevent-submit="true">
                         <button class="btn btn-sm btn-outline-success" type="button" onclick="getStockerDataInput()">Get</button>
                         <button class="btn btn-sm btn-outline-primary" type="button" onclick="initStockerScan()">Scan</button>
                         <input type="hidden" name="stocker_id" id="stocker_id">
@@ -182,6 +182,22 @@
             clearStockerData();
         });
 
+        document.getElementById("stocker-form").onkeypress = function(e) {
+            var key = e.charCode || e.keyCode || 0;
+            if (key == 13) {
+                if (e.target.getAttribute('data-prevent-submit') == "true") {
+                    e.preventDefault();
+                }
+            }
+        }
+
+        document.getElementById("kode_stocker").onkeypress = function(e) {
+            var key = e.charCode || e.keyCode || 0;
+            if (key == 13) {
+                getStockerDataInput();
+            }
+        };
+
         // Scan QR Module :
             // Variable List :
                 var trolleyScanner = new Html5Qrcode("trolley-reader");
@@ -281,7 +297,7 @@
                     }
 
         // Datatable
-        let trolleyStockDatatable = $("#trolley-stock-datatable").DataTable({
+        var trolleyStockDatatable = $("#trolley-stock-datatable").DataTable({
             ordering: false,
             processing: true,
             serverSide: true,
@@ -338,6 +354,18 @@
                     }
                 },
                 {
+                    targets: [1],
+                    render: (data, type, row, meta) => {
+                        return `<span>`+ data.replace(/,/g, ", <br>") +`</span>`;
+                    }
+                },
+                {
+                    targets: [6],
+                    render: (data, type, row, meta) => {
+                        return `<span>`+ data.replace(/,/g, ", <br>") +`</span>`;
+                    }
+                },
+                {
                     targets: [2,9],
                     className: "text-nowrap"
                 }
@@ -345,7 +373,9 @@
         });
 
         function trolleyStockDatatableReload() {
-            trolleyStockDatatable.ajax.reload();
+            if (trolleyStockDatatable) {
+                trolleyStockDatatable.ajax.reload();
+            }
         }
 
         function clearAll() {
@@ -357,18 +387,24 @@
         function getStockerDataInput() {
             let id = document.getElementById('kode_stocker').value;
 
-            console.log(id)
-
             getStockerData(id);
         }
 
         function getStockerData(id) {
             if (isNotNull(id)) {
+                if (document.getElementById("loading")) {
+                    document.getElementById("loading").classList.remove("d-none");
+                }
+
                 return $.ajax({
                     url: '{{ route('get-stocker-data-trolley-stock') }}/' + id,
                     type: 'get',
                     dataType: 'json',
                     success: function(res) {
+                        if (document.getElementById("loading")) {
+                            document.getElementById("loading").classList.add("d-none");
+                        }
+
                         clearStockerData();
 
                         if (res && res.status == 200) {
@@ -384,6 +420,10 @@
                         }
                     },
                     error: function(jqXHR) {
+                        if (document.getElementById("loading")) {
+                            document.getElementById("loading").classList.add("d-none");
+                        }
+
                         console.log(jqXHR);
                     }
                 });

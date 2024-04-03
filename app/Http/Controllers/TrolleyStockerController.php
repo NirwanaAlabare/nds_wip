@@ -23,65 +23,50 @@ class TrolleyStockerController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request)
-    {
-        if ($request->ajax()) {
-            $additionalQuery = "";
-
-            $trolleyStock = Trolley::selectRaw("
-                    trolley.id,
-                    trolley_stocker.tanggal_alokasi,
-                    stocker.act_costing_ws,
-                    marker_input.style,
-                    stocker.color,
-                    trolley.nama_trolley,
-                    SUM(stocker.qty_ply) qty
-                ")->
-                leftJoin("trolley_stocker", function($join)
-                    {
-                        $join->on('trolley_stocker.trolley_id', '=', 'trolley.id');
-                        $join->on('trolley_stocker.status', '=', DB::raw('"active"'));
-                    }
-                )->
-                leftJoin(
-                    DB::raw('
-                        (
-                            SELECT
-                                stocker_input.id,
-                                stocker_input.form_cut_id,
-                                stocker_input.act_costing_ws,
-                                stocker_input.color,
-                                stocker_input.qty_ply,
-                                form_cut_input.id_marker
-                            FROM
-                                stocker_input
+{
+        $trolleyStocks = Trolley::selectRaw("
+                trolley.id,
+                trolley_stocker.tanggal_alokasi,
+                stocker.act_costing_ws,
+                marker_input.style,
+                stocker.color,
+                trolley.nama_trolley,
+                stocker.qty_ply,
+                SUM(stocker.qty_ply) qty
+            ")->
+            leftJoin("trolley_stocker", function($join)
+                {
+                    $join->on('trolley_stocker.trolley_id', '=', 'trolley.id');
+                    $join->on('trolley_stocker.status', '=', DB::raw('"active"'));
+                }
+            )->
+            leftJoin(
+                DB::raw('
+                    (
+                        SELECT
+                            stocker_input.id,
+                            stocker_input.form_cut_id,
+                            stocker_input.act_costing_ws,
+                            stocker_input.color,
+                            stocker_input.qty_ply,
+                            form_cut_input.id_marker
+                        FROM
+                            stocker_input
                             LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
-                            GROUP BY
-                                stocker_input.form_cut_id, stocker_input.so_det_id, stocker_input.group_stocker, stocker_input.ratio
-                        ) stocker
-                    '),
-                    'stocker.id', '=', 'trolley_stocker.stocker_id'
-                )->
-                leftJoin("marker_input", "marker_input.kode", "=", "stocker.id_marker")->
-                groupBy('trolley.id', 'stocker.act_costing_ws', 'marker_input.style', 'stocker.color')->
-                orderByRaw("ISNULL(SUM(stocker.qty_ply)) asc")->
-                orderByRaw("CAST(trolley.nama_trolley AS UNSIGNED) asc")->
-                orderByRaw("trolley.id asc")->
-                get();
+                        GROUP BY
+                            stocker_input.form_cut_id, stocker_input.so_det_id, stocker_input.group_stocker, stocker_input.ratio
+                    ) stocker
+                '),
+                'stocker.id', '=', 'trolley_stocker.stocker_id'
+            )->
+            leftJoin("marker_input", "marker_input.kode", "=", "stocker.id_marker")->
+            groupBy('trolley.id', 'stocker.act_costing_ws', 'marker_input.style', 'stocker.color')->
+            orderByRaw("ISNULL(SUM(stocker.qty_ply)) asc")->
+            orderByRaw("CAST(trolley.nama_trolley AS UNSIGNED) asc")->
+            orderByRaw("trolley.id asc")->
+            get();
 
-            return DataTables::of($trolleyStock)
-                ->filter(function ($query) {
-                    if (request()->has('dateFrom') && request('dateFrom') != null && request('dateFrom') != "") {
-                        $query->where("tanggal_alokasi", ">=", request('dateFrom'));
-                    }
-
-                    if (request()->has('dateTo') && request('dateTo') != null && request('dateTo') != "") {
-                        $query->where("tanggal_alokasi", "<=", request('dateTo'));
-                    }
-                })
-                ->toJson();
-        }
-
-        return view('trolley.stock-trolley.stock-trolley', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'stock-trolley']);
+        return view('trolley.stock-trolley.stock-trolley', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'stock-trolley', 'trolleyStocks' => $trolleyStocks]);
     }
 
     /**
@@ -117,10 +102,40 @@ class TrolleyStockerController extends Controller
                 where('trolley_id', $request->trolley_id)->
                 where('trolley_stocker.status', "active")->
                 where('stocker_input.status', "trolley")->
-                groupBy('form_cut_input.no_cut', 'stocker_input.form_cut_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio')->
-                get();
+                groupBy('form_cut_input.no_cut', 'stocker_input.form_cut_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio');
 
-            return DataTables::of($trolley)->toJson();
+            return DataTables::eloquent($trolley)->
+                filterColumn('id', function($query, $keyword) {
+                    $query->whereRaw("trolley_stocker.id LIKE '%".$keyword."%'");
+                })->
+                filterColumn('id_qr_stocker', function($query, $keyword) {
+                    $query->whereRaw("stocker_input.id_qr_stocker LIKE '%".$keyword."%'");
+                })->
+                filterColumn('act_costing_ws', function($query, $keyword) {
+                    $query->whereRaw("stocker_input.act_costing_ws LIKE '%".$keyword."%'");
+                })->
+                filterColumn('no_cut', function($query, $keyword) {
+                    $query->whereRaw("form_cut_input.no_cut LIKE '%".$keyword."%'");
+                })->
+                filterColumn('style', function($query, $keyword) {
+                    $query->whereRaw("marker_input.style LIKE '%".$keyword."%'");
+                })->
+                filterColumn('color', function($query, $keyword) {
+                    $query->whereRaw("marker_input.color LIKE '%".$keyword."%'");
+                })->
+                filterColumn('nama_part', function($query, $keyword) {
+                    $query->whereRaw("master_part.nama_part LIKE '%".$keyword."%'");
+                })->
+                filterColumn('qty', function($query, $keyword) {
+                    $query->whereRaw("stocker_input.qty_ply LIKE '%".$keyword."%'");
+                })->
+                filterColumn('rangeAwalAkhir', function($query, $keyword) {
+                    $query->whereRaw("CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir) LIKE '%".$keyword."%'");
+                })->
+                filterColumn('size', function($query, $keyword) {
+                    $query->whereRaw("stocker_input.size LIKE '%".$keyword."%'");
+                })->
+                toJson();
         }
 
         $trolleys = Trolley::orderBy('nama_trolley', 'asc')->get();
@@ -151,10 +166,40 @@ class TrolleyStockerController extends Controller
                 where('trolley_id', $id)->
                 where('trolley_stocker.status', "active")->
                 where('stocker_input.status', "trolley")->
-                groupBy('form_cut_input.no_cut', 'stocker_input.form_cut_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio')->
-                get();
+                groupBy('form_cut_input.no_cut', 'stocker_input.form_cut_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio');
 
-            return DataTables::of($trolley)->toJson();
+            return DataTables::eloquent($trolley)->
+                filterColumn('id', function($query, $keyword) {
+                    $query->whereRaw("trolley_stocker.id LIKE '%".$keyword."%'");
+                })->
+                filterColumn('id_qr_stocker', function($query, $keyword) {
+                    $query->whereRaw("stocker_input.id_qr_stocker LIKE '%".$keyword."%'");
+                })->
+                filterColumn('act_costing_ws', function($query, $keyword) {
+                    $query->whereRaw("stocker_input.act_costing_ws LIKE '%".$keyword."%'");
+                })->
+                filterColumn('no_cut', function($query, $keyword) {
+                    $query->whereRaw("form_cut_input.no_cut LIKE '%".$keyword."%'");
+                })->
+                filterColumn('style', function($query, $keyword) {
+                    $query->whereRaw("marker_input.style LIKE '%".$keyword."%'");
+                })->
+                filterColumn('color', function($query, $keyword) {
+                    $query->whereRaw("marker_input.color LIKE '%".$keyword."%'");
+                })->
+                filterColumn('nama_part', function($query, $keyword) {
+                    $query->whereRaw("master_part.nama_part LIKE '%".$keyword."%'");
+                })->
+                filterColumn('qty', function($query, $keyword) {
+                    $query->whereRaw("stocker_input.qty_ply LIKE '%".$keyword."%'");
+                })->
+                filterColumn('rangeAwalAkhir', function($query, $keyword) {
+                    $query->whereRaw("CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir) LIKE '%".$keyword."%'");
+                })->
+                filterColumn('size', function($query, $keyword) {
+                    $query->whereRaw("stocker_input.size LIKE '%".$keyword."%'");
+                })->
+                toJson();
         }
 
         $trolley = Trolley::with('userLine')->where('id', $id)->first();
@@ -425,39 +470,35 @@ class TrolleyStockerController extends Controller
     }
 
     public function send(Request $request, $id) {
-        if ($request->ajax()) {
-            $trolley = TrolleyStocker::selectRaw("
-                    trolley_stocker.id,
-                    GROUP_CONCAT(stocker_input.id ORDER BY stocker_input.id ASC) stocker_id,
-                    GROUP_CONCAT(stocker_input.id_qr_stocker ORDER BY stocker_input.id ASC SEPARATOR ', ') id_qr_stocker,
-                    stocker_input.act_costing_ws,
-                    form_cut_input.no_cut,
-                    marker_input.style,
-                    stocker_input.color,
-                    GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') nama_part,
-                    stocker_input.size,
-                    stocker_input.qty_ply qty,
-                    CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir)) rangeAwalAkhir
-                ")->
-                leftJoin("stocker_input", "stocker_input.id", "=", "trolley_stocker.stocker_id")->
-                leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
-                leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
-                leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
-                leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
-                where('trolley_id', $id)->
-                where('trolley_stocker.status', 'active')->
-                where('stocker_input.status', "!=", "line")->
-                groupBy('form_cut_input.no_cut', 'stocker_input.form_cut_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio')->
-                get();
-
-            return DataTables::of($trolley)->toJson();
-        }
-
         $trolley = Trolley::with('userLine')->where('id', $id)->first();
 
         $lines = UserLine::where('Groupp', 'SEWING')->whereRaw('(Locked != 1 || Locked is NULL)')->orderBy('line_id', 'asc')->get();
 
-        return view('trolley.stock-trolley.send-stock-trolley', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'stock-trolley', 'trolley' => $trolley, 'lines' => $lines]);
+        $trolleyStocks = TrolleyStocker::selectRaw("
+                trolley_stocker.id,
+                GROUP_CONCAT(stocker_input.id ORDER BY stocker_input.id ASC) stocker_id,
+                GROUP_CONCAT(stocker_input.id_qr_stocker ORDER BY stocker_input.id ASC SEPARATOR ', ') id_qr_stocker,
+                stocker_input.act_costing_ws,
+                form_cut_input.no_cut,
+                marker_input.style,
+                stocker_input.color,
+                GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') nama_part,
+                stocker_input.size,
+                stocker_input.qty_ply qty,
+                CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir)) rangeAwalAkhir
+            ")->
+            leftJoin("stocker_input", "stocker_input.id", "=", "trolley_stocker.stocker_id")->
+            leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+            leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+            leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+            leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+            where('trolley_id', $id)->
+            where('trolley_stocker.status', 'active')->
+            where('stocker_input.status', "!=", "line")->
+            groupBy('form_cut_input.no_cut', 'stocker_input.form_cut_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio')->
+            get();
+
+        return view('trolley.stock-trolley.send-stock-trolley', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'stock-trolley', 'trolley' => $trolley, 'lines' => $lines, 'trolleyStocks' => $trolleyStocks]);
     }
 
     public function submitSend(Request $request) {

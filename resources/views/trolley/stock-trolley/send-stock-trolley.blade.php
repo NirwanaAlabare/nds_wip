@@ -37,7 +37,7 @@
                                 <option value="{{ $line->line_id }}">{{ $line->FullName }}</option>
                             @endforeach
                         </select>
-                        <button class="btn btn-sm btn-outline-success" type="button" onclick="getLineDataInput()">Get</button>
+                        <button class="btn btn-sm btn-outline-success" type="button">Get</button>
                         <button class="btn btn-sm btn-outline-primary" type="button" onclick="initLineScan()">Scan</button>
                     </div>
                 </div>
@@ -66,7 +66,7 @@
                     <table class="table table-sm table-bordered w-100" id="datatable-trolley-stock">
                         <thead>
                             <tr>
-                                <th>Stocker IDs</th>
+                                <th class="d-none">Stocker IDs</th>
                                 <th>No. Stocker</th>
                                 <th>No. WS</th>
                                 <th>No. Cut</th>
@@ -79,6 +79,24 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @if ($trolleyStocks && $trolleyStocks->count() < 1)
+
+                            @else
+                                @foreach ($trolleyStocks as $trolleyStock)
+                                    <tr>
+                                        <td class="d-none">{{ $trolleyStock->stocker_id }}</td>
+                                        <td>{{ str_replace(",", ", \r\n", $trolleyStock->id_qr_stocker) }}</td>
+                                        <td>{{ $trolleyStock->act_costing_ws }}</td>
+                                        <td>{{ $trolleyStock->no_cut }}</td>
+                                        <td>{{ $trolleyStock->style }}</td>
+                                        <td>{{ $trolleyStock->color }}</td>
+                                        <td>{{ $trolleyStock->size }}</td>
+                                        <td>{{ str_replace(",", ", \r\n", $trolleyStock->nama_part) }}</td>
+                                        <td>{{ $trolleyStock->qty }}</td>
+                                        <td>{{ $trolleyStock->rangeAwalAkhir }}</td>
+                                    </tr>
+                                @endforeach
+                            @endif
                         </tbody>
                     </table>
                 </div>
@@ -119,64 +137,13 @@
 
         var trolleyId = document.getElementById('trolley_id').value;
 
-        let datatableTrolleyStock = $("#datatable-trolley-stock").DataTable({
-            ordering: false,
-            processing: true,
-            serverSide: true,
-            ajax: {
-                url: '{{ route('send-trolley-stock') }}/'+trolleyId+' }}',
-            },
-            columns: [
-                {
-                    data: 'stocker_id'
-                },
-                {
-                    data: 'id_qr_stocker',
-                },
-                {
-                    data: 'act_costing_ws',
-                },
-                {
-                    data: 'no_cut',
-                },
-                {
-                    data: 'style',
-                },
-                {
-                    data: 'color',
-                },
-                {
-                    data: 'nama_part',
-                },
-                {
-                    data: 'size',
-                },
-                {
-                    data: 'qty',
-                },
-                {
-                    data: 'rangeAwalAkhir',
-                },
-            ],
-            columnDefs: [
-                {
-                    targets: [0],
-                    className: "d-none",
-                },
-            ]
-        });
+        let datatableTrolleyStock = $("#datatable-trolley-stock").DataTable();
 
         // Datatable selected row selection
         datatableTrolleyStock.on('click', 'tbody tr', function(e) {
             e.currentTarget.classList.toggle('selected');
             document.getElementById('selected-row-count-1').innerText = $('#datatable-trolley-stock').DataTable().rows('.selected').data().length;
         });
-
-        function datatableTrolleyStockReload() {
-            datatableTrolleyStock.ajax.reload(() => {
-                document.getElementById('selected-row-count-1').innerText = $('#datatable-trolley-stock').DataTable().rows('.selected').data().length;
-            });
-        }
 
         function sendToLine(element) {
             let date = new Date();

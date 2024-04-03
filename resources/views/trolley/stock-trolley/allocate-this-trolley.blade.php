@@ -33,7 +33,7 @@
                 <div class="mb-3">
                     <label class="form-label">Stocker</label>
                     <div class="input-group">
-                        <input type="text" class="form-control form-control-sm" name="kode_stocker" id="kode_stocker">
+                        <input type="text" class="form-control form-control-sm" name="kode_stocker" id="kode_stocker" data-prevent-submit="true">
                         <button class="btn btn-sm btn-outline-success" type="button" onclick="getStockerDataInput()">Get</button>
                         <button class="btn btn-sm btn-outline-primary" type="button" onclick="initStockerScan()">Scan</button>
                     </div>
@@ -154,6 +154,22 @@
             await initStockerScan();
         });
 
+        document.getElementById("stocker-form").onkeypress = function(e) {
+            var key = e.charCode || e.keyCode || 0;
+            if (key == 13) {
+                if (e.target.getAttribute('data-prevent-submit') == "true") {
+                    e.preventDefault();
+                }
+            }
+        }
+
+        document.getElementById("kode_stocker").onkeypress = function(e) {
+            var key = e.charCode || e.keyCode || 0;
+            if (key == 13) {
+                getStockerDataInput();
+            }
+        };
+
         var trolleyId = document.getElementById('trolley_id').value;
 
         let datatableTrolleyStock = $("#datatable-trolley-stock").DataTable({
@@ -210,9 +226,21 @@
                     }
                 },
                 {
+                    targets: [1],
+                    render: (data, type, row, meta) => {
+                        return `<span>`+ data.replace(/,/g, ", <br>") +`</span>`;
+                    }
+                },
+                {
+                    targets: [6],
+                    render: (data, type, row, meta) => {
+                        return `<span>`+ data.replace(/,/g, ", <br>") +`</span>`;
+                    }
+                },
+                {
                     targets: [2,9],
                     className: "text-nowrap"
-                }
+                },
             ]
         });
 

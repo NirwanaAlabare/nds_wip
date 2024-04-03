@@ -20,13 +20,11 @@
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div>
                     <label class="form-label"><small>Tanggal Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
-                        onchange="datatableLoadingLineReload()">
+                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="datatableLoadingLineReload()">
                 </div>
                 <div>
                     <label class="form-label"><small>Tanggal Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                        value="{{ date('Y-m-d') }}" onchange="datatableLoadingLineReload()">
+                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="datatableLoadingLineReload()">
                 </div>
                 <div>
                     <button class="btn btn-primary btn-sm" onclick="datatableLoadingLineReload()">Tampilkan</button>

@@ -34,6 +34,35 @@
                         </tr>
                     </thead>
                     <tbody>
+                        @if ($trolleyStocks && $trolleyStocks->count() < 1)
+                            <tr>
+                                <td colspan="7">Data tidak ditemukan</td>
+                            </tr>
+                        @else
+                            @foreach ($trolleyStocks as $trolleyStock)
+                                <tr>
+                                    <td class="align-middle">
+                                        <div class='d-flex gap-1 justify-content-center'>
+                                            <a class='btn btn-success btn-sm' href='{{ route('allocate-this-trolley', ['id' => $trolleyStock->id]) }}'>
+                                                <i class='fa fa-plus'></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                    <td class="align-middle">{{ $trolleyStock->nama_trolley }}</td>
+                                    <td>{{ $trolleyStock->act_costing_ws }}</td>
+                                    <td>{{ $trolleyStock->style }}</td>
+                                    <td>{{ $trolleyStock->color }}</td>
+                                    <td>{{ $trolleyStock->qty }}</td>
+                                    <td class="align-middle">
+                                        <div class='d-flex gap-1 justify-content-center'>
+                                            <a href='{{ route('send-trolley-stock', ['id' => $trolleyStock->id]) }}/' class='btn btn-primary btn-sm'>
+                                                <i class='fa fa-share'></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        @endif
                     </tbody>
                 </table>
             </div>
@@ -50,75 +79,31 @@
     <script src="{{ asset('plugins/datatables-rowsgroup/dataTables.rowsGroup.js') }}"></script>
 
     <script>
+        $('#datatable thead tr').clone(true).appendTo('#datatable thead');
+        $('#datatable thead tr:eq(1) th').each(function(i) {
+            if (i != 0 && i != 6) {
+                var title = $(this).text();
+                $(this).html('<input type="text" class="form-control form-control-sm" />');
+
+                $('input', this).on('keyup change', function() {
+                    if (datatable.column(i).search() !== this.value) {
+                        datatable
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            } else {
+                $(this).empty();
+            }
+        });
+
         let datatable = $("#datatable").DataTable({
             ordering: false,
-            processing: true,
-            serverSide: true,
-            ajax: {
-                url: '{{ route('stock-trolley') }}',
-            },
-            columns: [
-                {
-                    name: 'id',
-                    data: 'id'
-                },
-                {
-                    data: 'nama_trolley',
-                },
-                {
-                    data: 'act_costing_ws',
-                },
-                {
-                    data: 'style',
-                },
-                {
-                    data: 'color',
-                },
-                {
-                    data: 'qty',
-                },
-                {
-                    data: 'id'
-                },
-            ],
             rowsGroup: [
-                // Always the array (!) of the column-selectors in specified order to which rows groupping is applied
-                // (column-selector could be any of specified in https://datatables.net/reference/type/column-selector)
                 0,
                 1,
                 6
-            ],
-            columnDefs: [
-                {
-                    targets: [0],
-                    className: "align-middle",
-                    render: (data, type, row, meta) => {
-                        return `
-                            <div class='d-flex gap-1 justify-content-center'>
-                                <a class='btn btn-success btn-sm' href='{{ route('allocate-this-trolley') }}/`+row.id+`'>
-                                    <i class='fa fa-plus'></i>
-                                </a>
-                            </div>
-                        `;
-                    }
-                },
-                {
-                    targets: [1],
-                    className: "align-middle",
-                },
-                {
-                    targets: [6],
-                    className: "align-middle",
-                    render: (data, type, row, meta) => {
-                        return `
-                            <div class='d-flex gap-1 justify-content-center'>
-                                <a href='{{ route('send-trolley-stock') }}/`+data+`' class='btn btn-primary btn-sm'>
-                                    <i class='fa fa-share'></i>
-                                </a>
-                            </div>
-                        `;
-                    }
-                }
             ],
         });
 

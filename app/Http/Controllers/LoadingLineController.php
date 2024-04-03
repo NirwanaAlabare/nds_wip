@@ -19,28 +19,28 @@ class LoadingLineController extends Controller
     {
         if ($request->ajax()) {
             $line = LoadingLinePlan::selectRaw("
-                loading_line_plan.id,
-                loading_line_plan.line_id,
-                loading_line_plan.act_costing_ws,
-                loading_line_plan.style,
-                COALESCE(loading_line_plan.target_sewing, 0) target_sewing,
-                loading_line_plan.color,
-                COALESCE(loading_line_plan.target_loading, 0) target_loading,
-                COALESCE(SUM(loading_line.qty), 0) loading_qty,
-                COALESCE(SUM(loading_line.qty) - loading_line_plan.target_loading, 0) balance_loading,
-                COALESCE(trolley.nama_trolley, '-') nama_trolley,
-                COALESCE(trolley_qty.trolley_qty, 0) stock_trolley,
-                COALESCE(GROUP_CONCAT(DISTINCT stocker_input.color), '-') trolley_color
-            ")->
-            leftJoin("loading_line", "loading_line.loading_plan_id", "=", "loading_line_plan.id")->
-            leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "loading_line.stocker_id")->
-            leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
-            leftJoin("stocker_input", "stocker_input.id", "loading_line.stocker_id")->
-            leftJoin(DB::raw("(select trolley_stocker.trolley_id, stocker_input.act_costing_ws, stocker_input.color , SUM(stocker_input.qty_ply) trolley_qty from trolley_stocker left join stocker_input on stocker_input.id = trolley_stocker.stocker_id where trolley_stocker.status = 'active' group by trolley_stocker.trolley_id, stocker_input.act_costing_ws, stocker_input.color) trolley_qty"), function ($join) {
-                $join->on("trolley_qty.trolley_id", '=', "trolley.id");
-                $join->on("trolley_qty.act_costing_ws", '=', "loading_line_plan.act_costing_ws");
-            })->
-            groupBy("loading_line_plan.id");
+                    loading_line_plan.id,
+                    loading_line_plan.line_id,
+                    loading_line_plan.act_costing_ws,
+                    loading_line_plan.style,
+                    COALESCE(loading_line_plan.target_sewing, 0) target_sewing,
+                    loading_line_plan.color,
+                    COALESCE(loading_line_plan.target_loading, 0) target_loading,
+                    COALESCE(SUM(loading_line.qty), 0) loading_qty,
+                    COALESCE(SUM(loading_line.qty) - loading_line_plan.target_loading, 0) balance_loading,
+                    COALESCE(trolley.nama_trolley, '-') nama_trolley,
+                    COALESCE(trolley_qty.trolley_qty, 0) stock_trolley,
+                    COALESCE(GROUP_CONCAT(DISTINCT stocker_input.color), '-') trolley_color
+                ")->
+                leftJoin("loading_line", "loading_line.loading_plan_id", "=", "loading_line_plan.id")->
+                leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "loading_line.stocker_id")->
+                leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
+                leftJoin("stocker_input", "stocker_input.id", "loading_line.stocker_id")->
+                leftJoin(DB::raw("(select trolley_stocker.trolley_id, stocker_input.act_costing_ws, stocker_input.color , SUM(stocker_input.qty_ply) trolley_qty from trolley_stocker left join stocker_input on stocker_input.id = trolley_stocker.stocker_id where trolley_stocker.status = 'active' group by trolley_stocker.trolley_id, stocker_input.act_costing_ws, stocker_input.color) trolley_qty"), function ($join) {
+                    $join->on("trolley_qty.trolley_id", '=', "trolley.id");
+                    $join->on("trolley_qty.act_costing_ws", '=', "loading_line_plan.act_costing_ws");
+                })->
+                groupBy("loading_line_plan.id");
 
             return DataTables::eloquent($line)
                 ->filter(function ($query) {
