@@ -62,49 +62,49 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col col-md-3">
+                    <div class="col-6 col-md-3">
                         <div class="mb-3">
                             <label class="form-label">No. WS</label>
                             <input type="text" class="form-control form-control-sm" name="stocker_act_costing_ws" id="stocker_act_costing_ws" readonly>
                         </div>
                     </div>
-                    <div class="col col-md-3">
+                    <div class="col-6 col-md-3">
                         <div class="mb-3">
                             <label class="form-label">Buyer</label>
                             <input type="text" class="form-control form-control-sm" name="stocker_buyer" id="stocker_buyer" readonly>
                         </div>
                     </div>
-                    <div class="col col-md-3">
+                    <div class="col-4 col-md-3">
                         <div class="mb-3">
                             <label class="form-label">Style</label>
                             <input type="text" class="form-control form-control-sm" name="stocker_style" id="stocker_style" readonly>
                         </div>
                     </div>
-                    <div class="col col-md-3">
+                    <div class="col-4 col-md-3">
                         <div class="mb-3">
                             <label class="form-label">Color</label>
                             <input type="text" class="form-control form-control-sm" name="stocker_color" id="stocker_color" readonly>
                         </div>
                     </div>
-                    <div class="col col-md-3">
+                    <div class="col-4 col-md-3">
                         <div class="mb-3">
                             <label class="form-label">No. Stocker</label>
                             <input type="text" class="form-control form-control-sm" name="stocker_id_qr_stocker" id="stocker_id_qr_stocker" readonly>
                         </div>
                     </div>
-                    <div class="col col-md-3">
+                    <div class="col-4 col-md-3">
                         <div class="mb-3">
                             <label class="form-label">No. Cut</label>
                             <input type="text" class="form-control form-control-sm" name="stocker_no_cut" id="stocker_no_cut" readonly>
                         </div>
                     </div>
-                    <div class="col col-md-3">
+                    <div class="col-4 col-md-3">
                         <div class="mb-3">
                             <label class="form-label">Size</label>
                             <input type="text" class="form-control form-control-sm" name="stocker_size" id="stocker_size" readonly>
                         </div>
                     </div>
-                    <div class="col col-md-3">
+                    <div class="col-4 col-md-3">
                         <div class="mb-3">
                             <label class="form-label">Qty</label>
                             <input type="text" class="form-control form-control-sm" name="stocker_qty_ply" id="stocker_qty_ply" readonly>
@@ -126,8 +126,8 @@
                 </button>
             </div>
         </div>
-        <div class="card-body" style="display: block">
-            <table class="table table-bordered" id="trolley-stock-datatable">
+        <div class="card-body table-responsive" style="display: block">
+            <table class="table table-bordered table-sm" id="trolley-stock-datatable">
                 <thead>
                     <tr>
                         <th>Act</th>

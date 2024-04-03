@@ -137,7 +137,9 @@
 
         var trolleyId = document.getElementById('trolley_id').value;
 
-        let datatableTrolleyStock = $("#datatable-trolley-stock").DataTable();
+        let datatableTrolleyStock = $("#datatable-trolley-stock").DataTable({
+            ordering: false
+        });
 
         // Datatable selected row selection
         datatableTrolleyStock.on('click', 'tbody tr', function(e) {
@@ -237,10 +239,10 @@
                                     if (res.redirect != 'reload') {
                                         location.href = res.redirect;
                                     } else {
-                                        location.reload();
+                                        // location.reload();
                                     }
                                 } else {
-                                    location.reload();
+                                    // location.reload();
                                 }
                             });
                         }
