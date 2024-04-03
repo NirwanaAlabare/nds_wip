@@ -353,7 +353,7 @@
             let txtqrstocker = document.form.txtqrstocker.value;
             let html = $.ajax({
                 type: "post",
-                url: '{{ route('insert_tmp_dc') }}',
+                url: '{{ route('insert_tmp_dc_in') }}',
                 data: {
                     txtqrstocker: txtqrstocker
                 },
@@ -367,8 +367,6 @@
             });
         };
 
-
-
         function getdatatmp() {
             let datatable = $("#datatable-scan").DataTable({
                 ordering: false,
@@ -377,7 +375,7 @@
                 destroy: true,
                 paging: false,
                 ajax: {
-                    url: '{{ route('get_data_tmp') }}',
+                    url: '{{ route('get_tmp_dc_in') }}',
                     dataType: 'json',
                     dataSrc: 'data',
                 },

@@ -12,6 +12,7 @@
 @endsection
 
 @section('content')
+    {{-- Update Lokasi --}}
     <div class="modal fade" id="updateTmpDcModal" tabindex="-1" role="dialog" aria-labelledby="updateTmpDcModalLabel"
         aria-hidden="true">
         <form action="{{ route('update_tmp_dc_in') }}" method="post" name='form_modal' onsubmit="submitForm(this, event)">
@@ -82,9 +83,7 @@
         </form>
     </div>
 
-
-
-
+    {{-- Store DC In --}}
     <form action="{{ route('store-dc-in') }}" method="post" id="store-dc-in" name='form' onsubmit="submitForm(this, event)">
         @csrf
         <div class="card card-sb">
@@ -97,7 +96,7 @@
                         <div class="mb-3">
                             <label class="form-label label-input"><small><b>Stocker</b></small></label>
                             <div class="input-group">
-                                <input type="text" class="form-control form-control-sm border-input" name="txtqr" id="txtqr" autocomplete="off" enterkeyhint="go" onkeyup="if (event.keyCode == 13) document.getElementById('scan_qr').click()" autofocus>
+                                <input type="text" class="form-control form-control-sm border-input" name="txtqr" id="txtqr" data-prevent-submit="true" autocomplete="off" enterkeyhint="go" autofocus>
                                 <button class="btn btn-sm btn-primary" type="button" id="scan_qr" onclick="scanqr()">Scan</button>
                             </div>
                         </div>
@@ -208,6 +207,7 @@
                                 <th>Tempat</th>
                                 <th>Proses / Lokasi</th>
                                 <th>Qty In</th>
+                                {{-- <th>Check</th> --}}
                                 <th>Act</th>
                             </tr>
                         </thead>
@@ -230,14 +230,21 @@
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
-        $(document).ready(function() {
-            initScan();
-            clearh();
-            cleard();
-            getdatatmp();
+        if (document.getElementById("loading")) {
+            document.getElementById("loading").classList.remove("d-none");
+        }
+
+        $(document).ready(async function() {
+            await initScan();
+            await clearh();
+            // await cleard();
+            await getdatatmp();
+
+            if (document.getElementById("loading")) {
+                document.getElementById("loading").classList.add("d-none");
+            }
         })
-    </script>
-    <script>
+
         $(document).on('select2:open', () => {
             document.querySelector('.select2-search__field').focus();
         });
@@ -248,6 +255,17 @@
             theme: 'bootstrap4',
             dropdownParent: $("#updateTmpDcModal")
         });
+
+        document.getElementById("store-dc-in").onkeypress = function(e) {
+            var key = e.charCode || e.keyCode || 0;
+            if (key == 13) {
+                e.preventDefault();
+
+                if (e.target.getAttribute('data-prevent-submit') == "true") {
+                    scanqr();
+                }
+            }
+        }
 
         // Scan QR Module :
         // Variable List :
@@ -315,51 +333,83 @@
         }
 
         function scanqr() {
+            if (document.getElementById("loading")) {
+                document.getElementById("loading").classList.remove("d-none");
+            }
+
             let txtqrstocker = document.form.txtqr.value;
-            jQuery.ajax({
+            $.ajax({
                 url: '{{ route('show_data_header') }}',
                 method: 'get',
                 data: {
                     txtqrstocker: txtqrstocker
                 },
                 dataType: 'json',
-                success: async function(response) {
-                    document.getElementById('txtws').value = response.act_costing_ws;
-                    document.getElementById('txtbuyer').value = response.buyer;
-                    document.getElementById('txtstyle').value = response.styleno;
-                    document.getElementById('txtcolor').value = response.color;
-                    document.getElementById('txtshell').value = response.panel;
-                    document.getElementById('txtnocut').value = response.no_cut;
-                    document.getElementById('txtsize').value = response.size;
-                    document.getElementById('txtgroup').value = response.grouplot;
-                    document.getElementById('txtqtyply_h').value = response.qty_ply;
-                    document.getElementById('txtrange_awal').value = response.range_awal;
-                    document.getElementById('txtrange_akhir').value = response.range_akhir;
-                    document.getElementById('txtkode').value = response.kode;
-                    document.getElementById('txttuj_h').value = response.tujuan;
-                    document.getElementById('txtlok_h').value = response.lokasi;
-                    document.getElementById('txttempat_h').value = response.tempat;
-                    let html = $.ajax({
-                        type: "post",
-                        url: '{{ route('insert_tmp_dc') }}',
-                        data: {
-                            txtqrstocker: txtqrstocker,
-                            txttuj_h: document.form.txttuj_h.value,
-                            txtlok_h: response.lokasi,
-                            txttempat_h: response.tempat
-                        },
-                        success: function(response) {
-                            $("#txtqr").val('');
-                            getdatatmp();
-                            initScan();
-                        },
-                        error: function(request, status, error) {
-                            alert('cek');
-                        },
-                    });
+                success: function(response) {
+                    if (response) {
+                        document.getElementById('txtws').value = response.act_costing_ws;
+                        document.getElementById('txtbuyer').value = response.buyer;
+                        document.getElementById('txtstyle').value = response.styleno;
+                        document.getElementById('txtcolor').value = response.color;
+                        document.getElementById('txtshell').value = response.panel;
+                        document.getElementById('txtnocut').value = response.no_cut;
+                        document.getElementById('txtsize').value = response.size;
+                        document.getElementById('txtgroup').value = response.grouplot;
+                        document.getElementById('txtqtyply_h').value = response.qty_ply;
+                        document.getElementById('txtrange_awal').value = response.range_awal;
+                        document.getElementById('txtrange_akhir').value = response.range_akhir;
+                        document.getElementById('txtkode').value = response.kode;
+                        document.getElementById('txttuj_h').value = response.tujuan;
+                        document.getElementById('txtlok_h').value = response.lokasi;
+                        document.getElementById('txttempat_h').value = response.tempat;
 
+                        let html = $.ajax({
+                            type: "post",
+                            url: '{{ route('insert_tmp_dc_in') }}',
+                            data: {
+                                txtqrstocker: txtqrstocker,
+                                txttuj_h: document.form.txttuj_h.value,
+                                txtlok_h: response.lokasi,
+                                txttempat_h: response.tempat
+                            },
+                            success: function(response) {
+                                if (document.getElementById("loading")) {
+                                    document.getElementById("loading").classList.add("d-none");
+                                }
+
+                                $("#txtqr").val('');
+                                getdatatmp();
+                                initScan();
+                            },
+                            error: function(request, status, error) {
+                                if (document.getElementById("loading")) {
+                                    document.getElementById("loading").classList.add("d-none");
+                                }
+
+                                alert(request.responseText);
+                            },
+                        });
+                    } else {
+                        if (document.getElementById("loading")) {
+                            document.getElementById("loading").classList.add("d-none");
+                        }
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: 'Stocker Tidak Ditemukan',
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                            timerProgressBar: true
+                        })
+                    }
                 },
                 error: function(request, status, error) {
+                    if (document.getElementById("loading")) {
+                        document.getElementById("loading").classList.add("d-none");
+                    }
+
                     alert(request.responseText);
                 },
             });
@@ -373,12 +423,13 @@
                 destroy: true,
                 paging: false,
                 ajax: {
-                    url: '{{ route('get_data_tmp') }}',
+                    url: '{{ route('get_tmp_dc_in') }}',
                     dataType: 'json',
                     dataSrc: 'data',
 
                 },
-                columns: [{
+                columns: [
+                    {
                         data: 'id_qr_stocker',
                     },
                     {
@@ -399,24 +450,48 @@
                     {
                         data: 'id_qr_stocker',
                     },
+                    // {
+                    //     data: 'id_qr_stocker',
+                    // },
                 ],
-                columnDefs: [{
+                columnDefs: [
+                    // {
+                    //     targets: [6],
+                    //     render: (data, type, row, meta) => {
+
+                    //         if (row.cek_stat != 'x') {
+                    //             return `
+                    //                 <div class="d-flex justify-content-center">
+                    //                     <div class="form-check mt-1 mb-0">
+                    //                         <input class="form-check-input tmp_dc_stock_check" type="checkbox" name="tmp_dc_stock[`+row.index+`]" id="tmp_dc_stock_`+row.index+`" value="`+data+`">
+                    //                     </div>
+                    //                 </div>
+                    //             `;
+                    //         } else {
+                    //             return `
+                    //                 <div class='d-flex gap-1 justify-content-center'>
+                    //                 </div>
+                    //             `;
+                    //         }
+                    //     }
+                    // },
+                    {
                         targets: [6],
                         render: (data, type, row, meta) => {
 
                             if (row.cek_stat != 'x') {
                                 return `
-                            <div class='d-flex gap-1 justify-content-center'>
-                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#updateTmpDcModal"
-                                    onclick="getdetail('` + row.id_qr_stocker + `','` + row.kode_stocker + `');">
-                                        <i class='fa fa-search'></i>
-                                    </a>
-                                </div>
+                                    <div class='d-flex gap-1 justify-content-center'>
+                                        <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#updateTmpDcModal"
+                                        onclick="getdetail('` + row.id_qr_stocker + `','` + row.kode_stocker + `');">
+                                            <i class='fa fa-search'></i>
+                                        </a>
+                                    </div>
                                 `;
                             } else {
                                 return `
-                            <div class='d-flex gap-1 justify-content-center'>
-                                </div>
+                                    <div class='d-flex gap-1 justify-content-center'>
+                                    </div>
                                 `;
                             }
                         }
@@ -430,17 +505,15 @@
                             } else {
                                 color = '#7b7d7d';
                             }
-                            return '<span style="font-weight: 600; color:' + color + '">' + data +
-                                '</span>';
+                            return '<span style="font-weight: 600; color:' + color + '">' + data + '</span>';
                         }
                     }
-
                 ]
 
             });
         };
 
-        function getdetail(id_c, id_b) {
+        function getdetail(id_c) {
             if (document.getElementById("loading")) {
                 document.getElementById("loading").classList.remove("d-none");
             }
@@ -457,7 +530,7 @@
                         document.getElementById("loading").classList.add("d-none");
                     }
 
-                    $("#updateTmpDcModalLabel").html(id_b);
+                    $("#updateTmpDcModalLabel").html();
                     document.getElementById('txtqty').value = response.qty_in;
                     document.getElementById('id_c').value = response.id_qr_stocker;
                     document.getElementById('txtqtyreject').value = response.qty_reject;
@@ -486,7 +559,6 @@
                 },
             });
         };
-
 
         function gettempat() {
             let tujuan = document.form_modal.txttuj.value;

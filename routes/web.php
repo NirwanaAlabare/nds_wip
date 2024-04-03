@@ -398,17 +398,19 @@ Route::middleware('auth')->group(function () {
     // DC IN
     Route::controller(DCInController::class)->prefix("dc-in")->middleware('dc')->group(function () {
         Route::get('/', 'index')->name('dc-in');
-        Route::post('/insert_tmp_dc', 'insert_tmp_dc')->name('insert_tmp_dc');
         Route::get('/show_data_header', 'show_data_header')->name('show_data_header');
-        Route::get('/get_data_tmp', 'get_data_tmp')->name('get_data_tmp');
-        Route::post('/store', 'store')->name('store-dc-in');
         Route::get('/create', 'create')->name('create-dc-in');
-        Route::put('/update_tmp_dc_in', 'update_tmp_dc_in')->name('update_tmp_dc_in');
-        Route::get('/show_tmp_dc_in', 'show_tmp_dc_in')->name('show_tmp_dc_in');
+        Route::post('/store', 'store')->name('store-dc-in');
+        Route::delete('/destroy', 'destroy')->name('destroy');
+
         Route::get('/get_proses', 'get_proses')->name('get_proses_dc_in');
         Route::get('/get_tempat', 'get_tempat')->name('get_tempat');
         Route::get('/get_lokasi', 'get_lokasi')->name('get_lokasi');
-        Route::delete('/destroy', 'destroy')->name('destroy');
+
+        Route::get('/get_tmp_dc_in', 'get_tmp_dc_in')->name('get_tmp_dc_in');
+        Route::post('/insert_tmp_dc_in', 'insert_tmp_dc_in')->name('insert_tmp_dc_in');
+        Route::put('/update_tmp_dc_in', 'update_tmp_dc_in')->name('update_tmp_dc_in');
+        Route::get('/show_tmp_dc_in', 'show_tmp_dc_in')->name('show_tmp_dc_in');
     });
 
     // Secondary INHOUSE

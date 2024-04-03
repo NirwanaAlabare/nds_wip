@@ -77,81 +77,6 @@ class DCInController extends Controller
         return view('dc-in.dc-in', ['page' => 'dashboard-dc', "subPageGroup" => "dcin-dc", "subPage" => "dc-in", "data_rak" => $data_rak], ['tgl_skrg' => $tgl_skrg]);
     }
 
-    public function insert_tmp_dc(Request $request)
-    {
-        $user = Auth::user()->name;
-        if ($request->txttuj_h == 'NON SECONDARY') {
-            $tujuan = $request->txttuj_h;
-            $lokasi = $request->txtlok_h;
-            $tempat = $request->txttempat_h;
-        } else {
-            $tujuan = $request->txttuj_h;
-            $lokasi = $request->txtlok_h;
-            $tempat = '-';
-        }
-
-        $cekdata =  DB::select("
-select * from tmp_dc_in_input_new where id_qr_stocker = '" . $request->txtqrstocker . "'
-        ");
-
-        $cekdata_fix = $cekdata ? $cekdata[0] : null;
-        if ($cekdata_fix ==  null) {
-
-            // DB::insert(
-            //     "insert into tmp_dc_in_input_new (id_qr_stocker,qty_reject,qty_replace,tujuan,tempat,lokasi, user)
-            //     values ('" . $request->txtqrstocker . "','0','0','$tujuan','$tempat','$lokasi','$user')"
-            // );
-
-            $cekdata_fix = $cekdata ? $cekdata[0] : null;
-            if ($cekdata_fix ==  null) {
-
-                DB::insert(
-                    "insert into tmp_dc_in_input_new (id_qr_stocker,qty_reject,qty_replace,tujuan,tempat,lokasi, user)
-            values ('" . $request->txtqrstocker . "','0','0','$tujuan','$tempat','$lokasi','$user')"
-                );
-
-                DB::update(
-                    "update stocker_input set status = 'dc' where id_qr_stocker = '" . $request->txtqrstocker . "'"
-                );
-            }
-        }
-    }
-
-    public function get_data_tmp(Request $request)
-    {
-        $user = Auth::user()->name;
-        $data_tmp = DB::select(
-            "
-            select
-            ms.id_qr_stocker,
-            mp.nama_part,
-            concat(ms.id_qr_stocker,' - ',mp.nama_part)kode_stocker,
-            ifnull(s.tujuan,'-') tujuan,
-            ifnull(tmp.tempat,'-') tempat,
-            ifnull(tmp.lokasi,'-') lokasi,
-            ms.qty_ply - coalesce(tmp.qty_reject,0) + coalesce(tmp.qty_replace,0) qty_in,
-            ifnull(tmp.id_qr_stocker,'x') cek_stat
-            from (
-                select *,concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade)kode from stocker_input) ms
-                inner join
-                        (
-                        select concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade)kode  from tmp_dc_in_input_new x
-                        inner join stocker_input y on x.id_qr_stocker = y.id_qr_stocker
-                        where user = '$user'
-                        group by concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade)
-                        )
-                        a on ms.kode = a.kode
-                        inner join part_detail pd on ms.part_detail_id = pd.id
-                        inner join master_part mp  on pd.master_part_id = mp.id
-                        left join master_secondary s on pd.master_secondary_id = s.id
-                        left join tmp_dc_in_input_new tmp on ms.id_qr_stocker = tmp.id_qr_stocker
-                        order by ifnull(tmp.id_qr_stocker,'x') asc
-            ",
-        );
-
-        return DataTables::of($data_tmp)->toJson();
-    }
-
     public function show_data_header(Request $request)
     {
         // $data_header = DB::select("
@@ -185,59 +110,45 @@ select * from tmp_dc_in_input_new where id_qr_stocker = '" . $request->txtqrstoc
         // where a.id_qr_stocker = '$request->txtqrstocker'");
 
         $data_header = DB::select("
-        SELECT
-        a.act_costing_ws,
-        m.buyer,
-        m.style styleno,
-        a.color,
-        a.size,
-        a.panel,
-        f.no_cut,
-        f.id,
-        b.grouplot,
-        a.qty_ply,
-        a.range_awal,
-        a.range_akhir,
-        concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade)kode,
-        ms.tujuan,
-        IF(ms.tujuan = 'NON SECONDARY',a.lokasi,ms.proses) lokasi ,
-        a.tempat
-        FROM `stocker_input` a
-        inner join form_cut_input f on a.form_cut_id = f.id
-        INNER JOIN marker_input m ON m.kode = f.id_marker
-        inner join part_detail pd on a.part_detail_id = pd.id
-        inner join master_secondary ms on pd.master_secondary_id = ms.id
-        inner join
-        (
-        select no_form_cut_input, group_concat(distinct(upper(group_roll))) grouplot from form_cut_input_detail
-        group by no_form_cut_input,group_roll
-        ) b on f.no_form = b.no_form_cut_input
-        where a.id_qr_stocker = '$request->txtqrstocker'");
+            SELECT
+                a.act_costing_ws,
+                m.buyer,
+                m.style styleno,
+                a.color,
+                a.size,
+                a.panel,
+                f.no_cut,
+                f.id,
+                b.grouplot,
+                a.qty_ply,
+                a.range_awal,
+                a.range_akhir,
+                concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade)kode,
+                ms.tujuan,
+                IF(ms.tujuan = 'NON SECONDARY',a.lokasi,ms.proses) lokasi ,
+                a.tempat
+            FROM
+                `stocker_input` a
+                inner join form_cut_input f on a.form_cut_id = f.id
+                INNER JOIN marker_input m ON m.kode = f.id_marker
+                inner join part_detail pd on a.part_detail_id = pd.id
+                inner join master_secondary ms on pd.master_secondary_id = ms.id
+                inner join
+                (
+                    select
+                        no_form_cut_input,
+                        group_concat(distinct(upper(group_roll))) grouplot
+                    from
+                        form_cut_input_detail
+                    group by
+                        no_form_cut_input,
+                        group_roll
+                ) b on f.no_form = b.no_form_cut_input
+            WHERE
+                a.id_qr_stocker = '$request->txtqrstocker'
+        ");
+
         return json_encode($data_header ? $data_header[0] : null);
-    }
-
-
-    public function show_tmp_dc_in(Request $request)
-    {
-        $data_tmp_dc_in = DB::select("
-        SELECT
-        s.id_qr_stocker,
-        s.qty_ply - coalesce(tmp.qty_reject,0) + coalesce(tmp.qty_replace,0) qty_in,
-        tmp.qty_reject,
-        tmp.qty_replace,
-        ms.tujuan,
-        ms.proses,
-        tmp.tempat,
-        tmp.lokasi,
-        tmp.ket,
-        concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade)kode
-        from stocker_input s
-        inner join part_detail pd on s.part_detail_id = pd.id
-        inner join master_part mp  on pd.master_part_id = mp.id
-        left join master_secondary ms on pd.master_secondary_id = ms.id
-        left join tmp_dc_in_input_new tmp on s.id_qr_stocker = tmp.id_qr_stocker
-        where s.id_qr_stocker= '$request->id_c'");
-        return json_encode($data_tmp_dc_in[0]);
     }
 
     public function get_tempat(Request $request)
@@ -287,10 +198,122 @@ select * from tmp_dc_in_input_new where id_qr_stocker = '" . $request->txtqrstoc
         return $html;
     }
 
-
     public function create(Request $request)
     {
         return view('dc-in.create-dc-in', ['page' => 'dashboard-dc', "subPageGroup" => "dcin-dc", "subPage" => "dc-in"]);
+    }
+
+    public function get_tmp_dc_in(Request $request)
+    {
+        $user = Auth::user()->name;
+
+        $tmpDcIn = DB::select("
+            select
+                ms.id_qr_stocker,
+                mp.nama_part,
+                concat(ms.id_qr_stocker,' - ',mp.nama_part)kode_stocker,
+                ifnull(s.tujuan,'-') tujuan,
+                ifnull(tmp.tempat,'-') tempat,
+                ifnull(tmp.lokasi,'-') lokasi,
+                ms.qty_ply - coalesce(tmp.qty_reject,0) + coalesce(tmp.qty_replace,0) qty_in,
+                ifnull(tmp.id_qr_stocker,'x') cek_stat
+            from
+                (
+                    select
+                        *,
+                        concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) kode
+                    from
+                        stocker_input
+                ) ms
+                inner join
+                    (
+                        select
+                            concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade)kode
+                        from
+                            tmp_dc_in_input_new x
+                            inner join stocker_input y on x.id_qr_stocker = y.id_qr_stocker
+                        where
+                            user = '$user'
+                        group by
+                            concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade)
+                    )
+                a on ms.kode = a.kode
+                inner join part_detail pd on ms.part_detail_id = pd.id
+                inner join master_part mp  on pd.master_part_id = mp.id
+                left join master_secondary s on pd.master_secondary_id = s.id
+                left join tmp_dc_in_input_new tmp on ms.id_qr_stocker = tmp.id_qr_stocker
+            order by
+                ifnull(tmp.id_qr_stocker,'x') asc
+        ");
+
+        return DataTables::of($tmpDcIn)->toJson();
+    }
+
+    public function insert_tmp_dc_in(Request $request)
+    {
+        $user = Auth::user()->name;
+        if ($request->txttuj_h == 'NON SECONDARY') {
+            $tujuan = $request->txttuj_h;
+            $lokasi = $request->txtlok_h;
+            $tempat = $request->txttempat_h;
+        } else {
+            $tujuan = $request->txttuj_h;
+            $lokasi = $request->txtlok_h;
+            $tempat = '-';
+        }
+
+        $cekdata =  DB::select("
+            select * from tmp_dc_in_input_new where id_qr_stocker = '" . $request->txtqrstocker . "'
+        ");
+
+        $cekdata_fix = $cekdata ? $cekdata[0] : null;
+        if ($cekdata_fix ==  null) {
+
+            // DB::insert(
+            //     "insert into tmp_dc_in_input_new (id_qr_stocker,qty_reject,qty_replace,tujuan,tempat,lokasi, user)
+            //     values ('" . $request->txtqrstocker . "','0','0','$tujuan','$tempat','$lokasi','$user')"
+            // );
+
+            $cekdata_fix = $cekdata ? $cekdata[0] : null;
+            if ($cekdata_fix ==  null) {
+
+                DB::insert(
+                    "insert into tmp_dc_in_input_new (id_qr_stocker,qty_reject,qty_replace,tujuan,tempat,lokasi, user)
+            values ('" . $request->txtqrstocker . "','0','0','$tujuan','$tempat','$lokasi','$user')"
+                );
+
+                DB::update(
+                    "update stocker_input set status = 'dc' where id_qr_stocker = '" . $request->txtqrstocker . "'"
+                );
+            }
+        }
+    }
+
+    public function show_tmp_dc_in(Request $request)
+    {
+        $data_tmp_dc_in = DB::select("
+            SELECT
+                s.id_qr_stocker,
+                s.qty_ply - coalesce(tmp.qty_reject,0) + coalesce(tmp.qty_replace,0) qty_in,
+                tmp.qty_reject,
+                tmp.qty_replace,
+                ms.tujuan,
+                ms.proses,
+                tmp.tempat,
+                tmp.lokasi,
+                tmp.ket,
+                concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade)kode
+            from
+                stocker_input s
+                inner join part_detail pd on s.part_detail_id = pd.id
+                inner join master_part mp  on pd.master_part_id = mp.id
+                left join master_secondary ms on pd.master_secondary_id = ms.id
+                left join tmp_dc_in_input_new tmp on s.id_qr_stocker = tmp.id_qr_stocker
+            where
+                s.id_qr_stocker= '$request->id_c'
+        ");
+
+        return json_encode($data_tmp_dc_in[0]);
     }
 
     public function update_tmp_dc_in(Request $request)
@@ -379,15 +402,41 @@ select * from tmp_dc_in_input_new where id_qr_stocker = '" . $request->txtqrstoc
         $timestamp = Carbon::now();
         $user = Auth::user()->name;
 
-
-
-        DB::insert(
-            "insert into dc_in_input
-            (id_qr_stocker,tgl_trans,tujuan,lokasi,tempat,qty_awal,qty_reject,qty_replace,user,status,created_at,updated_at)
-            select tmp.id_qr_stocker,'$tgltrans',tmp.tujuan,tmp.lokasi,tmp.tempat,ms.qty_ply,qty_reject,qty_replace,user,'N','$timestamp','$timestamp' from tmp_dc_in_input_new tmp
-            inner join stocker_input ms on tmp.id_qr_stocker = ms.id_qr_stocker
-            where user = '$user'"
-        );
+        DB::insert("
+            insert into
+                dc_in_input (
+                    id_qr_stocker,
+                    tgl_trans,
+                    tujuan,
+                    lokasi,
+                    tempat,
+                    qty_awal,
+                    qty_reject,
+                    qty_replace,
+                    user,
+                    status,
+                    created_at,
+                    updated_at
+                )
+            select
+                tmp.id_qr_stocker,
+                '$tgltrans',
+                tmp.tujuan,
+                tmp.lokasi,
+                tmp.tempat,
+                ms.qty_ply,
+                qty_reject,
+                qty_replace,
+                user,
+                'N',
+                '$timestamp',
+                '$timestamp'
+            from
+                tmp_dc_in_input_new tmp
+                inner join stocker_input ms on tmp.id_qr_stocker = ms.id_qr_stocker
+            where
+                user = '$user'
+        ");
 
         DB::insert(
             "INSERT INTO rack_detail_stocker (detail_rack_id,nm_rak,stocker_id,qty_in,created_at,updated_at)
@@ -397,8 +446,6 @@ select * from tmp_dc_in_input_new where id_qr_stocker = '" . $request->txtqrstoc
             inner join stocker_input s on tmp.id_qr_stocker = s.id_qr_stocker
             where tmp.tujuan = 'NON SECONDARY' AND user = '$user'"
         );
-
-
 
         return array(
             'status' => 999,
