@@ -73,7 +73,7 @@ class GeneralController extends Controller
                 master_sb_ws.color,
                 master_sb_ws.size,
                 master_sb_ws.dest,
-                CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) size_dest,
+                (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE master_sb_ws.size END) size_dest,
                 master_sb_ws.qty order_qty,
                 COALESCE(marker_input_detail.ratio, 0) ratio,
                 COALESCE(marker_input_detail.cut_qty, 0) cut_qty
