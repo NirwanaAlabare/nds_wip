@@ -410,8 +410,8 @@ class ManualFormCutController extends Controller
         $newItem = DB::connection("mysql_sb")->select("
             SELECT
                 br.id_roll id_roll,
-                mi.itemdesc detail_item,
-                mi.id_item,
+                br.item_desc detail_item,
+                br.id_item,
                 goods_code,
                 supplier,
                 bpbno_int,
@@ -425,6 +425,7 @@ class ManualFormCutController extends Controller
                 kode_rak
             FROM
                 whs_bppb_det br
+                INNER JOIN whs_bppb_h ON whs_bppb_h.no_bppb = br.no_bppb
                 INNER JOIN masteritem mi ON br.id_item = mi.id_item
                 INNER JOIN bpb ON br.id_jo = bpb.id_jo AND br.id_item = bpb.id_item
                 INNER JOIN mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
@@ -434,6 +435,7 @@ class ManualFormCutController extends Controller
                 INNER JOIN master_rak mr ON br.no_rak = mr.kode_rak
             WHERE
                 br.id_roll = '".$id."'
+                AND whs_bppb_h.tujuan = 'Production - Cutting'
                 AND cast(
                 qty_out AS DECIMAL ( 11, 3 )) > 0.000
                 LIMIT 1

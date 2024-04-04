@@ -104,7 +104,7 @@ function submitForm(e, evt) {
                     showCancelButton: false,
                     showConfirmButton: true,
                     confirmButtonText: 'Oke',
-                    timer: (res.status == 200 ? 5000 : 200),
+                    timer: (res.status == 200 ? 5000 : 3000),
                     timerProgressBar: true
                 }).then(() => {
                     if (isNotNull(res.redirect)) {
