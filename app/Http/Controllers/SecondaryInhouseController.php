@@ -23,13 +23,13 @@ class SecondaryInhouseController extends Controller
         if ($request->ajax()) {
             $additionalQuery = '';
 
-            // if ($request->dateFrom) {
-            //     $additionalQuery .= " and a.tgl_form_cut >= '" . $request->dateFrom . "' ";
-            // }
+            if ($request->dateFrom) {
+                $additionalQuery .= " and a.tgl_trans >= '" . $request->dateFrom . "' ";
+            }
 
-            // if ($request->dateTo) {
-            //     $additionalQuery .= " and a.tgl_form_cut <= '" . $request->dateTo . "' ";
-            // }
+            if ($request->dateTo) {
+                $additionalQuery .= " and a.tgl_trans <= '" . $request->dateTo . "' ";
+            }
 
             $keywordQuery = '';
             if ($request->search['value']) {
@@ -44,31 +44,35 @@ class SecondaryInhouseController extends Controller
             }
 
             $data_input = DB::select("
-            SELECT a.*,
-            DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
-            s.act_costing_ws,
-            s.color,
-            p.buyer,
-            p.style,
-            s.size,
-            a.qty_awal,
-            a.qty_reject,
-            a.qty_replace,
-            a.qty_in,
-            a.created_at,
-            dc.tujuan,
-            dc.lokasi,
-            dc.tempat,
-            f.no_cut,
-            s.size,
-            a.user
-            from secondary_inhouse_input a
-            inner join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
-            left join form_cut_input f on f.id = s.form_cut_id  
-            inner join part_detail pd on s.part_detail_id = pd.id
-            inner join part p on pd.part_id = p.id
-            inner join (select id_qr_stocker,tujuan, lokasi, tempat from dc_in_input) dc on a.id_qr_stocker = dc.id_qr_stocker
-            order by a.tgl_trans desc
+                SELECT a.*,
+                DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
+                a.tgl_trans,
+                s.act_costing_ws,
+                s.color,
+                p.buyer,
+                p.style,
+                s.size,
+                a.qty_awal,
+                a.qty_reject,
+                a.qty_replace,
+                a.qty_in,
+                a.created_at,
+                dc.tujuan,
+                dc.lokasi,
+                dc.tempat,
+                f.no_cut,
+                s.size,
+                a.user
+                from secondary_inhouse_input a
+                inner join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+                left join form_cut_input f on f.id = s.form_cut_id
+                inner join part_detail pd on s.part_detail_id = pd.id
+                inner join part p on pd.part_id = p.id
+                inner join (select id_qr_stocker,tujuan, lokasi, tempat from dc_in_input) dc on a.id_qr_stocker = dc.id_qr_stocker
+                where
+                a.tgl_trans is not null
+                ".$additionalQuery."
+                order by a.tgl_trans desc
             ");
 
             return DataTables::of($data_input)->toJson();

@@ -130,13 +130,11 @@
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
-                        value="{{ date('Y-m-d') }}">
+                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                        value="{{ date('Y-m-d') }}">
+                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
                 </div>
             </div>
             <h5 class="card-title fw-bold mb-0">List Transaksi DC IN</h5>
@@ -152,8 +150,8 @@
                             <th>Buyer</th>
                             <th>Style</th>
                             <th>Color</th>
-                            <th>No. Cut</th>
                             <th>Size</th>
+                            <th>No. Cut</th>
                             <th>Tujuan</th>
                             <th>Tempat</th>
                             <th>Lokasi</th>
@@ -218,10 +216,10 @@
                     data: 'color',
                 },
                 {
-                    data: 'no_cut',
+                    data: 'size',
                 },
                 {
-                    data: 'size',
+                    data: 'no_cut',
                 },
                 {
                     data: 'tujuan',
@@ -264,6 +262,10 @@
                 }
             });
         });
+
+        function datatableReload() {
+            $('#datatable-input').DataTable().ajax.reload();
+        }
     </script>
 
 

@@ -211,17 +211,14 @@
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
-                        value="{{ date('Y-m-d') }}">
+                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="datatableReload()">
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                        value="{{ date('Y-m-d') }}">
+                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
                 </div>
                 <div class="mb-3">
-                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal"
-                        onclick="reset();"><i class="fas fa-plus"></i> Baru</button>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="reset();"><i class="fas fa-plus"></i> Baru</button>
                 </div>
             </div>
 
@@ -380,6 +377,10 @@
                 }
             });
         });
+
+        function datatableReload() {
+            $('#datatable-input').DataTable().ajax.reload();
+        }
 
         let datatable_detail = $("#datatable-detail").DataTable({
             ordering: false,

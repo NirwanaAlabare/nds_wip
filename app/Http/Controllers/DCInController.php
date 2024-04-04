@@ -26,13 +26,13 @@ class DCInController extends Controller
         if ($request->ajax()) {
             $additionalQuery = '';
 
-            // if ($request->dateFrom) {
-            //     $additionalQuery .= " and a.tgl_form_cut >= '" . $request->dateFrom . "' ";
-            // }
+            if ($request->dateFrom) {
+                $additionalQuery .= " and a.tgl_trans >= '" . $request->dateFrom . "' ";
+            }
 
-            // if ($request->dateTo) {
-            //     $additionalQuery .= " and a.tgl_form_cut <= '" . $request->dateTo . "' ";
-            // }
+            if ($request->dateTo) {
+                $additionalQuery .= " and a.tgl_trans <= '" . $request->dateTo . "' ";
+            }
 
             $keywordQuery = '';
             if ($request->search['value']) {
@@ -50,6 +50,7 @@ class DCInController extends Controller
             SELECT
             a.id_qr_stocker,
             DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
+            a.tgl_trans,
             s.act_costing_ws,
             s.color,
             p.buyer,
@@ -70,6 +71,7 @@ class DCInController extends Controller
             inner join form_cut_input f on f.id = s.form_cut_id
             inner join part_detail pd on s.part_detail_id = pd.id
             inner join part p on pd.part_id = p.id
+            ".$additionalQuery."
             order by a.tgl_trans desc
             ");
 

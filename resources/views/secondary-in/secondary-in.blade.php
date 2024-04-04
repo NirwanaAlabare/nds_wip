@@ -220,13 +220,11 @@
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
-                        value="{{ date('Y-m-d') }}">
+                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="datatableReload()">
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                        value="{{ date('Y-m-d') }}">
+                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
                 </div>
                 <div class="mb-3">
                     <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal"
@@ -398,6 +396,10 @@
             });
         });
 
+        function datatableReload() {
+            $('#datatable-input').DataTable().ajax.reload();
+        }
+
         let datatable_detail = $("#datatable-detail").DataTable({
             ordering: false,
             processing: true,
@@ -411,10 +413,6 @@
                 url: '{{ route('detail_stocker_in') }}',
                 dataType: 'json',
                 dataSrc: 'data',
-                data: function(d) {
-                    d.dateFrom = $('#tgl-awal').val();
-                    d.dateTo = $('#tgl-akhir').val();
-                },
             },
             columns: [
                 {
