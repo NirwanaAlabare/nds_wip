@@ -248,6 +248,25 @@
             datatableTrolleyStock.ajax.reload();
         }
 
+        $('#datatable-trolley-stock thead tr').clone(true).appendTo('#datatable-trolley-stock thead');
+        $('#datatable-trolley-stock thead tr:eq(1) th').each(function(i) {
+            if (i != 0) {
+                var title = $(this).text();
+                $(this).html('<input type="text" class="form-control form-control-sm"/>');
+
+                $('input', this).on('keyup change', function() {
+                    if (datatableTrolleyStock.column(i).search() !== this.value) {
+                        datatableTrolleyStock
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            } else {
+                $(this).html('');
+            }
+        });
+
         // Scan QR Module :
             // Variable List :
                 var stockerScanner = new Html5Qrcode("stocker-reader");

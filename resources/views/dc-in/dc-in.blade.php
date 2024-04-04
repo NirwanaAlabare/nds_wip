@@ -153,6 +153,7 @@
                             <th>Style</th>
                             <th>Color</th>
                             <th>No. Cut</th>
+                            <th>Size</th>
                             <th>Tujuan</th>
                             <th>Tempat</th>
                             <th>Lokasi</th>
@@ -218,6 +219,9 @@
                 },
                 {
                     data: 'no_cut',
+                },
+                {
+                    data: 'size',
                 },
                 {
                     data: 'tujuan',
@@ -345,9 +349,7 @@
             $("#form").trigger("reset");
             getdatatmp();
             // initScan();
-
         }
-
 
         function scan_qr() {
             let txtqrstocker = document.form.txtqrstocker.value;
@@ -379,7 +381,8 @@
                     dataType: 'json',
                     dataSrc: 'data',
                 },
-                columns: [{
+                columns: [
+                    {
                         data: 'id_qr_stocker',
                     },
                     {

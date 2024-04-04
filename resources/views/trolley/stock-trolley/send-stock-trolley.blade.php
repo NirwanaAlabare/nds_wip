@@ -141,6 +141,25 @@
             ordering: false
         });
 
+        $('#datatable-trolley-stock thead tr').clone(true).appendTo('#datatable-trolley-stock thead');
+        $('#datatable-trolley-stock thead tr:eq(1) th').each(function(i) {
+            if (i != 0) {
+                var title = $(this).text();
+                $(this).html('<input type="text" class="form-control form-control-sm"/>');
+
+                $('input', this).on('keyup change', function() {
+                    if (datatableTrolleyStock.column(i).search() !== this.value) {
+                        datatableTrolleyStock
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            } else {
+                $(this).html('');
+            }
+        });
+
         // Datatable selected row selection
         datatableTrolleyStock.on('click', 'tbody tr', function(e) {
             e.currentTarget.classList.toggle('selected');
@@ -239,10 +258,10 @@
                                     if (res.redirect != 'reload') {
                                         location.href = res.redirect;
                                     } else {
-                                        // location.reload();
+                                        location.reload();
                                     }
                                 } else {
-                                    // location.reload();
+                                    location.reload();
                                 }
                             });
                         }

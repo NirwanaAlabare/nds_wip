@@ -63,7 +63,8 @@ class DCInController extends Controller
             a.tempat,
             a.created_at,
             a.user,
-            f.no_cut
+            f.no_cut,
+            s.size
             from dc_in_input a
             inner join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
             inner join form_cut_input f on f.id = s.form_cut_id
@@ -123,7 +124,7 @@ class DCInController extends Controller
                 a.qty_ply,
                 a.range_awal,
                 a.range_akhir,
-                concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade)kode,
+                concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) kode,
                 ms.tujuan,
                 IF(ms.tujuan = 'NON SECONDARY',a.lokasi,ms.proses) lokasi ,
                 a.tempat
@@ -211,11 +212,16 @@ class DCInController extends Controller
             select
                 ms.id_qr_stocker,
                 mp.nama_part,
-                concat(ms.id_qr_stocker,' - ',mp.nama_part)kode_stocker,
+                concat(ms.id_qr_stocker,' - ',mp.nama_part) kode_stocker,
                 ifnull(s.tujuan,'-') tujuan,
                 ifnull(tmp.tempat,'-') tempat,
                 ifnull(tmp.lokasi,'-') lokasi,
                 ms.qty_ply - coalesce(tmp.qty_reject,0) + coalesce(tmp.qty_replace,0) qty_in,
+                ms.act_costing_ws,
+                ms.size,
+                ms.color,
+                ms.panel,
+                concat(ms.range_awal, '-', ms.range_akhir) rangeAwalAkhir,
                 ifnull(tmp.id_qr_stocker,'x') cek_stat
             from
                 (
@@ -228,7 +234,7 @@ class DCInController extends Controller
                 inner join
                     (
                         select
-                            concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade)kode
+                            concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) kode
                         from
                             tmp_dc_in_input_new x
                             inner join stocker_input y on x.id_qr_stocker = y.id_qr_stocker
@@ -394,7 +400,104 @@ class DCInController extends Controller
         }
     }
 
+    public function update_mass_tmp_dc_in(Request $request)
+    {
+        ini_set('max_execution_time', 36000);
 
+        $massStockerIds = explode(",", $request->mass_id_c);
+
+        if (count($massStockerIds) > 0) {
+            $stockerCodes = Stocker::selectRaw("concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) kode")->whereIn("id_qr_stocker", $massStockerIds)->pluck('kode')->toArray();
+            $stockerCodeRaw = "(";
+            for ($i = 0; $i < count($stockerCodes); $i++) {
+                if ($i > 0) {
+                    $stockerCodeRaw .= ", '".$stockerCodes[$i]."'";
+                } else {
+                    $stockerCodeRaw .= "'".$stockerCodes[$i]."'";
+                }
+            }
+            $stockerCodeRaw .= ")";
+
+            if ($request->mass_txttuj == 'NON SECONDARY') {
+                $update_stocker_input = DB::update("
+                    update stocker_input set
+                        tempat = '" . $request->mass_cbotempat . "',
+                        tujuan = '" . $request->mass_txttuj . "',
+                        lokasi = '" . $request->mass_cbolokasi . "'
+                    where concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) in " . $stockerCodeRaw . "
+                ");
+
+                if ($request->mass_cbotempat == "TROLLEY") {
+                    $lastTrolleyStock = TrolleyStocker::select('kode')->orderBy('id', 'desc')->first();
+                    $trolleyStockNumber = $lastTrolleyStock ? intval(substr($lastTrolleyStock->kode, -5)) + 1 : 1;
+
+                    $stockerData = Stocker::whereRaw("concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) in " . $stockerCodeRaw)->get();
+
+                    $trolleyStockArr = [];
+
+                    $thisTrolley = Trolley::where("nama_trolley", $request->mass_cbolokasi)->first();
+                    if ($thisTrolley) {
+
+                        $i = 0;
+                        foreach ($stockerData as $stocker) {
+                            $trolleyCheck = TrolleyStocker::where('stocker_id', $stocker->id)->first();
+                            if (!$trolleyCheck) {
+                                array_push($trolleyStockArr, [
+                                    "kode" => "TLS".sprintf('%05s', ($trolleyStockNumber+$i)),
+                                    "trolley_id" => $thisTrolley->id,
+                                    "stocker_id" => $stocker->id,
+                                    "status" => "active",
+                                    "tanggal_alokasi" => date('Y-m-d'),
+                                    "created_at" => Carbon::now(),
+                                    "updated_at" => Carbon::now(),
+                                ]);
+
+                                $i++;
+                            }
+                        }
+
+                        $storeTrolleyStock = TrolleyStocker::insert($trolleyStockArr);
+
+                        if (count($trolleyStockArr) > 0) {
+                            $updateStocker = Stocker::whereRaw("concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) in " . $stockerCodeRaw)->
+                                update([
+                                    "status" => "trolley",
+                                    "latest_alokasi" => Carbon::now()
+                                ]);
+                        }
+                    }
+                }
+            }
+
+            $update_tmp_dc_in = DB::table("tmp_dc_in_input_new")->
+                whereIn("id_qr_stocker", $massStockerIds)->
+                update([
+                    "tujuan" => $request->mass_txttuj,
+                    "tempat" => $request->mass_cbotempat,
+                    "lokasi" => $request->mass_cbolokasi,
+                ]);
+
+            if (!(is_nan($update_tmp_dc_in))) {
+                return array(
+                    'status' => 300,
+                    'message' => 'Data Stocker "' . $request->mass_id_c . '" berhasil diubah',
+                    'redirect' => '',
+                    'table' => 'datatable-scan',
+                    'additional' => [],
+                    'callback' => 'tmp_dc_input_new'
+                );
+            }
+        }
+
+        return array(
+            'status' => 400,
+            'message' => 'Data Stocker "' . $request->mass_id_c . '" gagal diubah',
+            'redirect' => '',
+            'table' => 'datatable-scan',
+            'additional' => [],
+            'callback' => 'tmp_dc_input_new'
+        );
+    }
 
     public function store(Request $request)
     {

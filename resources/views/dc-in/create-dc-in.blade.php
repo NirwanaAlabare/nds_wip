@@ -12,6 +12,49 @@
 @endsection
 
 @section('content')
+    {{-- Mass Update Lokasi --}}
+    <div class="modal fade" id="updateMassTmpDcModal" tabindex="-1" role="dialog" aria-labelledby="updateMassTmpDcModalLabel" aria-hidden="true">
+        <form action="{{ route('update_mass_tmp_dc_in') }}" method="post" name='mass_form_modal' onsubmit="submitForm(this, event)">
+            @method('PUT')
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header bg-sb text-light">
+                        <h1 class="modal-title fs-5" id="updateMassTmpDcModalLabel"></h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class='row'>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Tujuan</small></label>
+                                    <input type='text' class='form-control' name='mass_txttuj' id='mass_txttuj' value='' readonly>
+                                    <input type='hidden' class='form-control' id='mass_id_c' name='mass_id_c' value=''>
+                                    <input type='hidden' class='form-control' id='mass_id_kode' name='mass_id_kode' value=''>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Tempat</small></label>
+                                    <select class='form-control select2bs4' style='width: 100%;' name='mass_cbotempat' id='mass_cbotempat' onchange='getmasslokasi();'></select>
+                                </div>
+                            </div>
+                            <div class='col-sm-3'>
+                                <div class='form-group'>
+                                    <label class='form-label'><small>Lokasi</small></label>
+                                    <select class='form-control select2bs4' style='width: 100%;' name='mass_cbolokasi' id='mass_cbolokasi'></select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                        <button type="submit" class="btn btn-sb">Simpan </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
     {{-- Update Lokasi --}}
     <div class="modal fade" id="updateTmpDcModal" tabindex="-1" role="dialog" aria-labelledby="updateTmpDcModalLabel"
         aria-hidden="true">
@@ -88,7 +131,12 @@
         @csrf
         <div class="card card-sb">
             <div class="card-header">
-                <h5 class="card-title fw-bold mb-0">Scan DC IN</h5>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title fw-bold mb-0"><i class="fa fa-qrcode fa-sm"></i> Scan DC IN</h5>
+                    <a href="{{ route('dc-in') }}" class="btn btn-primary btn-sm">
+                        <i class="fa fa-reply fa-sm"></i> Kembali ke DC IN
+                    </a>
+                </div>
             </div>
             <div class="card-body">
                 <div class="row justify-content-center align-items-end">
@@ -201,19 +249,24 @@
                     <table id="datatable-scan" class="table table-bordered table-sm w-100 display nowrap">
                         <thead>
                             <tr>
+                                <th>Act</th>
+                                <th>Check</th>
                                 <th>Stocker</th>
                                 <th>Part</th>
                                 <th>Tujuan</th>
                                 <th>Tempat</th>
                                 <th>Proses / Lokasi</th>
                                 <th>Qty In</th>
-                                {{-- <th>Check</th> --}}
-                                <th>Act</th>
                             </tr>
                         </thead>
                         <tbody>
                         </tbody>
                     </table>
+                    <div class="d-flex justify-content-start`">
+                        <button type="button" data-bs-toggle="modal" data-bs-target="#updateMassTmpDcModal" class="btn btn-primary btn-sm mb-3" onclick="editCheckedTmpDcIn()">
+                            <i class="fa fa-edit"></i> Edit Checked Stocker
+                        </button>
+                    </div>
                 </div>
                 <button type="submit" class="btn btn-sb btn-block">Simpan </button>
             </div>
@@ -251,9 +304,24 @@
 
         $('.select2').select2();
 
-        $('.select2bs4').select2({
+        $('#cbotempat').select2({
             theme: 'bootstrap4',
             dropdownParent: $("#updateTmpDcModal")
+        });
+
+        $('#cbolokasi').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $("#updateTmpDcModal")
+        });
+
+        $('#mass_cbotempat').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $("#updateMassTmpDcModal")
+        });
+
+        $('#mass_cbolokasi').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $("#updateMassTmpDcModal")
         });
 
         document.getElementById("store-dc-in").onkeypress = function(e) {
@@ -422,6 +490,7 @@
                 serverSide: true,
                 destroy: true,
                 paging: false,
+                info: false,
                 ajax: {
                     url: '{{ route('get_tmp_dc_in') }}',
                     dataType: 'json',
@@ -429,6 +498,12 @@
 
                 },
                 columns: [
+                    {
+                        data: 'id_qr_stocker',
+                    },
+                    {
+                        data: 'id_qr_stocker',
+                    },
                     {
                         data: 'id_qr_stocker',
                     },
@@ -446,46 +521,39 @@
                     },
                     {
                         data: 'qty_in',
-                    },
-                    {
-                        data: 'id_qr_stocker',
-                    },
-                    // {
-                    //     data: 'id_qr_stocker',
-                    // },
+                    }
                 ],
                 columnDefs: [
-                    // {
-                    //     targets: [6],
-                    //     render: (data, type, row, meta) => {
-
-                    //         if (row.cek_stat != 'x') {
-                    //             return `
-                    //                 <div class="d-flex justify-content-center">
-                    //                     <div class="form-check mt-1 mb-0">
-                    //                         <input class="form-check-input tmp_dc_stock_check" type="checkbox" name="tmp_dc_stock[`+row.index+`]" id="tmp_dc_stock_`+row.index+`" value="`+data+`">
-                    //                     </div>
-                    //                 </div>
-                    //             `;
-                    //         } else {
-                    //             return `
-                    //                 <div class='d-flex gap-1 justify-content-center'>
-                    //                 </div>
-                    //             `;
-                    //         }
-                    //     }
-                    // },
                     {
-                        targets: [6],
+                        targets: [0],
                         render: (data, type, row, meta) => {
 
                             if (row.cek_stat != 'x') {
                                 return `
                                     <div class='d-flex gap-1 justify-content-center'>
-                                        <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#updateTmpDcModal"
-                                        onclick="getdetail('` + row.id_qr_stocker + `','` + row.kode_stocker + `');">
+                                        <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#updateTmpDcModal" onclick="getdetail('` + row.id_qr_stocker + `','` + row.kode_stocker + `');">
                                             <i class='fa fa-search'></i>
                                         </a>
+                                    </div>
+                                `;
+                            } else {
+                                return `
+                                    <div class='d-flex gap-1 justify-content-center'>
+                                    </div>
+                                `;
+                            }
+                        }
+                    },
+                    {
+                        targets: [1],
+                        render: (data, type, row, meta) => {
+
+                            if (row.cek_stat != 'x') {
+                                return `
+                                    <div class="d-flex justify-content-center">
+                                        <div class="form-check mt-1 mb-0">
+                                            <input class="form-check-input tmp_dc_stock_check" type="checkbox" data-tujuan-tempat-proses="`+row.tujuan+`-`+row.tempat+`-`+row.lokasi+`" name="tmp_dc_stock[`+meta.row+`]" id="tmp_dc_stock_`+meta.row+`" value="`+data+`" onchange="filterCheck(this)">
+                                        </div>
                                     </div>
                                 `;
                             } else {
@@ -530,7 +598,7 @@
                         document.getElementById("loading").classList.add("d-none");
                     }
 
-                    $("#updateTmpDcModalLabel").html();
+                    $("#updateTmpDcModalLabel").html(response.id_qr_stocker);
                     document.getElementById('txtqty').value = response.qty_in;
                     document.getElementById('id_c').value = response.id_qr_stocker;
                     document.getElementById('txtqtyreject').value = response.qty_reject;
@@ -575,6 +643,21 @@
             }
         };
 
+        function getmasstempat() {
+            let tujuan = document.mass_form_modal.mass_txttuj.value;
+            let html = $.ajax({
+                type: "get",
+                url: '{{ route('get_tempat') }}',
+                data: {
+                    tujuan: tujuan
+                },
+                async: false
+            }).responseText;
+            if (html != "") {
+                $("#mass_cbotempat").html(html);
+            }
+        };
+
         function getlokasi() {
             let tujuan = document.form_modal.txttuj.value;
             let tempat = document.form_modal.cbotempat.value;
@@ -595,6 +678,26 @@
             }
         };
 
+        function getmasslokasi() {
+            let tujuan = document.mass_form_modal.mass_txttuj.value;
+            let tempat = document.mass_form_modal.mass_cbotempat.value;
+            let html = $.ajax({
+                type: "get",
+                url: '{{ route('get_lokasi') }}',
+                data: {
+                    tujuan: tujuan,
+                    tempat: tempat
+                },
+                async: false
+            }).responseText;
+            console.log(tujuan);
+            console.log(tempat);
+            console.log(html != "");
+            if (html != "") {
+                $("#mass_cbolokasi").html(html);
+            }
+        };
+
         function cleard() {
             let html = $.ajax({
                 type: "delete",
@@ -602,7 +705,6 @@
                 async: false
             }).responseText;
         }
-
 
         function sum() {
             let txtqtyply = document.getElementById('txtqty').value;
@@ -612,6 +714,84 @@
             let result_fix = Math.ceil(result)
             if (!isNaN(result_fix)) {
                 document.getElementById("txtqtyin").value = result_fix;
+            }
+        }
+
+        function filterCheck(element) {
+            let tmpDcStockCheck = document.getElementsByClassName('tmp_dc_stock_check');
+
+            if (element.checked) {
+                for (let i = 0; i < tmpDcStockCheck.length; i++) {
+                    if (tmpDcStockCheck[i].getAttribute('data-tujuan-tempat-proses') != element.getAttribute('data-tujuan-tempat-proses')) {
+                        tmpDcStockCheck[i].setAttribute('disabled', true);
+                    } else {
+                        tmpDcStockCheck[i].removeAttribute('disabled');
+                    }
+                }
+            } else {
+                let checkedTmpDcStock = 0;
+                for (let i = 0; i < tmpDcStockCheck.length; i++) {
+                    if (tmpDcStockCheck[i].checked) {
+                        checkedTmpDcStock++;
+                    }
+                }
+
+                if (checkedTmpDcStock < 1) {
+                    for (let i = 0; i < tmpDcStockCheck.length; i++) {
+                        tmpDcStockCheck[i].removeAttribute('disabled');
+                    }
+                }
+            }
+        }
+
+        function editCheckedTmpDcIn() {
+            let tmpDcStockCheck = document.getElementsByClassName('tmp_dc_stock_check');
+
+            let checkedTmpDcStock = [];
+            for (let i = 0; i < tmpDcStockCheck.length; i++) {
+                if (tmpDcStockCheck[i].checked) {
+                    checkedTmpDcStock.push(tmpDcStockCheck[i].value);
+                }
+            }
+
+            if (checkedTmpDcStock.length > 0) {
+                if (document.getElementById("loading")) {
+                    document.getElementById("loading").classList.remove("d-none");
+                }
+
+                $.ajax({
+                    url: '{{ route('show_tmp_dc_in') }}',
+                    method: 'get',
+                    data: {
+                        id_c: checkedTmpDcStock[0]
+                    },
+                    dataType: 'json',
+                    success: async function(response) {
+                        if (document.getElementById("loading")) {
+                            document.getElementById("loading").classList.add("d-none");
+                        }
+
+                        $("#updateMassTmpDcModalLabel").html(checkedTmpDcStock.toString());
+                        document.getElementById('mass_id_c').value = checkedTmpDcStock.toString();
+                        document.getElementById('mass_txttuj').value = response.tujuan;
+                        getmasstempat();
+                        $("#mass_cbotempat").val(response.tempat).trigger('change');
+                        $("#mass_cbolokasi").val(response.lokasi).trigger('change');
+                    },
+                    error: function(request, status, error) {
+                        if (document.getElementById("loading")) {
+                            document.getElementById("loading").classList.add("d-none");
+                        }
+
+                        alert(request.responseText);
+                    },
+                });
+            } else {
+                Swal.fire({
+                    icon:'warning',
+                    title: 'Warning',
+                    html: 'Harap ceklis stocker yang akan di ubah',
+                });
             }
         }
     </script>
