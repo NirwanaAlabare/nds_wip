@@ -58,6 +58,12 @@ class LoadingLineController extends Controller
 
                     return $line;
                 })
+                ->filterColumn("nama_trolley", function ($query, $keyword) {
+                    return $query->whereRaw("trolley.nama_trolley LIKE '%".$keyword."%'");
+                })
+                ->filterColumn("trolley_color", function ($query, $keyword) {
+                    return $query->whereRaw("stocker_input.color LIKE '%".$keyword."%'");
+                })
                 ->toJson();
         }
 
