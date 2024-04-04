@@ -31,7 +31,7 @@
                 <input type="hidden" name="trolley_id" id="trolley_id" value="{{ $trolley->id }}">
                 <div class="mb-3">
                     <label class="form-label">Line</label>
-                    <div class="input-group">
+                    <div class="input-group w-100">
                         <select class="form-control form-control-sm select2bs4" name="line_id" id="line_id">
                             @foreach ($lines as $line)
                                 <option value="{{ $line->line_id }}">{{ $line->FullName }}</option>

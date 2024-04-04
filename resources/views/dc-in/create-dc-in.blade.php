@@ -111,25 +111,25 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-3">
+                    <div class="col-3">
                         <label class="form-label label-input"><small><b>WS</b></small></label>
                         <div class="input-group">
                             <input type='text' class='form-control form-control-sm border-input' id='txtws' name='txtws' value='' readonly>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-3">
                         <label class="form-label label-input"><small><b>Buyer</b></small></label>
                         <div class="input-group">
                             <input type='text' class='form-control form-control-sm border-input' id='txtbuyer' name='txtbuyer' value='' readonly>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-3">
                         <label class="form-label label-input"><small><b>Style</b></small></label>
                         <div class="input-group">
                             <input type='text' class='form-control form-control-sm border-input' id='txtstyle' name='txtstyle' value='' readonly>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-3">
                         <label class="form-label label-input"><small><b>Color</b></small></label>
                         <div class="input-group">
                             <input type='text' class='form-control form-control-sm border-input' id='txtcolor' name='txtcolor' value='' readonly>
@@ -138,25 +138,25 @@
                 </div>
 
                 <div class="row">
-                    <div class="col-md-3">
+                    <div class="col-3">
                         <label class="form-label label-input"><small><b>Shell</b></small></label>
                         <div class="input-group">
                             <input type='text' class='form-control form-control-sm border-input' id='txtshell' name='txtshell' value='' readonly>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-3">
                         <label class="form-label label-input"><small><b>No Cut</b></small></label>
                         <div class="input-group">
                             <input type='text' class='form-control form-control-sm border-input' id='txtnocut' name='txtnocut' value='' readonly>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-3">
                         <label class="form-label label-input"><small><b>Size</b></small></label>
                         <div class="input-group">
                             <input type='text' class='form-control form-control-sm border-input' id='txtsize' name='txtsize' value='' readonly>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-3">
                         <label class="form-label label-input"><small><b>Group/Lot</b></small></label>
                         <div class="input-group">
                             <input type='text' class='form-control form-control-sm border-input' id='txtgroup' name='txtgroup' value='' readonly>
@@ -165,19 +165,19 @@
                 </div>
 
                 <div class="row">
-                    <div class="col-md-3">
+                    <div class="col-3">
                         <label class="form-label label-input"><small><b>Qty</b></small></label>
                         <div class="input-group">
                             <input type='text' class='form-control form-control-sm border-input' id='txtqtyply_h' name='txtqtyply_h' value='' readonly>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-3">
                         <label class="form-label label-input"><small><b>Range Awal</b></small></label>
                         <div class="input-group">
                             <input type='text' class='form-control form-control-sm border-input' id='txtrange_awal' name='txtrange_awal' value='' readonly>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-3">
                         <label class="form-label label-input"><small><b>Range Akhir</b></small></label>
                         <div class="input-group">
                             <input type='text' class='form-control form-control-sm border-input' id='txtrange_akhir' name='txtrange_akhir' value='' readonly>
