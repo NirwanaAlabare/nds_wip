@@ -243,7 +243,7 @@ select 'RO' id,b.no_bpb,id_item iditem,id_jo idjo,sum(qty_out) qty_out from whs_
 //             inner join master_rak mr on br.id_rak_loc=mr.id where br.id IN (" . $request->id_barcode . ") and br.id_rak_loc!='' 
 //             order by br.id) a where qty_sisa > 0) a");
         foreach ($sum_item as $sumitem) {
-        $html = '<input style="width:100%;align:center;" class="form-control" type="text" id="tot_roll" name="tot_roll" value="'.$sumitem->ttl_roll.'" / readonly>';
+        $html = '<input style="width:100%;align:center;" class="form-control" type="hidden" id="tot_roll" name="tot_roll" value="'.$sumitem->ttl_roll.'" / readonly>';
         }
 
         $html .= '<div class="table-responsive" style="max-height: 300px">
