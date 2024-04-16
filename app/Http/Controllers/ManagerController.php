@@ -72,7 +72,7 @@ class ManagerController extends Controller
                     CONCAT(b.panel, ' - ', b.urutan_marker) panel,
                     b.color,
                     a.status,
-                    users.name nama_meja,
+                    UPPER(users.name) nama_meja,
                     b.panjang_marker,
                     UPPER(b.unit_panjang_marker) unit_panjang_marker,
                     b.comma_marker,

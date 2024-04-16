@@ -67,7 +67,7 @@ class SpreadingController extends Controller
                     CONCAT(b.panel, ' - ', b.urutan_marker) panel,
                     b.color,
                     a.status,
-                    users.name nama_meja,
+                    UPPER(users.name) nama_meja,
                     b.panjang_marker,
                     UPPER(b.unit_panjang_marker) unit_panjang_marker,
                     b.comma_marker,
@@ -84,7 +84,7 @@ class SpreadingController extends Controller
                     UPPER(b.tipe_marker) tipe_marker,
                     a.tipe_form_cut,
                     COALESCE(b.notes, '-') notes,
-                    GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ', ') marker_details,
+                    GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' /  ') marker_details,
                     cutting_plan.tgl_plan,
                     cutting_plan.app
                 FROM `form_cut_input` a
@@ -94,7 +94,8 @@ class SpreadingController extends Controller
                     left join marker_input_detail on b.id = marker_input_detail.marker_id
                     left join master_size_new on marker_input_detail.size = master_size_new.size
                 where
-                    a.id is not null
+                    a.id is not null and
+                    marker_input_detail.ratio > 0
                     " . $additionalQuery . "
                     " . $keywordQuery . "
                 GROUP BY a.id

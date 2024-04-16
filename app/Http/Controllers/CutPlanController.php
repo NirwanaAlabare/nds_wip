@@ -118,7 +118,7 @@ class CutPlanController extends Controller
                     b.panel,
                     b.color,
                     a.status,
-                    users.name nama_meja,
+                    UPPER(users.name) nama_meja,
                     b.panjang_marker,
                     UPPER(b.unit_panjang_marker) unit_panjang_marker,
                     b.comma_marker,
@@ -132,7 +132,7 @@ class CutPlanController extends Controller
                     b.cons_marker,
                     a.tipe_form_cut,
                     CONCAT(b.panel, ' - ', b.urutan_marker) panel,
-                    GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ', ') marker_details
+                    GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' / ') marker_details
                 FROM `form_cut_input` a
                 left join marker_input b on a.id_marker = b.kode
                 left join marker_input_detail on b.id = marker_input_detail.marker_id
@@ -140,7 +140,8 @@ class CutPlanController extends Controller
                 left join users on users.id = a.no_meja
                 where
                     a.status = 'SPREADING' and
-                    b.cancel = 'N'
+                    b.cancel = 'N' and
+                    marker_input_detail.ratio > 0
                     " . $additionalQuery . "
                     " . $keywordQuery . "
                 GROUP BY a.id
@@ -209,7 +210,7 @@ class CutPlanController extends Controller
                     panel,
                     b.color,
                     a.status,
-                    users.name nama_meja,
+                    UPPER(users.name) nama_meja,
                     b.panjang_marker,
                     UPPER(b.unit_panjang_marker) unit_panjang_marker,
                     b.comma_marker,
@@ -223,7 +224,7 @@ class CutPlanController extends Controller
                     b.cons_marker,
                     a.tipe_form_cut,
                     CONCAT(b.panel, ' - ', b.urutan_marker) panel,
-                    GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ', ') marker_details,
+                    GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' / ') marker_details,
                     sum(marker_input_detail.ratio) * a.qty_ply	qty_output,
                     coalesce(sum(marker_input_detail.ratio) * c.tot_lembar_akt,0) qty_act,
                     COALESCE(a.total_lembar, '0') total_lembar
@@ -234,7 +235,8 @@ class CutPlanController extends Controller
                 left join users on users.id = a.no_meja
                 left join (select no_form_cut_input,sum(lembar_gelaran) tot_lembar_akt from form_cut_input_detail group by no_form_cut_input) c on a.no_form = c.no_form_cut_input
                 where
-                    a.id is not null
+                    a.id is not null and
+                    marker_input_detail.ratio > 0
                     " . $additionalQuery . "
                     " . $keywordQuery . "
                 GROUP BY a.id

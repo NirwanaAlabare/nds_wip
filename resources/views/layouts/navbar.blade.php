@@ -244,10 +244,7 @@
 
                     @admin
                         <li class="nav-item dropdown">
-                            <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
-                                aria-expanded="false"
-                                class="nav-link dropdown-toggle {{ $subPageGroup == 'cuttingplan-cutting' ? 'active' : '' }}">Cutting
-                                Plan</a>
+                            <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'cuttingplan-cutting' ? 'active' : '' }}">Cutting Plan</a>
                             <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
                                 <li>
                                     <a href="{{ route('cut-plan') }}"
@@ -257,10 +254,8 @@
                                 </li>
                             </ul>
                         </li>
-                        <li class="nav-item dropdown">
-                            <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
-                                aria-expanded="false"
-                                class="nav-link dropdown-toggle {{ $subPageGroup == 'laporan-cutting' ? 'active' : '' }}">Laporan</a>
+                        {{-- <li class="nav-item dropdown">
+                            <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'laporan-cutting' ? 'active' : '' }}">Laporan</a>
                             <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
                                 <li>
                                     <a href="{{ route('lap_pemakaian') }}"
@@ -269,19 +264,24 @@
                                     </a>
                                 </li>
                             </ul>
-                        </li>
+                        </li> --}}
                     @endadmin
 
                     @admin
-                        <li class="nav-item {{ $subPage == 'summary-cutting' ? 'active' : '' }}">
-                            <a href="{{ route('summary') }}" class="nav-link">
-                                Summary <i class="fas fa-tasks fa-sm"></i>
-                            </a>
-                        </li>
-                        <li class="nav-item {{ $subPage == 'manage-cutting' ? 'active' : '' }}">
+                        {{-- <li class="nav-item {{ $subPage == 'manage-cutting' ? 'active' : '' }}">
                             <a href="{{ route('manage-cutting') }}" class="nav-link">
                                 Manage <i class="fa-solid fa-gear fa-sm"></i>
                             </a>
+                        </li> --}}
+                        <li class="nav-item dropdown">
+                            <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPage == 'manage-cutting' ? 'active' : '' }}">Completed Form</a>
+                            <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
+                                <li>
+                                    <a href="{{ route('manage-cutting') }}" class="dropdown-item {{ $subPage == 'manage-cutting' ? 'active' : '' }}">
+                                        Completed Form <i class="fa-solid fa-check-to-slot"></i>
+                                    </a>
+                                </li>
+                            </ul>
                         </li>
                     @endadmin
                 @endif

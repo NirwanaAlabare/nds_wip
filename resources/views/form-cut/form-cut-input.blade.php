@@ -48,11 +48,11 @@
                             <th>No. WS</th>
                             <th>Color</th>
                             <th>Panel</th>
-                            <th class="align-bottom">Status</th>
                             <th>Size Ratio</th>
                             <th>Qty Ply</th>
                             <th>Ket.</th>
-                            <th class="align-bottom">App</th>
+                            <th class="align-bottom">Status</th>
+                            <th class="align-bottom">Approve</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -252,7 +252,7 @@
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i != 0 && i != 7 && i != 8 && i != 11 && i != 12) {
+            if (i != 0 && i != 8 && i != 9 && i != 11 && i != 12) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm"/>');
 
@@ -308,9 +308,6 @@
                     data: 'panel'
                 },
                 {
-                    data: 'status'
-                },
-                {
                     data: 'marker_details'
                 },
                 {
@@ -320,12 +317,65 @@
                     data: 'notes'
                 },
                 {
+                    data: 'status'
+                },
+                {
                     data: 'app'
                 },
             ],
             columnDefs: [
                 {
+                    targets: [0],
+                    render: (data, type, row, meta) => {
+                        let btnEdit =
+                            "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"detailSpreadingModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-search'></i></a>";
+
+                        let btnProcess = "";
+
+                        if (row.tipe_form_cut == 'MANUAL') {
+                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ?`<a class='btn btn-success btn-sm' href='{{ route('process-manual-form-cut') }}/` +row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa ` + (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) +`'></i></a>` :"";
+                        } else if (row.tipe_form_cut == 'PILOT') {
+                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ? `<a class='btn btn-success btn-sm' href='{{ route('process-pilot-form-cut') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>` : "";
+                        } else {
+                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ? `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa ` + (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) + `'></i></a>` : "";
+                        }
+
+                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnProcess + `</div>`;
+                    }
+                },
+                {
                     targets: [8],
+                    render: (data, type, row, meta) => {
+                        let color = "";
+
+                        if (row.status == 'SELESAI PENGERJAAN') {
+                            color = '#087521';
+                        } else if (row.status == 'PENGERJAAN MARKER') {
+                            color = '#2243d6';
+                        } else if (row.status == 'PENGERJAAN FORM CUTTING') {
+                            color = '#2243d6';
+                        } else if (row.status == 'PENGERJAAN FORM CUTTING DETAIL') {
+                            color = '#2243d6';
+                        } else if (row.status == 'PENGERJAAN FORM CUTTING SPREAD') {
+                            color = '#2243d6';
+                        }
+
+                        return  "<span style='font-weight: 600; color: "+ color + "' >" + (data ? data.replace(/,/g, ' / ') : '-') + "</span>"
+                    }
+                },
+                {
+                    targets: [9],
+                    render: (data, type, row, meta) => {
+                        return `
+                            <div class="progress border border-sb position-relative" style="min-width: 50px;height: 21px">
+                                <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">`+row.total_lembar+`/`+row.qty_ply+`</p>
+                                <div class="progress-bar" style="background-color: #75baeb;width: `+((row.total_lembar/row.qty_ply)*100)+`%" role="progressbar"></div>
+                            </div>
+                        `;
+                    }
+                },
+                {
+                    targets: [11],
                     className: "text-center align-middle",
                     render: (data, type, row, meta) => {
                         console.log(row.marker_details);
@@ -353,37 +403,6 @@
                         }
 
                         return icon;
-                    }
-                },
-                {
-                    targets: [9],
-                    render: (data, type, row, meta) => {
-                        let color = "";
-
-                        if (row.status == 'SELESAI PENGERJAAN') {
-                            color = '#087521';
-                        } else if (row.status == 'PENGERJAAN MARKER') {
-                            color = '#2243d6';
-                        } else if (row.status == 'PENGERJAAN FORM CUTTING') {
-                            color = '#2243d6';
-                        } else if (row.status == 'PENGERJAAN FORM CUTTING DETAIL') {
-                            color = '#2243d6';
-                        } else if (row.status == 'PENGERJAAN FORM CUTTING SPREAD') {
-                            color = '#2243d6';
-                        }
-
-                        return  "<span style='font-weight: 600; color: "+ color + "' >" + (data ? data.replace(/,/g, '<br>') : '-') + "</span>"
-                    }
-                },
-                {
-                    targets: [10],
-                    render: (data, type, row, meta) => {
-                        return `
-                            <div class="progress border border-sb position-relative" style="min-width: 50px;height: 21px">
-                                <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">`+row.total_lembar+`/`+row.qty_ply+`</p>
-                                <div class="progress-bar" style="background-color: #75baeb;width: `+((row.total_lembar/row.qty_ply)*100)+`%" role="progressbar"></div>
-                            </div>
-                        `;
                     }
                 },
                 {
@@ -425,30 +444,8 @@
                     }
                 },
                 {
-                    targets: [0],
-                    render: (data, type, row, meta) => {
-                        let btnEdit =
-                            "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"detailSpreadingModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-search'></i></a>";
-
-                        let btnProcess = "";
-
-                        if (row.tipe_form_cut == 'MANUAL') {
-                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ?`<a class='btn btn-success btn-sm' href='{{ route('process-manual-form-cut') }}/` +row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa ` + (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) +`'></i></a>` :"";
-                        } else if (row.tipe_form_cut == 'PILOT') {
-                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ? `<a class='btn btn-success btn-sm' href='{{ route('process-pilot-form-cut') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>` : "";
-                        } else {
-                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ? `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa ` + (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) + `'></i></a>` : "";
-                        }
-
-                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnProcess + `</div>`;
-                    }
-                },
-                {
-                    targets: [0, 1, 2, 3, 4, 5],
-                    className: "text-nowrap"
-                },
-                {
                     targets: '_all',
+                    className: "text-nowrap",
                     render: (data, type, row, meta) => {
                         var color = 'black';
 

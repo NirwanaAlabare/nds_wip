@@ -33,16 +33,16 @@
                                         <th>Tanggal</th>
                                         <th>No. Form</th>
                                         <th>No. Meja</th>
-                                        <th>No. Marker</th>
-                                        <th>No. WS</th>
                                         <th>Style</th>
                                         <th>Color</th>
                                         <th>Panel</th>
-                                        <th class="align-bottom">Status</th>
                                         <th>Size Ratio</th>
                                         <th>Qty Ply</th>
                                         <th>Qty Output</th>
                                         <th>Qty Actual</th>
+                                        <th>No. Marker</th>
+                                        <th>No. WS</th>
+                                        <th class="align-bottom">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -272,7 +272,7 @@
         // Cutting Plan Form Header Column Form
         $('#datatable-form thead tr').clone(true).appendTo('#datatable-form thead');
         $('#datatable-form thead tr:eq(1) th').each(function(i) {
-            if (i != 8) {
+            if (i != 12) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" />');
 
@@ -311,12 +311,6 @@
                     data: 'nama_meja'
                 },
                 {
-                    data: 'id_marker'
-                },
-                {
-                    data: 'ws'
-                },
-                {
                     data: 'style'
                 },
                 {
@@ -324,9 +318,6 @@
                 },
                 {
                     data: 'panel'
-                },
-                {
-                    data: 'status'
                 },
                 {
                     data: 'marker_details'
@@ -340,29 +331,30 @@
                 {
                     data: 'qty_act'
                 },
+                {
+                    data: 'id_marker'
+                },
+                {
+                    data: 'ws'
+                },
+                {
+                    data: 'status'
+                },
             ],
             columnDefs: [
                 {
-                    targets: [2],
+                    targets: [7],
                     render: (data, type, row, meta) => {
-                        let color = "";
-
-                        if (row.status == 'SELESAI PENGERJAAN') {
-                            color = '#087521';
-                        } else if (row.status == 'PENGERJAAN FORM CUTTING') {
-                            color = '#2243d6';
-                        } else if (row.status == 'PENGERJAAN FORM CUTTING DETAIL') {
-                            color = '#2243d6';
-                        } else if (row.status == 'PENGERJAAN FORM CUTTING SPREAD') {
-                            color = '#2243d6';
-                        }
-
-                        return data ? "<span style='color: " + color + "' >" + data.toUpperCase() +
-                            "</span>" : "<span style=' color: " + color + "'>-</span>"
+                        return `
+                            <div class="progress border border-sb position-relative" style="min-width: 50px;height: 21px">
+                                <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">`+row.total_lembar+`/`+row.qty_ply+`</p>
+                                <div class="progress-bar" style="background-color: #75baeb;width: `+((row.total_lembar/row.qty_ply)*100)+`%" role="progressbar"></div>
+                            </div>
+                        `;
                     }
                 },
                 {
-                    targets: [8],
+                    targets: [12],
                     className: "text-center align-middle",
                     render: (data, type, row, meta) => {
                         icon = "";
@@ -386,22 +378,8 @@
                     }
                 },
                 {
-                    targets: [10],
-                    render: (data, type, row, meta) => {
-                        return `
-                            <div class="progress border border-sb position-relative" style="min-width: 50px;height: 21px">
-                                <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">`+row.total_lembar+`/`+row.qty_ply+`</p>
-                                <div class="progress-bar" style="background-color: #75baeb;width: `+((row.total_lembar/row.qty_ply)*100)+`%" role="progressbar"></div>
-                            </div>
-                        `;
-                    }
-                },
-                {
-                    targets: [0, 1, 2, 3, 4],
-                    className: "text-nowrap"
-                },
-                {
                     targets: '_all',
+                    className: "text-nowrap",
                     render: (data, type, row, meta) => {
                         let color = "";
 

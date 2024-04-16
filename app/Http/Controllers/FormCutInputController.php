@@ -98,7 +98,8 @@ class FormCutInputController extends Controller
                 left join master_size_new on marker_input_detail.size = master_size_new.size
                 left join users on users.id = a.no_meja
                 where
-                    a.id is not null
+                    a.id is not null and
+                    marker_input_detail.ratio > 0
                     " . $additionalQuery . "
                     " . $keywordQuery . "
                 GROUP BY a.id

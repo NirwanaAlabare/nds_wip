@@ -71,13 +71,13 @@
                                     <th>Tanggal</th>
                                     <th>No. Form</th>
                                     <th>No. Meja</th>
-                                    <th>No. Marker</th>
-                                    <th>No. WS</th>
                                     <th>Style</th>
                                     <th>Color</th>
                                     <th>Panel</th>
                                     <th>Size Ratio</th>
                                     <th>Qty Ply</th>
+                                    <th>No. Marker</th>
+                                    <th>No. WS</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -110,14 +110,14 @@
                                     <th>Tanggal</th>
                                     <th>No. Form</th>
                                     <th>No. Meja</th>
-                                    <th>No. Marker</th>
-                                    <th>No. WS</th>
                                     <th>Style</th>
                                     <th>Color</th>
                                     <th>Panel</th>
-                                    <th class="align-bottom">Status</th>
                                     <th>Size Ratio</th>
                                     <th>Qty Ply</th>
+                                    <th>No. Marker</th>
+                                    <th>No. WS</th>
+                                    <th class="align-bottom">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -229,12 +229,6 @@
                     data: 'nama_meja'
                 },
                 {
-                    data: 'id_marker'
-                },
-                {
-                    data: 'ws'
-                },
-                {
                     data: 'style'
                 },
                 {
@@ -249,18 +243,20 @@
                 {
                     data: 'qty_ply'
                 },
+                {
+                    data: 'id_marker'
+                },
+                {
+                    data: 'ws'
+                },
             ],
             columnDefs: [
                 {
-                    targets: [2],
+                    targets: "_all",
+                    className: "text-nowrap",
                     render: (data, type, row, meta) => {
-
-                        return data ? data.toUpperCase() : "-";
+                        return data ? data : '-'
                     }
-                },
-                {
-                    targets: [0,1,2,3,4],
-                    className: "text-nowrap"
                 },
             ],
             rowCallback: function( row, data, index ) {
@@ -394,7 +390,7 @@
 
         $('#datatable-selected thead tr').clone(true).appendTo('#datatable-selected thead');
         $('#datatable-selected thead tr:eq(1) th').each(function(i) {
-            if (i != 8 && i != 9) {
+            if (i != 6 && i != 10) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm"/>');
 
@@ -432,12 +428,6 @@
                     data: 'nama_meja'
                 },
                 {
-                    data: 'id_marker'
-                },
-                {
-                    data: 'ws'
-                },
-                {
                     data: 'style'
                 },
                 {
@@ -447,37 +437,24 @@
                     data: 'panel'
                 },
                 {
-                    data: 'status'
-                },
-                {
                     data: 'marker_details'
                 },
                 {
                     data: 'qty_ply'
                 },
+                {
+                    data: 'id_marker'
+                },
+                {
+                    data: 'ws'
+                },
+                {
+                    data: 'status'
+                },
             ],
             columnDefs: [
                 {
-                    targets: [2],
-                    render: (data, type, row, meta) => {
-                        let color = "";
-
-                        if (row.status == 'SELESAI PENGERJAAN') {
-                            color = '#087521';
-                        } else if (row.status == 'PENGERJAAN FORM CUTTING') {
-                            color = '#2243d6';
-                        } else if (row.status == 'PENGERJAAN FORM CUTTING DETAIL') {
-                            color = '#2243d6';
-                        } else if (row.status == 'PENGERJAAN FORM CUTTING SPREAD') {
-                            color = '#2243d6';
-                        }
-
-                        return data ? "<span style='color: " + color + "' >" + data.toUpperCase() +
-                            "</span>" : "<span style=' color: " + color + "'>-</span>"
-                    }
-                },
-                {
-                    targets: [8],
+                    targets: [10],
                     className: "text-center align-middle",
                     render: (data, type, row, meta) => {
                         icon = "";
@@ -489,8 +466,7 @@
                             case "PENGERJAAN FORM CUTTING":
                             case "PENGERJAAN FORM CUTTING DETAIL":
                             case "PENGERJAAN FORM CUTTING SPREAD":
-                                icon =
-                                    `<i class="fas fa-sync-alt fa-spin fa-lg" style="color: #2243d6;"></i>`;
+                                icon = `<i class="fas fa-sync-alt fa-spin fa-lg" style="color: #2243d6;"></i>`;
                                 break;
                             case "SELESAI PENGERJAAN":
                                 icon = `<i class="fas fa-check fa-lg" style="color: #087521;"></i>`;
@@ -501,11 +477,8 @@
                     }
                 },
                 {
-                    targets: [0,1,2,3,4],
-                    className: "text-nowrap"
-                },
-                {
                     targets: '_all',
+                    className: "text-nowrap",
                     render: (data, type, row, meta) => {
                         let color = "";
 

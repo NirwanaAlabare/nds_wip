@@ -14,7 +14,7 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-cog fa-sm"></i> Manage Cutting</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-check-to-slot"></i> Completed Form</h5>
         </div>
         <div class="card-body">
             {{-- <a href="{{ route('create-spreading') }}" class="btn btn-success btn-sm mb-3">
@@ -54,15 +54,15 @@
                             <th>Tanggal Form</th>
                             <th>No. Form</th>
                             <th>No. Meja</th>
-                            <th>No. Marker</th>
-                            <th>No. WS</th>
                             <th>Style</th>
                             <th>Color</th>
                             <th>Panel</th>
-                            <th class="align-bottom" style="text-align: left !important;">Status</th>
                             <th>Size Ratio</th>
                             <th>Qty Ply</th>
                             <th>Ket.</th>
+                            <th>No. Marker</th>
+                            <th>No. WS</th>
+                            <th class="align-bottom" style="text-align: left !important;">Status</th>
                             <th>Plan</th>
                         </tr>
                     </thead>
@@ -297,12 +297,6 @@
                     data: 'nama_meja'
                 },
                 {
-                    data: 'id_marker'
-                },
-                {
-                    data: 'ws'
-                },
-                {
                     data: 'style'
                 },
                 {
@@ -310,9 +304,6 @@
                 },
                 {
                     data: 'panel'
-                },
-                {
-                    data: 'status'
                 },
                 {
                     data: 'marker_details'
@@ -324,32 +315,52 @@
                     data: 'notes'
                 },
                 {
+                    data: 'id_marker'
+                },
+                {
+                    data: 'ws'
+                },
+                {
+                    data: 'status'
+                },
+                {
                     data: 'tgl_plan'
                 },
             ],
             columnDefs: [
                 {
-                    targets: [3],
+                    targets: [0],
                     render: (data, type, row, meta) => {
-                        let color = "";
+                        let btnEdit = row.status == 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"editMejaModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-edit'></i></a>" : "";
+                        let btnProcess = "";
 
-                        if (row.status == 'SELESAI PENGERJAAN') {
-                            color = '#087521';
-                        } else if (row.status == 'PENGERJAAN MARKER') {
-                            color = '#2243d6';
-                        } else if (row.status == 'PENGERJAAN FORM CUTTING') {
-                            color = '#2243d6';
-                        } else if (row.status == 'PENGERJAAN FORM CUTTING DETAIL') {
-                            color = '#2243d6';
-                        } else if (row.status == 'PENGERJAAN FORM CUTTING SPREAD') {
-                            color = '#2243d6';
+                        if (row.tipe_form_cut == 'MANUAL') {
+                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ?
+                                `<a class='btn btn-success btn-sm' href='{{ route('detail-cutting') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+ (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) +`'></i></a>` : "";
+                        } else if (row.tipe_form_cut == 'PILOT') {
+                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ?
+                                `<a class='btn btn-success btn-sm' href='{{ route('detail-cutting') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>` : "";
+                        } else {
+                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ?
+                                `<a class='btn btn-success btn-sm' href='{{ route('detail-cutting') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>` : "";
                         }
 
-                        return data ? "<span style='font-weight: 600; color: "+ color + "' >" + data.toUpperCase() + "</span>" : "<span style=' color: " + color + "'>-</span>"
+                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnProcess + `</div>`;
                     }
                 },
                 {
-                    targets: [9],
+                    targets: [8],
+                    render: (data, type, row, meta) => {
+                        return `
+                            <div class="progress border border-sb position-relative" style="min-width: 50px;height: 21px">
+                                <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">`+row.total_lembar+`/`+row.qty_ply+`</p>
+                                <div class="progress-bar" style="background-color: #75baeb;width: `+((row.total_lembar/row.qty_ply)*100)+`%" role="progressbar"></div>
+                            </div>
+                        `;
+                    }
+                },
+                {
+                    targets: [12],
                     className: "text-center align-middle",
                     render: (data, type, row, meta) => {
                         icon = "";
@@ -375,58 +386,8 @@
                     }
                 },
                 {
-                    targets: [10],
-                    render: (data, type, row, meta) => {
-                        let color = "";
-
-                        if (row.status == 'SELESAI PENGERJAAN') {
-                            color = '#087521';
-                        } else if (row.status == 'PENGERJAAN MARKER') {
-                            color = '#2243d6';
-                        } else if (row.status == 'PENGERJAAN FORM CUTTING') {
-                            color = '#2243d6';
-                        } else if (row.status == 'PENGERJAAN FORM CUTTING DETAIL') {
-                            color = '#2243d6';
-                        } else if (row.status == 'PENGERJAAN FORM CUTTING SPREAD') {
-                            color = '#2243d6';
-                        }
-
-                        return  "<span style='font-weight:600;color: "+ color + "' >" + (data ? data.replace(/,/g, '<br>') : '-') + "</span>"
-                    }
-                },
-                {
-                    targets: [11],
-                    render: (data, type, row, meta) => {
-                        return `
-                            <div class="progress border border-sb position-relative" style="min-width: 50px;height: 21px">
-                                <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">`+row.total_lembar+`/`+row.qty_ply+`</p>
-                                <div class="progress-bar" style="background-color: #75baeb;width: `+((row.total_lembar/row.qty_ply)*100)+`%" role="progressbar"></div>
-                            </div>
-                        `;
-                    }
-                },
-                {
-                    targets: [0],
-                    render: (data, type, row, meta) => {
-                        let btnEdit = row.status == 'SPREADING' ? "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"editMejaModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-edit'></i></a>" : "";
-                        let btnProcess = "";
-
-                        if (row.tipe_form_cut == 'MANUAL') {
-                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ?
-                                `<a class='btn btn-success btn-sm' href='{{ route('detail-cutting') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+ (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) +`'></i></a>` : "";
-                        } else if (row.tipe_form_cut == 'PILOT') {
-                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ?
-                                `<a class='btn btn-success btn-sm' href='{{ route('detail-cutting') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>` : "";
-                        } else {
-                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ?
-                                `<a class='btn btn-success btn-sm' href='{{ route('detail-cutting') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>` : "";
-                        }
-
-                        return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnProcess + `</div>`;
-                    }
-                },
-                {
                     targets: '_all',
+                    className: "text-nowrap",
                     render: (data, type, row, meta) => {
                         let color = "";
 
@@ -445,10 +406,6 @@
                         return  "<span style='font-weight: 600; color: "+ color + "' >" + (data ? data : '-') + "</span>"
                     }
                 },
-                {
-                    targets: [0,1,2,3,4,5],
-                    className: "text-nowrap"
-                }
             ],
             rowCallback: function( row, data, index ) {
                 if (data['tipe_form_cut'] == 'MANUAL') {
