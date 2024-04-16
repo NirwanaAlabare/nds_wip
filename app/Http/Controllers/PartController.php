@@ -365,7 +365,7 @@ class PartController extends Controller
                     form_cut_input.id,
                     form_cut_input.id_marker,
                     form_cut_input.no_form,
-                    form_cut_input.tgl_form_cut,
+                    COALESCE(DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut) tgl_mulai_form,
                     users.name nama_meja,
                     marker_input.act_costing_ws,
                     marker_input.buyer,
@@ -373,10 +373,21 @@ class PartController extends Controller
                     marker_input.style,
                     marker_input.color,
                     marker_input.panel,
-                    GROUP_CONCAT(DISTINCT CONCAT(master_size_new.size, '(', marker_input_detail.ratio, ')') SEPARATOR ', ') marker_details,
+                    GROUP_CONCAT(DISTINCT CONCAT(master_size_new.size, '(', marker_input_detail.ratio, ')')  ORDER BY master_size_new.urutan ASC SEPARATOR ' / ') marker_details,
                     form_cut_input.qty_ply,
                     form_cut_input.no_cut
-                ")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->where("form_cut_input.status", "SELESAI PENGERJAAN")->whereRaw("part_form.id is not null")->where("part_form.part_id", $id)->where("marker_input.act_costing_ws", $request->act_costing_ws)->where("marker_input.panel", $request->panel)->groupBy("form_cut_input.id");
+                ")->
+                leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+                leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
+                leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->
+                leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
+                leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
+                where("form_cut_input.status", "SELESAI PENGERJAAN")->
+                whereRaw("part_form.id is not null")->
+                where("part_form.part_id", $id)->
+                where("marker_input.act_costing_ws", $request->act_costing_ws)->
+                where("marker_input.panel", $request->panel)->
+                groupBy("form_cut_input.id");
 
             return Datatables::eloquent($formCutInputs)->filterColumn('act_costing_ws', function ($query, $keyword) {
                 $query->whereRaw("LOWER(act_costing_ws) LIKE LOWER('%" . $keyword . "%')");
@@ -527,7 +538,7 @@ class PartController extends Controller
                 form_cut_input.id,
                 form_cut_input.id_marker,
                 form_cut_input.no_form,
-                form_cut_input.tgl_form_cut,
+                COALESCE(DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut) tgl_mulai_form,
                 users.name nama_meja,
                 marker_input.act_costing_ws ws,
                 marker_input.buyer,
@@ -535,7 +546,7 @@ class PartController extends Controller
                 marker_input.color,
                 marker_input.style,
                 marker_input.panel,
-                GROUP_CONCAT(DISTINCT CONCAT(master_size_new.size, '(', marker_input_detail.ratio, ')') SEPARATOR ', ') marker_details,
+                GROUP_CONCAT(DISTINCT CONCAT(master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' / ') marker_details,
                 form_cut_input.qty_ply,
                 form_cut_input.no_cut
             ")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->where("form_cut_input.status", "SELESAI PENGERJAAN")->whereRaw("part_form.id is null")->where("marker_input.act_costing_ws", $request->act_costing_ws)->where("marker_input.panel", $request->panel)->groupBy("form_cut_input.id");
@@ -720,17 +731,20 @@ class PartController extends Controller
     {
         $list_part = DB::select(
             "
-            SELECT pd.id,
-            CONCAT(nama_part, ' - ', bag) nama_part,
-            master_secondary_id,
-            ms.tujuan,
-            ms.proses,
-            cons,
-            UPPER(unit) unit
-            FROM `part_detail` pd
-            inner join master_part mp on pd.master_part_id = mp.id
-            left join master_secondary ms on pd.master_secondary_id = ms.id
-            where part_id = '" . $request->id . "'
+            SELECT
+                pd.id,
+                CONCAT(nama_part, ' - ', bag) nama_part,
+                master_secondary_id,
+                ms.tujuan,
+                ms.proses,
+                cons,
+                UPPER(unit) unit
+            FROM
+                `part_detail` pd
+                inner join master_part mp on pd.master_part_id = mp.id
+                left join master_secondary ms on pd.master_secondary_id = ms.id
+            where
+                part_id = '" . $request->id . "'
             "
         );
 

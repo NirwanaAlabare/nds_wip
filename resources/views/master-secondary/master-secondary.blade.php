@@ -23,8 +23,9 @@
                     <thead>
                         <tr>
                             <th class="align-bottom">Action</th>
+                            <th>Kode Secondary</th>
                             <th>Jenis Secondary</th>
-                            <th>Proses</th>
+                            <th>Proses Secondary</th>
                         </tr>
                     </thead>
                 </table>
@@ -36,8 +37,7 @@
         aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form action="{{ route('store-master-secondary') }}" method="post"
-                    onsubmit="submitMasterSecondaryForm(this, event)">
+                <form action="{{ route('store-master-secondary') }}" method="post" onsubmit="submitMasterSecondaryForm(this, event)">
                     <div class="modal-header bg-sb text-light">
                         <h1 class="modal-title fs-5" id="createMasterPartLabel"><i class="fa fa-plus-square"></i> Tambah Data Master Tujuan</h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -69,8 +69,7 @@
         </div>
     </div>
 
-    <div class="modal fade" id="editMasterSecondaryModal" tabindex="-1" aria-labelledby="editMasterSecondaryLabel"
-        aria-hidden="true">
+    <div class="modal fade" id="editMasterSecondaryModal" tabindex="-1" aria-labelledby="editMasterSecondaryLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <form action="{{ route('update_master_secondary') }}" method="post" onsubmit="submitForm(this, event)">
@@ -126,6 +125,9 @@
             columns: [
                 {
                     data: 'id'
+                },
+                {
+                    data: 'kode',
                 },
                 {
                     data: 'tujuan',

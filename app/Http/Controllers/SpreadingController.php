@@ -88,11 +88,11 @@ class SpreadingController extends Controller
                     cutting_plan.tgl_plan,
                     cutting_plan.app
                 FROM `form_cut_input` a
-                left join cutting_plan on cutting_plan.no_form_cut_input = a.no_form
-                left join users on users.id = a.no_meja
-                left join marker_input b on a.id_marker = b.kode and b.cancel = 'N'
-                left join marker_input_detail on b.id = marker_input_detail.marker_id
-                left join master_size_new on marker_input_detail.size = master_size_new.size
+                    left join cutting_plan on cutting_plan.no_form_cut_input = a.no_form
+                    left join users on users.id = a.no_meja
+                    left join marker_input b on a.id_marker = b.kode and b.cancel = 'N'
+                    left join marker_input_detail on b.id = marker_input_detail.marker_id
+                    left join master_size_new on marker_input_detail.size = master_size_new.size
                 where
                     a.id is not null
                     " . $additionalQuery . "
@@ -402,40 +402,40 @@ class SpreadingController extends Controller
                     orderBy("form_cut_input.no_cut", "asc")->
                     get();
 
-                $i=0;
-                foreach ($formCuts as $formCut) {
-                    $i++;
+                if ($formCuts->count() > 0) {
+                    $i=0;
+                    foreach ($formCuts as $formCut) {
+                        $i++;
 
-                    $updateFormCut = FormCutInput::where("id", $formCut->id)->
-                        update([
-                            "no_cut" => $i
-                        ]);
-                }
-
-                $updateMarkerBalance = Marker::where("kode", $spreadingForm->id_marker)->update([
-                    "gelar_qty_balance" => DB::raw('gelar_qty_balance + '.$spreadingForm->qty_ply)
-                ]);
-
-                if ($updateMarkerBalance) {
-                    $spreadingFormDetails = FormCutInputDetail::where('no_form_cut_input', $spreadingForm->no_form_cut_input)->get();
-                    $deleteSpreadingFormDetail = FormCutInputDetail::where('no_form_cut_input', $spreadingForm->no_form_cut_input)->delete();
-                    if ($deleteSpreadingFormDetail) {
-                        $idFormDetailLapArr = [];
-                        foreach ($spreadingFormDetails as $spreadingFormDetail) {
-                            array_push($idFormDetailLapArr, $spreadingFormDetail->id);
-                        }
-
-                        $deleteSpreadingFormDetailLap = FormCutInputDetailLap::whereIn("form_cut_input_detail_id", $idFormDetailLapArr)->delete();
+                        $updateFormCut = FormCutInput::where("id", $formCut->id)->
+                            update([
+                                "no_cut" => $i
+                            ]);
                     }
 
-                    $deleteCutPlan = CutPlan::where('no_form_cut_input', $spreadingForm->no_form_cut_input)->delete();
-
-                    return array(
-                        "status" => 200,
-                        "message" => "Form berhasil dihapus",
-                        "table" => "datatable"
-                    );
+                    $updateMarkerBalance = Marker::where("kode", $spreadingForm->id_marker)->update([
+                        "gelar_qty_balance" => DB::raw('gelar_qty_balance + '.$spreadingForm->qty_ply)
+                    ]);
                 }
+
+                $spreadingFormDetails = FormCutInputDetail::where('no_form_cut_input', $spreadingForm->no_form_cut_input)->get();
+                $deleteSpreadingFormDetail = FormCutInputDetail::where('no_form_cut_input', $spreadingForm->no_form_cut_input)->delete();
+                if ($deleteSpreadingFormDetail) {
+                    $idFormDetailLapArr = [];
+                    foreach ($spreadingFormDetails as $spreadingFormDetail) {
+                        array_push($idFormDetailLapArr, $spreadingFormDetail->id);
+                    }
+
+                    $deleteSpreadingFormDetailLap = FormCutInputDetailLap::whereIn("form_cut_input_detail_id", $idFormDetailLapArr)->delete();
+                }
+
+                $deleteCutPlan = CutPlan::where('no_form_cut_input', $spreadingForm->no_form_cut_input)->delete();
+
+                return array(
+                    "status" => 200,
+                    "message" => "Form berhasil dihapus",
+                    "table" => "datatable"
+                );
             }
 
             return array(

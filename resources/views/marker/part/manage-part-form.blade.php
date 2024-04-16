@@ -109,17 +109,17 @@
                         <table id="datatable-select" class="table table-bordered table-sm w-100">
                             <thead>
                                 <tr>
-                                    <th>No. Form</th>
                                     <th>Tgl Spreading</th>
+                                    <th>No. Form</th>
                                     <th>No. Meja</th>
-                                    <th>Marker</th>
-                                    <th>WS</th>
+                                    <th>No. Cut</th>
                                     <th>Style</th>
                                     <th>Color</th>
                                     <th>Panel</th>
-                                    <th>No. Cut</th>
-                                    <th>Size Ratio</th>
                                     <th>Qty Ply</th>
+                                    <th>Size Ratio</th>
+                                    <th>Marker</th>
+                                    <th>WS</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -149,17 +149,17 @@
                         <table id="datatable-selected" class="table table-bordered table-sm w-100">
                             <thead>
                                 <tr>
-                                    <th>No. Form</th>
                                     <th>Tgl Spreading</th>
+                                    <th>No. Form</th>
                                     <th>No. Meja</th>
-                                    <th>Marker</th>
-                                    <th>WS</th>
+                                    <th>No. Cut</th>
                                     <th>Style</th>
                                     <th>Color</th>
                                     <th>Panel</th>
-                                    <th>No. Cut</th>
-                                    <th>Size Ratio</th>
                                     <th>Qty Ply</th>
+                                    <th>Size Ratio</th>
+                                    <th>Marker</th>
+                                    <th>WS</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -213,19 +213,16 @@
             },
             columns: [
                 {
-                    data: 'no_form'
+                    data: 'tgl_mulai_form'
                 },
                 {
-                    data: 'tgl_form_cut'
+                    data: 'no_form'
                 },
                 {
                     data: 'nama_meja'
                 },
                 {
-                    data: 'id_marker'
-                },
-                {
-                    data: 'act_costing_ws'
+                    data: 'no_cut'
                 },
                 {
                     data: 'style'
@@ -237,13 +234,16 @@
                     data: 'panel'
                 },
                 {
-                    data: 'no_cut'
+                    data: 'qty_ply'
                 },
                 {
                     data: 'marker_details'
                 },
                 {
-                    data: 'qty_ply'
+                    data: 'id_marker'
+                },
+                {
+                    data: 'act_costing_ws'
                 },
             ],
             columnDefs: [
@@ -268,6 +268,7 @@
                 },
                 {
                     targets: '_all',
+                    className: 'text-nowrap',
                     render: (data, type, row, meta) => {
                         let color = "";
 
@@ -295,7 +296,7 @@
 
         $('#datatable-selected thead tr').clone(true).appendTo('#datatable-selected thead');
         $('#datatable-selected thead tr:eq(1) th').each(function(i) {
-            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8 || i == 10) {
+            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 9 || i == 10) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" />');
 
@@ -448,10 +449,7 @@
                     data: 'nama_meja'
                 },
                 {
-                    data: 'id_marker'
-                },
-                {
-                    data: 'ws'
+                    data: 'no_cut'
                 },
                 {
                     data: 'style'
@@ -463,13 +461,16 @@
                     data: 'panel'
                 },
                 {
-                    data: 'no_cut'
+                    data: 'qty_ply'
                 },
                 {
                     data: 'marker_details'
                 },
                 {
-                    data: 'qty_ply'
+                    data: 'id_marker'
+                },
+                {
+                    data: 'ws'
                 },
             ],
             columnDefs: [
@@ -491,7 +492,7 @@
 
         $('#datatable-select thead tr').clone(true).appendTo('#datatable-select thead');
         $('#datatable-select thead tr:eq(1) th').each(function(i) {
-            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8 || i == 10) {
+            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 9 || i == 10) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" />');
 
