@@ -51,7 +51,7 @@
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>Worksheet</small></label>
-                <select class="form-control select2supp" id="txt_nows" name="txt_nows" style="width: 100%;" onchange="getrak()">
+                <select class="form-control select2bs4" id="txt_nows" name="txt_nows" style="width: 100%;" onchange="getrak()">
                     <option selected="selected" value="">Pilih WS</option>
                         @foreach ($no_ws as $nows)
                     <option value="{{ $nows->kpno }}">
@@ -170,8 +170,8 @@
         $('#p_unit').val("yard").trigger('change');
 
         //Reset Form
-        if (document.getElementById('store-inmaterial')) {
-            document.getElementById('store-inmaterial').reset();
+        if (document.getElementById('store-mutlokasi')) {
+            document.getElementById('store-mutlokasi').reset();
         }
 
         $('#ws_id').on('change', async function(e) {

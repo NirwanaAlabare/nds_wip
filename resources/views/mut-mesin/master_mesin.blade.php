@@ -86,6 +86,7 @@
                             <th>Brand</th>
                             <th>Tipe</th>
                             <th>Serial No</th>
+                            <th>Stock</th>
                             <th>Act</th>
                         </tr>
                     </thead>
@@ -114,7 +115,7 @@
     <script>
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i != 5) {
+            if (i != 6) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm"/>');
 
@@ -159,17 +160,32 @@
                 {
                     data: 'serial_no'
                 },
+                {
+                    data: 'jml'
+                },
             ],
             columnDefs: [{
-                    targets: [5],
+                    targets: [6],
                     render: (data, type, row, meta) => {
-                        return `
+
+                        if (row.jml == '0') {
+                            return `
                     <div
                     class='d-flex gap-1 justify-content-center'>
                     <a class='btn btn-warning btn-sm' data-bs-toggle='tooltip' onclick='notif()'><i class='fas fa-edit'></i></a>
-                    <a class='btn btn-success btn-sm' data-bs-toggle='tooltip' onclick='notif()'><i class='fas fa-lock'></i></a>
+                    <a class='btn btn-danger btn-sm' data-bs-toggle='tooltip' onclick="hapus('` + row.id_qr + `')"><i class='fas fa-trash'></i></a>
                     </div>
                         `;
+                        } else {
+                            return `
+                    <div
+                    class='d-flex gap-1 justify-content-center'>
+                    <a class='btn btn-warning btn-sm' data-bs-toggle='tooltip' onclick='notif()'><i class='fas fa-edit'></i></a>
+                    </div>
+                        `;
+                        }
+
+
                     }
                 },
                 // <a class='btn btn-warning btn-sm' href='{{ route('create-dc-in') }}/` +
@@ -217,6 +233,24 @@
                     }
                 },
             });
+        }
+
+        function hapus(id_qr) {
+            $.ajax({
+                type: "post",
+                url: '{{ route('hapus-data-mesin') }}',
+                data: {
+                    id_qr: id_qr
+                },
+                success: async function(res) {
+                    iziToast.success({
+                        message: 'Data Berhasil Dihapus',
+                        position: 'topCenter'
+                    });
+                    $('#datatable').DataTable().ajax.reload();
+                }
+            });
+
         }
     </script>
 @endsection

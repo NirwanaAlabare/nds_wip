@@ -528,6 +528,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('master-mut-mesin');
         Route::post('/store', 'store')->name('store-master-mut-mesin');
         Route::get('/export_excel_master_mesin', 'export_excel_master_mesin')->name('export_excel_master_mesin');
+        Route::post('/hapus_data_mesin', 'hapus_data_mesin')->name('hapus-data-mesin');
     });
 
 
