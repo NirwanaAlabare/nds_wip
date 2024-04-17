@@ -9,8 +9,7 @@
 
 @section('content')
     {{-- Show Detail Marker Modal --}}
-    <div class="modal fade" id="showMarkerModal" tabindex="-1" role="dialog" aria-labelledby="showMarkerModalLabel"
-        aria-hidden="true">
+    <div class="modal fade" id="showMarkerModal" tabindex="-1" role="dialog" aria-labelledby="showMarkerModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 65%;">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-light">
@@ -27,8 +26,7 @@
     </div>
 
     {{-- Edit Marker Modal --}}
-    <div class="modal fade" id="editMarkerModal" tabindex="-1" role="dialog" aria-labelledby="editMarkerModalLabel"
-        aria-hidden="true">
+    <div class="modal fade" id="editMarkerModal" tabindex="-1" role="dialog" aria-labelledby="editMarkerModalLabel" aria-hidden="true">
         <form action="{{ route('update_marker') }}" method="post" onsubmit="submitForm(this, event)">
             @method('PUT')
             <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 35%;">
@@ -42,8 +40,7 @@
                             <div class='col-sm-12'>
                                 <div class='form-group'>
                                     <label class='form-label'><small class="fw-bold">Gramasi</small></label>
-                                    <input type='number' class='form-control' id='txt_gramasi' name='txt_gramasi'
-                                        value = ''>
+                                    <input type='number' class='form-control' id='txt_gramasi' name='txt_gramasi' value = ''>
                                     <input type='hidden' class='form-control' id='id_c' name='id_c' value = ''>
                                 </div>
                             </div>
@@ -52,23 +49,20 @@
                                     <label class='form-label'><small class="fw-bold">Status Pilot</small></label>
                                     <div class="d-flex gap-3 ms-1">
                                         <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="pilot_status"
-                                                id="idle" value="idle">
+                                            <input class="form-check-input" type="radio" name="pilot_status" id="idle" value="idle">
                                             <label class="form-check-label" for="idle">
                                                 <small class="fw-bold"><i class="fa fa-minus fa-sm"></i> Pilot Idle</small>
                                             </label>
                                         </div>
                                         <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="pilot_status"
-                                                id="active" value="active">
+                                            <input class="form-check-input" type="radio" name="pilot_status" id="active" value="active">
                                             <label class="form-check-label text-success" for="active">
                                                 <small class="fw-bold"><i class="fa fa-check fa-sm"></i> Pilot
                                                     Approve</small>
                                             </label>
                                         </div>
                                         <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="pilot_status"
-                                                id="not_active" value="not active">
+                                            <input class="form-check-input" type="radio" name="pilot_status" id="not_active" value="not active">
                                             <label class="form-check-label text-danger" for="not_active">
                                                 <small class="fw-bold"><i class="fa fa-times fa-sm"></i> Pilot
                                                     Disapprove</small>
@@ -78,8 +72,7 @@
                                 </div>
                             </div>
                             <div class="col-sm-12 d-none" id="advanced-edit-section">
-                                <a href="" class="btn btn-primary btn-sm btn-block" id="advanced-edit-link"><i
-                                        class="fas fa-edit"></i> Advanced Edit</a>
+                                <a href="" class="btn btn-primary btn-sm btn-block" id="advanced-edit-link"><i class="fas fa-edit"></i> Advanced Edit</a>
                             </div>
                         </div>
                     </div>
@@ -135,13 +128,13 @@
                             <th>Style</th>
                             <th>Color</th>
                             <th>Panel</th>
-                            <th>Panjang Marker</th>
-                            <th>Lebar Marker</th>
+                            <th>Urutan</th>
+                            <th>Panjang</th>
+                            <th>Lebar</th>
                             <th>Gramasi</th>
                             <th>Gelar QTYs</th>
-                            <th>Urutan</th>
-                            <th>PO</th>
                             <th>Total Form</th>
+                            <th>PO</th>
                             <th>Ket.</th>
                         </tr>
                     </thead>
@@ -225,6 +218,9 @@
                     data: 'panel'
                 },
                 {
+                    data: 'urutan_marker'
+                },
+                {
                     data: 'panjang_marker_fix',
                     searchable: false
                 },
@@ -238,83 +234,83 @@
                     data: undefined
                 },
                 {
-                    data: 'urutan_marker'
+                    data: 'total_form',
+                    searchable: false
                 },
                 {
                     data: 'po_marker'
                 },
                 {
-                    data: 'total_form',
-                    searchable: false
-                },
-                {
                     data: 'notes',
                 },
             ],
-            columnDefs: [{
+            columnDefs: [
+                {
                     targets: [0],
                     render: (data, type, row, meta) => {
                         let exportBtn = `
-                            <button type="button" class="btn btn-sm btn-secondary" onclick="printMarker('` + row.kode + `');">
+                            <button type="button" class="btn btn-sm btn-warning" onclick="printMarker('` + row.kode + `');">
                                 <i class="fa fa-print"></i>
                             </button>
                         `;
 
                         if (row.cancel != 'Y' && row.tot_form != 0 && row.tipe_marker != "pilot marker") {
                             return `
-                                <div class='d-flex gap-1 justify-content-center mb-1'>
-                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` +
-                                row.id +
-                                `);'>
+                                <div class='d-flex gap-1 justify-content-start mb-1'>
+                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
                                         <i class='fa fa-search'></i>
                                     </a>
-                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editMarkerModal" onclick='edit(` +
-                                row.id + `);'>
+                                    <button class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editMarkerModal" onclick='edit(` + row.id + `);'>
                                         <i class='fa fa-edit'></i>
-                                    </a>
-                                </div>
-                                <div class='d-flex gap-1 justify-content-center'>
+                                    </button>
+                                    <button class='btn btn-danger btn-sm' onclick='cancel(` + row.id + `);' disabled>
+                                        <i class='fa fa-ban'></i>
+                                    </button>
                                     ` + exportBtn + `
                                 </div>
                             `;
-                        } else if ((row.cancel != 'Y' && row.tot_form == 0) || (row.cancel != 'Y' && row
-                                .gelar_qty_balance > 0 && row.tipe_marker == "pilot marker")) {
+                        } else if ((row.cancel != 'Y' && row.tot_form == 0) || (row.cancel != 'Y' && row.gelar_qty_balance > 0 && row.tipe_marker == "pilot marker")) {
                             return `
-                                <div class='d-flex gap-1 justify-content-center mb-1'>
-                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` +
-                                row.id +
-                                `);'>
+                                <div class='d-flex gap-1 justify-content-start mb-1'>
+                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
                                         <i class='fa fa-search'></i>
                                     </a>
-                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editMarkerModal" onclick='edit(` +
-                                row.id + `);'>
+                                    <button class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editMarkerModal" onclick='edit(` + row.id + `);'>
                                         <i class='fa fa-edit'></i>
-                                    </a>
-                                </div>
-                                <div class='d-flex gap-1 justify-content-center'>
-                                    <a class='btn btn-danger btn-sm' onclick='cancel(` + row.id + `);'>
+                                    </button>
+                                    <button class='btn btn-danger btn-sm' onclick='cancel(` + row.id + `);'>
                                         <i class='fa fa-ban'></i>
-                                    </a>
+                                    </button>
                                     ` + exportBtn + `
                                 </div>
                             `;
                         } else if (row.cancel == 'Y') {
                             return `
-                                <div class='d-flex gap-1 justify-content-center'>
-                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` +
-                                row.id + `);'>
+                                <div class='d-flex gap-1 justify-content-start'>
+                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
                                         <i class='fa fa-search'></i>
                                     </a>
+                                    <button class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editMarkerModal" onclick='edit(` + row.id + `);' disabled>
+                                        <i class='fa fa-edit'></i>
+                                    </button>
+                                    <button class='btn btn-danger btn-sm' onclick='cancel(` + row.id + `);' disabled>
+                                        <i class='fa fa-ban'></i>
+                                    </button>
                                     ` + exportBtn + `
                                 </div>
                             `;
                         } else {
                             return `
-                                <div class='d-flex gap-1 justify-content-center'>
-                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` +
-                                row.id + `);'>
+                                <div class='d-flex gap-1 justify-content-start'>
+                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
                                         <i class='fa fa-search'></i>
                                     </a>
+                                    <button class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editMarkerModal" onclick='edit(` + row.id + `);' disabled>
+                                        <i class='fa fa-edit'></i>
+                                    </button>
+                                    <button class='btn btn-danger btn-sm' onclick='cancel(` + row.id + `);' disabled>
+                                        <i class='fa fa-ban'></i>
+                                    </button>
                                     ` + exportBtn + `
                                 </div>
                             `;
@@ -322,20 +318,19 @@
                     }
                 },
                 {
-                    targets: [10],
+                    targets: [11],
                     render: (data, type, row, meta) => {
                         return `
                             <div class="progress border border-sb position-relative" style="height: 21px">
-                                <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">` +
-                            row.total_lembar + `/` + row.gelar_qty + `</p>
-                                <div class="progress-bar" style="background-color: #75baeb;width: ` + ((row
-                                .total_lembar / row.gelar_qty) * 100) + `%" role="progressbar"></div>
+                                <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">` + row.total_lembar + `/` + row.gelar_qty + `</p>
+                                <div class="progress-bar" style="background-color: #75baeb;width: ` + ((row.total_lembar / row.gelar_qty) * 100) + `%" role="progressbar"></div>
                             </div>
                         `;
                     }
                 },
                 {
                     targets: '_all',
+                    className: 'text-nowrap',
                     render: (data, type, row, meta) => {
                         var color = '#2b2f3a';
                         if (row.tot_form != '0' && row.cancel == 'N') {
@@ -348,11 +343,16 @@
                         return '<span style="font-weight: 600; color:' + color + '">' + data + '</span>';
                     }
                 },
-                {
-                    targets: [1, 2, 3],
-                    className: 'text-nowrap'
-                },
             ],
+            rowCallback: function( row, data, index ) {
+                if (data['tipe_marker'] == 'special marker') {
+                    $('td', row).css('background-color', '#e7dcf7');
+                    $('td', row).css('border', '0.15px solid #d0d0d0');
+                } else if (data['tipe_marker'] == 'pilot marker' || data['tipe_marker'] == 'bulk marker') {
+                    $('td', row).css('background-color', '#c5e0fa');
+                    $('td', row).css('border', '0.15px solid #d0d0d0');
+                }
+            }
         });
 
         function filterTable() {
@@ -360,7 +360,7 @@
         }
 
         function getdetail(id_c) {
-            $("#showMarkerModalLabel").html('Marker Detail');
+            $("#showMarkerModalLabel").html('<i class="fa-solid fa-magnifying-glass"></i> Marker Detail');
             let html = $.ajax({
                 type: "POST",
                 url: '{{ route('show-marker') }}',
@@ -370,6 +370,14 @@
                 async: false
             }).responseText;
             $("#detail").html(html);
+
+            $("#detail-marker-ratio").DataTable({
+                ordering: false
+            });
+
+            $("#detail-marker-form").DataTable({
+                ordering: false
+            });
         };
 
         function edit(id_c) {
@@ -403,8 +411,7 @@
                         document.getElementById('txt_gramasi').removeAttribute('readonly');
                     }
 
-                    document.getElementById('advanced-edit-link').setAttribute('href',
-                        '{{ route('edit-marker') }}/' + response.id);
+                    document.getElementById('advanced-edit-link').setAttribute('href','{{ route('edit-marker') }}/' + response.id);
                     document.getElementById('advanced-edit-section').classList.remove('d-none');
                 },
                 error: function(request, status, error) {

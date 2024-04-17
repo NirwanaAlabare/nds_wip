@@ -583,7 +583,7 @@ class CutPlanController extends Controller
                         </select>
                     ";
 
-                if ($row->formCutInput && $row->formCutInput->status != 'SPREADING') {
+                if ($row->formCutInput && $row->formCutInput->tipe_form == "manual" && $row->formCutInput->status != 'SPREADING') {
                     $input = "
                             <input class='form-control' type='hidden' id='no_meja_" . $row->id . "' name='no_meja[" . $row->id . "]' value='" . ($row->formCutInput ? $row->formCutInput : '-')->no_meja . "' readonly>
                             <input class='form-control' type='text' value='" . ($row->formCutInput ? strtoupper($row->formCutInput->alokasiMeja ? $row->formCutInput->alokasiMeja->name : '') : '') . "' readonly>

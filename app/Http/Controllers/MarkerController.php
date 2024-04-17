@@ -358,11 +358,18 @@ class MarkerController extends Controller
         UPPER(u.name) no_meja,
         DATE_FORMAT(waktu_mulai, '%d-%m-%Y %T') waktu_mulai,
         DATE_FORMAT(waktu_selesai, '%d-%m-%Y %T') waktu_selesai,
-        a.status
+        a.status,
+        a.tipe_form_cut,
+        COALESCE(a.no_cut, '-') no_cut
         from form_cut_input a
         inner join marker_input b on  a.id_marker = b.kode
         left join users u on a.no_meja = u.id
-        where b.id = '$request->id_c'");
+        where b.id = '$request->id_c'
+        ORDER BY
+        FIELD(a.status, 'SELESAI PENGERJAAN', 'PENGERJAAN MARKER', 'PENGERJAAN FORM CUTTING', 'PENGERJAAN FORM CUTTING DETAIL', 'PENGERJAAN FORM CUTTING SPREAD', 'SPREADING'),
+        a.no_cut asc,
+        a.no_form desc,
+        a.updated_at desc");
 
         foreach ($data_marker as $datanomarker) {
 
@@ -381,20 +388,43 @@ class MarkerController extends Controller
             $html_tracking = "";
 
             foreach ($data_marker_tracking as $track) :
+                $bgColor = null;
+                $textColor = null;
+
+                if ($track->tipe_form_cut == "manual") {
+                    $bgColor = '#e7dcf7';
+                } else if ($track->tipe_form_cut == "pilot") {
+                    $bgColor = '#c5e0fa';
+                }
+
+                switch ($track->status) {
+                    case "PENGERJAAN PILOT MARKER":
+                    case "PENGERJAAN PILOT DETAIL":
+                    case "PENGERJAAN MARKER":
+                    case "PENGERJAAN FORM CUTTING":
+                    case "PENGERJAAN FORM CUTTING DETAIL":
+                    case "PENGERJAAN FORM CUTTING SPREAD":
+                        $textColor = `#087521`;
+                        break;
+                    case "SELESAI PENGERJAAN":
+                        $textColor = `#2243d6`;
+                        break;
+                }
+
                 $html_tracking .= "
-                    <tr>
-                        <td>$track->tgl_form_cut</td>
-                        <td>$track->no_form</td>
-                        <td>" . ($track->no_meja ? $track->no_meja : '-') . "</td>
-                        <td>" . ($track->waktu_mulai ? $track->waktu_mulai : '-') . "</td>
-                        <td>" . ($track->waktu_selesai ? $track->waktu_selesai : '-') . "</td>
-                        <td>$track->status</td>
+                    <tr style='".($bgColor ? "background-color:".$bgColor.";border:0.15px solid #d0d0d0;" : "")." ".($textColor ? "color:".$textColor.";" : "")."'>
+                        <td class='text-nowrap'>$track->tgl_form_cut</td>
+                        <td class='text-nowrap'>$track->no_form</td>
+                        <td class='text-nowrap'>" . ($track->no_meja ? $track->no_meja : '-') . "</td>
+                        <td class='text-nowrap'>" . ($track->waktu_mulai ? $track->waktu_mulai : '-') . "</td>
+                        <td class='text-nowrap'>" . ($track->waktu_selesai ? $track->waktu_selesai : '-') . "</td>
+                        <td class='text-nowrap'>$track->status</td>
+                        <td class='text-nowrap'>$track->no_cut</td>
                     </tr>
                 ";
             endforeach;
 
             $html = "
-
                 <div class='row'>
                     <div class='col-sm-3'>
                         <div class='form-group'>
@@ -523,16 +553,16 @@ class MarkerController extends Controller
 
             <div class='row'>
                 <div class='col-sm-12'>
-                    <div class='card card-primary collapsed-card'>
+                    <div class='card card-info collapsed-card'>
                         <div class='card-header'>
-                            <h1 class='card-title'>Detail Size</h1>
+                            <h1 class='card-title'><i class='fa-solid fa-expand'></i> Detail Size</h1>
                             <div class='card-tools'>
                                 <button type='button' class='btn btn-tool' data-card-widget='collapse'><i class='fas fa-plus'></i></button>
                             </div>
                         </div>
                         <div class='card-body' style='display: none;'>
                             <div class='table-responsive'>
-                                <table class='table table-bordered table-striped table-sm w-100'>
+                                <table class='table table-bordered table-sm w-100' id='detail-marker-ratio'>
                                     <thead>
                                         <tr>
                                             <th class='text-center'>Size</th>
@@ -552,9 +582,9 @@ class MarkerController extends Controller
 
             <div class='row'>
                 <div class='col-md-12'>
-                    <div class='card card-warning collapsed-card'>
+                    <div class='card card-info collapsed-card'>
                         <div class='card-header'>
-                            <h1 class='card-title'>Status Form</h1>
+                            <h1 class='card-title'><i class='fa-solid fa-copy'></i> Status Form</h1>
                             <div class='card-tools'>
                                 <button type='button' class='btn btn-tool' data-card-widget='collapse'>
                                     <i class='fas fa-plus'></i>
@@ -563,7 +593,7 @@ class MarkerController extends Controller
                         </div>
                         <div class='card-body' style='display: none;'>
                             <div class='table-responsive'>
-                                <table class='table table-bordered table-striped'>
+                                <table class='table table-bordered table-sm w-100' id='detail-marker-form'>
                                     <thead>
                                         <tr>
                                             <th>Tanggal Form</th>
@@ -572,6 +602,7 @@ class MarkerController extends Controller
                                             <th>Waktu Mulai</th>
                                             <th>Waktu Selesai</th>
                                             <th>Status</th>
+                                            <th>No. Cut</th>
                                         </tr>
                                     </thead>
                                     <tbody>

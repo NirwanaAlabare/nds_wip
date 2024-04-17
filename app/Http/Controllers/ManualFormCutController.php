@@ -923,6 +923,11 @@ class ManualFormCutController extends Controller
         );
 
         if ($storeTimeRecordSummary) {
+            FormCutInput::where("no_form", $validatedRequest["no_form_cut_input"])->update([
+                "no_meja" => (Auth::user()->type != "admin" ? Auth::user()->id : $request->no_meja),
+                "total_lembar" => DB::raw('total_lembar + '.$validatedRequest['current_lembar_gelaran']),
+            ]);
+
             // $itemRemain = $itemQty - floatval($validatedRequest['current_total_pemakaian_roll']) - floatval($validatedRequest['current_kepala_kain']) - floatval($validatedRequest['current_sisa_tidak_bisa']) - floatval($validatedRequest['current_reject']) - floatval($validatedRequest['current_piping']);;
             $itemRemain = $validatedRequest['current_sisa_kain'];
 
@@ -1130,6 +1135,11 @@ class ManualFormCutController extends Controller
         );
 
         if ($storeTimeRecordSummary) {
+            FormCutInput::where("no_form", $validatedRequest["no_form_cut_input"])->update([
+                "no_meja" => (Auth::user()->type != "admin" ? Auth::user()->id : $request->no_meja),
+                "total_lembar" => DB::raw('total_lembar + '.$validatedRequest['current_lembar_gelaran']),
+            ]);
+
             $itemRemain = $itemQty - floatval($validatedRequest['current_total_pemakaian_roll']) - floatval($validatedRequest['current_kepala_kain']) - floatval($validatedRequest['current_sisa_tidak_bisa']) - floatval($validatedRequest['current_reject']) - floatval($validatedRequest['current_piping']);
             // $itemRemain = $validatedRequest['current_sisa_kain'];
 

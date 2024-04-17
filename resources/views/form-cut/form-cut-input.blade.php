@@ -327,17 +327,16 @@
                 {
                     targets: [0],
                     render: (data, type, row, meta) => {
-                        let btnEdit =
-                            "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"detailSpreadingModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-search'></i></a>";
+                        let btnEdit = "<a href='javascript:void(0);' class='btn btn-primary btn-sm' onclick='editData(" + JSON.stringify(row) + ", \"detailSpreadingModal\", [{\"function\" : \"dataTableRatioReload()\"}]);'><i class='fa fa-search'></i></a>";
 
                         let btnProcess = "";
 
                         if (row.tipe_form_cut == 'MANUAL') {
-                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ?`<a class='btn btn-success btn-sm' href='{{ route('process-manual-form-cut') }}/` +row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa ` + (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) +`'></i></a>` :"";
+                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ? `<a class='btn btn-success btn-sm' href='{{ route('process-manual-form-cut') }}/` +row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa ` + (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) +`'></i></a>` : `<button class='btn btn-success btn-sm' data-bs-toggle='tooltip' target='_blank' disabled><i class='fa ` + (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) +`'></i></button>`;
                         } else if (row.tipe_form_cut == 'PILOT') {
-                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ? `<a class='btn btn-success btn-sm' href='{{ route('process-pilot-form-cut') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>` : "";
+                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ? `<a class='btn btn-success btn-sm' href='{{ route('process-pilot-form-cut') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></a>` : `<button class='btn btn-success btn-sm' data-bs-toggle='tooltip' target='_blank' disabled><i class='fa `+(row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`)+`'></i></button>`;
                         } else {
-                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ? `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa ` + (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) + `'></i></a>` : "";
+                            btnProcess = (row.qty_ply > 0 && row.no_meja != '' && row.no_meja != null && row.app == 'Y') || row.status != 'SPREADING' ? `<a class='btn btn-success btn-sm' href='{{ route('process-form-cut-input') }}/` + row.id + `' data-bs-toggle='tooltip' target='_blank'><i class='fa ` + (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) + `'></i></a>` : `<button class='btn btn-success btn-sm' data-bs-toggle='tooltip' target='_blank' disabled><i class='fa ` + (row.status == "SELESAI PENGERJAAN" ? `fa-search-plus` : `fa-plus`) + `'></i></button>`;
                         }
 
                         return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnProcess + `</div>`;

@@ -36,11 +36,11 @@
                             {{-- Form Information --}}
                             <input type="hidden" name="id" id="id" value="{{ $id }}" readonly>
                             <input type="hidden" name="status" id="status" value="{{ $formCutInputData->status }}" readonly>
-                            <input type="hidden" name="no_meja" id="no_meja" value="{{ isset($formCutInputData) ? ($formCutInputData->no_meja ? $formCutInputData->no_meja : Auth::user()->id) : Auth::user()->id }}" {{ Auth::user()->type != 'admin' ? '' : 'disabled' }}>
+                            <input type="hidden" name="no_meja" id="{{ Auth::user()->type != 'admin' ? 'no_meja' : 'no_meja_text' }}" value="{{ isset($formCutInputData) ? ($formCutInputData->no_meja ? $formCutInputData->no_meja : (Auth::user()->type != 'admin' ? Auth::user()->id : '')) : (Auth::user()->type != 'admin' ? Auth::user()->id : '') }}" {{ Auth::user()->type != 'admin' ? '' : 'disabled' }}>
                             <div class="col-12 col-md-12 {{ Auth::user()->type != 'admin' ? 'd-none' : '' }}">
                                 <div class="mb-3">
                                     <label class="form-label"><small><b>Meja</b></small></label>
-                                    <select class="form-control select2bs4" id="no_meja" name="no_meja" style="width: 100%;" {{ Auth::user()->type != 'admin' ? 'disabled' : '' }}>
+                                    <select class="form-control select2bs4" id="{{ Auth::user()->type == 'admin' ? 'no_meja' : 'no_meja_text' }}" name="no_meja" style="width: 100%;" {{ Auth::user()->type != 'admin' ? 'disabled' : '' }}>
                                         <option value="">Pilih Meja</option>
                                             @foreach ($meja as $m)
                                                 <option value="{{ $m->id }}" {{ isset($formCutInputData) ? ($formCutInputData->no_meja ? ($formCutInputData->no_meja == $m->id ? "selected" : "") : "") : "" }}>{{ strtoupper($m->name) }}</option>
@@ -1713,6 +1713,7 @@
                     type: 'put',
                     dataType: 'json',
                     data: {
+                        no_meja: $("#no_meja").val(),
                         id_marker: idMarker,
                         p_act: pActual,
                         unit_p_act: pUnitActual,
@@ -1744,7 +1745,7 @@
                                 initScan();
                                 getItemList()
 
-                                status = "SELESAI PENGERJAAN";
+                                status = "PENGERJAAN FORM CUTTING DETAIL";
                             }
                         }
                     },
@@ -1838,6 +1839,7 @@
                     "detail_item": $("#detail_item").val(),
                     "metode": method,
                 }
+                console.log($("#no_meja").val());
 
                 spreadingForm.forEach((value, key) => dataObj[key] = value);
 
@@ -2052,6 +2054,7 @@
                             dataType: 'json',
                             data: {
                                 finishTime: finishTime.value,
+                                no_meja: $('#no_meja').val(),
                                 operator: $('#operator').val(),
                                 consAct: $('#cons_actual_gelaran').val(),
                                 unitConsAct: $('#unit_cons_actual_gelaran').val(),
