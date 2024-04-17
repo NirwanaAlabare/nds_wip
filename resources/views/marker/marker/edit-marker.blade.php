@@ -302,7 +302,7 @@
                     data: 'color'
                 },
                 {
-                    data: 'size'
+                    data: 'size_dest'
                 },
                 {
                     data: 'size' // size input
