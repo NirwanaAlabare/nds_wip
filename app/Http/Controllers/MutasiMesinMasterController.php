@@ -21,7 +21,11 @@ class MutasiMesinMasterController extends Controller
         if ($request->ajax()) {
 
             $data_mesin = DB::select("
-            select * from master_mesin
+            select m.*, coalesce(jml,0) jml from master_mesin m
+            left join
+            (
+            select id_qr, count(id_qr) jml from mut_mesin_input group by id_qr
+            ) mut on m.id_qr = mut.id_qr
             order by id_qr asc,brand asc, tipe_mesin asc, serial_no asc
             ");
 
@@ -58,6 +62,15 @@ class MutasiMesinMasterController extends Controller
             'additional' => [],
         );
     }
+
+    public function hapus_data_mesin(Request $request)
+    {
+        $id_qr = $request->id_qr;
+
+        $del =  DB::delete("
+        delete from master_mesin where id_qr = '$id_qr'");
+    }
+
 
     public function export_excel_master_mesin(Request $request)
     {
