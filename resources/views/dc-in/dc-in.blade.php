@@ -147,7 +147,6 @@
                             <th>Tgl Transaksi</th>
                             <th>ID QR</th>
                             <th>WS</th>
-                            <th>Buyer</th>
                             <th>Style</th>
                             <th>Color</th>
                             <th>Size</th>
@@ -159,6 +158,7 @@
                             <th>Qty Reject</th>
                             <th>Qty Replace</th>
                             <th>Qty In</th>
+                            <th>Buyer</th>
                             <th>User</th>
                         </tr>
                     </thead>
@@ -207,9 +207,6 @@
                     data: 'act_costing_ws',
                 },
                 {
-                    data: 'buyer',
-                },
-                {
                     data: 'style',
                 },
                 {
@@ -243,9 +240,18 @@
                     data: 'qty_in',
                 },
                 {
+                    data: 'buyer',
+                },
+                {
                     data: 'user',
                 },
             ],
+            columnDefs: [
+                {
+                    targets: "_all",
+                    className: "text-nowrap"
+                }
+            ]
         });
 
         $('#datatable-input thead tr').clone(true).appendTo('#datatable-input thead');

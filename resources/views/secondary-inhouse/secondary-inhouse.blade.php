@@ -224,13 +224,10 @@
 
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
-                    <button class="btn btn-info btn-sm" onclick="list();" id="list" name="list"><i
-                            class="fas fa-list"></i> List</button>
+                    <button class="btn btn-info btn-sm" onclick="list();" id="list" name="list"><i class="fas fa-list"></i> List</button>
                 </div>
                 <div class="mb-3">
-                    <button class="btn btn-secondary btn-sm" onclick="detail();" id="detail" name="detail"><i
-                            class="fas fa-list"></i>
-                        Detail</button>
+                    <button class="btn btn-secondary btn-sm" onclick="detail();" id="detail" name="detail"><i class="fas fa-list"></i> Detail</button>
                 </div>
             </div>
 
@@ -244,7 +241,6 @@
                             <th>Tgl Transaksi</th>
                             <th>ID QR</th>
                             <th>WS</th>
-                            <th>Buyer</th>
                             <th>Style</th>
                             <th>Color</th>
                             <th>Size</th>
@@ -255,7 +251,8 @@
                             <th>Qty Reject</th>
                             <th>Qty Replace</th>
                             <th>Qty In</th>
-                            <th>User</th>
+                            <th>Buyer</th>
+                            <th>Created By</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -325,9 +322,6 @@
                     data: 'act_costing_ws',
                 },
                 {
-                    data: 'buyer',
-                },
-                {
                     data: 'style',
                 },
                 {
@@ -358,9 +352,18 @@
                     data: 'qty_in',
                 },
                 {
+                    data: 'buyer',
+                },
+                {
                     data: 'user',
                 },
             ],
+            columnDefs: [
+                {
+                    targets: "_all",
+                    className: "text-nowrap"
+                }
+            ]
         });
 
         $('#datatable-input thead tr').clone(true).appendTo('#datatable-input thead');
@@ -426,6 +429,12 @@
                     data: 'lokasi',
                 },
             ],
+            columnDefs: [
+                {
+                    targets: "_all",
+                    className: "text-nowrap"
+                }
+            ]
         });
 
         $('#datatable-detail thead tr').clone(true).appendTo('#datatable-detail thead');

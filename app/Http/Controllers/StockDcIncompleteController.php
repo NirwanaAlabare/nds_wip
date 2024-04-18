@@ -46,7 +46,8 @@ class StockDcIncompleteController extends Controller
                         ( MAX( (CASE WHEN dc_in_input.id is null THEN CAST(stocker_input.range_akhir AS INTEGER) ELSE 0 END) ) - MIN( (CASE WHEN dc_in_input.id is null THEN CAST(stocker_input.range_awal AS INTEGER) ELSE 0 END) ) + (CASE WHEN dc_in_input.id is null THEN 1 ELSE 0 END) ) qty,
                         COUNT( dc_in_input.id ) complete,
                         COUNT( stocker_input.id ) stocker,
-                        (CASE WHEN dc_in_input.id is null THEN 1 ELSE 0 END) counting
+                        (CASE WHEN dc_in_input.id is null THEN 1 ELSE 0 END) counting,
+                        MAX(dc_in_input.updated_at) last_update
                     FROM
                         part
                         LEFT JOIN part_form ON part_form.part_id = part.id
@@ -72,6 +73,7 @@ class StockDcIncompleteController extends Controller
                 HAVING
                     sum( stk.complete ) != sum( stk.stocker )
                 ORDER BY
+                    stk.last_update DESC,
                     stk.part_id ASC,
                     stk.color ASC,
                     master_size_new.urutan ASC
@@ -116,10 +118,12 @@ class StockDcIncompleteController extends Controller
             SELECT
                 GROUP_CONCAT(stocker_input.id_qr_stocker) stockers,
                 part.id part_id,
+                part.kode part_kode,
                 part.act_costing_ws,
                 part.buyer,
                 part.style,
                 form_cut_input.id form_cut_id,
+                form_cut_input.no_form,
                 form_cut_input.no_cut,
                 stocker_input.color,
                 stocker_input.size,

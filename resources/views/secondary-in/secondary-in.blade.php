@@ -252,7 +252,6 @@
                             <th>Tgl Transaksi</th>
                             <th>ID QR</th>
                             <th>WS</th>
-                            <th>Buyer</th>
                             <th>Style</th>
                             <th>Color</th>
                             <th>Size</th>
@@ -264,7 +263,8 @@
                             <th>Qty Reject</th>
                             <th>Qty Replace</th>
                             <th>Qty In</th>
-                            <th>User</th>
+                            <th>Buyer</th>
+                            <th>Created By</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -332,9 +332,6 @@
                     data: 'act_costing_ws',
                 },
                 {
-                    data: 'buyer',
-                },
-                {
                     data: 'style',
                 },
                 {
@@ -368,17 +365,26 @@
                     data: 'qty_in',
                 },
                 {
+                    data: 'buyer',
+                },
+                {
                     data: 'user',
                 },
             ],
-            // columnDefs: [{
-            //     targets: [10],
-            //     render: (data, type, row, meta) => {
-            //         return `<div class='d-flex gap-1 justify-content-center'> <a class='btn btn-warning btn-sm' href='{{ route('create-dc-in') }}/` +
-            //             row.no_form +
-            //             `' data-bs-toggle='tooltip'><i class='fas fa-qrcode'></i></a> </div>`;
-            //     }
-            // }]
+            columnDefs: [
+                {
+                    targets: "_all",
+                    className: "text-nowrap"
+                }
+                // {
+                // targets: [10],
+                // render: (data, type, row, meta) => {
+                //     return `<div class='d-flex gap-1 justify-content-center'> <a class='btn btn-warning btn-sm' href='{{ route('create-dc-in') }}/` +
+                //         row.no_form +
+                //         `' data-bs-toggle='tooltip'><i class='fas fa-qrcode'></i></a> </div>`;
+                // }
+                // }
+            ]
         });
 
         $('#datatable-input thead tr').clone(true).appendTo('#datatable-input thead');
@@ -440,6 +446,12 @@
                     data: 'lokasi',
                 },
             ],
+            columnDefs: [
+                {
+                    targets: "_all",
+                    className: "text-nowrap"
+                }
+            ]
         });
 
         $('#datatable-detail thead tr').clone(true).appendTo('#datatable-detail thead');

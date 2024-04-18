@@ -48,7 +48,7 @@ class DCInController extends Controller
 
             $data_input = DB::select("
                 SELECT
-                    a.id_qr_stocker,
+                    UPPER(a.id_qr_stocker) id_qr_stocker,
                     DATE_FORMAT(a.tgl_trans, '%d-%m-%Y') tgl_trans_fix,
                     a.tgl_trans,
                     s.act_costing_ws,

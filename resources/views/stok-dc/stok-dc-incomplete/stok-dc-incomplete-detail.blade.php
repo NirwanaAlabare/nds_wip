@@ -22,6 +22,10 @@
             <div class="row align-items-end g-3 mb-3">
                 <input type="hidden" class="form-control form-control-sm" id="part_id" name="part_id" value="{{ $stockDcIncomplete[0]->part_id }}">
                 <div class="col-6 col-md-3">
+                    <label class="form-label"><small>Part</small></label>
+                    <input type="text" class="form-control form-control-sm" id="no_ws" name="no_ws" value="{{ $stockDcIncomplete[0]->part_kode }}" readonly>
+                </div>
+                <div class="col-6 col-md-3">
                     <label class="form-label"><small>No. WS</small></label>
                     <input type="text" class="form-control form-control-sm" id="no_ws" name="no_ws" value="{{ $stockDcIncomplete[0]->act_costing_ws }}" readonly>
                 </div>
@@ -67,6 +71,7 @@
                 <table id="datatable-incomplete-stocker" class="table table-bordered table-sm w-100">
                     <thead>
                         <tr>
+                            <th>No. Form</th>
                             <th>No. Cut</th>
                             <th>Group</th>
                             <th>Range Awal</th>
@@ -80,6 +85,7 @@
                     <tbody>
                         @foreach ($stockDcIncomplete as $stock)
                             <tr>
+                                <td>{{ $stock->no_form }}</td>
                                 <td>{{ $stock->no_cut }}</td>
                                 <td>{{ $stock->shade }}</td>
                                 <td>{{ $stock->range_awal }}</td>
