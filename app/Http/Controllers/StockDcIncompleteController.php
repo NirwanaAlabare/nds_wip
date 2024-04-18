@@ -33,37 +33,37 @@ class StockDcIncompleteController extends Controller
                     sum( stk.counting ) bundle
                 FROM
                     (
-                    SELECT
-                        stocker_input.id,
-                        part.id part_id,
-                        part.buyer buyer,
-                        form_cut_input.id form_cut_id,
-                        stocker_input.act_costing_ws,
-                        stocker_input.color,
-                        stocker_input.size,
-                        MIN(CAST( stocker_input.range_awal AS INTEGER )) range_awal,
-                        MAX(CAST( stocker_input.range_akhir AS INTEGER )) range_akhir,
-                        ( MAX( (CASE WHEN dc_in_input.id is null THEN CAST(stocker_input.range_akhir AS INTEGER) ELSE 0 END) ) - MIN( (CASE WHEN dc_in_input.id is null THEN CAST(stocker_input.range_awal AS INTEGER) ELSE 0 END) ) + (CASE WHEN dc_in_input.id is null THEN 1 ELSE 0 END) ) qty,
-                        COUNT( dc_in_input.id ) complete,
-                        COUNT( stocker_input.id ) stocker,
-                        (CASE WHEN dc_in_input.id is null THEN 1 ELSE 0 END) counting,
-                        MAX(dc_in_input.updated_at) last_update
-                    FROM
-                        part
-                        LEFT JOIN part_form ON part_form.part_id = part.id
-                        LEFT JOIN form_cut_input ON form_cut_input.id = part_form.form_id
-                        LEFT JOIN stocker_input ON stocker_input.form_cut_id = form_cut_input.id
-                        LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
-                    GROUP BY
-                        part_form.part_id,
-                        form_cut_input.id,
-                        stocker_input.color,
-                        stocker_input.size,
-                        stocker_input.group_stocker
-                    HAVING
-                        stocker_input.id IS NOT NULL
-                    ORDER BY
-                        stocker_input.id
+                        SELECT
+                            stocker_input.id,
+                            part.id part_id,
+                            part.buyer buyer,
+                            form_cut_input.id form_cut_id,
+                            stocker_input.act_costing_ws,
+                            stocker_input.color,
+                            stocker_input.size,
+                            MIN(CAST( stocker_input.range_awal AS INTEGER )) range_awal,
+                            MAX(CAST( stocker_input.range_akhir AS INTEGER )) range_akhir,
+                            ( MAX( (CASE WHEN dc_in_input.id is null THEN CAST(stocker_input.range_akhir AS INTEGER) ELSE 0 END) ) - MIN( (CASE WHEN dc_in_input.id is null THEN CAST(stocker_input.range_awal AS INTEGER) ELSE 0 END) ) + (CASE WHEN dc_in_input.id is null THEN 1 ELSE 0 END) ) qty,
+                            COUNT( dc_in_input.id ) complete,
+                            COUNT( stocker_input.id ) stocker,
+                            (CASE WHEN dc_in_input.id is null THEN 1 ELSE 0 END) counting,
+                            MAX(dc_in_input.updated_at) last_update
+                        FROM
+                            part
+                            LEFT JOIN part_form ON part_form.part_id = part.id
+                            LEFT JOIN form_cut_input ON form_cut_input.id = part_form.form_id
+                            LEFT JOIN stocker_input ON stocker_input.form_cut_id = form_cut_input.id
+                            LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                        GROUP BY
+                            part_form.part_id,
+                            form_cut_input.id,
+                            stocker_input.color,
+                            stocker_input.size,
+                            stocker_input.group_stocker
+                        HAVING
+                            stocker_input.id IS NOT NULL
+                        ORDER BY
+                            stocker_input.id
                     ) stk
                     LEFT JOIN master_size_new ON master_size_new.size = stk.size
                 GROUP BY

@@ -132,10 +132,10 @@ class StockDcCompleteController extends Controller
                 COUNT(stocker_input.id) stocker
             FROM
                 part
-            LEFT JOIN part_form on part_form.part_id = part.id
-            LEFT JOIN form_cut_input on form_cut_input.id = part_form.form_id
-            LEFT JOIN stocker_input on stocker_input.form_cut_id = form_cut_input.id
-            LEFT JOIN dc_in_input on dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                LEFT JOIN part_form on part_form.part_id = part.id
+                LEFT JOIN form_cut_input on form_cut_input.id = part_form.form_id
+                LEFT JOIN stocker_input on stocker_input.form_cut_id = form_cut_input.id
+                LEFT JOIN dc_in_input on dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
             WHERE
                 part_form.part_id = '".$partId."' AND
                 stocker_input.color = '".$color."' AND
@@ -154,6 +154,7 @@ class StockDcCompleteController extends Controller
 
         return view('stok-dc.stok-dc-complete.stok-dc-complete-detail', ["page" => "dashboard-dc", "subPageGroup" => "stok-dc", "subPage" => "stok-dc-complete", "stockDcComplete" => $stockDcComplete]);
     }
+
 
     /**
      * Show the form for editing the specified resource.
