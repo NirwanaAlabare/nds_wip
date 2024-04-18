@@ -94,12 +94,11 @@ class FormCutInputController extends Controller
                 FROM cutting_plan
                 left join form_cut_input a on a.no_form = cutting_plan.no_form_cut_input
                 left outer join marker_input b on a.id_marker = b.kode and b.cancel = 'N'
-                left outer join marker_input_detail on b.id = marker_input_detail.marker_id
+                left outer join marker_input_detail on b.id = marker_input_detail.marker_id and marker_input_detail.ratio > 0
                 left join master_size_new on marker_input_detail.size = master_size_new.size
                 left join users on users.id = a.no_meja
                 where
-                    a.id is not null and
-                    marker_input_detail.ratio > 0
+                    a.id is not null
                     " . $additionalQuery . "
                     " . $keywordQuery . "
                 GROUP BY a.id
