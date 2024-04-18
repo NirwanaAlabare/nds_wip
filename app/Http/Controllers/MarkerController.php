@@ -391,9 +391,9 @@ class MarkerController extends Controller
                 $bgColor = null;
                 $textColor = null;
 
-                if ($track->tipe_form_cut == "manual") {
+                if ($track->tipe_form_cut == "MANUAL") {
                     $bgColor = '#e7dcf7';
-                } else if ($track->tipe_form_cut == "pilot") {
+                } else if ($track->tipe_form_cut == "PILOT") {
                     $bgColor = '#c5e0fa';
                 }
 
@@ -404,22 +404,23 @@ class MarkerController extends Controller
                     case "PENGERJAAN FORM CUTTING":
                     case "PENGERJAAN FORM CUTTING DETAIL":
                     case "PENGERJAAN FORM CUTTING SPREAD":
-                        $textColor = `#087521`;
+                        $textColor = '#2243d6';
                         break;
                     case "SELESAI PENGERJAAN":
-                        $textColor = `#2243d6`;
+                        $textColor = '#087521';
                         break;
                 }
+                // dd($track->status);
 
                 $html_tracking .= "
                     <tr style='".($bgColor ? "background-color:".$bgColor.";border:0.15px solid #d0d0d0;" : "")." ".($textColor ? "color:".$textColor.";" : "")."'>
-                        <td class='text-nowrap'>$track->tgl_form_cut</td>
-                        <td class='text-nowrap'>$track->no_form</td>
-                        <td class='text-nowrap'>" . ($track->no_meja ? $track->no_meja : '-') . "</td>
-                        <td class='text-nowrap'>" . ($track->waktu_mulai ? $track->waktu_mulai : '-') . "</td>
-                        <td class='text-nowrap'>" . ($track->waktu_selesai ? $track->waktu_selesai : '-') . "</td>
-                        <td class='text-nowrap'>$track->status</td>
-                        <td class='text-nowrap'>$track->no_cut</td>
+                        <td class='text-nowrap' style='font-weight: 600;'>$track->tgl_form_cut</td>
+                        <td class='text-nowrap' style='font-weight: 600;'>$track->no_form</td>
+                        <td class='text-nowrap' style='font-weight: 600;'>" . ($track->no_meja ? $track->no_meja : '-') . "</td>
+                        <td class='text-nowrap' style='font-weight: 600;'>" . ($track->waktu_mulai ? $track->waktu_mulai : '-') . "</td>
+                        <td class='text-nowrap' style='font-weight: 600;'>" . ($track->waktu_selesai ? $track->waktu_selesai : '-') . "</td>
+                        <td class='text-nowrap' style='font-weight: 600;'>$track->status</td>
+                        <td class='text-nowrap' style='font-weight: 600;'>$track->no_cut</td>
                     </tr>
                 ";
             endforeach;
@@ -555,7 +556,7 @@ class MarkerController extends Controller
                 <div class='col-sm-12'>
                     <div class='card card-info collapsed-card'>
                         <div class='card-header'>
-                            <h1 class='card-title'><i class='fa-solid fa-expand'></i> Detail Size</h1>
+                            <h1 class='card-title'><i class='fa-solid fa-expand fa-sm'></i> Detail Size</h1>
                             <div class='card-tools'>
                                 <button type='button' class='btn btn-tool' data-card-widget='collapse'><i class='fas fa-plus'></i></button>
                             </div>
@@ -584,7 +585,7 @@ class MarkerController extends Controller
                 <div class='col-md-12'>
                     <div class='card card-info collapsed-card'>
                         <div class='card-header'>
-                            <h1 class='card-title'><i class='fa-solid fa-copy'></i> Status Form</h1>
+                            <h1 class='card-title'><i class='fa-solid fa-copy fa-sm'></i> Status Form</h1>
                             <div class='card-tools'>
                                 <button type='button' class='btn btn-tool' data-card-widget='collapse'>
                                     <i class='fas fa-plus'></i>

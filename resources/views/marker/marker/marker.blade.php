@@ -195,7 +195,8 @@
                     d.tgl_akhir = $('#tgl-akhir').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'id'
                 },
                 {
@@ -249,7 +250,7 @@
                     targets: [0],
                     render: (data, type, row, meta) => {
                         let exportBtn = `
-                            <button type="button" class="btn btn-sm btn-warning" onclick="printMarker('` + row.kode + `');">
+                            <button type="button" class="btn btn-sm btn-success" onclick="printMarker('` + row.kode + `');">
                                 <i class="fa fa-print"></i>
                             </button>
                         `;
@@ -257,61 +258,61 @@
                         if (row.cancel != 'Y' && row.tot_form != 0 && row.tipe_marker != "pilot marker") {
                             return `
                                 <div class='d-flex gap-1 justify-content-start mb-1'>
-                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
+                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
                                         <i class='fa fa-search'></i>
                                     </a>
-                                    <button class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editMarkerModal" onclick='edit(` + row.id + `);'>
+                                    <button class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#editMarkerModal" onclick='edit(` + row.id + `);'>
                                         <i class='fa fa-edit'></i>
                                     </button>
+                                    ` + exportBtn + `
                                     <button class='btn btn-danger btn-sm' onclick='cancel(` + row.id + `);' disabled>
                                         <i class='fa fa-ban'></i>
                                     </button>
-                                    ` + exportBtn + `
                                 </div>
                             `;
                         } else if ((row.cancel != 'Y' && row.tot_form == 0) || (row.cancel != 'Y' && row.gelar_qty_balance > 0 && row.tipe_marker == "pilot marker")) {
                             return `
                                 <div class='d-flex gap-1 justify-content-start mb-1'>
-                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
+                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
                                         <i class='fa fa-search'></i>
                                     </a>
-                                    <button class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editMarkerModal" onclick='edit(` + row.id + `);'>
+                                    <button class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#editMarkerModal" onclick='edit(` + row.id + `);'>
                                         <i class='fa fa-edit'></i>
                                     </button>
+                                    ` + exportBtn + `
                                     <button class='btn btn-danger btn-sm' onclick='cancel(` + row.id + `);'>
                                         <i class='fa fa-ban'></i>
                                     </button>
-                                    ` + exportBtn + `
                                 </div>
                             `;
                         } else if (row.cancel == 'Y') {
                             return `
                                 <div class='d-flex gap-1 justify-content-start'>
-                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
+                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
                                         <i class='fa fa-search'></i>
                                     </a>
-                                    <button class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editMarkerModal" onclick='edit(` + row.id + `);' disabled>
+                                    <button class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#editMarkerModal" onclick='edit(` + row.id + `);' disabled>
                                         <i class='fa fa-edit'></i>
                                     </button>
+                                    ` + exportBtn + `
                                     <button class='btn btn-danger btn-sm' onclick='cancel(` + row.id + `);' disabled>
                                         <i class='fa fa-ban'></i>
                                     </button>
-                                    ` + exportBtn + `
                                 </div>
                             `;
                         } else {
                             return `
                                 <div class='d-flex gap-1 justify-content-start'>
-                                    <a class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
+                                    <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
                                         <i class='fa fa-search'></i>
                                     </a>
-                                    <button class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editMarkerModal" onclick='edit(` + row.id + `);' disabled>
+                                    <button class='btn btn-info btn-sm' data-bs-toggle="modal" data-bs-target="#editMarkerModal" onclick='edit(` + row.id + `);' disabled>
                                         <i class='fa fa-edit'></i>
                                     </button>
+                                    ` + exportBtn + `
                                     <button class='btn btn-danger btn-sm' onclick='cancel(` + row.id + `);' disabled>
                                         <i class='fa fa-ban'></i>
                                     </button>
-                                    ` + exportBtn + `
                                 </div>
                             `;
                         }
@@ -360,7 +361,7 @@
         }
 
         function getdetail(id_c) {
-            $("#showMarkerModalLabel").html('<i class="fa-solid fa-magnifying-glass"></i> Marker Detail');
+            $("#showMarkerModalLabel").html('<i class="fa-solid fa-magnifying-glass fa-sm"></i> Marker Detail');
             let html = $.ajax({
                 type: "POST",
                 url: '{{ route('show-marker') }}',
@@ -381,7 +382,7 @@
         };
 
         function edit(id_c) {
-            $("#editMarkerModalLabel").html('Marker Edit');
+            $("#editMarkerModalLabel").html('<i class="fa fa-edit fa-sm"></i> Marker Edit');
             $.ajax({
                 url: '{{ route('show_gramasi') }}',
                 method: 'POST',
