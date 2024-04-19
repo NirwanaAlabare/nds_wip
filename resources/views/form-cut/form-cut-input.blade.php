@@ -37,7 +37,7 @@
                 </div>
             </div>
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-sm w-100">
+                <table id="datatable" class="table table-bordered table-hover table-sm w-100">
                     <thead>
                         <tr>
                             <th>Action</th>
@@ -270,10 +270,11 @@
 
         let datatable = $("#datatable").DataTable({
             processing: true,
-            ordering: false,
             serverSide: true,
+            ordering: false,
             scrollX: "500px",
             scrollY: "500px",
+            pageLength: 50,
             ajax: {
                 url: '{{ route('form-cut-input') }}',
                 data: function(d) {
@@ -339,26 +340,6 @@
                         }
 
                         return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + btnProcess + `</div>`;
-                    }
-                },
-                {
-                    targets: [8],
-                    render: (data, type, row, meta) => {
-                        let color = "";
-
-                        if (row.status == 'SELESAI PENGERJAAN') {
-                            color = '#087521';
-                        } else if (row.status == 'PENGERJAAN MARKER') {
-                            color = '#2243d6';
-                        } else if (row.status == 'PENGERJAAN FORM CUTTING') {
-                            color = '#2243d6';
-                        } else if (row.status == 'PENGERJAAN FORM CUTTING DETAIL') {
-                            color = '#2243d6';
-                        } else if (row.status == 'PENGERJAAN FORM CUTTING SPREAD') {
-                            color = '#2243d6';
-                        }
-
-                        return  "<span style='font-weight: 600; color: "+ color + "' >" + (data ? data.replace(/,/g, ' / ') : '-') + "</span>"
                     }
                 },
                 {

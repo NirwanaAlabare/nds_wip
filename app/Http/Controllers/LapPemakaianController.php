@@ -21,11 +21,11 @@ class LapPemakaianController extends Controller
             $additionalQuery = "";
 
             if ($request->dateFrom) {
-                $additionalQuery .= " and b.created_at >= '" . $request->dateFrom . " 00:00:00' ";
+                $additionalQuery .= " and b.created_at >= '" . $request->dateFrom . " 00:00:00'";
             }
 
             if ($request->dateTo) {
-                $additionalQuery .= " and b.created_at <= '" . $request->dateTo . " 23:59:59' ";
+                $additionalQuery .= " and b.created_at <= '" . $request->dateTo . " 23:59:59'";
             }
 
             $keywordQuery = "";
@@ -44,22 +44,43 @@ class LapPemakaianController extends Controller
                     DATE_FORMAT(b.created_at, '%d-%m-%Y') tgl_input,
                     act_costing_ws,
                     id_item,
-                    id_roll,
+                    COALESCE(id_roll, '-') id_roll,
                     detail_item,
-                    b.group_roll,
-                    b.lot,
-                    b.roll,
+                    COALESCE(b.color_act, '-') color_act,
+                    COALESCE(b.group_roll, '-') group_roll,
+                    COALESCE(b.lot, '-') lot,
+                    COALESCE(b.roll, '-') roll,
+                    b.no_form_cut_input,
                     b.qty qty_item,
                     b.unit unit_item,
-                    lembar_gelaran
+                    b.sisa_gelaran,
+                    b.sambungan,
+                    b.est_amparan,
+                    b.lembar_gelaran,
+                    b.kepala_kain,
+                    b.sisa_tidak_bisa,
+                    b.reject,
+                    COALESCE(b.sisa_kain, 0) sisa_kain,
+                    b.total_pemakaian_roll,
+                    b.short_roll,
+                    b.piping,
+                    b.remark,
+                    UPPER(meja.name) nama_meja
                 from
                     form_cut_input a
-                inner join form_cut_input_detail b on a.no_form = b.no_form_cut_input
-                inner join marker_input mrk on a.id_marker = mrk.kode
+                    left join form_cut_input_detail b on a.no_form = b.no_form_cut_input
+                    left join marker_input mrk on a.id_marker = mrk.kode
+                    left join users meja on meja.id = a.no_meja
                 where
-                    a.cancel = 'N' and mrk.cancel = 'N'
+                    a.cancel = 'N' and mrk.cancel = 'N' and id_item is not null
                     " . $additionalQuery . "
                     " . $keywordQuery . "
+                order by
+                    DATE(b.created_at) desc,
+                    act_costing_ws asc,
+                    b.id_roll desc,
+                    b.id_item desc,
+                    b.no_form_cut_input desc
                 ");
 
             return DataTables::of($data_pemakaian)->toJson();
@@ -67,6 +88,7 @@ class LapPemakaianController extends Controller
 
         return view('lap_pemakaian.lap_pemakaian', ['page' => 'dashboard-cutting', "subPageGroup" => "laporan-cutting", "subPage" => "lap-pemakaian"]);
     }
+
     /**
      * Show the form for creating a new resource.
      *
@@ -78,8 +100,6 @@ class LapPemakaianController extends Controller
     {
         return Excel::download(new ExportLaporanPemakaian($request->from, $request->to), 'Laporan_pemakaian_cutting.xlsx');
     }
-
-
 
     public function create()
     {

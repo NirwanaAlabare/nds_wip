@@ -165,9 +165,7 @@
 
                 @if ($page == 'dashboard-marker')
                     <li class="nav-item dropdown">
-                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
-                            aria-haspopup="true"aria-expanded="false"
-                            class="nav-link dropdown-toggle {{ $subPageGroup == 'master-marker' ? 'active' : '' }}">Master</a>
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'master-marker' ? 'active' : '' }}">Master</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @marker
                                 <li>
@@ -186,9 +184,7 @@
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
-                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
-                            aria-haspopup="true"aria-expanded="false"
-                            class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-marker' ? 'active' : '' }}">Proses</a>
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-marker' ? 'active' : '' }}">Process</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @marker
                                 <li>
@@ -209,9 +205,7 @@
                 @endif
                 @if ($page == 'dashboard-cutting')
                     <li class="nav-item dropdown">
-                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
-                            aria-haspopup="true"aria-expanded="false"
-                            class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-cutting' ? 'active' : '' }}">Proses</a>
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-cutting' ? 'active' : '' }}">Process</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             {{-- @marker
                                 <li>
@@ -254,31 +248,22 @@
                                 </li>
                             </ul>
                         </li>
-                        {{-- <li class="nav-item dropdown">
-                            <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'laporan-cutting' ? 'active' : '' }}">Laporan</a>
-                            <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
-                                <li>
-                                    <a href="{{ route('lap_pemakaian') }}"
-                                        class="dropdown-item {{ $subPage == 'lap-pemakaian' ? 'active' : '' }}">
-                                        Laporan Pemakaian <i class="fas fa-file-alt fa-sm"></i>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li> --}}
-                    @endadmin
-
-                    @admin
-                        {{-- <li class="nav-item {{ $subPage == 'manage-cutting' ? 'active' : '' }}">
-                            <a href="{{ route('manage-cutting') }}" class="nav-link">
-                                Manage <i class="fa-solid fa-gear fa-sm"></i>
-                            </a>
-                        </li> --}}
                         <li class="nav-item dropdown">
                             <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPage == 'manage-cutting' ? 'active' : '' }}">Completed Form</a>
                             <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
                                 <li>
                                     <a href="{{ route('manage-cutting') }}" class="dropdown-item {{ $subPage == 'manage-cutting' ? 'active' : '' }}">
                                         Completed Form <i class="fa-solid fa-check-to-slot"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'laporan-cutting' ? 'active' : '' }}">Roll</a>
+                            <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
+                                <li>
+                                    <a href="{{ route('lap_pemakaian') }}" class="dropdown-item {{ $subPage == 'lap-pemakaian' ? 'active' : '' }}">
+                                        Roll Consumption <i class="fa-solid fa-toilet-paper fa-sm"></i>
                                     </a>
                                 </li>
                             </ul>
@@ -306,7 +291,7 @@
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
                             aria-haspopup="true"aria-expanded="false"
-                            class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-stocker' ? 'active' : '' }}">Proses</a>
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-stocker' ? 'active' : '' }}">Process</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @stocker
                                 <li>
@@ -539,7 +524,7 @@
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
                             aria-expanded="false"
-                            class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-karyawan' ? 'active' : '' }}">Proses</a>
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-karyawan' ? 'active' : '' }}">Process</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @hr
                                 <li>
@@ -558,7 +543,7 @@
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
                             aria-haspopup="true"aria-expanded="false"
-                            class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-mut-mesin' ? 'active' : '' }}">Proses</a>
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-mut-mesin' ? 'active' : '' }}">Process</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @hr
                                 <li>
