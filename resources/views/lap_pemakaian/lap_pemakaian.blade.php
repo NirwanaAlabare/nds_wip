@@ -19,7 +19,7 @@
             </div>
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-end gap-3">
-                    <div class="d-flex align-items-end gap-3">
+                    <div class="d-flex align-items-end gap-3 mb-3">
                         <div class="mb-3">
                             <label class="form-label"><small>Tanggal Awal</small></label>
                             <input type="date" class="form-control form-control-sm" id="from" name="from" onchange="datatableReload()">
@@ -30,7 +30,7 @@
                         </div>
                         <button type="button" class="btn btn-primary btn-sm mb-3"><i class="fa fa-search fa-sm"></i></button>
                     </div>
-                    <div class="d-flex align-items-end gap-3">
+                    <div class="d-flex align-items-end gap-3 mb-3">
                         <div class="mb-3">
                             <button type='submit' name='submit' class='btn btn-success btn-sm'>
                                 <i class="fas fa-file-excel"></i> Export

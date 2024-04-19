@@ -10,7 +10,7 @@
     <div class="row g-3">
         <div class="d-flex gap-3 justify-content-between align-items-center">
             <h5 class="text-sb fw-bold mb-1">Form Cut / {{ $formCutInputData->no_form . " / ". strtoupper($formCutInputData->name) }}</h5>
-            <a href="{{ route('manage-cutting') }}" class="btn btn-sb-secondary btn-sm"><i class="fa fa-reply"></i> Kembali ke manage cutting</a>
+            <a href="{{ route('manage-cutting') }}" class="btn btn-sb-secondary btn-sm"><i class="fa fa-reply"></i> Kembali ke Completed Form</a>
         </div>
         <div class="col-md-6">
             <div class="card card-sb h-100" id="header-data-card">
