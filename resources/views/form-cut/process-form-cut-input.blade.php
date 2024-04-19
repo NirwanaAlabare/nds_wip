@@ -867,25 +867,19 @@
                 <div class="card-body" style="display: block;">
                     <div class="row">
                         <div class="col-6 col-md-6 my-3">
-                            <button type="button" class="fs-5 fw-bold btn btn-danger btn-sm w-100 h-100"
-                                style="min-height: 90px !important;" id="startLostButton"
-                                onclick="startLostTime()">START</button>
-                            <button type="button" class="fs-5 fw-bold btn btn-warning btn-sm d-none w-100 h-100"
-                                style="min-height: 90px !important;" id="nextLostButton"
-                                onclick="addNewLostTime()">STOP</button>
+                            <button type="button" class="fs-5 fw-bold btn btn-danger btn-sm w-100 h-100" style="min-height: 90px !important;" id="startLostButton" onclick="startLostTime()">START</button>
+                            <button type="button" class="fs-5 fw-bold btn btn-warning btn-sm d-none w-100 h-100" style="min-height: 90px !important;" id="nextLostButton" onclick="addNewLostTime()">STOP</button>
                         </div>
                         <div class="col-6 col-md-6 my-3">
                             <div class="row">
                                 <div class="col-5">
-                                    <input type="text" class="form-control form-control-sm" id="lostMinutes"
-                                        value="00" readonly class="mx-1">
+                                    <input type="text" class="form-control form-control-sm" id="lostMinutes" value="00" readonly class="mx-1">
                                 </div>
                                 <div class="col-2">
                                     <center>:</center>
                                 </div>
                                 <div class="col-5">
-                                    <input type="text" class="form-control form-control-sm" id="lostSeconds"
-                                        value="00" readonly class="mx-1">
+                                    <input type="text" class="form-control form-control-sm" id="lostSeconds" value="00" readonly class="mx-1">
                                 </div>
                             </div>
                             <div class="w-100 h-100 table-responsive mt-3" style="max-height: 150px; overflow-y: auto;">
@@ -914,8 +908,7 @@
                 <div class="card-header">
                     <h3 class="card-title">Summary</h3>
                     <div class="card-tools">
-                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i
-                                class="fas fa-minus"></i></button>
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
                     </div>
                 </div>
                 <div class="card-body" style="display: block;">
@@ -985,13 +978,12 @@
                                 <div class="col-md-3">
                                     <div class="mb-3">
                                         <label class="form-label label-calc"><small><b>Unit</b></small></label>
-                                        <select class="form-select form-select-sm border-calc"
-                                            name="unit_cons_actual_gelaran" id="unit_cons_actual_gelaran" disabled>
+                                        <select class="form-select form-select-sm border-calc" name="unit_cons_actual_gelaran" id="unit_cons_actual_gelaran" disabled>
                                             <option value="meter">METER</option>
                                             <option value="yard">YARD</option>
                                             <option value="kgm">KGM</option>
                                         </select>
-                                    </div>
+                                    </di
                                 </div>
                                 <div class="col-md-3">
                                     <div class="mb-3">
@@ -1020,8 +1012,7 @@
                                 <div class="col-md-3">
                                     <div class="mb-3">
                                         <label class="form-label label-calc"><small><b>Unit</b></small></label>
-                                        <select class="form-select form-select-sm border-calc"
-                                            name="unit_cons_actual_gelaran_short_rolless" id="unit_cons_actual_gelaran_short_rolless" disabled>
+                                        <select class="form-select form-select-sm border-calc" name="unit_cons_actual_gelaran_short_rolless" id="unit_cons_actual_gelaran_short_rolless" disabled>
                                             <option value="meter">METER</option>
                                             <option value="yard">YARD</option>
                                             <option value="kgm">KGM</option>
@@ -1060,8 +1051,7 @@
             </div>
         </div>
         <div class="col-md-12">
-            <button class="btn btn-block btn-sb d-none" id="finish-process" onclick="finishProcess()">SELESAI
-                PENGERJAAN</button>
+            <button class="btn btn-block btn-sb d-none" id="finish-process" onclick="finishProcess()">SELESAI PENGERJAAN</button>
         </div>
     </div>
 @endsection
