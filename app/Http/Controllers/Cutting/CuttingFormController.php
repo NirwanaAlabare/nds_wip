@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Cutting;
 
+use App\Http\Controllers\Controller;
 use App\Models\Marker;
 use App\Models\MarkerDetail;
 use App\Models\FormCutInput;
@@ -19,7 +20,7 @@ use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
 
-class FormCutInputController extends Controller
+class CuttingFormController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -113,7 +114,7 @@ class FormCutInputController extends Controller
             return DataTables::of($data_spreading)->toJson();
         }
 
-        return view('form-cut.form-cut-input', ["page" => "dashboard-cutting", "subPageGroup" => "proses-cutting", "subPage" => "form-cut-input"]);
+        return view('cutting.cutting-form.cutting-form', ["page" => "dashboard-cutting", "subPageGroup" => "proses-cutting", "subPage" => "form-cut-input"]);
     }
 
     public function getRatio(Request $request)
@@ -226,7 +227,7 @@ class FormCutInputController extends Controller
             return Redirect::to('/home');
         }
 
-        return view("form-cut.process-form-cut-input", [
+        return view("cutting.cutting-form.cutting-form-process", [
             'id' => $id,
             'formCutInputData' => $formCutInputData,
             'actCostingData' => $actCostingData,

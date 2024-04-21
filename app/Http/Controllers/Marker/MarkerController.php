@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Marker;
 
+use App\Http\Controllers\Controller;
 use App\Models\Marker;
 use App\Models\MarkerDetail;
 use Illuminate\Http\Request;

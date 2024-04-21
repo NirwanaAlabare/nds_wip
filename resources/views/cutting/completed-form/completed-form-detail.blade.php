@@ -87,13 +87,13 @@
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Buyer</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="buyer" value="{{ $thisActCosting->buyer }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="buyer" value="{{ $thisActCosting ? $thisActCosting->buyer : '-' }}" readonly>
                             </div>
                         </div>
                         <div class="col-12 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Style</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="style" value="{{ $thisActCosting->style }}" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="style" value="{{ $thisActCosting ? $thisActCosting->style : '-' }}" readonly>
                             </div>
                         </div>
                         <div class="col-4 col-md-4">

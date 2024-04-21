@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Cutting;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use App\Models\Marker;
@@ -17,7 +18,7 @@ use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Auth;
 use DB;
 
-class ManagerController extends Controller
+class CompletedFormController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -116,7 +117,7 @@ class ManagerController extends Controller
 
         $meja = User::select("id", "name", "username")->where('type', 'meja')->get();
 
-        return view('manager.cutting.cutting', ['meja' => $meja, 'page' => 'dashboard-cutting', "subPage" => "manage-cutting"]);
+        return view('cutting.completed-form.completed-form', ['meja' => $meja, 'page' => 'dashboard-cutting', "subPage" => "manage-cutting"]);
     }
 
     /**
@@ -172,7 +173,7 @@ class ManagerController extends Controller
 
         $meja = User::select("id", "name", "username")->where('type', 'meja')->get();
 
-        return view("manager.cutting.detail-cutting", [
+        return view("cutting.completed-form.completed-form-detail", [
             'id' => $id,
             'meja' => $meja,
             'formCutInputData' => $formCutInputData,

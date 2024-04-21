@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Cutting;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\CutPlan;
@@ -12,7 +13,7 @@ use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
 use DB;
 
-class CutPlanController extends Controller
+class CuttingPlanController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -58,7 +59,7 @@ class CutPlanController extends Controller
             })->toJson();
         }
 
-        return view('cut-plan.cut-plan', ["page" => "dashboard-cutting", "subPageGroup" => "cuttingplan-cutting", "subPage" => "cut-plan"]);
+        return view('cutting.cutting-plan.cutting-plan', ["page" => "dashboard-cutting", "subPageGroup" => "cuttingplan-cutting", "subPage" => "cut-plan"]);
     }
 
     /**
@@ -151,7 +152,7 @@ class CutPlanController extends Controller
             return DataTables::of($data_spreading)->toJson();
         }
 
-        return view('cut-plan.create-cut-plan', ["page" => "dashboard-cutting", "subPageGroup" => "cuttingplan-cutting", "subPage" => "cut-plan"]);
+        return view('cutting.cutting-plan.create-cutting-plan', ["page" => "dashboard-cutting", "subPageGroup" => "cuttingplan-cutting", "subPage" => "cut-plan"]);
     }
 
     public function getSelectedForm(Request $request, $noCutPlan = 0)

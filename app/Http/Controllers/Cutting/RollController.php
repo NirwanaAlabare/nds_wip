@@ -1,14 +1,15 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Cutting;
 
-use App\Exports\ExportLaporanPemakaian;
+use App\Http\Controllers\Controller;
+use App\Exports\ExportLaporanRoll;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
 
-class LapPemakaianController extends Controller
+class RollController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -86,7 +87,7 @@ class LapPemakaianController extends Controller
             return DataTables::of($data_pemakaian)->toJson();
         }
 
-        return view('lap_pemakaian.lap_pemakaian', ['page' => 'dashboard-cutting', "subPageGroup" => "laporan-cutting", "subPage" => "lap-pemakaian"]);
+        return view('cutting.roll.roll', ['page' => 'dashboard-cutting', "subPageGroup" => "laporan-cutting", "subPage" => "lap-pemakaian"]);
     }
 
     /**

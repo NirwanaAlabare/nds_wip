@@ -19,7 +19,7 @@ Sheet::macro('styleCells', function (Sheet $sheet, string $cellRange, array $sty
     $sheet->getDelegate()->getStyle($cellRange)->applyFromArray($style);
 });
 
-class ExportLaporanPemakaian implements FromView, WithEvents, WithDrawings, WithColumnWidths, ShouldAutoSize
+class ExportLaporanRoll implements FromView, WithEvents, WithDrawings, WithColumnWidths, ShouldAutoSize
 {
     use Exportable;
 
@@ -93,7 +93,7 @@ class ExportLaporanPemakaian implements FromView, WithEvents, WithDrawings, With
 
         $this->rowCount = count($data) + 10;
 
-        return view('lap_pemakaian.export', [
+        return view('roll.export.roll', [
             'data' => $data,
             'from' => $this->from,
             'to' => $this->to
