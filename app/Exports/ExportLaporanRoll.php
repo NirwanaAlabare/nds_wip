@@ -93,7 +93,7 @@ class ExportLaporanRoll implements FromView, WithEvents, WithDrawings, WithColum
 
         $this->rowCount = count($data) + 10;
 
-        return view('roll.export.roll', [
+        return view('cutting.roll.export.roll', [
             'data' => $data,
             'from' => $this->from,
             'to' => $this->to
