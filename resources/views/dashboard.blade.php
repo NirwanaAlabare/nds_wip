@@ -2507,8 +2507,12 @@
                         5
                     ],
                     rowCallback: function( row, data, index ) {
-                        if (!data['dc_in_id']) {
+                        if (!data['dc_in_id'] && data['troli'] == '-') {
                             $('td', row).css('color', '#da4f4a');
+                        }
+
+                        if (data['line'] != '-') {
+                            $('td', row).css('color', '#28q745');
                         }
                     }
                 });

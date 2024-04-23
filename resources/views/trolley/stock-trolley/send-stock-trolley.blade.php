@@ -85,13 +85,13 @@
                                 @foreach ($trolleyStocks as $trolleyStock)
                                     <tr>
                                         <td class="d-none">{{ $trolleyStock->stocker_id }}</td>
-                                        <td>{{ str_replace(",", ", \r\n", $trolleyStock->id_qr_stocker) }}</td>
+                                        <td>{{ $trolleyStock->id_qr_stocker }}</p></td>
                                         <td>{{ $trolleyStock->act_costing_ws }}</td>
                                         <td>{{ $trolleyStock->no_cut }}</td>
                                         <td>{{ $trolleyStock->style }}</td>
                                         <td>{{ $trolleyStock->color }}</td>
+                                        <td>{{ $trolleyStock->nama_part }}</td>
                                         <td>{{ $trolleyStock->size }}</td>
-                                        <td>{{ str_replace(",", ", \r\n", $trolleyStock->nama_part) }}</td>
                                         <td>{{ $trolleyStock->qty }}</td>
                                         <td>{{ $trolleyStock->rangeAwalAkhir }}</td>
                                     </tr>
@@ -138,7 +138,21 @@
         var trolleyId = document.getElementById('trolley_id').value;
 
         let datatableTrolleyStock = $("#datatable-trolley-stock").DataTable({
-            ordering: false
+            ordering: false,
+            columnDefs: [
+                {
+                    targets: [1],
+                    render: (data, type, row, meta) => {
+                        return `<span class="text-nowrap">`+ data.replace(/,/g, ", <br>") +`</span>`;
+                    }
+                },
+                {
+                    targets: [6],
+                    render: (data, type, row, meta) => {
+                        return `<span class="text-nowrap">`+ data.replace(/,/g, ", <br>") +`</span>`;
+                    }
+                },
+            ]
         });
 
         $('#datatable-trolley-stock thead tr').clone(true).appendTo('#datatable-trolley-stock thead');
@@ -163,7 +177,13 @@
         // Datatable selected row selection
         datatableTrolleyStock.on('click', 'tbody tr', function(e) {
             e.currentTarget.classList.toggle('selected');
-            document.getElementById('selected-row-count-1').innerText = $('#datatable-trolley-stock').DataTable().rows('.selected').data().length;
+
+            let totalQty = 0;
+            for(let i = 0; i < document.querySelectorAll('#datatable-trolley-stock .selected').length; i++) {
+                totalQty += parseInt(document.querySelectorAll('#datatable-trolley-stock .selected')[i].cells[8].innerText);
+            }
+
+            document.getElementById('selected-row-count-1').innerText = $('#datatable-trolley-stock').DataTable().rows('.selected').data().length+" (Total Qty : "+totalQty+")";
         });
 
         function sendToLine(element) {

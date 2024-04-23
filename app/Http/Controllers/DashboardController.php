@@ -56,8 +56,8 @@ class DashboardController extends Controller
                 leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->
                 leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
                 leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
-                whereRaw("MONTH(stocker_input.updated_at) = '".$month."'")->
-                whereRaw("YEAR(stocker_input.updated_at) = '".$year."'")->
+                whereRaw("MONTH(form_cut_input.waktu_selesai) = '".$month."'")->
+                whereRaw("YEAR(form_cut_input.waktu_selesai) = '".$year."'")->
                 orderBy("stocker_input.act_costing_ws", "asc")->
                 orderBy("stocker_input.color", "asc")->
                 orderBy("form_cut_input.no_cut", "asc")->

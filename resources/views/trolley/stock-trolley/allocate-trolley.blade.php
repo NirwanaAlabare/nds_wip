@@ -356,13 +356,13 @@
                 {
                     targets: [1],
                     render: (data, type, row, meta) => {
-                        return `<span>`+ data.replace(/,/g, ", <br>") +`</span>`;
+                        return `<span class="text-nowrap">`+ data.replace(/,/g, ", <br>") +`</span>`;
                     }
                 },
                 {
                     targets: [6],
                     render: (data, type, row, meta) => {
-                        return `<span>`+ data.replace(/,/g, ", <br>") +`</span>`;
+                        return `<span class="text-nowrap">`+ data.replace(/,/g, ", <br>") +`</span>`;
                     }
                 },
                 {
