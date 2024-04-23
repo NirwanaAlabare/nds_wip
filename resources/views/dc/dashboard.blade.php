@@ -38,7 +38,7 @@
                         <th>Secondary</th>
                         <th>Rak</th>
                         <th>Trolley</th>
-                        <th>Line</th>
+                        <th>Sewing Line</th>
                         <th>Qty</th>
                         <th>Updated At</th>
                     </tr>
