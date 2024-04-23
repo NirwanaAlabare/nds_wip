@@ -485,11 +485,11 @@ class TrolleyStockerController extends Controller
                 stocker_input.color,
                 GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') nama_part,
                 stocker_input.size,
-                COALESCE((dc_in_input.qty_awal - dc_in_input.qty_reject + dc_in_input.qty_replace), stocker_input.qty_ply) qty,
-                CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir)) rangeAwalAkhir
+                COALESCE((MAX(dc_in_input.qty_awal) - MAX(dc_in_input.qty_reject) + MAX(dc_in_input.qty_replace)), stocker_input.qty_ply) qty,
+                CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir), (CASE WHEN MAX(dc_in_input.qty_reject) IS NOT NULL AND MAX(dc_in_input.qty_replace) IS NOT NULL THEN CONCAT(' (', (MAX(dc_in_input.qty_replace) - MAX(dc_in_input.qty_reject)), ') ') ELSE null END)) rangeAwalAkhir
             ")->
             leftJoin("stocker_input", "stocker_input.id", "=", "trolley_stocker.stocker_id")->
-            leftJoin("dc_in_input", "dc_in_input.id", "=", "stocker_input.id_qr_stocker")->
+            leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
             leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
             leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
             leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->

@@ -152,6 +152,12 @@
                         return `<span class="text-nowrap">`+ data.replace(/,/g, ", <br>") +`</span>`;
                     }
                 },
+                {
+                    targets: "_all",
+                    render: (data, type, row, meta) => {
+                        return
+                    }
+                }
             ]
         });
 
