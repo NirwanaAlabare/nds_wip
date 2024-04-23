@@ -78,6 +78,7 @@ class MutasiMesinController extends Controller
 
     public function lineChartData()
     {
+        $tglskrg = date('Y-m-d');
         $data_line =  DB::select("
         SELECT
         line,
@@ -86,7 +87,7 @@ class MutasiMesinController extends Controller
     from
     (
         select a.id, b.tgl_pindah,b.id_qr, line from
-        (select max(id) id from mut_mesin_input a
+        (select max(id) id from mut_mesin_input a where tgl_pindah = '$tglskrg'
         group by id_qr)a
         inner join mut_mesin_input b on a.id = b.id
     ) master_karyawan
