@@ -384,8 +384,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-calc"><small><b>Est. Kebutuhan Kain
-                                            Piping</b></small></label>
+                                <label class="form-label label-calc"><small><b>Est. Kebutuhan Kain Piping</b></small></label>
                                 <div class="row g-1">
                                     <div class="col-6">
                                         <input type="number" class="form-control form-control-sm border-calc"
@@ -983,7 +982,7 @@
                                             <option value="yard">YARD</option>
                                             <option value="kgm">KGM</option>
                                         </select>
-                                    </di
+                                    </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="mb-3">
