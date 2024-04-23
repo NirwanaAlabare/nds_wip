@@ -105,17 +105,17 @@
 
                     <!-- warehouse -->
                     <!-- <div class="col-md-2 col-3">
-                        <a href="{{ route('dashboard-warehouse') }}" class="home-item">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <div class="d-flex h-100 flex-column justify-content-between">
-                                        <img src="{{ asset('dist/img/warehouse.png') }}" class="img-fluid p-3" alt="cutting image">
-                                        <p class="text-center fw-bold text-uppercase text-dark">Warehouse</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div> -->
+                                        <a href="{{ route('dashboard-warehouse') }}" class="home-item">
+                                            <div class="card h-100">
+                                                <div class="card-body">
+                                                    <div class="d-flex h-100 flex-column justify-content-between">
+                                                        <img src="{{ asset('dist/img/warehouse.png') }}" class="img-fluid p-3" alt="cutting image">
+                                                        <p class="text-center fw-bold text-uppercase text-dark">Warehouse</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </div> -->
 
                     <div class="col-md-2 col-3">
                         <!-- <a href="{{ route('dashboard-warehouse') }}" class="home-item"> -->
@@ -123,7 +123,8 @@
                             <div class="card h-100">
                                 <div class="card-body">
                                     <div class="d-flex h-100 flex-column justify-content-between">
-                                        <img src="{{ asset('dist/img/warehouse.png') }}" class="img-fluid p-3" alt="cutting image">
+                                        <img src="{{ asset('dist/img/warehouse.png') }}" class="img-fluid p-3"
+                                            alt="cutting image">
                                         <p class="text-center fw-bold text-uppercase text-dark">Warehouse</p>
                                     </div>
                                 </div>
@@ -132,6 +133,19 @@
                         <!-- </a> -->
                     </div>
 
+                    <div class="col-md-2 col-3">
+                        <a href="{{ route('dashboard-packing') }}" class="home-item">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex h-100 flex-column justify-content-between">
+                                        <img src="{{ asset('dist/img/packing.png') }}" class="img-fluid p-3"
+                                            alt="qr code image">
+                                        <p class="text-center fw-bold text-uppercase text-dark">Packing</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
 
                     <div class="col-md-2 col-3">
                         <a href="{{ route('logout') }}"
@@ -176,8 +190,8 @@
                                     <div class="card h-100">
                                         <div class="card-body">
                                             <div class="d-flex h-100 flex-column justify-content-between">
-                                                <img src="{{ asset('dist/img/whs_fabric.png') }}"
-                                                    class="img-fluid p-3" alt="cutting image">
+                                                <img src="{{ asset('dist/img/whs_fabric.png') }}" class="img-fluid p-3"
+                                                    alt="cutting image">
                                                 <p class="text-center fw-bold text-uppercase text-dark">Fabric</p>
                                             </div>
                                         </div>
@@ -190,8 +204,8 @@
                                     <div class="card h-100">
                                         <div class="card-body">
                                             <div class="d-flex h-100 flex-column justify-content-between">
-                                                <img src="{{ asset('dist/img/whs_accs.png') }}"
-                                                    class="img-fluid p-3" alt="cutting image">
+                                                <img src="{{ asset('dist/img/whs_accs.png') }}" class="img-fluid p-3"
+                                                    alt="cutting image">
                                                 <p class="text-center fw-bold text-uppercase text-dark">Accesories</p>
                                             </div>
                                         </div>
@@ -204,18 +218,18 @@
                                     <div class="card h-100">
                                         <div class="card-body">
                                             <div class="d-flex h-100 flex-column justify-content-between">
-                                                <img src="{{ asset('dist/img/whs_fg_stock.png') }}"
-                                                    class="img-fluid p-3" alt="fg_stok image">
+                                                <img src="{{ asset('dist/img/whs_fg_stock.png') }}" class="img-fluid p-3"
+                                                    alt="fg_stok image">
                                                 <p class="text-center fw-bold text-uppercase text-dark">FG Stock</p>
                                             </div>
                                         </div>
                                     </div>
                                 </a>
                             </div>
-                        <div>
+                            <div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
         </form>
     </div>
 

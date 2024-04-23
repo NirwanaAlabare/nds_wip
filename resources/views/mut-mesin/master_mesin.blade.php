@@ -86,7 +86,7 @@
                             <th>Brand</th>
                             <th>Tipe</th>
                             <th>Serial No</th>
-                            <th>Stock</th>
+                            <th>Juml. Transaksi</th>
                             <th>Act</th>
                         </tr>
                     </thead>
