@@ -55,7 +55,7 @@ class DCInController extends Controller
                     a.qty_awal,
                     a.qty_reject,
                     a.qty_replace,
-                    (a.qty_awal + a.qty_reject - a.qty_replace) qty_in,
+                    (a.qty_awal - a.qty_reject + a.qty_replace) qty_in,
                     a.tujuan,
                     a.lokasi,
                     a.tempat,
@@ -317,7 +317,6 @@ class DCInController extends Controller
 
     public function update_tmp_dc_in(Request $request)
     {
-
         if ($request->txttuj == 'NON SECONDARY') {
             $update_stocker_input = DB::update("
                 update
@@ -391,7 +390,7 @@ class DCInController extends Controller
                 'redirect' => '',
                 'table' => 'datatable-scan',
                 'additional' => [],
-                'callback' => 'tmp_dc_input_new'
+                'callback' => 'resetCheckedStocker()'
             );
         }
     }
@@ -483,7 +482,7 @@ class DCInController extends Controller
                     'redirect' => '',
                     'table' => 'datatable-scan',
                     'additional' => [],
-                    'callback' => 'tmp_dc_input_new'
+                    'callback' => 'resetCheckedStocker()'
                 );
             }
         }
@@ -494,7 +493,7 @@ class DCInController extends Controller
             'redirect' => '',
             'table' => 'datatable-scan',
             'additional' => [],
-            'callback' => 'tmp_dc_input_new'
+            'callback' => 'resetCheckedStocker()'
         );
     }
 
