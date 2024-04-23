@@ -209,12 +209,15 @@ class SpreadingController extends Controller
         ]);
 
         $qtyPlyMarkerModulus = intval($request['hitungmarker']) % intval($request['txtqty_ply_cut']);
+        $maximumForm = floor(intval($request['hitungmarker'])/intval($request['txtqty_ply_cut'])) + ($qtyPlyMarkerModulus > 0 ? 1 : 0);
         $timestamp = Carbon::now();
         $formcutDetailData = [];
         $message = "";
 
         if ($request['tarik_sisa']) {
-            $request['hitungform'] = $request['hitungform'] > 1 ? $request['hitungform'] - 1 : $request['hitungform'];
+            if ($request['hitungform'] == $maximumForm) {
+                $request['hitungform'] = $request['hitungform'] > 1 ? $request['hitungform'] - 1 : $request['hitungform'];
+            }
         }
 
         $keterangan = $request["notes"];
@@ -243,10 +246,10 @@ class SpreadingController extends Controller
 
             if ($i == intval($request['hitungform'])) {
                 if ($request['tarik_sisa']) {
-                    $qtyPly = $qtyPlyMarkerModulus > 0 ? $request['txtqty_ply_cut'] + $qtyPlyMarkerModulus : $request['txtqty_ply_cut'];
+                    $qtyPly = $request['sisa'] > 0 ? $request['txtqty_ply_cut'] + $request['sisa'] : $request['txtqty_ply_cut'];
                 } else {
-                    if (intval($request['hitungform'] > 1)) {
-                        $qtyPly = $qtyPlyMarkerModulus > 0 ? $qtyPlyMarkerModulus : $request['txtqty_ply_cut'];
+                    if (intval($request['hitungform']) == $maximumForm) {
+                        $qtyPly = $request['sisa'] > 0 ? $request['sisa'] : $request['txtqty_ply_cut'];
                     }
                 }
             }
@@ -386,13 +389,18 @@ class SpreadingController extends Controller
         $spreadingForm = FormCutInput::where('id', $id)->first();
 
         $checkMarker = Marker::where("kode", $spreadingForm->id_marker)->first();
-        $checkStocker = Stocker::where("form_cut_id", $id)->get();
-        $checkNumbering = StockerDetail::where("form_cut_id", $id)->get();
+        $checkStocker = Stocker::where("form_cut_id", $id)->count();
+        $checkNumbering = StockerDetail::where("form_cut_id", $id)->count();
 
-        if ($checkStocker->count() < 1 && $checkNumbering->count() < 1) {
+        if ($checkStocker < 1 && $checkNumbering < 1) {
             $deleteSpreadingForm = FormCutInput::where('id', $id)->delete();
 
             if ($deleteSpreadingForm) {
+                // Update Marker Balance
+                $updateMarkerBalance = Marker::where("kode", $spreadingForm->id_marker)->update([
+                    "gelar_qty_balance" => DB::raw('gelar_qty_balance + '.$spreadingForm->qty_ply)
+                ]);
+
                 // Similar Form No. Cutting Update
                 $formCuts = FormCutInput::selectRaw("form_cut_input.id as id, form_cut_input.no_form, form_cut_input.status")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
                     where("marker_input.act_costing_ws", $checkMarker->act_costing_ws)->
@@ -413,10 +421,6 @@ class SpreadingController extends Controller
                                 "no_cut" => $i
                             ]);
                     }
-
-                    $updateMarkerBalance = Marker::where("kode", $spreadingForm->id_marker)->update([
-                        "gelar_qty_balance" => DB::raw('gelar_qty_balance + '.$spreadingForm->qty_ply)
-                    ]);
                 }
 
                 $spreadingFormDetails = FormCutInputDetail::where('no_form_cut_input', $spreadingForm->no_form_cut_input)->get();

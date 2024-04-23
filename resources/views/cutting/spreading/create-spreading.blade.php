@@ -426,12 +426,14 @@
             let modulus = qtyPlyMarker % qtyPly;
             let maxForm = Math.floor(qtyPlyMarker/qtyPly) + (modulus > 0 ? 1 : 0);
 
-            if (jumlahForm > maxForm) {
+            console.log(jumlahForm, maxForm);
+
+            if (jumlahForm >= maxForm) {
                 sum();
             } else {
                 console.log(qtyPly, maxForm);
                 document.getElementById("hitungform").value = jumlahForm;
-                document.getElementById("sisa").value = modulus;
+                document.getElementById("sisa").value = qtyPlyMarker - qtyPlyForm;
                 document.getElementById("qty_ply_form").value = (qtyPlyForm > qtyPlyMarker ? qtyPlyMarker : qtyPlyForm);
             }
         }
