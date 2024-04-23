@@ -29,15 +29,10 @@
                                 <div class="mb-3">
                                     <label class="form-label label-input">Scan QR Stocker</label>
                                     <div class="input-group">
-                                        <input type="text" class="form-control form-control-sm border-input"
-                                            name="txtqrstocker" id="txtqrstocker" autocomplete="off" enterkeyhint="go"
-                                            onkeyup="if (event.keyCode == 13)
-                                        document.getElementById('scanqr').click()"
-                                            autofocus>
+                                        <input type="text" class="form-control form-control-sm border-input" name="txtqrstocker" id="txtqrstocker" autocomplete="off" enterkeyhint="go" onkeyup="if (event.keyCode == 13) document.getElementById('scanqr').click()" autofocus>
                                         {{-- <input type="button" class="btn btn-sm btn-primary" value="Scan Line" /> --}}
                                         {{-- style="display: none;" --}}
-                                        <button class="btn btn-sm btn-primary" type="button" id="scanqr"
-                                            onclick="scan_qr()">Scan</button>
+                                        <button class="btn btn-sm btn-primary" type="button" id="scanqr" onclick="scan_qr()">Scan</button>
                                     </div>
                                 </div>
                             </div>
@@ -55,31 +50,26 @@
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>No Stocker</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtno_stocker'
-                                        name='txtno_stocker' value = '' readonly>
-                                    <input type='hidden' class='form-control form-control-sm' id='txtno_form'
-                                        name='txtno_form' value = '' readonly>
+                                    <input type='text' class='form-control form-control-sm' id='txtno_stocker' name='txtno_stocker' value = '' readonly>
+                                    <input type='hidden' class='form-control form-control-sm' id='txtno_form' name='txtno_form' value = '' readonly>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>WS</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtws' name='txtws'
-                                        value = '' readonly>
+                                    <input type='text' class='form-control form-control-sm' id='txtws' name='txtws' value = '' readonly>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Buyer</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtbuyer'
-                                        name='txtbuyer' value = '' readonly>
+                                    <input type='text' class='form-control form-control-sm' id='txtbuyer' name='txtbuyer' value = '' readonly>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>No Cut</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtno_cut'
-                                        name='txtno_cut' value = '' readonly>
+                                    <input type='text' class='form-control form-control-sm' id='txtno_cut' name='txtno_cut' value = '' readonly>
                                 </div>
                             </div>
                         </div>
@@ -149,6 +139,7 @@
                             <th>WS</th>
                             <th>Style</th>
                             <th>Color</th>
+                            <th>Part</th>
                             <th>Size</th>
                             <th>No. Cut</th>
                             <th>Tujuan</th>
@@ -185,6 +176,7 @@
             processing: true,
             serverSide: true,
             paging: true,
+            pageLength: 25,
             ajax: {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -197,7 +189,8 @@
                     d.dateTo = $('#tgl-akhir').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'tgl_trans_fix',
                 },
                 {
@@ -211,6 +204,9 @@
                 },
                 {
                     data: 'color',
+                },
+                {
+                    data: 'nama_part',
                 },
                 {
                     data: 'size',
