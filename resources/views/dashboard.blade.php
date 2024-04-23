@@ -42,7 +42,7 @@
         @endif
 
         @if ($page == 'dashboard-dc')
-            <div style="height: 75vh;"></div>
+            @include('dc.dashboard', ["months" => $months, "years" => $years])
         @endif
 
         @if ($page == 'dashboard-mut-karyawan')
@@ -2383,12 +2383,19 @@
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-rowsgroup/dataTables.rowsGroup.js') }}"></script>
     <!-- Apex Charts -->
     <script src="{{ asset('plugins/apexcharts/apexcharts.min.js') }}"></script>
+    <!-- Select2 -->
+    <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 
     <!-- Page specific script -->
     <script>
-        $(function() {
+        $(document).ready(function() {
+            $('.select2bs4').select2({
+                theme: 'bootstrap4',
+            });
+
             $("#datatable").DataTable({
                 "responsive": true,
                 "autoWidth": false,
@@ -2415,6 +2422,121 @@
             })
         });
     </script>
+
+    @if ($page == 'dashboard-dc')
+        <script>
+            $(document).ready(function() {
+                let today = new Date();
+                let todayDate = ("0" + today.getDate()).slice(-2);
+                let todayMonth = ("0" + (today.getMonth() + 1)).slice(-2);
+                let todayYear = today.getFullYear();
+                let todayFullDate = todayYear + '-' + todayMonth + '-' + todayDate;
+
+                $('#dc-month-filter').val((today.getMonth() + 1)).trigger("change");
+                $('#dc-year-filter').val(todayYear).trigger("change");
+
+                var datatableDc = $("#datatable-dc").DataTable({
+                    serveSide: true,
+                    processing: true,
+                    ordering: false,
+                    pageLength: 50,
+                    ajax: {
+                        url: '{{ route('dashboard-dc') }}',
+                        dataType: 'json',
+                        data: function (d) {
+                            d.month = $('#dc-month-filter').val();
+                            d.year = $('#dc-year-filter').val();
+                        }
+                    },
+                    columns: [
+                        {
+                            data: 'act_costing_ws',
+                        },
+                        {
+                            data: 'color',
+                        },
+                        {
+                            data: 'no_cut',
+                        },
+                        {
+                            data: 'nama_part',
+                        },
+                        {
+                            data: 'size',
+                        },
+                        {
+                            data: 'shade',
+                        },
+                        {
+                            data: 'id_qr_stocker',
+                        },
+                        {
+                            data: 'stocker_range',
+                        },
+                        {
+                            data: 'secondary',
+                        },
+                        {
+                            data: 'rak',
+                        },
+                        {
+                            data: 'troli',
+                        },
+                        {
+                            data: 'line',
+                        },
+                        {
+                            data: 'dc_in_qty',
+                        },
+                        {
+                            data: 'latest_update',
+                        },
+                    ],
+                    columnDefs: [
+                        {
+                            targets: "_all",
+                            className: "text-nowrap"
+                        }
+                    ],
+                    rowsGroup: [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    ],
+                    rowCallback: function( row, data, index ) {
+                        if (!data['dc_in_id']) {
+                            $('td', row).css('color', '#da4f4a');
+                        }
+                    }
+                });
+
+                $('#datatable-dc thead tr').clone(true).appendTo('#datatable-dc thead');
+                $('#datatable-dc thead tr:eq(1) th').each(function(i) {
+                    var title = $(this).text();
+                    $(this).html('<input type="text" class="form-control form-control-sm"/>');
+
+                    $('input', this).on('keyup change', function() {
+                        if (datatableDc.column(i).search() !== this.value) {
+                            datatableDc
+                                .column(i)
+                                .search(this.value)
+                                .draw();
+                        }
+                    });
+                });
+
+                $('#dc-month-filter').on('change', () => {
+                    $('#datatable-dc').DataTable().ajax.reload();
+                });
+                $('#dc-year-filter').on('change', () => {
+                    $('#datatable-dc').DataTable().ajax.reload();
+                });
+            });
+        </script>
+    @endif
 
     @if ($page == 'dashboard-mut-karyawan')
         <script>
