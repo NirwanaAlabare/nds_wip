@@ -15,6 +15,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Auth;
 use DB;
 
 class SpreadingController extends Controller
@@ -423,11 +424,44 @@ class SpreadingController extends Controller
                     }
                 }
 
-                $spreadingFormDetails = FormCutInputDetail::where('no_form_cut_input', $spreadingForm->no_form_cut_input)->get();
-                $deleteSpreadingFormDetail = FormCutInputDetail::where('no_form_cut_input', $spreadingForm->no_form_cut_input)->delete();
+                $spreadingFormDetails = FormCutInputDetail::where('no_form_cut_input', $spreadingForm->no_form)->get();
+                $deleteSpreadingFormDetail = FormCutInputDetail::where('no_form_cut_input', $spreadingForm->no_form)->delete();
                 if ($deleteSpreadingFormDetail) {
                     $idFormDetailLapArr = [];
                     foreach ($spreadingFormDetails as $spreadingFormDetail) {
+                        DB::table("form_cut_input_detail_delete")->insert([
+                            "no_form_cut_input" => $spreadingFormDetail['no_form_cut_input'],
+                            "id_roll" => $spreadingFormDetail['id_roll'],
+                            "id_item" => $spreadingFormDetail['id_item'],
+                            "color_act" => $spreadingFormDetail['color_act'],
+                            "detail_item" => $spreadingFormDetail['detail_item'],
+                            "group_roll" => $spreadingFormDetail['group_roll'],
+                            "lot" => $spreadingFormDetail['lot'],
+                            "roll" => $spreadingFormDetail['roll'],
+                            "qty" => $spreadingFormDetail['qty'],
+                            "unit" => $spreadingFormDetail['unit'],
+                            "sisa_gelaran" => $spreadingFormDetail['sisa_gelaran'],
+                            "sambungan" => $spreadingFormDetail['sambungan'],
+                            "est_amparan" => $spreadingFormDetail['est_amparan'],
+                            "lembar_gelaran" => $spreadingFormDetail['lembar_gelaran'],
+                            "average_time" => $spreadingFormDetail['average_time'],
+                            "kepala_kain" => $spreadingFormDetail['kepala_kain'],
+                            "sisa_tidak_bisa" => $spreadingFormDetail['sisa_tidak_bisa'],
+                            "reject" => $spreadingFormDetail['reject'],
+                            "sisa_kain" => $spreadingFormDetail['sisa_kain'],
+                            "total_pemakaian_roll" => $spreadingFormDetail['total_pemakaian_roll'],
+                            "short_roll" => $spreadingFormDetail['short_roll'],
+                            "piping" => $spreadingFormDetail['piping'],
+                            "remark" => $spreadingFormDetail['remark'],
+                            "status" => $spreadingFormDetail['status'],
+                            "metode" => $spreadingFormDetail['metode'],
+                            "group_stocker" => $spreadingFormDetail['group_stocker'],
+                            "created_at" => $spreadingFormDetail['created_at'],
+                            "updated_at" => $spreadingFormDetail['updated_at'],
+                            "deleted_by" => Auth::user()->username,
+                            "deleted_at" => Carbon::now(),
+                        ]);
+
                         array_push($idFormDetailLapArr, $spreadingFormDetail->id);
                     }
 

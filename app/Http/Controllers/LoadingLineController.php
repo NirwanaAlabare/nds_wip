@@ -30,17 +30,20 @@ class LoadingLineController extends Controller
                     COALESCE(SUM(loading_line.qty) - loading_line_plan.target_loading, 0) balance_loading,
                     COALESCE(trolley.nama_trolley, '-') nama_trolley,
                     COALESCE(trolley_qty.trolley_qty, 0) stock_trolley,
-                    COALESCE(GROUP_CONCAT(DISTINCT stocker_input.color), '-') trolley_color
+                    COALESCE(GROUP_CONCAT(DISTINCT stocker_input.color), '-') trolley_color,
+                    CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir), (CASE WHEN MAX(dc_in_input.qty_reject) IS NOT NULL AND MAX(dc_in_input.qty_replace) IS NOT NULL THEN CONCAT(' (', (MAX(dc_in_input.qty_replace) - MAX(dc_in_input.qty_reject)), ') ') ELSE null END)) rangeAwalAkhir
                 ")->
                 leftJoin("loading_line", "loading_line.loading_plan_id", "=", "loading_line_plan.id")->
                 leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "loading_line.stocker_id")->
                 leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
                 leftJoin("stocker_input", "stocker_input.id", "loading_line.stocker_id")->
+                leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "stocker_input.id_qr_stocker")->
                 leftJoin(DB::raw("(select trolley_stocker.trolley_id, stocker_input.act_costing_ws, stocker_input.color , SUM(stocker_input.qty_ply) trolley_qty from trolley_stocker left join stocker_input on stocker_input.id = trolley_stocker.stocker_id where trolley_stocker.status = 'active' group by trolley_stocker.trolley_id, stocker_input.act_costing_ws, stocker_input.color) trolley_qty"), function ($join) {
                     $join->on("trolley_qty.trolley_id", '=', "trolley.id");
                     $join->on("trolley_qty.act_costing_ws", '=', "loading_line_plan.act_costing_ws");
                 })->
-                groupBy("loading_line_plan.id");
+                groupBy("loading_line_plan.id")->
+                orderBy("loading_line.line_id", "asc");
 
             return DataTables::eloquent($line)
                 ->filter(function ($query) {
@@ -148,8 +151,7 @@ class LoadingLineController extends Controller
         if ($request->ajax()) {
             $lineStocker = LoadingLinePlan::selectRaw("
                 stocker_input.color,
-                stocker_input.id_qr_stocker,
-                stocker_input.id_qr_stocker,
+                stocker_input.id_qr_stocker
             ")->
             leftJoin("loading_line", "loading_line.loading_plan_id", "=", "loading_line_plan.id")->
             leftJoin("stocker_input", "stocker_input.id", "loading_line.stocker_id")->

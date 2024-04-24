@@ -38,6 +38,14 @@ class Stocker extends Model
     }
 
     /**
+     * Get the dc in stocker.
+     */
+    public function dcIn()
+    {
+        return $this->hasOne(DCIn::class, 'id_qr_stocker', 'id_qr_stocker');
+    }
+
+    /**
      * Get the stocker rack.
      */
     public function rackDetailStockers()

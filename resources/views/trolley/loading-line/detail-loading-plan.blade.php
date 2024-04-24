@@ -72,12 +72,12 @@
                 <tbody>
                     @foreach ($loadingLinePlan->loadingLines as $loadingLine)
                         <tr>
-                            <td>{{ strtoupper(str_replace("_", " ", $loadingLine->stocker->color)) }}</td>
-                            <td>{{ strtoupper(str_replace("_", " ", $loadingLine->stocker->id_qr_stocker)) }}</td>
-                            <td>{{ strtoupper(str_replace("_", " ", $loadingLine->stocker->formCut->no_cut)) }}</td>
-                            <td>{{ strtoupper(str_replace("_", " ", $loadingLine->stocker->size)) }}</td>
-                            <td>{{ strtoupper(str_replace("_", " ", $loadingLine->stocker->qty_ply)) }}</td>
-                            <td>{{ strtoupper(str_replace("_", " ", $loadingLine->updated_at ? $loadingLine->updated_at : $loadingLine->tanggal_loading)) }}</td>
+                            <td>{{ $loadingLine->stocker->color }}</td>
+                            <td>{{ $loadingLine->stocker->id_qr_stocker }}</td>
+                            <td>{{ $loadingLine->stocker->formCut->no_cut }}</td>
+                            <td>{{ $loadingLine->stocker->size }}</td>
+                            <td>{{ num($loadingLine->qty) }}</td>
+                            <td>{{ $loadingLine->updated_at ? $loadingLine->updated_at : $loadingLine->tanggal_loading }}</td>
                         </tr>
                     @endforeach
                 </tbody>

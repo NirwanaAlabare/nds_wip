@@ -27,7 +27,7 @@
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="datatableLoadingLineReload()">
                 </div>
                 <div>
-                    <button class="btn btn-primary btn-sm" onclick="datatableLoadingLineReload()">Tampilkan</button>
+                    <button class="btn btn-primary btn-sm" onclick="datatableLoadingLineReload()"><i class="fa fa-search"></i></button>
                 </div>
             </div>
             <div class="table-responsive">
@@ -134,7 +134,7 @@
             ],
             columnDefs: [
                 {
-                    targets: [0,2,3,4,5,6,7,8,9,10,11],
+                    targets: "_all",
                     className: 'align-middle'
                 },
                 {
@@ -154,6 +154,13 @@
                         `;
                     }
                 },
+                {
+                    targets: [4,5,7,8,10],
+                    className: 'align-middle',
+                    render: (data, type, row, meta) => {
+                        return Number(data).toLocaleString('id-ID')
+                    }
+                }
             ],
         });
 
