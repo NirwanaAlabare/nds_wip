@@ -61,30 +61,61 @@
             <table class="table table-bordered table-sm" id="datatable-stocker">
                 <thead>
                     <tr>
+                        <th>No. WS</th>
                         <th>Color</th>
-                        <th>No. Stocker</th>
                         <th>No. Cut</th>
                         <th>Size</th>
+                        <th>Group</th>
+                        <th>Range</th>
+                        <th>No. Stocker</th>
                         <th>Qty</th>
                         <th>Waktu Loading</th>
                     </tr>
                 </thead>
                 <tbody>
+                    @php
+                        $currentWs = null;
+                        $currentColor = null;
+                        $currentForm = null;
+                        $currentSize = null;
+                        $currentGroup = null;
+                        $currentRatio = null;
+
+                        $totalQty = 0;
+                    @endphp
                     @foreach ($loadingLinePlan->loadingLines as $loadingLine)
+                        @php
+                            if ($currentWs != $loadingLine->stocker->act_costing_ws && $currentColor != $loadingLine->stocker->color && $currentForm != $loadingLine->stocker->formCut->no_form && $currentSize != $loadingLine->stocker->size && $currentGroup != $loadingLine->stocker->shade && $currentRatio != $loadingLine->stocker->ratio) {
+                                $currentWs = $loadingLine->stocker->act_costing_ws;
+                                $currentColor = $loadingLine->stocker->color;
+                                $currentForm = $loadingLine->stocker->no_form;
+                                $currentSize = $loadingLine->stocker->size;
+                                $currentGroup = $loadingLine->stocker->shade;
+                                $currentRatio = $loadingLine->stocker->ratio;
+
+                                $totalQty += $loadingLine->qty;
+                            }
+                        @endphp
                         <tr>
-                            <td>{{ $loadingLine->stocker->color }}</td>
-                            <td>{{ $loadingLine->stocker->id_qr_stocker }}</td>
-                            <td>{{ $loadingLine->stocker->formCut->no_cut }}</td>
-                            <td>{{ $loadingLine->stocker->size }}</td>
-                            <td>{{ num($loadingLine->qty) }}</td>
-                            <td>{{ $loadingLine->updated_at ? $loadingLine->updated_at : $loadingLine->tanggal_loading }}</td>
+                            <td class="align-middle">{{ $loadingLine->stocker->act_costing_ws }}</td>
+                            <td class="align-middle">{{ $loadingLine->stocker->color }}</td>
+                            <td class="align-middle">{{ $loadingLine->stocker->formCut->no_form." / ".$loadingLine->stocker->formCut->no_cut }}</td>
+                            <td class="align-middle">{{ $loadingLine->stocker->size }}</td>
+                            <td class="align-middle">{{ $loadingLine->stocker->shade }}</td>
+                            <td class="align-middle">{{ ($loadingLine->stocker->range_awal)." - ".($loadingLine->stocker->range_akhir)." (".($loadingLine->qty - $loadingLine->stocker->qty_ply).")" }}</td>
+                            <td class="align-middle">{{ $loadingLine->stocker->id_qr_stocker }}</td>
+                            <td class="align-middle">{{ num($loadingLine->qty) }}</td>
+                            <td class="align-middle">{{ $loadingLine->updated_at ? $loadingLine->updated_at : $loadingLine->tanggal_loading }}</td>
                         </tr>
                     @endforeach
                 </tbody>
+                @php
+                    $loadingLinePlan->groupBy()
+                @endphp
                 <tfoot>
                     <tr>
-                        <th colspan="4"></th>
-                        <th></th>
+                        <th colspan="7">Total</th>
+                        <th>{{ $totalQty }}</th>
                         <th></th>
                     </tr>
                 </tfoot>
@@ -99,46 +130,22 @@
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-rowsgroup/dataTables.rowsGroup.js') }}"></script>
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 
     <script>
         $(document).ready(() => {
             let stockerDatatable = $("#datatable-stocker").DataTable({
-                footerCallback: function(row, data, start, end, display) {
-                    // This datatable api
-                    let api = this.api();
-
-                    // Remove the formatting to get integer data for summation
-                    let intVal = function(i) {
-                        return typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
-                    };
-
-                    // Total stocker qty
-                    let stockerQty = api
-                        .cells( null, 4 )
-                        .render( 'display' )
-                        .reduce(function(a, b) {
-                            let result = intVal(a) + intVal(b);
-                            return result;
-                        }, 0);
-
-                    let latestUpdate = api
-                        .cells( null, 5 )
-                        .render( 'display' )
-                        .reduce(function (a, b) {
-                            if (a < b) {
-                                return a;
-                            } else {
-                                return b;
-                            }
-                        });
-
-                    // Update footer
-                    $(api.column(1).footer()).html("Total");
-                    $(api.column(4).footer()).html(Number(stockerQty).toLocaleString('id-ID'));
-                    $(api.column(5).footer()).html(latestUpdate);
-                }
+                rowsGroup: [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    7
+                ],
             });
         });
     </script>

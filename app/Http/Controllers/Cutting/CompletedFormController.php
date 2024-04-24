@@ -90,7 +90,7 @@ class CompletedFormController extends Controller
                     UPPER(b.tipe_marker) tipe_marker,
                     a.tipe_form_cut,
                     COALESCE(b.notes, '-') notes,
-                    GROUP_CONCAT(DISTINCT CONCAT(master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ', ') marker_details,
+                    GROUP_CONCAT(DISTINCT CONCAT(COALESCE(master_size_new.size, marker_input_detail.size), '(', marker_input_detail.ratio, ')') ORDER BY COALESCE(master_size_new.urutan, marker_input_detail.id) ASC SEPARATOR ', ') marker_details,
                     cutting_plan.tgl_plan,
                     cutting_plan.app
                 FROM `form_cut_input` a
