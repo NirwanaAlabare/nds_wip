@@ -154,9 +154,7 @@
                 },
                 {
                     targets: "_all",
-                    render: (data, type, row, meta) => {
-                        return
-                    }
+                    className: "text-nowrap"
                 }
             ]
         });
