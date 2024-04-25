@@ -1862,6 +1862,8 @@
                             document.getElementById("loading").classList.add("d-none");
 
                             if (res) {
+                                status = "PENGERJAAN FORM CUTTING SPREAD";
+
                                 timeRecordTableTbody.innerHTML = "";
 
                                 clearScanItemForm();
@@ -1882,6 +1884,8 @@
                                             unitSisaGelaran = res.additional[0].unit;
                                             setSpreadingForm(res.additional[1], sisaGelaran, unitSisaGelaran);
                                         } else {
+                                            status = "PENGERJAAN FORM CUTTING SPREAD";
+
                                             checkStatus();
                                         }
                                     }

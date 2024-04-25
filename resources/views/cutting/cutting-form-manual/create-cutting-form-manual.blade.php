@@ -1815,6 +1815,8 @@
                                             unitSisaGelaran = res.additional[0].unit;
                                             setSpreadingForm(res.additional[1], sisaGelaran, unitSisaGelaran);
                                         } else {
+                                            status = "PENGERJAAN FORM CUTTING SPREAD";
+
                                             checkStatus();
                                         }
                                     }
