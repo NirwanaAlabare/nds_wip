@@ -36,12 +36,9 @@ class DCInController extends Controller
 
             $keywordQuery = '';
             if ($request->search['value']) {
-                $keywordQuery =
-                    "
-                     (
-                        line like '%" .
-                    $request->search['value'] .
-                    "%'
+                $keywordQuery = "
+                    (
+                        line like '%" . $request->search['value'] . "%'
                     )
                 ";
             }
@@ -58,20 +55,22 @@ class DCInController extends Controller
                     a.qty_awal,
                     a.qty_reject,
                     a.qty_replace,
-                    (a.qty_awal + a.qty_reject - a.qty_replace) qty_in,
+                    (a.qty_awal - a.qty_reject + a.qty_replace) qty_in,
                     a.tujuan,
                     a.lokasi,
                     a.tempat,
                     a.created_at,
                     a.user,
                     f.no_cut,
-                    s.size
+                    s.size,
+                    mp.nama_part
                 from
                     dc_in_input a
                     inner join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
                     inner join form_cut_input f on f.id = s.form_cut_id
                     inner join part_detail pd on s.part_detail_id = pd.id
                     inner join part p on pd.part_id = p.id
+                    inner join master_part mp on mp.id = pd.master_part_id
                     ".$additionalQuery."
                 order by
                     a.tgl_trans desc
@@ -318,7 +317,6 @@ class DCInController extends Controller
 
     public function update_tmp_dc_in(Request $request)
     {
-
         if ($request->txttuj == 'NON SECONDARY') {
             $update_stocker_input = DB::update("
                 update
@@ -392,7 +390,7 @@ class DCInController extends Controller
                 'redirect' => '',
                 'table' => 'datatable-scan',
                 'additional' => [],
-                'callback' => 'tmp_dc_input_new'
+                'callback' => 'resetCheckedStocker()'
             );
         }
     }
@@ -484,7 +482,7 @@ class DCInController extends Controller
                     'redirect' => '',
                     'table' => 'datatable-scan',
                     'additional' => [],
-                    'callback' => 'tmp_dc_input_new'
+                    'callback' => 'resetCheckedStocker()'
                 );
             }
         }
@@ -495,7 +493,7 @@ class DCInController extends Controller
             'redirect' => '',
             'table' => 'datatable-scan',
             'additional' => [],
-            'callback' => 'tmp_dc_input_new'
+            'callback' => 'resetCheckedStocker()'
         );
     }
 
@@ -538,6 +536,9 @@ class DCInController extends Controller
                 tmp_dc_in_input_new tmp
                 inner join stocker_input ms on tmp.id_qr_stocker = ms.id_qr_stocker
             where
+                tmp.tujuan > '' and
+                tmp.lokasi > '' and
+                tmp.tempat > '' and
                 user = '$user'
         ");
 
@@ -562,7 +563,12 @@ class DCInController extends Controller
                 inner join rack_detail r on tmp.lokasi = r.nama_detail_rak
                 inner join stocker_input s on tmp.id_qr_stocker = s.id_qr_stocker
             where
-                tmp.tujuan = 'NON SECONDARY' AND user = '$user'"
+                tmp.tujuan = 'NON SECONDARY' and
+                tmp.tujuan > '' and
+                tmp.lokasi > '' and
+                tmp.tempat > '' and
+                user = '$user'
+            "
         );
 
         return array(
@@ -580,7 +586,7 @@ class DCInController extends Controller
         $user = Auth::user()->name;
 
         DB::delete(
-            "DELETE FROM tmp_dc_in_input_new where user = '$user'"
+            "DELETE FROM tmp_dc_in_input_new where tujuan > '' and lokasi > '' and tempat > '' and user = '$user'"
         );
     }
 

@@ -15,6 +15,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Auth;
 use DB;
 
 class SpreadingController extends Controller
@@ -209,12 +210,15 @@ class SpreadingController extends Controller
         ]);
 
         $qtyPlyMarkerModulus = intval($request['hitungmarker']) % intval($request['txtqty_ply_cut']);
+        $maximumForm = floor(intval($request['hitungmarker'])/intval($request['txtqty_ply_cut'])) + ($qtyPlyMarkerModulus > 0 ? 1 : 0);
         $timestamp = Carbon::now();
         $formcutDetailData = [];
         $message = "";
 
         if ($request['tarik_sisa']) {
-            $request['hitungform'] = $request['hitungform'] > 1 ? $request['hitungform'] - 1 : $request['hitungform'];
+            if ($request['hitungform'] == $maximumForm) {
+                $request['hitungform'] = $request['hitungform'] > 1 ? $request['hitungform'] - 1 : $request['hitungform'];
+            }
         }
 
         $keterangan = $request["notes"];
@@ -243,10 +247,10 @@ class SpreadingController extends Controller
 
             if ($i == intval($request['hitungform'])) {
                 if ($request['tarik_sisa']) {
-                    $qtyPly = $qtyPlyMarkerModulus > 0 ? $request['txtqty_ply_cut'] + $qtyPlyMarkerModulus : $request['txtqty_ply_cut'];
+                    $qtyPly = $request['sisa'] > 0 ? $request['txtqty_ply_cut'] + $request['sisa'] : $request['txtqty_ply_cut'];
                 } else {
-                    if (intval($request['hitungform'] > 1)) {
-                        $qtyPly = $qtyPlyMarkerModulus > 0 ? $qtyPlyMarkerModulus : $request['txtqty_ply_cut'];
+                    if (intval($request['hitungform']) == $maximumForm) {
+                        $qtyPly = $request['sisa'] > 0 ? $request['sisa'] : $request['txtqty_ply_cut'];
                     }
                 }
             }
@@ -386,64 +390,95 @@ class SpreadingController extends Controller
         $spreadingForm = FormCutInput::where('id', $id)->first();
 
         $checkMarker = Marker::where("kode", $spreadingForm->id_marker)->first();
-        $checkStocker = Stocker::where("form_cut_id", $id)->get();
-        $checkNumbering = StockerDetail::where("form_cut_id", $id)->get();
+        
+        $deleteSpreadingForm = FormCutInput::where('id', $id)->delete();
+        if ($deleteSpreadingForm) {
+            // Update Marker Balance
+            $updateMarkerBalance = Marker::where("kode", $spreadingForm->id_marker)->update([
+                "gelar_qty_balance" => DB::raw('gelar_qty_balance + '.$spreadingForm->qty_ply)
+            ]);
 
-        if ($checkStocker->count() < 1 && $checkNumbering->count() < 1) {
-            $deleteSpreadingForm = FormCutInput::where('id', $id)->delete();
+            // Similar Form No. Cutting Update
+            $formCuts = FormCutInput::selectRaw("form_cut_input.id as id, form_cut_input.no_form, form_cut_input.status")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+                where("marker_input.act_costing_ws", $checkMarker->act_costing_ws)->
+                where("marker_input.color", $checkMarker->color)->
+                where("marker_input.panel", $checkMarker->panel)->
+                where("form_cut_input.status", "SELESAI PENGERJAAN")->
+                orderBy("form_cut_input.waktu_selesai", "asc")->
+                orderBy("form_cut_input.no_cut", "asc")->
+                get();
 
-            if ($deleteSpreadingForm) {
-                // Similar Form No. Cutting Update
-                $formCuts = FormCutInput::selectRaw("form_cut_input.id as id, form_cut_input.no_form, form_cut_input.status")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
-                    where("marker_input.act_costing_ws", $checkMarker->act_costing_ws)->
-                    where("marker_input.color", $checkMarker->color)->
-                    where("marker_input.panel", $checkMarker->panel)->
-                    where("form_cut_input.status", "SELESAI PENGERJAAN")->
-                    orderBy("form_cut_input.waktu_selesai", "asc")->
-                    orderBy("form_cut_input.no_cut", "asc")->
-                    get();
+            if ($formCuts->count() > 0) {
+                $i=0;
+                foreach ($formCuts as $formCut) {
+                    $i++;
 
-                if ($formCuts->count() > 0) {
-                    $i=0;
-                    foreach ($formCuts as $formCut) {
-                        $i++;
-
-                        $updateFormCut = FormCutInput::where("id", $formCut->id)->
-                            update([
-                                "no_cut" => $i
-                            ]);
-                    }
-
-                    $updateMarkerBalance = Marker::where("kode", $spreadingForm->id_marker)->update([
-                        "gelar_qty_balance" => DB::raw('gelar_qty_balance + '.$spreadingForm->qty_ply)
-                    ]);
+                    $updateFormCut = FormCutInput::where("id", $formCut->id)->
+                        update([
+                            "no_cut" => $i
+                        ]);
                 }
-
-                $spreadingFormDetails = FormCutInputDetail::where('no_form_cut_input', $spreadingForm->no_form_cut_input)->get();
-                $deleteSpreadingFormDetail = FormCutInputDetail::where('no_form_cut_input', $spreadingForm->no_form_cut_input)->delete();
-                if ($deleteSpreadingFormDetail) {
-                    $idFormDetailLapArr = [];
-                    foreach ($spreadingFormDetails as $spreadingFormDetail) {
-                        array_push($idFormDetailLapArr, $spreadingFormDetail->id);
-                    }
-
-                    $deleteSpreadingFormDetailLap = FormCutInputDetailLap::whereIn("form_cut_input_detail_id", $idFormDetailLapArr)->delete();
-                }
-
-                $deleteCutPlan = CutPlan::where('no_form_cut_input', $spreadingForm->no_form_cut_input)->delete();
-
-                return array(
-                    "status" => 200,
-                    "message" => "Form berhasil dihapus",
-                    "table" => "datatable"
-                );
             }
+
+            $spreadingFormDetails = FormCutInputDetail::where('no_form_cut_input', $spreadingForm->no_form)->get();
+            $deleteSpreadingFormDetail = FormCutInputDetail::where('no_form_cut_input', $spreadingForm->no_form)->delete();
+            if ($deleteSpreadingFormDetail) {
+                $idFormDetailLapArr = [];
+                foreach ($spreadingFormDetails as $spreadingFormDetail) {
+                    DB::table("form_cut_input_detail_delete")->insert([
+                        "no_form_cut_input" => $spreadingFormDetail['no_form_cut_input'],
+                        "id_roll" => $spreadingFormDetail['id_roll'],
+                        "id_item" => $spreadingFormDetail['id_item'],
+                        "color_act" => $spreadingFormDetail['color_act'],
+                        "detail_item" => $spreadingFormDetail['detail_item'],
+                        "group_roll" => $spreadingFormDetail['group_roll'],
+                        "lot" => $spreadingFormDetail['lot'],
+                        "roll" => $spreadingFormDetail['roll'],
+                        "qty" => $spreadingFormDetail['qty'],
+                        "unit" => $spreadingFormDetail['unit'],
+                        "sisa_gelaran" => $spreadingFormDetail['sisa_gelaran'],
+                        "sambungan" => $spreadingFormDetail['sambungan'],
+                        "est_amparan" => $spreadingFormDetail['est_amparan'],
+                        "lembar_gelaran" => $spreadingFormDetail['lembar_gelaran'],
+                        "average_time" => $spreadingFormDetail['average_time'],
+                        "kepala_kain" => $spreadingFormDetail['kepala_kain'],
+                        "sisa_tidak_bisa" => $spreadingFormDetail['sisa_tidak_bisa'],
+                        "reject" => $spreadingFormDetail['reject'],
+                        "sisa_kain" => $spreadingFormDetail['sisa_kain'],
+                        "total_pemakaian_roll" => $spreadingFormDetail['total_pemakaian_roll'],
+                        "short_roll" => $spreadingFormDetail['short_roll'],
+                        "piping" => $spreadingFormDetail['piping'],
+                        "remark" => $spreadingFormDetail['remark'],
+                        "status" => $spreadingFormDetail['status'],
+                        "metode" => $spreadingFormDetail['metode'],
+                        "group_stocker" => $spreadingFormDetail['group_stocker'],
+                        "created_at" => $spreadingFormDetail['created_at'],
+                        "updated_at" => $spreadingFormDetail['updated_at'],
+                        "deleted_by" => Auth::user()->username,
+                        "deleted_at" => Carbon::now(),
+                    ]);
+
+                    array_push($idFormDetailLapArr, $spreadingFormDetail->id);
+                }
+
+                $deleteSpreadingFormDetailLap = FormCutInputDetailLap::whereIn("form_cut_input_detail_id", $idFormDetailLapArr)->delete();
+            }
+
+            $deleteCutPlan = CutPlan::where('no_form_cut_input', $spreadingForm->no_form_cut_input)->delete();
+            $deleteStocker = Stocker::where("form_cut_id", $id)->delete();
+            $deleteNumbering = StockerDetail::where("form_cut_id", $id)->delete();
 
             return array(
                 "status" => 200,
-                "message" => "Form tidak berhasil dihapus",
+                "message" => "Form berhasil dihapus",
                 "table" => "datatable"
             );
         }
+
+        return array(
+            "status" => 400,
+            "message" => "Form tidak berhasil dihapus",
+            "table" => "datatable"
+        );
     }
 }

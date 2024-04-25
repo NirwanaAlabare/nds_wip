@@ -219,7 +219,7 @@ select 'RO' id,b.no_bpb,id_item iditem,id_jo idjo,sum(qty_out) qty_out from whs_
     {
         // dd(str_replace(",","','",$request->id_barcode));
         // dd($request->id_barcode);
-        $det_item = DB::connection('mysql_sb')->select("select no_barcode id_roll,id_item ,id_jo ,no_roll roll_no, no_lot lot_no,kode_item goods_code,item_desc itemdesc,qty_aktual sisa,satuan unit,kode_lok kode_rak,no_ws kpno from whs_lokasi_inmaterial where no_barcode in (" . $request->id_barcode . ")
+        $det_item = DB::connection('mysql_sb')->select("select no_barcode id_roll,id_item ,id_jo ,no_roll roll_no, no_lot lot_no,kode_item goods_code,item_desc itemdesc,(qty_aktual - COALESCE(c.qty_out,0)) sisa,satuan unit,kode_lok kode_rak,no_ws kpno from whs_lokasi_inmaterial left join (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll) c on c.id_roll = whs_lokasi_inmaterial.no_barcode where no_barcode in (" . $request->id_barcode . ")
             UNION
             select * from (select id_roll,id_item,id_jo,roll_no,lot_no,goods_code,itemdesc,ROUND(COALESCE(qty_in,0) - COALESCE(qty_out,0),2) qty_sisa,unit,kode_rak,no_ws from (select a.no_barcode id_roll,a.id_item,a.id_jo,a.kode_lok kode_rak,b.itemdesc, b.goods_code, a.no_ws,a.kode_lok raknya,no_lot lot_no,no_roll roll_no,sum(qty) qty_in,c.qty_out,a.unit from whs_sa_fabric a inner join masteritem b on b.id_item = a.id_item left join (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll) c on c.id_roll = a.no_barcode where a.qty != 0 and qty_mut is null GROUP BY a.no_barcode) a) a where a.id_roll in (" . $request->id_barcode . ") and a.qty_sisa > 0");
 

@@ -23,7 +23,7 @@ class TrolleyStockerController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request)
-{
+    {
         $trolleyStocks = Trolley::selectRaw("
                 trolley.id,
                 trolley_stocker.tanggal_alokasi,
@@ -31,7 +31,6 @@ class TrolleyStockerController extends Controller
                 marker_input.style,
                 stocker.color,
                 trolley.nama_trolley,
-                stocker.qty_ply,
                 SUM(stocker.qty_ply) qty
             ")->
             leftJoin("trolley_stocker", function($join)
@@ -48,11 +47,12 @@ class TrolleyStockerController extends Controller
                             stocker_input.form_cut_id,
                             stocker_input.act_costing_ws,
                             stocker_input.color,
-                            stocker_input.qty_ply,
+                            COALESCE((MAX(dc_in_input.qty_awal) - MAX(dc_in_input.qty_reject) + MAX(dc_in_input.qty_replace)), stocker_input.qty_ply) qty_ply,
                             form_cut_input.id_marker
                         FROM
                             stocker_input
                             LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
+                            LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
                         GROUP BY
                             stocker_input.form_cut_id, stocker_input.so_det_id, stocker_input.group_stocker, stocker_input.ratio
                     ) stocker
@@ -484,10 +484,11 @@ class TrolleyStockerController extends Controller
                 stocker_input.color,
                 GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') nama_part,
                 stocker_input.size,
-                stocker_input.qty_ply qty,
-                CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir)) rangeAwalAkhir
+                COALESCE((MAX(dc_in_input.qty_awal) - MAX(dc_in_input.qty_reject) + MAX(dc_in_input.qty_replace)), stocker_input.qty_ply) qty,
+                CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir), (CASE WHEN MAX(dc_in_input.qty_reject) IS NOT NULL AND MAX(dc_in_input.qty_replace) IS NOT NULL THEN CONCAT(' (', (MAX(dc_in_input.qty_replace) - MAX(dc_in_input.qty_reject)), ') ') ELSE null END)) rangeAwalAkhir
             ")->
             leftJoin("stocker_input", "stocker_input.id", "=", "trolley_stocker.stocker_id")->
+            leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
             leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
             leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
             leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
@@ -532,7 +533,7 @@ class TrolleyStockerController extends Controller
                             "loading_plan_id" => $loadingLinePlan['id'],
                             "nama_line" => $lineData['username'],
                             "stocker_id" => $thisStockerData['id'],
-                            "qty" => $thisStockerData['qty_ply'],
+                            "qty" => $thisStockerData->dcIn ? (($thisStockerData->dcIn->qty_awal - $thisStockerData->dcIn->qty_reject + $thisStockerData->dcIn->qty_replace)  ?? $thisStockerData['qty_ply']) : $thisStockerData['qty_ply'],
                             "status" => "active",
                             "tanggal_loading" => $request['tanggal_loading'],
                             "created_at" => Carbon::now(),

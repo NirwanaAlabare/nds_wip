@@ -1573,6 +1573,14 @@
 
             // -Start Process Transaction-
             function updateToStartProcess() {
+                let dataObj = {
+                    startTime: startTime.value
+                }
+
+                if (isNotNull($("#no_form").val())) {
+                    dataObj.noForm = $("#no_form").val();
+                }
+
                 return $.ajax({
                     url: '{{ route('start-process-manual-form-cut') }}',
                     type: 'put',
@@ -1807,6 +1815,8 @@
                                             unitSisaGelaran = res.additional[0].unit;
                                             setSpreadingForm(res.additional[1], sisaGelaran, unitSisaGelaran);
                                         } else {
+                                            status = "PENGERJAAN FORM CUTTING SPREAD";
+
                                             checkStatus();
                                         }
                                     }

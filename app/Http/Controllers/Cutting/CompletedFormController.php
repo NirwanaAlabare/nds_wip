@@ -90,7 +90,7 @@ class CompletedFormController extends Controller
                     UPPER(b.tipe_marker) tipe_marker,
                     a.tipe_form_cut,
                     COALESCE(b.notes, '-') notes,
-                    GROUP_CONCAT(DISTINCT CONCAT(master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ', ') marker_details,
+                    GROUP_CONCAT(DISTINCT CONCAT(COALESCE(master_size_new.size, marker_input_detail.size), '(', marker_input_detail.ratio, ')') ORDER BY COALESCE(master_size_new.urutan, marker_input_detail.id) ASC SEPARATOR ', ') marker_details,
                     cutting_plan.tgl_plan,
                     cutting_plan.app
                 FROM `form_cut_input` a
@@ -373,6 +373,39 @@ class CompletedFormController extends Controller
                     $formCutDetailRoll->save();
                 }
             }
+
+            DB::table("form_cut_input_detail_delete")->insert([
+                "no_form_cut_input" => $formCutDetail['no_form_cut_input'],
+                "id_roll" => $formCutDetail['id_roll'],
+                "id_item" => $formCutDetail['id_item'],
+                "color_act" => $formCutDetail['color_act'],
+                "detail_item" => $formCutDetail['detail_item'],
+                "group_roll" => $formCutDetail['group_roll'],
+                "lot" => $formCutDetail['lot'],
+                "roll" => $formCutDetail['roll'],
+                "qty" => $formCutDetail['qty'],
+                "unit" => $formCutDetail['unit'],
+                "sisa_gelaran" => $formCutDetail['sisa_gelaran'],
+                "sambungan" => $formCutDetail['sambungan'],
+                "est_amparan" => $formCutDetail['est_amparan'],
+                "lembar_gelaran" => $formCutDetail['lembar_gelaran'],
+                "average_time" => $formCutDetail['average_time'],
+                "kepala_kain" => $formCutDetail['kepala_kain'],
+                "sisa_tidak_bisa" => $formCutDetail['sisa_tidak_bisa'],
+                "reject" => $formCutDetail['reject'],
+                "sisa_kain" => ($formCutDetail['sisa_kain'] ? $formCutDetail['sisa_kain'] : 0),
+                "total_pemakaian_roll" => $formCutDetail['total_pemakaian_roll'],
+                "short_roll" => $formCutDetail['short_roll'],
+                "piping" => $formCutDetail['piping'],
+                "remark" => $formCutDetail['remark'],
+                "status" => $formCutDetail['status'],
+                "metode" => $formCutDetail['metode'],
+                "group_stocker" => $formCutDetail['group_stocker'],
+                "created_at" => $formCutDetail['created_at'],
+                "updated_at" => $formCutDetail['updated_at'],
+                "deleted_by" => Auth::user()->username,
+                "deleted_at" => Carbon::now(),
+            ]);
 
             if ($formCutDetail->delete()) {
                 return array(

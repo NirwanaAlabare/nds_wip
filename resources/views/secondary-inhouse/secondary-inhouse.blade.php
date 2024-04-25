@@ -243,6 +243,7 @@
                             <th>WS</th>
                             <th>Style</th>
                             <th>Color</th>
+                            <th>Part</th>
                             <th>Size</th>
                             <th>No. Cut</th>
                             <th>Tujuan Asal</th>
@@ -326,6 +327,9 @@
                 },
                 {
                     data: 'color',
+                },
+                {
+                    data: 'nama_part',
                 },
                 {
                     data: 'size',

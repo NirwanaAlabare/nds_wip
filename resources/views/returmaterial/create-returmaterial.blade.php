@@ -691,10 +691,10 @@ function submitFormScan(e, evt) {
                 h_qty_out = sum_out + ' ' + satuan; 
                 sum_bal = parseFloat(qty_req) - parseFloat(sum_out);
                 h_sum_bal = sum_bal + ' ' + satuan;
-                $('#m_qty_out').val(h_qty_out);
-                $('#m_qty_out_h').val(sum_out);
-                $('#m_qty_bal').val(h_sum_bal);
-                $('#m_qty_bal_h').val(sum_bal);
+                $('#m_qty_out').val(h_qty_out.toFixed(2));
+                $('#m_qty_out_h').val(sum_out.toFixed(2));
+                $('#m_qty_bal').val(h_sum_bal.toFixed(2));
+                $('#m_qty_bal_h').val(sum_bal.toFixed(2));
 
         }
 
@@ -734,10 +734,10 @@ function submitFormScan(e, evt) {
                 h_qty_out = sum_out + ' ' + satuan; 
                 sum_bal = parseFloat(qty_req) - parseFloat(sum_out);
                 h_sum_bal = sum_bal + ' ' + satuan;
-                $('#m_qty_out2').val(h_qty_out);
-                $('#m_qty_out_h2').val(sum_out);
-                $('#m_qty_bal2').val(h_sum_bal);
-                $('#m_qty_bal_h2').val(sum_bal);
+                $('#m_qty_out2').val(h_qty_out.toFixed(2));
+                $('#m_qty_out_h2').val(sum_out.toFixed(2));
+                $('#m_qty_bal2').val(h_sum_bal.toFixed(2));
+                $('#m_qty_bal_h2').val(sum_bal.toFixed(2));
 
         }
 

@@ -262,9 +262,12 @@
                         <tbody>
                         </tbody>
                     </table>
-                    <div class="d-flex justify-content-start`">
-                        <button type="button" data-bs-toggle="modal" data-bs-target="#updateMassTmpDcModal" class="btn btn-primary btn-sm mb-3" onclick="editCheckedTmpDcIn()">
-                            <i class="fa fa-edit"></i> Edit Checked Stocker
+                    <div class="d-flex justify-content-between">
+                        <p class="my-3">
+                            Selected : <span id="checked-stocker-count" class="fw-bold">0</span>
+                        </p>
+                        <button type="button" data-bs-toggle="modal" data-bs-target="#updateMassTmpDcModal" class="btn btn-primary btn-sm my-3" onclick="editCheckedTmpDcIn()">
+                            <i class="fa fa-edit"></i> Edit Selected Stocker
                         </button>
                     </div>
                 </div>
@@ -382,6 +385,11 @@
             }
         }
 
+        function resetCheckedStocker() {
+            console.log("asdasdasd");
+            document.getElementById("checked-stocker-count").innerText = 0;
+        }
+
         function clearh() {
             $("#txtws").val('');
             $("#txtbuyer").val('');
@@ -495,7 +503,6 @@
                     url: '{{ route('get_tmp_dc_in') }}',
                     dataType: 'json',
                     dataSrc: 'data',
-
                 },
                 columns: [
                     {
@@ -577,9 +584,27 @@
                         }
                     }
                 ]
-
             });
         };
+
+        $('#datatable-scan thead tr').clone(true).appendTo('#datatable-scan thead');
+        $('#datatable-scan thead tr:eq(1) th').each(function(i) {
+            if (i != 0 && i != 1) {
+                var title = $(this).text();
+                $(this).html('<input type="text" class="form-control form-control-sm"/>');
+
+                $('input', this).on('keyup change', function() {
+                    if (datatable.column(i).search() !== this.value) {
+                        datatable
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            } else {
+                $(this).empty();
+            }
+        });
 
         function getdetail(id_c) {
             if (document.getElementById("loading")) {
@@ -717,8 +742,15 @@
             }
         }
 
-        function filterCheck(element) {
+        async function filterCheck(element) {
             let tmpDcStockCheck = document.getElementsByClassName('tmp_dc_stock_check');
+
+            let checkedTmpDcStock = 0;
+            for (let i = 0; i < tmpDcStockCheck.length; i++) {
+                if (tmpDcStockCheck[i].checked) {
+                    checkedTmpDcStock++;
+                }
+            }
 
             if (element.checked) {
                 for (let i = 0; i < tmpDcStockCheck.length; i++) {
@@ -729,19 +761,14 @@
                     }
                 }
             } else {
-                let checkedTmpDcStock = 0;
-                for (let i = 0; i < tmpDcStockCheck.length; i++) {
-                    if (tmpDcStockCheck[i].checked) {
-                        checkedTmpDcStock++;
-                    }
-                }
-
                 if (checkedTmpDcStock < 1) {
                     for (let i = 0; i < tmpDcStockCheck.length; i++) {
                         tmpDcStockCheck[i].removeAttribute('disabled');
                     }
                 }
             }
+
+            document.getElementById('checked-stocker-count').innerText = checkedTmpDcStock;
         }
 
         function editCheckedTmpDcIn() {

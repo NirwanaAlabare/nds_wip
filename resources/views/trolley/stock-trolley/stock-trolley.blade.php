@@ -52,7 +52,7 @@
                                     <td>{{ $trolleyStock->act_costing_ws }}</td>
                                     <td>{{ $trolleyStock->style }}</td>
                                     <td>{{ $trolleyStock->color }}</td>
-                                    <td>{{ $trolleyStock->qty }}</td>
+                                    <td>{{ num($trolleyStock->qty) }}</td>
                                     <td class="align-middle">
                                         <div class='d-flex gap-1 justify-content-center'>
                                             <a href='{{ route('send-trolley-stock', ['id' => $trolleyStock->id]) }}/' class='btn btn-primary btn-sm'>

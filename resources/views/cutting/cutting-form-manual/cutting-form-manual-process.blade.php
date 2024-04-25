@@ -1641,6 +1641,14 @@
 
             // -Start Process Transaction-
             function updateToStartProcess() {
+                let dataObj = {
+                    startTime: startTime.value
+                }
+
+                if (isNotNull($("#no_form").val())) {
+                    dataObj.noForm = $("#no_form").val();
+                }
+
                 return $.ajax({
                     url: '{{ route('start-process-manual-form-cut') }}/' + id,
                     type: 'put',
@@ -1854,6 +1862,8 @@
                             document.getElementById("loading").classList.add("d-none");
 
                             if (res) {
+                                status = "PENGERJAAN FORM CUTTING SPREAD";
+
                                 timeRecordTableTbody.innerHTML = "";
 
                                 clearScanItemForm();
@@ -1874,6 +1884,8 @@
                                             unitSisaGelaran = res.additional[0].unit;
                                             setSpreadingForm(res.additional[1], sisaGelaran, unitSisaGelaran);
                                         } else {
+                                            status = "PENGERJAAN FORM CUTTING SPREAD";
+
                                             checkStatus();
                                         }
                                     }
