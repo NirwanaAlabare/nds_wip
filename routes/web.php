@@ -65,6 +65,8 @@ use App\Http\Controllers\StockDcIncompleteController;
 use App\Http\Controllers\StockDcWipController;
 use App\Http\Controllers\KonfPemasukanController;
 use App\Http\Controllers\KonfPengeluaranController;
+use App\Http\Controllers\PackingTransferGarmentController;
+use App\Http\Controllers\PPIC_MasterSOController;
 
 /*
 |--------------------------------------------------------------------------
@@ -813,6 +815,27 @@ Route::middleware('auth')->group(function () {
         Route::get('/export_excel_mutasi_int_fg_stok', 'export_excel_mutasi_int_fg_stok')->name('export_excel_mutasi_int_fg_stok');
     });
 
+    // Packing
+    // Transfer Garment
+    Route::controller(PackingTransferGarmentController::class)->prefix("transfer-garment-packing")->middleware('packing')->group(function () {
+        Route::get('/', 'index')->name('transfer-garment');
+        Route::get('/create', 'create')->name('create-transfer-garment');
+        Route::get('/gettipe_garment', 'gettipe_garment')->name('gettipe_garment');
+    });
+
+    // PPIC
+    // Master
+    Route::controller(PPIC_MasterSOController::class)->prefix("master-so-ppic")->middleware('packing')->group(function () {
+        Route::get('/', 'index')->name('master-so');
+        Route::post('/import-excel-so', 'import_excel_so')->name('import-excel-so');
+        Route::get('/show_tmp_ppic_so', 'show_tmp_ppic_so')->name('show_tmp_ppic_so');
+        Route::get('/contoh_upload_ppic_so', 'contoh_upload_ppic_so')->name('contoh_upload_ppic_so');
+        Route::post('/undo_tmp_ppic_so', 'undo_tmp_ppic_so')->name('undo_tmp_ppic_so');
+        Route::get('/export_excel_master_sb_so', 'export_excel_master_sb_so')->name('export_excel_master_sb_so');
+        Route::post('/store_tmp_ppic_so', 'store_tmp_ppic_so')->name('store_tmp_ppic_so');
+        Route::get('/export_excel_master_so_ppic', 'export_excel_master_so_ppic')->name('export_excel_master_so_ppic');
+    });
+
     Route::controller(StockDcCompleteController::class)->prefix("stock-dc-complete")->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('stock-dc-complete');
         Route::get('/show/{partId?}/{color?}/{size?}', 'show')->name('stock-dc-complete-detail');
@@ -861,6 +884,11 @@ Route::get('/dashboard-fg-stock', function () {
 Route::get('/dashboard-packing', function () {
     return view('dashboard', ['page' => 'dashboard-packing']);
 })->middleware('auth')->name('dashboard-packing');
+
+//PPIC
+Route::get('/dashboard-ppic', function () {
+    return view('dashboard', ['page' => 'dashboard-ppic']);
+})->middleware('auth')->name('dashboard-ppic');
 
 
 Route::get('/dashboard-mut-karyawan', function () {
