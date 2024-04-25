@@ -533,6 +533,8 @@ class CuttingFormManualController extends Controller
         $noForm = "$hari-$bulan-$urutan";
 
         if ($id) {
+            $currentForm = FormCutInput::where("id", $id)->first();
+
             $updateFormCutInput = FormCutInput::where("id", $id)->
                 update([
                     "no_meja" => $request->no_meja,
@@ -550,8 +552,8 @@ class CuttingFormManualController extends Controller
                 return array(
                     "status" => 200,
                     "message" => "alright",
-                    "data" => FormCutInput::where("id", $id)->first(),
-                    "additional" => ['id' => $id, 'no_form' => $noForm],
+                    "data" => $currentForm,
+                    "additional" => ['id' => $id, 'no_form' => $currentForm->no_form],
                 );
             }
         } else {
@@ -1003,36 +1005,41 @@ class CuttingFormManualController extends Controller
         $itemQty = ($request["current_unit"] != "KGM" ? floatval($request['current_qty']) : floatval($request['current_qty_real']));
         $itemUnit = ($request["current_unit"] != "KGM" ? "METER" : $request['current_unit']);
 
-        $storeTimeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->where('form_cut_input.no_meja', $request->no_meja)->where('form_cut_input_detail.status', 'not complete')->updateOrCreate(
-            ["no_form_cut_input" => $request->no_form_cut_input],
-            [
-                "id_roll" => $request->current_id_roll,
-                "id_item" => $request->current_id_item,
-                "color_act" => $request->color_act,
-                "detail_item" => $request->detail_item,
-                "group_roll" => $request->current_group,
-                "lot" => $request->current_lot,
-                "roll" => $request->current_roll,
-                "qty" => $itemQty,
-                "unit" => $itemUnit,
-                "sisa_gelaran" => $request->current_sisa_gelaran,
-                "sambungan" => $request->current_sambungan,
-                "est_amparan" => $request->current_est_amparan,
-                "lembar_gelaran" => $request->current_lembar_gelaran,
-                "average_time" => $request->current_average_time,
-                "kepala_kain" => $request->current_kepala_kain,
-                "sisa_tidak_bisa" => $request->current_sisa_tidak_bisa,
-                "reject" => $request->current_reject,
-                "sisa_kain" => $request->current_sisa_kain,
-                "total_pemakaian_roll" => $request->current_total_pemakaian_roll,
-                "short_roll" => $request->current_short_roll,
-                "piping" => $request->current_piping,
-                "remark" => $request->current_remark,
-                "status" => "not complete",
-                "metode" => $request->metode ? $request->metode : "scan",
-            ]
-        );
+        $storeTimeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->
+            leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->
+            where('form_cut_input.no_meja', $request->no_meja)->
+            where('form_cut_input_detail.status', 'not complete')->
+            updateOrCreate(
+                ["no_form_cut_input" => $request->no_form_cut_input],
+                [
+                    "id_roll" => $request->current_id_roll,
+                    "id_item" => $request->current_id_item,
+                    "color_act" => $request->color_act,
+                    "detail_item" => $request->detail_item,
+                    "group_roll" => $request->current_group,
+                    "lot" => $request->current_lot,
+                    "roll" => $request->current_roll,
+                    "qty" => $itemQty,
+                    "unit" => $itemUnit,
+                    "sisa_gelaran" => $request->current_sisa_gelaran,
+                    "sambungan" => $request->current_sambungan,
+                    "est_amparan" => $request->current_est_amparan,
+                    "lembar_gelaran" => $request->current_lembar_gelaran,
+                    "average_time" => $request->current_average_time,
+                    "kepala_kain" => $request->current_kepala_kain,
+                    "sisa_tidak_bisa" => $request->current_sisa_tidak_bisa,
+                    "reject" => $request->current_reject,
+                    "sisa_kain" => $request->current_sisa_kain,
+                    "total_pemakaian_roll" => $request->current_total_pemakaian_roll,
+                    "short_roll" => $request->current_short_roll,
+                    "piping" => $request->current_piping,
+                    "remark" => $request->current_remark,
+                    "status" => "not complete",
+                    "metode" => $request->metode ? $request->metode : "scan",
+                ]
+            );
 
+            \Log::info(array("process" => "Store Current Time Record", "object" => $storeTimeRecordSummary, "user" => Auth::user()->username));
         if ($storeTimeRecordSummary) {
             $now = Carbon::now();
 
@@ -1312,49 +1319,46 @@ class CuttingFormManualController extends Controller
             "operator" => $request->operator,
         ]);
 
-        $notCompleted = FormCutInputDetail::where("no_form_cut_input", $formCutInputData->no_form)->where("status", "not complete")->first();
-        if ($notCompleted) {
-            $notCompletedDetails = FormCutInputDetail::where("no_form_cut_input", $formCutInputData->no_form)->where("status", "not complete")->get();
+        $notCompletedDetails = FormCutInputDetail::where("no_form_cut_input", $formCutInputData->no_form)->whereRaw("(status = 'not complete' OR status = 'extension')")->get();
+        if ($notCompletedDetails->count() > 0) {
+            foreach ($notCompletedDetails as $notCompletedDetail) {
+                DB::table("form_cut_input_detail_delete")->insert([
+                    "no_form_cut_input" => $notCompletedDetail['no_form_cut_input'],
+                    "id_roll" => $notCompletedDetail['id_roll'],
+                    "id_item" => $notCompletedDetail['id_item'],
+                    "color_act" => $notCompletedDetail['color_act'],
+                    "detail_item" => $notCompletedDetail['detail_item'],
+                    "group_roll" => $notCompletedDetail['group_roll'],
+                    "lot" => $notCompletedDetail['lot'],
+                    "roll" => $notCompletedDetail['roll'],
+                    "qty" => $notCompletedDetail['qty'],
+                    "unit" => $notCompletedDetail['unit'],
+                    "sisa_gelaran" => $notCompletedDetail['sisa_gelaran'],
+                    "sambungan" => $notCompletedDetail['sambungan'],
+                    "est_amparan" => $notCompletedDetail['est_amparan'],
+                    "lembar_gelaran" => $notCompletedDetail['lembar_gelaran'],
+                    "average_time" => $notCompletedDetail['average_time'],
+                    "kepala_kain" => $notCompletedDetail['kepala_kain'],
+                    "sisa_tidak_bisa" => $notCompletedDetail['sisa_tidak_bisa'],
+                    "reject" => $notCompletedDetail['reject'],
+                    "sisa_kain" => ($notCompletedDetail['sisa_kain'] ? $notCompletedDetail['sisa_kain'] : 0),
+                    "total_pemakaian_roll" => $notCompletedDetail['total_pemakaian_roll'],
+                    "short_roll" => $notCompletedDetail['short_roll'],
+                    "piping" => $notCompletedDetail['piping'],
+                    "remark" => $notCompletedDetail['remark'],
+                    "status" => $notCompletedDetail['status'],
+                    "metode" => $notCompletedDetail['metode'],
+                    "group_stocker" => $notCompletedDetail['group_stocker'],
+                    "created_at" => $notCompletedDetail['created_at'],
+                    "updated_at" => $notCompletedDetail['updated_at'],
+                    "deleted_by" => Auth::user()->username,
+                    "deleted_at" => Carbon::now(),
+                ]);
 
-            if ($notCompletedDetails->count() > 0) {
-                foreach ($notCompletedDetails as $notCompletedDetail) {
-                    DB::table("form_cut_input_detail_delete")->insert([
-                        "no_form_cut_input" => $notCompletedDetail['no_form_cut_input'],
-                        "id_roll" => $notCompletedDetail['id_roll'],
-                        "id_item" => $notCompletedDetail['id_item'],
-                        "color_act" => $notCompletedDetail['color_act'],
-                        "detail_item" => $notCompletedDetail['detail_item'],
-                        "group_roll" => $notCompletedDetail['group_roll'],
-                        "lot" => $notCompletedDetail['lot'],
-                        "roll" => $notCompletedDetail['roll'],
-                        "qty" => $notCompletedDetail['qty'],
-                        "unit" => $notCompletedDetail['unit'],
-                        "sisa_gelaran" => $notCompletedDetail['sisa_gelaran'],
-                        "sambungan" => $notCompletedDetail['sambungan'],
-                        "est_amparan" => $notCompletedDetail['est_amparan'],
-                        "lembar_gelaran" => $notCompletedDetail['lembar_gelaran'],
-                        "average_time" => $notCompletedDetail['average_time'],
-                        "kepala_kain" => $notCompletedDetail['kepala_kain'],
-                        "sisa_tidak_bisa" => $notCompletedDetail['sisa_tidak_bisa'],
-                        "reject" => $notCompletedDetail['reject'],
-                        "sisa_kain" => ($notCompletedDetail['sisa_kain'] ? $notCompletedDetail['sisa_kain'] : 0),
-                        "total_pemakaian_roll" => $notCompletedDetail['total_pemakaian_roll'],
-                        "short_roll" => $notCompletedDetail['short_roll'],
-                        "piping" => $notCompletedDetail['piping'],
-                        "remark" => $notCompletedDetail['remark'],
-                        "status" => $notCompletedDetail['status'],
-                        "metode" => $notCompletedDetail['metode'],
-                        "group_stocker" => $notCompletedDetail['group_stocker'],
-                        "created_at" => $notCompletedDetail['created_at'],
-                        "updated_at" => $notCompletedDetail['updated_at'],
-                        "deleted_by" => Auth::user()->username,
-                        "deleted_at" => Carbon::now(),
-                    ]);
-                }
+                FormCutInputDetailLap::where("form_cut_input_detail_id", $notCompletedDetail->id)->delete();
             }
 
-            FormCutInputDetailLap::where("form_cut_input_detail_id", $notCompleted->id)->delete();
-            FormCutInputDetail::where("no_form_cut_input", $formCutInputData->no_form)->where("status", "not complete")->delete();
+            FormCutInputDetail::where("no_form_cut_input", $formCutInputData->no_form)->whereRaw("(status = 'not complete' OR status = 'extension')")->delete();
         }
 
         // store to part form
