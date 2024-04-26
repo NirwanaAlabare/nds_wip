@@ -41,7 +41,7 @@
                     <div class="col-md-12">
                         <div class="mb-3">
                             <div class="form-group">
-                                <label>Tipe Garment</label>
+                                <label>No. PO</label>
                                 <select class='form-control select2bs4 form-control-sm' style='width: 100%;'
                                     name='cbo_garment' id='cbo_garment' onchange='getcolor();getproduct();'></select>
                             </div>
