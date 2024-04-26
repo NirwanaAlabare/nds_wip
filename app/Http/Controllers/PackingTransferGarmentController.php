@@ -56,7 +56,7 @@ class PackingTransferGarmentController extends Controller
         //     order by ac.kpno asc, sd.color asc, styleno asc, msn.urutan asc
         // ");
 
-        $data_ws = PPICMasterSo::get();
+        $data_ws = PPICMasterSo::all();
 
         $html = "<option value=''>Pilih Garment</option>";
 
