@@ -173,6 +173,8 @@
         });
 
         $(document).ready(async () => {
+            document.getElementById("kode_stocker").focus();
+
             $('#trolley_id').val("").trigger("change");
             $('#kode_stocker').val("").trigger("change");
 
@@ -252,6 +254,8 @@
 
                 // -Initialize Stocker Scanner-
                     async function initStockerScan() {
+                        document.getElementById("kode_stocker").focus();
+
                         if (document.getElementById("stocker-reader")) {
                             if (stockerScannerInitialized == false && trolleyScannerInitialized == false) {
                                 if (stockerScanner == null || (stockerScanner && (stockerScanner.getState() && stockerScanner.getState() != 2))) {
@@ -402,6 +406,10 @@
 
             clearStockerData();
         }
+
+        $('#trolley_id').on("select2:select", () => {
+            document.getElementById("kode_stocker").focus();
+        });
 
         function getStockerDataInput() {
             let id = document.getElementById('kode_stocker').value;

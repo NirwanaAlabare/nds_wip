@@ -275,6 +275,8 @@
             // Function List :
                 // -Initialize Stocker Scanner-
                     async function initStockerScan() {
+                        document.getElementById("kode_stocker").focus();
+
                         if (document.getElementById("stocker-reader")) {
                             if (stockerScannerInitialized == false) {
                                 if (stockerScanner == null || (stockerScanner && (stockerScanner.getState() && stockerScanner.getState() != 2))) {
