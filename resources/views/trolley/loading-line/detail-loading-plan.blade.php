@@ -74,24 +74,25 @@
                 </thead>
                 <tbody>
                     @php
-                        $currentWs = null;
-                        $currentColor = null;
                         $currentForm = null;
                         $currentSize = null;
                         $currentGroup = null;
-                        $currentRatio = null;
+                        $currentRange = null;
+
+                        $latestUpdate = null;
 
                         $totalQty = 0;
                     @endphp
                     @foreach ($loadingLinePlan->loadingLines as $loadingLine)
                         @php
-                            if ($currentWs != $loadingLine->stocker->act_costing_ws && $currentColor != $loadingLine->stocker->color && $currentForm != $loadingLine->stocker->formCut->no_form && $currentSize != $loadingLine->stocker->size && $currentGroup != $loadingLine->stocker->shade && $currentRatio != $loadingLine->stocker->ratio) {
-                                $currentWs = $loadingLine->stocker->act_costing_ws;
-                                $currentColor = $loadingLine->stocker->color;
-                                $currentForm = $loadingLine->stocker->no_form;
+                            if ($currentForm != $loadingLine->stocker->formCut->no_form || $currentSize != $loadingLine->stocker->size || $currentGroup != $loadingLine->stocker->shade || $currentRange != ($loadingLine->stocker->range_awal)." - ".($loadingLine->stocker->range_akhir)) {
+                                $currentForm = $loadingLine->stocker->formCut->no_form;
                                 $currentSize = $loadingLine->stocker->size;
                                 $currentGroup = $loadingLine->stocker->shade;
-                                $currentRatio = $loadingLine->stocker->ratio;
+                                $currentRange = ($loadingLine->stocker->range_awal)." - ".($loadingLine->stocker->range_akhir);
+
+                                $currentUpdate = $loadingLine->updated_at ? $loadingLine->updated_at : $loadingLine->tanggal_loading;
+                                $currentUpdate > $latestUpdate && $latestUpdate = $currentUpdate;
 
                                 $totalQty += $loadingLine->qty;
                             }
@@ -109,14 +110,11 @@
                         </tr>
                     @endforeach
                 </tbody>
-                @php
-                    $loadingLinePlan->groupBy()
-                @endphp
                 <tfoot>
                     <tr>
                         <th colspan="7">Total</th>
                         <th>{{ $totalQty }}</th>
-                        <th></th>
+                        <th>{{ $latestUpdate }}</th>
                     </tr>
                 </tfoot>
             </table>
@@ -137,6 +135,8 @@
     <script>
         $(document).ready(() => {
             let stockerDatatable = $("#datatable-stocker").DataTable({
+                ordering: false,
+                pageLength: 25,
                 rowsGroup: [
                     0,
                     1,

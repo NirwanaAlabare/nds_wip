@@ -38,9 +38,9 @@
                             <th>Act</th>
                             <th>No. WS</th>
                             <th>Style</th>
+                            <th>Color</th>
                             <th>Target Sewing</th>
                             <th>Target Loading</th>
-                            <th>Color</th>
                             <th>Loading</th>
                             <th>Balance Loading</th>
                             <th>Trolley</th>
@@ -73,7 +73,7 @@
             $("#tgl-awal").val(oneWeeksBeforeFull).trigger("change");
 
             window.addEventListener("focus", () => {
-                $('#datatable-loading-line').DataTable().ajax.reload(null, false);
+                // $('#datatable-loading-line').DataTable().ajax.reload(null, false);
             });
         });
 
@@ -98,48 +98,37 @@
                     data: 'style',
                 },
                 {
+                    data: 'color'
+                },
+                {
                     data: 'target_sewing'
                 },
                 {
                     data: 'target_loading'
                 },
                 {
-                    data: 'color'
-                },
-                {
                     data: 'loading_qty'
                 },
                 {
-                    data: 'balance_loading'
+                    data: 'loading_balance'
                 },
                 {
                     data: 'nama_trolley',
                 },
                 {
-                    data: 'stock_trolley'
+                    data: 'trolley_qty'
                 },
                 {
                     data: 'trolley_color'
                 },
             ],
-            rowsGroup: [
-                // Always the array (!) of the column-selectors in specified order to which rows groupping is applied
-                // (column-selector could be any of specified in https://datatables.net/reference/type/column-selector)
-                0,
-                2,
-                3,
-                4,
-                5,
-                6
-            ],
             columnDefs: [
                 {
                     targets: "_all",
-                    className: 'align-middle'
+                    className: 'align-middle text-nowrap'
                 },
                 {
                     targets: [1],
-                    className: 'align-middle',
                     render: (data, type, row, meta) => {
                         console.log(row['id']);
                         return `
@@ -155,12 +144,21 @@
                     }
                 },
                 {
-                    targets: [4,5,7,8,10],
-                    className: 'align-middle',
+                    targets: [5,6,7,8,10],
                     render: (data, type, row, meta) => {
                         return Number(data).toLocaleString('id-ID')
                     }
                 }
+            ],
+            rowsGroup: [
+                // Always the array (!) of the column-selectors in specified order to which rows groupping is applied
+                // (column-selector could be any of specified in https://datatables.net/reference/type/column-selector)
+                0,
+                2,
+                3,
+                4,
+                5,
+                6
             ],
         });
 
@@ -170,7 +168,7 @@
 
         $('#datatable-loading-line thead tr').clone(true).appendTo('#datatable-loading-line thead');
         $('#datatable-loading-line thead tr:eq(1) th').each(function(i) {
-            if (i == 0 || i == 2 || i == 3 || i == 6 || i == 9 || i == 11) {
+            if (i == 0 || i == 2 || i == 3 || i == 4 || i == 9 || i == 11) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" />');
 
