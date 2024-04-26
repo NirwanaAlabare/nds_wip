@@ -322,7 +322,7 @@
                     targets: [11],
                     render: (data, type, row, meta) => {
                         return `
-                            <div class="progress border border-sb position-relative" style="height: 21px">
+                            <div class="progress border border-sb position-relative" style="height: 21px; width: 100px;">
                                 <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">` + row.total_lembar + `/` + row.gelar_qty + `</p>
                                 <div class="progress-bar" style="background-color: #75baeb;width: ` + ((row.total_lembar / row.gelar_qty) * 100) + `%" role="progressbar"></div>
                             </div>
