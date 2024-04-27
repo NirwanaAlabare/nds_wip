@@ -42,7 +42,7 @@
         @endif
 
         @if ($page == 'dashboard-dc')
-            @include('dc.dashboard', ["months" => $months, "years" => $years])
+            @include('dc.dashboard', ["months" => $months, "years" => $years, "dataQty" => $dataQty])
         @endif
 
         @if ($page == 'dashboard-mut-karyawan')

@@ -40,7 +40,7 @@ class DashboardController extends Controller
                     dc_in_input.tujuan,
                     dc_in_input.tempat,
                     dc_in_input.lokasi,
-                    (CASE WHEN dc_in_input.tujuan = 'SECONDARY DALAM' THEN dc_in_input.lokasi ELSE '-' END) secondary,
+                    (CASE WHEN dc_in_input.tujuan = 'SECONDARY DALAM' OR dc_in_input.tujuan = 'SECONDARY LUAR' THEN dc_in_input.lokasi ELSE '-' END) secondary,
                     COALESCE(rack_detail_stocker.nm_rak, (CASE WHEN dc_in_input.tempat = 'RAK' THEN dc_in_input.lokasi ELSE null END), (CASE WHEN dc_in_input.lokasi = 'RAK' THEN dc_in_input.det_alokasi ELSE null END), '-') rak,
                     COALESCE(trolley.nama_trolley, (CASE WHEN dc_in_input.tempat = 'TROLLEY' THEN dc_in_input.lokasi ELSE null END), '-') troli,
                     (dc_in_input.qty_awal - dc_in_input.qty_reject + dc_in_input.qty_replace) dc_in_qty,
@@ -69,6 +69,24 @@ class DashboardController extends Controller
             return DataTables::eloquent($stockers)->toJson();
         }
 
-        return view('dashboard', ['page' => 'dashboard-dc', 'months' => $months, 'years' => $years]);
+        $dataQty = Stocker::selectRaw("
+                stocker_input.status,
+                (CASE WHEN dc_in_input.tujuan = 'SECONDARY DALAM' OR dc_in_input.tujuan = 'SECONDARY LUAR' THEN dc_in_input.lokasi ELSE '-' END) secondary,
+                COALESCE(rack_detail_stocker.nm_rak, (CASE WHEN dc_in_input.tempat = 'RAK' THEN dc_in_input.lokasi ELSE null END), (CASE WHEN dc_in_input.lokasi = 'RAK' THEN dc_in_input.det_alokasi ELSE null END), '-') rak,
+                COALESCE(trolley.nama_trolley, (CASE WHEN dc_in_input.tempat = 'TROLLEY' THEN dc_in_input.lokasi ELSE null END), '-') troli,
+                COALESCE(UPPER(loading_line.nama_line), '-') line,
+                (dc_in_input.qty_awal - dc_in_input.qty_reject + dc_in_input.qty_replace) dc_in_qty
+            ")->
+            leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+            leftJoin("part_detail", "stocker_input.part_detail_id", "=", "part_detail.id")->
+            leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+            leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+            leftJoin("rack_detail_stocker", "rack_detail_stocker.stocker_id", "=", "stocker_input.id_qr_stocker")->
+            leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->
+            leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
+            leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
+            get();
+
+        return view('dashboard', ['page' => 'dashboard-dc', 'months' => $months, 'years' => $years, 'dataQty' => $dataQty]);
     }
 }
