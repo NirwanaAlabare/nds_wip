@@ -874,6 +874,7 @@ Route::get('/dashboard-stocker', function () {
 
 //dc in
 Route::get('/dashboard-dc', [DashboardController::class, 'dc'])->middleware('auth')->name('dashboard-dc');
+Route::get('/dc-qty', [DashboardController::class, 'dcQty'])->middleware('auth')->name('dc-qty');
 
 //fg stock
 Route::get('/dashboard-fg-stock', function () {
@@ -890,7 +891,6 @@ Route::get('/dashboard-ppic', function () {
     return view('dashboard', ['page' => 'dashboard-ppic']);
 })->middleware('auth')->name('dashboard-ppic');
 
-
 Route::get('/dashboard-mut-karyawan', function () {
     return view('dashboard', ['page' => 'dashboard-mut-karyawan']);
 })->middleware('auth')->name('dashboard-mut-karyawan');
@@ -898,8 +898,6 @@ Route::get('/dashboard-mut-karyawan', function () {
 Route::get('/dashboard-mut-mesin', function () {
     return view('dashboard-mesin', ['page' => 'dashboard-mut-mesin']);
 })->middleware('auth')->name('dashboard-mut-mesin');
-
-
 
 // Misc
 Route::get('/timer', function () {

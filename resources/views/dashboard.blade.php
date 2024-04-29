@@ -23,6 +23,10 @@
             .tooltip-inner {
                 text-align: left !important;
             }
+            .dataTables_wrapper .dataTables_processing {
+                position: absolute;
+                top: 35% !important;
+            }
         </style>
     @endif
 @endsection
@@ -42,7 +46,7 @@
         @endif
 
         @if ($page == 'dashboard-dc')
-            @include('dc.dashboard', ["months" => $months, "years" => $years, "dataQty" => $dataQty])
+            @include('dc.dashboard', ["months" => $months, "years" => $years])
         @endif
 
         @if ($page == 'dashboard-mut-karyawan')
@@ -2425,13 +2429,14 @@
 
     @if ($page == 'dashboard-dc')
         <script>
-            $(document).ready(function() {
+            $(document).ready(async function() {
                 let today = new Date();
                 let todayDate = ("0" + today.getDate()).slice(-2);
                 let todayMonth = ("0" + (today.getMonth() + 1)).slice(-2);
                 let todayYear = today.getFullYear();
                 let todayFullDate = todayYear + '-' + todayMonth + '-' + todayDate;
 
+                // DC Datatable
                 $('#dc-month-filter').val((today.getMonth() + 1)).trigger("change");
                 $('#dc-year-filter').val(todayYear).trigger("change");
 
@@ -2494,8 +2499,12 @@
                     ],
                     columnDefs: [
                         {
-                            targets: "_all",
+                            targets: [0, 1, 2, 3, 4, 5],
                             className: "text-nowrap"
+                        },
+                        {
+                            targets: "_all",
+                            className: "text-nowrap colorize"
                         }
                     ],
                     rowsGroup: [
@@ -2507,12 +2516,12 @@
                         5
                     ],
                     rowCallback: function( row, data, index ) {
-                        if (!data['dc_in_id'] && data['troli'] == '-') {
-                            $('td', row).css('color', '#da4f4a');
-                        }
-
                         if (data['line'] != '-') {
-                            $('td', row).css('color', '#28q745');
+                            $('td.colorize', row).css('color', '#2e8a57');
+                            $('td.colorize', row).css('font-weight', '600');
+                        } else if (!data['dc_in_id'] && data['troli'] == '-') {
+                            $('td.colorize', row).css('color', '#da4f4a');
+                            $('td.colorize', row).css('font-weight', '600');
                         }
                     }
                 });
@@ -2538,7 +2547,71 @@
                 $('#dc-year-filter').on('change', () => {
                     $('#datatable-dc').DataTable().ajax.reload();
                 });
+
+                // DC Qty
+                $('#dcqty-month-filter').val((today.getMonth() + 1)).trigger("change");
+                $('#dcqty-year-filter').val(todayYear).trigger("change");
+                await getDcQty();
+
+                $('#dcqty-month-filter').on('change', () => {
+                    getDcQty();
+                });
+                $('#dcqty-year-filter').on('change', () => {
+                    getDcQty();
+                });
             });
+
+            function getDcQty() {
+                document.getElementById("dc-qty-data").classList.add("d-none");
+                document.getElementById("loading-dc-qty").classList.remove("d-none");
+
+                return $.ajax({
+                    url: '{{ route('dc-qty') }}',
+                    type: 'get',
+                    data: {
+                        month : $('#dcqty-month-filter').val(),
+                        year : $('#dcqty-year-filter').val()
+                    },
+                    dataType: 'json',
+                    success: function(res) {
+                        if (res) {
+                            let totalStocker = 0;
+                            let totalSecondary = 0;
+                            let totalRak = 0;
+                            let totalTroli = 0;
+                            let totalLine = 0;
+
+                            res.forEach(item => {
+                                if (item.secondary == "-" && item.rak == "-" && item.troli == "-" && item.line == "-") {
+                                    totalStocker += item.dc_in_qty;
+                                } else if (item.secondary != "-" && item.rak == "-" && item.troli == "-" && item.line == "-") {
+                                    totalSecondary += item.dc_in_qty;
+                                } else if (item.rak != "-" && item.troli == "-" && item.line == "-") {
+                                    totalRak += item.dc_in_qty;
+                                } else if (item.troli != "-" && item.line == "-") {
+                                    totalTroli += item.dc_in_qty;
+                                } else if (item.line != "-") {
+                                    totalLine += item.dc_in_qty;
+                                }
+                            });
+
+                            document.getElementById("stocker-qty").innerText = totalStocker.toLocaleString('ID-id');
+                            document.getElementById("secondary-qty").innerText = totalSecondary.toLocaleString('ID-id');
+                            document.getElementById("non-secondary-qty").innerText = (totalRak + totalTroli).toLocaleString('ID-id');
+                            document.getElementById("line-qty").innerText = totalLine.toLocaleString('ID-id');
+                        }
+
+                        document.getElementById("dc-qty-data").classList.remove("d-none");
+                        document.getElementById("loading-dc-qty").classList.add("d-none");
+                    },
+                    error: function(jqXHR) {
+                        console.log(jqXHR);
+
+                        document.getElementById("dc-qty-data").classList.remove("d-none");
+                        document.getElementById("loading-dc-qty").classList.add("d-none");
+                    }
+                });
+            }
         </script>
     @endif
 
