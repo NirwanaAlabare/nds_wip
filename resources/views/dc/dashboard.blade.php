@@ -3,7 +3,7 @@
 <div class="card">
     <div class="card-body">
         <div class="d-flex justify-content-between">
-            <h5 class="text-sb fw-bold">DC IN Input Count</h5>
+            <h5 class="text-sb fw-bold">DC Input Count</h5>
             <div class="d-flex justify-content-end gap-1 mb-3">
                 <select class="form-select form-select-sm select2bs4 w-auto" id="dcqty-month-filter" readonly value="{{ date('m') }}">
                     <option value="" selected disabled>Bulan</option>
@@ -67,7 +67,7 @@
 <div class="card">
     <div class="card-body">
         <div class="d-flex justify-content-between">
-            <h5 class="text-sb fw-bold">DC IN Stock Detail</h5>
+            <h5 class="text-sb fw-bold">DC Stock Detail</h5>
             <div class="d-flex justify-content-start align-items-center gap-1 mb-3">
                 <div class="mb-1">
                     <select class="form-select form-select-sm select2bs4" id="dc-month-filter" readonly value="{{ date('m') }}">
