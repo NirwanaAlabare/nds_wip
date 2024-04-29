@@ -476,8 +476,8 @@ class TrolleyStockerController extends Controller
 
         $trolleyStocks = TrolleyStocker::selectRaw("
                 trolley_stocker.id,
-                GROUP_CONCAT(stocker_input.id ORDER BY stocker_input.id ASC) stocker_id,
-                GROUP_CONCAT(stocker_input.id_qr_stocker ORDER BY stocker_input.id ASC SEPARATOR ', ') id_qr_stocker,
+                GROUP_CONCAT(DISTINCT stocker_input.id ORDER BY stocker_input.id ASC) stocker_id,
+                GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker ORDER BY stocker_input.id ASC SEPARATOR ', ') id_qr_stocker,
                 stocker_input.act_costing_ws,
                 form_cut_input.no_cut,
                 marker_input.style,
@@ -485,7 +485,7 @@ class TrolleyStockerController extends Controller
                 GROUP_CONCAT(DISTINCT master_part.nama_part SEPARATOR ', ') nama_part,
                 stocker_input.size,
                 COALESCE((MAX(dc_in_input.qty_awal) - MAX(dc_in_input.qty_reject) + MAX(dc_in_input.qty_replace)), stocker_input.qty_ply) qty,
-                CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir), (CASE WHEN MAX(dc_in_input.qty_reject) IS NOT NULL AND MAX(dc_in_input.qty_replace) IS NOT NULL THEN CONCAT(' (', (MAX(dc_in_input.qty_replace) - MAX(dc_in_input.qty_reject)), ') ') ELSE null END)) rangeAwalAkhir
+                CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir), (CASE WHEN MAX(dc_in_input.qty_reject) IS NOT NULL AND MAX(dc_in_input.qty_replace) IS NOT NULL THEN CONCAT(' (', (MAX(dc_in_input.qty_replace) - MAX(dc_in_input.qty_reject)), ') ') ELSE ' (0)' END)) rangeAwalAkhir
             ")->
             leftJoin("stocker_input", "stocker_input.id", "=", "trolley_stocker.stocker_id")->
             leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->

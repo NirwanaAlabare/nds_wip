@@ -2500,7 +2500,7 @@
                     columnDefs: [
                         {
                             targets: [0, 1, 2, 3, 4, 5],
-                            className: "text-nowrap"
+                            className: "text-nowrap text-center align-middle"
                         },
                         {
                             targets: "_all",
