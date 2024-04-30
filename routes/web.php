@@ -25,15 +25,8 @@ use App\Http\Controllers\Cutting\CompletedFormController;
 // Stocker
 use App\Http\Controllers\Stocker\StockerController;
 
-use App\Http\Controllers\SummaryController;
-use App\Http\Controllers\WarehouseController;
-use App\Http\Controllers\MasterLokasiController;
-use App\Http\Controllers\InMaterialController;
-use App\Http\Controllers\OutMaterialController;
-use App\Http\Controllers\MutLokasiController;
-use App\Http\Controllers\QcPassController;
-use App\Http\Controllers\EmployeeController;
-use App\Http\Controllers\DCInController;
+// DC
+use App\Http\Controllers\DC\DCInController;
 use App\Http\Controllers\SecondaryInController;
 use App\Http\Controllers\RackController;
 use App\Http\Controllers\RackStockerController;
@@ -41,6 +34,14 @@ use App\Http\Controllers\TrolleyController;
 use App\Http\Controllers\TrolleyStockerController;
 use App\Http\Controllers\LoadingLineController;
 use App\Http\Controllers\SecondaryInhouseController;
+
+use App\Http\Controllers\WarehouseController;
+use App\Http\Controllers\MasterLokasiController;
+use App\Http\Controllers\InMaterialController;
+use App\Http\Controllers\OutMaterialController;
+use App\Http\Controllers\MutLokasiController;
+use App\Http\Controllers\QcPassController;
+use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\MutasiMesinController;
 use App\Http\Controllers\MutasiMesinMasterController;
 use App\Http\Controllers\ReqMaterialController;

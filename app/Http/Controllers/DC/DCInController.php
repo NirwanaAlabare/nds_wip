@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\DC;
+
+use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,7 +21,6 @@ class DCInController extends Controller
     public function index(Request $request)
     {
         $tgl_skrg = Carbon::now()->isoFormat('D MMMM Y hh:mm:ss');
-        $tglskrg = date('Y-m-d');
 
         $data_rak = DB::select("select nama_detail_rak isi, nama_detail_rak tampil from rack_detail");
         // dd($data_rak);
