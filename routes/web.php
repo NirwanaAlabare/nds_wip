@@ -23,7 +23,7 @@ use App\Http\Controllers\Cutting\RollController;
 use App\Http\Controllers\Cutting\CompletedFormController;
 
 // Stocker
-use App\Http\Controllers\StockerController;
+use App\Http\Controllers\Stocker\StockerController;
 
 use App\Http\Controllers\SummaryController;
 use App\Http\Controllers\WarehouseController;

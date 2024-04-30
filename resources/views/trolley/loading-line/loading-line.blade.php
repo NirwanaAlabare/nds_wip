@@ -81,6 +81,7 @@
             ordering: false,
             processing: true,
             serverSide: true,
+            pageLength: 25,
             ajax: {
                 url: '{{ route('loading-line') }}',
             },
@@ -154,6 +155,7 @@
                 // Always the array (!) of the column-selectors in specified order to which rows groupping is applied
                 // (column-selector could be any of specified in https://datatables.net/reference/type/column-selector)
                 0,
+                1,
                 2,
                 3,
                 4,
