@@ -47,6 +47,14 @@
                                         $qty = intval($ratio->ratio) * intval($currentTotal);
                                         $qtyBefore = intval($ratio->ratio) * intval($currentBefore);
 
+                                        if (isset($modifySizeQtyStocker) && $modifySizeQtyStocker) {
+                                            $modifyThisStocker = $modifySizeQtyStocker->where("so_det_id", $ratio->so_det_id)->first();
+
+                                            if ($modifyThisStocker) {
+                                                $qty = $modifyThisStocker->modified_qty;
+                                            }
+                                        }
+
                                         $stockerThis = $dataStocker ? $dataStocker->where("so_det_id", $ratio->so_det_id)->where("no_cut", $dataSpreading->no_cut)->first() : null;
                                         $stockerBefore = $dataStocker ? $dataStocker->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->sortByDesc('no_cut')->first() : null;
 

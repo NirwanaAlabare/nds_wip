@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\DC;
 
+use App\Http\Controllers\Controller;
 use App\Models\Rack;
 use App\Models\RackDetail;
 use App\Models\RackDetailStocker;
@@ -50,7 +51,7 @@ class RackStockerController extends Controller
         groupBy("rack_detail_stocker.detail_rack_id", "stocker_input.form_cut_id", "stocker_input.so_det_id", "stocker_input.group_stocker")->
         get();
 
-        return view('rack.stock-rack', ['page' => 'dashboard-dc', "subPageGroup" => "rak-dc", "subPage" => "stock-rack", 'racks' => $racks, 'stockers' => $stockers]);
+        return view('dc.rack.stock-rack', ['page' => 'dashboard-dc', "subPageGroup" => "rak-dc", "subPage" => "stock-rack", 'racks' => $racks, 'stockers' => $stockers]);
     }
 
     /**
@@ -67,7 +68,7 @@ class RackStockerController extends Controller
     {
         $racks = Rack::orderBy('nama_rak', 'asc')->get();
 
-        return view('rack.allocate-rack', ['page' => 'dashboard-dc', 'subPageGroup' => 'rak-dc', 'subPage' => 'stock-rack', 'racks' => $racks]);
+        return view('dc.rack.allocate-rack', ['page' => 'dashboard-dc', 'subPageGroup' => 'rak-dc', 'subPage' => 'stock-rack', 'racks' => $racks]);
     }
 
     /**
@@ -119,7 +120,7 @@ class RackStockerController extends Controller
         groupBy("rack_detail_stocker.detail_rack_id", "stocker_input.form_cut_id", "stocker_input.so_det_id", "stocker_input.group_stocker", "stocker_input.ratio")->
         get();
 
-        return view('rack.stock-rack-visual', ['page' => 'dashboard-dc', 'subPageGroup' => 'rak-dc', 'subPage' => 'stock-rack-visual', 'racks' => $racks, 'stockers' => $stockers]);
+        return view('dc.rack.stock-rack-visual', ['page' => 'dashboard-dc', 'subPageGroup' => 'rak-dc', 'subPage' => 'stock-rack-visual', 'racks' => $racks, 'stockers' => $stockers]);
     }
 
     public function stockRackVisualDetail(Request $request) {

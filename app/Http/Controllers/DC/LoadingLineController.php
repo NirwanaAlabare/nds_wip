@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\DC;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\LoadingLinePlan;
 use App\Models\SignalBit\UserLine;
@@ -118,7 +119,7 @@ class LoadingLineController extends Controller
                 ->toJson();
         }
 
-        return view("trolley.loading-line.loading-line", ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'loading-line']);
+        return view("dc.trolley.loading-line.loading-line", ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'loading-line']);
     }
 
     /**
@@ -131,7 +132,7 @@ class LoadingLineController extends Controller
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
         $lines = UserLine::where('Groupp', 'SEWING')->whereRaw("(Locked != 1 || Locked IS NULL)")->orderBy('line_id', 'asc')->get();
 
-        return view("trolley.loading-line.create-loading-plan", ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'loading-line', 'lines' => $lines, 'orders' => $orders]);
+        return view("dc.trolley.loading-line.create-loading-plan", ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'loading-line', 'lines' => $lines, 'orders' => $orders]);
     }
 
     /**
@@ -227,7 +228,7 @@ class LoadingLineController extends Controller
 
         $loadingLinePlan = LoadingLinePlan::where("id", $id)->first();
 
-        return view("trolley.loading-line.detail-loading-plan", ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'loading-line', "loadingLinePlan" => $loadingLinePlan]);
+        return view("dc.trolley.loading-line.detail-loading-plan", ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'loading-line', "loadingLinePlan" => $loadingLinePlan]);
     }
 
     /**
@@ -243,7 +244,7 @@ class LoadingLineController extends Controller
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
         $lines = UserLine::where('Groupp', 'SEWING')->whereRaw("(Locked != 1 || Locked IS NULL)")->orderBy('line_id', 'asc')->get();
 
-        return view("trolley.loading-line.edit-loading-plan", ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'loading-line', 'loadingLinePlan' => $loadingLinePlan, 'lines' => $lines, 'orders' => $orders]);
+        return view("dc.trolley.loading-line.edit-loading-plan", ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'loading-line', 'loadingLinePlan' => $loadingLinePlan, 'lines' => $lines, 'orders' => $orders]);
     }
 
     /**

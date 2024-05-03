@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\DC;
 
+use App\Http\Controllers\Controller;
 use App\Models\Trolley;
 use App\Models\SignalBit\UserLine;
 use Illuminate\Http\Request;
@@ -35,7 +36,7 @@ class TrolleyController extends Controller
                 toJson();
         }
 
-        return view("trolley.master-trolley.trolley", ["page" => "dashboard-dc", "subPageGroup" => "trolley-dc", "subPage" => "trolley"]);
+        return view("dc.trolley.master-trolley.trolley", ["page" => "dashboard-dc", "subPageGroup" => "trolley-dc", "subPage" => "trolley"]);
     }
 
     /**
@@ -53,7 +54,7 @@ class TrolleyController extends Controller
 
         $lines = UserLine::where('Groupp', 'SEWING')->whereRaw('(Locked != 1 OR Locked IS NULL)')->orderBy('username', 'asc')->get();
 
-        return view('trolley.master-trolley.create-trolley', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'trolley', 'lines' => $lines]);
+        return view('dc.trolley.master-trolley.create-trolley', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'trolley', 'lines' => $lines]);
     }
 
     /**
@@ -208,7 +209,7 @@ class TrolleyController extends Controller
 
         if ($dataTrolley) {
             PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
-            $pdf = PDF::loadView('trolley.master-trolley.pdf.print-trolley', ["dataTrolley" => $dataTrolley])->setPaper('a4', 'landscape');
+            $pdf = PDF::loadView('dc.trolley.master-trolley.pdf.print-trolley', ["dataTrolley" => $dataTrolley])->setPaper('a4', 'landscape');
 
             $path = public_path('pdf/');
             $fileName = 'trolley-'.$dataTrolley->nama_trolley.'.pdf';

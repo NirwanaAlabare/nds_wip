@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Part;
 
+use App\Http\Controllers\Controller;
 use App\Models\MasterSecondary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -34,7 +35,7 @@ class MasterSecondaryController extends Controller
 
         $data_tujuan = DB::select("select tujuan isi, tujuan tampil from master_tujuan");
 
-        return view("master-secondary.master-secondary", ["page" => "dashboard-marker",  "subPageGroup" => "master-marker", "subPage" => "master-secondary", 'data_tujuan' => $data_tujuan]);
+        return view("marker.master-secondary.master-secondary", ["page" => "dashboard-marker",  "subPageGroup" => "master-marker", "subPage" => "master-secondary", 'data_tujuan' => $data_tujuan]);
     }
 
     /**

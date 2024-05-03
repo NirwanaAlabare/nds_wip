@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\DC;
 
+use App\Http\Controllers\Controller;
 use App\Models\Rack;
 use App\Models\RackDetail;
 use Illuminate\Http\Request;
@@ -42,7 +43,7 @@ class RackController extends Controller
                 })->toJson();
         }
 
-        return view("rack.rack", ["page" => "dashboard-dc", "subPageGroup" => "rak-dc", "subPage" => "rack"]);
+        return view("dc.rack.rack", ["page" => "dashboard-dc", "subPageGroup" => "rak-dc", "subPage" => "rack"]);
     }
 
     /**
@@ -52,7 +53,7 @@ class RackController extends Controller
      */
     public function create()
     {
-        return view('rack.create-rack', ["page" => "dashboard-dc", "subPageGroup" => "rak-dc", "subPage" => "rack"]);
+        return view('dc.rack.create-rack', ["page" => "dashboard-dc", "subPageGroup" => "rak-dc", "subPage" => "rack"]);
     }
 
     /**
@@ -278,7 +279,7 @@ class RackController extends Controller
 
         if ($dataRack) {
             PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
-            $pdf = PDF::loadView('rack.pdf.print-rack', ["dataRack" => $dataRack])->setPaper('a4', 'landscape');
+            $pdf = PDF::loadView('dc.rack.pdf.print-rack', ["dataRack" => $dataRack])->setPaper('a4', 'landscape');
 
             $path = public_path('pdf/');
             $fileName = 'rack-'.$dataRack->nama_rak.'.pdf';

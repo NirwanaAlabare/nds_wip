@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\DC;
 
+use App\Http\Controllers\Controller;
 use App\Models\Stocker;
 use App\Models\Part;
 use Illuminate\Http\Request;
@@ -72,7 +73,7 @@ class StockDcWipController extends Controller
             return DataTables::of($stockDcWip)->toJson();
         }
 
-        return view("stok-dc.stok-dc-wip.stok-dc-wip", ["page" => "dashboard-dc", "subPageGroup" => "stok-dc", "subPage" => "stok-dc-wip"]);
+        return view("dc.stok-dc.stok-dc-wip.stok-dc-wip", ["page" => "dashboard-dc", "subPageGroup" => "stok-dc", "subPage" => "stok-dc-wip"]);
     }
 
     /**
@@ -216,7 +217,7 @@ class StockDcWipController extends Controller
                 stk.part_id
         ");
 
-        return view('stok-dc.stok-dc-wip.stok-dc-wip-detail', ["page" => "dashboard-dc", "subPageGroup" => "stok-dc", "subPage" => "stok-dc-wip", "detail" => $detail, "stockDcComplete" => $stockDcComplete, "stockDcIncomplete" => $stockDcIncomplete]);
+        return view('dc.stok-dc.stok-dc-wip.stok-dc-wip-detail', ["page" => "dashboard-dc", "subPageGroup" => "stok-dc", "subPage" => "stok-dc-wip", "detail" => $detail, "stockDcComplete" => $stockDcComplete, "stockDcIncomplete" => $stockDcIncomplete]);
     }
 
     /**

@@ -1,19 +1,20 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\DC;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
-use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Auth;
 use App\Exports\ExportLaporanMutasiKaryawan;
 use App\Models\RackDetailStocker;
 use App\Models\SecondaryIn;
 use App\Models\Trolley;
 use App\Models\TrolleyStocker;
 use App\Models\Stocker;
+use Yajra\DataTables\Facades\DataTables;
 use Maatwebsite\Excel\Facades\Excel;
+use Carbon\Carbon;
 use DB;
-use Illuminate\Support\Facades\Auth;
 
 class SecondaryInController extends Controller
 {
@@ -84,7 +85,7 @@ class SecondaryInController extends Controller
 
             return DataTables::of($data_input)->toJson();
         }
-        return view('secondary-in.secondary-in', ['page' => 'dashboard-dc', "subPageGroup" => "secondary-dc", "subPage" => "secondary-in", "data_rak" => $data_rak, "data_trolley" => $data_trolley], ['tgl_skrg' => $tgl_skrg]);
+        return view('dc.secondary-in.secondary-in', ['page' => 'dashboard-dc', "subPageGroup" => "secondary-dc", "subPage" => "secondary-in", "data_rak" => $data_rak, "data_trolley" => $data_trolley], ['tgl_skrg' => $tgl_skrg]);
     }
 
     public function detail_stocker_in(Request $request)
@@ -126,7 +127,7 @@ class SecondaryInController extends Controller
 
             return DataTables::of($data_input)->toJson();
         }
-        return view('secondary-in.secondary-in', ['page' => 'dashboard-dc', "subPageGroup" => "secondary-dc", "subPage" => "secondary-in"], ['tgl_skrg' => $tgl_skrg]);
+        return view('dc.secondary-in.secondary-in', ['page' => 'dashboard-dc', "subPageGroup" => "secondary-dc", "subPage" => "secondary-in"], ['tgl_skrg' => $tgl_skrg]);
     }
 
 
@@ -187,7 +188,7 @@ class SecondaryInController extends Controller
 
     public function create()
     {
-        return view('secondary-in.create-secondary-in', ['page' => 'dashboard-dc']);
+        return view('dc.secondary-in.create-secondary-in', ['page' => 'dashboard-dc']);
     }
 
     public function store(Request $request)

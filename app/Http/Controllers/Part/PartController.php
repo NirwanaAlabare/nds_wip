@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Part;
 
+use App\Http\Controllers\Controller;
 use App\Models\MasterPart;
 use App\Models\MasterTujuan;
 use App\Models\MasterSecondary;

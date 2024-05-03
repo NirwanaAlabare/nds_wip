@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\DC;
 
+use App\Http\Controllers\Controller;
 use App\Models\Trolley;
 use App\Models\TrolleyStocker;
 use App\Models\Stocker;
@@ -66,7 +67,7 @@ class TrolleyStockerController extends Controller
             orderByRaw("trolley.id asc")->
             get();
 
-        return view('trolley.stock-trolley.stock-trolley', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'stock-trolley', 'trolleyStocks' => $trolleyStocks]);
+        return view('dc.trolley.stock-trolley.stock-trolley', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'stock-trolley', 'trolleyStocks' => $trolleyStocks]);
     }
 
     /**
@@ -140,7 +141,7 @@ class TrolleyStockerController extends Controller
 
         $trolleys = Trolley::orderBy('nama_trolley', 'asc')->get();
 
-        return view('trolley.stock-trolley.allocate-trolley', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'stock-trolley', 'trolleys' => $trolleys]);
+        return view('dc.trolley.stock-trolley.allocate-trolley', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'stock-trolley', 'trolleys' => $trolleys]);
     }
 
     public function allocateThis(Request $request, $id)
@@ -204,7 +205,7 @@ class TrolleyStockerController extends Controller
 
         $trolley = Trolley::with('userLine')->where('id', $id)->first();
 
-        return view('trolley.stock-trolley.allocate-this-trolley', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'stock-trolley', 'trolley' => $trolley]);
+        return view('dc.trolley.stock-trolley.allocate-this-trolley', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'stock-trolley', 'trolley' => $trolley]);
     }
 
     /**
@@ -499,7 +500,7 @@ class TrolleyStockerController extends Controller
             groupBy('form_cut_input.no_cut', 'stocker_input.form_cut_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio')->
             get();
 
-        return view('trolley.stock-trolley.send-stock-trolley', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'stock-trolley', 'trolley' => $trolley, 'lines' => $lines, 'trolleyStocks' => $trolleyStocks]);
+        return view('dc.trolley.stock-trolley.send-stock-trolley', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'stock-trolley', 'trolley' => $trolley, 'lines' => $lines, 'trolleyStocks' => $trolleyStocks]);
     }
 
     public function submitSend(Request $request) {

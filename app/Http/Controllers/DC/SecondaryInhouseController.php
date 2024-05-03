@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\DC;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
-use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Auth;
 use App\Exports\ExportLaporanMutasiKaryawan;
 use App\Models\SecondaryInhouse;
+use Yajra\DataTables\Facades\DataTables;
 use Maatwebsite\Excel\Facades\Excel;
+use Carbon\Carbon;
 use DB;
-use Illuminate\Support\Facades\Auth;
 
 class SecondaryInhouseController extends Controller
 {
@@ -79,7 +80,7 @@ class SecondaryInhouseController extends Controller
 
             return DataTables::of($data_input)->toJson();
         }
-        return view('secondary-inhouse.secondary-inhouse', ['page' => 'dashboard-dc', "subPageGroup" => "secondary-dc", "subPage" => "secondary-inhouse", "data_rak" => $data_rak], ['tgl_skrg' => $tgl_skrg]);
+        return view('dc.secondary-inhouse.secondary-inhouse', ['page' => 'dashboard-dc', "subPageGroup" => "secondary-dc", "subPage" => "secondary-inhouse", "data_rak" => $data_rak], ['tgl_skrg' => $tgl_skrg]);
     }
 
 
@@ -122,7 +123,7 @@ class SecondaryInhouseController extends Controller
 
             return DataTables::of($data_detail)->toJson();
         }
-        return view('secondary-inhouse.secondary-inhouse', ['page' => 'dashboard-dc', "subPageGroup" => "secondary-dc", "subPage" => "secondary-inhouse"], ['tgl_skrg' => $tgl_skrg]);
+        return view('dc.secondary-inhouse.secondary-inhouse', ['page' => 'dashboard-dc', "subPageGroup" => "secondary-dc", "subPage" => "secondary-inhouse"], ['tgl_skrg' => $tgl_skrg]);
     }
 
 
@@ -172,7 +173,7 @@ class SecondaryInhouseController extends Controller
 
     public function create()
     {
-        return view('secondary-in.create-secondary-in', ['page' => 'dashboard-dc']);
+        return view('dc.secondary-in.create-secondary-in', ['page' => 'dashboard-dc']);
     }
 
     public function store(Request $request)
