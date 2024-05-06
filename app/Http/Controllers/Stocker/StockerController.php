@@ -361,7 +361,7 @@ class StockerController extends Controller
         }
 
         $dataStockers = Stocker::selectRaw("
-                stocker_input.qty_ply bundle_qty,
+                (CASE WHEN stocker_input.qty_ply_mod is not null AND stocker_input.qty_ply_mod != 0 THEN (CONCAT(stocker_input.qty_ply, (CASE WHEN stocker_input.qty_ply_mod > 0 THEN CONCAT('+', (stocker_input.qty_ply_mod - stocker_input.qty_ply)) ELSE (stocker_input.qty_ply_mod - stocker_input.qty_ply) END))) ELSE stocker_input.qty_ply END) bundle_qty,
                 stocker_input.size,
                 stocker_input.range_awal,
                 stocker_input.range_akhir,
@@ -383,7 +383,7 @@ class StockerController extends Controller
         $pdf = PDF::loadView('stocker.stocker.pdf.print-stocker', ["dataStockers" => $dataStockers])->setPaper('a7', 'landscape');
 
         $path = public_path('pdf/');
-        $fileName = 'stocker-' . $storeItem->id . '.pdf';
+        $fileName = 'stocker-' . $stockerId . '.pdf';
         $pdf->save($path . '/' . $fileName);
         $generatedFilePath = public_path('pdf/' . $fileName);
 
@@ -1610,8 +1610,8 @@ class StockerController extends Controller
                                 $modifyThis = $modifySizeQty->where("so_det_id", $stocker->so_det_id)->first();
 
                                 if ($modifyThis) {
-                                    $stocker->qty_ply_mod = $modifyThis->modified_qty;
                                     $lembarGelaran = $lembarGelaran + $modifyThis->difference_qty;
+                                    $stocker->qty_ply_mod = $lembarGelaran;
                                 }
                             }
 

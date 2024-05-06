@@ -327,6 +327,14 @@
                                     @php
                                         $qty = intval($ratio->ratio) * intval($dataSpreading->total_lembar);
 
+                                        if (isset($modifySizeQty) && $modifySizeQty) {
+                                            $modifyThis = $modifySizeQty->where("so_det_id", $ratio->so_det_id)->first();
+
+                                            if ($modifyThis) {
+                                                $qty=$modifyThis->modified_qty;
+                                            }
+                                        }
+
                                         $numberingThis = $dataNumbering ? $dataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->first() : null;
                                         $numberingBefore = $dataNumbering ? $dataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->sortByDesc('no_cut')->first() : null;
                                         $rangeAwal = ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? $numberingBefore->range_akhir + 1 : "-") : 1) : 1);
@@ -425,14 +433,6 @@
                                     @foreach ($dataRatio as $ratio)
                                         @php
                                             $qty = intval($ratio->ratio) * intval($dataSpreading->total_lembar);
-
-                                            if (isset($modifySizeQty) && $modifySizeQty) {
-                                                $modifyThis = $modifySizeQty->where("so_det_id", $ratio->so_det_id)->first();
-
-                                                if ($modifyThis) {
-                                                    $qty =$modifyThis->modified_qty;
-                                                }
-                                            }
 
                                             $numberingThis = $dataNumbering ? $dataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->first() : null;
                                             $numberingBefore = $dataNumbering ? $dataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->sortByDesc('no_cut')->first() : null;
@@ -1012,10 +1012,25 @@
                 success: function(res) {
                     if (res) {
                         if (res.status == 200) {
-                            iziToast.success({
-                                title: 'success',
-                                message: res.message,
-                                position: 'topCenter'
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Perubahan qty size berhasil disimpan',
+                                html: res.message,
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                                timer: (res.status == 200 ? 5000 : 3000),
+                                timerProgressBar: true
+                            }).then(() => {
+                                if (isNotNull(res.redirect)) {
+                                    if (res.redirect != 'reload') {
+                                        location.href = res.redirect;
+                                    } else {
+                                        location.reload();
+                                    }
+                                } else {
+                                    location.reload();
+                                }
                             });
                         } else {
                             iziToast.error({
@@ -1025,8 +1040,6 @@
                             });
                         }
                     }
-
-                    swal.close();
                 },
                 error: function(jqXHR) {
                     iziToast.error({

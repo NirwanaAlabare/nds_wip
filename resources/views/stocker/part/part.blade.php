@@ -52,7 +52,7 @@
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-light">
-                    <h1 class="modal-title fs-5" id="detailPartLabel">Detail Part</h1>
+                    <h1 class="modal-title fs-5" id="detailPartLabel"><i class="fa fa-search fa-sm"></i> Detail Part</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -92,12 +92,12 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <button class="btn btn-sb-secondary btn-block" onclick="reorderStockerNumbering()"><i class="fa-solid fa-arrow-up-wide-short"></i> Reorder Stocker Numbering</button>
+                                        <button class="btn btn-primary btn-block" onclick="reorderStockerNumbering()"><i class="fa-solid fa-arrow-up-wide-short"></i> Reorder Stocker</button>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <button class="btn btn-sb-secondary btn-block" onclick="generateFullStockerNumbering()"><i class="fa-solid fa-list-check"></i> Generate Full Stocker Numbering</button>
+                                        <button class="btn btn-info btn-block" onclick="generateFullStockerNumbering()"><i class="fa-solid fa-list-check"></i> Full Generate</button>
                                     </div>
                                 </div>
                             </div>
