@@ -80,7 +80,7 @@ class DCInController extends Controller
             return DataTables::of($data_input)->toJson();
         }
 
-        return view('dc-in.dc-in', ['page' => 'dashboard-dc', "subPageGroup" => "dcin-dc", "subPage" => "dc-in", "data_rak" => $data_rak], ['tgl_skrg' => $tgl_skrg]);
+        return view('dc.dc-in.dc-in', ['page' => 'dashboard-dc', "subPageGroup" => "dcin-dc", "subPage" => "dc-in", "data_rak" => $data_rak], ['tgl_skrg' => $tgl_skrg]);
     }
 
     public function show_data_header(Request $request)
@@ -176,7 +176,7 @@ class DCInController extends Controller
 
     public function create(Request $request)
     {
-        return view('dc-in.create-dc-in', ['page' => 'dashboard-dc', "subPageGroup" => "dcin-dc", "subPage" => "dc-in"]);
+        return view('dc.dc-in.create-dc-in', ['page' => 'dashboard-dc', "subPageGroup" => "dcin-dc", "subPage" => "dc-in"]);
     }
 
     public function get_tmp_dc_in(Request $request)
