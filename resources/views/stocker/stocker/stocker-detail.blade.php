@@ -444,12 +444,12 @@
                                             <td>{{ $ratio->size}}</td>
                                             <td>{{ $ratio->ratio }}</td>
                                             <td>
-                                                <input type="number" name="mod_qty_cut[{{ $index }}]" id="mod_qty_cut_{{ $index }}" data-original-value="{{ $qty }}" value="{{ $qty }}" onchange="modifyQty(this, {{ $index }});">
+                                                <input class="form-control form-control-sm" type="number" name="mod_qty_cut[{{ $index }}]" id="mod_qty_cut_{{ $index }}" data-original-value="{{ $qty }}" value="{{ $qty }}" onchange="modifyQty(this, {{ $index }});">
                                             </td>
                                             <td id="mod_range_awal_view_{{ $index }}">{{ $rangeAwal }}</td>
                                             <td id="mod_range_akhir_view_{{ $index }}">{{ $rangeAkhir }}</td>
                                             <td>
-                                                <input type="text" name="mod_note[{{ $index }}]" id="mod_note_{{ $index }}" value="">
+                                                <input class="form-control form-control-sm" type="text" name="mod_note[{{ $index }}]" id="mod_note_{{ $index }}" value="">
                                             </td>
                                         </tr>
 

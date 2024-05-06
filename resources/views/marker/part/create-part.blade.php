@@ -17,7 +17,7 @@
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
                     <h5 class="card-title fw-bold">
-                        Tambah Data Part
+                        <i class="fa fa-plus fa-sm"></i> Tambah Data Part
                     </h5>
                     <a href="{{ route('part') }}" class="btn btn-sm btn-primary">
                         <i class="fa fa-reply"></i> Kembali ke Part
