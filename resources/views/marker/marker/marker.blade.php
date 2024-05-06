@@ -113,7 +113,7 @@
                 <div class="d-flex justify-content-end align-items-end gap-3 mb-3">
                     <button class="btn btn-sb-secondary btn-sm mb-3" onclick="fixMarkerBalanceQty()">
                         <i class="fa-solid fa-screwdriver-wrench fa-sm"></i>
-                        Fix Marker Balance Qty
+                        Balance Qty
                     </button>
                 </div>
             </div>

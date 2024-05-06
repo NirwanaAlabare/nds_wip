@@ -75,7 +75,7 @@
 
                                         <td>{{ $ratio->size}}</td>
                                         <td>{{ $ratio->ratio }}</td>
-                                        <td>{{ $qty }}</td>
+                                        <td>{{ (intval($ratio->ratio) * intval($currentTotal)) != $qty ? $qty." (".(intval($ratio->ratio) * intval($currentTotal))."".(($qty - (intval($ratio->ratio) * intval($currentTotal))) > 0 ? "+".($qty - (intval($ratio->ratio) * intval($currentTotal))) : ($qty - (intval($ratio->ratio) * intval($currentTotal)))).")" : $qty }}</td>
                                         <td>{{ $rangeAwal }}</td>
                                         <td>{{ $rangeAkhir }}</td>
                                         <td>
