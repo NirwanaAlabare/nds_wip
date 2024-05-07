@@ -51,7 +51,7 @@
                                             $modifyThisStocker = $modifySizeQtyStocker->where("so_det_id", $ratio->so_det_id)->first();
 
                                             if ($modifyThisStocker) {
-                                                $qty = $modifyThisStocker->modified_qty;
+                                                $qty = $qty + $modifyThisStocker->difference_qty;
                                             }
                                         }
 

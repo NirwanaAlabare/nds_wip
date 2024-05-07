@@ -474,6 +474,7 @@ class TrolleyStockerController extends Controller
         $trolley = Trolley::with('userLine')->where('id', $id)->first();
 
         $lines = UserLine::where('Groupp', 'SEWING')->whereRaw('(Locked != 1 || Locked is NULL)')->orderBy('line_id', 'asc')->get();
+        $trolleys = Trolley::with('userLine')->where('id', "!=", $id)->orderBy("nama_trolley")->get();
 
         $trolleyStocks = TrolleyStocker::selectRaw("
                 trolley_stocker.id,
@@ -500,7 +501,7 @@ class TrolleyStockerController extends Controller
             groupBy('form_cut_input.no_cut', 'stocker_input.form_cut_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio')->
             get();
 
-        return view('dc.trolley.stock-trolley.send-stock-trolley', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'stock-trolley', 'trolley' => $trolley, 'lines' => $lines, 'trolleyStocks' => $trolleyStocks]);
+        return view('dc.trolley.stock-trolley.send-stock-trolley', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'stock-trolley', 'trolley' => $trolley, 'lines' => $lines, 'trolleys' => $trolleys, 'trolleyStocks' => $trolleyStocks]);
     }
 
     public function submitSend(Request $request) {
@@ -513,79 +514,100 @@ class TrolleyStockerController extends Controller
 
         $lineData = UserLine::where("line_id", $request->line_id)->first();
 
-        // if ($request->selectedStocker)
-        foreach ($request->selectedStocker as $req) {
-            $loadingStockArr = [];
+        if ($request->destination != "trolley") {
+            foreach ($request->selectedStocker as $req) {
+                $loadingStockArr = [];
 
-            $stockerIds = explode(',', $req['stocker_ids']);
+                $stockerIds = explode(',', $req['stocker_ids']);
 
-            for ($i = 0; $i < count($stockerIds); $i++) {
-                $thisStockerData = Stocker::where('id', $stockerIds[$i])->first();
+                for ($i = 0; $i < count($stockerIds); $i++) {
+                    $thisStockerData = Stocker::where('id', $stockerIds[$i])->first();
 
-                $loadingLinePlan = LoadingLinePlan::where("act_costing_ws", $thisStockerData->act_costing_ws)->where("line_id", $lineData['line_id'])->first();
+                    $loadingLinePlan = LoadingLinePlan::where("act_costing_ws", $thisStockerData->act_costing_ws)->where("line_id", $lineData['line_id'])->first();
 
-                $isExist = LoadingLine::where("stocker_id", $stockerIds[$i])->count();
+                    $isExist = LoadingLine::where("stocker_id", $stockerIds[$i])->count();
 
-                if ($isExist < 1) {
-                    if ($loadingLinePlan) {
-                        array_push($loadingStockArr, [
-                            "kode" => "LOAD".sprintf('%05s', ($lastLoadingLineNumber+$i)),
-                            "line_id" => $lineData['line_id'],
-                            "loading_plan_id" => $loadingLinePlan['id'],
-                            "nama_line" => $lineData['username'],
-                            "stocker_id" => $thisStockerData['id'],
-                            "qty" => $thisStockerData->dcIn ? (($thisStockerData->dcIn->qty_awal - $thisStockerData->dcIn->qty_reject + $thisStockerData->dcIn->qty_replace)  ?? $thisStockerData['qty_ply']) : $thisStockerData['qty_ply'],
-                            "status" => "active",
-                            "tanggal_loading" => $request['tanggal_loading'],
-                            "created_at" => Carbon::now(),
-                            "updated_at" => Carbon::now(),
-                        ]);
+                    if ($isExist < 1) {
+                        if ($loadingLinePlan) {
+                            array_push($loadingStockArr, [
+                                "kode" => "LOAD".sprintf('%05s', ($lastLoadingLineNumber+$i)),
+                                "line_id" => $lineData['line_id'],
+                                "loading_plan_id" => $loadingLinePlan['id'],
+                                "nama_line" => $lineData['username'],
+                                "stocker_id" => $thisStockerData['id'],
+                                "qty" => $thisStockerData->dcIn ? (($thisStockerData->dcIn->qty_awal - $thisStockerData->dcIn->qty_reject + $thisStockerData->dcIn->qty_replace)  ?? $thisStockerData['qty_ply']) : $thisStockerData['qty_ply'],
+                                "status" => "active",
+                                "tanggal_loading" => $request['tanggal_loading'],
+                                "created_at" => Carbon::now(),
+                                "updated_at" => Carbon::now(),
+                            ]);
+                        } else {
+                            $lastLoadingPlan = LoadingLinePlan::selectRaw("MAX(kode) latest_kode")->first();
+                            $lastLoadingPlanNumber = intval(substr($lastLoadingPlan->latest_kode, -5)) + 1;
+                            $kodeLoadingPlan = 'LLP'.sprintf('%05s', $lastLoadingPlanNumber);
+
+                            $storeLoadingPlan = LoadingLinePlan::create([
+                                "line_id" => $lineData['line_id'],
+                                "kode" => $kodeLoadingPlan,
+                                "act_costing_id" => $thisStockerData->formCut->marker->act_costing_id,
+                                "act_costing_ws" => $thisStockerData->formCut->marker->act_costing_ws,
+                                "buyer" => $thisStockerData->formCut->marker->buyer,
+                                "style" => $thisStockerData->formCut->marker->style,
+                                "color" => $thisStockerData->formCut->marker->color,
+                                "tanggal" => $request['tanggal_loading'],
+                            ]);
+
+                            array_push($loadingStockArr, [
+                                "kode" => "LOAD".sprintf('%05s', ($lastLoadingLineNumber+$i)),
+                                "line_id" => $lineData['line_id'],
+                                "loading_plan_id" => $storeLoadingPlan['id'],
+                                "nama_line" => $lineData['username'],
+                                "stocker_id" => $thisStockerData['id'],
+                                "qty" => $thisStockerData['qty_ply'],
+                                "status" => "active",
+                                "tanggal_loading" => $request['tanggal_loading'],
+                                "created_at" => Carbon::now(),
+                                "updated_at" => Carbon::now(),
+                            ]);
+                        }
                     } else {
-                        $lastLoadingPlan = LoadingLinePlan::selectRaw("MAX(kode) latest_kode")->first();
-                        $lastLoadingPlanNumber = intval(substr($lastLoadingPlan->latest_kode, -5)) + 1;
-                        $kodeLoadingPlan = 'LLP'.sprintf('%05s', $lastLoadingPlanNumber);
-
-                        $storeLoadingPlan = LoadingLinePlan::create([
-                            "line_id" => $lineData['line_id'],
-                            "kode" => $kodeLoadingPlan,
-                            "act_costing_id" => $thisStockerData->formCut->marker->act_costing_id,
-                            "act_costing_ws" => $thisStockerData->formCut->marker->act_costing_ws,
-                            "buyer" => $thisStockerData->formCut->marker->buyer,
-                            "style" => $thisStockerData->formCut->marker->style,
-                            "color" => $thisStockerData->formCut->marker->color,
-                            "tanggal" => $request['tanggal_loading'],
-                        ]);
-
-                        array_push($loadingStockArr, [
-                            "kode" => "LOAD".sprintf('%05s', ($lastLoadingLineNumber+$i)),
-                            "line_id" => $lineData['line_id'],
-                            "loading_plan_id" => $storeLoadingPlan['id'],
-                            "nama_line" => $lineData['username'],
-                            "stocker_id" => $thisStockerData['id'],
-                            "qty" => $thisStockerData['qty_ply'],
-                            "status" => "active",
-                            "tanggal_loading" => $request['tanggal_loading'],
-                            "created_at" => Carbon::now(),
-                            "updated_at" => Carbon::now(),
-                        ]);
+                        array_push($exist, ['stocker' => $thisStockerData['id']]);
                     }
-                } else {
-                    array_push($exist, ['stocker' => $thisStockerData['id']]);
+                }
+
+                $storeLoadingStock = LoadingLine::insert($loadingStockArr);
+
+                if (count($loadingStockArr) > 0) {
+                    $updateStocker = Stocker::whereIn("id", $stockerIds)->
+                        update([
+                            "status" => "line",
+                            "latest_alokasi" => Carbon::now()
+                        ]);
+
+                    $updateTrolleyStocker = TrolleyStocker::whereIn("stocker_id", $stockerIds)->
+                        update([
+                            "status" => "not active"
+                        ]);
+
+                    if ($updateStocker) {
+                        array_push($success, ['stocker' => $stockerIds]);
+                    } else {
+                        array_push($fail, ['stocker' => $stockerIds]);
+                    }
                 }
             }
+        } else {
+            foreach ($request->selectedStocker as $req) {
+                $stockerIds = explode(',', $req['stocker_ids']);
 
-            $storeLoadingStock = LoadingLine::insert($loadingStockArr);
-
-            if (count($loadingStockArr) > 0) {
                 $updateStocker = Stocker::whereIn("id", $stockerIds)->
                     update([
-                        "status" => "line",
                         "latest_alokasi" => Carbon::now()
                     ]);
 
                 $updateTrolleyStocker = TrolleyStocker::whereIn("stocker_id", $stockerIds)->
                     update([
-                        "status" => "not active"
+                        "trolley_id" => $request->destination_trolley_id
                     ]);
 
                 if ($updateStocker) {

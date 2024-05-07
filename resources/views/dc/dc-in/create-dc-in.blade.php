@@ -817,7 +817,9 @@
                 Swal.fire({
                     icon:'warning',
                     title: 'Warning',
-                    html: 'Harap ceklis stocker yang akan di ubah',
+                    html: 'Harap ceklis stocker yang akan di ubahs',
+                }).then(() => {
+                    $('#updateMassTmpDcModal').modal('hide');
                 });
             }
         }

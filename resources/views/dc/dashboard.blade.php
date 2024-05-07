@@ -25,7 +25,7 @@
             </div>
         </div>
         <div class="row d-none" id="dc-qty-data">
-            <div class="col-3">
+            <div class="col-6 col-md-3">
                 <div class="info-box">
                     <span class="info-box-icon bg-sb"><i class="fa fa-ticket"></i></span>
                     <div class="info-box-content">
@@ -34,7 +34,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-3">
+            <div class="col-6 col-md-3">
                 <div class="info-box">
                     <span class="info-box-icon bg-sb-secondary"><i class="fas fa-location-arrow"></i></span>
                     <div class="info-box-content">
@@ -43,7 +43,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-3">
+            <div class="col-6 col-md-3">
                 <div class="info-box">
                     <span class="info-box-icon bg-sb"><i class="fa-solid fa-memory"></i></span>
                     <div class="info-box-content">
@@ -52,7 +52,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-3">
+            <div class="col-6 col-md-3">
                 <div class="info-box">
                     <span class="info-box-icon bg-sb-secondary"><i class="fa-solid fa-users-line"></i></span>
                     <div class="info-box-content">

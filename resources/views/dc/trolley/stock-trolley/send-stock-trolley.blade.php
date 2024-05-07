@@ -13,12 +13,20 @@
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="text-sb fw-bold">{{ $trolley->nama_trolley }}</h5>
-        <a href="{{ route('stock-trolley') }}" class="btn btn-success btn-sm">
+        <a href="{{ route('stock-trolley') }}" class="btn btn-primary btn-sm">
             <i class="fas fa-reply"></i> Kembali ke Stok Trolley
         </a>
     </div>
     <form action="{{ route('store-allocate-this-trolley') }}" method="post" onsubmit="submitForm(this, event)">
-        <div class="card card-sb">
+        <div class="d-flex justify-content-center">
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="switch-destination" checked onchange="switchDestination(this)">
+                <label class="form-check-label" id="to-line">Line</label>
+                <label class="form-check-label d-none" id="to-trolley">Trolley</label>
+            </div>
+        </div>
+        <input type="hidden" name="trolley_id" id="trolley_id" value="{{ $trolley->id }}">
+        <div class="card card-sb" id="to-line-card">
             <div class="card-header">
                 <h5 class="card-title fw-bold">Kirim ke Line</h5>
                 <div class="card-tools">
@@ -26,9 +34,8 @@
                     </button>
                 </div>
             </div>
-            <div class="card-body" style="display: block" id="scan-stocker">
+            <div class="card-body" style="display: block" id="scan-line">
                 <div id="line-reader" onclick="clearLineScan()"></div>
-                <input type="hidden" name="trolley_id" id="trolley_id" value="{{ $trolley->id }}">
                 <div class="mb-3">
                     <label class="form-label">Line</label>
                     <div class="input-group w-100">
@@ -39,6 +46,30 @@
                         </select>
                         <button class="btn btn-sm btn-outline-success" type="button">Get</button>
                         <button class="btn btn-sm btn-outline-primary" type="button" onclick="initLineScan()">Scan</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card card-sb d-none" id="to-trolley-card">
+            <div class="card-header">
+                <h5 class="card-title fw-bold">Kirim ke Trolley</h5>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body" style="display: block" id="scan-stocker">
+                <div id="trolley-reader" onclick="clearTrolleyScan()"></div>
+                <div class="mb-3">
+                    <label class="form-label">Trolley</label>
+                    <div class="input-group w-100">
+                        <select class="form-control form-control-sm select2bs4" name="destination_trolley_id" id="destination_trolley_id">
+                            @foreach ($trolleys as $trolley)
+                                <option value="{{ $trolley->id }}">{{ $trolley->nama_trolley }}</option>
+                            @endforeach
+                        </select>
+                        <button class="btn btn-sm btn-outline-success" type="button">Get</button>
+                        <button class="btn btn-sm btn-outline-primary" type="button" onclick="initTrolleyScan()">Scan</button>
                     </div>
                 </div>
             </div>
@@ -59,7 +90,7 @@
                         <p>Selected Stocker : <span class="fw-bold" id="selected-row-count-1">0</span></p>
                     </div>
                     <div class="col-6">
-                        <button class="btn btn-success btn-sm float-end" onclick="sendToLine(this)"><i class="fa fa-plus fa-sm"></i> Kirim ke Line</button>
+                        <button class="btn btn-success btn-sm float-end" onclick="sendToLine(this)"><i class="fa fa-plus fa-sm"></i> Kirim</button>
                     </div>
                 </div>
                 <div class="table-responsive">
@@ -129,10 +160,16 @@
         });
 
         $(document).ready(async () => {
+            document.getElementById("loading").classList.remove("d-none");
+
             $('#trolley').val("").trigger("change");
             $('#kode_stocker').val("").trigger("change");
 
             await initLineScan();
+
+            await $('#switch-destination').prop('checked', true);
+
+            document.getElementById("loading").classList.add("d-none");
         });
 
         var trolleyId = document.getElementById('trolley_id').value;
@@ -179,12 +216,14 @@
         });
 
         // Datatable selected row selection
-        datatableTrolleyStock.on('click', 'tbody tr', function(e) {
-            e.currentTarget.classList.toggle('selected');
+        var totalQty = 0;
+        datatableTrolleyStock.on('click', 'tbody tr', async function(e) {
+            await e.currentTarget.classList.toggle('selected');
 
-            let totalQty = 0;
-            for(let i = 0; i < document.querySelectorAll('#datatable-trolley-stock .selected').length; i++) {
-                totalQty += parseInt(document.querySelectorAll('#datatable-trolley-stock .selected')[i].cells[8].innerText);
+            if (e.currentTarget.classList.contains('selected')) {
+                totalQty += parseInt(e.currentTarget.cells[8].innerText);
+            } else {
+                totalQty -= parseInt(e.currentTarget.cells[8].innerText);
             }
 
             document.getElementById('selected-row-count-1').innerText = $('#datatable-trolley-stock').DataTable().rows('.selected').data().length+" (Total Qty : "+totalQty+")";
@@ -212,6 +251,7 @@
             }
 
             let lineId = document.getElementById('line_id').value;
+            let destinationTrolleyId = document.getElementById('destination_trolley_id').value;
 
             if (tanggalLoading && selectedStocker.length > 0) {
                 if (document.getElementById("loading")) {
@@ -226,7 +266,9 @@
                     data: {
                         tanggal_loading: tanggalLoading,
                         selectedStocker: selectedStocker,
-                        line_id: lineId
+                        destination: destination,
+                        line_id: lineId,
+                        destination_trolley_id: destinationTrolleyId
                     },
                     success: function(res) {
                         if (document.getElementById("loading")) {
@@ -317,7 +359,7 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'Gagal',
-                    html: "Harap pilih line dan tentukan stocker nya",
+                    html: "Harap pilih line/trolley dan tentukan stocker nya",
                     showCancelButton: false,
                     showConfirmButton: true,
                     confirmButtonText: 'Oke',
@@ -329,6 +371,9 @@
             // Variable List :
                 var lineScanner = new Html5Qrcode("line-reader");
                 var lineScannerInitialized = false;
+
+                var trolleyScanner = new Html5Qrcode("trolley-reader");
+                var trolleyScannerInitialized = false;
 
             // Function List :
                 // -Initialize Line Scanner-
@@ -369,131 +414,108 @@
                         }
                     }
 
+                    async function initTrolleyScan() {
+                        if (document.getElementById("trolley-reader")) {
+                            if (trolleyScannerInitialized == false) {
+                                if (trolleyScanner == null || (trolleyScanner && (trolleyScanner.getState() && trolleyScanner.getState() != 2))) {
+                                    const trolleyScanSuccessCallback = (decodedText, decodedResult) => {
+                                            // handle the scanned code as you like, for example:
+                                        console.log(`Code matched = ${decodedText}`, decodedResult);
+
+                                        // store to input text
+                                        let breakDecodedText = decodedText.split('-');
+
+                                        setTrolleyInput(breakDecodedText[0])
+
+                                        clearLineScan();
+                                    };
+                                    const trolleyScanConfig = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+                                    // If you want to prefer front camera
+                                    await trolleyScanner.start({ facingMode: "environment" }, trolleyScanConfig, trolleyScanSuccessCallback);
+
+                                    trolleyScannerInitialized = true;
+                                }
+                            }
+                        }
+                    }
+
+                    async function clearTrolleyScan() {
+                        if (trolleyScannerInitialized) {
+                            if (trolleyScanner && (trolleyScanner.getState() && trolleyScanner.getState() != 1)) {
+                                await trolleyScanner.stop();
+                                await trolleyScanner.clear();
+                            }
+
+                            trolleyScannerInitialized = false;
+                        }
+                    }
+
                     async function refreshStockerScan() {
                         await clearLineScan();
                         await initLineScan();
+
+                        await clearTrolleyScan();
+                        await initTrolleyScan();
                     }
 
                     function setLineInput(val) {
                         $('line_id').val(val).trigger("change");
                     }
 
-        function addToLine(element) {
-            let date = new Date();
-            let day = date.getDate();
-            let month = date.getMonth() + 1;
-            let year = date.getFullYear();
-
-            let tanggalAlokasi = `${day}-${month}-${year}`;
-
-            let selectedForm = $('#datatable-trolley-stock').DataTable().rows('.selected').data();
-            let formCutPlan = [];
-            for (let key in selectedForm) {
-                if (!isNaN(key)) {
-                    formCutPlan.push({
-                        no_form: selectedForm[key]['no_form']
-                    });
-                }
-            }
-
-            if (tglPlan && formCutPlan.length > 0) {
-                element.setAttribute('disabled', true);
-
-                $.ajax({
-                    type: "POST",
-                    url: '{!! route('store-cut-plan') !!}',
-                    data: {
-                        tanggal_alokasi: tanggalAlokasi,
-                        formCutPlan: formCutPlan
-                    },
-                    success: function(res) {
-                        element.removeAttribute('disabled');
-
-                        if (res.status == 200) {
-                            iziToast.success({
-                                title: 'Success',
-                                message: res.message,
-                                position: 'topCenter'
-                            });
-                        } else {
-                            iziToast.error({
-                                title: 'Error',
-                                message: res.message,
-                                position: 'topCenter'
-                            });
-                        }
-
-                        if (res.table != '') {
-                            $('#' + res.table).DataTable().ajax.reload(() => {
-                                document.getElementById('selected-row-count-2').innerText = $('#' + res.table).DataTable().rows('.selected').data().length;
-                            });
-
-                            $('#datatable-trolley-stock').DataTable().ajax.reload(() => {
-                                document.getElementById('selected-row-count-1').innerText = $('#datatable-trolley-stock').DataTable().rows('.selected').data().length;
-                            });
-                        }
-
-                        if (res.additional) {
-                            let message = "";
-
-                            if (res.additional['success'].length > 0) {
-                                res.additional['success'].forEach(element => {
-                                    message += element['no_form'] + " - Berhasil <br>";
-                                });
-                            }
-
-                            if (res.additional['fail'].length > 0) {
-                                res.additional['fail'].forEach(element => {
-                                    message += element['no_form'] + " - Gagal <br>";
-                                });
-                            }
-
-                            if (res.additional['exist'].length > 0) {
-                                res.additional['exist'].forEach(element => {
-                                    message += element['no_form'] + " - Sudah Ada <br>";
-                                });
-                            }
-
-                            if ((res.additional['success'].length + res.additional['fail'].length + res
-                                    .additional['exist'].length) > 1) {
-                                Swal.fire({
-                                    icon: 'info',
-                                    title: 'Hasil Transfer',
-                                    html: message,
-                                    showCancelButton: false,
-                                    showConfirmButton: true,
-                                    confirmButtonText: 'Oke',
-                                });
-                            }
-                        }
-                    },
-                    error: function(jqXHR) {
-                        element.removeAttribute('disabled');
-
-                        let res = jqXHR.responseJSON;
-                        let message = '';
-
-                        for (let key in res.errors) {
-                            message = res.errors[key];
-                        }
-
-                        iziToast.error({
-                            title: 'Error',
-                            message: 'Terjadi kesalahan. ' + message,
-                            position: 'topCenter'
-                        });
+                    function setTrolleyInput(val) {
+                        $('destination_trolley_id').val(val).trigger("change");
                     }
-                })
+
+        // -Switch Destination-
+        var destination = "line";
+
+        function switchDestination(element) {
+            if (element.checked) {
+                toLine();
             } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Gagal',
-                    html: "Harap isi tanggal plan dan tentukan form cut nya",
-                    showCancelButton: false,
-                    showConfirmButton: true,
-                    confirmButtonText: 'Oke',
-                });
+                toTrolley();
             }
+        }
+
+        async function toLine() {
+            document.getElementById("loading").classList.remove("d-none");
+
+            destination = "line";
+
+            document.getElementById("to-trolley-card").classList.add('d-none');
+            document.getElementById("to-trolley").classList.add('d-none');
+
+            document.getElementById("to-line-card").classList.remove('d-none');
+            document.getElementById("to-line").classList.remove('d-none');
+
+            $("#line_id").val("").trigger("change");
+
+            await clearTrolleyScan();
+
+            await initLineScan();
+
+            document.getElementById("loading").classList.add("d-none");
+        }
+
+        async function toTrolley() {
+            document.getElementById("loading").classList.remove("d-none");
+
+            destination = "trolley";
+
+            document.getElementById("to-line-card").classList.add('d-none');
+            document.getElementById("to-line").classList.add('d-none');
+
+            document.getElementById("to-trolley-card").classList.remove('d-none');
+            document.getElementById("to-trolley").classList.remove('d-none');
+
+            $("#destination_trolley_id").val("").trigger("change");
+
+            await clearLineScan();
+
+            await initTrolleyScan();
+
+            document.getElementById("loading").classList.add("d-none");
         }
     </script>
 @endsection
