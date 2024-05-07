@@ -157,6 +157,8 @@
                         <h5 class="card-title"><i class="fas fa-list"></i> Detail Pengeluaran</h5>
                     </div>
                     <div class="card-body">
+                        Total : <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                            id = 'total_qty_chk'>
                         <div class="table-responsive">
                             <table id="datatable_det" class="table table-bordered table-sm w-100 table-hover text-nowrap">
                                 <thead class="table-primary">
@@ -233,6 +235,7 @@
             $("#cbolok").val('').trigger('change');
             $("#cbotuj").val('').trigger('change');
             $("#cbotuj_pengeluaran").val('').trigger('change');
+            $("#total_qty_chk").val('0');
 
         })
 
@@ -270,6 +273,9 @@
             paging: false,
             destroy: true,
             autoWidth: true,
+            scrollCollapse: true,
+            scrollX: true,
+            scrollY: '50vh',
             ajax: {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -325,8 +331,9 @@
                     //     .kode + ']" autocomplete="off" />'
                     return `
                         <div>
-                            <input type="number" size="4" id="txtqty[` + row.kode + `]"
-                            name="txtqty[` + row.kode + `]" value = "0" autocomplete="off"  max = "` + row.saldo + `" min = "0" />
+                            <input type="number" class="input" size="4" id="txtqty[` + row
+                        .kode + `]"
+                            name="txtqty[` + row.kode + `]" value = "0" autocomplete="off"  max = "` + row.saldo + `" min = "0" onFocus="startCalc();" onBlur="stopCalc();" />
                         </div>
                         <div>
                             <input type="hidden" size="4" id="id_so_det[` + row.kode + `]"
@@ -433,5 +440,23 @@
                 },
             ],
         });
+
+        function startCalc() {
+            interval = setInterval('findTotal()', 1);
+        }
+
+        function findTotal() {
+            var arr = document.getElementsByClassName('input');
+            var tot = 0;
+            for (var i = 0; i < arr.length; i++) {
+                if (parseInt(arr[i].value))
+                    tot += parseInt(arr[i].value);
+            }
+            document.getElementById('total_qty_chk').value = tot;
+        }
+
+        function stopCalc() {
+            clearInterval(interval);
+        }
     </script>
 @endsection
