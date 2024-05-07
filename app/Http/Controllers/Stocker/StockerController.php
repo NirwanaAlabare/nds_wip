@@ -396,7 +396,7 @@ class StockerController extends Controller
             where("stocker_input.qty_ply", $request['qty_ply_group'][$index])->
             where("stocker_input.group_stocker", $request['group_stocker'][$index])->
             groupBy("form_cut_input.id", "stocker_input.id")->
-            orderBy("stocker_input.group_stocker", "asc")->
+            orderBy("stocker_input.group_stocker", "desc")->
             orderBy("stocker_input.so_det_id", "asc")->
             orderBy("stocker_input.ratio", "asc")->
             get();
@@ -508,7 +508,8 @@ class StockerController extends Controller
             groupBy("form_cut_input.id", "stocker_input.id")->
             orderBy("stocker_input.group_stocker", "desc")->
             orderBy("stocker_input.shade", "desc")->
-            orderBy("stocker_input.id", "desc")->
+            orderBy("stocker_input.so_det_id", "asc")->
+            orderBy("stocker_input.ratio", "asc")->
             get();
 
         // generate pdf
@@ -627,7 +628,8 @@ class StockerController extends Controller
             groupBy("form_cut_input.id", "stocker_input.id")->
             orderBy("stocker_input.group_stocker", "desc")->
             orderBy("stocker_input.shade", "desc")->
-            orderBy("stocker_input.id", "desc")->
+            orderBy("stocker_input.so_det_id", "asc")->
+            orderBy("stocker_input.ratio", "asc")->
             get();
 
         // generate pdf
