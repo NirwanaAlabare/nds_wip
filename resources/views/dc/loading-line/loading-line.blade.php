@@ -84,6 +84,10 @@
             pageLength: 25,
             ajax: {
                 url: '{{ route('loading-line') }}',
+                data: function (d) {
+                    d.tanggal_awal = $("#tgl-awal").val();
+                    d.tanggal_akhir = $("#tgl-akhir").val();
+                }
             },
             columns: [
                 {
