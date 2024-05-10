@@ -103,8 +103,7 @@ class LoadingLineController extends Controller
                     ) trolley_stock ON trolley_stock.trolley_id = loading_stock.trolley_id
                 ".$dateFilter."
                 GROUP BY
-                    loading_line_plan.id,
-                    loading_stock.trolley_id
+                    loading_line_plan.id
                 ORDER BY
                     loading_line_plan.line_id,
                     loading_line_plan.act_costing_ws,

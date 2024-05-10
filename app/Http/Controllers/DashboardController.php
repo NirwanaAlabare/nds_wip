@@ -35,7 +35,7 @@ class DashboardController extends Controller
                     stocker_input.shade,
                     stocker_input.ratio,
                     master_part.nama_part,
-                    CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir, (CASE WHEN dc_in_input.qty_reject IS NOT NULL AND dc_in_input.qty_replace IS NOT NULL THEN CONCAT(' (', (dc_in_input.qty_replace - dc_in_input.qty_reject), ') ') ELSE ' (0)' END)) stocker_range,
+                    CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir, (CASE WHEN dc_in_input.qty_reject IS NOT NULL AND dc_in_input.qty_replace IS NOT NULL THEN CONCAT(' (', (COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0)), ') ') ELSE ' (0)' END)) stocker_range,
                     stocker_input.status,
                     dc_in_input.id dc_in_id,
                     dc_in_input.tujuan,
@@ -44,7 +44,7 @@ class DashboardController extends Controller
                     (CASE WHEN dc_in_input.tujuan = 'SECONDARY DALAM' OR dc_in_input.tujuan = 'SECONDARY LUAR' THEN dc_in_input.lokasi ELSE '-' END) secondary,
                     COALESCE(rack_detail_stocker.nm_rak, (CASE WHEN dc_in_input.tempat = 'RAK' THEN dc_in_input.lokasi ELSE null END), (CASE WHEN dc_in_input.lokasi = 'RAK' THEN dc_in_input.det_alokasi ELSE null END), '-') rak,
                     COALESCE(trolley.nama_trolley, (CASE WHEN dc_in_input.tempat = 'TROLLEY' THEN dc_in_input.lokasi ELSE null END), '-') troli,
-                    COALESCE((dc_in_input.qty_awal - dc_in_input.qty_reject + dc_in_input.qty_replace), stocker_input.qty_ply) dc_in_qty,
+                    COALESCE((COALESCE(dc_in_input.qty_awal, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0)), stocker_input.qty_ply) dc_in_qty,
                     CONCAT(form_cut_input.no_form, ' / ', form_cut_input.no_cut) no_cut,
                     COALESCE(UPPER(loading_line.nama_line), '-') line,
                     stocker_input.updated_at latest_update
@@ -53,6 +53,8 @@ class DashboardController extends Controller
                 leftJoin("part_detail", "stocker_input.part_detail_id", "=", "part_detail.id")->
                 leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
                 leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
                 leftJoin("rack_detail_stocker", "rack_detail_stocker.stocker_id", "=", "stocker_input.id_qr_stocker")->
                 leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->
                 leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->

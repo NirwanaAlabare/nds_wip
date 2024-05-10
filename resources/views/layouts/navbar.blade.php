@@ -443,12 +443,6 @@
                                         Trolley <i class="fas fa-dolly-flatbed"></i>
                                     </a>
                                 </li>
-                                <li>
-                                    <a href="{{ route('loading-line') }}"
-                                        class="dropdown-item {{ $subPage == 'loading-line' ? 'active' : '' }}">
-                                        Line <i class="fa-solid fa-users-line"></i>
-                                    </a>
-                                </li>
                             @enddc
                         </ul>
                     </li>
