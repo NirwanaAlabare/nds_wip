@@ -350,8 +350,7 @@ class LoadingLineController extends Controller
                 WHERE
                     loading_stock.tanggal_loading is not null
                 GROUP BY
-                    loading_line_plan.id,
-                    loading_stock.trolley_id
+                    loading_line_plan.id
                     ".$dateFilter."
                 ORDER BY
                     loading_stock.tanggal_loading,
