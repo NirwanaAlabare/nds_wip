@@ -142,7 +142,7 @@ class SecondaryInhouseController extends Controller
         mp.nama_part,
         dc.tujuan,
         dc.lokasi,
-        s.qty_ply - dc.qty_reject + dc.qty_replace qty_awal,
+        coalesce(s.qty_ply_mod, s.qty_ply) - dc.qty_reject + dc.qty_replace qty_awal,
         ifnull(si.id_qr_stocker,'x')
         from dc_in_input dc
         inner join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
