@@ -19,7 +19,7 @@ Sheet::macro('styleCells', function (Sheet $sheet, string $cellRange, array $sty
     $sheet->getDelegate()->getStyle($cellRange)->applyFromArray($style);
 });
 
-class ExportLaporanRoll implements FromView, WithEvents, WithDrawings, WithColumnWidths, ShouldAutoSize
+class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, ShouldAutoSize
 {
     use Exportable;
 
@@ -91,7 +91,7 @@ class ExportLaporanRoll implements FromView, WithEvents, WithDrawings, WithColum
                 b.created_at <= '$this->to 23:59:59'
         ");
 
-        $this->rowCount = count($data) + 10;
+        $this->rowCount = count($data) + 3;
 
         return view('cutting.roll.export.roll', [
             'data' => $data,
@@ -107,50 +107,13 @@ class ExportLaporanRoll implements FromView, WithEvents, WithDrawings, WithColum
         ];
     }
 
-    public function drawings()
-    {
-        $drawing = new Drawing();
-        $drawing->setName('Logo');
-        $drawing->setDescription('NAG Logo');
-        $drawing->setPath(public_path('/assets/dist/img/nag-logo.png'));
-        $drawing->setHeight(80);
-        $drawing->setCoordinates('A1');
-        $drawing->setOffsetX(35);
-
-        return $drawing;
-    }
-
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A10:AS' . $event->getConcernable()->rowCount,
+            'A3:AS' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [
-                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                        'color' => ['argb' => '000000'],
-                    ],
-                ],
-            ]
-        );
-
-        $event->sheet->styleCells(
-            'A1:G4',
-            [
-                'borders' => [
-                    'allBorders' => [
-                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                        'color' => ['argb' => '000000'],
-                    ],
-                ],
-            ]
-        );
-
-        $event->sheet->styleCells(
-            'G5:G9',
-            [
-                'borders' => [
-                    'right' => [
                         'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
                         'color' => ['argb' => '000000'],
                     ],
