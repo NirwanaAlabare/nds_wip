@@ -440,10 +440,10 @@
             },
             columns: [
                 {
-                    data: 'no_form'
+                    data: 'tgl_mulai_form'
                 },
                 {
-                    data: 'tgl_form_cut'
+                    data: 'no_form'
                 },
                 {
                     data: 'nama_meja'
