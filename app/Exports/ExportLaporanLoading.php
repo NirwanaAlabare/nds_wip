@@ -45,6 +45,7 @@ class ExportLaporanLoading implements FromView, WithEvents, WithColumnWidths, Sh
                 loading_line_plan.act_costing_ws,
                 loading_line_plan.style,
                 loading_line_plan.color,
+                loading_stock.size size,
                 sum( loading_stock.qty ) loading_qty
             FROM
                 loading_line_plan
@@ -54,7 +55,8 @@ class ExportLaporanLoading implements FromView, WithEvents, WithColumnWidths, Sh
                         loading_line.loading_plan_id,
                         loading_line.qty,
                         trolley.id trolley_id,
-                        trolley.nama_trolley
+                        trolley.nama_trolley,
+                        stocker_input.size
                     FROM
                         loading_line
                         LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
@@ -70,7 +72,8 @@ class ExportLaporanLoading implements FromView, WithEvents, WithColumnWidths, Sh
             WHERE
                 loading_stock.tanggal_loading is not null
             GROUP BY
-                loading_line_plan.id
+                loading_line_plan.id,
+                loading_stock.size
                 ".$dateFilter."
             ORDER BY
                 loading_stock.tanggal_loading,
@@ -100,7 +103,7 @@ class ExportLaporanLoading implements FromView, WithEvents, WithColumnWidths, Sh
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A3:F' . $event->getConcernable()->rowCount,
+            'A3:G' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [

@@ -325,6 +325,7 @@ class LoadingLineController extends Controller
                     loading_line_plan.act_costing_ws,
                     loading_line_plan.style,
                     loading_line_plan.color,
+                    loading_stock.size size,
                     sum( loading_stock.qty ) loading_qty
                 FROM
                     loading_line_plan
@@ -334,7 +335,8 @@ class LoadingLineController extends Controller
                             loading_line.loading_plan_id,
                             loading_line.qty,
                             trolley.id trolley_id,
-                            trolley.nama_trolley
+                            trolley.nama_trolley,
+                            stocker_input.size
                         FROM
                             loading_line
                             LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
@@ -350,7 +352,8 @@ class LoadingLineController extends Controller
                 WHERE
                     loading_stock.tanggal_loading is not null
                 GROUP BY
-                    loading_line_plan.id
+                    loading_line_plan.id,
+                    loading_stock.size
                     ".$dateFilter."
                 ORDER BY
                     loading_stock.tanggal_loading,

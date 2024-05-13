@@ -36,6 +36,7 @@
                             <th>No. WS</th>
                             <th>Style</th>
                             <th>Color</th>
+                            <th>Size</th>
                             <th>Loading Qty</th>
                         </tr>
                     </thead>
@@ -82,6 +83,9 @@
                     data: 'color'
                 },
                 {
+                    data: 'size'
+                },
+                {
                     data: 'loading_qty'
                 },
             ],
@@ -91,7 +95,7 @@
                     className: 'align-middle text-nowrap'
                 },
                 {
-                    targets: [5],
+                    targets: [6],
                     render: (data, type, row, meta) => {
                         return Number(data).toLocaleString('id-ID')
                     }

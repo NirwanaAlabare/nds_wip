@@ -14,9 +14,9 @@
         <th style="text-align: center;font-weight: 800;">No. WS</th>
         <th style="text-align: center;font-weight: 800;">Style</th>
         <th style="text-align: center;font-weight: 800;">Color</th>
+        <th style="text-align: center;font-weight: 800;">Size</th>
         <th style="text-align: center;font-weight: 800;">Loading Qty</th>
     </tr>
-
         @php
             $currentDate = "";
             $currentLine = "";
@@ -47,6 +47,7 @@
                 <td>{{ $d->act_costing_ws }}</td>
                 <td>{{ $d->style }}</td>
                 <td>{{ $d->color }}</td>
+                <td>{{ $d->size }}</td>
                 <td data-format='0'>{{ $d->loading_qty }}</td>
             </tr>
         @endforeach
