@@ -11,6 +11,9 @@ use DB;
 class DashboardController extends Controller
 {
     public function dc(Request $request) {
+        ini_set("max_execution_time", 0);
+        ini_set("memory_limit", '2048M');
+
         $months = [['angka' => 1,'nama' => 'Januari'],['angka' => 2,'nama' => 'Februari'],['angka' => 3,'nama' => 'Maret'],['angka' => 4,'nama' => 'April'],['angka' => 5,'nama' => 'Mei'],['angka' => 6,'nama' => 'Juni'],['angka' => 7,'nama' => 'Juli'],['angka' => 8,'nama' => 'Agustus'],['angka' => 9,'nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
         $years = array_reverse(range(1999, date('Y')));
 
@@ -59,8 +62,8 @@ class DashboardController extends Controller
                 leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->
                 leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
                 leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
-                whereRaw("(MONTH(stocker_input.updated_at) = '".$month."' OR MONTH(form_cut_input.waktu_selesai) = '".$month."')")->
-                whereRaw("(YEAR(stocker_input.updated_at) = '".$year."' OR YEAR(form_cut_input.waktu_selesai) = '".$year."')")->
+                whereRaw("(MONTH(form_cut_input.waktu_selesai) = '".$month."')")->
+                whereRaw("(YEAR(form_cut_input.waktu_selesai) = '".$year."')")->
                 orderBy("stocker_input.act_costing_ws", "asc")->
                 orderBy("stocker_input.color", "asc")->
                 orderBy("form_cut_input.no_cut", "asc")->
@@ -138,8 +141,8 @@ class DashboardController extends Controller
                     LEFT JOIN `loading_line` ON `loading_line`.`stocker_id` = `stocker_input`.`id`
             ) stock_location
             WHERE
-                (MONTH(stock_location.updated_at) = '".$month."' OR MONTH(stock_location.waktu_selesai) = '".$month."') AND
-                (YEAR(stock_location.updated_at) = '".$year."' OR YEAR(stock_location.waktu_selesai) = '".$year."')
+                (MONTH(stock_location.waktu_selesai) = '".$month."') AND
+                (YEAR(stock_location.waktu_selesai) = '".$year."')
             GROUP BY
                 `stock_location`.`form_cut_id`,
                 `stock_location`.`so_det_id`,
