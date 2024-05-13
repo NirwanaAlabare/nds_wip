@@ -591,7 +591,7 @@ Route::middleware('auth')->group(function () {
     });
 
     //dashboard fabric
-    Route::controller(DashboardFabricController::class)->middleware('warehouse')->group(function () {
+    Route::controller(DashboardFabricController::class)->group(function () {
         Route::get('/dashboard-warehouse', 'index')->name('dashboard-warehouse');
         Route::get('/get-data-rak', 'getdatarak')->name('get-data-rak');
         Route::get('/get-data-rak2', 'getdatarak2')->name('get-data-rak2');
