@@ -319,7 +319,7 @@ class LoadingLineController extends Controller
 
             $line = DB::select("
                 SELECT
-                    max( loading_stock.tanggal_loading ) tanggal_loading,
+                    loading_stock.tanggal_loading,
                     loading_line_plan.id,
                     loading_line_plan.line_id,
                     loading_line_plan.act_costing_ws,
