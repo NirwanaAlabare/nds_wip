@@ -165,7 +165,7 @@
             $('#trolley').val("").trigger("change");
             $('#kode_stocker').val("").trigger("change");
 
-            await initLineScan();
+            initLineScan();
 
             await $('#switch-destination').prop('checked', true);
 
