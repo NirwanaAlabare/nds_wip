@@ -47,7 +47,7 @@ class DashboardController extends Controller
                     (CASE WHEN dc_in_input.tujuan = 'SECONDARY DALAM' OR dc_in_input.tujuan = 'SECONDARY LUAR' THEN dc_in_input.lokasi ELSE '-' END) secondary,
                     COALESCE(rack_detail_stocker.nm_rak, (CASE WHEN dc_in_input.tempat = 'RAK' THEN dc_in_input.lokasi ELSE null END), (CASE WHEN dc_in_input.lokasi = 'RAK' THEN dc_in_input.det_alokasi ELSE null END), '-') rak,
                     COALESCE(trolley.nama_trolley, (CASE WHEN dc_in_input.tempat = 'TROLLEY' THEN dc_in_input.lokasi ELSE null END), '-') troli,
-                    COALESCE((COALESCE(dc_in_input.qty_awal, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0)), stocker_input.qty_ply) dc_in_qty,
+                    COALESCE((COALESCE(dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0)), stocker_input.qty_ply) dc_in_qty,
                     CONCAT(form_cut_input.no_form, ' / ', form_cut_input.no_cut) no_cut,
                     COALESCE(UPPER(loading_line.nama_line), '-') line,
                     stocker_input.updated_at latest_update
@@ -91,12 +91,12 @@ class DashboardController extends Controller
 
         $dataQty = DB::select("
             SELECT
-                MAX(secondary) secondary,
-                MAX(rak) rak,
-                MAX(troli) troli,
-                MAX(line) line,
-                MAX(qty_ply) qty_ply,
-                MAX(dc_in_qty) dc_in_qty
+                MIN(secondary) secondary,
+                MIN(rak) rak,
+                MIN(troli) troli,
+                MIN(line) line,
+                MIN(qty_ply) qty_ply,
+                MIN(dc_in_qty) dc_in_qty
             FROM
             (
                 SELECT
@@ -125,7 +125,7 @@ class DashboardController extends Controller
                         UPPER( loading_line.nama_line ),
                         '-'
                     ) line,
-                    COALESCE( (dc_in_input.qty_awal - dc_in_input.qty_reject + dc_in_input.qty_replace), stocker_input.qty_ply ) dc_in_qty,
+                    COALESCE((COALESCE(dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0)), stocker_input.qty_ply) dc_in_qty,
                     stocker_input.qty_ply,
                     stocker_input.updated_at,
                     form_cut_input.waktu_selesai
@@ -135,6 +135,8 @@ class DashboardController extends Controller
                     LEFT JOIN `part_detail` ON `stocker_input`.`part_detail_id` = `part_detail`.`id`
                     LEFT JOIN `master_part` ON `master_part`.`id` = `part_detail`.`master_part_id`
                     LEFT JOIN `dc_in_input` ON `dc_in_input`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker`
+                    LEFT JOIN `secondary_in_input` ON `secondary_in_input`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker`
+                    LEFT JOIN `secondary_inhouse_input` ON `secondary_inhouse_input`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker`
                     LEFT JOIN `rack_detail_stocker` ON `rack_detail_stocker`.`stocker_id` = `stocker_input`.`id_qr_stocker`
                     LEFT JOIN `trolley_stocker` ON `trolley_stocker`.`stocker_id` = `stocker_input`.`id`
                     LEFT JOIN `trolley` ON `trolley`.`id` = `trolley_stocker`.`trolley_id`
