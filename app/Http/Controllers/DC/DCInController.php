@@ -191,7 +191,7 @@ class DCInController extends Controller
                 ifnull(s.tujuan,'-') tujuan,
                 ifnull(tmp.tempat,'-') tempat,
                 ifnull(tmp.lokasi,'-') lokasi,
-                coalesce(ms.qty_ply_mod, ms.qty_ply) - coalesce(tmp.qty_reject,0) + coalesce(tmp.qty_replace,0) qty_in,
+                concat(coalesce(ms.qty_ply_mod, ms.qty_ply) - coalesce(tmp.qty_reject,0) + coalesce(tmp.qty_replace,0), concat(' (', (coalesce(tmp.qty_replace,0) - coalesce(tmp.qty_reject,0)), ')')) qty_in,
                 ms.act_costing_ws,
                 ms.size,
                 ms.color,

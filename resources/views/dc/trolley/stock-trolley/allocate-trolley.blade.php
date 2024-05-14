@@ -111,7 +111,7 @@
                         </div>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-sm btn-primary w-100 mt-3 fw-bold">
+                <button type="submit" class="btn btn-sm btn-primary w-100 mt-3 fw-bold" id="stocker-form-submit">
                     <i class="fa fa-save"></i> SIMPAN
                 </button>
             </div>
@@ -427,7 +427,7 @@
                     url: '{{ route('get-stocker-data-trolley-stock') }}/' + id,
                     type: 'get',
                     dataType: 'json',
-                    success: function(res) {
+                    success: async function(res) {
                         if (document.getElementById("loading")) {
                             document.getElementById("loading").classList.add("d-none");
                         }
@@ -435,7 +435,8 @@
                         clearStockerData();
 
                         if (res && res.status == 200) {
-                            setStockerData(res.data);
+                            await setStockerData(res.data);
+                            document.getElementById("stocker-form-submit").click();
                         } else {
                             Swal.fire({
                                 icon: 'warning',
@@ -457,9 +458,9 @@
             }
         }
 
-        function setStockerData(data) {
+        async function setStockerData(data) {
             if (data) {
-                for (let key in data) {
+                for await (let key of Object.keys(data)) {
                     console.log(document.getElementById('stocker_'+key));
                     if (document.getElementById('stocker_'+key)) {
                         document.getElementById('stocker_'+key).value = data[key];

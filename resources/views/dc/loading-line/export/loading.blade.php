@@ -3,10 +3,10 @@
 
 <table>
     <tr>
-        <th style="text-align: center;" colspan="6">Laporan Loading</th>
+        <th style="text-align: center;" colspan="7">Laporan Loading</th>
     </tr>
     <tr>
-        <th style="text-align: center;" colspan="6">Tanggal : {{ $tanggal ? $tanggal : "Tanpa Filter" }}</th>
+        <th style="text-align: center;" colspan="7">Tanggal : {{ $tanggal ? $tanggal : "Tanpa Filter" }}</th>
     </tr>
     <tr>
         <th style="text-align: center;font-weight: 800;">Tanggal Loading</th>
