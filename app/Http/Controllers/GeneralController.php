@@ -84,8 +84,8 @@ class GeneralController extends Controller
             leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->
             leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size");
 
-
-        if ($request->marker_id) {
+        $thisMarkerDetail = MarkerDetail::where("marker_id", $request->marker_id)->count();
+        if ($thisMarkerDetail > 0) {
             $sizeQuery->where("marker_input_detail.marker_id", $request->marker_id);
         }
 

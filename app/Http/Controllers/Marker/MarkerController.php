@@ -156,7 +156,8 @@ class MarkerController extends Controller
                 COALESCE(marker_input_detail.cut_qty, 0) cut_qty
             ")->where("master_sb_ws.id_act_cost", $request->act_costing_id)->where("master_sb_ws.color", $request->color);
 
-        if ($request->marker_id) {
+        $thisMarkerDetail = MarkerDetail::where("marker_id", $request->marker_id)->count();
+        if ($thisMarkerDetail > 0) {
             $sizeQuery->leftJoin('marker_input_detail', function ($join) use ($request) {
                     $join->on('marker_input_detail.so_det_id', '=', 'master_sb_ws.id_so_det');
                     $join->on('marker_input_detail.marker_id', '=', DB::raw($request->marker_id));
