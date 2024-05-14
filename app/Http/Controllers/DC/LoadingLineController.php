@@ -314,52 +314,55 @@ class LoadingLineController extends Controller
         if ($request->ajax()) {
             $dateFilter = "";
             if ($request->tanggal) {
-                $dateFilter = "HAVING MAX(loading_stock.tanggal_loading) = '".$request->tanggal."' ";
+                $dateFilter = "HAVING loading_stock.tanggal_loading = '".$request->tanggal."' ";
             }
 
             $line = DB::select("
-                SELECT
-                    max( loading_stock.tanggal_loading ) tanggal_loading,
-                    loading_line_plan.id,
-                    loading_line_plan.line_id,
-                    loading_line_plan.act_costing_ws,
-                    loading_line_plan.style,
-                    loading_line_plan.color,
-                    loading_stock.size size,
-                    sum( loading_stock.qty ) loading_qty
-                FROM
-                    loading_line_plan
-                    LEFT JOIN (
-                        SELECT
-                            COALESCE(loading_line.tanggal_loading, DATE(loading_line.updated_at)) tanggal_loading,
-                            loading_line.loading_plan_id,
-                            loading_line.qty,
-                            trolley.id trolley_id,
-                            trolley.nama_trolley,
-                            stocker_input.size
-                        FROM
-                            loading_line
-                            LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
-                            LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
-                            LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
-                        GROUP BY
-                            loading_line.tanggal_loading,
-                            stocker_input.form_cut_id,
-                            stocker_input.so_det_id,
-                            stocker_input.group_stocker,
-                            stocker_input.range_awal
-                    ) loading_stock ON loading_stock.loading_plan_id = loading_line_plan.id
-                WHERE
-                    loading_stock.tanggal_loading is not null
-                GROUP BY
-                    loading_line_plan.id,
-                    loading_stock.size
-                    ".$dateFilter."
-                ORDER BY
-                    loading_stock.tanggal_loading,
-                    loading_line_plan.line_id,
-                    loading_line_plan.act_costing_ws,
-                    loading_line_plan.color
+                    SELECT
+                            loading_stock.tanggal_loading,
+                            loading_line_plan.line_id,
+                            loading_line_plan.act_costing_ws,
+                            loading_line_plan.style,
+                            loading_line_plan.color,
+                            loading_stock.size size,
+                            sum( loading_stock.qty ) loading_qty
+                    FROM
+                            loading_line_plan
+                            LEFT JOIN (
+                                    SELECT
+                                            COALESCE(loading_line.tanggal_loading, DATE(loading_line.updated_at)) tanggal_loading,
+                                            loading_line.loading_plan_id,
+                                            loading_line.qty,
+                                            trolley.id trolley_id,
+                                            trolley.nama_trolley,
+                                            stocker_input.size
+                                    FROM
+                                            loading_line
+                                            LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
+                                            LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
+                                            LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
+                                    GROUP BY
+                                            loading_line.tanggal_loading,
+                                            stocker_input.form_cut_id,
+                                            stocker_input.so_det_id,
+                                            stocker_input.group_stocker,
+                                            stocker_input.range_awal
+                            ) loading_stock ON loading_stock.loading_plan_id = loading_line_plan.id
+                    WHERE
+                            loading_stock.tanggal_loading is not null
+                    GROUP BY
+                            loading_stock.tanggal_loading,
+                            loading_line_plan.line_id,
+                            loading_line_plan.act_costing_ws,
+                            loading_line_plan.style,
+                            loading_line_plan.color,
+                            loading_stock.size
+                            ".$dateFilter."
+                    ORDER BY
+                            loading_stock.tanggal_loading,
+                            loading_line_plan.line_id,
+                            loading_line_plan.act_costing_ws,
+                            loading_line_plan.color
             ");
 
             return DataTables::of($line)
