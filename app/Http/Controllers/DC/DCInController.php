@@ -95,7 +95,7 @@ class DCInController extends Controller
                 a.panel,
                 f.no_cut,
                 f.id,
-                b.grouplot,
+                a.shade,
                 a.qty_ply,
                 a.range_awal,
                 a.range_akhir,
@@ -109,17 +109,6 @@ class DCInController extends Controller
                 INNER JOIN marker_input m ON m.kode = f.id_marker
                 inner join part_detail pd on a.part_detail_id = pd.id
                 inner join master_secondary ms on pd.master_secondary_id = ms.id
-                inner join
-                (
-                    select
-                        no_form_cut_input,
-                        group_concat(distinct(upper(group_roll))) grouplot
-                    from
-                        form_cut_input_detail
-                    group by
-                        no_form_cut_input,
-                        group_roll
-                ) b on f.no_form = b.no_form_cut_input
             WHERE
                 a.id_qr_stocker = '$request->txtqrstocker'
         ");
@@ -183,48 +172,79 @@ class DCInController extends Controller
     {
         $user = Auth::user()->name;
 
+        // $tmpDcIn = DB::select("
+        //     select
+        //         ms.id_qr_stocker,
+        //         mp.nama_part,
+        //         concat(ms.id_qr_stocker,' - ',mp.nama_part) kode_stocker,
+        //         ifnull(s.tujuan,'-') tujuan,
+        //         ifnull(tmp.tempat,'-') tempat,
+        //         ifnull(tmp.lokasi,'-') lokasi,
+        //         concat(coalesce(ms.qty_ply_mod, ms.qty_ply) - coalesce(tmp.qty_reject,0) + coalesce(tmp.qty_replace,0), concat(' (', (coalesce(tmp.qty_replace,0) - coalesce(tmp.qty_reject,0)), ')')) qty_in,
+        //         ms.act_costing_ws,
+        //         ms.size,
+        //         ms.color,
+        //         ms.panel,
+        //         concat(ms.range_awal, '-', ms.range_akhir) rangeAwalAkhir,
+        //         ifnull(tmp.id_qr_stocker,'x') cek_stat
+        //     from
+        //         (
+        //             select
+        //                 *,
+        //                 concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) kode
+        //             from
+        //                 stocker_input
+        //         ) ms
+        //         inner join
+        //             (
+        //                 select
+        //                     concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) kode
+        //                 from
+        //                     tmp_dc_in_input_new x
+        //                     inner join stocker_input y on x.id_qr_stocker = y.id_qr_stocker
+        //                 where
+        //                     user = '$user'
+        //                 group by
+        //                     concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade)
+        //             )
+        //         a on ms.kode = a.kode
+        //         inner join part_detail pd on ms.part_detail_id = pd.id
+        //         inner join master_part mp  on pd.master_part_id = mp.id
+        //         left join master_secondary s on pd.master_secondary_id = s.id
+        //         left join tmp_dc_in_input_new tmp on ms.id_qr_stocker = tmp.id_qr_stocker
+        //     order by
+        //         ifnull(tmp.id_qr_stocker,'x') asc
+        // ");
+
         $tmpDcIn = DB::select("
-            select
+            SELECT
                 ms.id_qr_stocker,
                 mp.nama_part,
-                concat(ms.id_qr_stocker,' - ',mp.nama_part) kode_stocker,
-                ifnull(s.tujuan,'-') tujuan,
-                ifnull(tmp.tempat,'-') tempat,
-                ifnull(tmp.lokasi,'-') lokasi,
-                concat(coalesce(ms.qty_ply_mod, ms.qty_ply) - coalesce(tmp.qty_reject,0) + coalesce(tmp.qty_replace,0), concat(' (', (coalesce(tmp.qty_replace,0) - coalesce(tmp.qty_reject,0)), ')')) qty_in,
+                concat( ms.id_qr_stocker, ' - ', mp.nama_part ) kode_stocker,
+                ifnull( s.tujuan, '-' ) tujuan,
+                ifnull( tmp.tempat, '-' ) tempat,
+                ifnull( tmp.lokasi, '-' ) lokasi,
+                concat(
+                    COALESCE ( ms.qty_ply_mod, ms.qty_ply ) - COALESCE ( tmp.qty_reject, 0 ) + COALESCE ( tmp.qty_replace, 0 ),
+                concat( ' (', ( COALESCE ( tmp.qty_replace, 0 ) - COALESCE ( tmp.qty_reject, 0 )), ')' )) qty_in,
                 ms.act_costing_ws,
                 ms.size,
                 ms.color,
                 ms.panel,
-                concat(ms.range_awal, '-', ms.range_akhir) rangeAwalAkhir,
-                ifnull(tmp.id_qr_stocker,'x') cek_stat
-            from
-                (
-                    select
-                        *,
-                        concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) kode
-                    from
-                        stocker_input
-                ) ms
-                inner join
-                    (
-                        select
-                            concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) kode
-                        from
-                            tmp_dc_in_input_new x
-                            inner join stocker_input y on x.id_qr_stocker = y.id_qr_stocker
-                        where
-                            user = '$user'
-                        group by
-                            concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade)
-                    )
-                a on ms.kode = a.kode
-                inner join part_detail pd on ms.part_detail_id = pd.id
-                inner join master_part mp  on pd.master_part_id = mp.id
-                left join master_secondary s on pd.master_secondary_id = s.id
-                left join tmp_dc_in_input_new tmp on ms.id_qr_stocker = tmp.id_qr_stocker
-            order by
-                ifnull(tmp.id_qr_stocker,'x') asc
+                concat( ms.range_awal, '-', ms.range_akhir ) rangeAwalAkhir,
+                ifnull( tmp.id_qr_stocker, 'x' ) cek_stat
+            FROM
+                tmp_dc_in_input_new x
+                INNER JOIN stocker_input y ON x.id_qr_stocker = y.id_qr_stocker
+                LEFT JOIN stocker_input ms ON ms.form_cut_id = y.form_cut_id AND ms.so_det_id = y.so_det_id AND ms.group_stocker = y.group_stocker AND ms.ratio = y.ratio
+                LEFT JOIN tmp_dc_in_input_new tmp ON tmp.id_qr_stocker = ms.id_qr_stocker
+                INNER JOIN part_detail pd ON ms.part_detail_id = pd.id
+                INNER JOIN master_part mp ON pd.master_part_id = mp.id
+                LEFT JOIN master_secondary s ON pd.master_secondary_id = s.id
+            WHERE
+                x.`user` = '".$user."'
+            group by ms.id_qr_stocker
+            order by ifnull( tmp.id_qr_stocker, 'x' )
         ");
 
         return DataTables::of($tmpDcIn)->toJson();
