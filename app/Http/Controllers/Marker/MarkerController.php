@@ -632,7 +632,7 @@ class MarkerController extends Controller
     {
         $marker = Marker::where('id', $id)->first();
 
-        return view('marker.marker.edit-marker', ['marker' => $marker]);
+        return view('marker.marker.edit-marker', ['page' => 'dashboard-marker', "subPageGroup" => "proses-marker", "subPage" => "marker", 'marker' => $marker]);
     }
 
     /**

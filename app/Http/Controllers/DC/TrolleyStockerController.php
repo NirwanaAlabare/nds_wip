@@ -48,7 +48,15 @@ class TrolleyStockerController extends Controller
                             stocker_input.form_cut_id,
                             stocker_input.act_costing_ws,
                             stocker_input.color,
-                            COALESCE((MAX(dc_in_input.qty_awal) - (MAX(COALESCE(dc_in_input.qty_reject, 0)) + MAX(COALESCE(dc_in_input.qty_replace, 0))) - (MAX(COALESCE(secondary_in_input.qty_reject, 0)) + MAX(COALESCE(secondary_in_input.qty_replace, 0))) - (MAX(COALESCE(secondary_inhouse_input.qty_reject, 0)) + MAX(COALESCE(secondary_inhouse_input.qty_replace, 0)))), COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply)) qty_ply,
+                            COALESCE (
+                                (
+                                    MAX(dc_in_input.qty_awal)
+                                    - (MAX(COALESCE ( dc_in_input.qty_reject, 0 )) + MAX(COALESCE ( dc_in_input.qty_replace, 0 )))
+                                    - (MAX(COALESCE ( secondary_in_input.qty_reject, 0 )) + MAX(COALESCE ( secondary_in_input.qty_replace, 0 )))
+                                    - (MAX(COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + MAX(COALESCE ( secondary_inhouse_input.qty_replace, 0 )))
+                                ),
+                                COALESCE ( stocker_input.qty_ply_mod, stocker_input.qty_ply )
+                            ) qty_ply,
                             form_cut_input.id_marker
                         FROM
                             stocker_input
@@ -56,8 +64,15 @@ class TrolleyStockerController extends Controller
                             LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
                             LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = stocker_input.id_qr_stocker
                             LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
+                            LEFT JOIN trolley_stocker ON trolley_stocker.stocker_id = stocker_input.id
+                        WHERE
+                            trolley_stocker.id is not null AND
+                            trolley_stocker.`status` = "active"
                         GROUP BY
-                            stocker_input.form_cut_id, stocker_input.so_det_id, stocker_input.group_stocker, stocker_input.ratio
+                            stocker_input.form_cut_id,
+                            stocker_input.so_det_id,
+                            stocker_input.group_stocker,
+                            stocker_input.ratio
                     ) stocker
                 '),
                 'stocker.id', '=', 'trolley_stocker.stocker_id'
