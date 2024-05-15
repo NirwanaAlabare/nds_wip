@@ -19,7 +19,9 @@
             <div class="modal-dialog modal-lg modal-dialog-scrollable">
                 <div class="modal-content">
                     <div class="modal-header bg-sb text-light">
-                        <h1 class="modal-title fs-5" id="updateMassTmpDcModalLabel"></h1>
+                        <div style="max-width: 80%; overflow-x: auto;">
+                            <h1 class="modal-title fs-5" id="updateMassTmpDcModalLabel"></h1>
+                        </div>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
