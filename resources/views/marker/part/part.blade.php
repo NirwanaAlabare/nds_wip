@@ -96,12 +96,12 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <button class="btn btn-primary btn-block" onclick="reorderStockerNumbering()"><i class="fa-solid fa-arrow-up-wide-short"></i> Reorder Stocker</button>
+                                        <button class="btn btn-primary btn-block fw-bold" onclick="reorderStockerNumbering()"><i class="fa-solid fa-arrow-up-wide-short"></i> REORDER</button>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <button class="btn btn-info btn-block" onclick="generateFullStockerNumbering()"><i class="fa-solid fa-history"></i> Full Generate</button>
+                                        <button class="btn btn-info btn-block fw-bold" onclick="generateFullStockerNumbering()"><i class="fa-solid fa-history"></i> GENERATE</button>
                                     </div>
                                 </div>
                             </div>
@@ -115,9 +115,9 @@
                                             <th>Tanggal</th>
                                             <th>No. Form</th>
                                             <th>Meja</th>
+                                            <th>No. Cut</th>
                                             <th>Style</th>
                                             <th>Color</th>
-                                            <th>No. Cut</th>
                                             <th>Part</th>
                                             <th>Lembar</th>
                                             <th>Size Ratio</th>
@@ -334,13 +334,13 @@
                     data: 'nama_meja'
                 },
                 {
+                    data: 'no_cut',
+                },
+                {
                     data: 'style'
                 },
                 {
                     data: 'color'
-                },
-                {
-                    data: 'no_cut',
                 },
                 {
                     data: 'part_details'

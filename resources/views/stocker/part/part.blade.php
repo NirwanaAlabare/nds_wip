@@ -92,12 +92,12 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <button class="btn btn-primary btn-block" onclick="reorderStockerNumbering()"><i class="fa-solid fa-arrow-up-wide-short"></i> Reorder Stocker</button>
+                                        <button class="btn btn-primary btn-block fw-bold" onclick="reorderStockerNumbering()"><i class="fa-solid fa-arrow-up-wide-short"></i> REORDER</button>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <button class="btn btn-info btn-block" onclick="generateFullStockerNumbering()"><i class="fa-solid fa-list-check"></i> Full Generate</button>
+                                        <button class="btn btn-info btn-block fw-bold" onclick="generateFullStockerNumbering()"><i class="fa-solid fa-history"></i> GENERATE</button>
                                     </div>
                                 </div>
                             </div>
