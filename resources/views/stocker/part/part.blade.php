@@ -14,6 +14,10 @@
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-th fa-sm"></i> Part</h5>
         </div>
         <div class="card-body">
+            <a href="{{ route('create-part') }}" class="btn btn-success btn-sm mb-3">
+                <i class="fas fa-plus"></i>
+                Baru
+            </a>
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div>
                     <label class="form-label"><small>Tanggal Awal</small></label>
@@ -97,7 +101,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <button class="btn btn-info btn-block fw-bold" onclick="generateFullStockerNumbering()"><i class="fa-solid fa-history"></i> GENERATE</button>
+                                        <button class="btn btn-info btn-block fw-bold" onclick="generateFullStockerNumbering()"><i class="fa-solid fa-list-check"></i> GENERATE</button>
                                     </div>
                                 </div>
                             </div>
