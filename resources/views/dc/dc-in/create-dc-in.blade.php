@@ -388,7 +388,6 @@
         }
 
         function resetCheckedStocker() {
-            console.log("asdasdasd");
             document.getElementById("checked-stocker-count").innerText = 0;
         }
 
