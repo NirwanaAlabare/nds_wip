@@ -22,24 +22,40 @@ class ExportLaporanLoading implements FromView, WithEvents, WithColumnWidths, Sh
 {
     use Exportable;
 
-    protected $tanggal;
+    protected $dateFrom;
+    protected $dateTo;
 
-    public function __construct($tanggal)
+    public function __construct($dateFrom, $dateTo)
     {
-        $this->tanggal = $tanggal;
+        $this->dateFrom = $dateFrom;
+        $this->dateTo = $dateTo;
         $this->rowCount = 0;
     }
 
     public function view(): View
     {
         $dateFilter = "";
-        if ($this->tanggal) {
-            $dateFilter = "HAVING MAX(loading_stock.tanggal_loading) = '".$this->tanggal."' ";
+        if ($this->dateFrom || $this->dateTo) {
+            $dateFilter = "HAVING ";
+            $dateFromFilter = " loading_stock.tanggal_loading >= '".$this->dateFrom."' ";
+            $dateToFilter = " loading_stock.tanggal_loading <= '".$this->dateTo."' ";
+
+            if ($this->dateFrom && $this->dateTo) {
+                $dateFilter .= $dateFromFilter." AND ".$dateToFilter;
+            } else {
+                if ($this->dateTo) {
+                    $dateFilter .= $dateFromFilter;
+                }
+
+                if ($this->dateFrom) {
+                    $dateFilter .= $dateToFilter;
+                }
+            }
         }
 
         $data = DB::select("
             SELECT
-                max( loading_stock.tanggal_loading ) tanggal_loading,
+                loading_stock.tanggal_loading,
                 loading_line_plan.id,
                 loading_line_plan.line_id,
                 loading_line_plan.act_costing_ws,
@@ -92,7 +108,8 @@ class ExportLaporanLoading implements FromView, WithEvents, WithColumnWidths, Sh
         return view('dc.loading-line.export.loading', [
             'data' => collect($data),
             'lineData' => $lineData,
-            'tanggal' => $this->tanggal,
+            'dateFrom' => $this->dateFrom,
+            'dateTo' => $this->dateTo,
         ]);
     }
 

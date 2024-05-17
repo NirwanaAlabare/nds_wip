@@ -313,8 +313,22 @@ class LoadingLineController extends Controller
     public function summary(Request $request) {
         if ($request->ajax()) {
             $dateFilter = "";
-            if ($request->tanggal) {
-                $dateFilter = "HAVING loading_stock.tanggal_loading = '".$request->tanggal."' ";
+            if ($request->dateFrom || $request->dateTo) {
+                $dateFilter = "HAVING ";
+                $dateFromFilter = " loading_stock.tanggal_loading >= '".$request->dateFrom."' ";
+                $dateToFilter = " loading_stock.tanggal_loading <= '".$request->dateTo."' ";
+
+                if ($request->dateFrom && $request->dateTo) {
+                    $dateFilter .= $dateFromFilter." AND ".$dateToFilter;
+                } else {
+                    if ($request->dateTo) {
+                        $dateFilter .= $dateFromFilter;
+                    }
+
+                    if ($request->dateFrom) {
+                        $dateFilter .= $dateToFilter;
+                    }
+                }
             }
 
             $line = DB::select("
@@ -380,6 +394,6 @@ class LoadingLineController extends Controller
 
     public function exportExcel(Request $request)
     {
-        return Excel::download(new ExportLaporanLoading($request->tanggal), 'Laporan Loading ".$tanggal.".xlsx');
+        return Excel::download(new ExportLaporanLoading($request->dateFrom, $request->dateTo), 'Laporan Loading '.$request->dateFrom.' - '.$request->dateTo.'.xlsx');
     }
 }

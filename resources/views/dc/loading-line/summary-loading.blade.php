@@ -16,8 +16,12 @@
             <div class="d-flex justify-content-between align-items-end">
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div>
-                        <label class="form-label"><small>Tanggal</small></label>
-                        <input type="date" class="form-control form-control-sm" id="tgl" name="tgl" value="{{ date('Y-m-d') }}" onchange="datatableLoadingLineReload()">
+                        <label class="form-label"><small>Tanggal Awal</small></label>
+                        <input type="date" class="form-control form-control-sm" id="dateFrom" name="dateFrom" value="{{ date('Y-m-d') }}" onchange="datatableLoadingLineReload()">
+                    </div>
+                    <div>
+                        <label class="form-label"><small>Tanggal Akhir</small></label>
+                        <input type="date" class="form-control form-control-sm" id="dateTo" name="dateTo" value="{{ date('Y-m-d') }}" onchange="datatableLoadingLineReload()">
                     </div>
                     <div>
                         <button class="btn btn-primary btn-sm" onclick="datatableLoadingLineReload()"><i class="fa fa-search"></i></button>
@@ -63,7 +67,8 @@
             ajax: {
                 url: '{{ route('summary-loading') }}',
                 data: function (d) {
-                    d.tanggal = $("#tgl").val();
+                    d.dateFrom = $("#dateFrom").val();
+                    d.dateTo = $("#dateTo").val();
                 }
             },
             columns: [
@@ -153,7 +158,10 @@
             $.ajax({
                 url: "{{ url("/loading-line/export-excel") }}",
                 type: 'post',
-                data: { tanggal:$('#tgl').val() },
+                data: {
+                    dateFrom : $('#dateFrom').val(),
+                    dateTo : $('#dateTo').val()
+                },
                 xhrFields: { responseType : 'blob' },
                 success: function(res) {
                     elm.removeAttribute('disabled');
@@ -172,7 +180,7 @@
                     var blob = new Blob([res]);
                     var link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
-                    link.download = "Summary Loading "+$('#tgl').val()+".xlsx";
+                    link.download = "Summary Loading "+$('#dateFrom').val()+" - "+$('#dateTo').val()+".xlsx";
                     link.click();
                 }, error: function (jqXHR) {
                     let res = jqXHR.responseJSON;
