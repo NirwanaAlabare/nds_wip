@@ -398,6 +398,7 @@ Route::middleware('auth')->group(function () {
 
     // DC :
         // DC Dashboard
+        Route::get('/dashboard-marker', [DashboardController::class, 'marker'])->middleware('auth')->name('dashboard-marker');
         Route::get('/dashboard-dc', [DashboardController::class, 'dc'])->middleware('auth')->name('dashboard-dc');
         Route::get('/dc-qty', [DashboardController::class, 'dcQty'])->middleware('auth')->name('dc-qty');
 
@@ -862,9 +863,9 @@ Route::middleware('auth')->group(function () {
 });
 
 // Dashboard
-Route::get('/dashboard-marker', function () {
-    return view('dashboard', ['page' => 'dashboard-marker']);
-})->middleware('auth')->name('dashboard-marker');
+// Route::get('/dashboard-marker', function () {
+//     return view('dashboard', ['page' => 'dashboard-marker']);
+// })->middleware('auth')->name('dashboard-marker');
 
 Route::get('/dashboard-cutting', function () {
     return view('dashboard', ['page' => 'dashboard-cutting']);

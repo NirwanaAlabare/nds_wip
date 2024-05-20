@@ -5,11 +5,123 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Rack;
 use App\Models\Stocker;
+use App\Models\Marker;
+use App\Models\DCInput;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
 
 class DashboardController extends Controller
 {
+    // Marker
+    public function marker(Request $request) {
+        ini_set("max_execution_time", 0);
+        ini_set("memory_limit", '2048M');
+
+        $months = [['angka' => 1,'nama' => 'Januari'],['angka' => 2,'nama' => 'Februari'],['angka' => 3,'nama' => 'Maret'],['angka' => 4,'nama' => 'April'],['angka' => 5,'nama' => 'Mei'],['angka' => 6,'nama' => 'Juni'],['angka' => 7,'nama' => 'Juli'],['angka' => 8,'nama' => 'Agustus'],['angka' => 9,'nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
+        $years = array_reverse(range(1999, date('Y')));
+
+        if ($request->ajax()) {
+            $month = date("m");
+            $year = date("Y");
+
+            if ($request->month) {
+                $month = $request->month;
+            }
+            if ($request->year) {
+                $year = $request->year;
+            }
+
+            $marker = Marker::selectRaw("
+                    marker_input.buyer,
+                    marker_input.act_costing_ws,
+                    marker_input.style,
+                    marker_input.color,
+                    marker_input.tgl_cutting,
+                    marker_input.kode,
+                    marker_input.urutan_marker,
+                    marker_input.panel,
+                    COALESCE(CONCAT(master_part.nama_part, ' / ', CONCAT(COALESCE(part_detail.cons, '-'), ' ', COALESCE(UPPER(part_detail.unit), '-')), ' / ', CONCAT(COALESCE(master_secondary.tujuan, '-'), ' - ', COALESCE(master_secondary.proses, '-')) ), '-') nama_part
+                ")->
+                leftJoin("part", function ($join) {
+                    $join->on("part.act_costing_id", "=", "marker_input.act_costing_id");
+                    $join->on("part.panel", "=", "marker_input.panel");
+                })->
+                leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
+                leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+                leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->
+                whereRaw("(MONTH(marker_input.tgl_cutting) = '".$month."')")->
+                whereRaw("(YEAR(marker_input.tgl_cutting) = '".$year."')")->
+                groupBy("marker_input.act_costing_id", "marker_input.buyer", "marker_input.style", "marker_input.color", "marker_input.panel", "marker_input.id", "part_detail.id")->
+                orderBy("marker_input.tgl_cutting", "desc")->
+                orderBy("marker_input.buyer", "asc")->
+                orderBy("marker_input.act_costing_ws", "asc")->
+                orderBy("marker_input.style", "asc")->
+                orderBy("marker_input.color", "asc")->
+                orderBy("marker_input.panel", "asc")->
+                orderBy("marker_input.urutan_marker", "asc");
+
+            return DataTables::eloquent($marker)->toJson();
+        }
+
+        return view('dashboard', ['page' => 'dashboard-marker', 'months' => $months, 'years' => $years]);
+    }
+
+    // Cutting
+    // Marker
+    public function cutting(Request $request) {
+        ini_set("max_execution_time", 0);
+        ini_set("memory_limit", '2048M');
+
+        $months = [['angka' => 1,'nama' => 'Januari'],['angka' => 2,'nama' => 'Februari'],['angka' => 3,'nama' => 'Maret'],['angka' => 4,'nama' => 'April'],['angka' => 5,'nama' => 'Mei'],['angka' => 6,'nama' => 'Juni'],['angka' => 7,'nama' => 'Juli'],['angka' => 8,'nama' => 'Agustus'],['angka' => 9,'nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
+        $years = array_reverse(range(1999, date('Y')));
+
+        if ($request->ajax()) {
+            $month = date("m");
+            $year = date("Y");
+
+            if ($request->month) {
+                $month = $request->month;
+            }
+            if ($request->year) {
+                $year = $request->year;
+            }
+
+            $marker = FormCutInput::selectRaw("
+                    marker_input.buyer,
+                    marker_input.act_costing_ws,
+                    marker_input.style,
+                    marker_input.color,
+                    marker_input.tgl_cutting,
+                    marker_input.kode,
+                    marker_input.urutan_marker,
+                    marker_input.panel,
+                    COALESCE(CONCAT(master_part.nama_part, ' / ', CONCAT(COALESCE(part_detail.cons, '-'), ' ', COALESCE(UPPER(part_detail.unit), '-')), ' / ', CONCAT(COALESCE(master_secondary.tujuan, '-'), ' - ', COALESCE(master_secondary.proses, '-')) ), '-') nama_part
+                ")->
+                leftJoin("part", function ($join) {
+                    $join->on("part.act_costing_id", "=", "marker_input.act_costing_id");
+                    $join->on("part.panel", "=", "marker_input.panel");
+                })->
+                leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
+                leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+                leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->
+                whereRaw("(MONTH(marker_input.tgl_cutting) = '".$month."')")->
+                whereRaw("(YEAR(marker_input.tgl_cutting) = '".$year."')")->
+                groupBy("marker_input.act_costing_id", "marker_input.buyer", "marker_input.style", "marker_input.color", "marker_input.panel", "marker_input.id", "part_detail.id")->
+                orderBy("marker_input.tgl_cutting", "desc")->
+                orderBy("marker_input.buyer", "asc")->
+                orderBy("marker_input.act_costing_ws", "asc")->
+                orderBy("marker_input.style", "asc")->
+                orderBy("marker_input.color", "asc")->
+                orderBy("marker_input.panel", "asc")->
+                orderBy("marker_input.urutan_marker", "asc");
+
+            return DataTables::eloquent($marker)->toJson();
+        }
+
+        return view('dashboard', ['page' => 'dashboard-marker', 'months' => $months, 'years' => $years]);
+    }
+
+    // DC
     public function dc(Request $request) {
         ini_set("max_execution_time", 0);
         ini_set("memory_limit", '2048M');
@@ -28,7 +140,7 @@ class DashboardController extends Controller
                 $year = $request->year;
             }
 
-            $stockers = Stocker::selectRaw("
+            $dc = DCInput::selectRaw("
                     stocker_input.id stocker_id,
                     stocker_input.id_qr_stocker,
                     stocker_input.act_costing_ws,
