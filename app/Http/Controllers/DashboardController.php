@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Rack;
 use App\Models\Stocker;
 use App\Models\Marker;
-use App\Models\DCInput;
+use App\Models\DCIn;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
 
@@ -140,7 +140,7 @@ class DashboardController extends Controller
                 $year = $request->year;
             }
 
-            $dc = DCInput::selectRaw("
+            $dc = Stocker::selectRaw("
                     stocker_input.id stocker_id,
                     stocker_input.id_qr_stocker,
                     stocker_input.act_costing_ws,
@@ -184,7 +184,7 @@ class DashboardController extends Controller
                 orderBy("stocker_input.shade", "desc")->
                 orderBy("stocker_input.range_awal", "asc");
 
-            return DataTables::eloquent($stockers)->toJson();
+            return DataTables::eloquent($dc)->toJson();
         }
 
         return view('dashboard', ['page' => 'dashboard-dc', 'months' => $months, 'years' => $years]);
