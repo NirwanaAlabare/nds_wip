@@ -1506,7 +1506,7 @@
         // Initialize Select2BS4 Elements
         $('.select2bs4').select2({
             theme: 'bootstrap4',
-            containerCssClass: 'form-control-sm'
+            containerCssClass: 'form-control-sm rounded'
         })
 
         // -Global Key Event-
