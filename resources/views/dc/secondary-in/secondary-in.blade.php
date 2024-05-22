@@ -550,6 +550,10 @@
             $('#rak-input').removeClass('d-none');
             $('#trolley-input').removeClass('d-none');
         })
+
+        $('#exampleModal').on('shown.bs.modal', function(e) {
+            $('#txtqrstocker').focus();
+        })
     </script>
     <script>
         function reset() {

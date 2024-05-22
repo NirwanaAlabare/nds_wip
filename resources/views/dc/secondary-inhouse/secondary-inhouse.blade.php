@@ -534,6 +534,10 @@
             $('#cbotuj').val('').trigger('change');
 
         })
+
+        $('#exampleModal').on('shown.bs.modal', function(e) {
+            $('#txtqrstocker').focus();
+        })
     </script>
     <script>
         function reset() {
