@@ -196,7 +196,7 @@ class StockerController extends Controller
         $dataRatio = MarkerDetail::selectRaw("
                 marker_input_detail.id marker_detail_id,
                 marker_input_detail.so_det_id,
-                master_sb_ws.size,
+                COALESCE(master_sb_ws.size, marker_input_detail.size) size,
                 marker_input_detail.ratio
             ")->
             leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
@@ -368,7 +368,7 @@ class StockerController extends Controller
 
         $dataStockers = Stocker::selectRaw("
                 (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) != 0 THEN (CONCAT(stocker_input.qty_ply, (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) > 0 THEN CONCAT('+', (stocker_input.qty_ply_mod - stocker_input.qty_ply)) ELSE (stocker_input.qty_ply_mod - stocker_input.qty_ply) END))) ELSE stocker_input.qty_ply END) bundle_qty,
-                master_sb_ws.size,
+                COALESCE(master_sb_ws.size, marker_input_detail.size) size,
                 stocker_input.range_awal,
                 stocker_input.range_akhir,
                 stocker_input.id_qr_stocker,
@@ -489,7 +489,7 @@ class StockerController extends Controller
 
         $dataStockers = Stocker::selectRaw("
                 (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) != 0 THEN (CONCAT(stocker_input.qty_ply, (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) > 0 THEN CONCAT('+', (stocker_input.qty_ply_mod - stocker_input.qty_ply)) ELSE (stocker_input.qty_ply_mod - stocker_input.qty_ply) END))) ELSE stocker_input.qty_ply END) bundle_qty,
-                master_sb_ws.size,
+                COALESCE(master_sb_ws.size, marker_input_detail.size) size,
                 stocker_input.range_awal,
                 stocker_input.range_akhir,
                 stocker_input.id_qr_stocker,
@@ -614,7 +614,7 @@ class StockerController extends Controller
 
         $dataStockers = Stocker::selectRaw("
                 (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) != 0 THEN (CONCAT(stocker_input.qty_ply, (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) > 0 THEN CONCAT('+', (stocker_input.qty_ply_mod - stocker_input.qty_ply)) ELSE (stocker_input.qty_ply_mod - stocker_input.qty_ply) END))) ELSE stocker_input.qty_ply END) bundle_qty,
-                master_sb_ws.size,
+                COALESCE(master_sb_ws.size, marker_input_detail.size) size,
                 stocker_input.range_awal,
                 stocker_input.range_akhir,
                 stocker_input.id_qr_stocker,
@@ -881,7 +881,7 @@ class StockerController extends Controller
             $dataRatio = MarkerDetail::selectRaw("
                     marker_input_detail.id marker_detail_id,
                     marker_input_detail.so_det_id,
-                    master_sb_ws.size,
+                    COALESCE(master_sb_ws.size, marker_input_detail.size) size,
                     marker_input_detail.ratio,
                     stocker_input.id stocker_id
                 ")->
@@ -1423,9 +1423,9 @@ class StockerController extends Controller
                     }
                 }
 
-                ($sizeRangeAkhir[$stocker->size] - ($rangeAwal-1)) != $stocker->qty && $stocker->qty_ply_mod = ($sizeRangeAkhir[$stocker->size] - ($rangeAwal-1));
+                ($stocker->size && ($sizeRangeAkhir[$stocker->size] - ($rangeAwal-1))) != $stocker->qty && $stocker->qty_ply_mod = ($sizeRangeAkhir[$stocker->size] - ($rangeAwal-1));
                 $stocker->range_awal = $rangeAwal;
-                $stocker->range_akhir = $sizeRangeAkhir[$stocker->size];
+                $stocker->range_akhir = $stocker->size && $sizeRangeAkhir[$stocker->size];
                 $stocker->save();
             }
 
