@@ -423,17 +423,17 @@ class CuttingFormManualController extends Controller
                 qty_out qty,
                 no_lot lot,
                 bpb.unit,
-                kode_rak
+                kode_lok kode_rak
             FROM
                 whs_bppb_det br
-                INNER JOIN whs_bppb_h ON whs_bppb_h.no_bppb = br.no_bppb
-                INNER JOIN masteritem mi ON br.id_item = mi.id_item
-                INNER JOIN bpb ON br.id_jo = bpb.id_jo AND br.id_item = bpb.id_item
-                INNER JOIN mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
-                INNER JOIN jo_det jd ON br.id_jo = jd.id_jo
-                INNER JOIN so ON jd.id_so = so.id
-                INNER JOIN act_costing ac ON so.id_cost = ac.id
-                INNER JOIN master_rak mr ON br.no_rak = mr.kode_rak
+                LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = br.no_bppb
+                LEFT JOIN masteritem mi ON br.id_item = mi.id_item
+                LEFT JOIN bpb ON br.id_jo = bpb.id_jo AND br.id_item = bpb.id_item
+                LEFT JOIN mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
+                LEFT JOIN jo_det jd ON br.id_jo = jd.id_jo
+                LEFT JOIN so ON jd.id_so = so.id
+                LEFT JOIN act_costing ac ON so.id_cost = ac.id
+                LEFT JOIN whs_master_lokasi mr ON br.no_rak = mr.kode_lok
             WHERE
                 br.id_roll = '".$id."'
                 AND whs_bppb_h.tujuan = 'Production - Cutting'
