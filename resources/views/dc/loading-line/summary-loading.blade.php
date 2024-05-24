@@ -44,6 +44,14 @@
                             <th>Loading Qty</th>
                         </tr>
                     </thead>
+                    <tbody>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="6" class="text-end">TOTAL</th>
+                            <th id="total-loading-summary">0</th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -59,6 +67,8 @@
     <script src="{{ asset('plugins/datatables-rowsgroup/dataTables.rowsGroup.js') }}"></script>
 
     <script>
+        var datatableLoadingLineParameter = ['tanggal_loading', 'nama_line', 'act_costing_ws', 'style', 'color', 'size', 'loading_qty']
+
         let datatableLoadingLine = $("#datatable-loading-line").DataTable({
             ordering: false,
             processing: true,
@@ -112,26 +122,56 @@
                 0,
                 1,
             ],
+            drawCallback: function (settings) {
+               getTotalSummaryLoading();
+            }
         });
 
         function datatableLoadingLineReload() {
-            datatableLoadingLine.ajax.reload()
+            datatableLoadingLine.ajax.reload();
         }
 
         $('#datatable-loading-line thead tr').clone(true).appendTo('#datatable-loading-line thead');
         $('#datatable-loading-line thead tr:eq(1) th').each(function(i) {
-            var title = $(this).text();
-            $(this).html('<input type="text" class="form-control form-control-sm" />');
+            if (i < 6) {
+                var title = $(this).text();
 
-            $('input', this).on('keyup change', function() {
-                if (datatableLoadingLine.column(i).search() !== this.value) {
-                    datatableLoadingLine
-                        .column(i)
-                        .search(this.value)
-                        .draw();
+                $(this).html('<input type="text" class="form-control form-control-sm" id="'+datatableLoadingLineParameter[i]+'_filter" />');
+
+                $('input', this).on('keyup', function() {
+                    if (datatableLoadingLine.column(i).search() !== this.value) {
+                        datatableLoadingLine
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            } else {
+                $(this).html('');
+            }
+        });
+
+        function getTotalSummaryLoading() {
+            $("#total-loading-summary").html("Calculating...");
+            $.ajax({
+                url: '{{ route('total-summary-loading') }}',
+                type: 'get',
+                dataType: 'json',
+                data: {
+                    dateFrom: $("#dateFrom").val(),
+                    dateTo: $("#dateTo").val(),
+                    tanggal_loading: $("#tanggal_loading_filter").val(),
+                    nama_line: $("#nama_line_filter").val(),
+                    act_costing_ws: $("#act_costing_ws_filter").val(),
+                    style: $("#style_filter").val(),
+                    color: $("#color_filter").val(),
+                    size: $("#size_filter").val(),
+                },
+                success: function(res) {
+                    $("#total-loading-summary").html(Number(res).toLocaleString('id-ID'));
                 }
             });
-        });
+        }
 
         function exportExcel(elm) {
             elm.setAttribute('disabled', 'true');
