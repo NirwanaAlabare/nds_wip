@@ -517,6 +517,7 @@ Route::middleware('auth')->group(function () {
             Route::put('/update/{id?}', 'update')->name('update-loading-plan');
             Route::delete('/destroy/{id?}', 'destroy')->name('destroy-loading-plan');
             Route::get('/summary', 'summary')->name('summary-loading');
+            Route::get('/get-total-summary', 'getTotalSummary')->name('total-summary-loading');
             Route::post('/export-excel', 'exportExcel')->name('export-excel-loading');
         });
 
