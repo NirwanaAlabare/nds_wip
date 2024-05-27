@@ -1423,9 +1423,9 @@ class StockerController extends Controller
                     }
                 }
 
-                ($stocker->size && ($sizeRangeAkhir[$stocker->size] - ($rangeAwal-1))) != $stocker->qty && $stocker->qty_ply_mod = ($sizeRangeAkhir[$stocker->size] - ($rangeAwal-1));
+                ($stocker->size && (($sizeRangeAkhir[$stocker->size] - ($rangeAwal-1)) != $stocker->qty) ? $stocker->qty_ply_mod = ($sizeRangeAkhir[$stocker->size] - ($rangeAwal-1)) : $stocker->qty_ply_mod = 0);
                 $stocker->range_awal = $rangeAwal;
-                $stocker->range_akhir = $stocker->size && $sizeRangeAkhir[$stocker->size];
+                $stocker->range_akhir = $stocker->size ? $sizeRangeAkhir[$stocker->size] : 0;
                 $stocker->save();
             }
 

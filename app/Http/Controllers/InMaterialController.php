@@ -207,7 +207,9 @@ class InMaterialController extends Controller
 
     public function getWSList(Request $request)
     {
-        $nomorws = DB::connection('mysql_sb')->select("select * from (select ac.kpno,ms.supplier,sum(bom.qty) qty from bom_jo_global_item bom INNER JOIN jo_det jd on jd.id_jo = bom.id_jo INNER JOIN so on so.id = jd.id_so INNER JOIN act_costing ac on ac.id = so.id_cost INNER JOIN mastersupplier ms on ms.id_supplier = bom.id_supplier where ms.id_supplier = '" . $request->txt_supp . "' GROUP BY ac.kpno) a left join (select b.no_ws,sum(COALESCE(qty_good,0) + COALESCE(qty_reject,0)) qty_bpb from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.no_ws != '' GROUP BY b.no_ws) b on b.no_ws = a.kpno where (qty - COALESCE(qty_bpb,0)) > 0");
+        $nomorws = DB::connection('mysql_sb')->select("select * from (select ac.kpno,ms.supplier,sum(bom.qty) qty from bom_jo_global_item bom INNER JOIN jo_det jd on jd.id_jo = bom.id_jo INNER JOIN so on so.id = jd.id_so INNER JOIN act_costing ac on ac.id = so.id_cost INNER JOIN mastersupplier ms on ms.id_supplier = bom.id_supplier where ms.id_supplier = '" . $request->txt_supp . "' GROUP BY ac.kpno) a left join (select b.no_ws,sum(COALESCE(qty_good,0) + COALESCE(qty_reject,0)) qty_bpb from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.no_ws != '' GROUP BY b.no_ws) b on b.no_ws = a.kpno");
+
+        // $nomorws = DB::connection('mysql_sb')->select("select * from (select ac.kpno,ms.supplier,sum(bom.qty) qty from bom_jo_global_item bom INNER JOIN jo_det jd on jd.id_jo = bom.id_jo INNER JOIN so on so.id = jd.id_so INNER JOIN act_costing ac on ac.id = so.id_cost INNER JOIN mastersupplier ms on ms.id_supplier = bom.id_supplier where ms.id_supplier = '" . $request->txt_supp . "' GROUP BY ac.kpno) a left join (select b.no_ws,sum(COALESCE(qty_good,0) + COALESCE(qty_reject,0)) qty_bpb from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.no_ws != '' GROUP BY b.no_ws) b on b.no_ws = a.kpno where (qty - COALESCE(qty_bpb,0)) > 0");
 
         $html = "<option value=''>Pilih WS</option>";
 
@@ -691,7 +693,9 @@ class InMaterialController extends Controller
     public function savelokasi(Request $request)
     {
             $iddok = $request['txtidgr'];
-        if (intval($request['ttl_qty_sj']) > 0 && intval($request['ttl_qty_sj']) <= intval($request['m_balance'])) {
+            $ttl_qty_sj = $request['ttl_qty_sj'];
+            
+        if ($request['ttl_qty_sj'] != 0 && intval($request['ttl_qty_sj']) <= intval($request['m_balance'])) {
             $timestamp = Carbon::now();
             $nodok = $request['m_gr_dok'];
             $nows = $request['m_no_ws'];
