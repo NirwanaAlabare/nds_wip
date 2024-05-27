@@ -182,7 +182,7 @@ $('.select2type').select2({
                             showCancelButton: false,
                             showConfirmButton: true,
                             confirmButtonText: 'Oke',
-                            timer: 5000,
+                            timer: 2000,
                             timerProgressBar: true
                         })
 
