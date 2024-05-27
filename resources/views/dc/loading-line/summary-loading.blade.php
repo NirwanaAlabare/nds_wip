@@ -168,6 +168,7 @@
                     size: $("#size_filter").val(),
                 },
                 success: function(res) {
+                    console.log(res);
                     $("#total-loading-summary").html(Number(res).toLocaleString('id-ID'));
                 }
             });

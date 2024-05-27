@@ -453,11 +453,11 @@ class LoadingLineController extends Controller
                 WHERE
                     loading_stock.tanggal_loading is not null AND
                     (
-                        loading_stock.tanggal_loading LIKE '%".$request->tanggal_loading."%' OR
-                        loading_stock.nama_line LIKE '%".$request->nama_line."%' OR
-                        loading_line_plan.act_costing_ws LIKE '%".$request->act_costing_ws."%' OR
-                        loading_line_plan.style LIKE '%".$request->style."%' OR
-                        loading_line_plan.color LIKE '%".$request->color."%' OR
+                        loading_stock.tanggal_loading LIKE '%".$request->tanggal_loading."%' AND
+                        REPLACE(loading_stock.nama_line, '_', ' ') LIKE '%".$request->nama_line."%' AND
+                        loading_line_plan.act_costing_ws LIKE '%".$request->act_costing_ws."%' AND
+                        loading_line_plan.style LIKE '%".$request->style."%' AND
+                        loading_line_plan.color LIKE '%".$request->color."%' AND
                         loading_stock.size LIKE '%".$request->size."%'
                     )
                 GROUP BY
