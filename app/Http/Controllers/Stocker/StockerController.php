@@ -212,15 +212,15 @@ class StockerController extends Controller
             get();
 
         $dataStocker = MarkerDetail::selectRaw("
-                stocker_input.id_qr_stocker,
+                MAX(stocker_input.id_qr_stocker) id_qr_stocker,
                 marker_input.color,
                 marker_input_detail.so_det_id,
                 marker_input_detail.ratio,
                 form_cut_input.no_cut,
-                stocker_input.id stocker_id,
-                stocker_input.shade,
-                stocker_input.group_stocker,
-                stocker_input.qty_ply,
+                MAX(stocker_input.id) stocker_id,
+                MAX(stocker_input.shade) shade,
+                MAX(stocker_input.group_stocker) group_stocker,
+                MAX(stocker_input.qty_ply) qty_ply,
                 MAX(CAST(stocker_input.range_akhir as UNSIGNED)) range_akhir
             ")->
             leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->
@@ -238,13 +238,15 @@ class StockerController extends Controller
             orderBy("form_cut_input.no_cut", "desc")->
             get();
 
+            
+
         $dataNumbering = MarkerDetail::selectRaw("
                 marker_input.color,
                 marker_input_detail.so_det_id,
                 marker_input_detail.ratio,
                 form_cut_input.no_cut,
-                stocker_numbering.id numbering_id,
-                stocker_numbering.no_cut_size,
+                MAX(stocker_numbering.id) numbering_id,
+                MAX(stocker_numbering.no_cut_size) no_cut_size,
                 MAX(stocker_numbering.number) range_akhir
             ")->
             leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->
