@@ -17,9 +17,6 @@
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="card-title fw-bold mb-0"><i class="fas fa-receipt fa-sm"></i> Detail Stocker</h5>
                 <div>
-                    <button type="button" class="btn btn-dark btn-sm d-none" onclick="countStockerUpdate()">
-                        <i class="fa fa-sync"></i> Update No. Stocker
-                    </button>
                     <a href="{{ route('stocker') }}" class="btn btn-primary btn-sm">
                         <i class="fa fa-reply"></i> Kembali ke Stocker
                     </a>
@@ -27,7 +24,17 @@
             </div>
         </div>
         <div class="card-body">
-            {{-- <button class="btn btn-sm btn-success mb-3" onclick="rearrangeGroup('{{ $dataSpreading->no_form }}')"><i class="fa-solid fa-layer-group"></i> Rearrange Group</button> --}}
+            <div class="d-flex justify-content-end gap-3 mb-3">
+                <button type="button" class="btn btn-success btn-sm" onclick="countStockerUpdate()">
+                    <i class="fa-solid fa-screwdriver-wrench fa-sm"></i> No. Stocker
+                </button>
+                <button type="button" class="btn btn-info btn-sm" onclick="rearrangeGroup('{{ $dataSpreading->no_form }}')">
+                    <i class="fa-solid fa-screwdriver-wrench fa-sm"></i> Grouping
+                </button>
+                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#size-qty-modal">
+                    <i class="fa-solid fa-screwdriver-wrench fa-sm"></i> Size Qty
+                </button>
+            </div>
             <form action="#" method="post" id="stocker-form">
                 <div class="row mb-3">
                     <div class="col-6 col-md-3">
@@ -138,7 +145,7 @@
                                     @endif
 
                                     @if ($detail->group_roll != $currentGroup)
-                                    {{-- Create element when switching group --}}
+                                        {{-- Create element when switching group --}}
                                         <div class="d-flex gap-3">
                                             <div class="mb-3">
                                                 <label><small>Group</small></label>
@@ -166,7 +173,7 @@
                                         @endphp
 
                                         @if ($loop->last)
-                                        {{-- Create last element when it comes to an end of this loop --}}
+                                            {{-- Create last element when it comes to an end of this loop --}}
                                             <div class="d-flex gap-3">
                                                 <div class="mb-3">
                                                     <label><small>Group</small></label>
@@ -178,7 +185,7 @@
                                                 </div>
                                             </div>
 
-                                            @include('stocker.stocker.stocker-detail-part')
+                                            @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty])
                                             @php
                                                 $index += $dataRatio->count() * $dataPartDetail->count();
                                                 $partIndex += $dataPartDetail->count();
@@ -203,7 +210,7 @@
                                                 </div>
                                             </div>
 
-                                            @include('stocker.stocker.stocker-detail-part')
+                                            @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty])
                                             @php
                                                 $index += $dataRatio->count() * $dataPartDetail->count();
                                                 $partIndex += $dataPartDetail->count();
@@ -222,7 +229,7 @@
                                     @endif
 
                                     @if ($detail->group_stocker != $currentGroupStocker)
-                                    {{-- Create element when switching group --}}
+                                        {{-- Create element when switching group --}}
                                         <div class="d-flex gap-3">
                                             <div class="mb-3">
                                                 <label><small>Group</small></label>
@@ -262,7 +269,7 @@
                                                 </div>
                                             </div>
 
-                                            @include('stocker.stocker.stocker-detail-part')
+                                            @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty])
                                             @php
                                                 $index += $dataRatio->count() * $dataPartDetail->count();
                                                 $partIndex += $dataPartDetail->count();
@@ -287,7 +294,7 @@
                                                 </div>
                                             </div>
 
-                                            @include('stocker.stocker.stocker-detail-part')
+                                            @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty])
                                             @php
                                                 $index += $dataRatio->count() * $dataPartDetail->count();
                                                 $partIndex += $dataPartDetail->count();
@@ -320,6 +327,14 @@
                                     @php
                                         $qty = intval($ratio->ratio) * intval($dataSpreading->total_lembar);
 
+                                        if (isset($modifySizeQty) && $modifySizeQty) {
+                                            $modifyThis = $modifySizeQty->where("so_det_id", $ratio->so_det_id)->first();
+
+                                            if ($modifyThis) {
+                                                $qty=$modifyThis->modified_qty;
+                                            }
+                                        }
+
                                         $numberingThis = $dataNumbering ? $dataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->first() : null;
                                         $numberingBefore = $dataNumbering ? $dataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->sortByDesc('no_cut')->first() : null;
                                         $rangeAwal = ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? $numberingBefore->range_akhir + 1 : "-") : 1) : 1);
@@ -336,7 +351,7 @@
 
                                         <td>{{ $ratio->size}}</td>
                                         <td>{{ $ratio->ratio }}</td>
-                                        <td>{{ $qty }}</td>
+                                        <td>{{ (intval($ratio->ratio) * intval($dataSpreading->total_lembar)) != $qty ? $qty." (".(intval($ratio->ratio) * intval($dataSpreading->total_lembar))."".(($qty - (intval($ratio->ratio) * intval($dataSpreading->total_lembar))) > 0 ? "+".($qty - (intval($ratio->ratio) * intval($dataSpreading->total_lembar))) : ($qty - (intval($ratio->ratio) * intval($dataSpreading->total_lembar)))).")" : $qty }}</td>
                                         <td>{{ $rangeAwal }}</td>
                                         <td>{{ $rangeAkhir }}</td>
                                         <td>
@@ -394,6 +409,73 @@
             </form>
         </div>
     </div>
+
+    <div class="modal" tabindex="-1" id="size-qty-modal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-sb">
+                    <h5 class="modal-title"><i class="fa-solid fa-expand"></i> Modify Size Qty</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="#" method="post" id="mod-size-qty-form">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm" id="table-ratio-numbering">
+                                <thead>
+                                    <th>Size</th>
+                                    <th>Ratio</th>
+                                    <th>Qty Cut</th>
+                                    <th>Range Awal</th>
+                                    <th>Range Akhir</th>
+                                    <th>Catatan</th>
+                                </thead>
+                                <tbody>
+                                    @foreach ($dataRatio as $ratio)
+                                        @php
+                                            $qty = intval($ratio->ratio) * intval($dataSpreading->total_lembar);
+
+                                            $numberingThis = $dataNumbering ? $dataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->first() : null;
+                                            $numberingBefore = $dataNumbering ? $dataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->sortByDesc('no_cut')->first() : null;
+                                            $rangeAwal = ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? $numberingBefore->range_akhir + 1 : "-") : 1) : 1);
+                                            $rangeAkhir = ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? $numberingBefore->range_akhir + $qty : "-") : $qty) : $qty);
+                                            $numGeneratable = true;
+                                        @endphp
+                                        <tr>
+                                            <td>{{ $ratio->size}}</td>
+                                            <td>{{ $ratio->ratio }}</td>
+                                            <td>
+                                                <input class="form-control form-control-sm" type="number" name="mod_qty_cut[{{ $index }}]" id="mod_qty_cut_{{ $index }}" data-original-value="{{ $qty }}" value="{{ $qty }}" onchange="modifyQty(this, {{ $index }});">
+                                            </td>
+                                            <td id="mod_range_awal_view_{{ $index }}">{{ $rangeAwal }}</td>
+                                            <td id="mod_range_akhir_view_{{ $index }}">{{ $rangeAkhir }}</td>
+                                            <td>
+                                                <input class="form-control form-control-sm" type="text" name="mod_note[{{ $index }}]" id="mod_note_{{ $index }}" value="">
+                                            </td>
+                                        </tr>
+
+                                        <input type="hidden" name="mod_original_qty[{{ $index }}]" id="mod_original_qty_{{ $index }}" value="{{ $qty }}">
+                                        <input type="hidden" name="mod_difference_qty[{{ $index }}]" id="mod_difference_qty_{{ $index }}" value="{{ 0 }}">
+                                        <input type="hidden" name="mod_ratio[{{ $index }}]" id="mod_ratio_{{ $index }}" value="{{ $ratio->ratio }}">
+                                        <input type="hidden" name="mod_so_det_id[{{ $index }}]" id="mod_so_det_id_{{ $index }}" value="{{ $ratio->so_det_id }}">
+                                        <input type="hidden" name="mod_size[{{ $index }}]" id="mod_size_{{ $index }}" value="{{ $ratio->size }}">
+                                        <input type="hidden" name="mod_range_awal[{{ $index }}]" id="mod_range_awal_{{ $index }}" value="{{ $rangeAwal }}">
+                                        <input type="hidden" name="mod_range_akhir[{{ $index }}]" id="mod_range_akhir_{{ $index }}" value="{{ $rangeAkhir }}">
+                                        @php
+                                            $index++;
+                                        @endphp
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa-solid fa-times fa-sm"></i> Tutup</button>
+                    <button type="button" class="btn btn-success" onclick="submitModifyQty()"><i class="fa-solid fa-save fa-sm"></i> Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('custom-script')
@@ -443,35 +525,8 @@
                 if (!generating) {
                     window.location.reload();
                 }
-            };
+            }
         });
-
-        function rearrangeGroup(noForm) {
-            Swal.fire({
-                title: 'Please Wait...',
-                html: 'Rearranging Data...',
-                didOpen: () => {
-                    Swal.showLoading()
-                },
-                allowOutsideClick: false,
-            });
-
-            $.ajax({
-                url: '{{ route('rearrange-group') }}',
-                type: 'post',
-                data: {
-                    no_form : noForm
-                },
-                success: function(res) {
-                    console.log("successs", res);
-
-                    location.reload();
-                },
-                error: function(jqXHR) {
-                    console.log("error", jqXHR);
-                }
-            });
-        }
 
         function printStocker(index) {
             generating = true;
@@ -834,10 +889,48 @@
             }
         }
 
-        function countStockerUpdate() {
-            let stockerForm = new FormData(document.getElementById("stocker-form"));
+        function rearrangeGroup(noForm) {
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Rearranging Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
 
             $.ajax({
+                url: '{{ route('rearrange-group') }}',
+                type: 'post',
+                data: {
+                    no_form : noForm
+                },
+                success: function(res) {
+                    console.log("successs", res);
+
+                    location.reload();
+                },
+                error: function(jqXHR) {
+                    console.log("error", jqXHR);
+                }
+            });
+        }
+
+        function countStockerUpdate() {
+            generating = true;
+
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Fixing Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            let stockerForm = new FormData(document.getElementById("stocker-form"));
+
+            return $.ajax({
                 url: '{{ route('count-stocker-update') }}',
                 type: 'put',
                 data: stockerForm,
@@ -845,9 +938,117 @@
                 contentType: false,
                 success: function(res) {
                     console.log("successs", res);
+
+                    swal.close();
+
+                    generating = false;
                 },
                 error: function(jqXHR) {
                     console.log("error", jqXHR);
+
+                    swal.close();
+
+                    generating = false;
+                }
+            });
+        }
+
+        document.getElementById('size-qty-modal').addEventListener('shown.bs.modal', event => {
+            generating = true;
+        });
+
+        document.getElementById('size-qty-modal').addEventListener('hidden.bs.modal', event => {
+            generating = false;
+        });
+
+        function modifyQty(element, index) {
+            let currentVal = element.value;
+            let originalElement = document.getElementById('mod_original_qty_'+index);
+            let differenceElement = document.getElementById('mod_difference_qty_'+index);
+            let rangeAwalElement = document.getElementById("mod_range_awal_"+index);
+            let rangeAwalElementView = document.getElementById("mod_range_awal_view_"+index);
+            let rangeAkhirElement = document.getElementById("mod_range_akhir_"+index);
+            let rangeAkhirElementView = document.getElementById("mod_range_akhir_view_"+index);
+            let noteElement = document.getElementById("mod_note_"+index);
+
+            console.log(currentVal, originalElement.value);
+
+            let difference = currentVal - originalElement.value;
+
+            if (originalElement.value != currentVal) {
+                rangeAkhirElement.value = Number(rangeAwalElement.value) ? Number(rangeAwalElement.value) + (currentVal - 1) : "-";
+                rangeAkhirElementView.innerText = Number(rangeAwalElement.value) ? Number(rangeAwalElement.value) + (currentVal - 1) : "-";
+
+                noteElement.value = difference > 0 ? "+"+difference : difference;
+            } else {
+                rangeAkhirElement.value = Number(rangeAwalElement.value) ? Number(rangeAwalElement.value) + (currentVal - 1) : "-";
+                rangeAkhirElementView.innerText = Number(rangeAwalElement.value) ? Number(rangeAwalElement.value) + (currentVal - 1) : "-";
+
+                noteElement.value = "";
+            }
+
+            differenceElement.value = difference;
+        }
+
+        function submitModifyQty() {
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Modifying Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            let modSizeQtyForm = new FormData(document.getElementById("mod-size-qty-form"));
+            modSizeQtyForm.append("no_form", document.getElementById("no_form_cut").value);
+
+            return $.ajax({
+                url: '{{ route('modify-size-qty') }}',
+                type: 'post',
+                data: modSizeQtyForm,
+                processData: false,
+                contentType: false,
+                success: function(res) {
+                    if (res) {
+                        if (res.status == 200) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Perubahan qty size berhasil disimpan',
+                                html: res.message,
+                                showCancelButton: false,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Oke',
+                                timer: (res.status == 200 ? 5000 : 3000),
+                                timerProgressBar: true
+                            }).then(() => {
+                                if (isNotNull(res.redirect)) {
+                                    if (res.redirect != 'reload') {
+                                        location.href = res.redirect;
+                                    } else {
+                                        location.reload();
+                                    }
+                                } else {
+                                    location.reload();
+                                }
+                            });
+                        } else {
+                            iziToast.error({
+                                title: 'error',
+                                message: res.message,
+                                position: 'topCenter'
+                            });
+                        }
+                    }
+                },
+                error: function(jqXHR) {
+                    iziToast.error({
+                        title: 'error',
+                        message: jqXHR.responseText,
+                        position: 'topCenter'
+                    });
+
+                    swal.close();
                 }
             });
         }

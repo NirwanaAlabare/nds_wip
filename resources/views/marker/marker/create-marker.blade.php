@@ -12,7 +12,7 @@
 
 @section('content')
     <div class="d-flex justify-content-between mb-3">
-        <h5 class="fw-bold text-sb">Tambah Data Marker</h5>
+        <h5 class="fw-bold text-sb"><i class="fa fa-plus fa-sm"></i> Tambah Data Marker</h5>
         <a href="{{ route('marker') }}" class="btn btn-primary btn-sm px-1 py-1"><i class="fas fa-reply"></i> Kembali ke Marker</a>
     </div>
     <form action="{{ route('store-marker') }}" method="post" id="store-marker" onsubmit="submitMarkerForm(this, event)">
@@ -756,6 +756,9 @@
                         }
                     }
                 }, error: function (jqXHR) {
+                    document.getElementById("loading").classList.add("d-none");
+                    $("input[type=submit][clicked=true]").removeAttr('disabled');
+
                     // Error Response
 
                     let res = jqXHR.responseJSON;

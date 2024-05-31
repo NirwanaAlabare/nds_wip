@@ -3,12 +3,16 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 
-// General
+// User
 use App\Http\Controllers\UserController;
 
+// General
+use App\Http\Controllers\GeneralController;
+
 // Part
-use App\Http\Controllers\MasterPartController;
-use App\Http\Controllers\PartController;
+use App\Http\Controllers\Part\MasterPartController;
+use App\Http\Controllers\Part\MasterSecondaryController;
+use App\Http\Controllers\Part\PartController;
 
 // Marker
 use App\Http\Controllers\Marker\MarkerController;
@@ -23,9 +27,21 @@ use App\Http\Controllers\Cutting\RollController;
 use App\Http\Controllers\Cutting\CompletedFormController;
 
 // Stocker
-use App\Http\Controllers\StockerController;
+use App\Http\Controllers\Stocker\StockerController;
 
-use App\Http\Controllers\SummaryController;
+// DC
+use App\Http\Controllers\DC\DCInController;
+use App\Http\Controllers\DC\SecondaryInController;
+use App\Http\Controllers\DC\SecondaryInhouseController;
+use App\Http\Controllers\DC\StockDcCompleteController;
+use App\Http\Controllers\DC\StockDcIncompleteController;
+use App\Http\Controllers\DC\StockDcWipController;
+use App\Http\Controllers\DC\RackController;
+use App\Http\Controllers\DC\RackStockerController;
+use App\Http\Controllers\DC\TrolleyController;
+use App\Http\Controllers\DC\TrolleyStockerController;
+use App\Http\Controllers\DC\LoadingLineController;
+
 use App\Http\Controllers\WarehouseController;
 use App\Http\Controllers\MasterLokasiController;
 use App\Http\Controllers\InMaterialController;
@@ -33,21 +49,11 @@ use App\Http\Controllers\OutMaterialController;
 use App\Http\Controllers\MutLokasiController;
 use App\Http\Controllers\QcPassController;
 use App\Http\Controllers\EmployeeController;
-use App\Http\Controllers\DCInController;
-use App\Http\Controllers\SecondaryInController;
-use App\Http\Controllers\RackController;
-use App\Http\Controllers\RackStockerController;
-use App\Http\Controllers\TrolleyController;
-use App\Http\Controllers\TrolleyStockerController;
-use App\Http\Controllers\LoadingLineController;
-use App\Http\Controllers\SecondaryInhouseController;
 use App\Http\Controllers\MutasiMesinController;
 use App\Http\Controllers\MutasiMesinMasterController;
 use App\Http\Controllers\ReqMaterialController;
 use App\Http\Controllers\ReturMaterialController;
 use App\Http\Controllers\ReturInMaterialController;
-use App\Http\Controllers\MasterSecondaryController;
-use App\Http\Controllers\GeneralController;
 use App\Http\Controllers\LapDetPemasukanController;
 use App\Http\Controllers\LapDetPengeluaranController;
 use App\Http\Controllers\LapMutasiGlobalController;
@@ -60,9 +66,6 @@ use App\Http\Controllers\FGStokBPBController;
 use App\Http\Controllers\FGStokBPPBController;
 use App\Http\Controllers\FGStokLaporanController;
 use App\Http\Controllers\FGStokMutasiController;
-use App\Http\Controllers\StockDcCompleteController;
-use App\Http\Controllers\StockDcIncompleteController;
-use App\Http\Controllers\StockDcWipController;
 use App\Http\Controllers\KonfPemasukanController;
 use App\Http\Controllers\KonfPengeluaranController;
 use App\Http\Controllers\PPIC_MasterSOController;
@@ -118,6 +121,15 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-master-part');
         Route::put('/update/{id?}', 'update')->name('update-master-part');
         Route::delete('/destroy/{id?}', 'destroy')->name('destroy-master-part');
+    });
+
+    // Master Secondary
+    Route::controller(MasterSecondaryController::class)->prefix("master-secondary")->middleware('marker')->group(function () {
+        Route::get('/', 'index')->name('master-secondary');
+        Route::post('/store', 'store')->name('store-master-secondary');
+        Route::get('/show_master_secondary', 'show_master_secondary')->name('show_master_secondary');
+        Route::put('/update_master_secondary', 'update_master_secondary')->name('update_master_secondary');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-master-secondary');
     });
 
     // Part
@@ -354,16 +366,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/cutting/destroy-roll/{id?}', 'destroySpreadingRoll')->name('destroy-spreading-roll');
     });
 
-    // Master Secondary
-    Route::controller(MasterSecondaryController::class)->prefix("master-secondary")->middleware('marker')->group(function () {
-        Route::get('/', 'index')->name('master-secondary');
-        Route::post('/store', 'store')->name('store-master-secondary');
-        Route::get('/show_master_secondary', 'show_master_secondary')->name('show_master_secondary');
-        Route::put('/update_master_secondary', 'update_master_secondary')->name('update_master_secondary');
-        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-master-secondary');
-    });
-
-    // Stocker
+    // Stocker :
     Route::controller(StockerController::class)->prefix("stocker")->middleware('stocker')->group(function () {
         Route::get('/', 'index')->name('stocker');
         Route::get('/show/{partDetailId?}/{formCutId?}', 'show')->name('show-stocker');
@@ -372,13 +375,14 @@ Route::middleware('auth')->group(function () {
         Route::post('/print-stocker-checked', 'printStockerChecked')->name('print-stocker-checked');
         Route::post('/print-numbering/{index?}', 'printNumbering')->name('print-numbering');
         Route::post('/print-numbering-checked', 'printNumberingChecked')->name('print-numbering-checked');
-        Route::post('/rearrange-group', 'rearrangeGroup')->name('rearrange-group');
-        Route::post('/reorder-stocker-numbering', 'reorderStockerNumbering')->name('reorder-stocker-numbering');
         Route::post('/full-generate-numbering', 'fullGenerateNumbering')->name('full-generate-numbering');
         Route::post('/fix-redundant-stocker', 'fixRedundantStocker')->name('fix-redundant-stocker');
         Route::post('/fix-redundant-numbering', 'fixRedundantNumbering')->name('fix-redundant-numbering');
-
         Route::put('/count-stocker-update', 'countStockerUpdate')->name('count-stocker-update');
+
+        Route::post('/rearrange-group', 'rearrangeGroup')->name('rearrange-group');
+        Route::post('/reorder-stocker-numbering', 'reorderStockerNumbering')->name('reorder-stocker-numbering');
+        Route::post('/modify-size-qty', 'modifySizeQty')->name('modify-size-qty');
 
         Route::get('/stocker-part', 'part')->name('stocker-part');
 
@@ -395,6 +399,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/get_proses', 'get_proses')->name('stocker-get_proses');
         Route::post('/store_part_secondary', 'store_part_secondary')->name('stocker-store_part_secondary');
     });
+
+    // DC :
+    // DC Dashboard
+    Route::get('/dashboard-marker', [DashboardController::class, 'marker'])->middleware('auth')->name('dashboard-marker');
+    Route::get('/dashboard-dc', [DashboardController::class, 'dc'])->middleware('auth')->name('dashboard-dc');
+    Route::get('/dc-qty', [DashboardController::class, 'dcQty'])->middleware('auth')->name('dc-qty');
 
     // // DC IN BACKUP
     // Route::controller(DCInController::class)->prefix("dc-in")->middleware('dc')->group(function () {
@@ -501,6 +511,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-stocker-data/{id?}', 'getStockerData')->name('get-stocker-data-trolley-stock');
     });
 
+    // Loading Stock
     Route::controller(LoadingLineController::class)->prefix("loading-line")->middleware('dc')->group(function () {
         Route::get('/', 'index')->name('loading-line');
         Route::get('/detail/{id?}', 'show')->name('detail-loading-plan');
@@ -509,6 +520,27 @@ Route::middleware('auth')->group(function () {
         Route::get('/edit/{id?}', 'edit')->name('edit-loading-plan');
         Route::put('/update/{id?}', 'update')->name('update-loading-plan');
         Route::delete('/destroy/{id?}', 'destroy')->name('destroy-loading-plan');
+        Route::get('/summary', 'summary')->name('summary-loading');
+        Route::get('/get-total-summary', 'getTotalSummary')->name('total-summary-loading');
+        Route::post('/export-excel', 'exportExcel')->name('export-excel-loading');
+    });
+
+    // Stock DC Complete
+    Route::controller(StockDcCompleteController::class)->prefix("stock-dc-complete")->middleware('admin')->group(function () {
+        Route::get('/', 'index')->name('stock-dc-complete');
+        Route::get('/show/{partId?}/{color?}/{size?}', 'show')->name('stock-dc-complete-detail');
+    });
+
+    // Stock DC Incomplete
+    Route::controller(StockDcIncompleteController::class)->prefix("stock-dc-incomplete")->middleware('admin')->group(function () {
+        Route::get('/', 'index')->name('stock-dc-incomplete');
+        Route::get('/show/{partId?}/{color?}/{size?}', 'show')->name('stock-dc-incomplete-detail');
+    });
+
+    // Stock DC WIP
+    Route::controller(StockDcWipController::class)->prefix("stock-dc-wip")->middleware('admin')->group(function () {
+        Route::get('/', 'index')->name('stock-dc-wip');
+        Route::get('/show/{partId?}', 'show')->name('stock-dc-wip-detail');
     });
 
     //Mutasi Karywawan
@@ -548,12 +580,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/hapus_data_mesin', 'hapus_data_mesin')->name('hapus-data-mesin');
     });
 
-
-    Route::controller(SummaryController::class)->prefix("summary")->middleware('admin')->group(function () {
-        Route::get('/', 'index')->name('summary');
-        Route::get('/secondary', 'index')->name('summary-secondary');
-    });
-
     //warehouse
     Route::controller(WarehouseController::class)->prefix("warehouse")->middleware('warehouse')->group(function () {
         Route::get('/', 'index')->name('warehouse');
@@ -571,7 +597,7 @@ Route::middleware('auth')->group(function () {
     });
 
     //dashboard fabric
-    Route::controller(DashboardFabricController::class)->middleware('warehouse')->group(function () {
+    Route::controller(DashboardFabricController::class)->group(function () {
         Route::get('/dashboard-warehouse', 'index')->name('dashboard-warehouse');
         Route::get('/get-data-rak', 'getdatarak')->name('get-data-rak');
         Route::get('/get-data-rak2', 'getdatarak2')->name('get-data-rak2');
@@ -923,11 +949,10 @@ Route::middleware('auth')->group(function () {
     });
 });
 
-
 // Dashboard
-Route::get('/dashboard-marker', function () {
-    return view('dashboard', ['page' => 'dashboard-marker']);
-})->middleware('auth')->name('dashboard-marker');
+// Route::get('/dashboard-marker', function () {
+//     return view('dashboard', ['page' => 'dashboard-marker']);
+// })->middleware('auth')->name('dashboard-marker');
 
 Route::get('/dashboard-cutting', function () {
     return view('dashboard', ['page' => 'dashboard-cutting']);
@@ -941,10 +966,6 @@ Route::get('/dashboard-stocker', function () {
 // Route::get('/dashboard-warehouse', function () {
 //     return view('dashboard-fabric', ['page' => 'dashboard-warehouse']);
 // })->middleware('auth')->name('dashboard-warehouse');
-
-
-//dc in
-Route::get('/dashboard-dc', [DashboardController::class, 'dc'])->middleware('auth')->name('dashboard-dc');
 
 //fg stock
 Route::get('/dashboard-fg-stock', function () {
@@ -966,7 +987,6 @@ Route::get('/dashboard-ppic', function () {
     return view('dashboard', ['page' => 'dashboard-ppic']);
 })->middleware('auth')->name('dashboard-ppic');
 
-
 Route::get('/dashboard-mut-karyawan', function () {
     return view('dashboard', ['page' => 'dashboard-mut-karyawan']);
 })->middleware('auth')->name('dashboard-mut-karyawan');
@@ -974,8 +994,6 @@ Route::get('/dashboard-mut-karyawan', function () {
 Route::get('/dashboard-mut-mesin', function () {
     return view('dashboard-mesin', ['page' => 'dashboard-mut-mesin']);
 })->middleware('auth')->name('dashboard-mut-mesin');
-
-
 
 // Misc
 Route::get('/timer', function () {

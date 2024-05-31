@@ -56,7 +56,7 @@
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-light">
-                    <h1 class="modal-title fs-5" id="detailPartLabel">Detail Part</h1>
+                    <h1 class="modal-title fs-5" id="detailPartLabel"><i class="fa fa-search fa-sm"></i> Detail Part</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -96,12 +96,12 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <button class="btn btn-sb-secondary btn-block" onclick="reorderStockerNumbering()"><i class="fa-solid fa-arrow-up-wide-short"></i> Reorder Stocker Numberings</button>
+                                        <button class="btn btn-primary btn-block fw-bold" onclick="reorderStockerNumbering()"><i class="fa-solid fa-arrow-up-wide-short"></i> REORDER</button>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <button class="btn btn-sb-secondary btn-block" onclick="generateFullStockerNumbering()"><i class="fa-solid fa-history"></i> Generate Full Stocker Numbering</button>
+                                        <button class="btn btn-info btn-block fw-bold" onclick="generateFullStockerNumbering()"><i class="fa-solid fa-list-check"></i> GENERATE</button>
                                     </div>
                                 </div>
                             </div>
@@ -115,9 +115,9 @@
                                             <th>Tanggal</th>
                                             <th>No. Form</th>
                                             <th>Meja</th>
+                                            <th>No. Cut</th>
                                             <th>Style</th>
                                             <th>Color</th>
-                                            <th>No. Cut</th>
                                             <th>Part</th>
                                             <th>Lembar</th>
                                             <th>Size Ratio</th>
@@ -334,13 +334,13 @@
                     data: 'nama_meja'
                 },
                 {
+                    data: 'no_cut',
+                },
+                {
                     data: 'style'
                 },
                 {
                     data: 'color'
-                },
-                {
-                    data: 'no_cut',
                 },
                 {
                     data: 'part_details'
@@ -370,7 +370,7 @@
                     render: (data, type, row, meta) => {
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
-                                <a class='btn btn-primary btn-sm' href='{{ route('show-stocker') }}/` + row.part_detail_id + `/` + row.form_cut_id + `' data-bs-toggle='tooltip' target='_blank'>
+                                <a class='btn btn-primary btn-sm' href='{{ route('show-stocker') }}/` + row.form_cut_id + `' data-bs-toggle='tooltip' target='_blank'>
                                     <i class='fa fa-search-plus'></i>
                                 </a>
                             </div>

@@ -47,6 +47,14 @@
                                         $qty = intval($ratio->ratio) * intval($currentTotal);
                                         $qtyBefore = intval($ratio->ratio) * intval($currentBefore);
 
+                                        if (isset($modifySizeQtyStocker) && $modifySizeQtyStocker) {
+                                            $modifyThisStocker = $modifySizeQtyStocker->where("so_det_id", $ratio->so_det_id)->first();
+
+                                            if ($modifyThisStocker) {
+                                                $qty = $qty + $modifyThisStocker->difference_qty;
+                                            }
+                                        }
+
                                         $stockerThis = $dataStocker ? $dataStocker->where("so_det_id", $ratio->so_det_id)->where("no_cut", $dataSpreading->no_cut)->first() : null;
                                         $stockerBefore = $dataStocker ? $dataStocker->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->sortByDesc('no_cut')->first() : null;
 
@@ -67,7 +75,7 @@
 
                                         <td>{{ $ratio->size}}</td>
                                         <td>{{ $ratio->ratio }}</td>
-                                        <td>{{ $qty }}</td>
+                                        <td>{{ (intval($ratio->ratio) * intval($currentTotal)) != $qty ? $qty." (".(intval($ratio->ratio) * intval($currentTotal))."".(($qty - (intval($ratio->ratio) * intval($currentTotal))) > 0 ? "+".($qty - (intval($ratio->ratio) * intval($currentTotal))) : ($qty - (intval($ratio->ratio) * intval($currentTotal)))).")" : $qty }}</td>
                                         <td>{{ $rangeAwal }}</td>
                                         <td>{{ $rangeAkhir }}</td>
                                         <td>

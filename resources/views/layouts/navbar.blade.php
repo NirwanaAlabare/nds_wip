@@ -23,8 +23,7 @@
             <img src="{{ asset('dist/img/logo-icon.png') }}" alt="nds Logo" class="brand-image">
         </a>
 
-        <button class="navbar-toggler order-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
-            aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler order-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
@@ -444,10 +443,23 @@
                                         Trolley <i class="fas fa-dolly-flatbed"></i>
                                     </a>
                                 </li>
+                            @enddc
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'loading-dc' ? 'active' : '' }}">Loading</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @dc
                                 <li>
-                                    <a href="{{ route('loading-line') }}"
-                                        class="dropdown-item {{ $subPage == 'loading-line' ? 'active' : '' }}">
+                                    <a href="{{ route('loading-line') }}" class="dropdown-item {{ $subPage == 'loading-line' ? 'active' : '' }}">
                                         Line <i class="fa-solid fa-users-line"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('summary-loading') }}" class="dropdown-item {{ $subPage == 'summary-loading' ? 'active' : '' }}">
+                                        Summary <i class="fa-solid fa-list-check"></i>
                                     </a>
                                 </li>
                             @enddc

@@ -99,7 +99,7 @@ class RollController extends Controller
 
     public function export_excel(Request $request)
     {
-        return Excel::download(new ExportLaporanPemakaian($request->from, $request->to), 'Laporan_pemakaian_cutting.xlsx');
+        return Excel::download(new ExportLaporanRoll($request->from, $request->to), 'Laporan_pemakaian_cutting.xlsx');
     }
 
     public function create()
