@@ -81,5 +81,6 @@ class Kernel extends HttpKernel
         'hr' => \App\Http\Middleware\IsHr::class,
         'fg-stock' => \App\Http\Middleware\IsFGStock::class,
         'packing' => \App\Http\Middleware\IsPacking::class,
+        'ga' => \App\Http\Middleware\IsGa::class,
     ];
 }

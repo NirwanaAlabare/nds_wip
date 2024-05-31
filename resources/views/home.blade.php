@@ -105,17 +105,17 @@
 
                     <!-- warehouse -->
                     <!-- <div class="col-md-2 col-3">
-                                                    <a href="{{ route('dashboard-warehouse') }}" class="home-item">
-                                                        <div class="card h-100">
-                                                            <div class="card-body">
-                                                                <div class="d-flex h-100 flex-column justify-content-between">
-                                                                    <img src="{{ asset('dist/img/warehouse.png') }}" class="img-fluid p-3" alt="cutting image">
-                                                                    <p class="text-center fw-bold text-uppercase text-dark">Warehouse</p>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </a>
-                                                </div> -->
+                                                                            <a href="{{ route('dashboard-warehouse') }}" class="home-item">
+                                                                                <div class="card h-100">
+                                                                                    <div class="card-body">
+                                                                                        <div class="d-flex h-100 flex-column justify-content-between">
+                                                                                            <img src="{{ asset('dist/img/warehouse.png') }}" class="img-fluid p-3" alt="cutting image">
+                                                                                            <p class="text-center fw-bold text-uppercase text-dark">Warehouse</p>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </a>
+                                                                        </div> -->
 
                     <div class="col-md-2 col-3">
                         <!-- <a href="{{ route('dashboard-warehouse') }}" class="home-item"> -->
@@ -155,6 +155,21 @@
                                         <img src="{{ asset('dist/img/packing.png') }}" class="img-fluid p-3"
                                             alt="qr code image">
                                         <p class="text-center fw-bold text-uppercase text-dark">Packing</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+
+                    <div class="col-md-2 col-3">
+                        <a href="{{ route('dashboard-ga') }}" class="home-item">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex h-100 flex-column justify-content-between">
+                                        <img src="{{ asset('dist/img/general_affair.png') }}" class="img-fluid p-3"
+                                            alt="qr code image">
+                                        <p class="text-center fw-bold text-uppercase text-dark">G.A.I.S</p>
                                     </div>
                                 </div>
                             </div>

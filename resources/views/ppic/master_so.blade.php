@@ -98,6 +98,93 @@
         </div>
     </div>
 
+    <div class="modal fade" id="exampleModalEdit" tabindex="-1" role="dialog" aria-labelledby="exampleModalEditLabel"
+        aria-hidden="true">
+        <form action="{{ route('update_data_ppic_master_so') }}" method="post" onsubmit="submitForm(this, event)"
+            name='form' id='form'>
+            @method('POST')
+            <div class="modal-dialog modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header bg-warning">
+                        <h3 class="modal-title fs-5">Update Data</h3>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label for="recipient-name" class="col-form-label">Qty PO Sebelumnya :</label>
+                                    <input type='text' class='form-control form-control-sm' id='txted_qty_po'
+                                        name='txted_qty_po' autocomplete="off" readonly>
+                                    <input type='hidden' class='form-control form-control-sm' id='txtid_c' name='txtid_c'
+                                        autocomplete="off" readonly>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label for="recipient-name" class="col-form-label">Qty PO Edit:</label>
+                                    <input type='text' class='form-control form-control-sm' id='txted_qty_po_skrg'
+                                        name='txted_qty_po_skrg' autocomplete="off">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-outline-success btn-sm"><i class="fas fa-check"></i> Simpan
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </form>
+    </div>
+
+
+
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-light">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel"> <i class="fas fa-chart-line"></i> Tracking
+                        Output Packing
+                    </h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class='row'>
+                        <div class="col-md-12 table-responsive">
+                            <table id="datatable-tracking"
+                                class="table table-bordered table-hover table-sm w-100 text-wrap">
+                                <thead>
+                                    <tr>
+                                        <th>Tgl. Transaksi</th>
+                                        <th>Line</th>
+                                        <th>Total</th>
+                                        <th>Unit</th>
+                                        <th>ID SO Det</th>
+                                        <th>WS</th>
+                                        <th>List PO</th>
+                                        <th>Buyer</th>
+                                        <th>Color</th>
+                                        <th>Size</th>
+                                        <th>Style</th>
+                                        <th>Dest SB</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
 
     <div class="card card-info  collapsed-card">
         <div class="card-header">
@@ -112,14 +199,15 @@
                 <div class="mb-3">
                     <input type="hidden" class="form-control form-control-sm" id="user" name= "user"
                         value="{{ $user }}">
-                    <a class="btn btn-outline-info position-relative btn-sm" data-toggle="modal" data-target="#importExcel"
-                        onclick="OpenModal()">
+                    <a class="btn btn-outline-info position-relative btn-sm" data-toggle="modal"
+                        data-target="#importExcel" onclick="OpenModal()">
                         <i class="fas fa-file-upload fa-sm"></i>
                         Upload
                     </a>
                 </div>
                 <div class="mb-3">
-                    <a class="btn btn-outline-warning position-relative btn-sm" href="{{ route('contoh_upload_ppic_so') }}">
+                    <a class="btn btn-outline-warning position-relative btn-sm"
+                        href="{{ route('contoh_upload_ppic_so') }}">
                         <i class="fas fa-file-download fa-sm"></i>
                         Contoh Upload
                     </a>
@@ -136,21 +224,20 @@
                 <table id="datatable-preview" class="table table-bordered table-sm w-100 text-nowrap">
                     <thead class="table-info">
                         <tr style='text-align:center; vertical-align:middle'>
-                            <th>ID</th>
-                            <th>Barcode</th>
-                            <th>PO</th>
-                            <th>Dest</th>
-                            <th>Qty PO</th>
-                            <th>Tgl. Shipment</th>
-                            <th>Buyer</th>
+                            <th>ID SO Det</th>
                             <th>WS</th>
+                            <th>Style</th>
+                            <th>Desc</th>
+                            <th>PO</th>
                             <th>Color</th>
                             <th>Size</th>
-                            <th>Style</th>
-                            <th>Reff</th>
-                            <th>Brand</th>
-                            <th>User</th>
-                            <th>Tgl. Upload</th>
+                            <th>Dest</th>
+                            <th>Barcode</th>
+                            <th>Total</th>
+                            <th>Buyer</th>
+                            <th>Tgl Shipment</th>
+                            <th>Status</th>
+                            <th>Act</th>
                         </tr>
                     </thead>
                 </table>
@@ -180,12 +267,12 @@
         <div class="card-body">
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
-                    <label class="form-label"><small><b>Tgl Awal</b></small></label>
+                    <label class="form-label"><small><b>Tgl Shipment Awal</b></small></label>
                     <input type="date" class="form-control form-control-sm " id="tgl-awal" name="tgl_awal"
                         oninput="dataTableReload()" value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
-                    <label class="form-label"><small><b>Tgl Akhir</b></small></label>
+                    <label class="form-label"><small><b>Tgl Shipment Akhir</b></small></label>
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
                         oninput="dataTableReload()" value="{{ date('Y-m-d') }}">
                 </div>
@@ -195,23 +282,37 @@
                         Export Excel
                     </a>
                 </div>
+                <div class="mb-3">
+                    <a class="btn btn-outline-info position-relative btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#exampleModal" onclick="dataTableTrackingReload()">
+                        <i class="fas fa-chart-line fa-sm"></i>
+                        Tracking Output Packing
+                    </a>
+                </div>
             </div>
 
             <div class="table-responsive">
                 <table id="datatable" class="table table-bordered table-sm w-100 table-hover display nowrap">
                     <thead class="table-primary">
                         <tr style='text-align:center; vertical-align:middle'>
+                            <th>ID SO Det</th>
                             <th>Buyer</th>
                             <th>Tgl. Shipment</th>
+                            <th>WS</th>
+                            <th>Style</th>
                             <th>Barcode</th>
                             <th>Reff</th>
                             <th>No. PO</th>
                             <th>Dest</th>
+                            <th>Desc</th>
                             <th>Color</th>
                             <th>Size</th>
                             <th>Qty PO</th>
+                            <th>Qty Tr Garment</th>
+                            <th>Qty Packing In</th>
                             <th>User</th>
                             <th>Tgl. Upload</th>
+                            <th>Act</th>
                         </tr>
                     </thead>
                 </table>
@@ -300,25 +401,16 @@
 
                 },
                 {
-                    data: 'barcode'
+                    data: 'ws'
+                },
+                {
+                    data: 'style'
+                },
+                {
+                    data: 'desc'
                 },
                 {
                     data: 'po'
-                },
-                {
-                    data: 'dest'
-                },
-                {
-                    data: 'qty_po'
-                },
-                {
-                    data: 'tgl_shipment'
-                },
-                {
-                    data: 'buyer'
-                },
-                {
-                    data: 'ws'
                 },
                 {
                     data: 'color'
@@ -327,88 +419,56 @@
                     data: 'size'
                 },
                 {
-                    data: 'styleno'
+                    data: 'dest'
                 },
                 {
-                    data: 'reff_no'
+                    data: 'barcode'
                 },
                 {
-                    data: 'po'
+                    data: 'qty_po'
                 },
                 {
-                    data: 'created_by'
+                    data: 'buyer'
                 },
                 {
-                    data: 'created_at'
+                    data: 'tgl_shipment'
+                },
+                {
+                    data: 'status'
+                },
+                {
+                    data: 'id_tmp'
                 },
             ],
-            // columnDefs:
-            // [
-            //     {
-            //         "className": "align-middle",
-            //         "targets": "_all"
-            //     },
-            //     {
-            //         targets: [10],
-            //         render: (data, type, row, meta) => {
-            //             return `
-        //                 <div class='d-flex gap-1 justify-content-center'>
-        //                 <input type="text" size='2' class="form-control form-control-sm" id="barcode[` + row
-            //                 .id + `]"
-        //                 name="barcode[` + row.id + `]"
-        //                 value="` +
-            //                 row.barcode + `"
-        //                     autocomplete="off">
-        //                     </div>
-        //         `;
-            //         }
-            //     },
-            //     {
-            //         targets: [11],
-            //         render: (data, type, row, meta) => {
-            //             return `
-        //                 <div class='d-flex gap-1 justify-content-center'>
-        //                 <input type="text" size='2' class="form-control form-control-sm" id="barcode[` + row
-            //                 .id + `]"
-        //                 name="barcode[` + row.id + `]"
-        //                 value="` +
-            //                 row.po + `"
-        //                     autocomplete="off">
-        //                     </div>
-        //         `;
-            //         }
-            //     },
-            //     {
-            //         targets: [12],
-            //         render: (data, type, row, meta) => {
-            //             return `
-        //                 <div class='d-flex gap-1 justify-content-center'>
-        //                 <input type="text" size='2' class="form-control form-control-sm" id="barcode[` + row
-            //                 .id + `]"
-        //                 name="barcode[` + row.id + `]"
-        //                 value="` +
-            //                 row.dest + `"
-        //                     autocomplete="off">
-        //                     </div>
-        //         `;
-            //         }
-            //     },
-            //     {
-            //         targets: [13],
-            //         render: (data, type, row, meta) => {
-            //             return `
-        //                 <div class='d-flex gap-1 justify-content-center'>
-        //                 <input type="text" size='2' class="form-control form-control-sm" id="barcode[` + row
-            //                 .id + `]"
-        //                 name="barcode[` + row.id + `]"
-        //                 value="` +
-            //                 row.tgl_shipment + `"
-        //                     autocomplete="off">
-        //                     </div>
-        //         `;
-            //         }
-            //     },
-            // ]
+            columnDefs: [{
+                    "className": "align-left",
+                    "targets": "_all"
+                },
+                {
+                    targets: [13],
+                    render: (data, type, row, meta) => {
+                        return `
+                    <div
+                    class='d-flex gap-1 justify-content-center'>
+                    <a  class='btn btn-sm' data-bs-toggle='tooltip' onclick="hapus('` + row.id_tmp + `');"><i class='fas fa-minus fa-lg' style='color: #ff0000;'></i></a>
+                    </div>
+                        `;
+                    }
+                },
+                {
+                    targets: '_all',
+                    className: 'text-nowrap',
+                    render: (data, type, row, meta) => {
+                        if (row.status == 'Ok') {
+                            color = '#087521';
+                        } else {
+                            color = 'red';
+                        }
+                        return '<span style="font-weight: 600; color:' + color + '">' + data + '</span>';
+                    }
+                },
+
+            ]
         });
 
         function undo() {
@@ -496,7 +556,7 @@
                 },
                 error: function(request, status, error) {
                     iziToast.warning({
-                        message: 'Data Temporary Kosong cek lagi',
+                        message: 'Silahkan cek lagi',
                         position: 'topCenter'
                     });
                     dataTableReload();
@@ -523,10 +583,20 @@
                 },
             },
             columns: [{
+                    data: 'id_so_det'
+
+                },
+                {
                     data: 'buyer'
 
                 }, {
                     data: 'tgl_shipment_fix'
+                },
+                {
+                    data: 'ws'
+                },
+                {
+                    data: 'styleno'
                 },
                 {
                     data: 'barcode'
@@ -541,6 +611,9 @@
                     data: 'dest'
                 },
                 {
+                    data: 'desc'
+                },
+                {
                     data: 'color'
                 },
                 {
@@ -550,17 +623,60 @@
                     data: 'qty_po'
                 },
                 {
+                    data: 'qty_trf'
+                },
+                {
+                    data: 'qty_packing_in'
+                },
+                {
                     data: 'created_by'
                 },
                 {
                     data: 'created_at'
                 },
+                {
+                    data: 'id'
+                },
             ],
             columnDefs: [{
-                "className": "dt-left",
-                "targets": "_all"
-            }, ]
+                    targets: [17],
+                    render: (data, type, row, meta) => {
+                        return `
+                <div
+                class='d-flex gap-1 justify-content-center'>
+                <a class='btn btn-warning btn-sm'  data-bs-toggle="modal"
+                        data-bs-target="#exampleModalEdit"
+                onclick="edit(` + row.id + `)"><i class='fas fa-edit'></i></a>
+                </div>
+                    `;
+                    }
+                },
+                {
+                    "className": "align-middle",
+                    "targets": "_all"
+                },
+            ]
         });
+
+        function edit(id_c) {
+            jQuery.ajax({
+                url: '{{ route('show_data_ppic_master_so') }}',
+                method: 'GET',
+                data: {
+                    id_c: id_c
+                },
+                dataType: 'json',
+                success: async function(response) {
+                    document.getElementById('txted_qty_po').value = response.qty_po;
+                    document.getElementById('txtid_c').value = id_c;
+                },
+                error: function(request, status, error) {
+                    alert(request.responseText);
+                },
+            });
+        }
+
+
 
         function export_excel_master_so_ppic() {
             Swal.fire({
@@ -597,5 +713,84 @@
                 },
             });
         }
+
+        function hapus(id_tmp) {
+            $.ajax({
+                type: "post",
+                url: '{{ route('hapus-data-temp-ppic-so') }}',
+                data: {
+                    id_tmp: id_tmp
+                },
+                success: async function(res) {
+                    iziToast.success({
+                        message: 'Data Berhasil Dihapus',
+                        position: 'topCenter'
+                    });
+                    dataTablePreviewReload();
+                    dataTableReload();
+                }
+            });
+
+        }
+
+        function dataTableTrackingReload() {
+            datatable_tracking.ajax.reload();
+        }
+
+        let datatable_tracking = $("#datatable-tracking").DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            scrollCollapse: true,
+            scroller: true,
+            paging: true,
+            searching: true,
+            destroy: true,
+            scrollX: true,
+            ajax: {
+                url: '{{ route('master_so_tracking_output') }}',
+            },
+            columns: [{
+                    data: 'tgl_trans'
+
+                }, {
+                    data: 'sewing_line'
+                },
+                {
+                    data: 'tot'
+                },
+                {
+                    data: 'unit'
+                },
+                {
+                    data: 'id_so_det'
+                },
+                {
+                    data: 'ws'
+                },
+                {
+                    data: 'list_po'
+                },
+                {
+                    data: 'buyer'
+                },
+                {
+                    data: 'color'
+                },
+                {
+                    data: 'size'
+                },
+                {
+                    data: 'styleno'
+                },
+                {
+                    data: 'dest'
+                },
+            ],
+            columnDefs: [{
+                "className": "dt-left",
+                "targets": "_all"
+            }, ]
+        });
     </script>
 @endsection

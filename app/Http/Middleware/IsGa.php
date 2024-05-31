@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
-class IsPacking
+class IsGa
 {
     /**
      * Handle an incoming request.
@@ -21,6 +21,6 @@ class IsPacking
             return $next($request);
         }
 
-        return redirect('home')->with('error', 'You have not packing access');
+        return redirect('home')->with('error', 'You have not ga access');
     }
 }

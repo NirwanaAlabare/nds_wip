@@ -23,21 +23,37 @@ class PPIC_MasterSOController extends Controller
         if ($request->ajax()) {
             $data_input = DB::select("
             SELECT
+            a.id,
+            a.id_so_det,
             m.buyer,
-            date_format(a.tgl_shipment,'%d-%m-%y') tgl_shipment_fix,
+            concat((DATE_FORMAT(a.tgl_shipment,  '%d')), '-', left(DATE_FORMAT(a.tgl_shipment,  '%M'),3),'-',DATE_FORMAT(a.tgl_shipment,  '%Y')
+            ) tgl_shipment_fix,
             a.barcode,
             m.reff_no,
             a.po,
             a.dest,
+            a.desc,
+            m.ws,
+            m.styleno,
             m.color,
             m.size,
             a.qty_po,
+            coalesce(trf.qty_trf,0) qty_trf,
+            coalesce(pck.qty_packing_in,0) qty_packing_in,
             m.ws,
             a.created_by,
             a.created_at
             FROM ppic_master_so a
             inner join master_sb_ws m on a.id_so_det = m.id_so_det
             left join master_size_new msn on m.size = msn.size
+            left join
+                (
+                select id_ppic_master_so, coalesce(sum(qty),0) qty_trf from packing_trf_garment group by id_ppic_master_so
+                ) trf on trf.id_ppic_master_so = a.id
+            left join
+                (
+                select id_ppic_master_so, coalesce(sum(qty),0) qty_packing_in from packing_packing_in group by id_ppic_master_so
+                ) pck on pck.id_ppic_master_so = a.id
             where tgl_shipment >= '$tgl_awal' and tgl_shipment <= '$tgl_akhir'
             order by tgl_shipment desc, buyer asc, ws asc , msn.urutan asc
             ");
@@ -61,29 +77,34 @@ class PPIC_MasterSOController extends Controller
         if ($request->ajax()) {
 
             $data_tmp = DB::select("
-            SELECT
-            a.id_tmp,
-            a.id_so_det,
-            a.qty_po,
-            m.product_group,
-            m.product_item,
-            m.ws,
-            m.color,
-            m.size,
-            m.buyer,
-            m.styleno,
-            m.reff_no,
-            m.brand,
-            m.main_dest,
-            a.dest,
-            a.tgl_shipment,
-            a.po,
-            a.barcode,
-            a.created_by,
-            a.created_at
-            from ppic_master_so_tmp a
-            inner join master_sb_ws m on a.id_so_det = m.id_so_det
-            where created_by = '$user'
+            select
+            tmp.id_tmp,
+            m.id_so_det,
+            tmp.ws,
+            tmp.style,
+            tmp.desc,
+            tmp.color,
+            tmp.size,
+            tmp.buyer,
+            tmp.barcode,
+            tmp.po,
+            tmp.dest,
+            tmp.qty_po,
+            tmp.tgl_shipment,
+            tmp.created_at,
+            tmp.updated_at,
+            tmp.created_by,
+            if(
+            m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is null,'Ok','Check') status
+            from ppic_master_so_tmp tmp
+            left join master_sb_ws m on tmp.ws = m.ws
+                                and tmp.color = m.color
+                                and tmp.size = m.size
+                                and tmp.style = m.styleno
+                                and tmp.dest = m.dest
+            left join ppic_master_so p on m.id_so_det = p.id_so_det
+                                and tmp.tgl_shipment = p.tgl_shipment
+            where tmp.created_by = '$user'
             ");
 
             return DataTables::of($data_tmp)->toJson();
@@ -145,9 +166,18 @@ class PPIC_MasterSOController extends Controller
         $user = Auth::user()->name;
         $timestamp = Carbon::now();
 
-        $cek = DB::select("select * from ppic_master_so_tmp where created_by = '$user'");
+        $cek = DB::select("select * from ppic_master_so_tmp tmp
+        left join master_sb_ws m on tmp.ws = m.ws
+        and tmp.color = m.color
+        and tmp.size = m.size
+        and tmp.style = m.styleno
+        and tmp.dest = m.dest
+left join ppic_master_so p on m.id_so_det = p.id_so_det
+        and tmp.tgl_shipment = p.tgl_shipment
+where tmp.created_by = '$user' and if(
+m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is null,'Ok','Check') = 'Ok'");
 
-        $cekinput = $cek[0]->id_so_det;
+        $cekinput = $cek[0]->id_tmp;
 
         if ($cekinput == '') {
             return array(
@@ -156,17 +186,37 @@ class PPIC_MasterSOController extends Controller
             );
         } else {
             $insert = DB::insert(
-                "insert into ppic_master_so
-                (id_so_det,barcode,po,dest,tgl_shipment,qty_po,created_at,updated_at,created_by)
-                SELECT id_so_det,barcode,po,dest,tgl_shipment,qty_po,'$timestamp','$timestamp','$user'
-                from ppic_master_so_tmp
-                where created_by = '$user'
+                "
+                insert into ppic_master_so
+                (id_so_det,barcode,po,dest,ppic_master_so.desc,tgl_shipment,qty_po,created_at,updated_at,created_by)
+                select
+                m.id_so_det,
+                tmp.barcode,
+                tmp.po,
+                tmp.dest,
+                tmp.desc,
+                tmp.tgl_shipment,
+                tmp.qty_po,
+                '$timestamp',
+                '$timestamp',
+                tmp.created_by
+                from ppic_master_so_tmp tmp
+                left join master_sb_ws m on tmp.ws = m.ws
+                                    and tmp.color = m.color
+                                    and tmp.size = m.size
+                                    and tmp.style = m.styleno
+                                    and tmp.dest = m.dest
+                left join ppic_master_so p on m.id_so_det = p.id_so_det
+                                    and tmp.tgl_shipment = p.tgl_shipment
+                where tmp.created_by = '$user' and if(
+                m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is null,'Ok','Check') = 'Ok'
                 "
             );
 
             if ($insert) {
                 $delete =  DB::delete(
-                    "DELETE FROM ppic_master_so_tmp where created_by = '$user'"
+                    "DELETE a.* FROM ppic_master_so_tmp a
+                    where a.created_by = '$user' "
                 );
                 return array(
                     'icon' => 'benar',
@@ -175,6 +225,111 @@ class PPIC_MasterSOController extends Controller
             }
         }
     }
+
+    public function hapus_data_temp_ppic_so(Request $request)
+    {
+        $id_tmp = $request->id_tmp;
+
+        $del_tmp =  DB::delete("
+        delete from ppic_master_so_tmp where id_tmp = '$id_tmp'");
+    }
+
+
+    public function master_so_tracking_output(Request $request)
+    {
+        $user = Auth::user()->name;
+
+        $data_tracking = DB::select("
+            select
+            m.id_so_det,
+            concat((DATE_FORMAT(a.created_at,  '%d')), '-', left(DATE_FORMAT(a.created_at,  '%M'),3),'-',DATE_FORMAT(a.created_at,  '%Y')
+) tgl_trans,
+            sewing_line,count(so_det_id)tot,
+            'PCS' unit,
+            m.ws,
+            p.list_po,
+            m.color,
+            m.size,
+            m.styleno,
+            m.dest,
+            m.buyer
+            from output_rfts_packing a
+            left join master_sb_ws m on a.so_det_id = m.id_so_det
+            left join
+            (
+            select group_concat(DISTINCT(po)) list_po, id_so_det from ppic_master_so
+            group by id_so_det
+            )
+             p on a.so_det_id = p.id_so_det
+            group by so_det_id, sewing_line,date_format(a.created_at,'%d-%m-%Y')
+            order by a.created_at desc
+            ");
+
+        return DataTables::of($data_tracking)->toJson();
+    }
+
+    public function show_data_ppic_master_so(Request $request)
+    {
+        $data_ppic_master_so = DB::select("
+        SELECT
+        a.id,
+        a.id_so_det,
+        m.buyer,
+        concat((DATE_FORMAT(a.tgl_shipment,  '%d')), '-', left(DATE_FORMAT(a.tgl_shipment,  '%M'),3),'-',DATE_FORMAT(a.tgl_shipment,  '%Y')
+        ) tgl_shipment_fix,
+        a.barcode,
+        m.reff_no,
+        a.po,
+        a.dest,
+        a.desc,
+        m.ws,
+        m.styleno,
+        m.color,
+        m.size,
+        a.qty_po,
+        coalesce(trf.qty_trf,0) qty_trf,
+        coalesce(pck.qty_packing_in,0) qty_packing_in,
+        m.ws,
+        a.created_by,
+        a.created_at
+        FROM ppic_master_so a
+        inner join master_sb_ws m on a.id_so_det = m.id_so_det
+        left join master_size_new msn on m.size = msn.size
+        left join
+            (
+            select id_ppic_master_so, coalesce(sum(qty),0) qty_trf from packing_trf_garment group by id_ppic_master_so
+            ) trf on trf.id_ppic_master_so = a.id
+        left join
+            (
+            select id_ppic_master_so, coalesce(sum(qty),0) qty_packing_in from packing_packing_in group by id_ppic_master_so
+            ) pck on pck.id_ppic_master_so = a.id
+                            where a.id = '$request->id_c'");
+        return json_encode($data_ppic_master_so[0]);
+    }
+
+    public function update_data_ppic_master_so(Request $request)
+    {
+        $timestamp = Carbon::now();
+        $user = Auth::user()->name;
+        DB::update(
+            "update ppic_master_so
+            set qty_po = '" . $request->txted_qty_po_skrg . "',
+            old_qty_po = '" . $request->txted_qty_po . "',
+            tgl_update = '$timestamp',
+            user_update = '$user'
+            where id = '" . $request->txtid_c . "'
+            "
+        );
+
+        return array(
+            'status' => 200,
+            'message' => 'Data  Berhasil Diupdate',
+            'redirect' => '',
+            'table' => '',
+            'additional' => [],
+        );
+    }
+
 
 
     public function export_excel_master_sb_so(Request $request)
