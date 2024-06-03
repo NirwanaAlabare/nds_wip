@@ -216,6 +216,7 @@ class StockerController extends Controller
                 marker_input.color,
                 marker_input_detail.so_det_id,
                 marker_input_detail.ratio,
+                MAX(form_cut_input.no_form) no_form,
                 form_cut_input.no_cut,
                 MAX(stocker_input.id) stocker_id,
                 MAX(stocker_input.shade) shade,
@@ -234,16 +235,16 @@ class StockerController extends Controller
             where("marker_input.panel", $dataSpreading->panel)->
             where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
             where("marker_input_detail.ratio", ">", "0")->
-            groupBy("form_cut_input.no_cut", "marker_input_detail.so_det_id")->
+            groupBy("no_form", "form_cut_input.no_cut", "marker_input_detail.so_det_id")->
             orderBy("form_cut_input.no_cut", "desc")->
+            orderBy("form_cut_input.no_form", "desc")->
             get();
-
-            
 
         $dataNumbering = MarkerDetail::selectRaw("
                 marker_input.color,
                 marker_input_detail.so_det_id,
                 marker_input_detail.ratio,
+                MAX(form_cut_input.no_form) no_form,
                 form_cut_input.no_cut,
                 MAX(stocker_numbering.id) numbering_id,
                 MAX(stocker_numbering.no_cut_size) no_cut_size,
@@ -261,10 +262,12 @@ class StockerController extends Controller
             where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
             where("marker_input_detail.ratio", ">", "0")->
             whereRaw("(stocker_numbering.cancel IS NULL OR stocker_numbering.cancel != 'Y')")->
-            groupBy("no_cut", "marker_input_detail.so_det_id")->
+            groupBy("no_form", "no_cut", "marker_input_detail.so_det_id")->
             orderBy("form_cut_input.no_cut", "desc")->
+            orderBy("form_cut_input.no_form", "desc")->
             get();
 
+            
         $modifySizeQty = ModifySizeQty::where("no_form", $dataSpreading->no_form)->get();
 
         return view("stocker.stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataPartDetail" => $dataPartDetail, "dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "dataNumbering" => $dataNumbering, "modifySizeQty" => $modifySizeQty, "page" => "dashboard-stocker", "subPageGroup" => "proses-stocker", "subPage" => "stocker"]);
