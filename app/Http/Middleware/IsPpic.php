@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
-class IsFGStock
+class IsPpic
 {
     /**
      * Handle an incoming request.
@@ -17,10 +17,10 @@ class IsFGStock
      */
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::user()  &&  (Auth::user()->type == 'admin' || Auth::user()->type == 'Fgstock')) {
+        if (Auth::user() &&  (Auth::user()->type == 'admin' || Auth::user()->type == 'ppic')) {
             return $next($request);
         }
 
-        return redirect('home')->with('error', 'You have not dc access');
+        return redirect('home')->with('error', 'You have not ppic access');
     }
 }
