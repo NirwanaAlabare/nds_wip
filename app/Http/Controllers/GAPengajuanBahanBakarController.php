@@ -168,7 +168,7 @@ class GAPengajuanBahanBakarController extends Controller
         );
 
         return array(
-            'status' => 300,
+            'status' => 200,
             'message' => 'Data ' . $request->txtednm  . ' Berhasil Dirubah',
             'redirect' => '',
             'table' => 'datatable-master-bensin',
@@ -229,16 +229,16 @@ class GAPengajuanBahanBakarController extends Controller
             (plat_no,thn_pembuatan,no_mesin,no_rangka,merk,tipe,warna,jns_bhn_bakar,isi_silinder,status,cancel,created_by,created_at,updated_at)
             VALUES
             (
-                '" . $validatedRequest['txtplat_no'] . "',
-                '" . $validatedRequest['txtthn_pembuatan'] . "',
-                '" . $validatedRequest['txtno_mesin'] . "',
-                '" . $validatedRequest['txtno_rangka'] . "',
-                '" . $validatedRequest['txtmerk'] . "',
-                '" . $validatedRequest['txttipe'] . "',
-                '" . $validatedRequest['txtwarna'] . "',
-                '" . $validatedRequest['cbojns_bhn_bakar'] . "',
-                '" . $validatedRequest['txtisi_silinder'] . "',
-                '" . $validatedRequest['cbostat'] . "',
+                '" . strtoupper($validatedRequest['txtplat_no']) . "',
+                '" . strtoupper($validatedRequest['txtthn_pembuatan']) . "',
+                '" . strtoupper($validatedRequest['txtno_mesin']) . "',
+                '" . strtoupper($validatedRequest['txtno_rangka']) . "',
+                '" . strtoupper($validatedRequest['txtmerk']) . "',
+                '" . strtoupper($validatedRequest['txttipe']) . "',
+                '" . strtoupper($validatedRequest['txtwarna']) . "',
+                '" . strtoupper($validatedRequest['cbojns_bhn_bakar']) . "',
+                '" . strtoupper($validatedRequest['txtisi_silinder']) . "',
+                '" . strtoupper($validatedRequest['cbostat']) . "',
                 'N',
                 '$user',
                 '$timestamp',
@@ -248,7 +248,7 @@ class GAPengajuanBahanBakarController extends Controller
         );
 
         return array(
-            'status' => 300,
+            'status' => 200,
             'message' => 'Data ' . $validatedRequest['txtplat_no']  . ' Berhasil Ditambahkan',
             'redirect' => '',
             'table' => 'datatable-master-kendaraan',
