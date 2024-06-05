@@ -294,7 +294,7 @@ class StockerController extends Controller
             where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
             where("part_form.part_id", $dataSpreading->part_id)->
             // where("marker_input_detail.ratio", ">", "0")->
-            groupBy("form_cut_input.no_form", "no_cut", "marker_input_detail.so_det_id")->
+            groupBy("form_cut_input.no_form", "form_cut_input.no_cut", "marker_input_detail.so_det_id")->
             orderBy("form_cut_input.no_cut", "desc")->
             orderBy("form_cut_input.no_form", "desc")->
             get();
@@ -442,7 +442,7 @@ class StockerController extends Controller
             where("stocker_input.shade", $request['group'][$index])->
             // where("stocker_input.qty_ply", $request['qty_ply_group'][$index])->
             where("stocker_input.group_stocker", $request['group_stocker'][$index])->
-            groupBy("form_cut_input.id", "stocker_input.id")->
+            groupBy("form_cut_input.id", "part_detail.id", "stocker_input.size", "stocker_input.shade", "stocker_input.ratio")->
             orderBy("stocker_input.group_stocker", "desc")->
             orderBy("stocker_input.so_det_id", "asc")->
             orderBy("stocker_input.ratio", "asc")->
@@ -490,8 +490,8 @@ class StockerController extends Controller
                         color = '" . $request['color'] . "' AND
                         panel = '" . $request['panel'] . "' AND
                         shade = '" . $request['group'][$i] . "' AND
-                        " .( $request['ratio'][$index] < 1 ? '' : 'qty_ply = '. $request['qty_ply_group'][$index]. ' AND ' ) . "
-                        " . ($request['group_stocker'][$i] && $request['group_stocker'][$i] != "" ? "group_stocker = '" . $request['group_stocker'][$i] . "' AND" : "") . "
+                        " .( $request['ratio'][$i] < 1 ? '' : 'qty_ply = '. $request['qty_ply_group'][$i]. ' AND ' ) . "
+                        " . ( $request['group_stocker'][$i] && $request['group_stocker'][$i] != "" ? "group_stocker = '" . $request['group_stocker'][$i] . "' AND" : "" ) . "
                         ratio = " . ($j + 1) . "
                     ")->first();
 
@@ -562,7 +562,7 @@ class StockerController extends Controller
             where("form_cut_input.status", "SELESAI PENGERJAAN")->
             where("part_detail.id", $partDetailId)->
             where("form_cut_input.id", $request['form_cut_id'])->
-            groupBy("form_cut_input.id", "stocker_input.id")->
+            groupBy("form_cut_input.id", "part_detail.id", "stocker_input.size", "stocker_input.shade", "stocker_input.ratio")->
             orderBy("stocker_input.group_stocker", "desc")->
             orderBy("stocker_input.shade", "desc")->
             orderBy("stocker_input.so_det_id", "asc")->
@@ -692,7 +692,7 @@ class StockerController extends Controller
             where("form_cut_input.status", "SELESAI PENGERJAAN")->
             whereIn("part_detail.id", $request['generate_stocker'])->
             where("form_cut_input.id", $request['form_cut_id'])->
-            groupBy("form_cut_input.id", "stocker_input.size", "stocker_input.shade", "stocker_input.ratio")->
+            groupBy("form_cut_input.id", "part_detail.id", "stocker_input.size", "stocker_input.shade", "stocker_input.ratio")->
             orderBy("stocker_input.group_stocker", "desc")->
             orderBy("stocker_input.shade", "desc")->
             orderBy("stocker_input.so_det_id", "asc")->
