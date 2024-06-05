@@ -107,7 +107,7 @@ class SecondaryInController extends Controller
             }
 
             $data_input = DB::select("
-            select s.act_costing_ws, buyer,s.color,styleno, COALESCE(dc.qty_awal - dc.qty_reject + dc.qty_replace, 0) qty_in, COALESCE(si.qty_in, 0) qty_out, COALESCE((dc.qty_awal - dc.qty_reject + dc.qty_replace -  si.qty_in), 0) balance, dc.tujuan,dc.lokasi
+            select s.act_costing_ws, m.buyer,s.color,styleno, COALESCE(dc.qty_awal - dc.qty_reject + dc.qty_replace, 0) qty_in, COALESCE(si.qty_in, 0) qty_out, COALESCE((dc.qty_awal - dc.qty_reject + dc.qty_replace -  si.qty_in), 0) balance, dc.tujuan,dc.lokasi
             from dc_in_input dc
             inner join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
             inner join master_sb_ws m on s.so_det_id = m.id_so_det
@@ -138,7 +138,7 @@ class SecondaryInController extends Controller
         select
         s.id_qr_stocker,
         s.act_costing_ws,
-        buyer,
+        msb.buyer,
         no_cut,
         style,
         s.color,
