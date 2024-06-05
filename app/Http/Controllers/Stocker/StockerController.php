@@ -442,7 +442,7 @@ class StockerController extends Controller
             where("stocker_input.shade", $request['group'][$index])->
             // where("stocker_input.qty_ply", $request['qty_ply_group'][$index])->
             where("stocker_input.group_stocker", $request['group_stocker'][$index])->
-            groupBy("form_cut_input.id", "part_detail.id", "stocker_input.size", "stocker_input.shade", "stocker_input.ratio")->
+            groupBy("form_cut_input.id", "part_detail.id", "stocker_input.size", "stocker_input.group_stocker", "stocker_input.shade", "stocker_input.ratio")->
             orderBy("stocker_input.group_stocker", "desc")->
             orderBy("stocker_input.so_det_id", "asc")->
             orderBy("stocker_input.ratio", "asc")->
@@ -562,7 +562,7 @@ class StockerController extends Controller
             where("form_cut_input.status", "SELESAI PENGERJAAN")->
             where("part_detail.id", $partDetailId)->
             where("form_cut_input.id", $request['form_cut_id'])->
-            groupBy("form_cut_input.id", "part_detail.id", "stocker_input.size", "stocker_input.shade", "stocker_input.ratio")->
+            groupBy("form_cut_input.id", "part_detail.id", "stocker_input.size", "stocker_input.group_stocker", "stocker_input.shade", "stocker_input.ratio")->
             orderBy("stocker_input.group_stocker", "desc")->
             orderBy("stocker_input.shade", "desc")->
             orderBy("stocker_input.so_det_id", "asc")->
@@ -692,7 +692,7 @@ class StockerController extends Controller
             where("form_cut_input.status", "SELESAI PENGERJAAN")->
             whereIn("part_detail.id", $request['generate_stocker'])->
             where("form_cut_input.id", $request['form_cut_id'])->
-            groupBy("form_cut_input.id", "part_detail.id", "stocker_input.size", "stocker_input.shade", "stocker_input.ratio")->
+            groupBy("form_cut_input.id", "part_detail.id", "stocker_input.size", "stocker_input.group_stocker", "stocker_input.shade", "stocker_input.ratio")->
             orderBy("stocker_input.group_stocker", "desc")->
             orderBy("stocker_input.shade", "desc")->
             orderBy("stocker_input.so_det_id", "asc")->
