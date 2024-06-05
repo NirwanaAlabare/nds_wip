@@ -35,7 +35,7 @@
         @endif
 
         @if ($page == 'dashboard-cutting')
-            {{-- @include('cutting.dashboard', ["months" => $months, "years" => $years]) --}}
+            @include('cutting.dashboard', ["months" => $months, "years" => $years])
         @endif
 
         @if ($page == 'dashboard-stocker')
@@ -2424,180 +2424,395 @@
         });
     </script>
 
-@if ($page == 'dashboard-marker')
-<script>
-    $(document).ready(async function() {
-        let today = new Date();
-        let todayDate = ("0" + today.getDate()).slice(-2);
-        let todayMonth = ("0" + (today.getMonth() + 1)).slice(-2);
-        let todayYear = today.getFullYear();
-        let todayFullDate = todayYear + '-' + todayMonth + '-' + todayDate;
+    @if ($page == 'dashboard-marker')
+        <script>
+            $(document).ready(async function() {
+                let today = new Date();
+                let todayDate = ("0" + today.getDate()).slice(-2);
+                let todayMonth = ("0" + (today.getMonth() + 1)).slice(-2);
+                let todayYear = today.getFullYear();
+                let todayFullDate = todayYear + '-' + todayMonth + '-' + todayDate;
 
-        // DC Datatable
-        $('#marker-month-filter').val((today.getMonth() + 1)).trigger("change");
-        $('#marker-year-filter').val(todayYear).trigger("change");
+                // Marker Datatable
+                $('#marker-month-filter').val((today.getMonth() + 1)).trigger("change");
+                $('#marker-year-filter').val(todayYear).trigger("change");
 
-        var datatableMarker = $("#datatable-marker").DataTable({
-            serveSide: true,
-            processing: true,
-            ordering: false,
-            pageLength: 50,
-            ajax: {
-                url: '{{ route('dashboard-marker') }}',
-                dataType: 'json',
-                data: function (d) {
-                    d.month = $('#marker-month-filter').val();
-                    d.year = $('#marker-year-filter').val();
-                }
-            },
-            columns: [
-                {
-                    data: 'buyer',
-                },
-                {
-                    data: 'act_costing_ws',
-                },
-                {
-                    data: 'style',
-                },
-                {
-                    data: 'color',
-                },
-                {
-                    data: 'tgl_cutting',
-                },
-                {
-                    data: 'kode',
-                },
-                {
-                    data: 'urutan_marker',
-                },
-                {
-                    data: 'panel',
-                },
-                {
-                    data: 'nama_part',
-                }
-            ],
-            columnDefs: [
-                {
-                    targets: [0 ,1 ,2 ,3 ,4 ,5 , 6, 7],
-                    className: "text-nowrap align-middle"
-                },
-                {
-                    targets: "_all",
-                    className: "text-nowrap colorize"
-                }
-            ],
-            rowsGroup: [
-                0,
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7
-            ],
-            // rowCallback: function( row, data, index ) {
-            //     if (data['line'] != '-') {
-            //         $('td.colorize', row).css('color', '#2e8a57');
-            //         $('td.colorize', row).css('font-weight', '600');
-            //     } else if (!data['dc_in_id'] && data['troli'] == '-') {
-            //         $('td.colorize', row).css('color', '#da4f4a');
-            //         $('td.colorize', row).css('font-weight', '600');
-            //     }
-            // }
-        });
+                var datatableMarker = $("#datatable-marker").DataTable({
+                    serveSide: true,
+                    processing: true,
+                    ordering: false,
+                    pageLength: 50,
+                    ajax: {
+                        url: '{{ route('dashboard-marker') }}',
+                        dataType: 'json',
+                        data: function (d) {
+                            d.month = $('#marker-month-filter').val();
+                            d.year = $('#marker-year-filter').val();
+                        }
+                    },
+                    columns: [
+                        {
+                            data: 'buyer',
+                        },
+                        {
+                            data: 'act_costing_ws',
+                        },
+                        {
+                            data: 'style',
+                        },
+                        {
+                            data: 'color',
+                        },
+                        {
+                            data: 'tgl_cutting',
+                        },
+                        {
+                            data: 'kode',
+                        },
+                        {
+                            data: 'urutan_marker',
+                        },
+                        {
+                            data: 'panel',
+                        },
+                        {
+                            data: 'nama_part',
+                        }
+                    ],
+                    columnDefs: [
+                        {
+                            targets: [0 ,1 ,2 ,3 ,4 ,5 , 6, 7],
+                            className: "text-nowrap align-middle"
+                        },
+                        {
+                            targets: "_all",
+                            className: "text-nowrap colorize"
+                        }
+                    ],
+                    rowsGroup: [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7
+                    ],
+                    // rowCallback: function( row, data, index ) {
+                    //     if (data['line'] != '-') {
+                    //         $('td.colorize', row).css('color', '#2e8a57');
+                    //         $('td.colorize', row).css('font-weight', '600');
+                    //     } else if (!data['dc_in_id'] && data['troli'] == '-') {
+                    //         $('td.colorize', row).css('color', '#da4f4a');
+                    //         $('td.colorize', row).css('font-weight', '600');
+                    //     }
+                    // }
+                });
 
-        $('#datatable-marker thead tr').clone(true).appendTo('#datatable-marker thead');
-        $('#datatable-marker thead tr:eq(1) th').each(function(i) {
-            var title = $(this).text();
-            $(this).html('<input type="text" class="form-control form-control-sm"/>');
+                $('#datatable-marker thead tr').clone(true).appendTo('#datatable-marker thead');
+                $('#datatable-marker thead tr:eq(1) th').each(function(i) {
+                    var title = $(this).text();
+                    $(this).html('<input type="text" class="form-control form-control-sm"/>');
 
-            $('input', this).on('keyup change', function() {
-                if (datatableMarker.column(i).search() !== this.value) {
-                    datatableMarker
-                        .column(i)
-                        .search(this.value)
-                        .draw();
-                }
+                    $('input', this).on('keyup change', function() {
+                        if (datatableMarker.column(i).search() !== this.value) {
+                            datatableMarker
+                                .column(i)
+                                .search(this.value)
+                                .draw();
+                        }
+                    });
+                });
+
+                $('#marker-month-filter').on('change', () => {
+                    $('#datatable-marker').DataTable().ajax.reload();
+                });
+                $('#marker-year-filter').on('change', () => {
+                    $('#datatable-marker').DataTable().ajax.reload();
+                });
+
+                // DC Qty
+                // $('#dcqty-month-filter').val((today.getMonth() + 1)).trigger("change");
+                // $('#dcqty-year-filter').val(todayYear).trigger("change");
+                // await getDcQty();
+
+                // $('#dcqty-month-filter').on('change', () => {
+                //     getDcQty();
+                // });
+                // $('#dcqty-year-filter').on('change', () => {
+                //     getDcQty();
+                // });
             });
-        });
 
-        $('#marker-month-filter').on('change', () => {
-            $('#datatable-marker').DataTable().ajax.reload();
-        });
-        $('#marker-year-filter').on('change', () => {
-            $('#datatable-marker').DataTable().ajax.reload();
-        });
+            // function getDcQty() {
+            //     document.getElementById("dc-qty-data").classList.add("d-none");
+            //     document.getElementById("loading-dc-qty").classList.remove("d-none");
 
-        // DC Qty
-        // $('#dcqty-month-filter').val((today.getMonth() + 1)).trigger("change");
-        // $('#dcqty-year-filter').val(todayYear).trigger("change");
-        // await getDcQty();
+            //     return $.ajax({
+            //         url: '{{ route('dc-qty') }}',
+            //         type: 'get',
+            //         data: {
+            //             month : $('#dcqty-month-filter').val(),
+            //             year : $('#dcqty-year-filter').val()
+            //         },
+            //         dataType: 'json',
+            //         success: function(res) {
+            //             if (res) {
+            //                 let totalStocker = 0;
+            //                 let totalSecondary = 0;
+            //                 let totalRak = 0;
+            //                 let totalTroli = 0;
+            //                 let totalLine = 0;
 
-        // $('#dcqty-month-filter').on('change', () => {
-        //     getDcQty();
-        // });
-        // $('#dcqty-year-filter').on('change', () => {
-        //     getDcQty();
-        // });
-    });
+            //                 res.forEach(item => {
+            //                     if (item.secondary == "-" && item.rak == "-" && item.troli == "-" && item.line == "-") {
+            //                         totalStocker += item.dc_in_qty;
+            //                     } else if (item.secondary != "-" && item.rak == "-" && item.troli == "-" && item.line == "-") {
+            //                         totalSecondary += item.dc_in_qty;
+            //                     } else if (item.rak != "-" && item.troli == "-" && item.line == "-") {
+            //                         totalRak += item.dc_in_qty;
+            //                     } else if (item.troli != "-" && item.line == "-") {
+            //                         totalTroli += item.dc_in_qty;
+            //                     } else if (item.line != "-") {
+            //                         totalLine += item.dc_in_qty;
+            //                     }
+            //                 });
 
-    // function getDcQty() {
-    //     document.getElementById("dc-qty-data").classList.add("d-none");
-    //     document.getElementById("loading-dc-qty").classList.remove("d-none");
+            //                 document.getElementById("stocker-qty").innerText = totalStocker.toLocaleString('ID-id');
+            //                 document.getElementById("secondary-qty").innerText = totalSecondary.toLocaleString('ID-id');
+            //                 document.getElementById("non-secondary-qty").innerText = (totalRak + totalTroli).toLocaleString('ID-id');
+            //                 document.getElementById("line-qty").innerText = totalLine.toLocaleString('ID-id');
+            //             }
 
-    //     return $.ajax({
-    //         url: '{{ route('dc-qty') }}',
-    //         type: 'get',
-    //         data: {
-    //             month : $('#dcqty-month-filter').val(),
-    //             year : $('#dcqty-year-filter').val()
-    //         },
-    //         dataType: 'json',
-    //         success: function(res) {
-    //             if (res) {
-    //                 let totalStocker = 0;
-    //                 let totalSecondary = 0;
-    //                 let totalRak = 0;
-    //                 let totalTroli = 0;
-    //                 let totalLine = 0;
+            //             document.getElementById("dc-qty-data").classList.remove("d-none");
+            //             document.getElementById("loading-dc-qty").classList.add("d-none");
+            //         },
+            //         error: function(jqXHR) {
+            //             console.log(jqXHR);
 
-    //                 res.forEach(item => {
-    //                     if (item.secondary == "-" && item.rak == "-" && item.troli == "-" && item.line == "-") {
-    //                         totalStocker += item.dc_in_qty;
-    //                     } else if (item.secondary != "-" && item.rak == "-" && item.troli == "-" && item.line == "-") {
-    //                         totalSecondary += item.dc_in_qty;
-    //                     } else if (item.rak != "-" && item.troli == "-" && item.line == "-") {
-    //                         totalRak += item.dc_in_qty;
-    //                     } else if (item.troli != "-" && item.line == "-") {
-    //                         totalTroli += item.dc_in_qty;
-    //                     } else if (item.line != "-") {
-    //                         totalLine += item.dc_in_qty;
-    //                     }
-    //                 });
+            //             document.getElementById("dc-qty-data").classList.remove("d-none");
+            //             document.getElementById("loading-dc-qty").classList.add("d-none");
+            //         }
+            //     });
+            // }
+        </script>
+    @endif
 
-    //                 document.getElementById("stocker-qty").innerText = totalStocker.toLocaleString('ID-id');
-    //                 document.getElementById("secondary-qty").innerText = totalSecondary.toLocaleString('ID-id');
-    //                 document.getElementById("non-secondary-qty").innerText = (totalRak + totalTroli).toLocaleString('ID-id');
-    //                 document.getElementById("line-qty").innerText = totalLine.toLocaleString('ID-id');
-    //             }
+    @if ($page == 'dashboard-cutting')
+        <script>
+            $(document).ready(async function() {
+                let today = new Date();
+                let todayDate = ("0" + today.getDate()).slice(-2);
+                let todayMonth = ("0" + (today.getMonth() + 1)).slice(-2);
+                let todayYear = today.getFullYear();
+                let todayFullDate = todayYear + '-' + todayMonth + '-' + todayDate;
 
-    //             document.getElementById("dc-qty-data").classList.remove("d-none");
-    //             document.getElementById("loading-dc-qty").classList.add("d-none");
-    //         },
-    //         error: function(jqXHR) {
-    //             console.log(jqXHR);
+                // Cutting Datatable
+                $('#cutting-month-filter').val((today.getMonth() + 1)).trigger("change");
+                $('#cutting-year-filter').val(todayYear).trigger("change");
 
-    //             document.getElementById("dc-qty-data").classList.remove("d-none");
-    //             document.getElementById("loading-dc-qty").classList.add("d-none");
-    //         }
-    //     });
-    // }
-</script>
-@endif
+                var datatableCutting = $("#datatable-cutting").DataTable({
+                    serveSide: true,
+                    processing: true,
+                    ordering: false,
+                    pageLength: 50,
+                    ajax: {
+                        url: '{{ route('dashboard-cutting') }}',
+                        dataType: 'json',
+                        data: function (d) {
+                            d.month = $('#cutting-month-filter').val();
+                            d.year = $('#cutting-year-filter').val();
+                        }
+                    },
+                    columns: [
+                        {
+                            data: 'buyer',
+                        },
+                        {
+                            data: 'act_costing_ws',
+                        },
+                        // {
+                        //     data: 'style',
+                        // },
+                        {
+                            data: 'color',
+                        },
+                        {
+                            data: 'kode',
+                        },
+                        {
+                            data: 'urutan_marker',
+                        },
+                        {
+                            data: 'panel',
+                        },
+                        {
+                            data: 'tgl_form_cut',
+                        },
+                        {
+                            data: 'no_form',
+                        },
+                        {
+                            data: 'no_cut',
+                        },
+                        {
+                            data: 'total_lembar',
+                        },
+                        {
+                            data: 'id_roll',
+                        },
+                        {
+                            data: 'id_item',
+                        },
+                        {
+                            data: 'detail_item',
+                        },
+                        {
+                            data: 'group_roll',
+                        },
+                        {
+                            data: 'lot',
+                        },
+                        {
+                            data: 'roll',
+                        },
+                        {
+                            data: 'qty',
+                        },
+                        {
+                            data: 'total_pemakaian_roll',
+                        },
+                        {
+                            data: 'piping',
+                        },
+                        {
+                            data: 'short_roll',
+                        },
+                        {
+                            data: 'remark',
+                        },
+                        {
+                            data: 'unit',
+                        }
+                    ],
+                    columnDefs: [
+                        {
+                            targets: [0 ,1 ,2 ,3 ,4 ,5 , 6, 7, 8, 9, 10],
+                            className: "text-nowrap align-middle"
+                        },
+                        {
+                            targets: "_all",
+                            className: "text-nowrap colorize"
+                        }
+                    ],
+                    rowsGroup: [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7,
+                        8,
+                        9,
+                        10
+                    ],
+                    // rowCallback: function( row, data, index ) {
+                    //     if (data['line'] != '-') {
+                    //         $('td.colorize', row).css('color', '#2e8a57');
+                    //         $('td.colorize', row).css('font-weight', '600');
+                    //     } else if (!data['dc_in_id'] && data['troli'] == '-') {
+                    //         $('td.colorize', row).css('color', '#da4f4a');
+                    //         $('td.colorize', row).css('font-weight', '600');
+                    //     }
+                    // }
+                });
+
+                $('#datatable-cutting thead tr').clone(true).appendTo('#datatable-cutting thead');
+                $('#datatable-cutting thead tr:eq(1) th').each(function(i) {
+                    var title = $(this).text();
+                    $(this).html('<input type="text" class="form-control form-control-sm"/>');
+
+                    $('input', this).on('keyup change', function() {
+                        if (datatableCutting.column(i).search() !== this.value) {
+                            datatableCutting
+                                .column(i)
+                                .search(this.value)
+                                .draw();
+                        }
+                    });
+                });
+
+                $('#cutting-month-filter').on('change', () => {
+                    $('#datatable-cutting').DataTable().ajax.reload();
+                });
+                $('#cutting-year-filter').on('change', () => {
+                    $('#datatable-cutting').DataTable().ajax.reload();
+                });
+
+                // Cutting Qty
+                $('#cuttingqty-month-filter').val((today.getMonth() + 1)).trigger("change");
+                $('#cuttingqty-year-filter').val(todayYear).trigger("change");
+                await getCuttingQty();
+
+                $('#cuttingqty-month-filter').on('change', () => {
+                    getCuttingQty();
+                });
+                $('#cuttingqty-year-filter').on('change', () => {
+                    getCuttingQty();
+                });
+            });
+
+            function getCuttingQty() {
+                document.getElementById("cutting-qty-data").classList.add("d-none");
+                document.getElementById("loading-cutting-qty").classList.remove("d-none");
+
+                return $.ajax({
+                    url: '{{ route('cutting-qty') }}',
+                    type: 'get',
+                    data: {
+                        month : $('#cuttingqty-month-filter').val(),
+                        year : $('#cuttingqty-year-filter').val()
+                    },
+                    dataType: 'json',
+                    success: function(res) {
+                        if (res && res[0]) {
+                            let pendingQty = res[0].pending ? res[0].pending : 0;
+                            let pendingTotal = res[0].pending_total ? res[0].pending_total : 0;
+                            let planQty = res[0].plan ? res[0].plan : 0;
+                            let planTotal = res[0].plan_total ? res[0].plan_total : 0;
+                            let progressQty = res[0].progress ? res[0].progress : 0;
+                            let progressTotal = res[0].progress_total ? res[0].progress_total : 0;
+                            let finishedQty = res[0].finished ? res[0].finished : 0;
+                            let finishedTotal = res[0].finished_total ? res[0].finished_total : 0;
+
+                            console.log(pendingQty, pendingTotal, planQty, planTotal, progressQty, progressTotal, finishedQty, finishedTotal)
+
+                            document.getElementById("pending-qty").innerText = pendingQty.toLocaleString('ID-id');
+                            document.getElementById("pending-total").innerText = pendingTotal.toLocaleString('ID-id');
+                            document.getElementById("plan-qty").innerText = planQty.toLocaleString('ID-id');
+                            document.getElementById("plan-total").innerText = planTotal.toLocaleString('ID-id');
+                            document.getElementById("progress-qty").innerText = progressQty.toLocaleString('ID-id');
+                            document.getElementById("progress-total").innerText = progressTotal.toLocaleString('ID-id');
+                            document.getElementById("finished-qty").innerText = finishedQty.toLocaleString('ID-id');
+                            document.getElementById("finished-total").innerText = finishedTotal.toLocaleString('ID-id');
+                        }
+
+                        document.getElementById("cutting-qty-data").classList.remove("d-none");
+                        document.getElementById("loading-cutting-qty").classList.add("d-none");
+                    },
+                    error: function(jqXHR) {
+                        console.log(jqXHR);
+
+                        document.getElementById("cutting-qty-data").classList.remove("d-none");
+                        document.getElementById("loading-cutting-qty").classList.add("d-none");
+                    }
+                });
+            }
+        </script>
+    @endif
 
     @if ($page == 'dashboard-dc')
         <script>
