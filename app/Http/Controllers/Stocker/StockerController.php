@@ -254,18 +254,36 @@ class StockerController extends Controller
                 marker_input_detail.ratio,
                 MAX(form_cut_input.no_form) no_form,
                 form_cut_input.no_cut,
-                MAX(stocker_numbering.id) numbering_id,
-                MAX(stocker_numbering.no_cut_size) no_cut_size,
-                MAX(stocker_numbering.number) range_akhir,
+                MAX(number.numbering_id) numbering_id,
+                MAX(number.no_cut_size) no_cut_size,
+                MAX(number.range_akhir) range_akhir,
                 modify_size_qty.difference_qty
             ")->
             leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->
             leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
             leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
-            leftJoin("stocker_numbering", function ($join) {
-                $join->on("stocker_numbering.form_cut_id", "=", "form_cut_input.id");
-                $join->on("stocker_numbering.so_det_id", "=", "marker_input_detail.so_det_id");
-            })->
+            leftJoin(
+                DB::raw(
+                    "(
+                        SELECT
+                            stocker_numbering.form_cut_id,
+                            stocker_numbering.so_det_id,
+                            MAX( stocker_numbering.no_cut_size ) no_cut_size,
+                            MAX( stocker_numbering.id ) numbering_id,
+                            MAX( stocker_numbering.number ) range_akhir
+                        FROM
+                            `stocker_numbering`
+                        WHERE
+                            ( stocker_numbering.cancel IS NULL OR stocker_numbering.cancel != 'Y' )
+                        GROUP BY
+                            stocker_numbering.form_cut_id,
+                            stocker_numbering.so_det_id
+                    ) number"
+                ), function ($join) {
+                    $join->on("number.form_cut_id", "=", "form_cut_input.id");
+                    $join->on("number.so_det_id", "=", "marker_input_detail.so_det_id");
+                }
+            )->
             leftJoin("modify_size_qty", function ($join) {
                 $join->on("modify_size_qty.no_form", "=", "form_cut_input.no_form");
                 $join->on("modify_size_qty.so_det_id", "=", "marker_input_detail.so_det_id");
@@ -276,7 +294,6 @@ class StockerController extends Controller
             where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
             where("part_form.part_id", $dataSpreading->part_id)->
             // where("marker_input_detail.ratio", ">", "0")->
-            whereRaw("(stocker_numbering.cancel IS NULL OR stocker_numbering.cancel != 'Y')")->
             groupBy("form_cut_input.no_form", "no_cut", "marker_input_detail.so_det_id")->
             orderBy("form_cut_input.no_cut", "desc")->
             orderBy("form_cut_input.no_form", "desc")->
@@ -349,6 +366,7 @@ class StockerController extends Controller
                 color = '" . $request['color'] . "' AND
                 panel = '" . $request['panel'] . "' AND
                 shade = '" . $request['group'][$index] . "' AND
+                " . ( $request['ratio'][$index] < 1 ? '' : 'qty_ply = '. $request['qty_ply_group'][$index]. ' AND ' ) . "
                 " . ($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "") . "
                 ratio = " . ($i + 1) . "
             ")->first();
@@ -444,8 +462,6 @@ class StockerController extends Controller
 
     public function printStockerAllSize(Request $request, $partDetailId = 0)
     {
-        // dd($request);
-
         $formData = FormCutInput::where("id", $request['form_cut_id'])->first();
 
         $storeItemArr = [];
@@ -474,6 +490,7 @@ class StockerController extends Controller
                         color = '" . $request['color'] . "' AND
                         panel = '" . $request['panel'] . "' AND
                         shade = '" . $request['group'][$i] . "' AND
+                        " .( $request['ratio'][$index] < 1 ? '' : 'qty_ply = '. $request['qty_ply_group'][$index]. ' AND ' ) . "
                         " . ($request['group_stocker'][$i] && $request['group_stocker'][$i] != "" ? "group_stocker = '" . $request['group_stocker'][$i] . "' AND" : "") . "
                         ratio = " . ($j + 1) . "
                     ")->first();
@@ -600,7 +617,8 @@ class StockerController extends Controller
                     color = '" . $request['color'] . "' AND
                     panel = '" . $request['panel'] . "' AND
                     shade = '" . $request['group'][$index] . "' AND
-                    " . ($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "") . "
+                    " . ( $request['ratio'][$index] < 1 ? '' : 'qty_ply = '. $request['qty_ply_group'][$index]. ' AND ' ) . "
+                    " . ( $request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "" ) . "
                     ratio = " . ($j + 1) . "
                 ")->first();
 
@@ -649,7 +667,7 @@ class StockerController extends Controller
                 COALESCE(master_sb_ws.size, marker_input_detail.size) size,
                 stocker_input.range_awal,
                 stocker_input.range_akhir,
-                stocker_input.id_qr_stocker,
+                MAX(stocker_input.id_qr_stocker) id_qr_stocker,
                 marker_input.act_costing_ws,
                 marker_input.buyer,
                 marker_input.style,
@@ -674,7 +692,7 @@ class StockerController extends Controller
             where("form_cut_input.status", "SELESAI PENGERJAAN")->
             whereIn("part_detail.id", $request['generate_stocker'])->
             where("form_cut_input.id", $request['form_cut_id'])->
-            groupBy("form_cut_input.id", "stocker_input.id")->
+            groupBy("form_cut_input.id", "stocker_input.size", "stocker_input.shade", "stocker_input.ratio")->
             orderBy("stocker_input.group_stocker", "desc")->
             orderBy("stocker_input.shade", "desc")->
             orderBy("stocker_input.so_det_id", "asc")->
