@@ -11,6 +11,8 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ExportPPIC_Master_so_sb;
 use App\Exports\ExportPPIC_Master_so_ppic;
 use App\Imports\ImportPPIC_SO;
+use \avadim\FastExcelLaravel\Excel as FastExcel;
+use PhpOffice\PhpSpreadsheet\Style\Style;
 
 class PPIC_MasterSOController extends Controller
 {
@@ -334,7 +336,78 @@ m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is 
 
     public function export_excel_master_sb_so(Request $request)
     {
-        return Excel::download(new exportPPIC_Master_so_sb, 'Laporan_Master_SB_SO.xlsx');
+        ini_set("max_execution_time", 3600000);
+        ini_set('memory_limit', '5120000M');
+
+        $data = DB::select("
+        select *,date_format(tgl_kirim, '%Y-%m-%d') tgl_kirim_fix
+        from master_sb_ws
+        where tgl_kirim >= '2023-01-01'
+        ");
+
+        $excel = FastExcel::create('data');
+        $sheet = $excel->getSheet();
+
+        $area = $sheet->beginArea();
+
+        $sheet->writeTo('A1', 'Laporan Master SO SB', ['font-size' => 16]);
+        $sheet->mergeCells('A1:S1');
+
+        $sheet->writeTo('A2', 'No', ['background-color' => '#D6EEEE'])->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('B2', 'ID SO Det', ['background-color' => '#D6EEEE'])->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('C2', 'WS', ['background-color' => '#FFFF00'])->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('D2', 'No. Costing', ['background-color' => '#FFFF00'])->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('E2', 'Tgl. Kirim', ['background-color' => '#FFFF00'])->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('F2', 'Product Group', ['background-color' => '#FFFF00'])->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('G2', 'Product Item', ['background-color' => '#FFFF00'])->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('H2', 'Style', ['background-color' => '#FFFF00'])->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('I2', 'Main Dest', ['background-color' => '#FFFF00'])->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('J2', 'Dest', ['background-color' => '#FFFF00'])->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('K2', 'Brand', ['background-color' => '#FFFF00'])->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('L2', 'No. SO', ['background-color' => '#FFFF00'])->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('M2', 'Buyer', ['background-color' => '#FFFF00'])->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('N2', 'Color', ['background-color' => '#FFFF00'])->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('O2', 'Size', ['background-color' => '#FFFF00'])->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('P2', 'Qty SO', ['background-color' => '#FFFF00'])->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('Q2', 'Price', ['background-color' => '#FFFF00'])->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('R2', 'Reff No', ['background-color' => '#FFFF00'])->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('S2', 'Style No Prod', ['background-color' => '#FFFF00'])->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+        $sheet->writeAreas();
+
+        $no = 1;
+        foreach ($data as $d) {
+            $dArr = [
+                $no++,
+                $d->id_so_det ? $d->id_so_det : '-',
+                $d->ws ? $d->ws : '-',
+                $d->cost_no ? $d->cost_no : '-',
+                $d->tgl_kirim_fix ? $d->tgl_kirim_fix : '-',
+                $d->product_group ? $d->product_group : '-',
+                $d->product_item ? $d->product_item : '-',
+                $d->styleno ? $d->styleno : '-',
+                $d->main_dest ? $d->main_dest : '-',
+                $d->dest ? $d->dest : '-',
+                $d->brand ? $d->brand : '-',
+                $d->so_no ? $d->so_no : '-',
+                $d->buyer ? $d->buyer : '-',
+                $d->color ? $d->color : '-',
+                $d->size ? $d->size : '-',
+                $d->qty ? $d->qty : '-',
+                $d->price ? $d->price : '-',
+                $d->reff_no ? $d->reff_no : '-',
+                $d->styleno_prod ? $d->styleno_prod : '-'
+            ];
+
+            $sheet->writeRow($dArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        }
+
+        $filename=date('Y-m-d').' PPIC Master SO.xlsx';
+
+        ob_end_clean();
+        $excel->download($filename);
+
+        // return Excel::download(new exportPPIC_Master_so_sb, 'Laporan_Master_SB_SO.xlsx');
     }
 
     public function export_excel_master_so_ppic(Request $request)
