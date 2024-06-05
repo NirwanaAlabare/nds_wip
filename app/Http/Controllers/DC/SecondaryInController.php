@@ -66,11 +66,12 @@ class SecondaryInController extends Controller
                 a.qty_in,
                 a.created_at,
                 f.no_cut,
-                s.size,
+                COALESCE(msb.size, s.size) size,
                 a.user,
                 mp.nama_part
                 from secondary_in_input a
                 inner join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+                left join master_sb_ws msb on msb.id_so_det = s.so_det_id
                 left join form_cut_input f on f.id = s.form_cut_id
                 inner join part_detail pd on s.part_detail_id = pd.id
                 inner join part p on pd.part_id = p.id
@@ -141,7 +142,7 @@ class SecondaryInController extends Controller
         no_cut,
         style,
         s.color,
-        s.size,
+        COALESCE(msb.size, s.size) size,
         dc.tujuan,
         dc.lokasi,
         mp.nama_part,
@@ -161,6 +162,7 @@ class SecondaryInController extends Controller
         where dc.tujuan = 'SECONDARY LUAR'	and	if(sii.id_qr_stocker is null ,dc.id_qr_stocker,'x') != 'x'
         ) md
         inner join stocker_input s on md.id_qr_stocker = s.id_qr_stocker
+        left join master_sb_ws msb on msb.id_so_det = s.so_det_id
         inner join form_cut_input a on s.form_cut_id = a.id
         inner join part_detail p on s.part_detail_id = p.id
         inner join master_part mp on p.master_part_id = mp.id

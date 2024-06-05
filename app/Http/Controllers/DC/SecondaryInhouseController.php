@@ -52,7 +52,6 @@ class SecondaryInhouseController extends Controller
                 s.color,
                 p.buyer,
                 p.style,
-                s.size,
                 a.qty_awal,
                 a.qty_reject,
                 a.qty_replace,
@@ -62,11 +61,12 @@ class SecondaryInhouseController extends Controller
                 dc.lokasi,
                 dc.tempat,
                 f.no_cut,
-                s.size,
+                COALESCE(msb.size, s.size) size,
                 a.user,
                 mp.nama_part
                 from secondary_inhouse_input a
                 inner join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+                left join master_sb_ws msb on msb.id_so_det = s.so_det_id
                 left join form_cut_input f on f.id = s.form_cut_id
                 inner join part_detail pd on s.part_detail_id = pd.id
                 inner join part p on pd.part_id = p.id
@@ -138,7 +138,7 @@ class SecondaryInhouseController extends Controller
         no_cut,
         style,
         s.color,
-        s.size,
+        COALESCE(msb.size, s.size) size,
         mp.nama_part,
         dc.tujuan,
         dc.lokasi,
@@ -146,6 +146,7 @@ class SecondaryInhouseController extends Controller
         ifnull(si.id_qr_stocker,'x')
         from dc_in_input dc
         inner join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
+        left join master_sb_ws msb on msb.id_so_det = s.so_det_id
         inner join form_cut_input a on s.form_cut_id = a.id
         inner join part_detail p on s.part_detail_id = p.id
         inner join master_part mp on p.master_part_id = mp.id

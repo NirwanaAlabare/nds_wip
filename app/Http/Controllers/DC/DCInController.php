@@ -63,12 +63,12 @@ class DCInController extends Controller
                     a.created_at,
                     a.user,
                     f.no_cut,
-                    msb.size,
+                    COALESCE(msb.size, s.size) size,
                     mp.nama_part
                 from
                     dc_in_input a
                     inner join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
-                    inner join master_sb_ws msb on msb.so_det_id = s.so_det_id
+                    left join master_sb_ws msb on msb.id_so_det = s.so_det_id
                     inner join form_cut_input f on f.id = s.form_cut_id
                     inner join part_detail pd on s.part_detail_id = pd.id
                     inner join part p on pd.part_id = p.id
@@ -92,7 +92,7 @@ class DCInController extends Controller
                 m.buyer,
                 m.style styleno,
                 a.color,
-                a.size,
+                COALESCE(msb.size, s.size) size,
                 a.panel,
                 f.no_cut,
                 f.id,
@@ -106,7 +106,7 @@ class DCInController extends Controller
                 a.tempat
             FROM
                 `stocker_input` a
-                inner join master_sb_ws msb on msb.so_det_id = a.so_det_id
+                left join master_sb_ws msb on msb.id_so_det = a.so_det_id
                 inner join form_cut_input f on a.form_cut_id = f.id
                 INNER JOIN marker_input m ON m.kode = f.id_marker
                 inner join part_detail pd on a.part_detail_id = pd.id
@@ -239,7 +239,7 @@ class DCInController extends Controller
                 tmp_dc_in_input_new x
                 INNER JOIN stocker_input y ON x.id_qr_stocker = y.id_qr_stocker
                 LEFT JOIN stocker_input ms ON ms.form_cut_id = y.form_cut_id AND ms.so_det_id = y.so_det_id AND ms.group_stocker = y.group_stocker AND ms.ratio = y.ratio
-                LEFT JOIN master_sb_ws msb ON msb.so_det_id = ms.so_det_id
+                LEFT JOIN master_sb_ws msb ON msb.id_so_det = ms.so_det_id
                 LEFT JOIN tmp_dc_in_input_new tmp ON tmp.id_qr_stocker = ms.id_qr_stocker
                 INNER JOIN part_detail pd ON ms.part_detail_id = pd.id
                 INNER JOIN master_part mp ON pd.master_part_id = mp.id
