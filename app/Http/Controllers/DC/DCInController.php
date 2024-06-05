@@ -63,7 +63,7 @@ class DCInController extends Controller
                     a.created_at,
                     a.user,
                     f.no_cut,
-                    COALESCE(msb.size, a.size) size,
+                    COALESCE(msb.size, s.size) size,
                     mp.nama_part
                 from
                     dc_in_input a
