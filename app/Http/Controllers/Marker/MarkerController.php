@@ -362,7 +362,8 @@ class MarkerController extends Controller
         DATE_FORMAT(waktu_selesai, '%d-%m-%Y %T') waktu_selesai,
         a.status,
         a.tipe_form_cut,
-        COALESCE(a.no_cut, '-') no_cut
+        COALESCE(a.no_cut, '-') no_cut,
+        COALESCE(a.total_lembar, 0) total_lembar
         from form_cut_input a
         inner join marker_input b on  a.id_marker = b.kode
         left join users u on a.no_meja = u.id
@@ -412,7 +413,6 @@ class MarkerController extends Controller
                         $textColor = '#087521';
                         break;
                 }
-                // dd($track->status);
 
                 $html_tracking .= "
                     <tr style='".($bgColor ? "background-color:".$bgColor.";border:0.15px solid #d0d0d0;" : "")." ".($textColor ? "color:".$textColor.";" : "")."'>
@@ -422,6 +422,7 @@ class MarkerController extends Controller
                         <td class='text-nowrap' style='font-weight: 600;'>" . ($track->waktu_mulai ? $track->waktu_mulai : '-') . "</td>
                         <td class='text-nowrap' style='font-weight: 600;'>" . ($track->waktu_selesai ? $track->waktu_selesai : '-') . "</td>
                         <td class='text-nowrap' style='font-weight: 600;'>$track->status</td>
+                        <td class='text-nowrap' style='font-weight: 600;'>$track->total_lembar</td>
                         <td class='text-nowrap' style='font-weight: 600;'>$track->no_cut</td>
                     </tr>
                 ";
@@ -605,6 +606,7 @@ class MarkerController extends Controller
                                             <th>Waktu Mulai</th>
                                             <th>Waktu Selesai</th>
                                             <th>Status</th>
+                                            <th>Total Lembar</th>
                                             <th>No. Cut</th>
                                         </tr>
                                     </thead>
