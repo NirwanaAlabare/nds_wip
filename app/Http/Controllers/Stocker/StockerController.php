@@ -223,7 +223,8 @@ class StockerController extends Controller
                 MAX(stocker_input.shade) shade,
                 MAX(stocker_input.group_stocker) group_stocker,
                 MAX(stocker_input.qty_ply) qty_ply,
-                MAX(CAST(stocker_input.range_akhir as UNSIGNED)) range_akhir
+                MAX(CAST(stocker_input.range_akhir as UNSIGNED)) range_akhir,
+                modify_size_qty.difference_qty
             ")->
             leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->
             leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
@@ -232,13 +233,17 @@ class StockerController extends Controller
                 $join->on("stocker_input.form_cut_id", "=", "form_cut_input.id");
                 $join->on("stocker_input.so_det_id", "=", "marker_input_detail.so_det_id");
             })->
+            leftJoin("modify_size_qty", function ($join) {
+                $join->on("modify_size_qty.no_form", "=", "form_cut_input.no_form");
+                $join->on("modify_size_qty.so_det_id", "=", "marker_input_detail.so_det_id");
+            })->
             where("marker_input.act_costing_ws", $dataSpreading->ws)->
             where("marker_input.color", $dataSpreading->color)->
             where("marker_input.panel", $dataSpreading->panel)->
             where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
             where("part_form.part_id", $dataSpreading->part_id)->
             // where("marker_input_detail.ratio", ">", "0")->
-            groupBy("no_form", "form_cut_input.no_cut", "marker_input_detail.so_det_id")->
+            groupBy("form_cut_input.no_form", "form_cut_input.no_cut", "marker_input_detail.so_det_id")->
             orderBy("form_cut_input.no_cut", "desc")->
             orderBy("form_cut_input.no_form", "desc")->
             get();
@@ -251,7 +256,8 @@ class StockerController extends Controller
                 form_cut_input.no_cut,
                 MAX(stocker_numbering.id) numbering_id,
                 MAX(stocker_numbering.no_cut_size) no_cut_size,
-                MAX(stocker_numbering.number) range_akhir
+                MAX(stocker_numbering.number) range_akhir,
+                modify_size_qty.difference_qty
             ")->
             leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->
             leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
@@ -260,6 +266,10 @@ class StockerController extends Controller
                 $join->on("stocker_numbering.form_cut_id", "=", "form_cut_input.id");
                 $join->on("stocker_numbering.so_det_id", "=", "marker_input_detail.so_det_id");
             })->
+            leftJoin("modify_size_qty", function ($join) {
+                $join->on("modify_size_qty.no_form", "=", "form_cut_input.no_form");
+                $join->on("modify_size_qty.so_det_id", "=", "marker_input_detail.so_det_id");
+            })->
             where("marker_input.act_costing_ws", $dataSpreading->ws)->
             where("marker_input.color", $dataSpreading->color)->
             where("marker_input.panel", $dataSpreading->panel)->
@@ -267,7 +277,7 @@ class StockerController extends Controller
             where("part_form.part_id", $dataSpreading->part_id)->
             // where("marker_input_detail.ratio", ">", "0")->
             whereRaw("(stocker_numbering.cancel IS NULL OR stocker_numbering.cancel != 'Y')")->
-            groupBy("no_form", "no_cut", "marker_input_detail.so_det_id")->
+            groupBy("form_cut_input.no_form", "no_cut", "marker_input_detail.so_det_id")->
             orderBy("form_cut_input.no_cut", "desc")->
             orderBy("form_cut_input.no_form", "desc")->
             get();
@@ -434,12 +444,13 @@ class StockerController extends Controller
 
     public function printStockerAllSize(Request $request, $partDetailId = 0)
     {
+        // dd($request);
+
         $formData = FormCutInput::where("id", $request['form_cut_id'])->first();
 
         $storeItemArr = [];
         for ($i = 0; $i < count($request['part_detail_id']); $i++) {
             if ($request['part_detail_id'][$i] == $partDetailId) {
-
                 $modifySizeQty = ModifySizeQty::where("no_form", $formData->no_form)->where("so_det_id", $request['so_det_id'][$i])->first();
 
                 $stockerCount = Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first() ? str_replace("STK-", "", Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first()->id_qr_stocker) + 1 : 1;
@@ -451,11 +462,11 @@ class StockerController extends Controller
                 $cumRangeAkhir = $rangeAwal - 1;
 
                 $ratio = $request['ratio'][$i];
-                if ($ratio == 0 && $modifySizeQty) {
+                if ($ratio < 1 && $modifySizeQty) {
                     $ratio += 1;
                 }
 
-                for ($j = 0; $j < $request['ratio'][$i]; $j++) {
+                for ($j = 0; $j < $ratio; $j++) {
                     $checkStocker = Stocker::select("id_qr_stocker", "range_awal", "range_akhir")->whereRaw("
                         part_detail_id = '" . $request['part_detail_id'][$i] . "' AND
                         form_cut_id = '" . $request['form_cut_id'] . "' AND
@@ -568,15 +579,20 @@ class StockerController extends Controller
         $i = 0;
         $storeItemArr = [];
         foreach ($partDetailKeys as $index) {
+            $modifySizeQty = ModifySizeQty::where("no_form", $formData->no_form)->where("so_det_id", $request['so_det_id'][$index])->first();
+
             $rangeAwal = $request['range_awal'][$index];
             $rangeAkhir = $request['range_akhir'][$index];
 
             $cumRangeAwal = $rangeAwal;
             $cumRangeAkhir = $rangeAwal - 1;
 
-            for ($j = 0; $j < $request['ratio'][$index]; $j++) {
-                $modifySizeQty = ModifySizeQty::where("no_form", $formData->no_form)->where("so_det_id", $request['so_det_id'][$index])->first();
+            $ratio = $request['ratio'][$index];
+            if ($ratio < 1 && $modifySizeQty) {
+                $ratio += 1;
+            }
 
+            for ($j = 0; $j < $ratio; $j++) {
                 $checkStocker = Stocker::select("id_qr_stocker", "range_awal", "range_akhir")->whereRaw("
                     part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
                     form_cut_id = '" . $request['form_cut_id'] . "' AND
@@ -591,11 +607,6 @@ class StockerController extends Controller
                 $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j + $i + 1);
                 $cumRangeAwal = $cumRangeAkhir + 1;
                 $cumRangeAkhir = $cumRangeAkhir + ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]);
-
-                $ratio = $request['ratio'][$index];
-                if ($ratio < 1 && $modifySizeQty) {
-                    $ratio += 1;
-                }
 
                 if (!$checkStocker) {
                     if ($request['qty_cut'][$index] > 0 || $modifySizeQty) {
