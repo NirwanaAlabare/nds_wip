@@ -113,11 +113,27 @@
                         <div class="row">
                             <div class="col-6">
                                 <div class="form-group">
+                                    <label for="recipient-name" class="col-form-label">Tgl Shipment Sebelumnya :</label>
+                                    <input type='text' class='form-control form-control-sm' id='txted_tgl_shipment'
+                                        name='txted_tgl_shipment' autocomplete="off" readonly>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label for="recipient-name" class="col-form-label">Tgl Shipment Edit:</label>
+                                    <input type='date' class='form-control form-control-sm' id='txted_tgl_shipment_skrg'
+                                        name='txted_tgl_shipment_skrg' autocomplete="off">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="form-group">
                                     <label for="recipient-name" class="col-form-label">Qty PO Sebelumnya :</label>
                                     <input type='text' class='form-control form-control-sm' id='txted_qty_po'
                                         name='txted_qty_po' autocomplete="off" readonly>
-                                    <input type='hidden' class='form-control form-control-sm' id='txtid_c' name='txtid_c'
-                                        autocomplete="off" readonly>
+                                    <input type='hidden' class='form-control form-control-sm' id='txtid_c'
+                                        name='txtid_c' autocomplete="off" readonly>
                                 </div>
                             </div>
                             <div class="col-6">
@@ -668,6 +684,9 @@
                 dataType: 'json',
                 success: async function(response) {
                     document.getElementById('txted_qty_po').value = response.qty_po;
+                    document.getElementById('txted_qty_po_skrg').value = response.qty_po;
+                    document.getElementById('txted_tgl_shipment').value = response.tgl_shipment_fix;
+                    document.getElementById('txted_tgl_shipment_skrg').value = response.tgl_shipment;
                     document.getElementById('txtid_c').value = id_c;
                 },
                 error: function(request, status, error) {

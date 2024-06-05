@@ -279,6 +279,7 @@ m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is 
         m.buyer,
         concat((DATE_FORMAT(a.tgl_shipment,  '%d')), '-', left(DATE_FORMAT(a.tgl_shipment,  '%M'),3),'-',DATE_FORMAT(a.tgl_shipment,  '%Y')
         ) tgl_shipment_fix,
+        a.tgl_shipment,
         a.barcode,
         m.reff_no,
         a.po,
@@ -313,10 +314,15 @@ m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is 
     {
         $timestamp = Carbon::now();
         $user = Auth::user()->name;
+        $tgl_shipment = date('Y-m-d', strtotime($request->txted_tgl_shipment));
+        // dd($tgl_shipment);
         DB::update(
             "update ppic_master_so
-            set qty_po = '" . $request->txted_qty_po_skrg . "',
+            set
+            qty_po = '" . $request->txted_qty_po_skrg . "',
             old_qty_po = '" . $request->txted_qty_po . "',
+            tgl_shipment = '" . $request->txted_tgl_shipment_skrg . "',
+            old_tgl_shipment = '" . $tgl_shipment . "',
             tgl_update = '$timestamp',
             user_update = '$user'
             where id = '" . $request->txtid_c . "'

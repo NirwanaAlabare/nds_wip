@@ -63,7 +63,7 @@ class DCInController extends Controller
                     a.created_at,
                     a.user,
                     f.no_cut,
-                    COALESCE(msb.size, s.size) size,
+                    COALESCE(msb.size, a.size) size,
                     mp.nama_part
                 from
                     dc_in_input a
@@ -92,7 +92,7 @@ class DCInController extends Controller
                 m.buyer,
                 m.style styleno,
                 a.color,
-                COALESCE(msb.size, s.size) size,
+                COALESCE(msb.size, a.size) size,
                 a.panel,
                 f.no_cut,
                 f.id,
