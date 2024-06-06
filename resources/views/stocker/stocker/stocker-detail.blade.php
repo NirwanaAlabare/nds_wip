@@ -335,68 +335,72 @@
                                             }
                                         }
 
-                                        $numberingThis = $dataNumbering ? $dataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->first() : null;
-                                        $numberingBefore = $dataNumbering ? $dataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->sortByDesc('no_cut')->first() : null;
-                                        $rangeAwal = ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? $numberingBefore->range_akhir + 1 : "-") : 1) : 1);
-                                        $rangeAkhir = ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? $numberingBefore->range_akhir + $qty : "-") : $qty) : $qty);
-                                        $numGeneratable = true;
-                                    @endphp
-                                    <tr>
-                                        <input type="hidden" name="ratio[{{ $index }}]" id="ratio_{{ $index }}" value="{{ $ratio->ratio }}">
-                                        <input type="hidden" name="so_det_id[{{ $index }}]" id="so_det_id_{{ $index }}" value="{{ $ratio->so_det_id }}">
-                                        <input type="hidden" name="size[{{ $index }}]" id="size_{{ $index }}" value="{{ $ratio->size }}">
-                                        <input type="hidden" name="qty_cut[{{ $index }}]" id="qty_cut_{{ $index }}" value="{{ $qty }}">
-                                        <input type="hidden" name="range_awal[{{ $index }}]" id="range_awal_{{ $index }}" value="{{ $rangeAwal }}">
-                                        <input type="hidden" name="range_akhir[{{ $index }}]" id="range_akhir_{{ $index }}" value="{{ $rangeAkhir }}">
+                                        if ($qty > 0) :
+                                            $numberingThis = $dataNumbering ? $dataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->filter(function ($item) { return $item->ratio > 0 || $item->difference_qty > 0; })->first() : null;
+                                            $numberingBefore = $dataNumbering ? $dataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->sortByDesc('no_cut')->filter(function ($item) { return $item->ratio > 0 || $item->difference_qty > 0; })->first() : null;
 
-                                        <td>{{ $ratio->size}}</td>
-                                        <td>{{ $ratio->ratio }}</td>
-                                        <td>{{ (intval($ratio->ratio) * intval($dataSpreading->total_lembar)) != $qty ? $qty." (".(intval($ratio->ratio) * intval($dataSpreading->total_lembar))."".(($qty - (intval($ratio->ratio) * intval($dataSpreading->total_lembar))) > 0 ? "+".($qty - (intval($ratio->ratio) * intval($dataSpreading->total_lembar))) : ($qty - (intval($ratio->ratio) * intval($dataSpreading->total_lembar)))).")" : $qty }}</td>
-                                        <td>{{ $rangeAwal }}</td>
-                                        <td>{{ $rangeAkhir }}</td>
-                                        <td>
-                                            @if ($dataSpreading->no_cut > 1)
-                                                @if ($numberingBefore)
-                                                    @if ($numberingBefore->numbering_id != null)
+                                            $rangeAwal = ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? $numberingBefore->range_akhir + 1 : "-") : 1) : 1);
+                                            $rangeAkhir = ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? $numberingBefore->range_akhir + $qty : "-") : $qty) : $qty);
+
+                                            $numGeneratable = true;
+                                    @endphp
+                                            <tr>
+                                                <input type="hidden" name="ratio[{{ $index }}]" id="ratio_{{ $index }}" value="{{ $ratio->ratio }}">
+                                                <input type="hidden" name="so_det_id[{{ $index }}]" id="so_det_id_{{ $index }}" value="{{ $ratio->so_det_id }}">
+                                                <input type="hidden" name="size[{{ $index }}]" id="size_{{ $index }}" value="{{ $ratio->size }}">
+                                                <input type="hidden" name="qty_cut[{{ $index }}]" id="qty_cut_{{ $index }}" value="{{ $qty }}">
+                                                <input type="hidden" name="range_awal[{{ $index }}]" id="range_awal_{{ $index }}" value="{{ $rangeAwal }}">
+                                                <input type="hidden" name="range_akhir[{{ $index }}]" id="range_akhir_{{ $index }}" value="{{ $rangeAkhir }}">
+
+                                                <td>{{ $ratio->size}}</td>
+                                                <td>{{ $ratio->ratio }}</td>
+                                                <td>{{ (intval($ratio->ratio) * intval($dataSpreading->total_lembar)) != $qty ? $qty." (".(intval($ratio->ratio) * intval($dataSpreading->total_lembar))."".(($qty - (intval($ratio->ratio) * intval($dataSpreading->total_lembar))) > 0 ? "+".($qty - (intval($ratio->ratio) * intval($dataSpreading->total_lembar))) : ($qty - (intval($ratio->ratio) * intval($dataSpreading->total_lembar)))).")" : $qty }}</td>
+                                                <td>{{ $rangeAwal }}</td>
+                                                <td>{{ $rangeAkhir }}</td>
+                                                <td>
+                                                    @if ($dataSpreading->no_cut > 1)
+                                                        @if ($numberingBefore)
+                                                            @if ($numberingBefore->numbering_id != null)
+                                                                @if ($numberingThis && $numberingThis->numbering_id != null)
+                                                                    <i class="fa fa-check"></i>
+                                                                @else
+                                                                    <i class="fa fa-times"></i>
+                                                                @endif
+                                                            @else
+                                                                @php $numGeneratable = false; @endphp
+                                                                <i class="fa fa-minus"></i>
+                                                            @endif
+                                                        @else
+                                                            @if ($numberingThis && $numberingThis->numbering_id != null)
+                                                                <i class="fa fa-check"></i>
+                                                            @else
+                                                                <i class="fa fa-times"></i>
+                                                            @endif
+                                                        @endif
+                                                    @else
                                                         @if ($numberingThis && $numberingThis->numbering_id != null)
                                                             <i class="fa fa-check"></i>
                                                         @else
                                                             <i class="fa fa-times"></i>
                                                         @endif
-                                                    @else
-                                                        @php $numGeneratable = false; @endphp
-                                                        <i class="fa fa-minus"></i>
                                                     @endif
-                                                @else
-                                                    @if ($numberingThis && $numberingThis->numbering_id != null)
-                                                        <i class="fa fa-check"></i>
-                                                    @else
-                                                        <i class="fa fa-times"></i>
-                                                    @endif
-                                                @endif
-                                            @else
-                                                @if ($numberingThis && $numberingThis->numbering_id != null)
-                                                    <i class="fa fa-check"></i>
-                                                @else
-                                                    <i class="fa fa-times"></i>
-                                                @endif
-                                            @endif
-                                        <td>
-                                            <div class="d-flex gap-3">
-                                                <button type="button" class="btn btn-sm btn-danger" onclick="printNumbering({{ $index }});" {{ $numGeneratable ? '' : 'disabled' }}>
-                                                    <i class="fa fa-print fa-s"></i>
-                                                </button>
-                                                <div class="form-check mt-1 mb-0">
-                                                    <input class="form-check-input generate-num-check" type="checkbox" name="generate_num[{{ $index }}]" id="generate_num_{{ $index }}" value="{{ $ratio->so_det_id }}" {{ $numGeneratable ? '' : 'disabled' }}>
-                                                    <label class="form-check-label" for="flexCheckDefault">
-                                                        Generate Numbering
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                                <td>
+                                                    <div class="d-flex gap-3">
+                                                        <button type="button" class="btn btn-sm btn-danger" onclick="printNumbering({{ $index }});" {{ $numGeneratable ? '' : 'disabled' }}>
+                                                            <i class="fa fa-print fa-s"></i>
+                                                        </button>
+                                                        <div class="form-check mt-1 mb-0">
+                                                            <input class="form-check-input generate-num-check" type="checkbox" name="generate_num[{{ $index }}]" id="generate_num_{{ $index }}" value="{{ $ratio->so_det_id }}" {{ $numGeneratable ? '' : 'disabled' }}>
+                                                            <label class="form-check-label" for="flexCheckDefault">
+                                                                Generate Numbering
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
                                     @php
-                                        $index++;
+                                            $index++;
+                                        endif;
                                     @endphp
                                 @endforeach
                             </tbody>
@@ -436,8 +440,10 @@
 
                                             $numberingThis = $dataNumbering ? $dataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->first() : null;
                                             $numberingBefore = $dataNumbering ? $dataNumbering->where("so_det_id", $ratio->so_det_id)->where("no_cut", "<", $dataSpreading->no_cut)->where("color", $dataSpreading->color)->where("ratio", ">", "0")->sortByDesc('no_cut')->first() : null;
+
                                             $rangeAwal = ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? $numberingBefore->range_akhir + 1 : "-") : 1) : 1);
                                             $rangeAkhir = ($dataSpreading->no_cut > 1 ? ($numberingBefore ? ($numberingBefore->numbering_id != null ? $numberingBefore->range_akhir + $qty : "-") : $qty) : $qty);
+
                                             $numGeneratable = true;
                                         @endphp
                                         <tr>
@@ -447,7 +453,7 @@
                                                 <input class="form-control form-control-sm" type="number" name="mod_qty_cut[{{ $index }}]" id="mod_qty_cut_{{ $index }}" data-original-value="{{ $qty }}" value="{{ $qty }}" onchange="modifyQty(this, {{ $index }});">
                                             </td>
                                             <td id="mod_range_awal_view_{{ $index }}">{{ $rangeAwal }}</td>
-                                            <td id="mod_range_akhir_view_{{ $index }}">{{ $rangeAkhir }}</td>
+                                            <td id="mod_range_akhir_view_{{ $index }}">{{ ($rangeAkhir >= $rangeAwal ? $rangeAkhir : $rangeAwal) }}</td>
                                             <td>
                                                 <input class="form-control form-control-sm" type="text" name="mod_note[{{ $index }}]" id="mod_note_{{ $index }}" value="">
                                             </td>

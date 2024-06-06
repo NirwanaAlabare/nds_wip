@@ -9,21 +9,43 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+
+    <style type="text/css">
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            /* display: none; <- Crashes Chrome on hover */
+            -webkit-appearance: none;
+            margin: 0;
+            /* <-- Apparently some margin are still there even though it's hidden */
+        }
+
+        input[type=number] {
+            -moz-appearance: textfield;
+            /* Firefox */
+        }
+    </style>
 @endsection
 
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-shirt"></i> Transfer Garment</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> List Transaksi</h5>
         </div>
         <div class="card-body">
-            <div class="mb-3">
-                <a href="{{ route('create-transfer-garment') }}" class="btn btn-outline-primary position-relative">
-                    <i class="fas fa-plus"></i>
-                    Baru
-                </a>
+            <div class="d-flex align-items-end gap-3 mb-3">
+                <div class="mb-3">
+                    <a href="{{ route('create-packing-out') }}" class="btn btn-outline-primary position-relative">
+                        <i class="fas fa-barcode"></i>
+                        Baru Scan
+                    </a>
+                </div>
+                <div class="mb-3">
+                    <a href="{{ route('create-packing-out') }}" class="btn btn-outline-secondary position-relative">
+                        <i class="fas fa-plus"></i>
+                        Baru Non Scan
+                    </a>
+                </div>
             </div>
-
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Awal</b></small></label>
@@ -36,7 +58,7 @@
                         oninput="dataTableReload()" value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
-                    <a onclick="export_excel_bpb()" class="btn btn-outline-success position-relative btn-sm">
+                    <a onclick="notif()" class="btn btn-outline-success position-relative btn-sm">
                         <i class="fas fa-file-excel fa-sm"></i>
                         Export Excel
                     </a>
@@ -44,18 +66,15 @@
             </div>
 
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
-                    <thead class="table-success">
+                <table id="datatable" class="table table-bordered table-sm w-100 table-hover display nowrap">
+                    <thead class="table-primary">
                         <tr style='text-align:center; vertical-align:middle'>
-                            <th>No. Trans</th>
                             <th>Tgl. Trans</th>
-                            <th>Line</th>
+                            <th>Barcode</th>
                             <th>PO</th>
-                            <th>WS</th>
                             <th>Color</th>
                             <th>Size</th>
-                            <th>Qty</th>
-                            <th>Status</th>
+                            <th>Total</th>
                         </tr>
                     </thead>
                 </table>
@@ -70,6 +89,21 @@
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+    <script>
+        // Select2 Autofocus
+        $(document).on('select2:open', () => {
+            document.querySelector('.select2-search__field').focus();
+        });
+
+        // Initialize Select2 Elements
+        $('.select2').select2();
+
+        // Initialize Select2BS4 Elements
+        $('.select2bs4').select2({
+            theme: 'bootstrap4',
+        });
+    </script>
     <script>
         function notif() {
             alert("Maaf, Fitur belum tersedia!");
@@ -79,6 +113,7 @@
         $(document).ready(() => {
             dataTableReload();
         });
+
 
         function dataTableReload() {
             datatable.ajax.reload();
@@ -91,26 +126,20 @@
             paging: true,
             searching: true,
             ajax: {
-                url: '{{ route('transfer-garment') }}',
+                url: '{{ route('packing-out') }}',
                 data: function(d) {
                     d.dateFrom = $('#tgl-awal').val();
                     d.dateTo = $('#tgl-akhir').val();
                 },
             },
             columns: [{
-                    data: 'no_trans'
+                    data: 'tgl_trans_fix'
 
                 }, {
-                    data: 'tgl_trans_fix'
-                },
-                {
-                    data: 'line'
+                    data: 'barcode'
                 },
                 {
                     data: 'po'
-                },
-                {
-                    data: 'ws'
                 },
                 {
                     data: 'color'
@@ -119,32 +148,15 @@
                     data: 'size'
                 },
                 {
-                    data: 'qty'
-                },
-                {
-                    data: 'status'
+                    data: 'tot'
                 },
             ],
-
             columnDefs: [{
-                    "className": "align-left",
-                    "targets": "_all"
-                },
-                {
-                    targets: '_all',
-                    className: 'text-nowrap',
-                    render: (data, type, row, meta) => {
-                        if (row.status == 'Full') {
-                            color = '#087521';
-                        } else {
-                            color = 'blue';
-                        }
-                        return '<span style="font-weight: 600; color:' + color + '">' + data + '</span>';
-                    }
-                },
+                "className": "dt-center",
+                "targets": "_all"
+            }, ]
 
-            ]
 
-        });
+        }, );
     </script>
 @endsection

@@ -68,10 +68,15 @@ use App\Http\Controllers\FGStokLaporanController;
 use App\Http\Controllers\FGStokMutasiController;
 use App\Http\Controllers\KonfPemasukanController;
 use App\Http\Controllers\KonfPengeluaranController;
-use App\Http\Controllers\PackingTransferGarmentController;
 use App\Http\Controllers\PPIC_MasterSOController;
 use App\Http\Controllers\TransferBpbController;
 
+use App\Http\Controllers\PackingTransferGarmentController;
+use App\Http\Controllers\PackingPackingInController;
+use App\Http\Controllers\PackingPackingOutController;
+use App\Http\Controllers\PackingMasterKartonController;
+use App\Http\Controllers\GAPengajuanBahanBakarController;
+use App\Http\Controllers\GAApprovalBahanBakarController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -112,433 +117,435 @@ Route::middleware('auth')->group(function () {
     });
 
     // Part :
-        // Master Part
-        Route::controller(MasterPartController::class)->prefix("master-part")->middleware('stocker')->group(function () {
-            Route::get('/', 'index')->name('master-part');
-            Route::post('/store', 'store')->name('store-master-part');
-            Route::put('/update/{id?}', 'update')->name('update-master-part');
-            Route::delete('/destroy/{id?}', 'destroy')->name('destroy-master-part');
-        });
+    // Master Part
+    Route::controller(MasterPartController::class)->prefix("master-part")->middleware('stocker')->group(function () {
+        Route::get('/', 'index')->name('master-part');
+        Route::post('/store', 'store')->name('store-master-part');
+        Route::put('/update/{id?}', 'update')->name('update-master-part');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-master-part');
+    });
 
-        // Master Secondary
-        Route::controller(MasterSecondaryController::class)->prefix("master-secondary")->middleware('marker')->group(function () {
-            Route::get('/', 'index')->name('master-secondary');
-            Route::post('/store', 'store')->name('store-master-secondary');
-            Route::get('/show_master_secondary', 'show_master_secondary')->name('show_master_secondary');
-            Route::put('/update_master_secondary', 'update_master_secondary')->name('update_master_secondary');
-            Route::delete('/destroy/{id?}', 'destroy')->name('destroy-master-secondary');
-        });
+    // Master Secondary
+    Route::controller(MasterSecondaryController::class)->prefix("master-secondary")->middleware('marker')->group(function () {
+        Route::get('/', 'index')->name('master-secondary');
+        Route::post('/store', 'store')->name('store-master-secondary');
+        Route::get('/show_master_secondary', 'show_master_secondary')->name('show_master_secondary');
+        Route::put('/update_master_secondary', 'update_master_secondary')->name('update_master_secondary');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-master-secondary');
+    });
 
-        // Part
-        Route::controller(PartController::class)->prefix("part")->middleware('stocker')->group(function () {
-            Route::get('/', 'index')->name('part');
-            Route::get('/create', 'create')->name('create-part');
-            Route::post('/store', 'store')->name('store-part');
-            Route::get('/edit', 'edit')->name('edit-part');
-            Route::put('/update/{id?}', 'update')->name('update-part');
-            Route::delete('/destroy/{id?}', 'destroy')->name('destroy-part');
+    // Part
+    Route::controller(PartController::class)->prefix("part")->middleware('stocker')->group(function () {
+        Route::get('/', 'index')->name('part');
+        Route::get('/create', 'create')->name('create-part');
+        Route::post('/store', 'store')->name('store-part');
+        Route::get('/edit', 'edit')->name('edit-part');
+        Route::put('/update/{id?}', 'update')->name('update-part');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-part');
 
-            // part form
-            Route::get('/manage-part-form/{id?}', 'managePartForm')->name('manage-part-form');
-            Route::get('/get-form-cut/{id?}', 'getFormCut')->name('get-part-form-cut');
-            Route::post('/store-part-form', 'storePartForm')->name('store-part-form');
-            Route::delete('/destroy-part-form', 'destroyPartForm')->name('destroy-part-form');
-            Route::get('/show-part-form', 'showPartForm')->name('show-part-form');
+        // part form
+        Route::get('/manage-part-form/{id?}', 'managePartForm')->name('manage-part-form');
+        Route::get('/get-form-cut/{id?}', 'getFormCut')->name('get-part-form-cut');
+        Route::post('/store-part-form', 'storePartForm')->name('store-part-form');
+        Route::delete('/destroy-part-form', 'destroyPartForm')->name('destroy-part-form');
+        Route::get('/show-part-form', 'showPartForm')->name('show-part-form');
 
-            // part secondary
-            Route::get('/manage-part-secondary/{id?}', 'managePartSecondary')->name('manage-part-secondary');
-            Route::get('/datatable_list_part/{id?}', 'datatable_list_part')->name('datatable_list_part');
-            Route::get('/get_proses', 'get_proses')->name('get_proses');
-            Route::post('/store_part_secondary', 'store_part_secondary')->name('store_part_secondary');
+        // part secondary
+        Route::get('/manage-part-secondary/{id?}', 'managePartSecondary')->name('manage-part-secondary');
+        Route::get('/datatable_list_part/{id?}', 'datatable_list_part')->name('datatable_list_part');
+        Route::get('/get_proses', 'get_proses')->name('get_proses');
+        Route::post('/store_part_secondary', 'store_part_secondary')->name('store_part_secondary');
 
-            // part detail
-            Route::delete('/destroy-part-detail/{id?}', 'destroyPartDetail')->name('destroy-part-detail');
+        // part detail
+        Route::delete('/destroy-part-detail/{id?}', 'destroyPartDetail')->name('destroy-part-detail');
 
-            // get order
-            Route::get('/get-order', 'getOrderInfo')->name('get-part-order');
-            // get colors
-            Route::get('/get-colors', 'getColorList')->name('get-part-colors');
-            // get panels
-            Route::get('/get-panels', 'getPanelList')->name('get-part-panels');
-            // get master part
-            Route::get('/get-master-parts', 'getMasterParts')->name('get-master-parts');
-            // get master tujuan
-            Route::get('/get-master-tujuan', 'getMasterTujuan')->name('get-master-tujuan');
-            // get master secondary
-            Route::get('/get-master-secondary', 'getMasterSecondary')->name('get-master-secondary');
-        });
+        // get order
+        Route::get('/get-order', 'getOrderInfo')->name('get-part-order');
+        // get colors
+        Route::get('/get-colors', 'getColorList')->name('get-part-colors');
+        // get panels
+        Route::get('/get-panels', 'getPanelList')->name('get-part-panels');
+        // get master part
+        Route::get('/get-master-parts', 'getMasterParts')->name('get-master-parts');
+        // get master tujuan
+        Route::get('/get-master-tujuan', 'getMasterTujuan')->name('get-master-tujuan');
+        // get master secondary
+        Route::get('/get-master-secondary', 'getMasterSecondary')->name('get-master-secondary');
+    });
 
     // Marker :
-        // Marker
-        Route::controller(MarkerController::class)->prefix("marker")->middleware('marker')->group(function () {
-            Route::get('/', 'index')->name('marker');
-            Route::get('/create', 'create')->name('create-marker');
-            Route::post('/store', 'store')->name('store-marker');
-            Route::get('/edit/{id?}', 'edit')->name('edit-marker');
-            Route::put('/update/{id?}', 'update')->name('update-marker');
-            Route::post('/show', 'show')->name('show-marker');
-            Route::post('/show_gramasi', 'show_gramasi')->name('show_gramasi');
-            Route::post('/update_status', 'update_status')->name('update_status');
-            Route::put('/update_marker', 'update_marker')->name('update_marker');
-            Route::post('/print-marker/{kodeMarker?}', 'printMarker')->name('print-marker');
-            Route::post('/fix-marker-balance-qty', 'fixMarkerBalanceQty')->name('fix-marker-balance-qty');
+    // Marker
+    Route::controller(MarkerController::class)->prefix("marker")->middleware('marker')->group(function () {
+        Route::get('/', 'index')->name('marker');
+        Route::get('/create', 'create')->name('create-marker');
+        Route::post('/store', 'store')->name('store-marker');
+        Route::get('/edit/{id?}', 'edit')->name('edit-marker');
+        Route::put('/update/{id?}', 'update')->name('update-marker');
+        Route::post('/show', 'show')->name('show-marker');
+        Route::post('/show_gramasi', 'show_gramasi')->name('show_gramasi');
+        Route::post('/update_status', 'update_status')->name('update_status');
+        Route::put('/update_marker', 'update_marker')->name('update_marker');
+        Route::post('/print-marker/{kodeMarker?}', 'printMarker')->name('print-marker');
+        Route::post('/fix-marker-balance-qty', 'fixMarkerBalanceQty')->name('fix-marker-balance-qty');
 
-            // get order
-            Route::get('/get-order', 'getOrderInfo')->name('get-marker-order');
-            // get colors
-            Route::get('/get-colors', 'getColorList')->name('get-marker-colors');
-            // get panels
-            Route::get('/get-panels', 'getPanelList')->name('get-marker-panels');
-            // get sizes
-            Route::get('/get-sizes', 'getSizeList')->name('get-marker-sizes');
-            // get count
-            Route::get('/get-count', 'getCount')->name('get-marker-count');
-            // get number
-            Route::get('/get-number', 'getNumber')->name('get-marker-number');
-        });
+        // get order
+        Route::get('/get-order', 'getOrderInfo')->name('get-marker-order');
+        // get colors
+        Route::get('/get-colors', 'getColorList')->name('get-marker-colors');
+        // get panels
+        Route::get('/get-panels', 'getPanelList')->name('get-marker-panels');
+        // get sizes
+        Route::get('/get-sizes', 'getSizeList')->name('get-marker-sizes');
+        // get count
+        Route::get('/get-count', 'getCount')->name('get-marker-count');
+        // get number
+        Route::get('/get-number', 'getNumber')->name('get-marker-number');
+    });
 
     // Cutting :
-        // Spreading
-        Route::controller(SpreadingController::class)->prefix("spreading")->middleware('spreading')->group(function () {
-            Route::get('/', 'index')->name('spreading');
-            Route::get('/create', 'create')->name('create-spreading');
-            Route::post('/getno_marker', 'getno_marker')->name('getno_marker');
-            Route::get('/getdata_marker', 'getdata_marker')->name('getdata_marker');
-            Route::get('/getdata_ratio', 'getdata_ratio')->name('getdata_ratio');
-            Route::post('/store', 'store')->name('store-spreading');
-            Route::put('/update', 'update')->name('update-spreading');
-            Route::put('/update-status', 'updateStatus')->name('update-status');
-            Route::get('/get-order-info', 'getOrderInfo')->name('get-spreading-data');
-            Route::get('/get-cut-qty', 'getCutQty')->name('get-cut-qty-data');
-            Route::delete('/destroy/{id?}', 'destroy')->name('destroy-spreading');
-            // export excel
-            // Route::get('/export_excel', 'export_excel')->name('export_excel');
-            // Route::get('/export', 'export')->name('export');
-        });
+    // Spreading
+    Route::controller(SpreadingController::class)->prefix("spreading")->middleware('spreading')->group(function () {
+        Route::get('/', 'index')->name('spreading');
+        Route::get('/create', 'create')->name('create-spreading');
+        Route::post('/getno_marker', 'getno_marker')->name('getno_marker');
+        Route::get('/getdata_marker', 'getdata_marker')->name('getdata_marker');
+        Route::get('/getdata_ratio', 'getdata_ratio')->name('getdata_ratio');
+        Route::post('/store', 'store')->name('store-spreading');
+        Route::put('/update', 'update')->name('update-spreading');
+        Route::put('/update-status', 'updateStatus')->name('update-status');
+        Route::get('/get-order-info', 'getOrderInfo')->name('get-spreading-data');
+        Route::get('/get-cut-qty', 'getCutQty')->name('get-cut-qty-data');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-spreading');
+        // export excel
+        // Route::get('/export_excel', 'export_excel')->name('export_excel');
+        // Route::get('/export', 'export')->name('export');
+    });
 
-        // Form Cut Input
-        Route::controller(CuttingFormController::class)->prefix("form-cut-input")->middleware("meja")->group(function () {
-            Route::get('/', 'index')->name('form-cut-input');
-            Route::get('/process/{id?}', 'process')->name('process-form-cut-input');
-            Route::get('/get-number-data', 'getNumberData')->name('get-number-form-cut-input');
-            Route::get('/get-scanned-item/{id?}', 'getScannedItem')->name('get-scanned-form-cut-input');
-            Route::get('/get-item', 'getItem')->name('get-item-form-cut-input');
-            Route::put('/start-process/{id?}', 'startProcess')->name('start-process-form-cut-input');
-            Route::put('/next-process-one/{id?}', 'nextProcessOne')->name('next-process-one-form-cut-input');
-            Route::put('/next-process-two/{id?}', 'nextProcessTwo')->name('next-process-two-form-cut-input');
-            Route::get('/get-time-record/{noForm?}', 'getTimeRecord')->name('get-time-form-cut-input');
-            Route::post('/store-scanned-item', 'storeScannedItem')->name('store-scanned-form-cut-input');
-            Route::post('/store-time-record', 'storeTimeRecord')->name('store-time-form-cut-input');
-            Route::post('/store-time-record-extension', 'storeTimeRecordExtension')->name('store-time-ext-form-cut-input');
-            Route::post('/store-this-time-record', 'storeThisTimeRecord')->name('store-this-time-form-cut-input');
-            Route::put('/finish-process/{id?}', 'finishProcess')->name('finish-process-form-cut-input');
-            Route::get('/check-spreading-form/{noForm?}/{noMeja?}', 'checkSpreadingForm')->name('check-spreading-form-cut-input');
-            Route::get('/check-time-record/{detailId?}', 'checkTimeRecordLap')->name('check-time-record-form-cut-input');
-            Route::post('/store-lost-time/{id?}', 'storeLostTime')->name('store-lost-form-cut-input');
-            Route::get('/check-lost-time/{id?}', 'checkLostTime')->name('check-lost-form-cut-input');
-            Route::get('/get-form-cut-ratio', 'getRatio')->name('get-form-cut-ratio');
+    // Form Cut Input
+    Route::controller(CuttingFormController::class)->prefix("form-cut-input")->middleware("meja")->group(function () {
+        Route::get('/', 'index')->name('form-cut-input');
+        Route::get('/process/{id?}', 'process')->name('process-form-cut-input');
+        Route::get('/get-number-data', 'getNumberData')->name('get-number-form-cut-input');
+        Route::get('/get-scanned-item/{id?}', 'getScannedItem')->name('get-scanned-form-cut-input');
+        Route::get('/get-item', 'getItem')->name('get-item-form-cut-input');
+        Route::put('/start-process/{id?}', 'startProcess')->name('start-process-form-cut-input');
+        Route::put('/next-process-one/{id?}', 'nextProcessOne')->name('next-process-one-form-cut-input');
+        Route::put('/next-process-two/{id?}', 'nextProcessTwo')->name('next-process-two-form-cut-input');
+        Route::get('/get-time-record/{noForm?}', 'getTimeRecord')->name('get-time-form-cut-input');
+        Route::post('/store-scanned-item', 'storeScannedItem')->name('store-scanned-form-cut-input');
+        Route::post('/store-time-record', 'storeTimeRecord')->name('store-time-form-cut-input');
+        Route::post('/store-time-record-extension', 'storeTimeRecordExtension')->name('store-time-ext-form-cut-input');
+        Route::post('/store-this-time-record', 'storeThisTimeRecord')->name('store-this-time-form-cut-input');
+        Route::put('/finish-process/{id?}', 'finishProcess')->name('finish-process-form-cut-input');
+        Route::get('/check-spreading-form/{noForm?}/{noMeja?}', 'checkSpreadingForm')->name('check-spreading-form-cut-input');
+        Route::get('/check-time-record/{detailId?}', 'checkTimeRecordLap')->name('check-time-record-form-cut-input');
+        Route::post('/store-lost-time/{id?}', 'storeLostTime')->name('store-lost-form-cut-input');
+        Route::get('/check-lost-time/{id?}', 'checkLostTime')->name('check-lost-form-cut-input');
+        Route::get('/get-form-cut-ratio', 'getRatio')->name('get-form-cut-ratio');
 
-            // get order
-            Route::get('/get-order', 'getOrderInfo')->name('form-cut-get-marker-order');
-            // get colors
-            Route::get('/get-colors', 'getColorList')->name('form-cut-get-marker-colors');
-            // get panels
-            Route::get('/get-panels', 'getPanelList')->name('form-cut-get-marker-panels');
-            // get sizes
-            Route::get('/get-sizes', 'getSizeList')->name('form-cut-get-marker-sizes');
-            // get count
-            Route::get('/get-count', 'getCount')->name('form-cut-get-marker-count');
-            // get number
-            Route::get('/get-number', 'getNumber')->name('form-cut-get-marker-number');
+        // get order
+        Route::get('/get-order', 'getOrderInfo')->name('form-cut-get-marker-order');
+        // get colors
+        Route::get('/get-colors', 'getColorList')->name('form-cut-get-marker-colors');
+        // get panels
+        Route::get('/get-panels', 'getPanelList')->name('form-cut-get-marker-panels');
+        // get sizes
+        Route::get('/get-sizes', 'getSizeList')->name('form-cut-get-marker-sizes');
+        // get count
+        Route::get('/get-count', 'getCount')->name('form-cut-get-marker-count');
+        // get number
+        Route::get('/get-number', 'getNumber')->name('form-cut-get-marker-number');
 
-            // no cut update
-            Route::put('/update-no-cut', 'updateNoCut')->name('form-cut-update-no-cut');
-        });
+        // no cut update
+        Route::put('/update-no-cut', 'updateNoCut')->name('form-cut-update-no-cut');
+    });
 
-        // Manual Form Cut Input
-        Route::controller(CuttingFormManualController::class)->prefix("manual-form-cut")->middleware("meja")->group(function () {
-            Route::get('/', 'index')->name('manual-form-cut');
-            Route::get('/create', 'create')->name('create-manual-form-cut');
-            Route::get('/create-new', 'createNew')->name('create-new-manual-form-cut');
-            Route::get('/process/{id?}', 'process')->name('process-manual-form-cut');
-            Route::get('/get-number-data', 'getNumberData')->name('get-number-manual-form-cut');
-            Route::get('/get-scanned-item/{id?}', 'getScannedItem')->name('get-scanned-manual-form-cut');
-            Route::get('/get-item', 'getItem')->name('get-item-manual-form-cut');
-            Route::put('/start-process/{id?}', 'startProcess')->name('start-process-manual-form-cut');
-            Route::post('/jump-to-detail/{id?}', 'jumpToDetail')->name('jump-to-detail-manual-form-cut');
-            Route::post('/store-marker/{id?}', 'storeMarker')->name('store-marker-manual-form-cut');
-            Route::put('/next-process-one/{id?}', 'nextProcessOne')->name('next-process-one-manual-form-cut');
-            Route::put('/next-process-two/{id?}', 'nextProcessTwo')->name('next-process-two-manual-form-cut');
-            Route::get('/get-time-record/{noForm?}', 'getTimeRecord')->name('get-time-manual-form-cut');
-            Route::post('/store-scanned-item', 'storeScannedItem')->name('store-scanned-manual-form-cut');
-            Route::post('/store-time-record', 'storeTimeRecord')->name('store-time-manual-form-cut');
-            Route::post('/store-time-record-extension', 'storeTimeRecordExtension')->name('store-time-ext-manual-form-cut');
-            Route::post('/store-this-time-record', 'storeThisTimeRecord')->name('store-this-time-manual-form-cut');
-            Route::put('/finish-process/{id?}', 'finishProcess')->name('finish-process-manual-form-cut');
-            Route::get('/check-spreading-form/{noForm?}/{noMeja?}', 'checkSpreadingForm')->name('check-spreading-manual-form-cut');
-            Route::get('/check-time-record/{detailId?}', 'checkTimeRecordLap')->name('check-time-record-manual-form-cut');
-            Route::post('/store-lost-time/{id?}', 'storeLostTime')->name('store-lost-manual-form-cut');
-            Route::get('/check-lost-time/{id?}', 'checkLostTime')->name('check-lost-manual-form-cut');
-            Route::get('/get-form-cut-ratio', 'getRatio')->name('get-manual-form-cut-ratio');
+    // Manual Form Cut Input
+    Route::controller(CuttingFormManualController::class)->prefix("manual-form-cut")->middleware("meja")->group(function () {
+        Route::get('/', 'index')->name('manual-form-cut');
+        Route::get('/create', 'create')->name('create-manual-form-cut');
+        Route::get('/create-new', 'createNew')->name('create-new-manual-form-cut');
+        Route::get('/process/{id?}', 'process')->name('process-manual-form-cut');
+        Route::get('/get-number-data', 'getNumberData')->name('get-number-manual-form-cut');
+        Route::get('/get-scanned-item/{id?}', 'getScannedItem')->name('get-scanned-manual-form-cut');
+        Route::get('/get-item', 'getItem')->name('get-item-manual-form-cut');
+        Route::put('/start-process/{id?}', 'startProcess')->name('start-process-manual-form-cut');
+        Route::post('/jump-to-detail/{id?}', 'jumpToDetail')->name('jump-to-detail-manual-form-cut');
+        Route::post('/store-marker/{id?}', 'storeMarker')->name('store-marker-manual-form-cut');
+        Route::put('/next-process-one/{id?}', 'nextProcessOne')->name('next-process-one-manual-form-cut');
+        Route::put('/next-process-two/{id?}', 'nextProcessTwo')->name('next-process-two-manual-form-cut');
+        Route::get('/get-time-record/{noForm?}', 'getTimeRecord')->name('get-time-manual-form-cut');
+        Route::post('/store-scanned-item', 'storeScannedItem')->name('store-scanned-manual-form-cut');
+        Route::post('/store-time-record', 'storeTimeRecord')->name('store-time-manual-form-cut');
+        Route::post('/store-time-record-extension', 'storeTimeRecordExtension')->name('store-time-ext-manual-form-cut');
+        Route::post('/store-this-time-record', 'storeThisTimeRecord')->name('store-this-time-manual-form-cut');
+        Route::put('/finish-process/{id?}', 'finishProcess')->name('finish-process-manual-form-cut');
+        Route::get('/check-spreading-form/{noForm?}/{noMeja?}', 'checkSpreadingForm')->name('check-spreading-manual-form-cut');
+        Route::get('/check-time-record/{detailId?}', 'checkTimeRecordLap')->name('check-time-record-manual-form-cut');
+        Route::post('/store-lost-time/{id?}', 'storeLostTime')->name('store-lost-manual-form-cut');
+        Route::get('/check-lost-time/{id?}', 'checkLostTime')->name('check-lost-manual-form-cut');
+        Route::get('/get-form-cut-ratio', 'getRatio')->name('get-manual-form-cut-ratio');
 
-            // get order
-            Route::get('/get-order', 'getOrderInfo')->name('manual-form-cut-get-order');
-            // get colors
-            Route::get('/get-colors', 'getColorList')->name('manual-form-cut-get-colors');
-            // get panels
-            Route::get('/get-panels', 'getPanelList')->name('manual-form-cut-get-panels');
-            // get sizes
-            Route::get('/get-sizes', 'getSizeList')->name('manual-form-cut-get-sizes');
-            // get count
-            Route::get('/get-count', 'getCount')->name('manual-form-cut-get-count');
-            // get number
-            Route::get('/get-number', 'getNumber')->name('manual-form-cut-get-number');
-        });
+        // get order
+        Route::get('/get-order', 'getOrderInfo')->name('manual-form-cut-get-order');
+        // get colors
+        Route::get('/get-colors', 'getColorList')->name('manual-form-cut-get-colors');
+        // get panels
+        Route::get('/get-panels', 'getPanelList')->name('manual-form-cut-get-panels');
+        // get sizes
+        Route::get('/get-sizes', 'getSizeList')->name('manual-form-cut-get-sizes');
+        // get count
+        Route::get('/get-count', 'getCount')->name('manual-form-cut-get-count');
+        // get number
+        Route::get('/get-number', 'getNumber')->name('manual-form-cut-get-number');
+    });
 
-        // Pilot Form Cut Input
-        Route::controller(CuttingFormPilotController::class)->prefix("pilot-form-cut")->middleware("meja")->group(function () {
-            Route::get('/', 'index')->name('pilot-form-cut');
-            Route::get('/create', 'create')->name('create-pilot-form-cut');
-            Route::get('/create-new', 'createNew')->name('create-new-pilot-form-cut');
-            Route::get('/process/{id?}', 'process')->name('process-pilot-form-cut');
-            Route::get('/get-number-data', 'getNumberData')->name('get-number-pilot-form-cut');
-            Route::get('/get-scanned-item/{id?}', 'getScannedItem')->name('get-scanned-pilot-form-cut');
-            Route::get('/get-item', 'getItem')->name('get-item-pilot-form-cut');
-            Route::put('/start-process', 'startProcess')->name('start-process-pilot-form-cut');
-            Route::post('/store-marker/{id?}', 'storeMarker')->name('store-marker-pilot-form-cut');
-            Route::put('/next-process-one/{id?}', 'nextProcessOne')->name('next-process-one-pilot-form-cut');
-            Route::put('/next-process-two/{id?}', 'nextProcessTwo')->name('next-process-two-pilot-form-cut');
-            Route::get('/get-time-record/{noForm?}', 'getTimeRecord')->name('get-time-pilot-form-cut');
-            Route::post('/store-scanned-item', 'storeScannedItem')->name('store-scanned-pilot-form-cut');
-            Route::post('/store-time-record', 'storeTimeRecord')->name('store-time-pilot-form-cut');
-            Route::post('/store-time-record-extension', 'storeTimeRecordExtension')->name('store-time-ext-pilot-form-cut');
-            Route::post('/store-this-time-record', 'storeThisTimeRecord')->name('store-this-time-pilot-form-cut');
-            Route::put('/finish-process/{id?}', 'finishProcess')->name('finish-process-pilot-form-cut');
-            Route::get('/check-spreading-form/{noForm?}/{noMeja?}', 'checkSpreadingForm')->name('check-spreading-pilot-form-cut');
-            Route::get('/check-time-record/{detailId?}', 'checkTimeRecordLap')->name('check-time-record-pilot-form-cut');
-            Route::post('/store-lost-time/{id?}', 'storeLostTime')->name('store-lost-pilot-form-cut');
-            Route::get('/check-lost-time/{id?}', 'checkLostTime')->name('check-lost-pilot-form-cut');
-            Route::get('/get-form-cut-ratio', 'getRatio')->name('get-pilot-form-cut-ratio');
+    // Pilot Form Cut Input
+    Route::controller(CuttingFormPilotController::class)->prefix("pilot-form-cut")->middleware("meja")->group(function () {
+        Route::get('/', 'index')->name('pilot-form-cut');
+        Route::get('/create', 'create')->name('create-pilot-form-cut');
+        Route::get('/create-new', 'createNew')->name('create-new-pilot-form-cut');
+        Route::get('/process/{id?}', 'process')->name('process-pilot-form-cut');
+        Route::get('/get-number-data', 'getNumberData')->name('get-number-pilot-form-cut');
+        Route::get('/get-scanned-item/{id?}', 'getScannedItem')->name('get-scanned-pilot-form-cut');
+        Route::get('/get-item', 'getItem')->name('get-item-pilot-form-cut');
+        Route::put('/start-process', 'startProcess')->name('start-process-pilot-form-cut');
+        Route::post('/store-marker/{id?}', 'storeMarker')->name('store-marker-pilot-form-cut');
+        Route::put('/next-process-one/{id?}', 'nextProcessOne')->name('next-process-one-pilot-form-cut');
+        Route::put('/next-process-two/{id?}', 'nextProcessTwo')->name('next-process-two-pilot-form-cut');
+        Route::get('/get-time-record/{noForm?}', 'getTimeRecord')->name('get-time-pilot-form-cut');
+        Route::post('/store-scanned-item', 'storeScannedItem')->name('store-scanned-pilot-form-cut');
+        Route::post('/store-time-record', 'storeTimeRecord')->name('store-time-pilot-form-cut');
+        Route::post('/store-time-record-extension', 'storeTimeRecordExtension')->name('store-time-ext-pilot-form-cut');
+        Route::post('/store-this-time-record', 'storeThisTimeRecord')->name('store-this-time-pilot-form-cut');
+        Route::put('/finish-process/{id?}', 'finishProcess')->name('finish-process-pilot-form-cut');
+        Route::get('/check-spreading-form/{noForm?}/{noMeja?}', 'checkSpreadingForm')->name('check-spreading-pilot-form-cut');
+        Route::get('/check-time-record/{detailId?}', 'checkTimeRecordLap')->name('check-time-record-pilot-form-cut');
+        Route::post('/store-lost-time/{id?}', 'storeLostTime')->name('store-lost-pilot-form-cut');
+        Route::get('/check-lost-time/{id?}', 'checkLostTime')->name('check-lost-pilot-form-cut');
+        Route::get('/get-form-cut-ratio', 'getRatio')->name('get-pilot-form-cut-ratio');
 
-            // get order
-            Route::get('/get-order', 'getOrderInfo')->name('pilot-form-cut-get-order');
-            // get colors
-            Route::get('/get-colors', 'getColorList')->name('pilot-form-cut-get-colors');
-            // get panels
-            Route::get('/get-panels', 'getPanelList')->name('pilot-form-cut-get-panels');
-            // get sizes
-            Route::get('/get-sizes', 'getSizeList')->name('pilot-form-cut-get-sizes');
-            // get count
-            Route::get('/get-count', 'getCount')->name('pilot-form-cut-get-count');
-            // get number
-            Route::get('/get-number', 'getNumber')->name('pilot-form-cut-get-number');
-        });
+        // get order
+        Route::get('/get-order', 'getOrderInfo')->name('pilot-form-cut-get-order');
+        // get colors
+        Route::get('/get-colors', 'getColorList')->name('pilot-form-cut-get-colors');
+        // get panels
+        Route::get('/get-panels', 'getPanelList')->name('pilot-form-cut-get-panels');
+        // get sizes
+        Route::get('/get-sizes', 'getSizeList')->name('pilot-form-cut-get-sizes');
+        // get count
+        Route::get('/get-count', 'getCount')->name('pilot-form-cut-get-count');
+        // get number
+        Route::get('/get-number', 'getNumber')->name('pilot-form-cut-get-number');
+    });
 
-        // Cutting Plan
-        Route::controller(CuttingPlanController::class)->prefix("cut-plan")->middleware('admin')->group(function () {
-            Route::get('/', 'index')->name('cut-plan');
-            Route::get('/create', 'create')->name('create-cut-plan');
-            Route::post('/store', 'store')->name('store-cut-plan');
-            Route::put('/update/{id?}', 'update')->name('update-cut-plan');
-            Route::delete('/destroy', 'destroy')->name('destroy-cut-plan');
-            Route::get('/get-selected-form/{noCutPlan?}', 'getSelectedForm')->name('get-selected-form');
-            Route::get('/get-cut-plan-form', 'getCutPlanForm')->name('get-cut-plan-form');
-        });
+    // Cutting Plan
+    Route::controller(CuttingPlanController::class)->prefix("cut-plan")->middleware('admin')->group(function () {
+        Route::get('/', 'index')->name('cut-plan');
+        Route::get('/create', 'create')->name('create-cut-plan');
+        Route::post('/store', 'store')->name('store-cut-plan');
+        Route::put('/update/{id?}', 'update')->name('update-cut-plan');
+        Route::delete('/destroy', 'destroy')->name('destroy-cut-plan');
+        Route::get('/get-selected-form/{noCutPlan?}', 'getSelectedForm')->name('get-selected-form');
+        Route::get('/get-cut-plan-form', 'getCutPlanForm')->name('get-cut-plan-form');
+    });
 
-        // Roll
-        Route::controller(RollController::class)->prefix("lap_pemakaian")->middleware('admin')->group(function () {
-            Route::get('/', 'index')->name('lap_pemakaian');
-            // export excel
-            Route::get('/export_excel', 'export_excel')->name('export_excel');
-            Route::get('/export', 'export')->name('export');
-        });
+    // Roll
+    Route::controller(RollController::class)->prefix("lap_pemakaian")->middleware('admin')->group(function () {
+        Route::get('/', 'index')->name('lap_pemakaian');
+        // export excel
+        Route::get('/export_excel', 'export_excel')->name('export_excel');
+        Route::get('/export', 'export')->name('export');
+    });
 
-        // CompletedForm
-        Route::controller(CompletedFormController::class)->prefix("manager")->middleware('manager')->group(function () {
-            Route::get('/cutting', 'cutting')->name('manage-cutting');
-            Route::get('/cutting/detail/{id?}', 'detailCutting')->name('detail-cutting');
-            Route::put('/cutting/generate/{id?}', 'generateStocker')->name('generate-stocker');
-            Route::post('/cutting/update-form', 'updateCutting')->name('update-spreading-form');
-            Route::put('/cutting/update-finish/{id?}', 'updateFinish')->name('finish-update-spreading-form');
-            Route::delete('/cutting/destroy-roll/{id?}', 'destroySpreadingRoll')->name('destroy-spreading-roll');
-        });
+    // CompletedForm
+    Route::controller(CompletedFormController::class)->prefix("manager")->middleware('manager')->group(function () {
+        Route::get('/cutting', 'cutting')->name('manage-cutting');
+        Route::get('/cutting/detail/{id?}', 'detailCutting')->name('detail-cutting');
+        Route::put('/cutting/generate/{id?}', 'generateStocker')->name('generate-stocker');
+        Route::post('/cutting/update-form', 'updateCutting')->name('update-spreading-form');
+        Route::put('/cutting/update-finish/{id?}', 'updateFinish')->name('finish-update-spreading-form');
+        Route::delete('/cutting/destroy-roll/{id?}', 'destroySpreadingRoll')->name('destroy-spreading-roll');
+    });
 
     // Stocker :
-        Route::controller(StockerController::class)->prefix("stocker")->middleware('stocker')->group(function () {
-            Route::get('/', 'index')->name('stocker');
-            Route::get('/show/{partDetailId?}/{formCutId?}', 'show')->name('show-stocker');
-            Route::post('/print-stocker/{index?}', 'printStocker')->name('print-stocker');
-            Route::post('/print-stocker-all-size/{partDetailId?}', 'printStockerAllSize')->name('print-stocker-all-size');
-            Route::post('/print-stocker-checked', 'printStockerChecked')->name('print-stocker-checked');
-            Route::post('/print-numbering/{index?}', 'printNumbering')->name('print-numbering');
-            Route::post('/print-numbering-checked', 'printNumberingChecked')->name('print-numbering-checked');
-            Route::post('/full-generate-numbering', 'fullGenerateNumbering')->name('full-generate-numbering');
-            Route::post('/fix-redundant-stocker', 'fixRedundantStocker')->name('fix-redundant-stocker');
-            Route::post('/fix-redundant-numbering', 'fixRedundantNumbering')->name('fix-redundant-numbering');
-            Route::put('/count-stocker-update', 'countStockerUpdate')->name('count-stocker-update');
+    Route::controller(StockerController::class)->prefix("stocker")->middleware('stocker')->group(function () {
+        Route::get('/', 'index')->name('stocker');
+        Route::get('/show/{partDetailId?}/{formCutId?}', 'show')->name('show-stocker');
+        Route::post('/print-stocker/{index?}', 'printStocker')->name('print-stocker');
+        Route::post('/print-stocker-all-size/{partDetailId?}', 'printStockerAllSize')->name('print-stocker-all-size');
+        Route::post('/print-stocker-checked', 'printStockerChecked')->name('print-stocker-checked');
+        Route::post('/print-numbering/{index?}', 'printNumbering')->name('print-numbering');
+        Route::post('/print-numbering-checked', 'printNumberingChecked')->name('print-numbering-checked');
+        Route::post('/full-generate-numbering', 'fullGenerateNumbering')->name('full-generate-numbering');
+        Route::post('/fix-redundant-stocker', 'fixRedundantStocker')->name('fix-redundant-stocker');
+        Route::post('/fix-redundant-numbering', 'fixRedundantNumbering')->name('fix-redundant-numbering');
+        Route::put('/count-stocker-update', 'countStockerUpdate')->name('count-stocker-update');
 
-            Route::post('/rearrange-group', 'rearrangeGroup')->name('rearrange-group');
-            Route::post('/reorder-stocker-numbering', 'reorderStockerNumbering')->name('reorder-stocker-numbering');
-            Route::post('/modify-size-qty', 'modifySizeQty')->name('modify-size-qty');
+        Route::post('/rearrange-group', 'rearrangeGroup')->name('rearrange-group');
+        Route::post('/reorder-stocker-numbering', 'reorderStockerNumbering')->name('reorder-stocker-numbering');
+        Route::post('/modify-size-qty', 'modifySizeQty')->name('modify-size-qty');
 
-            Route::get('/stocker-part', 'part')->name('stocker-part');
+        Route::get('/stocker-part', 'part')->name('stocker-part');
 
-            // part form
-            Route::get('/manage-part-form/{id?}', 'managePartForm')->name('stocker-manage-part-form');
-            Route::get('/get-form-cut/{id?}', 'getFormCut')->name('stocker-get-part-form-cut');
-            Route::post('/store-part-form', 'storePartForm')->name('stocker-store-part-form');
-            Route::delete('/destroy-part-form', 'destroyPartForm')->name('stocker-destroy-part-form');
-            Route::get('/show-part-form', 'showPartForm')->name('stocker-show-part-form');
+        // part form
+        Route::get('/manage-part-form/{id?}', 'managePartForm')->name('stocker-manage-part-form');
+        Route::get('/get-form-cut/{id?}', 'getFormCut')->name('stocker-get-part-form-cut');
+        Route::post('/store-part-form', 'storePartForm')->name('stocker-store-part-form');
+        Route::delete('/destroy-part-form', 'destroyPartForm')->name('stocker-destroy-part-form');
+        Route::get('/show-part-form', 'showPartForm')->name('stocker-show-part-form');
 
-            // part secondary
-            Route::get('/manage-part-secondary/{id?}', 'managePartSecondary')->name('stocker-manage-part-secondary');
-            Route::get('/datatable_list_part/{id?}', 'datatable_list_part')->name('stocker-datatable_list_part');
-            Route::get('/get_proses', 'get_proses')->name('stocker-get_proses');
-            Route::post('/store_part_secondary', 'store_part_secondary')->name('stocker-store_part_secondary');
-        });
+        // part secondary
+        Route::get('/manage-part-secondary/{id?}', 'managePartSecondary')->name('stocker-manage-part-secondary');
+        Route::get('/datatable_list_part/{id?}', 'datatable_list_part')->name('stocker-datatable_list_part');
+        Route::get('/get_proses', 'get_proses')->name('stocker-get_proses');
+        Route::post('/store_part_secondary', 'store_part_secondary')->name('stocker-store_part_secondary');
+    });
 
     // DC :
-        // DC Dashboard
-        Route::get('/dashboard-marker', [DashboardController::class, 'marker'])->middleware('auth')->name('dashboard-marker');
-        Route::get('/dashboard-dc', [DashboardController::class, 'dc'])->middleware('auth')->name('dashboard-dc');
-        Route::get('/dc-qty', [DashboardController::class, 'dcQty'])->middleware('auth')->name('dc-qty');
+    // DC Dashboard
+    Route::get('/dashboard-marker', [DashboardController::class, 'marker'])->middleware('auth')->name('dashboard-marker');
+    Route::get('/dashboard-cutting', [DashboardController::class, 'cutting'])->middleware('auth')->name('dashboard-cutting');
+    Route::get('/cutting-qty', [DashboardController::class, 'cuttingQty'])->middleware('auth')->name('cutting-qty');
+    Route::get('/dashboard-dc', [DashboardController::class, 'dc'])->middleware('auth')->name('dashboard-dc');
+    Route::get('/dc-qty', [DashboardController::class, 'dcQty'])->middleware('auth')->name('dc-qty');
 
-        // // DC IN BACKUP
-        // Route::controller(DCInController::class)->prefix("dc-in")->middleware('dc')->group(function () {
-        //     Route::get('/', 'index')->name('dc-in');
-        //     Route::get('/create/{no_form?}', 'create')->name('create-dc-in');
-        //     Route::get('/getdata_stocker_info', 'getdata_stocker_info')->name('getdata_stocker_info');
-        //     Route::get('/getdata_stocker_input', 'getdata_stocker_input')->name('getdata_stocker_input');
-        //     Route::get('/getdata_dc_in', 'getdata_dc_in')->name('getdata_dc_in');
-        //     Route::post('/show_tmp_dc_in', 'show_tmp_dc_in')->name('show_tmp_dc_in');
-        //     Route::post('/get_alokasi', 'get_alokasi')->name('get_alokasi');
-        //     Route::post('/get_det_alokasi', 'get_det_alokasi')->name('get_det_alokasi');
-        //     Route::put('/update_tmp_dc_in', 'update_tmp_dc_in')->name('update_tmp_dc_in');
-        //     Route::post('/store', 'store')->name('store_dc_in');
-        //     Route::post('/simpan_final_dc_in', 'simpan_final_dc_in')->name('simpan_final_dc_in');
-        //     Route::get('/getdata_stocker_history', 'getdata_stocker_history')->name('getdata_stocker_history');
-        // });
+    // // DC IN BACKUP
+    // Route::controller(DCInController::class)->prefix("dc-in")->middleware('dc')->group(function () {
+    //     Route::get('/', 'index')->name('dc-in');
+    //     Route::get('/create/{no_form?}', 'create')->name('create-dc-in');
+    //     Route::get('/getdata_stocker_info', 'getdata_stocker_info')->name('getdata_stocker_info');
+    //     Route::get('/getdata_stocker_input', 'getdata_stocker_input')->name('getdata_stocker_input');
+    //     Route::get('/getdata_dc_in', 'getdata_dc_in')->name('getdata_dc_in');
+    //     Route::post('/show_tmp_dc_in', 'show_tmp_dc_in')->name('show_tmp_dc_in');
+    //     Route::post('/get_alokasi', 'get_alokasi')->name('get_alokasi');
+    //     Route::post('/get_det_alokasi', 'get_det_alokasi')->name('get_det_alokasi');
+    //     Route::put('/update_tmp_dc_in', 'update_tmp_dc_in')->name('update_tmp_dc_in');
+    //     Route::post('/store', 'store')->name('store_dc_in');
+    //     Route::post('/simpan_final_dc_in', 'simpan_final_dc_in')->name('simpan_final_dc_in');
+    //     Route::get('/getdata_stocker_history', 'getdata_stocker_history')->name('getdata_stocker_history');
+    // });
 
-        // DC IN
-        Route::controller(DCInController::class)->prefix("dc-in")->middleware('dc')->group(function () {
-            Route::get('/', 'index')->name('dc-in');
-            Route::get('/show_data_header', 'show_data_header')->name('show_data_header');
-            Route::get('/create', 'create')->name('create-dc-in');
-            Route::post('/store', 'store')->name('store-dc-in');
-            Route::delete('/destroy', 'destroy')->name('destroy');
+    // DC IN
+    Route::controller(DCInController::class)->prefix("dc-in")->middleware('dc')->group(function () {
+        Route::get('/', 'index')->name('dc-in');
+        Route::get('/show_data_header', 'show_data_header')->name('show_data_header');
+        Route::get('/create', 'create')->name('create-dc-in');
+        Route::post('/store', 'store')->name('store-dc-in');
+        Route::delete('/destroy', 'destroy')->name('destroy');
 
-            Route::get('/get_proses', 'get_proses')->name('get_proses_dc_in');
-            Route::get('/get_tempat', 'get_tempat')->name('get_tempat');
-            Route::get('/get_lokasi', 'get_lokasi')->name('get_lokasi');
+        Route::get('/get_proses', 'get_proses')->name('get_proses_dc_in');
+        Route::get('/get_tempat', 'get_tempat')->name('get_tempat');
+        Route::get('/get_lokasi', 'get_lokasi')->name('get_lokasi');
 
-            Route::get('/get_tmp_dc_in', 'get_tmp_dc_in')->name('get_tmp_dc_in');
-            Route::post('/insert_tmp_dc_in', 'insert_tmp_dc_in')->name('insert_tmp_dc_in');
-            Route::put('/update_tmp_dc_in', 'update_tmp_dc_in')->name('update_tmp_dc_in');
-            Route::put('/update_mass_tmp_dc_in', 'update_mass_tmp_dc_in')->name('update_mass_tmp_dc_in');
-            Route::get('/show_tmp_dc_in', 'show_tmp_dc_in')->name('show_tmp_dc_in');
-        });
+        Route::get('/get_tmp_dc_in', 'get_tmp_dc_in')->name('get_tmp_dc_in');
+        Route::post('/insert_tmp_dc_in', 'insert_tmp_dc_in')->name('insert_tmp_dc_in');
+        Route::put('/update_tmp_dc_in', 'update_tmp_dc_in')->name('update_tmp_dc_in');
+        Route::put('/update_mass_tmp_dc_in', 'update_mass_tmp_dc_in')->name('update_mass_tmp_dc_in');
+        Route::get('/show_tmp_dc_in', 'show_tmp_dc_in')->name('show_tmp_dc_in');
+    });
 
-        // Secondary INHOUSE
-        Route::controller(SecondaryInhouseController::class)->prefix("secondary-inhouse")->middleware('dc')->group(function () {
-            Route::get('/', 'index')->name('secondary-inhouse');
-            Route::get('/cek_data_stocker_inhouse', 'cek_data_stocker_inhouse')->name('cek_data_stocker_inhouse');
-            Route::post('/store', 'store')->name('store-secondary-inhouse');
-            Route::get('/detail_stocker_inhouse', 'detail_stocker_inhouse')->name('detail_stocker_inhouse');
-        });
+    // Secondary INHOUSE
+    Route::controller(SecondaryInhouseController::class)->prefix("secondary-inhouse")->middleware('dc')->group(function () {
+        Route::get('/', 'index')->name('secondary-inhouse');
+        Route::get('/cek_data_stocker_inhouse', 'cek_data_stocker_inhouse')->name('cek_data_stocker_inhouse');
+        Route::post('/store', 'store')->name('store-secondary-inhouse');
+        Route::get('/detail_stocker_inhouse', 'detail_stocker_inhouse')->name('detail_stocker_inhouse');
+    });
 
-        // Secondary IN
-        Route::controller(SecondaryInController::class)->prefix("secondary-in")->middleware('dc')->group(function () {
-            Route::get('/', 'index')->name('secondary-in');
-            Route::get('/cek_data_stocker_in', 'cek_data_stocker_in')->name('cek_data_stocker_in');
-            Route::post('/store', 'store')->name('store-secondary-in');
-            Route::get('/detail_stocker_in', 'detail_stocker_in')->name('detail_stocker_in');
-        });
+    // Secondary IN
+    Route::controller(SecondaryInController::class)->prefix("secondary-in")->middleware('dc')->group(function () {
+        Route::get('/', 'index')->name('secondary-in');
+        Route::get('/cek_data_stocker_in', 'cek_data_stocker_in')->name('cek_data_stocker_in');
+        Route::post('/store', 'store')->name('store-secondary-in');
+        Route::get('/detail_stocker_in', 'detail_stocker_in')->name('detail_stocker_in');
+    });
 
-        // Rack
-        Route::controller(RackController::class)->prefix("rack")->middleware('dc')->group(function () {
-            Route::get('/', 'index')->name('rack');
-            Route::get('/create', 'create')->name('create-rack');
-            Route::post('/store', 'store')->name('store-rack');
-            Route::put('/update', 'update')->name('update-rack');
-            Route::delete('/destroy/{id?}', 'destroy')->name('destroy-rack');
-            Route::post('/print-rack/{id?}', 'printRack')->name('print-rack');
-        });
+    // Rack
+    Route::controller(RackController::class)->prefix("rack")->middleware('dc')->group(function () {
+        Route::get('/', 'index')->name('rack');
+        Route::get('/create', 'create')->name('create-rack');
+        Route::post('/store', 'store')->name('store-rack');
+        Route::put('/update', 'update')->name('update-rack');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-rack');
+        Route::post('/print-rack/{id?}', 'printRack')->name('print-rack');
+    });
 
-        // Rack Stocker
-        Route::controller(RackStockerController::class)->prefix("stock-rack")->middleware('dc')->group(function () {
-            Route::get('/', 'index')->name('stock-rack');
-            Route::get('/allocate', 'allocate')->name('allocate-rack');
-            Route::get('/stock-rack-visual', 'stockRackVisual')->name('stock-rack-visual');
-            Route::get('/stock-rack-visual-detail', 'stockRackVisualDetail')->name('stock-rack-visual-detail');
-            Route::post('/store', 'store')->name('store-rack-stock');
-            Route::put('/update', 'update')->name('update-rack-stock');
-            Route::delete('/destroy/{id?}', 'destroy')->name('destroy-rack-stock');
-            Route::post('/print-bon-mutasi/{id?}', 'printBonMutasi')->name('print-rack-stock');
-        });
+    // Rack Stocker
+    Route::controller(RackStockerController::class)->prefix("stock-rack")->middleware('dc')->group(function () {
+        Route::get('/', 'index')->name('stock-rack');
+        Route::get('/allocate', 'allocate')->name('allocate-rack');
+        Route::get('/stock-rack-visual', 'stockRackVisual')->name('stock-rack-visual');
+        Route::get('/stock-rack-visual-detail', 'stockRackVisualDetail')->name('stock-rack-visual-detail');
+        Route::post('/store', 'store')->name('store-rack-stock');
+        Route::put('/update', 'update')->name('update-rack-stock');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-rack-stock');
+        Route::post('/print-bon-mutasi/{id?}', 'printBonMutasi')->name('print-rack-stock');
+    });
 
-        // Trolley
-        Route::controller(TrolleyController::class)->prefix("trolley")->middleware('dc')->group(function () {
-            Route::get('/', 'index')->name('trolley');
-            Route::get('/create', 'create')->name('create-trolley');
-            Route::post('/store', 'store')->name('store-trolley');
-            Route::put('/update', 'update')->name('update-trolley');
-            Route::delete('/destroy/{id?}', 'destroy')->name('destroy-trolley');
-            Route::post('/print-trolley/{id?}', 'printTrolley')->name('print-trolley');
-        });
+    // Trolley
+    Route::controller(TrolleyController::class)->prefix("trolley")->middleware('dc')->group(function () {
+        Route::get('/', 'index')->name('trolley');
+        Route::get('/create', 'create')->name('create-trolley');
+        Route::post('/store', 'store')->name('store-trolley');
+        Route::put('/update', 'update')->name('update-trolley');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-trolley');
+        Route::post('/print-trolley/{id?}', 'printTrolley')->name('print-trolley');
+    });
 
-        // Trolley Stocker
-        Route::controller(TrolleyStockerController::class)->prefix("stock-trolley")->middleware('dc')->group(function () {
-            Route::get('/', 'index')->name('stock-trolley');
-            Route::post('/store', 'store')->name('store-trolley-stock');
-            Route::put('/update', 'update')->name('update-trolley-stock');
-            Route::delete('/destroy/{id?}', 'destroy')->name('destroy-trolley-stock');
-            Route::post('/print-bon-mutasi/{id?}', 'printBonMutasi')->name('print-trolley-stock');
+    // Trolley Stocker
+    Route::controller(TrolleyStockerController::class)->prefix("stock-trolley")->middleware('dc')->group(function () {
+        Route::get('/', 'index')->name('stock-trolley');
+        Route::post('/store', 'store')->name('store-trolley-stock');
+        Route::put('/update', 'update')->name('update-trolley-stock');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-trolley-stock');
+        Route::post('/print-bon-mutasi/{id?}', 'printBonMutasi')->name('print-trolley-stock');
 
-            // allocate
-            Route::get('/allocate', 'allocate')->name('allocate-trolley');
-            Route::post('/store-allocate', 'storeAllocate')->name('store-allocate-trolley');
-            Route::get('/allocate-this/{id?}', 'allocateThis')->name('allocate-this-trolley');
-            Route::post('/store-allocate-this', 'storeAllocateThis')->name('store-allocate-this-trolley');
+        // allocate
+        Route::get('/allocate', 'allocate')->name('allocate-trolley');
+        Route::post('/store-allocate', 'storeAllocate')->name('store-allocate-trolley');
+        Route::get('/allocate-this/{id?}', 'allocateThis')->name('allocate-this-trolley');
+        Route::post('/store-allocate-this', 'storeAllocateThis')->name('store-allocate-this-trolley');
 
-            // send
-            Route::get('/send-trolley-stock/{id?}', 'send')->name('send-trolley-stock');
-            Route::post('/submit-send-trolley-stock', 'submitSend')->name('submit-send-trolley-stock');
+        // send
+        Route::get('/send-trolley-stock/{id?}', 'send')->name('send-trolley-stock');
+        Route::post('/submit-send-trolley-stock', 'submitSend')->name('submit-send-trolley-stock');
 
-            // get data
-            Route::get('/get-stocker-data/{id?}', 'getStockerData')->name('get-stocker-data-trolley-stock');
-        });
+        // get data
+        Route::get('/get-stocker-data/{id?}', 'getStockerData')->name('get-stocker-data-trolley-stock');
+    });
 
-        // Loading Stock
-        Route::controller(LoadingLineController::class)->prefix("loading-line")->middleware('dc')->group(function () {
-            Route::get('/', 'index')->name('loading-line');
-            Route::get('/detail/{id?}', 'show')->name('detail-loading-plan');
-            Route::get('/create', 'create')->name('create-loading-plan');
-            Route::post('/store', 'store')->name('store-loading-plan');
-            Route::get('/edit/{id?}', 'edit')->name('edit-loading-plan');
-            Route::put('/update/{id?}', 'update')->name('update-loading-plan');
-            Route::delete('/destroy/{id?}', 'destroy')->name('destroy-loading-plan');
-            Route::get('/summary', 'summary')->name('summary-loading');
-            Route::get('/get-total-summary', 'getTotalSummary')->name('total-summary-loading');
-            Route::post('/export-excel', 'exportExcel')->name('export-excel-loading');
-        });
+    // Loading Stock
+    Route::controller(LoadingLineController::class)->prefix("loading-line")->middleware('dc')->group(function () {
+        Route::get('/', 'index')->name('loading-line');
+        Route::get('/detail/{id?}', 'show')->name('detail-loading-plan');
+        Route::get('/create', 'create')->name('create-loading-plan');
+        Route::post('/store', 'store')->name('store-loading-plan');
+        Route::get('/edit/{id?}', 'edit')->name('edit-loading-plan');
+        Route::put('/update/{id?}', 'update')->name('update-loading-plan');
+        Route::delete('/destroy/{id?}', 'destroy')->name('destroy-loading-plan');
+        Route::get('/summary', 'summary')->name('summary-loading');
+        Route::get('/get-total-summary', 'getTotalSummary')->name('total-summary-loading');
+        Route::post('/export-excel', 'exportExcel')->name('export-excel-loading');
+    });
 
-        // Stock DC Complete
-        Route::controller(StockDcCompleteController::class)->prefix("stock-dc-complete")->middleware('admin')->group(function () {
-            Route::get('/', 'index')->name('stock-dc-complete');
-            Route::get('/show/{partId?}/{color?}/{size?}', 'show')->name('stock-dc-complete-detail');
-        });
+    // Stock DC Complete
+    Route::controller(StockDcCompleteController::class)->prefix("stock-dc-complete")->middleware('admin')->group(function () {
+        Route::get('/', 'index')->name('stock-dc-complete');
+        Route::get('/show/{partId?}/{color?}/{size?}', 'show')->name('stock-dc-complete-detail');
+    });
 
-        // Stock DC Incomplete
-        Route::controller(StockDcIncompleteController::class)->prefix("stock-dc-incomplete")->middleware('admin')->group(function () {
-            Route::get('/', 'index')->name('stock-dc-incomplete');
-            Route::get('/show/{partId?}/{color?}/{size?}', 'show')->name('stock-dc-incomplete-detail');
-        });
+    // Stock DC Incomplete
+    Route::controller(StockDcIncompleteController::class)->prefix("stock-dc-incomplete")->middleware('admin')->group(function () {
+        Route::get('/', 'index')->name('stock-dc-incomplete');
+        Route::get('/show/{partId?}/{color?}/{size?}', 'show')->name('stock-dc-incomplete-detail');
+    });
 
-        // Stock DC WIP
-        Route::controller(StockDcWipController::class)->prefix("stock-dc-wip")->middleware('admin')->group(function () {
-            Route::get('/', 'index')->name('stock-dc-wip');
-            Route::get('/show/{partId?}', 'show')->name('stock-dc-wip-detail');
-        });
+    // Stock DC WIP
+    Route::controller(StockDcWipController::class)->prefix("stock-dc-wip")->middleware('admin')->group(function () {
+        Route::get('/', 'index')->name('stock-dc-wip');
+        Route::get('/show/{partId?}', 'show')->name('stock-dc-wip-detail');
+    });
 
     //Mutasi Karywawan
     // Route::controller(EmployeeController::class)->prefix("mut-karyawan")->middleware('hr')->group(function () {
@@ -855,8 +862,42 @@ Route::middleware('auth')->group(function () {
     Route::controller(PackingTransferGarmentController::class)->prefix("transfer-garment-packing")->middleware('packing')->group(function () {
         Route::get('/', 'index')->name('transfer-garment');
         Route::get('/create', 'create')->name('create-transfer-garment');
-        Route::get('/gettipe_garment', 'gettipe_garment')->name('gettipe_garment');
+        Route::get('/get_po', 'get_po')->name('get_po');
+        Route::get('/get_garment', 'get_garment')->name('get_garment');
+        Route::post('/store_tmp_trf_garment', 'store_tmp_trf_garment')->name('store_tmp_trf_garment');
+        Route::get('/show_tmp_trf_garment', 'show_tmp_trf_garment')->name('show_tmp_trf_garment');
+        Route::post('/hapus_tmp_trf_garment', 'hapus_tmp_trf_garment')->name('hapus_tmp_trf_garment');
+        Route::post('/store', 'store')->name('store_trf_garment');
+        Route::post('/undo', 'undo')->name('undo-trf-garment');
+        Route::post('/reset', 'reset')->name('reset-trf-garment');
     });
+
+    // Packing In
+    Route::controller(PackingPackingInController::class)->prefix("packing-in-packing")->middleware('packing')->group(function () {
+        Route::get('/', 'index')->name('packing-in');
+        Route::get('/show_preview_packing_in', 'show_preview_packing_in')->name('show_preview_packing_in');
+        Route::post('/store', 'store')->name('store-packing-packing-in');
+    });
+
+    // Packing Out
+    Route::controller(PackingPackingOutController::class)->prefix("packing-out-packing")->middleware('packing')->group(function () {
+        Route::get('/', 'index')->name('packing-out');
+        Route::get('/create', 'create')->name('create-packing-out');
+        Route::get('/getno_carton', 'getno_carton')->name('getno_carton');
+        Route::get('/packing_out_show_summary', 'packing_out_show_summary')->name('packing_out_show_summary');
+        Route::get('/packing_out_show_tot_input', 'packing_out_show_tot_input')->name('packing_out_show_tot_input');
+        Route::post('/store', 'store')->name('store_packing_out');
+    });
+
+    // Master Karton
+    Route::controller(PackingMasterKartonController::class)->prefix("packing-master-karton")->middleware('packing')->group(function () {
+        Route::get('/', 'index')->name('master-karton');
+        Route::post('/store', 'store')->name('store-tambah-karton');
+        Route::get('/show_tot', 'show_tot')->name('show_tot');
+        // Route::get('/show_preview_packing_in', 'show_preview_packing_in')->name('show_preview_packing_in');
+        // Route::post('/store', 'store')->name('store-packing-packing-in');
+    });
+
 
     // PPIC
     // Master
@@ -869,6 +910,54 @@ Route::middleware('auth')->group(function () {
         Route::get('/export_excel_master_sb_so', 'export_excel_master_sb_so')->name('export_excel_master_sb_so');
         Route::post('/store_tmp_ppic_so', 'store_tmp_ppic_so')->name('store_tmp_ppic_so');
         Route::get('/export_excel_master_so_ppic', 'export_excel_master_so_ppic')->name('export_excel_master_so_ppic');
+        Route::post('/hapus_data_temp_ppic_so', 'hapus_data_temp_ppic_so')->name('hapus-data-temp-ppic-so');
+        Route::get('/master_so_tracking_output', 'master_so_tracking_output')->name('master_so_tracking_output');
+        Route::get('/show_data_ppic_master_so', 'show_data_ppic_master_so')->name('show_data_ppic_master_so');
+        Route::post('/update_data_ppic_master_so', 'update_data_ppic_master_so')->name('update_data_ppic_master_so');
+    });
+
+    // GA
+    // Pengajuan
+    Route::controller(GAPengajuanBahanBakarController::class)->prefix("ga-pengajuan-bahan-bakar")->middleware('ga')->group(function () {
+        Route::get('/', 'index')->name('pengajuan-bahan-bakar');
+        Route::post('/store_ga_master_bahan_bakar', 'store_ga_master_bahan_bakar')->name('store-ga-master-bahan-bakar');
+        Route::get('/show_master_bahan_bakar', 'show_master_bahan_bakar')->name('show-master-bahan-bakar');
+        Route::post('/store_ga_master_kendaraan', 'store_ga_master_kendaraan')->name('store-ga-master-kendaraan');
+        Route::get('/show_master_kendaraan', 'show_master_kendaraan')->name('show-master-kendaraan');
+        Route::get('/show_getnip', 'show_getnip')->name('show-ga-get-nip');
+        Route::get('/show_getjns', 'show_getjns')->name('show-ga-get-jns');
+        Route::get('/show_getbhn_bakar', 'show_getbhn_bakar')->name('show-ga-get-bhn-bakar');
+        Route::get('/show_getharga', 'show_getharga')->name('show-ga-get-harga');
+        Route::post('/store_ga_trans', 'store_ga_trans')->name('store-ga-trans');
+        Route::get('/export_pdf_pengajuan_bhn_bakar', 'export_pdf_pengajuan_bhn_bakar')->name('export_pdf_pengajuan_bhn_bakar');
+        Route::get('/show_data_bahan_bakar', 'show_data_bahan_bakar')->name('show_data_bahan_bakar');
+        Route::post('/update_ga_master_bahan_bakar', 'update_ga_master_bahan_bakar')->name('update-ga-master-bahan-bakar');
+        Route::get('/show_data_transaksi', 'show_data_transaksi')->name('show_data_transaksi');
+        Route::post('/update_ga_trans', 'update_ga_trans')->name('update-ga-trans');
+
+        // Route::post('/store', 'store')->name('store-packing-packing-in');
+    });
+
+    // Approval
+    Route::controller(GAApprovalBahanBakarController::class)->prefix("ga-approval-bahan-bakar")->middleware('ga')->group(function () {
+        Route::get('/', 'index')->name('approval-bahan-bakar');
+        Route::post('/store', 'store')->name('store-approval-bahan-bakar');
+    });
+
+
+    Route::controller(StockDcCompleteController::class)->prefix("stock-dc-complete")->middleware('admin')->group(function () {
+        Route::get('/', 'index')->name('stock-dc-complete');
+        Route::get('/show/{partId?}/{color?}/{size?}', 'show')->name('stock-dc-complete-detail');
+    });
+
+    Route::controller(StockDcIncompleteController::class)->prefix("stock-dc-incomplete")->middleware('admin')->group(function () {
+        Route::get('/', 'index')->name('stock-dc-incomplete');
+        Route::get('/show/{partId?}/{color?}/{size?}', 'show')->name('stock-dc-incomplete-detail');
+    });
+
+    Route::controller(StockDcWipController::class)->prefix("stock-dc-wip")->middleware('admin')->group(function () {
+        Route::get('/', 'index')->name('stock-dc-wip');
+        Route::get('/show/{partId?}', 'show')->name('stock-dc-wip-detail');
     });
 });
 
@@ -877,9 +966,9 @@ Route::middleware('auth')->group(function () {
 //     return view('dashboard', ['page' => 'dashboard-marker']);
 // })->middleware('auth')->name('dashboard-marker');
 
-Route::get('/dashboard-cutting', function () {
-    return view('dashboard', ['page' => 'dashboard-cutting']);
-})->middleware('auth')->name('dashboard-cutting');
+// Route::get('/dashboard-cutting', function () {
+//     return view('dashboard', ['page' => 'dashboard-cutting']);
+// })->middleware('auth')->name('dashboard-cutting');
 
 Route::get('/dashboard-stocker', function () {
     return view('dashboard', ['page' => 'dashboard-stocker']);
@@ -900,6 +989,11 @@ Route::get('/dashboard-packing', function () {
     return view('dashboard', ['page' => 'dashboard-packing']);
 })->middleware('auth')->name('dashboard-packing');
 
+//GA
+Route::get('/dashboard-ga', function () {
+    return view('dashboard', ['page' => 'dashboard-ga']);
+})->middleware('auth')->name('dashboard-ga');
+
 //PPIC
 Route::get('/dashboard-ppic', function () {
     return view('dashboard', ['page' => 'dashboard-ppic']);
@@ -914,70 +1008,70 @@ Route::get('/dashboard-mut-mesin', function () {
 })->middleware('auth')->name('dashboard-mut-mesin');
 
 // Misc
-    Route::get('/timer', function () {
-        return view('example.timeout');
-    })->middleware('auth');
+Route::get('/timer', function () {
+    return view('example.timeout');
+})->middleware('auth');
 
-    Route::get('/widgets', function () {
-        return view('component.widgets');
-    })->middleware('auth');
+Route::get('/widgets', function () {
+    return view('component.widgets');
+})->middleware('auth');
 
-    Route::get('/kanban', function () {
-        return view('component.kanban');
-    })->middleware('auth');
+Route::get('/kanban', function () {
+    return view('component.kanban');
+})->middleware('auth');
 
-    Route::get('/gallery', function () {
-        return view('component.gallery');
-    })->middleware('auth');
+Route::get('/gallery', function () {
+    return view('component.gallery');
+})->middleware('auth');
 
-    Route::get('/calendar', function () {
-        return view('component.calendar');
-    })->middleware('auth');
+Route::get('/calendar', function () {
+    return view('component.calendar');
+})->middleware('auth');
 
-    Route::get('/timeline', function () {
-        return view('component.UI.timeline');
-    })->middleware('auth');
+Route::get('/timeline', function () {
+    return view('component.UI.timeline');
+})->middleware('auth');
 
-    Route::get('/sliders', function () {
-        return view('component.UI.sliders');
-    })->middleware('auth');
+Route::get('/sliders', function () {
+    return view('component.UI.sliders');
+})->middleware('auth');
 
-    Route::get('/modals', function () {
-        return view('component.UI.modals');
-    })->middleware('auth');
+Route::get('/modals', function () {
+    return view('component.UI.modals');
+})->middleware('auth');
 
-    Route::get('/ribbons', function () {
-        return view('component.UI.ribbons');
-    })->middleware('auth');
+Route::get('/ribbons', function () {
+    return view('component.UI.ribbons');
+})->middleware('auth');
 
-    Route::get('/general', function () {
-        return view('component.UI.general');
-    })->middleware('auth');
+Route::get('/general', function () {
+    return view('component.UI.general');
+})->middleware('auth');
 
-    Route::get('/datatable', function () {
-        return view('component.tables.data');
-    })->middleware('auth');
+Route::get('/datatable', function () {
+    return view('component.tables.data');
+})->middleware('auth');
 
-    Route::get('/jsgrid', function () {
-        return view('component.tables.jsgrid');
-    })->middleware('auth');
+Route::get('/jsgrid', function () {
+    return view('component.tables.jsgrid');
+})->middleware('auth');
 
-    Route::get('/simpletable', function () {
-        return view('component.tables.simple');
-    })->middleware('auth');
+Route::get('/simpletable', function () {
+    return view('component.tables.simple');
+})->middleware('auth');
 
-    Route::get('/advanced-form', function () {
-        return view('component.forms.advanced');
-    })->middleware('auth');
+Route::get('/advanced-form', function () {
+    return view('component.forms.advanced');
+})->middleware('auth');
 
-    Route::get('/general-form', function () {
-        return view('component.forms.general');
-    })->middleware('auth');
+Route::get('/general-form', function () {
+    return view('component.forms.general');
+})->middleware('auth');
 
-    Route::get('/validation-form', function () {
-        return view('component.forms.validation');
-    })->middleware('auth');
+Route::get('/validation-form', function () {
+    return view('component.forms.validation');
+})->middleware('auth');
 
-    Route::get('/bon-mutasi', function () {
-        return view('bon-mutasi');
-    })->middleware('auth');
+Route::get('/bon-mutasi', function () {
+    return view('bon-mutasi');
+})->middleware('auth');

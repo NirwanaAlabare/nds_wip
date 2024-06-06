@@ -105,61 +105,82 @@
 
                     <!-- warehouse -->
                     <!-- <div class="col-md-2 col-3">
-                                                    <a href="{{ route('dashboard-warehouse') }}" class="home-item">
-                                                        <div class="card h-100">
-                                                            <div class="card-body">
-                                                                <div class="d-flex h-100 flex-column justify-content-between">
-                                                                    <img src="{{ asset('dist/img/warehouse.png') }}" class="img-fluid p-3" alt="cutting image">
-                                                                    <p class="text-center fw-bold text-uppercase text-dark">Warehouse</p>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </a>
-                                                </div> -->
-
-                    <div class="col-md-2 col-3">
-                        <!-- <a href="{{ route('dashboard-warehouse') }}" class="home-item"> -->
-                        <a href="#" class="home-item" onclick="getmodalwarehouse()">
+                        <a href="{{ route('dashboard-warehouse') }}" class="home-item">
                             <div class="card h-100">
                                 <div class="card-body">
                                     <div class="d-flex h-100 flex-column justify-content-between">
-                                        <img src="{{ asset('dist/img/warehouse.png') }}" class="img-fluid p-3"
-                                            alt="cutting image">
+                                        <img src="{{ asset('dist/img/warehouse.png') }}" class="img-fluid p-3" alt="cutting image">
                                         <p class="text-center fw-bold text-uppercase text-dark">Warehouse</p>
                                     </div>
                                 </div>
                             </div>
                         </a>
-                        <!-- </a> -->
-                    </div>
+                    </div> -->
 
-                    <div class="col-md-2 col-3">
-                        <a href="{{ route('dashboard-ppic') }}" class="home-item">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <div class="d-flex h-100 flex-column justify-content-between">
-                                        <img src="{{ asset('dist/img/ppic.png') }}" class="img-fluid p-3"
-                                            alt="qr code image">
-                                        <p class="text-center fw-bold text-uppercase text-dark">PPIC</p>
+                    @warehouse
+                        <div class="col-md-2 col-3">
+                            <!-- <a href="{{ route('dashboard-warehouse') }}" class="home-item"> -->
+                            <a href="#" class="home-item" onclick="getmodalwarehouse()">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex h-100 flex-column justify-content-between">
+                                            <img src="{{ asset('dist/img/warehouse.png') }}" class="img-fluid p-3"
+                                                alt="cutting image">
+                                            <p class="text-center fw-bold text-uppercase text-dark">Warehouse</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </a>
-                    </div>
+                            </a>
+                            <!-- </a> -->
+                        </div>
+                    @endwarehouse
 
-                    <div class="col-md-2 col-3">
-                        <a href="{{ route('dashboard-packing') }}" class="home-item">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <div class="d-flex h-100 flex-column justify-content-between">
-                                        <img src="{{ asset('dist/img/packing.png') }}" class="img-fluid p-3"
-                                            alt="qr code image">
-                                        <p class="text-center fw-bold text-uppercase text-dark">Packing</p>
+                    @ppic
+                        <div class="col-md-2 col-3">
+                            <a href="{{ route('dashboard-ppic') }}" class="home-item">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex h-100 flex-column justify-content-between">
+                                            <img src="{{ asset('dist/img/ppic.png') }}" class="img-fluid p-3"
+                                                alt="qr code image">
+                                            <p class="text-center fw-bold text-uppercase text-dark">PPIC</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </a>
-                    </div>
+                            </a>
+                        </div>
+                    @endppic
+
+                    @packing
+                        <div class="col-md-2 col-3">
+                            <a href="{{ route('dashboard-packing') }}" class="home-item">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex h-100 flex-column justify-content-between">
+                                            <img src="{{ asset('dist/img/packing.png') }}" class="img-fluid p-3"
+                                                alt="qr code image">
+                                            <p class="text-center fw-bold text-uppercase text-dark">Packing</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    @endpacking
+
+                    @ga
+                        <div class="col-md-2 col-3">
+                            <a href="{{ route('dashboard-ga') }}" class="home-item">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex h-100 flex-column justify-content-between">
+                                            <img src="{{ asset('dist/img/general_affair.png') }}" class="img-fluid p-3" alt="qr code image">
+                                            <p class="text-center fw-bold text-uppercase text-dark">G.A.I.S</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    @endga
 
                     <div class="col-md-2 col-3">
                         <a href="{{ route('logout') }}"

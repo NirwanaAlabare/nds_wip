@@ -756,6 +756,9 @@
                         }
                     }
                 }, error: function (jqXHR) {
+                    document.getElementById("loading").classList.add("d-none");
+                    $("input[type=submit][clicked=true]").removeAttr('disabled');
+
                     // Error Response
 
                     let res = jqXHR.responseJSON;

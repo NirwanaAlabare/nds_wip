@@ -59,5 +59,21 @@ class AppServiceProvider extends ServiceProvider
         Blade::if('hr', function () {
             return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "hr");
         });
+
+        Blade::if('warehouse', function () {
+            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "warehouse");
+        });
+
+        Blade::if('ppic', function () {
+            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "ppic");
+        });
+
+        Blade::if('packing', function () {
+            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "packing" || auth()->user()->type == "ppic");
+        });
+
+        Blade::if('ga', function () {
+            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "ga");
+        });
     }
 }

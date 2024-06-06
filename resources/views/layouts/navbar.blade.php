@@ -576,6 +576,47 @@
                             </li>
                         </ul>
                     </li>
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'packing-packing-in' ? 'active' : '' }}">Packing
+                            In</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('packing-in') }}"
+                                    class="dropdown-item {{ $subPage == 'packing-in' ? 'active' : '' }}">
+                                    Packing In <i class="fa-solid fa-people-carry fa-sm"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'packing-packing-out' ? 'active' : '' }}">Packing
+                            Out</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('packing-out') }}"
+                                    class="dropdown-item {{ $subPage == 'packing-out' ? 'active' : '' }}">
+                                    Packing Out <i class="fa-solid fa-compress fa-sm"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'packing-master-karton' ? 'active' : '' }}">Master</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('master-karton') }}"
+                                    class="dropdown-item {{ $subPage == 'master-karton' ? 'active' : '' }}">
+                                    Master Karton <i class="fa-solid fa-boxes fa-sm"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                 @endif
 
                 @if ($page == 'dashboard-ppic')
@@ -588,6 +629,36 @@
                                 <a href="{{ route('master-so') }}"
                                     class="dropdown-item {{ $subPage == 'ppic-master-master-so' ? 'active' : '' }}">
                                     Master Sales Order <i class="fa-solid fa-list-ul fa-sm"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endif
+
+
+                @if ($page == 'dashboard-ga')
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'ga-pengajuan' ? 'active' : '' }}">Pengajuan</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('pengajuan-bahan-bakar') }}"
+                                    class="dropdown-item {{ $subPage == 'ga-pengajuan-bahan-bakar' ? 'active' : '' }}">
+                                    Bahan Bakar <i class="fa-solid fa-gas-pump fa-sm"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'ga-approval' ? 'active' : '' }}">Approval</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('approval-bahan-bakar') }}"
+                                    class="dropdown-item {{ $subPage == 'ga-approval-bahan-bakar' ? 'active' : '' }}">
+                                    Bahan Bakar <i class="fa-solid fa-gas-pump fa-sm"></i>
                                 </a>
                             </li>
                         </ul>

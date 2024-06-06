@@ -7,6 +7,7 @@ use App\Models\Rack;
 use App\Models\Stocker;
 use App\Models\Marker;
 use App\Models\DCIn;
+use App\Models\FormCutInput;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
 
@@ -67,7 +68,6 @@ class DashboardController extends Controller
     }
 
     // Cutting
-    // Marker
     public function cutting(Request $request) {
         ini_set("max_execution_time", 0);
         ini_set("memory_limit", '2048M');
@@ -86,39 +86,201 @@ class DashboardController extends Controller
                 $year = $request->year;
             }
 
-            $marker = FormCutInput::selectRaw("
+            $form = FormCutInput::selectRaw("
                     marker_input.buyer,
                     marker_input.act_costing_ws,
                     marker_input.style,
                     marker_input.color,
-                    marker_input.tgl_cutting,
                     marker_input.kode,
                     marker_input.urutan_marker,
                     marker_input.panel,
-                    COALESCE(CONCAT(master_part.nama_part, ' / ', CONCAT(COALESCE(part_detail.cons, '-'), ' ', COALESCE(UPPER(part_detail.unit), '-')), ' / ', CONCAT(COALESCE(master_secondary.tujuan, '-'), ' - ', COALESCE(master_secondary.proses, '-')) ), '-') nama_part
+                    COALESCE(form_cut_input.tgl_form_cut, '-') tgl_form_cut,
+                    COALESCE(form_cut_input.no_form, '-') no_form,
+                    COALESCE(form_cut_input.no_cut, '-') no_cut,
+                    COALESCE(form_cut_input.total_lembar, '-') total_lembar,
+                    COALESCE(form_cut_input_detail.id_roll, '-') id_roll,
+                    COALESCE(form_cut_input_detail.id_item, '-') id_item,
+                    COALESCE(LEFT(form_cut_input_detail.detail_item, 10), '-') detail_item,
+                    COALESCE(form_cut_input_detail.group_roll, '-') group_roll,
+                    COALESCE(form_cut_input_detail.lot, '-') lot,
+                    COALESCE(form_cut_input_detail.roll, '-') roll,
+                    COALESCE(form_cut_input_detail.qty, '-') qty,
+                    COALESCE(form_cut_input_detail.unit, '-') unit,
+                    COALESCE(form_cut_input_detail.total_pemakaian_roll, '-') total_pemakaian_roll,
+                    COALESCE(form_cut_input_detail.piping, '-') piping,
+                    COALESCE(form_cut_input_detail.short_roll, '-') short_roll,
+                    COALESCE(form_cut_input_detail.remark, '-') remark
                 ")->
-                leftJoin("part", function ($join) {
-                    $join->on("part.act_costing_id", "=", "marker_input.act_costing_id");
-                    $join->on("part.panel", "=", "marker_input.panel");
-                })->
-                leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
-                leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
-                leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->
-                whereRaw("(MONTH(marker_input.tgl_cutting) = '".$month."')")->
-                whereRaw("(YEAR(marker_input.tgl_cutting) = '".$year."')")->
-                groupBy("marker_input.act_costing_id", "marker_input.buyer", "marker_input.style", "marker_input.color", "marker_input.panel", "marker_input.id", "part_detail.id")->
+                leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+                leftJoin("form_cut_input_detail", "form_cut_input_detail.no_form_cut_input", "=", "form_cut_input.no_form")->
+                whereRaw("(MONTH(form_cut_input.tgl_form_cut) = '".$month."')")->
+                whereRaw("(YEAR(form_cut_input.tgl_form_cut) = '".$year."')")->
+                groupBy("marker_input.id", "form_cut_input.id", "form_cut_input_detail.id")->
                 orderBy("marker_input.tgl_cutting", "desc")->
                 orderBy("marker_input.buyer", "asc")->
                 orderBy("marker_input.act_costing_ws", "asc")->
                 orderBy("marker_input.style", "asc")->
                 orderBy("marker_input.color", "asc")->
                 orderBy("marker_input.panel", "asc")->
-                orderBy("marker_input.urutan_marker", "asc");
+                orderBy("marker_input.urutan_marker", "asc")->
+                orderBy("form_cut_input.no_cut", "asc")->
+                orderBy("form_cut_input_detail.id", "asc");
 
-            return DataTables::eloquent($marker)->toJson();
+            return DataTables::eloquent($form)->toJson();
         }
 
-        return view('dashboard', ['page' => 'dashboard-marker', 'months' => $months, 'years' => $years]);
+        return view('dashboard', ['page' => 'dashboard-cutting', 'months' => $months, 'years' => $years]);
+    }
+
+    // Cutting Qty
+    public function cuttingQty(Request $request) {
+        $month = date("m");
+        $year = date("Y");
+
+        if ($request->month) {
+            $month = $request->month;
+        }
+        if ($request->year) {
+            $year = $request->year;
+        }
+
+        $dataQty = DB::select("
+            SELECT
+                FLOOR( SUM( CASE WHEN `status` = 'SPREADING' AND cutting_plan_id IS NULL THEN 1 ELSE 0 END ) ) pending,
+                FLOOR( SUM( CASE WHEN `status` = 'SPREADING' AND cutting_plan_id IS NULL THEN total_lembar ELSE 0 END ) ) pending_total,
+                FLOOR( SUM( CASE WHEN `status` = 'SPREADING' AND cutting_plan_id IS NOT NULL THEN 1 ELSE 0 END ) ) plan,
+                FLOOR( SUM( CASE WHEN `status` = 'SPREADING' AND cutting_plan_id IS NOT NULL THEN total_lembar ELSE 0 END ) ) plan_total,
+                FLOOR( SUM( CASE WHEN `status` != 'SPREADING' AND `status` != 'SELESAI PENGERJAAN' THEN 1 ELSE 0 END ) ) progress,
+                FLOOR( SUM( CASE WHEN `status` != 'SPREADING' AND `status` != 'SELESAI PENGERJAAN' THEN total_lembar ELSE 0 END ) ) progress_total,
+                FLOOR( SUM( CASE WHEN `status` = 'SELESAI PENGERJAAN' THEN 1 ELSE 0 END ) ) finished,
+                FLOOR( SUM( CASE WHEN `status` = 'SELESAI PENGERJAAN' THEN total_lembar ELSE 0 END ) ) finished_total
+            FROM
+                (
+                    SELECT
+                        form_cut_input.id form_id,
+                        form_cut_input.`status`,
+                        COALESCE(form_cut_input.total_lembar, form_cut_input.qty_ply, 0) total_lembar,
+                        cutting_plan.id cutting_plan_id
+                    FROM
+                        form_cut_input
+                        LEFT JOIN cutting_plan ON cutting_plan.no_form_cut_input = form_cut_input.no_form
+                    WHERE
+                        ( MONTH ( form_cut_input.tgl_form_cut ) = '".$month."' ) AND ( YEAR ( form_cut_input.tgl_form_cut ) = '".$year."' ) OR
+                        ( MONTH ( form_cut_input.waktu_selesai ) = '".$month."' ) AND ( YEAR ( form_cut_input.waktu_selesai ) = '".$year."' )
+                    GROUP BY
+                        form_cut_input.id
+                ) frm
+        ");
+
+        return $dataQty;
+    }
+
+    // Stocker
+    public function stocker(Request $request) {
+        ini_set("max_execution_time", 0);
+        ini_set("memory_limit", '2048M');
+
+        $months = [['angka' => 1,'nama' => 'Januari'],['angka' => 2,'nama' => 'Februari'],['angka' => 3,'nama' => 'Maret'],['angka' => 4,'nama' => 'April'],['angka' => 5,'nama' => 'Mei'],['angka' => 6,'nama' => 'Juni'],['angka' => 7,'nama' => 'Juli'],['angka' => 8,'nama' => 'Agustus'],['angka' => 9,'nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
+        $years = array_reverse(range(1999, date('Y')));
+
+        if ($request->ajax()) {
+            $month = date("m");
+            $year = date("Y");
+
+            if ($request->month) {
+                $month = $request->month;
+            }
+            if ($request->year) {
+                $year = $request->year;
+            }
+
+            $stocker = MarkerDetail::selectRaw("
+                    marker_input.buyer,
+                    marker_input.act_costing_ws,
+                    marker_input.style,
+                    marker_input.color,
+                    marker_input.kode,
+                    marker_input.urutan_marker,
+                    marker_input.panel,
+                    marker_input_detail.so_det_id,
+                    MAX(form_cut_input.no_form) no_form,
+                    MAX(stocker_input.id_qr_stocker) id_qr_stocker,
+                    COALESCE(stocker_input.ratio, marker_input_detail.ratio) ratio,
+                    form_cut_input.no_cut,
+                    MAX(stocker_input.id) stocker_id,
+                    MAX(stocker_input.shade) shade,
+                    MAX(stocker_input.group_stocker) group_stocker,
+                    MAX(stocker_input.qty_ply) qty_ply,
+                    MAX(CAST(stocker_input.range_akhir as UNSIGNED)) range_akhir,
+                    modify_size_qty.difference_qty
+                ")->
+                leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->
+                leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
+                leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
+                leftJoin("stocker_input", function ($join) {
+                    $join->on("stocker_input.form_cut_id", "=", "form_cut_input.id");
+                    $join->on("stocker_input.so_det_id", "=", "marker_input_detail.so_det_id");
+                })->
+                leftJoin("modify_size_qty", function ($join) {
+                    $join->on("modify_size_qty.no_form", "=", "form_cut_input.no_form");
+                    $join->on("modify_size_qty.so_det_id", "=", "marker_input_detail.so_det_id");
+                })->
+                where("marker_input.act_costing_ws", $dataSpreading->ws)->
+                where("marker_input.color", $dataSpreading->color)->
+                where("marker_input.panel", $dataSpreading->panel)->
+                where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
+                where("part_form.part_id", $dataSpreading->part_id)->
+                // where("marker_input_detail.ratio", ">", "0")->
+                groupBy("form_cut_input.no_form", "form_cut_input.no_cut", "marker_input_detail.so_det_id")->
+                orderBy("form_cut_input.no_cut", "desc")->
+                orderBy("form_cut_input.no_form", "desc")->
+                get();
+
+            $stocker = Stocker::selectRaw("
+                    marker_input.buyer,
+                    marker_input.act_costing_ws,
+                    marker_input.style,
+                    marker_input.color,
+                    marker_input.kode,
+                    marker_input.urutan_marker,
+                    marker_input.panel,
+                    COALESCE(form_cut_input.tgl_form_cut, '-') tgl_form_cut,
+                    COALESCE(form_cut_input.no_form, '-') no_form,
+                    COALESCE(form_cut_input.no_cut, '-') no_cut,
+                    COALESCE(form_cut_input.total_lembar, '-') total_lembar,
+                    COALESCE(form_cut_input_detail.id_roll, '-') id_roll,
+                    COALESCE(form_cut_input_detail.id_item, '-') id_item,
+                    COALESCE(LEFT(form_cut_input_detail.detail_item, 10), '-') detail_item,
+                    COALESCE(form_cut_input_detail.group_roll, '-') group_roll,
+                    COALESCE(form_cut_input_detail.lot, '-') lot,
+                    COALESCE(form_cut_input_detail.roll, '-') roll,
+                    COALESCE(form_cut_input_detail.qty, '-') qty,
+                    COALESCE(form_cut_input_detail.unit, '-') unit,
+                    COALESCE(form_cut_input_detail.total_pemakaian_roll, '-') total_pemakaian_roll,
+                    COALESCE(form_cut_input_detail.piping, '-') piping,
+                    COALESCE(form_cut_input_detail.short_roll, '-') short_roll,
+                    COALESCE(form_cut_input_detail.remark, '-') remark
+                ")->
+                leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker.form_cut_id")->
+                leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+                leftJoin("form_cut_input_detail", "form_cut_input_detail.no_form_cut_input", "=", "form_cut_input.no_form")->
+                whereRaw("(MONTH(form_cut_input.tgl_form_cut) = '".$month."')")->
+                whereRaw("(YEAR(form_cut_input.tgl_form_cut) = '".$year."')")->
+                groupBy("marker_input.id", "form_cut_input.id", "form_cut_input_detail.id")->
+                orderBy("marker_input.tgl_cutting", "desc")->
+                orderBy("marker_input.buyer", "asc")->
+                orderBy("marker_input.act_costing_ws", "asc")->
+                orderBy("marker_input.style", "asc")->
+                orderBy("marker_input.color", "asc")->
+                orderBy("marker_input.panel", "asc")->
+                orderBy("marker_input.urutan_marker", "asc")->
+                orderBy("form_cut_input.no_cut", "asc")->
+                orderBy("form_cut_input_detail.id", "asc");
+
+            return DataTables::eloquent($dc)->toJson();
+        }
+
+        return view('dashboard', ['page' => 'dashboard-dc', 'months' => $months, 'years' => $years]);
     }
 
     // DC

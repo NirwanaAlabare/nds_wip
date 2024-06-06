@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\PPICMasterSo;
 use App\Models\OutputPacking;
 
-class PackingTransferGarmentController extends Controller
+class PackingPackingInController extends Controller
 {
     public function index(Request $request)
     {
@@ -20,34 +20,94 @@ class PackingTransferGarmentController extends Controller
         if ($request->ajax()) {
             $additionalQuery = '';
             $data_input = DB::select("
-                SELECT
-                a.no_trans,
-                concat((DATE_FORMAT(tgl_trans,  '%d')), '-', left(DATE_FORMAT(tgl_trans,  '%M'),3),'-',DATE_FORMAT(tgl_trans,  '%Y')
-                ) tgl_trans_fix,
-                a.line,
-                a.po,
-                m.ws,
-                m.color,
-                m.size,
-                a.qty,
-                if(a.qty - c.qty_in = '0','Full','-') status,
-                a.id
-                from packing_trf_garment a
-                inner join ppic_master_so p on a.id_ppic_master_so = p.id
-                inner join master_sb_ws m on a.id_so_det = m.id_so_det
-                left join
-                    (
-                    select id_trf_garment, sum(qty) qty_in from packing_packing_in group by 							id_trf_garment
-                    ) c on a.id = c.id_trf_garment
-                where tgl_trans >= '$tgl_awal' and tgl_trans <= '$tgl_akhir'
+            select
+            a.no_trans,
+            concat((DATE_FORMAT(a.tgl_penerimaan,  '%d')), '-', left(DATE_FORMAT(a.tgl_penerimaan,  '%M'),3),'-',DATE_FORMAT(a.tgl_penerimaan,  '%Y')
+            ) tgl_penerimaan_fix,
+            b.no_trans no_trf_garment,
+            b.line,
+            p.barcode,
+            p.po,
+            p.dest,
+            a.qty,
+            m.ws,
+            m.color,
+            m.size,
+            a.created_at,
+            a.created_by
+            from packing_packing_in a
+            inner join packing_trf_garment b on a.id_trf_garment = b.id
+            inner join ppic_master_so p on a.id_ppic_master_so = p.id
+            inner join master_sb_ws m on p.id_so_det = m.id_so_det
+                where a.tgl_penerimaan >= '$tgl_awal' and a.tgl_penerimaan <= '$tgl_akhir'
                 order by a.created_at desc
             ");
 
             return DataTables::of($data_input)->toJson();
         }
 
-        return view('packing.packing_transfer_garment', ['page' => 'dashboard-packing', "subPageGroup" => "packing-transfer-garment", "subPage" => "transfer-garment"]);
+        $data_no_trans = DB::select("
+        select data_cek.no_trans isi , data_cek.no_trans tampil
+        from
+            (
+            SELECT
+            a.*,
+            b.qty_in
+            from packing_trf_garment a
+            left join
+                (
+                select id_trf_garment,sum(qty) qty_in from packing_packing_in
+                group by id_trf_garment
+                ) b on a.id = b.id_trf_garment
+            having a.qty - coalesce(b.qty_in,0) != '0'
+            ) data_cek
+            group by data_cek.no_trans
+        ");
+        return view(
+            'packing.packing_in',
+            [
+                'page' => 'dashboard-packing', "subPageGroup" => "packing-packing-in",
+                "subPage" => "packing-in",
+                "data_no_trans" => $data_no_trans
+            ]
+        );
     }
+
+
+    public function show_preview_packing_in(Request $request)
+    {
+        $user = Auth::user()->name;
+        if ($request->ajax()) {
+
+            $data_preview = DB::select("
+            SELECT
+            a.id,
+            a.line,
+			a.qty,
+            b.qty_in,
+			m.ws,
+			m.color,
+			m.size,
+			p.barcode,
+			p.dest,
+		    p.po,
+            'PCS' unit
+            from packing_trf_garment a
+            left join
+                (
+                select id_trf_garment,sum(qty) qty_in from packing_packing_in
+                group by id_trf_garment
+                ) b on a.id = b.id_trf_garment
+						inner join ppic_master_so  p on a.id_ppic_master_so = p.id
+						inner join master_sb_ws m on p.id_so_det = m.id_so_det
+						where a.no_trans = '" . $request->cbono . "'
+            having a.qty - coalesce(b.qty_in,0) != '0'
+            ");
+
+            return DataTables::of($data_preview)->toJson();
+        }
+    }
+
 
     public function create(Request $request)
     {
@@ -93,11 +153,11 @@ class PackingTransferGarmentController extends Controller
         left join master_sb_ws m on a.so_det_id = m.id_so_det
         left join
             (
-                select sum(qty_tmp_trf_garment) tot_tmp,id_ppic_master_so from packing_trf_garment_tmp group by id_ppic_master_so
+                select sum(qty_tmp_trf_garment) tot_tmp,id_ppic_master_so from packing_trf_garment_tmp
             ) tmp on p.id = tmp.id_ppic_master_so
         left join
             (
-                select sum(qty) tot_in,id_ppic_master_so from packing_trf_garment group by id_ppic_master_so
+                select sum(qty) tot_in,id_ppic_master_so from packing_trf_garment
             ) ptg on p.id = ptg.id_ppic_master_so
         where sewing_line = '" . $request->cbo_line . "' and p.po = '" . $request->cbo_po . "'
         group by a.so_det_id, p.po, p.barcode
@@ -112,146 +172,63 @@ class PackingTransferGarmentController extends Controller
         return $html;
     }
 
-    public function store_tmp_trf_garment(Request $request)
-    {
-        $user = Auth::user()->name;
-        $timestamp = Carbon::now();
-        $validatedRequest = $request->validate([
-            "cboline" => "required",
-            "cbopo" => "required",
-            "cbogarment" => "required",
-            "txtqty" => "required",
-        ]);
-
-        // $cek_data = DB::select("
-        // select * from ppic_master_so p
-        // where id = '" . $validatedRequest['cbogarment'] . "'
-        // ");
-
-        // $barcode = $cek_data[0]->barcode;
-        // $id_so_det = $cek_data[0]->id_so_det;
-
-        $insert_tmp = DB::insert("
-            insert into packing_trf_garment_tmp
-            (id_ppic_master_so,qty_tmp_trf_garment,line,created_by,created_at,updated_at)
-            values
-            (
-                '" . $validatedRequest['cbogarment'] . "',
-                '" . $validatedRequest['txtqty'] . "',
-                '" . $validatedRequest['cboline'] . "',
-                '$user',
-                '$timestamp',
-                '$timestamp'
-            )
-            ");
-
-        if ($insert_tmp) {
-            return array(
-                'icon' => 'benar',
-                'msg' => 'Data Produk Berhasil Ditambahkan',
-            );
-        } else {
-            return array(
-                'icon' => 'salah',
-                'msg' => 'Tidak ada yang ditambahkan',
-            );
-        }
-    }
-
-    public function show_tmp_trf_garment(Request $request)
-    {
-        $user = Auth::user()->name;
-        if ($request->ajax()) {
-
-            $data_list = DB::select("
-            select
-            a.id_tmp_trf_garment,
-            line,
-            po,
-            qty_tmp_trf_garment,
-            m.ws,
-            m.color,
-            m.size
-            from packing_trf_garment_tmp a
-            inner join ppic_master_so b on a.id_ppic_master_so = b.id
-            inner join master_sb_ws m on b.id_so_det = m.id_so_det
-            where a.created_by = '$user'
-            ");
-
-            return DataTables::of($data_list)->toJson();
-        }
-    }
-
-    public function hapus_tmp_trf_garment(Request $request)
-    {
-        $id = $request->id;
-
-        $del_tmp =  DB::delete("
-        delete from packing_trf_garment_tmp where id_tmp_trf_garment = '$id'");
-    }
-
     public function store(Request $request)
     {
-        $user = Auth::user()->name;
         $timestamp = Carbon::now();
-        $tgltrans = date('Y-m-d');
-        $tahun = date('Y', strtotime($tgltrans));
-        $bulan = date('m', strtotime($tgltrans));
-        $tgl = date('d', strtotime($tgltrans));
-        $no = date('dmy', strtotime($tgltrans));
-        $kode = 'SEW/OUT/';
+        $user = Auth::user()->name;
+        $JmlArray               = $_POST['txtqty'];
+        $id_trf_garmentArray    = $_POST['id_trf_garment'];
+        $tgl_penerimaan = date('Y-m-d');
+
+        $tahun = date('Y', strtotime($tgl_penerimaan));
+        $no = date('my', strtotime($tgl_penerimaan));
+        $kode = 'PCK/IN/';
         $cek_nomor = DB::select("
-        select max(right(no_trans,1))nomor from packing_trf_garment where year(tgl_trans) = '" . $tahun . "'
-        and month(tgl_trans) = '" . $bulan . "'
-        and day(tgl_trans) = '" . $tgl . "'
+        select max(right(no_trans,5))nomor from packing_packing_in where year(tgl_penerimaan) = '" . $tahun . "'
         ");
         $nomor_tr = $cek_nomor[0]->nomor;
         $urutan = (int)($nomor_tr);
         $urutan++;
-        $kodepay = sprintf("%01s", $urutan);
+        $kodepay = sprintf("%05s", $urutan);
 
         $kode_trans = $kode . $no . '/' . $kodepay;
 
-        $cek = DB::select("select * from packing_trf_garment_tmp where created_by = '$user'");
 
-        $cekinput = $cek[0]->id_tmp_trf_garment;
+        foreach ($JmlArray as $key => $value) {
+            if ($value != '0' && $value != '') {
+                $txtqty         = $JmlArray[$key];
+                $txtid_trf_garment   = $id_trf_garmentArray[$key]; {
 
-        if ($cekinput == '') {
+                    $cek = DB::select("select * from packing_trf_garment where id = '$txtid_trf_garment'");
+                    $id_ppic_master_so = $cek[0]->id_ppic_master_so;
+                    $id_so_det = $cek[0]->id_so_det;
+                    $line = $cek[0]->line;
+                    $po = $cek[0]->po;
+                    $barcode = $cek[0]->barcode;
+                    $dest = $cek[0]->dest;
+
+
+                    $insert_penerimaan =  DB::insert("
+        insert into packing_packing_in
+        (id_trf_garment,no_trans,tgl_penerimaan,id_ppic_master_so,id_so_det,qty,line,po,barcode,dest,created_by,created_at,updated_at)
+        values('$txtid_trf_garment','$kode_trans','$tgl_penerimaan','$id_ppic_master_so','$id_so_det','$txtqty','$line','$po','$barcode','$dest','$user','$timestamp','$timestamp')");
+                }
+            }
+        }
+        if ($insert_penerimaan != '') {
             return array(
-                'icon' => 'salah',
-                'msg' => 'Tidak ada yang disimpan',
+                "status" => 900,
+                "message" => 'No Transaksi :
+                 ' . $kode_trans . '
+                 Sudah Terbuat',
+                "additional" => [],
             );
         } else {
-            $insert = DB::insert(
-                "
-                insert into packing_trf_garment
-                (no_trans,tgl_trans,id_ppic_master_so,id_so_det,qty,line,po,barcode,dest,created_by,created_at,updated_at)
-                SELECT '$kode_trans','$tgltrans',
-                a.id_ppic_master_so,
-                p.id_so_det,
-                a.qty_tmp_trf_garment,
-                a.line,
-                p.po,
-                p.barcode,
-                p.dest,
-                '$user',
-                '$timestamp',
-                '$timestamp'
-                from packing_trf_garment_tmp a
-                inner join ppic_master_so p on a.id_ppic_master_so = p.id
-                where a.created_by = '$user'
-                "
+            return array(
+                "status" => 200,
+                "message" => 'Tidak ada Data',
+                "additional" => [],
             );
-            if ($insert) {
-                $delete =  DB::delete(
-                    "DELETE FROM packing_trf_garment_tmp where created_by = '$user'"
-                );
-                return array(
-                    'icon' => 'benar',
-                    'title' => $kode_trans,
-                    'msg' => 'No Transaksi Sudah Terbuat',
-                );
-            }
         }
     }
 

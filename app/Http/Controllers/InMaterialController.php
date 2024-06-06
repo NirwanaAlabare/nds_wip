@@ -193,7 +193,8 @@ class InMaterialController extends Controller
   inner join so on jd.id_so = so.id
   inner join act_costing ac on so.id_cost = ac.id 
     inner join mastersupplier ms on ms.id_supplier = ph.id_supplier
-  where app = 'A' and podate >= '2022-10-01' and jenis = 'M' and ms.id_supplier = '" . $request->txt_supp . "' group by ph.id) a left join (select b.no_po,sum(COALESCE(qty_good,0) + COALESCE(qty_reject,0)) qty_bpb from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.no_po != '' GROUP BY b.no_po) b on b.no_po = a.isi where (qty - COALESCE(qty_bpb,0)) > 0");
+  where app = 'A' and podate >= '2022-10-01' and jenis = 'M' and ms.id_supplier = '" . $request->txt_supp . "' group by ph.id) a left join (select b.no_po,sum(COALESCE(qty_good,0) + COALESCE(qty_reject,0)) qty_bpb from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.no_po != '' GROUP BY b.no_po) b on b.no_po = a.isi");
+  //where (qty - COALESCE(qty_bpb,0)) > 0
 
         $html = "<option value=''>Pilih PO</option>";
 

@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
-class IsPacking
+class IsPpic
 {
     /**
      * Handle an incoming request.
@@ -17,10 +17,10 @@ class IsPacking
      */
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::user()) {
+        if (Auth::user() &&  (Auth::user()->type == 'admin' || Auth::user()->type == 'ppic')) {
             return $next($request);
         }
 
-        return redirect('home')->with('error', 'You have not packing access');
+        return redirect('home')->with('error', 'You have not ppic access');
     }
 }
