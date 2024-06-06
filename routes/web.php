@@ -70,6 +70,7 @@ use App\Http\Controllers\KonfPemasukanController;
 use App\Http\Controllers\KonfPengeluaranController;
 use App\Http\Controllers\PackingTransferGarmentController;
 use App\Http\Controllers\PPIC_MasterSOController;
+use App\Http\Controllers\TransferBpbController;
 
 /*
 |--------------------------------------------------------------------------
@@ -784,6 +785,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('konfirmasi-pengeluaran');
         Route::get('/approve-pengeluaran-all', 'approvepengeluaranall')->name('approve-pengeluaran-all');
         Route::get('/get-data-pengeluaran', 'getdatapengeluaran')->name('get-data-pengeluaran');
+    });
+
+    //transfer bpb
+    Route::controller(TransferBpbController::class)->prefix("transfer-bpb")->middleware('warehouse')->group(function () {
+        Route::get('/', 'index')->name('transfer-bpb');
+        Route::get('/create', 'create')->name('create-transfer-bpb');
+        Route::post('/store', 'store')->name('save-transferbpb');
+        Route::get('/cancel-transfer', 'canceltransfer')->name('cancel-transfer');
     });
 
 
