@@ -40,7 +40,9 @@ class DashboardController extends Controller
                     marker_input.tgl_cutting,
                     marker_input.kode,
                     marker_input.urutan_marker,
+                    marker_input.gelar_qty,
                     marker_input.panel,
+                    GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' / ') marker_details,
                     COALESCE(CONCAT(master_part.nama_part, ' / ', CONCAT(COALESCE(part_detail.cons, '-'), ' ', COALESCE(UPPER(part_detail.unit), '-')), ' / ', CONCAT(COALESCE(master_secondary.tujuan, '-'), ' - ', COALESCE(master_secondary.proses, '-')) ), '-') nama_part
                 ")->
                 leftJoin("part", function ($join) {
@@ -50,8 +52,12 @@ class DashboardController extends Controller
                 leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
                 leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
                 leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->
+                leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
+                leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
+                leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
                 whereRaw("(MONTH(marker_input.tgl_cutting) = '".$month."')")->
                 whereRaw("(YEAR(marker_input.tgl_cutting) = '".$year."')")->
+                whereRaw("marker_input_detail.ratio > 0")->
                 groupBy("marker_input.act_costing_id", "marker_input.buyer", "marker_input.style", "marker_input.color", "marker_input.panel", "marker_input.id", "part_detail.id")->
                 orderBy("marker_input.tgl_cutting", "desc")->
                 orderBy("marker_input.buyer", "asc")->

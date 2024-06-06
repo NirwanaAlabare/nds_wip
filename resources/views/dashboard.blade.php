@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/datatables-rowgroup/css/rowGroup.bootstrap4.min.css') }}">
     <!-- Apex Charts -->
     <link rel="stylesheet" href="{{ asset('plugins/apexcharts/apexcharts.css') }}">
     <!-- Select2 -->
@@ -2384,6 +2385,8 @@
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-rowgroup/js/dataTables.rowGroup.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-rowgroup/js/rowGroup.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-rowsgroup/dataTables.rowsGroup.js') }}"></script>
     <!-- Apex Charts -->
     <script src="{{ asset('plugins/apexcharts/apexcharts.min.js') }}"></script>
@@ -2467,13 +2470,19 @@
                             data: 'color',
                         },
                         {
+                            data: 'panel',
+                        },
+                        {
                             data: 'kode',
                         },
                         {
                             data: 'urutan_marker',
                         },
                         {
-                            data: 'panel',
+                            data: 'gelar_qty',
+                        },
+                        {
+                            data: 'marker_details',
                         },
                         {
                             data: 'nama_part',
@@ -2481,7 +2490,7 @@
                     ],
                     columnDefs: [
                         {
-                            targets: [0 ,1 ,2 ,3 ,4 ,5 , 6, 7],
+                            targets: [0 ,1 ,2 ,3 ,4 ,5 , 6, 7, 8, 9],
                             className: "text-nowrap align-middle"
                         },
                         {
@@ -2489,16 +2498,10 @@
                             className: "text-nowrap colorize"
                         }
                     ],
-                    rowsGroup: [
-                        0,
-                        1,
-                        2,
-                        3,
-                        4,
-                        5,
-                        6,
-                        7
-                    ],
+                    // rowGroup: {
+                    //     dataSrc: ['tgl_cutting', 'buyer', 'act_costing_ws', 'style', 'color', 'panel', 'kode', 'urutan_marker', 'gelar_qty', 'marker_details',]
+                    // },
+                    rowsGroup: [0 ,1 ,2 ,3 ,4 ,5 , 6, 7, 8, 9]
                     // rowCallback: function( row, data, index ) {
                     //     if (data['line'] != '-') {
                     //         $('td.colorize', row).css('color', '#2e8a57');
@@ -2627,14 +2630,17 @@
                     },
                     columns: [
                         {
+                            data: 'tgl_form_cut',
+                        },
+                        {
                             data: 'buyer',
                         },
                         {
                             data: 'act_costing_ws',
                         },
-                        // {
-                        //     data: 'style',
-                        // },
+                        {
+                            data: 'style',
+                        },
                         {
                             data: 'color',
                         },
@@ -2646,9 +2652,6 @@
                         },
                         {
                             data: 'panel',
-                        },
-                        {
-                            data: 'tgl_form_cut',
                         },
                         {
                             data: 'no_form',

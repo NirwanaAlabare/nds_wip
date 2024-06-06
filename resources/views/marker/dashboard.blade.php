@@ -96,9 +96,11 @@
                         <th>No. WS</th>
                         <th>Style</th>
                         <th>Color</th>
+                        <th>Panel</th>
                         <th>No. Marker</th>
                         <th>Urutan</th>
-                        <th>Panel</th>
+                        <th>Qty Gelar</th>
+                        <th>Ratio</th>
                         <th>Part</th>
                     </tr>
                 </thead>
