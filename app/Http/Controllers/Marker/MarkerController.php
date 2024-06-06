@@ -355,7 +355,10 @@ class MarkerController extends Controller
         order by urutan asc");
 
         $data_marker_tracking = DB::select("
-        select no_form,
+        select
+        a.id form_cut_id,
+        no_form,
+        a.tipe_form_cut tipe_form,
         DATE_FORMAT(tgl_form_cut, '%d-%m-%Y') tgl_form_cut,
         UPPER(u.name) no_meja,
         DATE_FORMAT(waktu_mulai, '%d-%m-%Y %T') waktu_mulai,
@@ -400,6 +403,8 @@ class MarkerController extends Controller
                     $bgColor = '#c5e0fa';
                 }
 
+                $actButton = '';
+
                 switch ($track->status) {
                     case "PENGERJAAN PILOT MARKER":
                     case "PENGERJAAN PILOT DETAIL":
@@ -408,14 +413,53 @@ class MarkerController extends Controller
                     case "PENGERJAAN FORM CUTTING DETAIL":
                     case "PENGERJAAN FORM CUTTING SPREAD":
                         $textColor = '#2243d6';
+
+                        if ($track->tipe_form_cut == 'MANUAL') {
+                            $actButton = "
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    <a class='btn btn-primary btn-sm' href='".route('process-manual-form-cut')."/".$track->form_cut_id."' data-bs-toggle='tooltip' target='_blank'>
+                                        <i class='fa fa-search-plus'></i>
+                                    </a>
+                                </div>
+                            ";
+                        } else if ($track->tipe_form_cut == 'PILOT') {
+                            $actButton = "
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    <a class='btn btn-primary btn-sm' href='".route('process-pilot-form-cut')."/".$track->form_cut_id."' data-bs-toggle='tooltip' target='_blank'>
+                                        <i class='fa fa-search-plus'></i>
+                                    </a>
+                                </div>
+                            ";
+                        } else {
+                            $actButton = "
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    <a class='btn btn-primary btn-sm' href='".route('process-manual-form-cut')."/".$track->form_cut_id."' data-bs-toggle='tooltip' target='_blank'>
+                                        <i class='fa fa-search-plus'></i>
+                                    </a>
+                                </div>
+                            ";
+                        }
+
                         break;
                     case "SELESAI PENGERJAAN":
                         $textColor = '#087521';
+
+                        $actButton = "
+                            <div class='d-flex gap-1 justify-content-center'>
+                                <a class='btn btn-primary btn-sm' href='".route('show-stocker')."/".$track->form_cut_id."' data-bs-toggle='tooltip' target='_blank'>
+                                    <i class='fa fa-search-plus'></i>
+                                </a>
+                            </div>
+                        ";
+
                         break;
                 }
 
                 $html_tracking .= "
                     <tr style='".($bgColor ? "background-color:".$bgColor.";border:0.15px solid #d0d0d0;" : "")." ".($textColor ? "color:".$textColor.";" : "")."'>
+                        <td class='text-nowrap' style='font-weight: 600;'>
+                            ".$actButton."
+                        </td>
                         <td class='text-nowrap' style='font-weight: 600;'>$track->tgl_form_cut</td>
                         <td class='text-nowrap' style='font-weight: 600;'>$track->no_form</td>
                         <td class='text-nowrap' style='font-weight: 600;'>" . ($track->no_meja ? $track->no_meja : '-') . "</td>
@@ -600,6 +644,7 @@ class MarkerController extends Controller
                                 <table class='table table-bordered table-sm w-100' id='detail-marker-form'>
                                     <thead>
                                         <tr>
+                                            <th>Act</th>
                                             <th>Tanggal Form</th>
                                             <th>No. Form</th>
                                             <th>No. Meja</th>
