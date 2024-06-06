@@ -2452,6 +2452,9 @@
                     },
                     columns: [
                         {
+                            data: 'tgl_cutting',
+                        },
+                        {
                             data: 'buyer',
                         },
                         {
@@ -2462,9 +2465,6 @@
                         },
                         {
                             data: 'color',
-                        },
-                        {
-                            data: 'tgl_cutting',
                         },
                         {
                             data: 'kode',

@@ -88,14 +88,14 @@
             </div>
         </div>
         <div class="table-responsive">
-            <table class="table table-bordered table-hover table-sm" id="datatable-marker">
+            <table class="table table-bordered table-sm" id="datatable-marker">
                 <thead>
                     <tr>
+                        <th>Tanggal</th>
                         <th>Buyer</th>
                         <th>No. WS</th>
                         <th>Style</th>
                         <th>Color</th>
-                        <th>Tanggal</th>
                         <th>No. Marker</th>
                         <th>Urutan</th>
                         <th>Panel</th>
