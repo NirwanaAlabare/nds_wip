@@ -126,8 +126,6 @@ class SecondaryInhouseController extends Controller
         return view('dc.secondary-inhouse.secondary-inhouse', ['page' => 'dashboard-dc', "subPageGroup" => "secondary-dc", "subPage" => "secondary-inhouse"], ['tgl_skrg' => $tgl_skrg]);
     }
 
-
-
     public function cek_data_stocker_inhouse(Request $request)
     {
         $cekdata =  DB::select("
@@ -199,10 +197,77 @@ class SecondaryInhouseController extends Controller
             'updated_at' => $timestamp,
         ]);
 
-
         DB::update(
             "update stocker_input set status = 'secondary' where id_qr_stocker = '" . $request->txtno_stocker . "'"
         );
+
+        // dd($savemutasi);
+        // $message .= "$tglpindah <br>";
+
+        return array(
+            'status' => 300,
+            'message' => 'Data Sudah Disimpan',
+            'redirect' => '',
+            'table' => 'datatable-input',
+            'additional' => [],
+        );
+    }
+
+    public function massStore(Request $request)
+    {
+        $tgltrans = date('Y-m-d');
+        $timestamp = Carbon::now();
+
+        $cekdata = DB::select("
+            SELECT
+                dc.id_qr_stocker,
+                s.act_costing_ws,
+                msb.buyer,
+                no_cut,
+                style,
+                s.color,
+                COALESCE ( msb.size, s.size ) size,
+                mp.nama_part,
+                dc.tujuan,
+                dc.lokasi,
+                COALESCE ( s.qty_ply_mod, s.qty_ply ) - dc.qty_reject + dc.qty_replace qty_awal,
+                ifnull( si.id_qr_stocker, 'x' )
+            FROM
+                dc_in_input dc
+                INNER JOIN stocker_input s ON dc.id_qr_stocker = s.id_qr_stocker
+                LEFT JOIN master_sb_ws msb ON msb.id_so_det = s.so_det_id
+                INNER JOIN form_cut_input a ON s.form_cut_id = a.id
+                INNER JOIN part_detail p ON s.part_detail_id = p.id
+                INNER JOIN master_part mp ON p.master_part_id = mp.id
+                INNER JOIN marker_input mi ON a.id_marker = mi.kode
+                LEFT JOIN secondary_inhouse_input si ON dc.id_qr_stocker = si.id_qr_stocker
+            WHERE
+                s.act_costing_ws = 'JCP/0424/011' AND
+                s.color = 'BLACK' AND
+                a.no_cut = '10'
+                AND dc.tujuan = 'SECONDARY DALAM'
+                AND ifnull( si.id_qr_stocker, 'x' ) = 'x'
+        ");
+
+        foreach ($cekdata as $d) {
+            $saveinhouse = SecondaryInhouse::create([
+                'tgl_trans' => $tgltrans,
+                'id_qr_stocker' => $d->id_qr_stocker,
+                'qty_awal' => $d->qty_awal,
+                'qty_reject' => 0,
+                'qty_replace' => 0,
+                'qty_in' => $d->qty_awal,
+                'user' => Auth::user()->name,
+                'ket' => '',
+                'created_at' => $timestamp,
+                'updated_at' => $timestamp,
+            ]);
+
+
+            DB::update(
+                "update stocker_input set status = 'secondary' where id_qr_stocker = '" . $d->id_qr_stocker . "'"
+            );
+        }
 
         // dd($savemutasi);
         // $message .= "$tglpindah <br>";

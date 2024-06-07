@@ -276,6 +276,147 @@ class SecondaryInController extends Controller
         );
     }
 
+    public function massStore(Request $request)
+    {
+        $tgltrans = date('Y-m-d');
+        $timestamp = Carbon::now();
+
+        $cekdata =  DB::select("
+            SELECT
+                s.id_qr_stocker,
+                s.act_costing_ws,
+                msb.buyer,
+                no_cut,
+                style,
+                s.color,
+                COALESCE ( msb.size, s.size ) size,
+                dc.tujuan,
+                dc.lokasi,
+                mp.nama_part,
+            IF
+                ( dc.tujuan = 'SECONDARY LUAR', dc.qty_awal, si.qty_awal ) qty_awal,
+                s.lokasi lokasi_tujuan,
+                s.tempat tempat_tujuan
+            FROM
+                (
+                SELECT
+                    dc.id_qr_stocker,
+                    ifnull( si.id_qr_stocker, 'x' ) cek_1,
+                    ifnull( sii.id_qr_stocker, 'x' ) cek_2
+                FROM
+                    dc_in_input dc
+                    LEFT JOIN secondary_inhouse_input si ON dc.id_qr_stocker = si.id_qr_stocker
+                    LEFT JOIN secondary_in_input sii ON dc.id_qr_stocker = sii.id_qr_stocker
+                WHERE
+                    dc.tujuan = 'SECONDARY DALAM'
+                    AND ifnull( si.id_qr_stocker, 'x' ) != 'x'
+                    AND ifnull( sii.id_qr_stocker, 'x' ) = 'x' UNION
+                SELECT
+                    dc.id_qr_stocker,
+                    'x' cek_1,
+                IF
+                    ( sii.id_qr_stocker IS NULL, dc.id_qr_stocker, 'x' ) cek_2
+                FROM
+                    dc_in_input dc
+                    LEFT JOIN secondary_in_input sii ON dc.id_qr_stocker = sii.id_qr_stocker
+                WHERE
+                    dc.tujuan = 'SECONDARY LUAR'
+                AND
+                IF
+                    ( sii.id_qr_stocker IS NULL, dc.id_qr_stocker, 'x' ) != 'x'
+                ) md
+                INNER JOIN stocker_input s ON md.id_qr_stocker = s.id_qr_stocker
+                LEFT JOIN master_sb_ws msb ON msb.id_so_det = s.so_det_id
+                INNER JOIN form_cut_input a ON s.form_cut_id = a.id
+                INNER JOIN part_detail p ON s.part_detail_id = p.id
+                INNER JOIN master_part mp ON p.master_part_id = mp.id
+                INNER JOIN marker_input mi ON a.id_marker = mi.kode
+                LEFT JOIN dc_in_input dc ON s.id_qr_stocker = dc.id_qr_stocker
+                LEFT JOIN secondary_inhouse_input si ON s.id_qr_stocker = si.id_qr_stocker
+            WHERE
+                s.act_costing_ws = 'JCP/0424/011' AND
+                s.color = 'BLACK' AND
+                a.no_cut = '10'
+        ");
+
+        foreach ($cekdata as $d) {
+            if ($d->tempat_tujuan == 'RAK') {
+                $rak = DB::table('rack_detail')
+                ->select('id')
+                ->where('nama_detail_rak', '=', $d->lokasi_tujuan)
+                ->get();
+                $rak_data = $rak ? $rak[0]->id : null;
+
+                $insert_rak = RackDetailStocker::create([
+                    'nm_rak' => $d->lokasi_tujuan,
+                    'detail_rack_id' => $rak_data,
+                    'stocker_id' => $d->id_qr_stocker,
+                    'qty_in' => $d->qty_awal,
+                    'created_at' => $timestamp,
+                    'updated_at' => $timestamp,
+                ]);
+            }
+
+            if ($d->tempat_tujuan == 'TROLLEY') {
+                $lastTrolleyStock = TrolleyStocker::select('kode')->orderBy('id', 'desc')->first();
+                $trolleyStockNumber = $lastTrolleyStock ? intval(substr($lastTrolleyStock->kode, -5)) + 1 : 1;
+
+                $trolleyStockArr = [];
+
+                $thisStocker = Stocker::whereRaw("id_qr_stocker = '" . $d->id_qr_stocker . "'")->first();
+                $thisTrolley = Trolley::where("nama_trolley", $d->lokasi_tujuan)->first();
+                if ($thisTrolley && $thisStocker) {
+                    $trolleyCheck = TrolleyStocker::where('stocker_id', $thisStocker->id)->first();
+                    if (!$trolleyCheck) {
+                        TrolleyStocker::create([
+                            "kode" => "TLS".sprintf('%05s', ($trolleyStockNumber)),
+                            "trolley_id" => $thisTrolley->id,
+                            "stocker_id" => $thisStocker->id,
+                            "status" => "active",
+                            "tanggal_alokasi" => date('Y-m-d'),
+                        ]);
+                    }
+
+                    $thisStocker->status = "trolley";
+                    $thisStocker->latest_alokasi = Carbon::now();
+                    $thisStocker->save();
+                }
+            }
+
+            $saveinhouse = SecondaryIn::updateOrCreate(
+                ['id_qr_stocker' => $d->id_qr_stocker],
+                [
+                    'tgl_trans' => $tgltrans,
+                    'qty_awal' => $d->qty_awal,
+                    'qty_reject' => 0,
+                    'qty_replace' => 0,
+                    'qty_in' => $d->qty_awal,
+                    'user' => Auth::user()->name,
+                    'ket' => '',
+                    'created_at' => $timestamp,
+                    'updated_at' => $timestamp,
+                ]
+            );
+
+            DB::update(
+                "update stocker_input set status = 'non secondary' where id_qr_stocker = '" . $d->id_qr_stocker . "'"
+            );
+        }
+
+
+        // dd($savemutasi);
+        // $message .= "$tglpindah <br>";
+
+
+        return array(
+            'status' => 300,
+            'message' => 'Data Sudah Disimpan',
+            'redirect' => '',
+            'table' => 'datatable-input',
+            'additional' => [],
+        );
+    }
+
     // public function export_excel_mut_karyawan(Request $request)
     // {
     //     return Excel::download(new ExportLaporanMutasiKaryawan($request->from, $request->to), 'Laporan_Mutasi_Karyawan.xlsx');

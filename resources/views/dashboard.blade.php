@@ -2489,10 +2489,10 @@
                         }
                     ],
                     columnDefs: [
-                        {
-                            targets: [0 ,1 ,2 ,3 ,4 ,5 , 6, 7, 8, 9],
-                            className: "text-nowrap align-middle"
-                        },
+                        // {
+                        //     targets: [0 ,1 ,2 ,3 ,4 ,5 , 6, 7, 8, 9],
+                        //     className: "text-nowrap align-middle"
+                        // },
                         {
                             targets: "_all",
                             className: "text-nowrap colorize"
@@ -2535,70 +2535,55 @@
                     $('#datatable-marker').DataTable().ajax.reload();
                 });
 
-                // DC Qty
-                // $('#dcqty-month-filter').val((today.getMonth() + 1)).trigger("change");
-                // $('#dcqty-year-filter').val(todayYear).trigger("change");
-                // await getDcQty();
+                // Marker Qty
+                $('#markerqty-month-filter').val((today.getMonth() + 1)).trigger("change");
+                $('#markerqty-year-filter').val(todayYear).trigger("change");
+                await getMarkerQty();
 
-                // $('#dcqty-month-filter').on('change', () => {
-                //     getDcQty();
-                // });
-                // $('#dcqty-year-filter').on('change', () => {
-                //     getDcQty();
-                // });
+                $('#markerqty-month-filter').on('change', () => {
+                    getMarkerQty();
+                });
+                $('#markerqty-year-filter').on('change', () => {
+                    getMarkerQty();
+                });
             });
 
-            // function getDcQty() {
-            //     document.getElementById("dc-qty-data").classList.add("d-none");
-            //     document.getElementById("loading-dc-qty").classList.remove("d-none");
+            function getMarkerQty() {
+                document.getElementById("marker-qty-data").classList.add("d-none");
+                document.getElementById("loading-marker-qty").classList.remove("d-none");
 
-            //     return $.ajax({
-            //         url: '{{ route('dc-qty') }}',
-            //         type: 'get',
-            //         data: {
-            //             month : $('#dcqty-month-filter').val(),
-            //             year : $('#dcqty-year-filter').val()
-            //         },
-            //         dataType: 'json',
-            //         success: function(res) {
-            //             if (res) {
-            //                 let totalStocker = 0;
-            //                 let totalSecondary = 0;
-            //                 let totalRak = 0;
-            //                 let totalTroli = 0;
-            //                 let totalLine = 0;
+                return $.ajax({
+                    url: '{{ route('marker-qty') }}',
+                    type: 'get',
+                    data: {
+                        month : $('#markerqty-month-filter').val(),
+                        year : $('#markerqty-year-filter').val()
+                    },
+                    dataType: 'json',
+                    success: function(res) {
+                        if (res) {
+                            let wsCount = res['wsQty'] ? res['wsQty'] : 0;
+                            let partCount = res['partQty'] ? res['partQty'] : 0;
+                            let markerCount = res['markerQty'] ? res['markerQty'] : 0;
+                            let markerSum = res['markerSum'] ? res['markerSum'] : 0;
 
-            //                 res.forEach(item => {
-            //                     if (item.secondary == "-" && item.rak == "-" && item.troli == "-" && item.line == "-") {
-            //                         totalStocker += item.dc_in_qty;
-            //                     } else if (item.secondary != "-" && item.rak == "-" && item.troli == "-" && item.line == "-") {
-            //                         totalSecondary += item.dc_in_qty;
-            //                     } else if (item.rak != "-" && item.troli == "-" && item.line == "-") {
-            //                         totalRak += item.dc_in_qty;
-            //                     } else if (item.troli != "-" && item.line == "-") {
-            //                         totalTroli += item.dc_in_qty;
-            //                     } else if (item.line != "-") {
-            //                         totalLine += item.dc_in_qty;
-            //                     }
-            //                 });
+                            document.getElementById("ws-qty").innerText = Number(wsCount).toLocaleString('ID-id');
+                            document.getElementById("part-qty").innerText = Number(partCount).toLocaleString('ID-id');
+                            document.getElementById("marker-qty").innerText = Number(markerCount).toLocaleString('ID-id');
+                            document.getElementById("marker-sum").innerText = Number(markerSum).toLocaleString('ID-id');
+                        }
 
-            //                 document.getElementById("stocker-qty").innerText = totalStocker.toLocaleString('ID-id');
-            //                 document.getElementById("secondary-qty").innerText = totalSecondary.toLocaleString('ID-id');
-            //                 document.getElementById("non-secondary-qty").innerText = (totalRak + totalTroli).toLocaleString('ID-id');
-            //                 document.getElementById("line-qty").innerText = totalLine.toLocaleString('ID-id');
-            //             }
+                        document.getElementById("marker-qty-data").classList.remove("d-none");
+                        document.getElementById("loading-marker-qty").classList.add("d-none");
+                    },
+                    error: function(jqXHR) {
+                        console.log(jqXHR);
 
-            //             document.getElementById("dc-qty-data").classList.remove("d-none");
-            //             document.getElementById("loading-dc-qty").classList.add("d-none");
-            //         },
-            //         error: function(jqXHR) {
-            //             console.log(jqXHR);
-
-            //             document.getElementById("dc-qty-data").classList.remove("d-none");
-            //             document.getElementById("loading-dc-qty").classList.add("d-none");
-            //         }
-            //     });
-            // }
+                        document.getElementById("marker-qty-data").classList.remove("d-none");
+                        document.getElementById("loading-marker-qty").classList.add("d-none");
+                    }
+                });
+            }
         </script>
     @endif
 

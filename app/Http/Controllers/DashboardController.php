@@ -73,6 +73,73 @@ class DashboardController extends Controller
         return view('dashboard', ['page' => 'dashboard-marker', 'months' => $months, 'years' => $years]);
     }
 
+    public function markerQty(Request $request) {
+        ini_set("max_execution_time", 0);
+        ini_set("memory_limit", '2048M');
+
+        $month = date("m");
+        $year = date("Y");
+
+        if ($request->month) {
+            $month = $request->month;
+        }
+        if ($request->year) {
+            $year = $request->year;
+        }
+
+        $markerQty = DB::select("
+            SELECT
+                COUNT(id) marker_count,
+                SUM(gelar_qty) total_gelar
+            FROM (
+                SELECT
+                    id,
+                    gelar_qty
+                FROM
+                    marker_input
+                WHERE
+                    MONTH(tgl_cutting) = '".$month."' AND YEAR(tgl_cutting) = '".$year."'
+            ) marker
+        ")[0];
+
+        $partQty = DB::select("
+            SELECT
+                COUNT(id) part_count
+            FROM (
+                SELECT
+                    id
+                FROM
+                    part
+                WHERE
+                    (MONTH(created_at) = '".$month."' AND  YEAR(created_at) = '".$year."') OR
+                    (MONTH(updated_at) = '".$month."' AND  YEAR(updated_at) = '".$year."')
+            ) part
+        ")[0]->part_count;
+
+        $wsQty = DB::select("
+            SELECT
+                COUNT(act_costing_ws) ws_count
+            FROM (
+                SELECT
+                    act_costing_ws
+                FROM
+                    marker_input
+                WHERE
+                    (MONTH(tgl_cutting) = '".$month."' AND  YEAR(tgl_cutting) = '".$year."') OR
+                    (MONTH(tgl_cutting) = '".$month."' AND  YEAR(tgl_cutting) = '".$year."')
+                GROUP BY
+                    act_costing_ws
+            ) ws
+        ")[0]->ws_count;
+
+        return array(
+            "markerQty" => $markerQty->marker_count,
+            "markerSum" => $markerQty->total_gelar,
+            "partQty" => $partQty,
+            "wsQty" => $wsQty
+        );
+    }
+
     // Cutting
     public function cutting(Request $request) {
         ini_set("max_execution_time", 0);

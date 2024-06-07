@@ -28,15 +28,10 @@
                                 <div class="mb-3">
                                     <label class="form-label label-input">Scan QR Stocker</label>
                                     <div class="input-group">
-                                        <input type="text" class="form-control form-control-sm border-input"
-                                            name="txtqrstocker" id="txtqrstocker" autocomplete="off" enterkeyhint="go"
-                                            onkeyup="if (event.keyCode == 13)
-                                        document.getElementById('scanqr').click()"
-                                            autofocus>
+                                        <input type="text" class="form-control form-control-sm border-input" name="txtqrstocker" id="txtqrstocker" autocomplete="off" enterkeyhint="go" onkeyup="if (event.keyCode == 13) document.getElementById('scanqr').click()" autofocus>
                                         {{-- <input type="button" class="btn btn-sm btn-primary" value="Scan Line" /> --}}
                                         {{-- style="display: none;" --}}
-                                        <button class="btn btn-sm btn-primary" type="button" id="scanqr"
-                                            onclick="scan_qr()">Scan</button>
+                                        <button class="btn btn-sm btn-primary" type="button" id="scanqr" onclick="scan_qr()">Scan</button>
                                     </div>
                                 </div>
                             </div>
@@ -559,7 +554,6 @@
         function reset() {
             $("#form").trigger("reset");
             // initScan();
-
         }
 
         function scan_qr() {
