@@ -221,6 +221,20 @@ $('.select2bs4').select2({
                 }
             },
             {
+                targets: [2],
+                className: "d-none",
+                render: (data, type, row, meta) => {
+                        return `<span hidden>` + data + `</span>`;
+                }
+            },
+            {
+                targets: [3],
+                className: "d-none",
+                render: (data, type, row, meta) => {
+                        return `<span hidden>` + data + `</span>`;
+                }
+            },
+            {
                 targets: [6],
                 render: (data, type, row, meta) => {
                     console.log(row);

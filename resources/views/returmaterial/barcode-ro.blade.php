@@ -558,13 +558,13 @@
                 }
             }
 
-                h_qty_out = sum_out + ' ' + satuan;
+                h_qty_out = (sum_out.round(2) || 0) + ' ' + satuan;
                 sum_bal = parseFloat(qty_req) - parseFloat(sum_out);
-                h_sum_bal = sum_bal + ' ' + satuan;
+                h_sum_bal = (sum_bal.round(2) || 0) + ' ' + satuan;
                 $('#m_qty_out2').val(h_qty_out);
-                $('#m_qty_out_h2').val(sum_out);
+                $('#m_qty_out_h2').val(sum_out.round(2) || 0);
                 $('#m_qty_bal2').val(h_sum_bal);
-                $('#m_qty_bal_h2').val(sum_bal);
+                $('#m_qty_bal_h2').val(sum_bal.round(2) || 0);
 
         }
 

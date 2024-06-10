@@ -348,9 +348,10 @@ class MarkerController extends Controller
         where id = '$request->id_c'");
 
         $data_marker_det = DB::select("
-        SELECT a.size, ratio
+        SELECT master_sb_ws.size, ratio
         from marker_input_detail a
-        left join master_size_new b on a.size = b.size
+        left join master_sb_ws on master_sb_ws.id_so_det = a.so_det_id
+        left join master_size_new b on master_sb_ws.size = b.size
         where marker_id = '$request->id_c'
         order by urutan asc");
 
