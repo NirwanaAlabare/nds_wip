@@ -97,7 +97,7 @@
                     <tr>
                         <th>Buyer</th>
                         <th>No. WS</th>
-                        {{-- <th>Style</th> --}}
+                        <th>Style</th>
                         <th>Color</th>
                         <th>No. Marker</th>
                         <th>Urutan Marker</th>

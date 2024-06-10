@@ -69,6 +69,8 @@ use App\Http\Controllers\FGStokMutasiController;
 use App\Http\Controllers\KonfPemasukanController;
 use App\Http\Controllers\KonfPengeluaranController;
 use App\Http\Controllers\PPIC_MasterSOController;
+use App\Http\Controllers\TransferBpbController;
+
 use App\Http\Controllers\PackingTransferGarmentController;
 use App\Http\Controllers\PackingPackingInController;
 use App\Http\Controllers\PackingPackingOutController;
@@ -403,6 +405,7 @@ Route::middleware('auth')->group(function () {
     // DC :
     // DC Dashboard
     Route::get('/dashboard-marker', [DashboardController::class, 'marker'])->middleware('auth')->name('dashboard-marker');
+    Route::get('/marker-qty', [DashboardController::class, 'markerQty'])->middleware('auth')->name('marker-qty');
     Route::get('/dashboard-cutting', [DashboardController::class, 'cutting'])->middleware('auth')->name('dashboard-cutting');
     Route::get('/cutting-qty', [DashboardController::class, 'cuttingQty'])->middleware('auth')->name('cutting-qty');
     Route::get('/dashboard-dc', [DashboardController::class, 'dc'])->middleware('auth')->name('dashboard-dc');
@@ -438,6 +441,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/get_tmp_dc_in', 'get_tmp_dc_in')->name('get_tmp_dc_in');
         Route::post('/insert_tmp_dc_in', 'insert_tmp_dc_in')->name('insert_tmp_dc_in');
+        Route::post('/mass_insert_tmp_dc_in', 'mass_insert_tmp_dc_in')->name('mass_insert_tmp_dc_in');
         Route::put('/update_tmp_dc_in', 'update_tmp_dc_in')->name('update_tmp_dc_in');
         Route::put('/update_mass_tmp_dc_in', 'update_mass_tmp_dc_in')->name('update_mass_tmp_dc_in');
         Route::get('/show_tmp_dc_in', 'show_tmp_dc_in')->name('show_tmp_dc_in');
@@ -448,6 +452,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('secondary-inhouse');
         Route::get('/cek_data_stocker_inhouse', 'cek_data_stocker_inhouse')->name('cek_data_stocker_inhouse');
         Route::post('/store', 'store')->name('store-secondary-inhouse');
+        Route::post('/mass-store', 'massStore')->name('mass-store-secondary-inhouse');
         Route::get('/detail_stocker_inhouse', 'detail_stocker_inhouse')->name('detail_stocker_inhouse');
     });
 
@@ -456,6 +461,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('secondary-in');
         Route::get('/cek_data_stocker_in', 'cek_data_stocker_in')->name('cek_data_stocker_in');
         Route::post('/store', 'store')->name('store-secondary-in');
+        Route::post('/mass-store', 'massStore')->name('mass-store-secondary-in');
         Route::get('/detail_stocker_in', 'detail_stocker_in')->name('detail_stocker_in');
     });
 
@@ -790,6 +796,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('konfirmasi-pengeluaran');
         Route::get('/approve-pengeluaran-all', 'approvepengeluaranall')->name('approve-pengeluaran-all');
         Route::get('/get-data-pengeluaran', 'getdatapengeluaran')->name('get-data-pengeluaran');
+    });
+
+    //transfer bpb
+    Route::controller(TransferBpbController::class)->prefix("transfer-bpb")->middleware('warehouse')->group(function () {
+        Route::get('/', 'index')->name('transfer-bpb');
+        Route::get('/create', 'create')->name('create-transfer-bpb');
+        Route::post('/store', 'store')->name('save-transferbpb');
+        Route::get('/cancel-transfer', 'canceltransfer')->name('cancel-transfer');
     });
 
 

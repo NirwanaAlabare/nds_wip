@@ -374,13 +374,14 @@ class PartController extends Controller
                     marker_input.style,
                     marker_input.color,
                     marker_input.panel,
-                    GROUP_CONCAT(DISTINCT CONCAT(master_size_new.size, '(', marker_input_detail.ratio, ')')  ORDER BY master_size_new.urutan ASC SEPARATOR ' / ') marker_details,
+                    GROUP_CONCAT(DISTINCT CONCAT(master_sb_ws.size, '(', marker_input_detail.ratio, ')')  ORDER BY master_size_new.urutan ASC SEPARATOR ' / ') marker_details,
                     form_cut_input.qty_ply,
                     form_cut_input.no_cut
                 ")->
                 leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
                 leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
-                leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->
+                leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
+                leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
                 leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
                 leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
                 where("form_cut_input.status", "SELESAI PENGERJAAN")->
@@ -436,10 +437,22 @@ class PartController extends Controller
                     marker_input.style,
                     marker_input.color,
                     marker_input.panel,
-                    GROUP_CONCAT(DISTINCT CONCAT(master_size_new.size, '(', marker_input_detail.ratio, ')') SEPARATOR ', ') marker_details,
+                    GROUP_CONCAT(DISTINCT CONCAT(master_sb_ws.size, '(', marker_input_detail.ratio, ')') SEPARATOR ', ') marker_details,
                     form_cut_input.qty_ply,
                     form_cut_input.no_cut
-                ")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->where("form_cut_input.status", "SELESAI PENGERJAAN")->whereRaw("part_form.id is not null")->where("part_form.part_id", $id)->where("marker_input.act_costing_ws", $request->act_costing_ws)->where("marker_input.panel", $request->panel)->groupBy("form_cut_input.id");
+                ")->
+                leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+                leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
+                leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
+                leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
+                leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
+                leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
+                where("form_cut_input.status", "SELESAI PENGERJAAN")->
+                whereRaw("part_form.id is not null")->
+                where("part_form.part_id", $id)->
+                where("marker_input.act_costing_ws", $request->act_costing_ws)->
+                where("marker_input.panel", $request->panel)->
+                groupBy("form_cut_input.id");
 
             return Datatables::eloquent($formCutInputs)->filterColumn('act_costing_ws', function ($query, $keyword) {
                 $query->whereRaw("LOWER(act_costing_ws) LIKE LOWER('%" . $keyword . "%')");
@@ -550,7 +563,18 @@ class PartController extends Controller
                 GROUP_CONCAT(DISTINCT CONCAT(master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' / ') marker_details,
                 form_cut_input.qty_ply,
                 form_cut_input.no_cut
-            ")->leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->where("form_cut_input.status", "SELESAI PENGERJAAN")->whereRaw("part_form.id is null")->where("marker_input.act_costing_ws", $request->act_costing_ws)->where("marker_input.panel", $request->panel)->groupBy("form_cut_input.id");
+            ")->
+            leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+            leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
+            leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
+            leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
+            leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
+            where("form_cut_input.status", "SELESAI PENGERJAAN")->
+            whereRaw("part_form.id is null")->
+            where("marker_input.act_costing_ws", $request->act_costing_ws)->
+            where("marker_input.panel", $request->panel)->
+            groupBy("form_cut_input.id");
 
         return Datatables::eloquent($formCutInputs)->
         filterColumn('act_costing_ws', function ($query, $keyword) {
@@ -682,7 +706,7 @@ class PartController extends Controller
                 part_form.kode kode_part_form,
                 part.kode kode_part,
                 GROUP_CONCAT(DISTINCT master_part.nama_part ORDER BY master_part.nama_part ASC SEPARATOR ' || ') part_details,
-                GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') SEPARATOR ' / ') marker_details
+                GROUP_CONCAT(DISTINCT CONCAT(master_sb_ws.size, '(', marker_input_detail.ratio, ')') SEPARATOR ' / ') marker_details
             ")->
             leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
             leftJoin("part", "part.id", "=", "part_form.part_id")->
@@ -690,7 +714,8 @@ class PartController extends Controller
             leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
             leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
             leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
-            leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
+            leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
             leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
             whereRaw("part_form.id is not null")->
             where("part.id", $request->id)->
