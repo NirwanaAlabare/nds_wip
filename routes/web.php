@@ -922,8 +922,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/export_pdf_pengajuan_bhn_bakar', 'export_pdf_pengajuan_bhn_bakar')->name('export_pdf_pengajuan_bhn_bakar');
         Route::get('/show_data_bahan_bakar', 'show_data_bahan_bakar')->name('show_data_bahan_bakar');
         Route::post('/update_ga_master_bahan_bakar', 'update_ga_master_bahan_bakar')->name('update-ga-master-bahan-bakar');
+        Route::get('/show_data_transaksi_edit', 'show_data_transaksi_edit')->name('show_data_transaksi_edit');
         Route::get('/show_data_transaksi', 'show_data_transaksi')->name('show_data_transaksi');
-        Route::post('/update_ga_trans', 'update_ga_trans')->name('update-ga-trans');
+        Route::get('/show_ga_get_jns_edit', 'show_ga_get_jns_edit')->name('show_ga_get_jns_edit');
+        Route::get('/show_ga_get_bhn_bakar_edit', 'show_ga_get_bhn_bakar_edit')->name('show_ga_get_bhn_bakar_edit');
+        Route::post('/update_ga_trans', 'update_ga_trans')->name('update_ga_trans');
+        Route::post('/update_ga_realisasi', 'update_ga_realisasi')->name('update_ga_realisasi');
 
         // Route::post('/store', 'store')->name('store-packing-packing-in');
     });

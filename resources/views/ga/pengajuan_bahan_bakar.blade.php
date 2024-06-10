@@ -346,7 +346,7 @@
     </div>
 
     <div class="modal fade" id="exampleModalUpdateRealisasi" tabindex="-1" role="dialog" aria-hidden="true">
-        <form action="{{ route('update-ga-trans') }}" method="post" onsubmit="submitForm(this, event)"
+        <form action="{{ route('update_ga_realisasi') }}" method="post" onsubmit="submitForm(this, event)"
             name='form_update_trans' id='form_update_trans'>
             @method('POST')
             <div class="modal-dialog modal-lg modal-dialog-scrollable">
@@ -490,6 +490,158 @@
                                     <input type='text' class='form-control form-control-sm' id="txtbayar_realisasi"
                                         name="txtbayar_realisasi" style="text-transform: uppercase"
                                         value = ''autocomplete="off">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-outline-success btn-sm"><i class="fas fa-check"></i> Simpan
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+
+    <div class="modal fade" id="exampleModalEditTrans" tabindex="-1" role="dialog" aria-hidden="true">
+        <form action="{{ route('update_ga_trans') }}" method="post" onsubmit="submitForm(this, event)"
+            name='form_edit_trans' id='form_update_trans'>
+            @method('POST')
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header bg-warning">
+                        <h3 class="modal-title fs-5">Edit Transaksi</h3>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-4">
+                                <div class="form-group">
+                                    <label for="recipient-name" class="col-form-label">No. Form :</label>
+                                    <input type='text' class='form-control form-control-sm' id="edit_txtno_form"
+                                        name="edit_txtno_form" style="text-transform: uppercase" value=""
+                                        autocomplete="off" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4">
+                                <div class="form-group">
+                                    <label for="recipient-name" class="col-form-label">Tgl. Transaksi :</label>
+                                    <input type='date' class='form-control form-control-sm' id="edit_txttgl_trans"
+                                        name="edit_txttgl_trans" style="text-transform: uppercase" value=""
+                                        autocomplete="off" readonly>
+                                    <input type='hidden' class='form-control form-control-sm' id="edit_txt_id"
+                                        name="edit_txt_id" style="text-transform: uppercase" value=""
+                                        autocomplete="off" readonly>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="form-group">
+                                    <label for="recipient-name" class="col-form-label">Nama Driver :</label>
+                                    <select class='form-control select2bs4' style='width: 100%;'
+                                        name='edit_cbo_nm_driver' id='edit_cbo_nm_driver' onchange='getnip_edit();'>
+                                        <option selected="selected" value="" disabled="true">Pilih Nama Driver
+                                        </option>
+                                        @foreach ($data_driver as $datadriver)
+                                            <option value="{{ $datadriver->isi }}">
+                                                {{ $datadriver->tampil }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="form-group">
+                                    <label for="recipient-name" class="col-form-label">NIP :</label>
+                                    <input type='text' class='form-control form-control-sm' id="edit_txtnip"
+                                        name="edit_txtnip" style="text-transform: uppercase" value = ''
+                                        autocomplete="off" readonly>
+                                    <input type='hidden' class='form-control form-control-sm' id="edit_txtnm_driver"
+                                        name="edit_txtnm_driver" style="text-transform: uppercase" value = ''
+                                        autocomplete="off" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4">
+                                <div class="form-group">
+                                    <label for="recipient-name" class="col-form-label">No. Kendaraan :</label>
+                                    <select class='form-control select2bs4' style='width: 100%;'
+                                        name='edit_cbo_no_kendaraan' id='edit_cbo_no_kendaraan' onchange='getjns_edit();'
+                                        required autocomplete="off">
+                                        <option selected="selected" value="" disabled="true">Pilih Kendaraan
+                                        </option>
+                                        @foreach ($data_no_kendaraan as $datano_kendaraan)
+                                            <option value="{{ $datano_kendaraan->isi }}">
+                                                {{ $datano_kendaraan->tampil }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="form-group">
+                                    <label for="recipient-name" class="col-form-label">Jenis Kendaraan :</label>
+                                    <input type='text' class='form-control form-control-sm' id="edit_txtjns_kendaraan"
+                                        name="edit_txtjns_kendaraan" style="text-transform: uppercase" value = ''
+                                        autocomplete="off" readonly>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="form-group">
+                                    <label for="recipient-name" class="col-form-label">Oddometer :</label>
+                                    <input type='text' class='form-control form-control-sm' id="edit_txtodoometer"
+                                        name="edit_txtodoometer" style="text-transform: uppercase" value = ''
+                                        autocomplete="off">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-3">
+                                <div class="form-group">
+                                    <label for="recipient-name" class="col-form-label">Jenis Bahan bakar :</label>
+                                    <input type='text' class='form-control form-control-sm' id="edit_txtjns_bhn_bakar"
+                                        name="edit_txtjns_bhn_bakar" style="text-transform: uppercase" value=""
+                                        readonly autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="form-group">
+                                    <label for="recipient-name" class="col-form-label">Bahan Bakar :</label>
+                                    <select class='form-control select2bs4 form-control-sm' style='width: 100%;'
+                                        name='edit_cbobhn_bakar' id='edit_cbobhn_bakar'></select>
+                                    <input type='hidden' class='form-control form-control-sm' id="edit_id_bhn_bakar"
+                                        name="edit_id_bhn_bakar">
+                                    {{-- <select class='form-control select2bs4' style='width: 100%;' name='edit_cbobhn_bakar'
+                                        id='edit_cbobhn_bakar'>
+                                        <option selected="selected" value="" disabled="true">Pilih Nama Driver
+                                        </option>
+                                        @foreach ($data_bensin as $databensin)
+                                            <option value="{{ $databensin->isi }}">
+                                                {{ $databensin->tampil }}
+                                            </option>
+                                        @endforeach
+                                    </select> --}}
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="form-group">
+                                    <label for="recipient-name" class="col-form-label">Jumlah :</label>
+                                    <input type='text' class='form-control form-control-sm' id="edit_txtjml"
+                                        name="edit_txtjml" style="text-transform: uppercase"
+                                        value = ''autocomplete="off">
+                                    <input type='hidden' class='form-control form-control-sm' id="edit_txtharga_bensin"
+                                        name="edit_txtharga_bensin">
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="form-group">
+                                    <label for="recipient-name" class="col-form-label">Total Bayar :</label>
+                                    <input type='text' class='form-control form-control-sm' id="edit_txttot_bayar"
+                                        name="edit_txttot_bayar" style="text-transform: uppercase" value = ''
+                                        autocomplete="off">
                                 </div>
                             </div>
                         </div>
@@ -926,13 +1078,27 @@
                 onclick="export_pdf(` + row.id + `)"><i class='fas fa-print'></i></a>
                 </div>
                     `;
-                            } else {
+                            } else if (row.status == 'PENDING APPROVE') {
+                                return `
+                <div
+                class='d-flex gap-1 justify-content-center'>
+                <a class='btn btn-success btn-sm' data-bs-toggle="modal"
+                        data-bs-target="#exampleModalUpdateRealisasi"
+                onclick="edit_realisasi(` + row.id + `)"><i class='fas fa-thumbs-up'></i></a>
+                <a class='btn btn-secondary btn-sm' data-bs-toggle='tooltip'
+                onclick="export_pdf(` + row.id + `)"><i class='fas fa-print'></i></a>
+                </div>
+                    `;
+                            } else if (row.status == 'WAITING') {
                                 return `
                 <div
                 class='d-flex gap-1 justify-content-center'>
                 <a class='btn btn-warning btn-sm' data-bs-toggle="modal"
+                        data-bs-target="#exampleModalEditTrans"
+                onclick="edit_trans(` + row.id + `)"><i class='fas fa-edit'></i></a>
+                <a class='btn btn-success btn-sm' data-bs-toggle="modal"
                         data-bs-target="#exampleModalUpdateRealisasi"
-                onclick="edit_realisasi(` + row.id + `)"><i class='fas fa-edit'></i></a>
+                onclick="edit_realisasi(` + row.id + `)"><i class='fas fa-thumbs-up'></i></a>
                 <a class='btn btn-secondary btn-sm' data-bs-toggle='tooltip'
                 onclick="export_pdf(` + row.id + `)"><i class='fas fa-print'></i></a>
                 </div>
@@ -1041,6 +1207,23 @@
             });
         };
 
+        function getnip_edit() {
+            let cbo_nm_driver = document.form_edit_trans.edit_cbo_nm_driver.value;
+            jQuery.ajax({
+                url: '{{ route('show-ga-get-nip') }}',
+                method: 'get',
+                data: {
+                    cbo_nm_driver: cbo_nm_driver
+                },
+                dataType: 'json',
+                success: function(response) {
+                    document.getElementById('edit_txtnip').value = response.nik;
+                    document.getElementById('edit_txtnm_driver').value = response.employee_name;
+                },
+            });
+        };
+
+
         function getjns() {
             let cbo_no_kendaraan = document.form_trans.cbo_no_kendaraan.value;
             jQuery.ajax({
@@ -1096,6 +1279,62 @@
 
                 },
             });
+        };
+
+        function getjns_edit() {
+            let cbo_no_kendaraan = document.form_edit_trans.edit_cbo_no_kendaraan.value;
+            jQuery.ajax({
+                url: '{{ route('show_ga_get_jns_edit') }}',
+                method: 'get',
+                data: {
+                    cbo_no_kendaraan: cbo_no_kendaraan
+                },
+                dataType: 'json',
+                success: function(response) {
+                    document.getElementById('edit_txtjns_bhn_bakar').value = response.jns_bhn_bakar;
+                    document.getElementById('edit_txtjns_kendaraan').value = response.jns_kendaraan;
+                    getbhn_bakar_edit();
+                },
+            });
+        };
+
+        // function getbhn_bakar_edit() {
+        //     let edit_txtjns_bhn_bakar = document.form_edit_trans.edit_txtjns_bhn_bakar.value;
+        //     jQuery.ajax({
+        //         url: '{{ route('show_ga_get_bhn_bakar_edit') }}',
+        //         method: 'get',
+        //         data: {
+        //             edit_txtjns_bhn_bakar: edit_txtjns_bhn_bakar
+        //         },
+        //         dataType: 'json',
+        //         success: function(response) {
+        //             document.getElementById('edit_cbobhn_bakar').value = response.nm_bhn_bakar;
+        //         },
+        //     });
+        // };
+
+
+
+        function getbhn_bakar_edit() {
+            let edit_txtjns_bhn_bakar = document.form_edit_trans.edit_txtjns_bhn_bakar.value;
+            let edit_id_bhn_bakar = document.form_edit_trans.edit_id_bhn_bakar.value;
+            console.log(edit_txtjns_bhn_bakar);
+            let html = $.ajax({
+                type: "GET",
+                url: '{{ route('show_ga_get_bhn_bakar_edit') }}',
+                data: {
+                    edit_txtjns_bhn_bakar: edit_txtjns_bhn_bakar,
+                    edit_id_bhn_bakar: edit_id_bhn_bakar
+                },
+                async: false
+            }).responseText;
+            // console.log(html != "");
+            if (html != "") {
+                $("#edit_cbobhn_bakar").html(html);
+                $("#edit_cbobhn_bakar").val(edit_id_bhn_bakar);
+                // $("#cbomarker").prop("disabled", false);
+                // $("#txtqtyply").prop("readonly", false);
+            }
         };
 
         function getharga() {
@@ -1173,6 +1412,41 @@
                 },
             });
         }
+
+        function edit_trans(id_c) {
+            jQuery.ajax({
+                url: '{{ route('show_data_transaksi_edit') }}',
+                method: 'GET',
+                data: {
+                    id_c: id_c
+                },
+                dataType: 'json',
+                success: async function(response) {
+                    document.getElementById('edit_txt_id').value = id_c;
+                    document.getElementById('edit_txtno_form').value = response.no_trans;
+                    document.getElementById('edit_txttgl_trans').value = response.tgl_trans;
+                    $("#edit_cbo_nm_driver").val(response.nip).trigger('change');
+                    $("#edit_cbo_no_kendaraan").val(response.plat_no).trigger('change');
+                    document.getElementById('edit_id_bhn_bakar').value = response.id_bhn_bakar;
+                    // console.log(response.id_bhn_bakar);
+                    $("#edit_cbobhn_bakar").val(response.id_bhn_bakar).trigger('change');
+                    // if (response.jns_bhn_bakar == 'BENSIN') {
+                    //     $cek_bhn_bakar = data_bensin;
+                    // } else {
+                    //     $cek_bhn_bakar = data_solar;
+                    // }
+                    document.getElementById('edit_txtodoometer').value = response.oddometer;
+                    document.getElementById('edit_txtjml').value = response.jml;
+                    document.getElementById('edit_txttot_bayar').value = response.tot_biaya;
+                },
+                error: function(request, status, error) {
+                    alert(request.responseText);
+                },
+            });
+        }
+
+
+
 
         function edit_realisasi(id_c) {
             jQuery.ajax({

@@ -69,8 +69,6 @@ class GAPengajuanBahanBakarController extends Controller
             from ga_master_kendaraan
             ");
 
-
-
         return view(
             'ga.pengajuan_bahan_bakar',
             [
@@ -159,6 +157,16 @@ class GAPengajuanBahanBakarController extends Controller
         return json_encode($data_master_trans[0]);
     }
 
+    public function show_data_transaksi_edit(Request $request)
+    {
+        $data_master_trans = DB::select("
+        SELECT * FROM ga_trans_pengajuan_bhn_bakar a
+        inner join ga_master_kendaraan b on a.plat_no = b.plat_no
+        inner join ga_master_bahan_bakar c on a.id_bhn_bakar = c.id
+         where a.id = '$request->id_c'");
+        return json_encode($data_master_trans[0]);
+    }
+
     public function update_ga_master_bahan_bakar(Request $request)
     {
         DB::update(
@@ -176,7 +184,7 @@ class GAPengajuanBahanBakarController extends Controller
         );
     }
 
-    public function update_ga_trans(Request $request)
+    public function update_ga_realisasi(Request $request)
     {
         $user = Auth::user()->name;
         $timestamp = Carbon::now();
@@ -199,6 +207,36 @@ class GAPengajuanBahanBakarController extends Controller
             'additional' => [],
         );
     }
+
+
+    public function update_ga_trans(Request $request)
+    {
+        $user = Auth::user()->name;
+        $timestamp = Carbon::now();
+
+        DB::update(
+            "update ga_trans_pengajuan_bhn_bakar set
+            nm_driver = '" . $request->edit_txtnm_driver . "',
+            nip = '" . $request->edit_txtnip . "',
+            plat_no = '" . $request->edit_cbo_no_kendaraan . "',
+            jns_kendaraan = '" . $request->edit_txtjns_kendaraan . "',
+            oddometer = '" . $request->edit_txtodoometer . "',
+            id_bhn_bakar = '" . $request->edit_cbobhn_bakar . "',
+            jml = '" . $request->edit_txtjml . "',
+            tot_biaya = '" . $request->edit_txttot_bayar . "'
+            where id = '" . $request->edit_txt_id . "'
+            "
+        );
+
+        return array(
+            'status' => 200,
+            'message' => 'Data  Berhasil Diupdate',
+            'redirect' => '',
+            'table' => '',
+            'additional' => [],
+        );
+    }
+
 
 
     public function store_ga_master_kendaraan(Request $request)
@@ -287,6 +325,32 @@ class GAPengajuanBahanBakarController extends Controller
         where plat_no = '" . $request->cbo_no_kendaraan . "'");
 
         return json_encode($data_jns ? $data_jns[0] : '-');
+    }
+
+
+    public function show_ga_get_jns_edit(Request $request)
+    {
+        $data_jns = DB::select("select concat(merk, ' ', warna) jns_kendaraan, jns_bhn_bakar from ga_master_kendaraan
+        where plat_no = '" . $request->cbo_no_kendaraan . "'");
+
+        return json_encode($data_jns ? $data_jns[0] : '-');
+    }
+
+
+    public function show_ga_get_bhn_bakar_edit(Request $request)
+    {
+        $data_bhn = DB::select("
+        select id isi, nm_bhn_bakar tampil from ga_master_bahan_bakar
+        where jns_bhn_bakar = '" . $request->edit_txtjns_bhn_bakar . "' and cancel = 'N'
+        ");
+
+        $html = "<option value='' disabled>Pilih Nama Bahan Bakar</option>";
+
+        foreach ($data_bhn as $databhn) {
+            $html .= " <option value='" . $databhn->isi . "'>" . $databhn->tampil . "</option> ";
+        }
+
+        return $html;
     }
 
     public function show_getbhn_bakar(Request $request)
