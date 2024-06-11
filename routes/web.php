@@ -42,6 +42,9 @@ use App\Http\Controllers\DC\TrolleyController;
 use App\Http\Controllers\DC\TrolleyStockerController;
 use App\Http\Controllers\DC\LoadingLineController;
 
+// Track
+use App\Http\Controllers\TrackController;
+
 use App\Http\Controllers\WarehouseController;
 use App\Http\Controllers\MasterLokasiController;
 use App\Http\Controllers\InMaterialController;
@@ -549,6 +552,12 @@ Route::middleware('auth')->group(function () {
     Route::controller(StockDcWipController::class)->prefix("stock-dc-wip")->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('stock-dc-wip');
         Route::get('/show/{partId?}', 'show')->name('stock-dc-wip-detail');
+    });
+
+    // Track
+    Route::controller(TrackController::class)->prefix("track")->middleware('admin')->group(function () {
+        Route::get('/worksheet', 'worksheet')->name('track-ws');
+        Route::get('/worksheet/show/{actCostingId?}', 'showWorksheet')->name('track-ws-detail');
     });
 
     //Mutasi Karywawan
