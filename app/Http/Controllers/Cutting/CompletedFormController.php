@@ -367,7 +367,6 @@ class CompletedFormController extends Controller
                     whereRaw("part_form.id is not null")->
                     where("part.id", $partData->id)->
                     where("marker_input.color", $formCutInputData->color)->
-                    where("form_cut_input.no_cut", ">=", $formCutInputData->no_cut)->
                     groupBy("form_cut_input.id")->
                     orderBy("marker_input.color", "asc")->
                     orderBy("form_cut_input.waktu_selesai", "asc")->
