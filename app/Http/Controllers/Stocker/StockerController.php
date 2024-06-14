@@ -661,7 +661,7 @@ class StockerController extends Controller
                             'updated_at' => Carbon::now(),
                         ]);
                     }
-                } else if ($checkStocker && $checkStocker->qty_ply != ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index])) {
+                } else if ($checkStocker && ($checkStocker->qty_ply != ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]) || $checkStocker->range_awal != $cumRangeAwal || $checkStocker->range_akhir != ($request['group_stocker'][$index] == (min($request['group_stocker'])) && (($j == ($request['ratio'][$index] - 1) && $modifySizeQty) || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir) )) {
                     $checkStocker->qty_ply = ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]);
                     $checkStocker->qty_ply_mod = (($request['group_stocker'][$index] == min($request['group_stocker'])) && (($j == ($request['ratio'][$index] - 1) && $modifySizeQty) || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]) + $modifySizeQty->difference_qty : null);
                     $checkStocker->range_awal = $cumRangeAwal;
