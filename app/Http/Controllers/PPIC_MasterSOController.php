@@ -100,10 +100,10 @@ class PPIC_MasterSOController extends Controller
             m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is null,'Ok','Check') status
             from ppic_master_so_tmp tmp
             left join master_sb_ws m on tmp.ws = m.ws
-                                and tmp.color = m.color
-                                and tmp.size = m.size
-                                and tmp.style = m.styleno
-                                and tmp.dest = m.dest
+            and tmp.color = m.color
+            and tmp.size = m.size
+            and tmp.style = m.styleno
+            and tmp.dest = m.dest
             left join ppic_master_so p on m.id_so_det = p.id_so_det
                                 and tmp.tgl_shipment = p.tgl_shipment
             where tmp.created_by = '$user'
@@ -408,7 +408,7 @@ m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is 
             $sheet->writeRow($dArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         }
 
-        $filename=date('Y-m-d').' PPIC Master SO.xlsx';
+        $filename = date('Y-m-d') . ' PPIC Master SO.xlsx';
 
         ob_end_clean();
         $excel->download($filename);
