@@ -352,7 +352,7 @@
                                                 <input type="hidden" name="range_awal[{{ $index }}]" id="range_awal_{{ $index }}" value="{{ $rangeAwal }}">
                                                 <input type="hidden" name="range_akhir[{{ $index }}]" id="range_akhir_{{ $index }}" value="{{ $rangeAkhir }}">
 
-                                                <td>{{ $ratio->size}}</td>
+                                                <td>{{ $ratio->size_dest}}</td>
                                                 <td>{{ $ratio->ratio }}</td>
                                                 <td>{{ (intval($ratio->ratio) * intval($dataSpreading->total_lembar)) != $qty ? $qty." (".(intval($ratio->ratio) * intval($dataSpreading->total_lembar))."".(($qty - (intval($ratio->ratio) * intval($dataSpreading->total_lembar))) > 0 ? "+".($qty - (intval($ratio->ratio) * intval($dataSpreading->total_lembar))) : ($qty - (intval($ratio->ratio) * intval($dataSpreading->total_lembar)))).")" : $qty }}</td>
                                                 <td>{{ $rangeAwal }}</td>
@@ -447,7 +447,7 @@
                                             $numGeneratable = true;
                                         @endphp
                                         <tr>
-                                            <td>{{ $ratio->size}}</td>
+                                            <td>{{ $ratio->size_dest}}</td>
                                             <td>{{ $ratio->ratio }}</td>
                                             <td>
                                                 <input class="form-control form-control-sm" type="number" name="mod_qty_cut[{{ $index }}]" id="mod_qty_cut_{{ $index }}" data-original-value="{{ $qty }}" value="{{ $qty }}" onchange="modifyQty(this, {{ $index }});">

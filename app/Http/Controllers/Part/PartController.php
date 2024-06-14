@@ -374,7 +374,7 @@ class PartController extends Controller
                     marker_input.style,
                     marker_input.color,
                     marker_input.panel,
-                    GROUP_CONCAT(DISTINCT CONCAT(master_sb_ws.size, '(', marker_input_detail.ratio, ')')  ORDER BY master_size_new.urutan ASC SEPARATOR ' / ') marker_details,
+                    GROUP_CONCAT(DISTINCT CONCAT((CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE master_sb_ws.size END), '(', marker_input_detail.ratio, ')')  ORDER BY master_size_new.urutan ASC SEPARATOR ' / ') marker_details,
                     form_cut_input.qty_ply,
                     form_cut_input.no_cut
                 ")->
@@ -437,7 +437,7 @@ class PartController extends Controller
                     marker_input.style,
                     marker_input.color,
                     marker_input.panel,
-                    GROUP_CONCAT(DISTINCT CONCAT(master_sb_ws.size, '(', marker_input_detail.ratio, ')') SEPARATOR ', ') marker_details,
+                    GROUP_CONCAT(DISTINCT CONCAT((CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE master_sb_ws.size END), '(', marker_input_detail.ratio, ')') SEPARATOR ', ') marker_details,
                     form_cut_input.qty_ply,
                     form_cut_input.no_cut
                 ")->
@@ -560,7 +560,7 @@ class PartController extends Controller
                 marker_input.color,
                 marker_input.style,
                 marker_input.panel,
-                GROUP_CONCAT(DISTINCT CONCAT(master_size_new.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' / ') marker_details,
+                GROUP_CONCAT(DISTINCT CONCAT((CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE master_sb_ws.size END), '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' / ') marker_details,
                 form_cut_input.qty_ply,
                 form_cut_input.no_cut
             ")->
@@ -706,7 +706,7 @@ class PartController extends Controller
                 part_form.kode kode_part_form,
                 part.kode kode_part,
                 GROUP_CONCAT(DISTINCT master_part.nama_part ORDER BY master_part.nama_part ASC SEPARATOR ' || ') part_details,
-                GROUP_CONCAT(DISTINCT CONCAT(master_sb_ws.size, '(', marker_input_detail.ratio, ')') SEPARATOR ' / ') marker_details
+                GROUP_CONCAT(DISTINCT CONCAT((CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE master_sb_ws.size END), '(', marker_input_detail.ratio, ')') ORDER BY master_sb_ws.dest, master_size_new.urutan SEPARATOR ' / ') marker_details
             ")->
             leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
             leftJoin("part", "part.id", "=", "part_form.part_id")->
@@ -718,6 +718,7 @@ class PartController extends Controller
             leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
             leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
             whereRaw("part_form.id is not null")->
+            where("marker_input_detail.ratio", ">", "0")->
             where("part.id", $request->id)->
             groupBy("form_cut_input.id");
 

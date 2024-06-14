@@ -407,6 +407,34 @@ class MarkerController extends Controller
                 $actButton = '';
 
                 switch ($track->status) {
+                    case "SPREADING":
+                        if ($track->tipe_form_cut == 'MANUAL') {
+                            $actButton = "
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    <a class='btn btn-success btn-sm' href='".route('process-manual-form-cut')."/".$track->form_cut_id."' data-bs-toggle='tooltip' target='_blank'>
+                                        <i class='fa fa-plus'></i>
+                                    </a>
+                                </div>
+                            ";
+                        } else if ($track->tipe_form_cut == 'PILOT') {
+                            $actButton = "
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    <a class='btn btn-success btn-sm' href='".route('process-pilot-form-cut')."/".$track->form_cut_id."' data-bs-toggle='tooltip' target='_blank'>
+                                        <i class='fa fa-plus'></i>
+                                    </a>
+                                </div>
+                            ";
+                        } else {
+                            $actButton = "
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    <a class='btn btn-success btn-sm' href='".route('process-manual-form-cut')."/".$track->form_cut_id."' data-bs-toggle='tooltip' target='_blank'>
+                                        <i class='fa fa-plus'></i>
+                                    </a>
+                                </div>
+                            ";
+                        }
+
+                        break;
                     case "PENGERJAAN PILOT MARKER":
                     case "PENGERJAAN PILOT DETAIL":
                     case "PENGERJAAN MARKER":
@@ -602,7 +630,7 @@ class MarkerController extends Controller
 
             <div class='row'>
                 <div class='col-sm-12'>
-                    <div class='card card-info collapsed-card'>
+                    <div class='card card-primary collapsed-card'>
                         <div class='card-header'>
                             <h1 class='card-title'><i class='fa-solid fa-expand fa-sm'></i> Detail Size</h1>
                             <div class='card-tools'>
@@ -631,7 +659,7 @@ class MarkerController extends Controller
 
             <div class='row'>
                 <div class='col-md-12'>
-                    <div class='card card-info collapsed-card'>
+                    <div class='card card-primary collapsed-card'>
                         <div class='card-header'>
                             <h1 class='card-title'><i class='fa-solid fa-copy fa-sm'></i> Status Form</h1>
                             <div class='card-tools'>

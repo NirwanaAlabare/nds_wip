@@ -30,6 +30,19 @@
         <div class="collapse navbar-collapse order-3" id="navbarCollapse">
             <!-- Left navbar links -->
             <ul class="navbar-nav">
+                @if ($page == 'dashboard-track')
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'track-ws' ? 'active' : '' }}">Worksheet</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('track-ws') }}" class="dropdown-item {{ $subPage == 'ws' ? 'active' : '' }}">
+                                    Worksheet
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endif
+
                 @if ($page == 'dashboard-warehouse')
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"

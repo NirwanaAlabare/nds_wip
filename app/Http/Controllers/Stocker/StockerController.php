@@ -198,6 +198,7 @@ class StockerController extends Controller
                 marker_input_detail.id marker_detail_id,
                 marker_input_detail.so_det_id,
                 COALESCE(master_sb_ws.size, marker_input_detail.size) size,
+                COALESCE((CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE master_sb_ws.size END), marker_input_detail.size) size_dest,
                 marker_input_detail.ratio
             ")->
             leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
@@ -947,6 +948,7 @@ class StockerController extends Controller
                     marker_input_detail.id marker_detail_id,
                     marker_input_detail.so_det_id,
                     COALESCE(master_sb_ws.size, marker_input_detail.size) size,
+                    COALESCE((CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE master_sb_ws.size END), marker_input_detail.size) size_dest,
                     marker_input_detail.ratio,
                     stocker_input.id stocker_id
                 ")->
