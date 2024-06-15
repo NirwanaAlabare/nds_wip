@@ -274,8 +274,6 @@ class StockerController extends Controller
                             MAX( stocker_numbering.number ) range_akhir
                         FROM
                             `stocker_numbering`
-                        WHERE
-                            ( stocker_numbering.cancel IS NULL OR stocker_numbering.cancel != 'Y' )
                         GROUP BY
                             stocker_numbering.form_cut_id,
                             stocker_numbering.so_det_id
