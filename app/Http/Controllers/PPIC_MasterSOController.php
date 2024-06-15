@@ -265,8 +265,9 @@ m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is 
             group by id_so_det
             )
              p on a.so_det_id = p.id_so_det
+             where created_at >= '2024-06-15'
             group by so_det_id, sewing_line,date_format(a.created_at,'%d-%m-%Y')
-            order by date_format(a.created_at,'%Y-%m-%d') asc,a.sewing_line asc
+            order by date_format(a.created_at,'%Y-%m-%d') desc,a.sewing_line asc
             ");
 
         return DataTables::of($data_tracking)->toJson();
