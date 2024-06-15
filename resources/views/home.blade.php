@@ -8,18 +8,20 @@
                 <h3 class="card-title fw-bold text-sb">Halo, {{ strtoupper(auth()->user()->name) }}</h3>
                 <br>
                 <div class="row g-3 mt-3">
-                    <div class="col-lg-2 col-3">
-                        <a href="{{ route('track-ws') }}" class="home-item">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <div class="d-flex h-100 flex-column justify-content-between">
-                                        <img src="{{ asset('dist/img/track.png') }}" class="img-fluid p-3" alt="cutting image">
-                                        <p class="text-center fw-bold text-uppercase text-dark">Track</p>
+                    @admin
+                        <div class="col-lg-2 col-3">
+                            <a href="{{ route('track-ws') }}" class="home-item">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex h-100 flex-column justify-content-between">
+                                            <img src="{{ asset('dist/img/track.png') }}" class="img-fluid p-3" alt="cutting image">
+                                            <p class="text-center fw-bold text-uppercase text-dark">Track</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </a>
-                    </div>
+                            </a>
+                        </div>
+                    @endadmin
 
                     @if (auth()->user()->type == 'admin' || auth()->user()->type == 'marker' || auth()->user()->type == 'spreading')
                         <div class="col-lg-2 col-3">

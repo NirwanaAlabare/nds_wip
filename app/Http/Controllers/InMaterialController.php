@@ -479,7 +479,7 @@ class InMaterialController extends Controller
             if ($request["qty_good"][$i] > 0 || $request["qty_reject"][$i] > 0) {
                 if($no_po == null){
                     $detdata = DB::connection('mysql_sb')->select("select sd.price,ac.curr,'' pono,'' id_po_item from bom_jo_global_item bom INNER JOIN jo_det jd on jd.id_jo = bom.id_jo INNER JOIN so on so.id = jd.id_so INNER JOIN act_costing ac on ac.id = so.id_cost inner join so_det sd on sd.id_so = so.id INNER JOIN mastersupplier ms on ms.id_supplier = bom.id_supplier INNER JOIN masteritem mi on mi.id_item = bom.id_item where ac.kpno ='" . $no_ws . "' and jd.id_jo ='" . $request["det_idjo"][$i] . "' and mi.id_item ='" . $request["det_iditem"][$i] . "' GROUP BY bom.id_item");
-                    $price      = $detdata[0]->price;
+                    $price      = '0';
                     $curr       = $detdata[0]->curr;
                     $pono       = $detdata[0]->pono; 
                     $id_po_item = $detdata[0]->id_po_item; 
