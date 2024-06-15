@@ -794,6 +794,7 @@ class StockerController extends Controller
 
         $detailItemArr = [];
         $storeDetailItemArr = [];
+        $updateDetailItemIds = [];
 
         $checkedSize = collect($request['generate_num']);
 
@@ -828,6 +829,8 @@ class StockerController extends Controller
                         'created_at' => $now,
                         'updated_at' => $now,
                     ]);
+                } else if ($checkStockerDetailData && $checkStockerDetailData->status == "Y") {
+                    array_push($updateDetailItemIds, $checkStockerDetailData->id);
                 }
 
                 array_push($detailItemArr, [
@@ -845,6 +848,13 @@ class StockerController extends Controller
 
         if (count($storeDetailItemArr) > 0) {
             $storeDetailItem = StockerDetail::insert($storeDetailItemArr);
+        }
+
+        if (count($updateDetailItemIds) > 0) {
+            $updateDetailItem = StockerDetail::whereIn("id", $updateDetailItemIds)->
+                update([
+                    "cancel" => "N"
+                ]);
         }
 
         // generate pdf

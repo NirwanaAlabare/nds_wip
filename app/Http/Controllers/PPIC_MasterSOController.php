@@ -100,12 +100,14 @@ class PPIC_MasterSOController extends Controller
             m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is null,'Ok','Check') status
             from ppic_master_so_tmp tmp
             left join master_sb_ws m on tmp.ws = m.ws
-                                and tmp.color = m.color
-                                and tmp.size = m.size
-                                and tmp.style = m.styleno
-                                and tmp.dest = m.dest
+            and tmp.color = m.color
+            and tmp.size = m.size
+            and tmp.style = m.styleno
+            and tmp.dest = m.dest
             left join ppic_master_so p on m.id_so_det = p.id_so_det
                                 and tmp.tgl_shipment = p.tgl_shipment
+                                and tmp.po = p.po
+								and tmp.barcode = p.barcode
             where tmp.created_by = '$user'
             ");
 
@@ -264,7 +266,7 @@ m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is 
             )
              p on a.so_det_id = p.id_so_det
             group by so_det_id, sewing_line,date_format(a.created_at,'%d-%m-%Y')
-            order by a.created_at desc
+            order by date_format(a.created_at,'%Y-%m-%d') asc,a.sewing_line asc
             ");
 
         return DataTables::of($data_tracking)->toJson();
@@ -408,7 +410,7 @@ m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is 
             $sheet->writeRow($dArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         }
 
-        $filename=date('Y-m-d').' PPIC Master SO.xlsx';
+        $filename = date('Y-m-d') . ' PPIC Master SO.xlsx';
 
         ob_end_clean();
         $excel->download($filename);
