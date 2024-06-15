@@ -274,6 +274,8 @@ class StockerController extends Controller
                             MAX( stocker_numbering.number ) range_akhir
                         FROM
                             `stocker_numbering`
+                        WHERE
+			                ( stocker_numbering.cancel IS NULL OR stocker_numbering.cancel != 'Y' )
                         GROUP BY
                             stocker_numbering.form_cut_id,
                             stocker_numbering.so_det_id
@@ -829,7 +831,7 @@ class StockerController extends Controller
                         'created_at' => $now,
                         'updated_at' => $now,
                     ]);
-                } else if ($checkStockerDetailData && $checkStockerDetailData->status == "Y") {
+                } else if ($checkStockerDetailData && $checkStockerDetailData->cancel == "Y") {
                     array_push($updateDetailItemIds, $checkStockerDetailData->id);
                 }
 
