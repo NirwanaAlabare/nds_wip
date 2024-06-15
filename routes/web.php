@@ -407,6 +407,7 @@ Route::middleware('auth')->group(function () {
 
     // DC :
     // DC Dashboard
+    Route::get('/dashboard-track', [DashboardController::class, 'track'])->middleware('auth')->name('dashboard-track');
     Route::get('/dashboard-marker', [DashboardController::class, 'marker'])->middleware('auth')->name('dashboard-marker');
     Route::get('/marker-qty', [DashboardController::class, 'markerQty'])->middleware('auth')->name('marker-qty');
     Route::get('/dashboard-cutting', [DashboardController::class, 'cutting'])->middleware('auth')->name('dashboard-cutting');
@@ -558,6 +559,10 @@ Route::middleware('auth')->group(function () {
     Route::controller(TrackController::class)->prefix("track")->middleware('admin')->group(function () {
         Route::get('/worksheet', 'worksheet')->name('track-ws');
         Route::get('/worksheet/show/{actCostingId?}', 'showWorksheet')->name('track-ws-detail');
+        Route::get('/worksheet/show-part', 'wsPart')->name('track-ws-part');
+        Route::get('/worksheet/show-part-id', 'wsPartId')->name('track-ws-part-id');
+        Route::get('/worksheet/show-marker', 'wsMarker')->name('track-ws-marker');
+        Route::get('/worksheet/show-form', 'wsForm')->name('track-ws-form');
     });
 
     //Mutasi Karywawan

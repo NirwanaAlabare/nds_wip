@@ -9,12 +9,6 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
-
-    <style>
-        div.dataTables_wrapper div.dataTables_processing {
-            top: 5%;
-        }
-    </style>
 @endsection
 
 @section('content')
@@ -22,10 +16,19 @@
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="card-title fw-bold mb-0"><i class="fas fa-receipt fa-sm"></i> Worksheet List</h5>
-                <div>
-                    <a href="{{ route('stocker') }}" class="btn btn-primary btn-sm">
-                        <i class="fa fa-reply"></i> Kembali ke Stocker
-                    </a>
+                <div class="d-flex justify-content-end gap-1">
+                    <select class="form-select form-select-sm select2bs4 w-auto" id="ws-month-filter" readonly value="{{ date('m') }}">
+                        <option value="" selected disabled>Bulan</option>
+                        @foreach ($months as $month)
+                            <option value="{{ $month['angka'] }}">{{ $month['nama'] }}</option>
+                        @endforeach
+                    </select>
+                    <select class="form-select form-select-sm select2bs4 w-auto" id="ws-year-filter" readonly value="{{ date('Y') }}">
+                        <option value="" selected disabled>Tahun</option>
+                        @foreach ($years as $year)
+                            <option value="{{ $year }}">{{ $year }}</option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
         </div>
@@ -34,16 +37,20 @@
                 <table class="table table-sm table-bordered W-100" id="ws-table">
                     <thead>
                         <tr>
+                            <th>Tanggal Kirim</th>
                             <th>Worksheet</th>
                             <th>Style</th>
                             <th>Color</th>
                             <th>Size</th>
                             <th>Destination</th>
                             <th>Panel</th>
-                            <th>Total Lembar Marker</th>
-                            <th>Total Cut Marker</th>
-                            <th>Total Lembar Form</th>
-                            <th>Total Cut Form</th>
+                            <th>Qty</th>
+                            <th>Ratio</th>
+                            <th>Ply Marker</th>
+                            <th>Cut Marker</th>
+                            <th>Ply Form</th>
+                            <th>Cut Form</th>
+                            <th>Stocker</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -67,15 +74,47 @@
         $('.select2').select2()
         $('.select2bs4').select2({
             theme: 'bootstrap4',
-            dropdownParent: $("#editMejaModal")
         })
     </script>
 
     <script>
+        $(document).ready(async function() {
+            let today = new Date();
+            let todayDate = ("0" + today.getDate()).slice(-2);
+            let todayMonth = ("0" + (today.getMonth() + 1)).slice(-2);
+            let todayYear = today.getFullYear();
+            let todayFullDate = todayYear + '-' + todayMonth + '-' + todayDate;
+
+            // Marker Datatable
+            $('#ws-month-filter').val((today.getMonth() + 1)).trigger("change");
+            $('#ws-year-filter').val(todayYear).trigger("change");
+        });
+
+        $('#ws-table thead tr').clone(true).appendTo('#ws-table thead');
+        $('#ws-table thead tr:eq(1) th').each(function(i) {
+            if (i != 7 && i != 8 && i != 9 && i != 10 && i != 11 && i != 12 && i != 13) {
+                var title = $(this).text();
+                $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%"/>');
+
+                $('input', this).on('keyup change', function() {
+                    if (wsTable.column(i).search() !== this.value) {
+                        wsTable
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            } else {
+                $(this).empty();
+            }
+        });
+
         let wsTable = $("#ws-table").DataTable({
             ordering: false,
             processing: true,
             serverSide: true,
+            scrollY: "500px",
+            scrollX: "500px",
             pageLength: 100,
             ajax: {
                 headers: {
@@ -85,11 +124,14 @@
                 dataType: 'json',
                 dataSrc: 'data',
                 data: function(d) {
-                    d.dateFrom = $('#tgl-awal').val();
-                    d.dateTo = $('#tgl-akhir').val();
+                    d.month = $('#ws-month-filter').val();
+                    d.year = $('#ws-year-filter').val();
                 },
             },
             columns: [
+                {
+                    data: 'tgl_kirim',
+                },
                 {
                     data: 'ws',
                 },
@@ -109,6 +151,13 @@
                     data: 'panel',
                 },
                 {
+                    data: 'qty',
+                },
+                {
+                    data: 'total_ratio_marker',
+                    searchable: false
+                },
+                {
                     data: 'total_gelar_marker',
                     searchable: false
                 },
@@ -122,6 +171,10 @@
                 },
                 {
                     data: 'total_cut_form',
+                    searchable: false
+                },
+                {
+                    data: 'total_stocker',
                     searchable: false
                 },
             ],
@@ -141,33 +194,36 @@
                 // },
                 // Text No Wrap
                 {
+                    targets: [1],
+                    className: "text-nowrap",
+                    render: function (data, type, row, meta) {
+                        let column = '<a href="{{ route('track-ws-detail') }}/'+row.id_act_cost+'">'+data+'</a>';
+                        return column;
+                    }
+                },
+                {
+                    targets: [7, 8, 9, 10, 11, 12, 13],
+                    className: "text-nowrap",
+                    render: function (data, type, row, meta) {
+                        return Number(data).toLocaleString("id-ID");
+                    }
+                },
+                {
                     targets: "_all",
                     className: "text-nowrap"
-                }
+                },
             ]
-        });
-
-        $('#ws-table thead tr').clone(true).appendTo('#ws-table thead');
-        $('#ws-table thead tr:eq(1) th').each(function(i) {
-            if (i != 6 && i != 7 && i != 8 && i != 9) {
-                var title = $(this).text();
-                $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%"/>');
-
-                $('input', this).on('keyup change', function() {
-                    if (wsTable.column(i).search() !== this.value) {
-                        wsTable
-                            .column(i)
-                            .search(this.value)
-                            .draw();
-                    }
-                });
-            } else {
-                $(this).empty();
-            }
         });
 
         function dataTableReload() {
             wsTable.ajax.reload();
         }
+
+        $('#ws-month-filter').on('change', () => {
+            $('#ws-table').DataTable().ajax.reload();
+        });
+        $('#ws-year-filter').on('change', () => {
+            $('#ws-table').DataTable().ajax.reload();
+        });
     </script>
 @endsection

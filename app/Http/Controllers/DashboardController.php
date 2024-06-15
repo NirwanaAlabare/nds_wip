@@ -13,6 +13,10 @@ use DB;
 
 class DashboardController extends Controller
 {
+    public function track(Request $request) {
+        return Redirect::to('/home');
+    }
+
     // Marker
     public function marker(Request $request) {
         ini_set("max_execution_time", 0);
@@ -42,7 +46,7 @@ class DashboardController extends Controller
                     marker_input.urutan_marker,
                     marker_input.gelar_qty,
                     marker_input.panel,
-                    GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' / ') marker_details,
+                    GROUP_CONCAT(DISTINCT CONCAT(master_sb_ws.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' / ') marker_details,
                     COALESCE(CONCAT(master_part.nama_part, ' / ', CONCAT(COALESCE(part_detail.cons, '-'), ' ', COALESCE(UPPER(part_detail.unit), '-')), ' / ', CONCAT(COALESCE(master_secondary.tujuan, '-'), ' - ', COALESCE(master_secondary.proses, '-')) ), '-') nama_part
                 ")->
                 leftJoin("part", function ($join) {

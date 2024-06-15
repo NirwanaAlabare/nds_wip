@@ -390,7 +390,7 @@ class SpreadingController extends Controller
         $spreadingForm = FormCutInput::where('id', $id)->first();
 
         $checkMarker = Marker::where("kode", $spreadingForm->id_marker)->first();
-        
+
         $deleteSpreadingForm = FormCutInput::where('id', $id)->delete();
         if ($deleteSpreadingForm) {
             // Update Marker Balance

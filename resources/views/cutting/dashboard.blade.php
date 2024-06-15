@@ -57,7 +57,7 @@
             </div>
             <div class="col-6 col-md-3">
                 <div class="info-box">
-                    <span class="info-box-icon bg-sb-secondary"><i class="fa-solid fa-users-line"></i></span>
+                    <span class="info-box-icon bg-sb-secondary"><i class="fa-solid fa-check-to-slot"></i></span>
                     <div class="info-box-content">
                         <span class="info-box-text">Finished Form</span>
                         <span class="info-box-number" id="finished-qty"></span>
