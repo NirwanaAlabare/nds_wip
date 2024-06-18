@@ -315,99 +315,115 @@ class DCInController extends Controller
     // mass insert tmp dc in
     public function mass_insert_tmp_dc_in(Request $request)
     {
-        $data_header = DB::select("
-            SELECT
-                a.act_costing_ws,
-                m.buyer,
-                m.style styleno,
-                a.color,
-                COALESCE(msb.size, a.size) size,
-                a.panel,
-                f.no_cut,
-                f.id,
-                a.shade,
-                a.qty_ply,
-                a.range_awal,
-                a.range_akhir,
-                concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) kode,
-                ms.tujuan,
-                IF(ms.tujuan = 'NON SECONDARY',a.lokasi,ms.proses) lokasi,
-                a.tempat,
-                a.id_qr_stocker
-            FROM
-                `stocker_input` a
-                left join master_sb_ws msb on msb.id_so_det = a.so_det_id
-                inner join form_cut_input f on a.form_cut_id = f.id
-                INNER JOIN marker_input m ON m.kode = f.id_marker
-                inner join part_detail pd on a.part_detail_id = pd.id
-                inner join master_secondary ms on pd.master_secondary_id = ms.id
-            WHERE
-                a.act_costing_ws = 'JCP/0424/011' AND
-                a.color = 'BLACK' AND
-                f.no_cut = '10'
-        ");
+        $thisStocker = Stocker::selectRaw("stocker_input.id_qr_stocker, stocker_input.act_costing_ws, stocker_input.color, form_cut_input.no_cut")->
+            leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+            where("id_qr_stocker", $request->txtqrstocker)->
+            first();
 
-        $user = Auth::user()->name;
-        foreach ($data_header as $d) {
-            if ($d->tujuan == 'NON SECONDARY') {
-                $tujuan = $d->tujuan;
-                $lokasi = $d->lokasi;
-                $tempat = $d->tempat;
-            } else {
-                $tujuan = $d->tujuan;
-                $lokasi = $d->lokasi;
-                $tempat = '-';
-            }
-
-            $cekdata =  DB::select("
-                select
-                    *
-                from
-                    tmp_dc_in_input_new
-                    left join dc_in_input on dc_in_input.id_qr_stocker = tmp_dc_in_input_new.id_qr_stocker
-                where
-                    tmp_dc_in_input_new.id_qr_stocker = '" . $d->id_qr_stocker . "'
+        if ($thisStocker) {
+            $data_header = DB::select("
+                SELECT
+                    a.act_costing_ws,
+                    m.buyer,
+                    m.style styleno,
+                    a.color,
+                    COALESCE(msb.size, a.size) size,
+                    a.panel,
+                    f.no_cut,
+                    f.id,
+                    a.shade,
+                    a.qty_ply,
+                    a.range_awal,
+                    a.range_akhir,
+                    concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) kode,
+                    ms.tujuan,
+                    IF(ms.tujuan = 'NON SECONDARY',a.lokasi,ms.proses) lokasi,
+                    a.tempat,
+                    a.id_qr_stocker
+                FROM
+                    `stocker_input` a
+                    left join master_sb_ws msb on msb.id_so_det = a.so_det_id
+                    inner join form_cut_input f on a.form_cut_id = f.id
+                    INNER JOIN marker_input m ON m.kode = f.id_marker
+                    inner join part_detail pd on a.part_detail_id = pd.id
+                    inner join master_secondary ms on pd.master_secondary_id = ms.id
+                WHERE
+                    a.act_costing_ws = '".$thisStocker->act_costing_ws."' AND
+                    a.color = '".$thisStocker->color."' AND
+                    f.no_cut = '".$thisStocker->no_cut."'
             ");
 
-            $cekdata_fix = $cekdata ? $cekdata[0] : null;
-            if ($cekdata_fix ==  null) {
+            $user = Auth::user()->name;
+            foreach ($data_header as $d) {
+                if ($d->tujuan == 'NON SECONDARY') {
+                    $tujuan = $d->tujuan;
+                    $lokasi = $d->lokasi;
+                    $tempat = $d->tempat;
+                } else {
+                    $tujuan = $d->tujuan;
+                    $lokasi = $d->lokasi;
+                    $tempat = '-';
+                }
+
+                $cekdata =  DB::select("
+                    select
+                        *
+                    from
+                        tmp_dc_in_input_new
+                        left join dc_in_input on dc_in_input.id_qr_stocker = tmp_dc_in_input_new.id_qr_stocker
+                    where
+                        tmp_dc_in_input_new.id_qr_stocker = '" . $d->id_qr_stocker . "'
+                ");
 
                 $cekdata_fix = $cekdata ? $cekdata[0] : null;
                 if ($cekdata_fix ==  null) {
 
-                    DB::insert("
-                        insert into tmp_dc_in_input_new
-                        (
-                            id_qr_stocker,
-                            qty_reject,
-                            qty_replace,
-                            tujuan,
-                            tempat,
-                            lokasi,
-                            user
-                        )
-                        values
-                        (
-                            '" . $d->id_qr_stocker . "',
-                            '0',
-                            '0',
-                            '$tujuan',
-                            '$tempat',
-                            '$lokasi',
-                            '$user'
-                        )
-                    ");
+                    $cekdata_fix = $cekdata ? $cekdata[0] : null;
+                    if ($cekdata_fix ==  null) {
 
-                    DB::update(
-                        "update stocker_input set status = 'dc' where id_qr_stocker = '" . $d->id_qr_stocker . "'"
-                    );
+                        DB::insert("
+                            insert into tmp_dc_in_input_new
+                            (
+                                id_qr_stocker,
+                                qty_reject,
+                                qty_replace,
+                                tujuan,
+                                tempat,
+                                lokasi,
+                                user
+                            )
+                            values
+                            (
+                                '" . $d->id_qr_stocker . "',
+                                '0',
+                                '0',
+                                '$tujuan',
+                                '$tempat',
+                                '$lokasi',
+                                '$user'
+                            )
+                        ");
+
+                        DB::update(
+                            "update stocker_input set status = 'dc' where id_qr_stocker = '" . $d->id_qr_stocker . "'"
+                        );
+                    }
                 }
             }
+
+            return array(
+                'status' => 200,
+                'message' => 'Data Stocker berhasil disimpan',
+                'redirect' => '',
+                'table' => 'datatable-scan',
+                'additional' => [],
+                'callback' => 'resetCheckedStocker()'
+            );
         }
 
         return array(
-            'status' => 200,
-            'message' => 'Data Stocker berhasil disimpan',
+            'status' => 400,
+            'message' => 'Data Stocker gagal disimpan',
             'redirect' => '',
             'table' => 'datatable-scan',
             'additional' => [],

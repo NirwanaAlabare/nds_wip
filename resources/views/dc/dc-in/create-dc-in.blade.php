@@ -148,6 +148,7 @@
                             <div class="input-group">
                                 <input type="text" class="form-control form-control-sm border-input" name="txtqr" id="txtqr" data-prevent-submit="true" autocomplete="off" enterkeyhint="go" autofocus>
                                 <button class="btn btn-sm btn-primary" type="button" id="scan_qr" onclick="scanqr()">Scan</button>
+                                <button class="btn btn-sm btn-success d-none" type="button" id="mass_scan_qr" onclick="massscanqr()">Mass Scan</button>
                             </div>
                         </div>
                     </div>
@@ -443,6 +444,89 @@
                         let html = $.ajax({
                             type: "post",
                             url: '{{ route('insert_tmp_dc_in') }}',
+                            data: {
+                                txtqrstocker: txtqrstocker,
+                                txttuj_h: document.form.txttuj_h.value,
+                                txtlok_h: response.lokasi,
+                                txttempat_h: response.tempat
+                            },
+                            success: function(response) {
+                                if (document.getElementById("loading")) {
+                                    document.getElementById("loading").classList.add("d-none");
+                                }
+
+                                $("#txtqr").val('');
+                                getdatatmp();
+                                initScan();
+                            },
+                            error: function(request, status, error) {
+                                if (document.getElementById("loading")) {
+                                    document.getElementById("loading").classList.add("d-none");
+                                }
+
+                                alert(request.responseText);
+                            },
+                        });
+                    } else {
+                        if (document.getElementById("loading")) {
+                            document.getElementById("loading").classList.add("d-none");
+                        }
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: 'Stocker Tidak Ditemukan',
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                            timerProgressBar: true
+                        })
+                    }
+                },
+                error: function(request, status, error) {
+                    if (document.getElementById("loading")) {
+                        document.getElementById("loading").classList.add("d-none");
+                    }
+
+                    alert(request.responseText);
+                },
+            });
+        };
+
+        function massscanqr() {
+            if (document.getElementById("loading")) {
+                document.getElementById("loading").classList.remove("d-none");
+            }
+
+            let txtqrstocker = document.form.txtqr.value;
+            $.ajax({
+                url: '{{ route('show_data_header') }}',
+                method: 'get',
+                data: {
+                    txtqrstocker: txtqrstocker
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response) {
+                        document.getElementById('txtws').value = response.act_costing_ws;
+                        document.getElementById('txtbuyer').value = response.buyer;
+                        document.getElementById('txtstyle').value = response.styleno;
+                        document.getElementById('txtcolor').value = response.color;
+                        document.getElementById('txtshell').value = response.panel;
+                        document.getElementById('txtnocut').value = response.no_cut;
+                        document.getElementById('txtsize').value = response.size;
+                        document.getElementById('txtgroup').value = response.grouplot;
+                        document.getElementById('txtqtyply_h').value = response.qty_ply;
+                        document.getElementById('txtrange_awal').value = response.range_awal;
+                        document.getElementById('txtrange_akhir').value = response.range_akhir;
+                        document.getElementById('txtkode').value = response.kode;
+                        document.getElementById('txttuj_h').value = response.tujuan;
+                        document.getElementById('txtlok_h').value = response.lokasi;
+                        document.getElementById('txttempat_h').value = response.tempat;
+
+                        let html = $.ajax({
+                            type: "post",
+                            url: '{{ route('mass_insert_tmp_dc_in') }}',
                             data: {
                                 txtqrstocker: txtqrstocker,
                                 txttuj_h: document.form.txttuj_h.value,
