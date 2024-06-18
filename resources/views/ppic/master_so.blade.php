@@ -757,7 +757,7 @@
         }
 
         let datatable_tracking = $("#datatable-tracking").DataTable({
-            ordering: false,
+            ordering: true,
             processing: true,
             serverSide: true,
             scrollCollapse: true,
