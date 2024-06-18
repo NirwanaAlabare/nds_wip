@@ -66,13 +66,20 @@ class PackingTransferGarmentController extends Controller
     public function get_po(Request $request)
     {
         $data_po = DB::select("
-        SELECT p.po isi,p.po tampil FROM output_rfts_packing a
-        left join ppic_master_so p on a.so_det_id = p.id_so_det
-        left join master_sb_ws m on a.so_det_id = m.id_so_det
-        where sewing_line = '" . $request->cbo_line . "'
-        group by po
-        having po is not null
-        order by po asc");
+select p.po isi,p.po tampil from
+(
+select so_det_id from output_rfts_packing a
+where sewing_line = '" . $request->cbo_line . "'
+group by so_det_id
+) a
+left join ppic_master_so p on a.so_det_id = p.id_so_det
+left join master_sb_ws m on a.so_det_id = m.id_so_det
+group by po
+having po is not null
+order by po asc
+
+
+        ");
 
         $html = "<option value=''>Pilih PO</option>";
 
