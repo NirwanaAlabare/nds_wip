@@ -30,7 +30,7 @@
                                 value = "{{ $user }}">
                             <label>Line</label>
                             <select class="form-control select2bs4" id="cboline" name="cboline" style="width: 100%;"
-                                onchange="getpo()">
+                                onchange="getpo();getgarment();">
                                 <option selected="selected" value="" disabled="true">Pilih Line</option>
                                 @foreach ($data_line as $dataline)
                                     <option value="{{ $dataline->isi }}">
