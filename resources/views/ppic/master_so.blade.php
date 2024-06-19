@@ -170,7 +170,7 @@
                 <div class="modal-body">
                     <div class='row'>
                         <div class="col-md-12 table-responsive">
-                            <table id="datatable-tracking"
+                            <table id="datatable_tracking"
                                 class="table table-bordered table-hover table-sm w-100 text-wrap">
                                 <thead>
                                     <tr>
@@ -237,7 +237,7 @@
             </div>
             <label>Preview</label>
             <div class="table-responsive">
-                <table id="datatable-preview" class="table table-bordered table-sm w-100 text-nowrap">
+                <table id="datatable_preview" class="table table-bordered table-sm w-100 text-nowrap">
                     <thead class="table-info">
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>ID SO Det</th>
@@ -400,7 +400,22 @@
             datatable.ajax.reload();
         }
 
-        let datatable_preview = $("#datatable-preview").DataTable({
+
+        $('#datatable_preview thead tr').clone(true).appendTo('#datatable_preview thead');
+        $('#datatable_preview thead tr:eq(1) th').each(function(i) {
+            var title = $(this).text();
+            $(this).html('<input type="text" class="form-control form-control-sm"/>');
+            $('input', this).on('keyup change', function() {
+                if (datatable_preview.column(i).search() !== this.value) {
+                    datatable_preview
+                        .column(i)
+                        .search(this.value)
+                        .draw();
+                }
+            });
+        });
+
+        let datatable_preview = $("#datatable_preview").DataTable({
             ordering: false,
             processing: true,
             serverSide: true,
@@ -583,6 +598,22 @@
         };
 
 
+        $('#datatable thead tr').clone(true).appendTo('#datatable thead');
+        $('#datatable thead tr:eq(1) th').each(function(i) {
+            var title = $(this).text();
+            $(this).html('<input type="text" class="form-control form-control-sm" />');
+
+            $('input', this).on('keyup change', function() {
+                if (datatable.column(i).search() !== this.value) {
+                    datatable
+                        .column(i)
+                        .search(this.value)
+                        .draw();
+                }
+            });
+
+        });
+
         let datatable = $("#datatable").DataTable({
             ordering: false,
             processing: true,
@@ -756,7 +787,22 @@
             datatable_tracking.ajax.reload();
         }
 
-        let datatable_tracking = $("#datatable-tracking").DataTable({
+        // $('#datatable_tracking thead tr').clone(true).appendTo('#datatable_tracking thead');
+        // $('#datatable_tracking thead tr:eq(1) th').each(function(i) {
+        //     var title = $(this).text();
+        //     $(this).html('<input type="text" class="form-control form-control-sm"/>');
+        //     $('input', this).on('keyup change', function() {
+        //         if (datatable_tracking.column(i).search() !== this.value) {
+        //             datatable_tracking
+        //                 .column(i)
+        //                 .search(this.value)
+        //                 .draw();
+        //         }
+        //     });
+        // });
+
+
+        let datatable_tracking = $("#datatable_tracking").DataTable({
             ordering: true,
             processing: true,
             serverSide: true,
