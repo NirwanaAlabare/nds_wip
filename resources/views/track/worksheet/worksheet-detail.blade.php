@@ -541,6 +541,90 @@
             </form>
         </div>
     {{-- FORM END --}}
+
+    {{-- ROLL START --}}
+        <div class="card card-sb">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-toilet-paper fa-sm"></i> Roll</h5>
+                    <div class="d-flex justify-content-end align-items-center gap-1">
+                        <input type="date" class="form-control form-control-sm" id="roll-from">
+                        <span>-</span>
+                        <input type="date" class="form-control form-control-sm" id="roll-to">
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="roll-table" class="table table-bordered table-hover table-sm w-100">
+                        <thead>
+                            <tr>
+                                <th>Color</th>
+                                <th>Panel</th>
+                                <th>No. Form</th>
+                                <th>ID Item</th>
+                                <th>Nama Barang</th>
+                                <th>No. Meja</th>
+                                <th>Qty</th>
+                                <th>Unit</th>
+                                <th>Lembar Gelaran</th>
+                                <th>Total Pemakaian</th>
+                                <th>Short Roll</th>
+                                <th>Remark</th>
+                                <th>Sisa Gelaran</th>
+                                <th>Sambungan</th>
+                                <th>Kepala Kain</th>
+                                <th>Sisa Tidak Bisa</th>
+                                <th>Reject</th>
+                                <th>Sisa Kain</th>
+                                <th>Piping</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {{-- ROLL END --}}
+
+    {{-- STOCKER START --}}
+        <div class="card card-sb">
+            <div class="card-header">
+                <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-ticket fa-sm"></i> Stocker</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="stocker-table" class="table table-bordered table-sm w-100">
+                        <thead>
+                            <tr>
+                                <th>Color</th>
+                                <th>Panel</th>
+                                <th>Part</th>
+                                <th>No. Form</th>
+                                <th>No. Cut</th>
+                                <th>Size</th>
+                                <th>Group</th>
+                                <th>No. Stocker</th>
+                                <th>Qty</th>
+                                <th>Range</th>
+                                <th>Secondary</th>
+                                <th>Rak</th>
+                                <th>Trolley</th>
+                                <th>Line</th>
+                                <th>Updated At</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {{-- STOCKER END --}}
 @endsection
 
 @section('custom-script')
@@ -572,11 +656,15 @@
             $('#ws-color-filter').on("change", () => {
                 filterMarkerTable();
                 formTableReload();
+                rollTableReload();
+                stockerTableReload();
             });
 
             $('#ws-panel-filter').on("change", () => {
                 filterMarkerTable();
                 formTableReload();
+                rollTableReload();
+                stockerTableReload();
             });
 
             // Marker
@@ -598,10 +686,28 @@
             // Form
             formTableReload();
             $('#form-from').on("change", () => {
-                filterFormTable();
+                formTableReload();
             });
             $('#form-to').on("change", () => {
-                filterFormTable();
+                formTableReload();
+            });
+
+            // Roll
+            rollTableReload();
+            $('#form-from').on("change", () => {
+                rollTableReload();
+            });
+            $('#form-to').on("change", () => {
+                rollTableReload();
+            });
+
+            // Stocker
+            stockerTableReload();
+            $('#stocker-from').on("change", () => {
+                stockerTableReload();
+            });
+            $('#stocker-to').on("change", () => {
+                stockerTableReload();
             });
 
             document.getElementById("loading").classList.add("d-none");
@@ -610,7 +716,7 @@
         // Marker :
             $('#marker-table thead tr').clone(true).appendTo('#marker-table thead');
             $('#marker-table thead tr:eq(1) th').each(function(i) {
-                if (i != 0 && i != 10 && i != 11) {
+                if (i != 0) {
                     var title = $(this).text();
                     $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%"/>');
 
@@ -1415,5 +1521,242 @@
             function formRatioTable1Reload() {
                 formRatioTable1.ajax.reload();
             }
+
+        // Roll Consumption
+            $('#roll-table thead tr').clone(true).appendTo('#roll-table thead');
+            $('#roll-table thead tr:eq(1) th').each(function(i) {
+                if (i != 6 && i != 8 && i != 9 && i != 10 && i != 11 && i != 12 && i != 13 && i != 14 && i != 15 && i != 16 && i != 17 && i != 18) {
+                    var title = $(this).text();
+                    $(this).html('<input type="text" class="form-control form-control-sm" />');
+
+                    $('input', this).on('keyup change', function() {
+                        if (rollTable.column(i).search() !== this.value) {
+                            rollTable
+                                .column(i)
+                                .search(this.value)
+                                .draw();
+                        }
+                    });
+                } else {
+                    $(this).empty();
+                }
+            });
+
+            let rollTable = $("#roll-table").DataTable({
+                processing: true,
+                serverSide: true,
+                ordering: false,
+                scrollX: "500px",
+                scrollY: "350px",
+                pageLength: 50,
+                ajax: {
+                    url: '{{ route('track-ws-roll') }}',
+                    data: function(d) {
+                        d.actCostingId = $('#id').val();
+                        d.panel = $('#ws-panel-filter').val();
+                        d.color = $('#ws-color-filter').val();
+                        d.dateFrom = $('#roll-from').val();
+                        d.dateTo = $('#roll-to').val();
+                    },
+                },
+                columns: [
+                    {
+                        data: 'color'
+                    },
+                    {
+                        data: 'panel'
+                    },
+                    {
+                        data: 'no_form_cut_input'
+                    },
+                    {
+                        data: 'id_item'
+                    },
+                    {
+                        data: 'detail_item'
+                    },
+                    {
+                        data: 'nama_meja'
+                    },
+                    {
+                        data: 'qty_item'
+                    },
+                    {
+                        data: 'unit_item'
+                    },
+                    {
+                        data: 'lembar_gelaran'
+                    },
+                    {
+                        data: 'total_pemakaian_roll'
+                    },
+                    {
+                        data: 'short_roll'
+                    },
+                    {
+                        data: 'remark'
+                    },
+                    {
+                        data: 'sisa_gelaran'
+                    },
+                    {
+                        data: 'sambungan'
+                    },
+                    {
+                        data: 'kepala_kain'
+                    },
+                    {
+                        data: 'sisa_tidak_bisa'
+                    },
+                    {
+                        data: 'reject'
+                    },
+                    {
+                        data: 'sisa_kain'
+                    },
+                    {
+                        data: 'piping'
+                    },
+                ],
+                columnDefs: [
+                    {
+                        targets: "_all",
+                        className: "text-nowrap"
+                    },
+                    {
+                        targets: [6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+                        className: "text-nowrap",
+                        render: (data, type, row, meta) => {
+                            return data > 0 ? (Number(data).round(2)).toLocaleString("id-ID") : 0;
+                        }
+                    },
+                ],
+            });
+
+            function rollTableReload() {
+                rollTable.ajax.reload();
+            }
+
+        // Stocker
+            $('#stocker-table thead tr').clone(true).appendTo('#stocker-table thead');
+                $('#stocker-table thead tr:eq(1) th').each(function(i) {
+                    if (i != 8 && i != 9 && i != 14) {
+                        var title = $(this).text();
+                        $(this).html('<input type="text" class="form-control form-control-sm" />');
+
+                        $('input', this).on('keyup change', function() {
+                            if (stockerTable.column(i).search() !== this.value) {
+                                stockerTable
+                                    .column(i)
+                                    .search(this.value)
+                                    .draw();
+                            }
+                        });
+                    } else {
+                        $(this).empty();
+                    }
+                });
+
+                let stockerTable = $("#stocker-table").DataTable({
+                    ordering: false,
+                    processing: true,
+                    serverSide: true,
+                    pageLength: 50,
+                    scrollX: "500px",
+                    scrollY: "350px",
+                    ajax: {
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        url: '{{ route('track-ws-stocker') }}',
+                        dataType: 'json',
+                        dataSrc: 'data',
+                        data: function(d) {
+                            d.actCostingId = $('#id').val();
+                            d.panel = $('#ws-panel-filter').val();
+                            d.color = $('#ws-color-filter').val();
+                            d.dateFrom = $('#stocker-from').val();
+                            d.dateTo = $('#stocker-to').val();
+                        },
+                    },
+                    columns: [
+                        {
+                            data: 'color',
+                        },
+                        {
+                            data: 'panel',
+                        },
+                        {
+                            data: 'nama_part',
+                        },
+                        {
+                            data: 'no_form',
+                        },
+                        {
+                            data: 'no_cut',
+                        },
+                        {
+                            data: 'size',
+                        },
+                        {
+                            data: 'shade',
+                        },
+                        {
+                            data: 'id_qr_stocker',
+                        },
+                        {
+                            data: 'qty_ply',
+                        },
+                        {
+                            data: 'stocker_range',
+                        },
+                        {
+                            data: 'secondary',
+                        },
+                        {
+                            data: 'rak',
+                        },
+                        {
+                            data: 'troli',
+                        },
+                        {
+                            data: 'line',
+                        },
+                        {
+                            data: 'latest_update',
+                        },
+                    ],
+                    columnDefs: [
+                        {
+                            targets: [0, 1, 2, 3, 4, 5],
+                            className: "text-nowrap"
+                        },
+                        {
+                            targets: "_all",
+                            className: "text-nowrap colorize"
+                        }
+                    ],
+                    rowsGroup: [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    ],
+                    rowCallback: function( row, data, index ) {
+                        if (data['line'] != '-') {
+                            $('td.colorize', row).css('color', '#2e8a57');
+                            $('td.colorize', row).css('font-weight', '600');
+                        } else if (!data['dc_in_id'] && data['troli'] == '-') {
+                            $('td.colorize', row).css('color', '#da4f4a');
+                            $('td.colorize', row).css('font-weight', '600');
+                        }
+                    }
+                });
+
+                function stockerTableReload() {
+                    stockerTable.ajax.reload();
+                }
     </script>
 @endsection

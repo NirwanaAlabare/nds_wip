@@ -354,10 +354,10 @@ class DashboardController extends Controller
                 orderBy("form_cut_input.no_cut", "asc")->
                 orderBy("form_cut_input_detail.id", "asc");
 
-            return DataTables::eloquent($dc)->toJson();
+            return DataTables::eloquent($stocker)->toJson();
         }
 
-        return view('dashboard', ['page' => 'dashboard-dc', 'months' => $months, 'years' => $years]);
+        return view('dashboard', ['page' => 'dashboard-stocker', 'months' => $months, 'years' => $years]);
     }
 
     // DC
@@ -421,7 +421,7 @@ class DashboardController extends Controller
                 orderBy("master_part.nama_part", "asc")->
                 orderBy("stocker_input.so_det_id", "asc")->
                 orderBy("stocker_input.shade", "desc")->
-                orderBy("stocker_input.range_awal", "asc");
+                orderBy("stocker_input.id_qr_stocker", "asc");
 
             return DataTables::eloquent($dc)->toJson();
         }

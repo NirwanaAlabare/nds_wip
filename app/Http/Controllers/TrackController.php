@@ -8,6 +8,7 @@ use App\Models\Marker;
 use App\Models\Part;
 use App\Models\MasterPart;
 use App\Models\MasterTujuan;
+use App\Models\Stocker;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
 
@@ -421,6 +422,174 @@ class TrackController extends Controller
             ");
 
             return DataTables::of($form)->toJson();
+        }
+    }
+
+    public function wsRoll(Request $request) {
+        if ($request->ajax()) {
+            $additionalQuery = "";
+
+            if ($request->actCostingId) {
+                $additionalQuery .= " and mrk.act_costing_id = '" . $request->actCostingId . "' ";
+            }
+
+            if ($request->panel) {
+                $additionalQuery .= " and mrk.panel = '" . $request->panel . "' ";
+            }
+
+            if ($request->color) {
+                $additionalQuery .= " and mrk.color = '" . $request->color . "' ";
+            }
+
+            if ($request->dateFrom) {
+                $additionalQuery .= " and b.created_at >= '" . $request->dateFrom . " 00:00:00'";
+            }
+
+            if ($request->dateTo) {
+                $additionalQuery .= " and b.created_at <= '" . $request->dateTo . " 23:59:59'";
+            }
+
+            $keywordQuery = "";
+            if ($request->search["value"]) {
+                $keywordQuery = "
+                    and (
+                        act_costing_ws like '%" . $request->search["value"] . "%' OR
+                        DATE_FORMAT(b.created_at, '%d-%m-%Y') like '%" . $request->search["value"] . "%'
+                    )
+                ";
+            }
+
+            $pemakaianRoll = DB::select("
+                select
+                    a.tgl_form_cut,
+                    DATE_FORMAT(b.created_at, '%d-%m-%Y') tgl_input,
+                    act_costing_ws,
+                    mrk.color,
+                    mrk.panel,
+                    COALESCE(id_roll, '-') id_roll,
+                    id_item,
+                    detail_item,
+                    COALESCE(b.color_act, '-') color_act,
+                    COALESCE(b.group_roll, '-') group_roll,
+                    COALESCE(b.lot, '-') lot,
+                    COALESCE(b.roll, '-') roll,
+                    b.no_form_cut_input,
+                    SUM(b.qty) qty_item,
+                    MAX(b.unit) unit_item,
+                    SUM(b.sisa_gelaran) sisa_gelaran,
+                    SUM(b.sambungan) sambungan,
+                    SUM(b.est_amparan) est_amparan,
+                    SUM(b.lembar_gelaran) lembar_gelaran,
+                    SUM(b.kepala_kain) kepala_kain,
+                    SUM(b.sisa_tidak_bisa) sisa_tidak_bisa,
+                    SUM(b.reject) reject,
+                    SUM(COALESCE(b.sisa_kain, 0)) sisa_kain,
+                    SUM(b.total_pemakaian_roll) total_pemakaian_roll,
+                    SUM(b.short_roll) short_roll,
+                    SUM(b.piping) piping,
+                    SUM(b.remark) remark,
+                    UPPER(meja.name) nama_meja
+                from
+                    form_cut_input a
+                    left join form_cut_input_detail b on a.no_form = b.no_form_cut_input
+                    left join marker_input mrk on a.id_marker = mrk.kode
+                    left join users meja on meja.id = a.no_meja
+                where
+                    a.cancel = 'N' and mrk.cancel = 'N' and id_item is not null
+                    " . $additionalQuery . "
+                    " . $keywordQuery . "
+                group by
+                    mrk.act_costing_id,
+                    mrk.color,
+                    mrk.panel,
+                    a.no_form,
+                    b.id_item
+                order by
+                    mrk.color asc,
+                    mrk.panel asc,
+                    b.id_item asc,
+                    b.no_form_cut_input desc
+            ");
+
+            return DataTables::of($pemakaianRoll)->toJson();
+        }
+    }
+
+    public function wsStocker(Request $request) {
+        if ($request->ajax()) {
+            $stocker = Stocker::selectRaw("
+                marker_input.color,
+                marker_input.panel,
+                form_cut_input.no_form,
+                form_cut_input.no_cut,
+                stocker_input.id stocker_id,
+                stocker_input.id_qr_stocker,
+                stocker_input.act_costing_ws,
+                stocker_input.so_det_id,
+                stocker_input.size,
+                stocker_input.shade,
+                stocker_input.ratio,
+                COALESCE(master_part.nama_part, ' - ') nama_part,
+                CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir, (CASE WHEN dc_in_input.qty_reject IS NOT NULL AND dc_in_input.qty_replace IS NOT NULL THEN CONCAT(' (', (COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0)), ') ') ELSE ' (0)' END)) stocker_range,
+                stocker_input.status,
+                dc_in_input.id dc_in_id,
+                dc_in_input.tujuan,
+                dc_in_input.tempat,
+                dc_in_input.lokasi,
+                (CASE WHEN dc_in_input.tujuan = 'SECONDARY DALAM' OR dc_in_input.tujuan = 'SECONDARY LUAR' THEN dc_in_input.lokasi ELSE '-' END) secondary,
+                COALESCE(rack_detail_stocker.nm_rak, (CASE WHEN dc_in_input.tempat = 'RAK' THEN dc_in_input.lokasi ELSE null END), (CASE WHEN dc_in_input.lokasi = 'RAK' THEN dc_in_input.det_alokasi ELSE null END), '-') rak,
+                COALESCE(trolley.nama_trolley, (CASE WHEN dc_in_input.tempat = 'TROLLEY' THEN dc_in_input.lokasi ELSE null END), '-') troli,
+                COALESCE((COALESCE(dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0)), stocker_input.qty_ply) qty_ply,
+                COALESCE(UPPER(loading_line.nama_line), '-') line,
+                stocker_input.updated_at latest_update
+            ")->
+            leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+            leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+            leftJoin("part_detail", "stocker_input.part_detail_id", "=", "part_detail.id")->
+            leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+            leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+            leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+            leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+            leftJoin("rack_detail_stocker", "rack_detail_stocker.stocker_id", "=", "stocker_input.id_qr_stocker")->
+            leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->
+            leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
+            leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
+            groupBy("stocker_input.id_qr_stocker")->
+            orderBy("stocker_input.act_costing_ws", "asc")->
+            orderBy("stocker_input.color", "asc")->
+            orderBy("form_cut_input.no_cut", "asc")->
+            orderBy("master_part.nama_part", "asc")->
+            orderBy("stocker_input.so_det_id", "asc")->
+            orderBy("stocker_input.shade", "desc")->
+            orderBy("stocker_input.id_qr_stocker", "asc");
+
+            return DataTables::eloquent($stocker)->filter(function ($query) {
+                $actCostingId = request('actCostingId');
+                $color = request('color');
+                $panel = request('panel');
+                $dateFrom = request('dateFrom');
+                $dateTo = request('dateTo');
+
+                if ($actCostingId) {
+                    $query->whereRaw("marker_input.act_costing_id = '" . $actCostingId . "'");
+                }
+
+                if ($color) {
+                    $query->whereRaw("marker_input.color = '" . $color . "'");
+                }
+
+                if ($panel) {
+                    $query->whereRaw("marker_input.panel = '" . $panel . "'");
+                }
+
+                if ($dateFrom) {
+                    $query->whereRaw("DATE(stocker_input.created_at) >= '" . $dateFrom . "'");
+                }
+
+                if ($dateTo) {
+                    $query->whereRaw("DATE(stocker_input.updated_at) <= '" . $dateTo . "'");
+                }
+            }, true)->toJson();
         }
     }
 }
