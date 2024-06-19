@@ -77,22 +77,22 @@
             <tr>
                 <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;white-space: nowrap;">Buyer</td>
                 <td style="border: none;border-left: none; border-top: 1px solid; border-bottom: 1px solid;text-align: center;width: auto;">:</td>
-                <td colspan="4" style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ strtoupper(substr($dataStocker->buyer, 0, 33)).(strlen($dataStocker->buyer) > 33 ? '...' : '') }}</td>
+                <td colspan="4" style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ strtoupper(substr($dataStocker->buyer, 0, 30)).(strlen($dataStocker->buyer) > 30 ? '...' : '') }}</td>
             </tr>
             <tr>
                 <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;white-space: nowrap;">Style</td>
                 <td style="border: none;border-left: none; border-top: 1px solid; border-bottom: 1px solid;text-align: center;width: auto;">:</td>
-                <td colspan="4" style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ substr($dataStocker->style, 0, 33).(strlen($dataStocker->style) > 33 ? '...' : '') }}</td>
+                <td colspan="4" style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ substr($dataStocker->style, 0, 30).(strlen($dataStocker->style) > 30 ? '...' : '') }}</td>
             </tr>
             <tr>
                 <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;white-space: nowrap;">Color</td>
                 <td style="border: none;border-left: none; border-top: 1px solid; border-bottom: 1px solid;text-align: center;width: auto;">:</td>
-                <td colspan="4" style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ substr($dataStocker->color, 0, 33).(strlen($dataStocker->color) > 33 ? '...' : '') }}</td>
+                <td colspan="4" style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ substr($dataStocker->color, 0, 30).(strlen($dataStocker->color) > 30 ? '...' : '') }}</td>
             </tr>
             <tr>
                 <td style="border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;white-space: nowrap;">Part</td>
                 <td style="border: none;border-left: none; border-top: 1px solid; border-bottom: 1px solid;text-align: center;width: auto;">:</td>
-                <td colspan="4" style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ substr($dataStocker->part, 0, 33).(strlen($dataStocker->part) > 33 ? '...' : '') }}</td>
+                <td colspan="4" style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;">{{ substr($dataStocker->part, 0, 30).(strlen($dataStocker->part) > 30 ? '...' : '') }}</td>
             </tr>
             <tr>
                 <td style="width: 16.5%; border: none;border-left: 1px solid; border-top: 1px solid; border-bottom: 1px solid;white-space: nowrap;">Shade</td>
