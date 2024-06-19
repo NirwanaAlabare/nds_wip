@@ -62,6 +62,7 @@ class PackingPackingInController extends Controller
             having a.qty - coalesce(b.qty_in,0) != '0'
             ) data_cek
             group by data_cek.no_trans
+            order by id desc, no_trans asc
         ");
         return view(
             'packing.packing_in',
@@ -184,7 +185,7 @@ class PackingPackingInController extends Controller
         $no = date('my', strtotime($tgl_penerimaan));
         $kode = 'PCK/IN/';
         $cek_nomor = DB::select("
-        select max(right(no_trans,5))nomor from packing_packing_in where year(tgl_penerimaan) = '" . $tahun . "'
+        select max(cast(SUBSTR(no_trans,16,3) as int))nomor from packing_packing_in where year(tgl_penerimaan) = '" . $tahun . "'
         ");
         $nomor_tr = $cek_nomor[0]->nomor;
         $urutan = (int)($nomor_tr);

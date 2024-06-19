@@ -208,7 +208,7 @@ order by po asc
         $no = date('dmy', strtotime($tgltrans));
         $kode = 'SEW/OUT/';
         $cek_nomor = DB::select("
-        select max(right(no_trans,1))nomor from packing_trf_garment where year(tgl_trans) = '" . $tahun . "'
+        select max(cast(SUBSTR(no_trans,16,3) as int)) nomor from packing_trf_garment where year(tgl_trans) = '" . $tahun . "'
         and month(tgl_trans) = '" . $bulan . "'
         and day(tgl_trans) = '" . $tgl . "'
         ");

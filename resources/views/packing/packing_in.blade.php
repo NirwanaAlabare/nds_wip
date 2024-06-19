@@ -52,7 +52,7 @@
                 </div>
                 <label>Preview</label>
                 <div class="table-responsive">
-                    <table id="datatable_preview" class="table table-bordered table-sm w-100 text-nowrap">
+                    <table id="datatable_preview" class="table table-bordered table-striped table-sm w-100 text-nowrap">
                         <thead>
                             <tr>
                                 <th>Line</th>
