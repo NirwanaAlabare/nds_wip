@@ -78,7 +78,7 @@
     </div>
 
     {{-- PART START --}}
-        <div class="card card-sb h-100">
+        <div class="card card-sb h-100" id="part-card">
             <div class="card-header">
                 <div class="row justify-content-between align-items-center">
                     <div class="col-6">
@@ -187,7 +187,7 @@
     {{-- PART END --}}
 
     {{-- MARKER START --}}
-        <div class="card card-sb">
+        <div class="card card-sb" id="marker-card">
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
                     <h5 class="card-title fw-bold mb-0"><i class="fas fa-marker fa-sm"></i> Marker</h5>
@@ -303,7 +303,7 @@
     {{-- MARKER END --}}
 
     {{-- FORM START --}}
-        <div class="card card-sb">
+        <div class="card card-sb" id="form-card">
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
                     <h5 class="card-title fw-bold mb-0"><i class="fas fa-file fa-sm"></i> Form</h5>
@@ -543,7 +543,7 @@
     {{-- FORM END --}}
 
     {{-- ROLL START --}}
-        <div class="card card-sb">
+        <div class="card card-sb" id="roll-card">
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
                     <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-toilet-paper fa-sm"></i> Roll</h5>
@@ -592,7 +592,7 @@
     {{-- ROLL END --}}
 
     {{-- STOCKER START --}}
-        <div class="card card-sb">
+        <div class="card card-sb" id="stocker-card">
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
                     <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-ticket fa-sm"></i> Stocker</h5>
@@ -657,6 +657,26 @@
         document.getElementById("loading").classList.remove("d-none");
 
         $(document).ready(async function() {
+            $('#part-card').on('expanded.lte.cardwidget', () => {
+                partTableReload();
+            });
+
+            $('#marker-card').on('expanded.lte.cardwidget', () => {
+                filterMarkerTable();
+            });
+
+            $('#form-card').on('expanded.lte.cardwidget', () => {
+                formTableReload();
+            });
+
+            $('#roll-card').on('expanded.lte.cardwidget', () => {
+                rollTableReload();
+            });
+
+            $('#stocker-card').on('expanded.lte.cardwidget', () => {
+                stockerTableReload();
+            });
+
             let today = new Date();
             let todayDate = ("0" + today.getDate()).slice(-2);
             let todayMonth = ("0" + (today.getMonth() + 1)).slice(-2);
