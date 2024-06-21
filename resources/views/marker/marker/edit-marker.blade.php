@@ -286,6 +286,7 @@
             ordering: false,
             processing: true,
             serverSide: true,
+            paging: false,
             ajax: {
                 url: '{{ route("get-general-sizes") }}',
                 data: function (d) {
