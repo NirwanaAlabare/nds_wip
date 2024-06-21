@@ -594,7 +594,17 @@
     {{-- STOCKER START --}}
         <div class="card card-sb">
             <div class="card-header">
-                <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-ticket fa-sm"></i> Stocker</h5>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-ticket fa-sm"></i> Stocker</h5>
+                    <div class="d-flex justify-content-end align-items-center gap-1">
+                        <input type="date" class="form-control form-control-sm" id="stocker-from">
+                        <span>-</span>
+                        <input type="date" class="form-control form-control-sm" id="stocker-to">
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="card-body">
                 <div class="table-responsive">

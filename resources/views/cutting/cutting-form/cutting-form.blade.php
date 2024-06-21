@@ -31,7 +31,6 @@
                         <button class="btn btn-primary btn-sm" onclick="dataTableReload()"><i class="fa fa-search"></i></button>
                     </div>
                 </div>
-
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-sb"><i class="fas fa-clipboard-list"></i> Manual</a>
                 </div>

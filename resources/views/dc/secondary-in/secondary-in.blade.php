@@ -13,8 +13,7 @@
 
 @section('content')
     <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <form action="{{ route('store-secondary-in') }}" method="post" onsubmit="submitForm(this, event)" name='form'
-            id='form'>
+        <form action="{{ route('store-secondary-in') }}" method="post" onsubmit="submitForm(this, event)" name='form' id='form'>
             @method('POST')
             <div class="modal-dialog modal-xl modal-dialog-scrollable">
                 <div class="modal-content">

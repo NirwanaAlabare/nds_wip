@@ -148,7 +148,7 @@
                             <div class="input-group">
                                 <input type="text" class="form-control form-control-sm border-input" name="txtqr" id="txtqr" data-prevent-submit="true" autocomplete="off" enterkeyhint="go" autofocus>
                                 <button class="btn btn-sm btn-primary" type="button" id="scan_qr" onclick="scanqr()">Scan</button>
-                                <button class="btn btn-sm btn-success" type="button" id="mass_scan_qr" onclick="massscanqr()">Mass Scan</button>
+                                <button class="btn btn-sm btn-success d-none" type="button" id="mass_scan_qr" onclick="massscanqr()">Mass Scan</button>
                             </div>
                         </div>
                     </div>
