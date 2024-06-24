@@ -391,7 +391,9 @@ class PartController extends Controller
                 where("marker_input.panel", $request->panel)->
                 groupBy("form_cut_input.id");
 
-            return Datatables::eloquent($formCutInputs)->filterColumn('act_costing_ws', function ($query, $keyword) {
+            return Datatables::eloquent($formCutInputs)->filterColumn('tgl_mulai_form', function ($query, $keyword) {
+                $query->whereRaw("LOWER(COALESCE(DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut)) LIKE LOWER('%" . $keyword . "%')");
+            })->filterColumn('act_costing_ws', function ($query, $keyword) {
                 $query->whereRaw("LOWER(act_costing_ws) LIKE LOWER('%" . $keyword . "%')");
             })->filterColumn('buyer', function ($query, $keyword) {
                 $query->whereRaw("LOWER(buyer) LIKE LOWER('%" . $keyword . "%')");
@@ -576,8 +578,9 @@ class PartController extends Controller
             where("marker_input.panel", $request->panel)->
             groupBy("form_cut_input.id");
 
-        return Datatables::eloquent($formCutInputs)->
-        filterColumn('act_costing_ws', function ($query, $keyword) {
+        return Datatables::eloquent($formCutInputs)->filterColumn('tgl_mulai_form', function ($query, $keyword) {
+            $query->whereRaw("LOWER(COALESCE(DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut)) LIKE LOWER('%" . $keyword . "%')");
+        })->filterColumn('act_costing_ws', function ($query, $keyword) {
             $query->whereRaw("LOWER(act_costing_ws) LIKE LOWER('%" . $keyword . "%')");
         })->filterColumn('buyer', function ($query, $keyword) {
             $query->whereRaw("LOWER(buyer) LIKE LOWER('%" . $keyword . "%')");
