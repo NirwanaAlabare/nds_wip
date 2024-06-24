@@ -237,7 +237,8 @@
                     data: 'qty_ply'
                 },
                 {
-                    data: 'marker_details'
+                    data: 'marker_details',
+                    searchable: false
                 },
                 {
                     data: 'id_marker'
@@ -461,10 +462,11 @@
                     data: 'panel'
                 },
                 {
-                    data: 'qty_ply'
+                    data: 'qty_ply',
                 },
                 {
-                    data: 'marker_details'
+                    data: 'marker_details',
+                    searchable: false
                 },
                 {
                     data: 'id_marker'
