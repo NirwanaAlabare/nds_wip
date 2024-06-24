@@ -89,7 +89,7 @@ class GeneralController extends Controller
             $sizeQuery->where("marker_input_detail.marker_id", $request->marker_id);
         }
 
-        $sizes = $sizeQuery->groupBy("so_det_id", "size", "color")->orderBy("master_sb_ws.dest")->orderBy("master_size_new.urutan")->get();
+        $sizes = $sizeQuery->groupBy("so_det_id", "size", "color")->orderBy("master_size_new.urutan")->get();
 
         return json_encode([
             "draw" => intval($request->input('draw')),
