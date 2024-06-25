@@ -17,6 +17,11 @@
             z-index: 4;
             top: 0;
         }
+
+        th.dtfc-fixed-left,
+        th.dtfc-fixed-right {
+            z-index: 1 !important;
+        }
     </style>
 @endsection
 
@@ -697,6 +702,10 @@
                 stockerTableReload();
             });
 
+            $('#ws-size-filter').on("change", () => {
+                stockerTableReload();
+            });
+
             // Marker
             filterMarkerTable();
             $('#marker-from').on("change", () => {
@@ -744,11 +753,13 @@
         });
 
         // Marker :
+            var markerTableParameter = ['mrk_action', 'mrk_tanggal', 'mrk_no_marker', 'mrk_color', 'mrk_panel', 'mrk_urutan', 'mrk_panjang', 'mrk_lebar', 'mrk_gramasi', 'mrk_qty_ply', 'mrk_total_form', 'mrk_po', 'mrk_ket'];
+
             $('#marker-table thead tr').clone(true).appendTo('#marker-table thead');
             $('#marker-table thead tr:eq(1) th').each(function(i) {
                 if (i != 0) {
                     var title = $(this).text();
-                    $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%"/>');
+                    $(this).html('<input type="text" class="form-control form-control-sm" id="'+markerTableParameter[i]+'" style="width:100%"/>');
 
                     $('input', this).on('keyup change', function() {
                         if (markerTable.column(i).search() !== this.value) {
@@ -932,7 +943,7 @@
                         $('td', row).css('background-color', '#c5e0fa');
                         $('td', row).css('border', '0.15px solid #d0d0d0');
                     }
-                }
+                },
             });
 
             function filterMarkerTable() {
@@ -1102,6 +1113,37 @@
                     error: function(jqXHR) {
                         console.log(jqXHR);
                     },
+                });
+            }
+
+            function getTotalMarkerPly() {
+                $("#total-marker-ply").html("Calculating...");
+                $.ajax({
+                    url: '{{ route('track-ws-marker-total') }}',
+                    type: 'get',
+                    dataType: 'json',
+                    data: {
+                        actCostingId : $('#id').val(),
+                        dateFrom : $('#marker-from').val(),
+                        dateTo : $('#marker-to').val(),
+                        color : $('#ws-color-filter').val(),
+                        panel : $('#ws-panel-filter').val(),
+                        tanggal : $('#mrk_tanggal').val(),
+                        no_marker : $('#mrk_no_marker').val(),
+                        color : $('#mrk_color').val(),
+                        panel : $('#mrk_panel').val(),
+                        urutan : $('#mrk_urutan').val(),
+                        panjang : $('#mrk_panjang').val(),
+                        lebar : $('#mrk_lebar').val(),
+                        gramasi : $('#mrk_gramasi').val(),
+                        qty_ply : $('#mrk_qty_ply').val(),
+                        total_form : $('#mrk_total_form').val(),
+                        po : $('#mrk_po').val(),
+                        ket : $('#mrk_ket').val()
+                    },
+                    success: function(res) {
+                        console.log(res);
+                    }
                 });
             }
 
@@ -1705,6 +1747,7 @@
                             d.actCostingId = $('#id').val();
                             d.panel = $('#ws-panel-filter').val();
                             d.color = $('#ws-color-filter').val();
+                            d.size = $('#ws-size-filter').val();
                             d.dateFrom = $('#stocker-from').val();
                             d.dateTo = $('#stocker-to').val();
                         },

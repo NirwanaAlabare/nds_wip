@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redirect;
 use App\Models\User;
 use App\Models\Marker;
 use App\Models\Part;
@@ -140,7 +141,7 @@ class TrackController extends Controller
         $months = [['angka' => 1,'nama' => 'Januari'],['angka' => 2,'nama' => 'Februari'],['angka' => 3,'nama' => 'Maret'],['angka' => 4,'nama' => 'April'],['angka' => 5,'nama' => 'Mei'],['angka' => 6,'nama' => 'Juni'],['angka' => 7,'nama' => 'Juli'],['angka' => 8,'nama' => 'Agustus'],['angka' => 9,'nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
         $years = array_reverse(range(1999, date('Y')));
 
-        return view("track.worksheet.worksheet", ["page" => "dashboard-track", "subPageGroup" => "track-ws", "subPage" => "ws", "months" => $months, "years" => $years]);
+        return view("track.worksheet.worksheet", ["page" => "dashboard-track", "subPageGroup" => "track-ws", "subPage" => "ws", "head" => "Track", "months" => $months, "years" => $years]);
     }
 
     public function showWorksheet($actCostingId = null)
@@ -171,7 +172,7 @@ class TrackController extends Controller
             $masterTujuan = DB::select("select tujuan isi, tujuan tampil from master_tujuan");
             $meja = User::select("id", "name", "username")->where('type', 'meja')->get();
 
-            return view("track.worksheet.worksheet-detail", ["ws" => $ws, "panels" => $panels, "months" => $months, "years" => $years, "masterPart" => $masterPart, "masterTujuan" => $masterTujuan, "meja" => $meja]);
+            return view("track.worksheet.worksheet-detail", ["page" => "dashboard-track", "subPageGroup" => "track-ws", "subPage" => "ws", "head" => "Track ".$ws->first()->ws, "ws" => $ws, "panels" => $panels, "months" => $months, "years" => $years, "masterPart" => $masterPart, "masterTujuan" => $masterTujuan, "meja" => $meja]);
         }
     }
 
@@ -301,6 +302,133 @@ class TrackController extends Controller
         }
 
         return view('marker.marker.marker', ["subPageGroup" => "proses-marker", "subPage" => "marker", "page" => "dashboard-marker"]);
+    }
+
+    public function wsMarkerTotal(Request $request) {
+        $markersQuery = Marker::selectRaw("
+                id,
+                tgl_cutting,
+                DATE_FORMAT(tgl_cutting, '%d-%m-%Y') tgl_cut_fix,
+                kode,
+                act_costing_ws,
+                style,
+                color,
+                panel,
+                panjang_marker marker_p,
+                lebar_marker marker_l,
+                unit_panjang_marker unit_marker_p,
+                unit_lebar_marker unit_marker_l,
+                CONCAT(panjang_marker, ' ', UPPER(unit_panjang_marker)) panjang_marker,
+                CONCAT(comma_marker, ' ', UPPER(unit_comma_marker)) comma_marker,
+                CONCAT(panjang_marker, ' ', UPPER(unit_panjang_marker), ' ',comma_marker, ' ', UPPER(unit_comma_marker)) panjang_marker_fix,
+                CONCAT(lebar_marker, ' ', UPPER(unit_lebar_marker)) lebar_marker,
+                COALESCE(gramasi, 0) gramasi,
+                gelar_qty,
+                gelar_qty_balance,
+                po_marker,
+                urutan_marker,
+                tipe_marker,
+                COALESCE(b.total_form, 0) total_form,
+                COALESCE(b.total_lembar, 0) total_lembar,
+                CONCAT(COALESCE(b.total_lembar, 0), '/', gelar_qty) ply_progress,
+                COALESCE(notes, '-') notes,
+                cancel
+            ")->
+            leftJoin(
+                DB::raw("
+                    (
+                        select
+                            id_marker,
+                            count(id_marker) total_form,
+                            sum(total_lembar) total_lembar
+                        from
+                            form_cut_input
+                        group by
+                            id_marker
+                    ) b"
+                ),
+                "marker_input.kode",
+                "=",
+                "b.id_marker"
+            );
+
+        if ($request->actCostingId) {
+            $markersQuery->whereRaw("act_costing_id = '" . $request->actCostingId . "'");
+        }
+
+        if ($request->color) {
+            $markersQuery->whereRaw("color = '" . $request->color . "'");
+        }
+
+        if ($request->panel) {
+            $markersQuery->whereRaw("panel = '" . $request->panel . "'");
+        }
+
+        if ($request->dateFrom) {
+            $markersQuery->whereRaw("tgl_cutting >= '" . $request->dateFrom . "'");
+        }
+
+        if ($request->dateTo) {
+            $markersQuery->whereRaw("tgl_cutting <= '" . $request->dateTo . "'");
+        }
+
+        if ($request->kode) {
+            $request->kode = $markersQuery->whereRaw("LOWER(kode) LIKE LOWER('%" . $request->kode . "%')");
+        }
+
+        if ($request->color) {
+            $request->color = $markersQuery->whereRaw("LOWER(color) LIKE LOWER('%" . $request->color . "%')");
+        }
+
+        if ($request->panel) {
+            $request->panel = $markersQuery->whereRaw("LOWER(panel) LIKE LOWER('%" . $request->panel . "%')");
+        }
+
+        if ($request->urutan) {
+            $request->urutan = $markersQuery->whereRaw("LOWER(urutan_marker) LIKE LOWER('%" . $request->urutan . "%')");
+        }
+
+        if ($request->panjang) {
+            $request->panjang = $markersQuery->whereRaw("LOWER(panjang_marker) LIKE LOWER('%" . $request->panjang . "%')");
+        }
+
+        if ($request->lebar) {
+            $request->lebar = $markersQuery->whereRaw("LOWER(lebar_marker) LIKE LOWER('%" . $request->lebar . "%')");
+        }
+
+        if ($request->gramasi) {
+            $request->gramasi = $markersQuery->whereRaw("LOWER(gramasi_marker) LIKE LOWER('%" . $request->gramasi . "%')");
+        }
+
+        if ($request->gelar_qty) {
+            $request->gelar_qty = $markersQuery->whereRaw("LOWER(gelar_qty) LIKE LOWER('%" . $request->gelar_qty . "%')");
+        }
+
+        if ($request->total_form) {
+            $request->total_form = $markersQuery->whereRaw("COALESCE(b.total_form, 0) LIKE Lrequest->OWER('%" . $total_form . "%')");
+        }
+
+        if ($request->po) {
+            $request->po = $markersQuery->whereRaw("LOWER(po_marker) LIKE LOWER('%" . $request->po . "%')");
+        }
+
+        if ($request->ket) {
+            $request->ket = $markersQuery->whereRaw("LOWER(notes) LIKE LOWER('%" . $request->ket . "%')");
+        }
+
+        $totalMarkerPanjang =  $markersQuery->sum("marker_input.panjang_marker")." ".$markersQuery->first()->unit_marker_p;
+        $totalMarkerLebar =  $markersQuery->sum("marker_input.lebar_marker")." ".$markersQuery->first()->unit_marker_p;
+        $totalMarkerGelar =  $markersQuery->sum("gelar_qty");
+        $totalMarkerForm =  $markersQuery->sum("total_form");
+        $totalMarkerFormLembar =  $markersQuery->sum("total_lembar");
+
+        return array(
+            "totalMarkerPanjang" => $totalMarkerPanjang,
+            "totalMarkerLebar" => $totalMarkerLebar,
+            "totalMarkerGelar" => $totalMarkerGelar,
+            "totalMarkerForm" => $totalMarkerForm,
+            "totalMarkerFormLembar" => $totalMarkerFormLembar
+        );
     }
 
     public function wsForm(Request $request)
@@ -496,6 +624,7 @@ class TrackController extends Controller
             $actCostingId = $request->actCostingId;
             $color = $request->color;
             $panel = $request->panel;
+            $size = $request->size;
             $dateFrom = $request->dateFrom;
             $dateTo = $request->dateTo;
 
@@ -547,6 +676,10 @@ class TrackController extends Controller
 
             if ($panel) {
                 $stockerSql->whereRaw("marker_input.panel = '" . $panel . "'");
+            }
+
+            if ($size) {
+                $stockerSql->whereRaw("stocker_input.size = '" . $size . "'");
             }
 
             if ($dateFrom) {

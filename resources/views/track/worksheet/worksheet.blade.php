@@ -1,4 +1,10 @@
-@extends('layouts.index')
+@php
+    if (!isset($head)) {
+        $head = "";
+    }
+@endphp
+
+@extends('layouts.index' , ["head" => $head])
 
 @section('custom-link')
     <!-- DataTables -->
@@ -15,7 +21,7 @@
     <div class="card card-sb">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
-                <h5 class="card-title fw-bold mb-0"><i class="fas fa-receipt fa-sm"></i> Worksheet List</h5>
+                <h5 class="card-title fw-bold mb-0"><i class="fas fa-ticket fa-sm"></i> Stock List</h5>
                 <div class="d-flex justify-content-end gap-1">
                     <select class="form-select form-select-sm select2bs4 w-auto" id="ws-month-filter" readonly value="{{ date('m') }}">
                         <option value="" selected disabled>Bulan</option>
@@ -197,7 +203,7 @@
                     targets: [1],
                     className: "text-nowrap",
                     render: function (data, type, row, meta) {
-                        let column = '<a href="{{ route('track-ws-detail') }}/'+row.id_act_cost+'">'+data+'</a>';
+                        let column = '<a href="{{ route('track-ws-detail') }}/'+row.id_act_cost+'" target="_blank">'+data+'</a>';
                         return column;
                     }
                 },
