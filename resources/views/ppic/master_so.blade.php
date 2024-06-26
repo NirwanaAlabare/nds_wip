@@ -308,7 +308,8 @@
             </div>
 
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-sm w-100 table-hover display nowrap">
+                <table id="datatable"
+                    class="table table-bordered table-striped table-sm w-100 table-hover display nowrap">
                     <thead class="table-primary">
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>ID SO Det</th>
@@ -331,6 +332,20 @@
                             <th>Act</th>
                         </tr>
                     </thead>
+                    <tfoot>
+                        <tr>
+                            <th colspan="12"></th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_po'> </th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_chk'> </th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_p_in'> </th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -615,13 +630,59 @@
         });
 
         let datatable = $("#datatable").DataTable({
+
+            "footerCallback": function(row, data, start, end, display) {
+                var api = this.api(),
+                    data;
+
+                // converting to interger to find total
+                var intVal = function(i) {
+                    return typeof i === 'string' ?
+                        i.replace(/[\$,]/g, '') * 1 :
+                        typeof i === 'number' ?
+                        i : 0;
+                };
+
+                // computing column Total of the complete result
+                var sumTotalPO = api
+                    .column(12)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalTr = api
+                    .column(13)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalPin = api
+                    .column(14)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                // Update footer by showing the total with the reference of the column index
+                $(api.column(0).footer()).html('Total');
+                $(api.column(12).footer()).html(sumTotalPO);
+                $(api.column(13).footer()).html(sumTotalTr);
+                $(api.column(14).footer()).html(sumTotalPin);
+            },
+
+
+
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: true,
+            paging: false,
             searching: true,
             destroy: true,
-            scrollX: true,
+            scrollY: '400px',
+            scrollX: '400px',
+            scrollCollapse: true,
             ajax: {
                 url: '{{ route('master-so') }}',
                 data: function(d) {

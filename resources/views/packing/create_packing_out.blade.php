@@ -21,7 +21,7 @@
                 </a>
             </div>
         </div>
-        <form id="form_h" name='form_h' method='post'>
+        <form id="form_h" name='form_h'>
             <div class="card-body">
                 <div class="row">
                     <div class="col-sm">
@@ -52,7 +52,7 @@
                     <label class="form-label label-input"><small><b>Barcode</b></small></label>
                     <div class="input-group">
                         <input type="text" class="form-control form-control-sm border-input" name="barcode"
-                            id="barcode" data-prevent-submit="true" autocomplete="off" enterkeyhint="go" autofocus>
+                            id="barcode" data-prevent-submit="true" autocomplete="off" enterkeyhint="enter" autofocus>
                         <button class="btn btn-sm btn-primary" type="button" id="scan_qr"
                             onclick="scan_barcode()">Scan</button>
                     </div>
@@ -134,6 +134,18 @@
             $("#cbono_carton").val('').trigger('change');
             gettotal_input();
         })
+
+        document.getElementById("barcode").onkeypress = function(e) {
+            var key = e.charCode || e.keyCode || 0;
+            if (key == 13) {
+                e.preventDefault();
+
+                if (e.target.getAttribute('data-prevent-submit') == "true") {
+                    scan_barcode();
+                }
+            }
+        }
+
 
         function gettotal_input() {
             let user = document.form_h.user.value;
