@@ -562,7 +562,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/worksheet/show-part', 'wsPart')->name('track-ws-part');
         Route::get('/worksheet/show-part-id', 'wsPartId')->name('track-ws-part-id');
         Route::get('/worksheet/show-marker', 'wsMarker')->name('track-ws-marker');
+        Route::get('/worksheet/show-marker-total', 'wsMarkerTotal')->name('track-ws-marker-total');
         Route::get('/worksheet/show-form', 'wsForm')->name('track-ws-form');
+        Route::get('/worksheet/show-roll', 'wsRoll')->name('track-ws-roll');
+        Route::get('/worksheet/show-stocker', 'wsStocker')->name('track-ws-stocker');
     });
 
     //Mutasi Karywawan

@@ -240,10 +240,11 @@
                     data: 'no_cut'
                 },
                 {
-                    data: 'marker_details'
+                    data: 'marker_details',
+                    searchable: false
                 },
                 {
-                    data: 'qty_ply'
+                    data: 'qty_ply',
                 },
             ],
             columnDefs: [
@@ -466,7 +467,8 @@
                     data: 'no_cut'
                 },
                 {
-                    data: 'marker_details'
+                    data: 'marker_details',
+                    searchable: false
                 },
                 {
                     data: 'qty_ply'

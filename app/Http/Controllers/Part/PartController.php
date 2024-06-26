@@ -391,16 +391,18 @@ class PartController extends Controller
                 where("marker_input.panel", $request->panel)->
                 groupBy("form_cut_input.id");
 
-            return Datatables::eloquent($formCutInputs)->filterColumn('act_costing_ws', function ($query, $keyword) {
-                $query->whereRaw("LOWER(act_costing_ws) LIKE LOWER('%" . $keyword . "%')");
+            return Datatables::eloquent($formCutInputs)->filterColumn('tgl_mulai_form', function ($query, $keyword) {
+                $query->whereRaw("LOWER(COALESCE(DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut)) LIKE LOWER('%" . $keyword . "%')");
+            })->filterColumn('act_costing_ws', function ($query, $keyword) {
+                $query->whereRaw("LOWER(marker_input.act_costing_ws) LIKE LOWER('%" . $keyword . "%')");
             })->filterColumn('buyer', function ($query, $keyword) {
-                $query->whereRaw("LOWER(buyer) LIKE LOWER('%" . $keyword . "%')");
+                $query->whereRaw("LOWER(marker_input.buyer) LIKE LOWER('%" . $keyword . "%')");
             })->filterColumn('style', function ($query, $keyword) {
-                $query->whereRaw("LOWER(style) LIKE LOWER('%" . $keyword . "%')");
+                $query->whereRaw("LOWER(marker_input.style) LIKE LOWER('%" . $keyword . "%')");
             })->filterColumn('color', function ($query, $keyword) {
-                $query->whereRaw("LOWER(color) LIKE LOWER('%" . $keyword . "%')");
+                $query->whereRaw("LOWER(marker_input.color) LIKE LOWER('%" . $keyword . "%')");
             })->filterColumn('panel', function ($query, $keyword) {
-                $query->whereRaw("LOWER(panel) LIKE LOWER('%" . $keyword . "%')");
+                $query->whereRaw("LOWER(marker_input.panel) LIKE LOWER('%" . $keyword . "%')");
             })->filterColumn('nama_meja', function ($query, $keyword) {
                 $query->whereRaw("LOWER(users.name) LIKE LOWER('%" . $keyword . "%')");
             })->order(function ($query) {
@@ -576,17 +578,18 @@ class PartController extends Controller
             where("marker_input.panel", $request->panel)->
             groupBy("form_cut_input.id");
 
-        return Datatables::eloquent($formCutInputs)->
-        filterColumn('act_costing_ws', function ($query, $keyword) {
-            $query->whereRaw("LOWER(act_costing_ws) LIKE LOWER('%" . $keyword . "%')");
+        return Datatables::eloquent($formCutInputs)->filterColumn('tgl_mulai_form', function ($query, $keyword) {
+            $query->whereRaw("LOWER(COALESCE(DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_form_cut)) LIKE LOWER('%" . $keyword . "%')");
+        })->filterColumn('act_costing_ws', function ($query, $keyword) {
+            $query->whereRaw("LOWER(marker_input.act_costing_ws) LIKE LOWER('%" . $keyword . "%')");
         })->filterColumn('buyer', function ($query, $keyword) {
-            $query->whereRaw("LOWER(buyer) LIKE LOWER('%" . $keyword . "%')");
+            $query->whereRaw("LOWER(marker_input.buyer) LIKE LOWER('%" . $keyword . "%')");
         })->filterColumn('style', function ($query, $keyword) {
-            $query->whereRaw("LOWER(style) LIKE LOWER('%" . $keyword . "%')");
+            $query->whereRaw("LOWER(marker_input.style) LIKE LOWER('%" . $keyword . "%')");
         })->filterColumn('color', function ($query, $keyword) {
-            $query->whereRaw("LOWER(color) LIKE LOWER('%" . $keyword . "%')");
+            $query->whereRaw("LOWER(marker_input.color) LIKE LOWER('%" . $keyword . "%')");
         })->filterColumn('panel', function ($query, $keyword) {
-            $query->whereRaw("LOWER(panel) LIKE LOWER('%" . $keyword . "%')");
+            $query->whereRaw("LOWERmarker_input.(panel) LIKE LOWER('%" . $keyword . "%')");
         })->filterColumn('nama_meja', function ($query, $keyword) {
             $query->whereRaw("LOWER(users.name) LIKE LOWER('%" . $keyword . "%')");
         })->order(function ($query) {

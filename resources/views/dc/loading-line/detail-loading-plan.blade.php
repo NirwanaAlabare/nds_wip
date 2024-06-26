@@ -112,8 +112,8 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <th colspan="7">Total</th>
-                        <th>{{ $totalQty }}</th>
+                        <th class="text-end" colspan="7">TOTAL</th>
+                        <th>{{ num($totalQty) }}</th>
                         <th>{{ $latestUpdate }}</th>
                     </tr>
                 </tfoot>
