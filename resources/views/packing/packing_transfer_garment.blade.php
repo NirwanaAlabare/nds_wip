@@ -56,6 +56,8 @@
                             <th>Size</th>
                             <th>Qty</th>
                             <th>Status</th>
+                            <th>User</th>
+                            <th>Tgl. Input</th>
                         </tr>
                     </thead>
                     <tfoot>
@@ -64,6 +66,8 @@
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
                                     id = 'total_qty_chk'> </th>
                             <th>PCS</th>
+                            <th></th>
+                            <th></th>
                         </tr>
                     </tfoot>
                 </table>
@@ -174,6 +178,12 @@
                 },
                 {
                     data: 'status'
+                },
+                {
+                    data: 'created_by'
+                },
+                {
+                    data: 'created_at'
                 },
             ],
 

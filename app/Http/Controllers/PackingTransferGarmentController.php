@@ -31,7 +31,9 @@ class PackingTransferGarmentController extends Controller
                 m.size,
                 a.qty,
                 if(a.qty - c.qty_in = '0','Full','-') status,
-                a.id
+                a.id,
+                a.created_at,
+                a.created_by
                 from packing_trf_garment a
                 inner join ppic_master_so p on a.id_ppic_master_so = p.id
                 inner join master_sb_ws m on a.id_so_det = m.id_so_det
