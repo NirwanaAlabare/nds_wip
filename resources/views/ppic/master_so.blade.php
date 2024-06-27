@@ -347,6 +347,7 @@
                             <th>Qty PO</th>
                             <th>Qty Tr Garment</th>
                             <th>Qty Packing In</th>
+                            <th>Qty Packing Out</th>
                             <th>User</th>
                             <th>Tgl. Upload</th>
                             <th>Act</th>
@@ -361,6 +362,8 @@
                                     id = 'total_qty_chk'> </th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
                                     id = 'total_qty_p_in'> </th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_p_out'> </th>
                             <th></th>
                             <th></th>
                             <th></th>
@@ -720,11 +723,19 @@
                         return intVal(a) + intVal(b);
                     }, 0);
 
+                var sumTotalPout = api
+                    .column(15)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
                 $(api.column(12).footer()).html(sumTotalPO);
                 $(api.column(13).footer()).html(sumTotalTr);
                 $(api.column(14).footer()).html(sumTotalPin);
+                $(api.column(15).footer()).html(sumTotalPout);
             },
             ordering: false,
             processing: true,
@@ -786,6 +797,9 @@
                 },
                 {
                     data: 'qty_packing_in'
+                },
+                {
+                    data: 'qty_packing_out'
                 },
                 {
                     data: 'created_by'

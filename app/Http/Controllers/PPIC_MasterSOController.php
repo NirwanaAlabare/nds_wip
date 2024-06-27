@@ -42,6 +42,7 @@ class PPIC_MasterSOController extends Controller
             a.qty_po,
             coalesce(trf.qty_trf,0) qty_trf,
             coalesce(pck.qty_packing_in,0) qty_packing_in,
+            coalesce(pck_out.qty_packing_out,0) qty_packing_out,
             m.ws,
             a.created_by,
             a.created_at
@@ -49,13 +50,19 @@ class PPIC_MasterSOController extends Controller
             inner join master_sb_ws m on a.id_so_det = m.id_so_det
             left join master_size_new msn on m.size = msn.size
             left join
-                (
+            (
                 select id_ppic_master_so, coalesce(sum(qty),0) qty_trf from packing_trf_garment group by id_ppic_master_so
-                ) trf on trf.id_ppic_master_so = a.id
+            ) trf on trf.id_ppic_master_so = a.id
             left join
-                (
+            (
                 select id_ppic_master_so, coalesce(sum(qty),0) qty_packing_in from packing_packing_in group by id_ppic_master_so
-                ) pck on pck.id_ppic_master_so = a.id
+            ) pck on pck.id_ppic_master_so = a.id
+            left join
+            (
+select p.id, coalesce(count(a.barcode),0) qty_packing_out from packing_packing_out_scan a
+inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po
+group by a.barcode, a.po
+            ) pck_out on pck_out.id = a.id
             where tgl_shipment >= '$tgl_awal' and tgl_shipment <= '$tgl_akhir'
             order by tgl_shipment desc, buyer asc, ws asc , msn.urutan asc
             ");
