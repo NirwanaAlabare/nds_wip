@@ -171,7 +171,7 @@
                     <div class='row'>
                         <div class="col-md-12 table-responsive">
                             <table id="datatable_tracking"
-                                class="table table-bordered table-hover table-sm w-100 text-wrap">
+                                class="table table-bordered table-striped table-sm w-100 nowrap">
                                 <thead>
                                     <tr>
                                         <th>Tgl. Transaksi</th>
@@ -188,6 +188,16 @@
                                         <th>Dest SB</th>
                                     </tr>
                                 </thead>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="2"></th>
+                                        <th> <input type = 'text' class="form-control form-control-sm"
+                                                style="width:75px" readonly id = 'total_qty_chk'> </th>
+                                        <th>PCS</th>
+                                        <th colspan= "7"></th>
+                                    </tr>
+                                </tfoot>
+
                             </table>
                         </div>
                     </div>
@@ -319,8 +329,7 @@
             </div>
 
             <div class="table-responsive">
-                <table id="datatable"
-                    class="table table-bordered table-striped table-sm w-100 table-hover display nowrap">
+                <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
                     <thead class="table-primary">
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>ID SO Det</th>
@@ -906,15 +915,41 @@
 
 
         let datatable_tracking = $("#datatable_tracking").DataTable({
+            "footerCallback": function(row, data, start, end, display) {
+                var api = this.api(),
+                    data;
+
+                // converting to interger to find total
+                var intVal = function(i) {
+                    return typeof i === 'string' ?
+                        i.replace(/[\$,]/g, '') * 1 :
+                        typeof i === 'number' ?
+                        i : 0;
+                };
+
+                // computing column Total of the complete result
+                var sumTotal = api
+                    .column(2)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                // Update footer by showing the total with the reference of the column index
+                $(api.column(0).footer()).html('Total');
+                $(api.column(2).footer()).html(sumTotal);
+            },
+
+
+
             ordering: true,
             processing: true,
             serverSide: true,
-            scrollCollapse: true,
-            scroller: true,
-            paging: true,
+            paging: false,
             searching: true,
-            destroy: true,
-            scrollX: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
             ajax: {
                 url: '{{ route('master_so_tracking_output') }}',
             },
