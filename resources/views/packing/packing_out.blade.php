@@ -39,12 +39,12 @@
                         Baru Scan
                     </a>
                 </div>
-                <div class="mb-3">
+                {{-- <div class="mb-3">
                     <a href="{{ route('create-packing-out') }}" class="btn btn-outline-secondary position-relative">
                         <i class="fas fa-plus"></i>
                         Baru Non Scan
                     </a>
-                </div>
+                </div> --}}
             </div>
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
