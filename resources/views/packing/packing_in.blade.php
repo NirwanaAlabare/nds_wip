@@ -229,8 +229,6 @@
                 $(api.column(0).footer()).html('Total');
                 $(api.column(9).footer()).html(sumTotal);
             },
-
-
             ordering: false,
             processing: true,
             serverSide: true,
