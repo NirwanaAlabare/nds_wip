@@ -35,7 +35,7 @@ class PackingPackingOutController extends Controller
             inner join ppic_master_so p on o.po = p.po and o.barcode = p.barcode
             inner join master_sb_ws m on p.id_so_det = m.id_so_det
             where o.tgl_trans >= '$tgl_awal' and o.tgl_trans <= '$tgl_akhir'
-            group by po, no_carton, tgl_trans
+            group by po, no_carton, tgl_trans, barcode
             order by created_at desc
             ");
 
