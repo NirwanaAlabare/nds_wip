@@ -812,7 +812,7 @@
                 },
             ],
             columnDefs: [{
-                    targets: [17],
+                    targets: [18],
                     render: (data, type, row, meta) => {
                         return `
                 <div
