@@ -898,6 +898,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('packing-in');
         Route::get('/show_preview_packing_in', 'show_preview_packing_in')->name('show_preview_packing_in');
         Route::post('/store', 'store')->name('store-packing-packing-in');
+        Route::get('/export_excel_packing_in', 'export_excel_packing_in')->name('export_excel_packing_in');
     });
 
     // Packing Out

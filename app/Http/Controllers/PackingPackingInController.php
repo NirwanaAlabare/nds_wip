@@ -7,8 +7,8 @@ use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
 use Illuminate\Support\Facades\Auth;
-use App\Models\PPICMasterSo;
-use App\Models\OutputPacking;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ExportLaporanPackingIn;
 
 class PackingPackingInController extends Controller
 {
@@ -300,8 +300,8 @@ class PackingPackingInController extends Controller
 
 
 
-    // public function export_excel_mut_karyawan(Request $request)
-    // {
-    //     return Excel::download(new ExportLaporanMutasiKaryawan($request->from, $request->to), 'Laporan_Mutasi_Karyawan.xlsx');
-    // }
+    public function export_excel_packing_in(Request $request)
+    {
+        return Excel::download(new ExportLaporanPackingIn($request->from, $request->to), 'Laporan_Packing_In.xlsx');
+    }
 }
