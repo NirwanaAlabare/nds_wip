@@ -908,6 +908,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/packing_out_show_summary', 'packing_out_show_summary')->name('packing_out_show_summary');
         Route::get('/packing_out_show_tot_input', 'packing_out_show_tot_input')->name('packing_out_show_tot_input');
         Route::post('/store', 'store')->name('store_packing_out');
+        Route::get('/export_excel_packing_out', 'export_excel_packing_out')->name('export_excel_packing_out');
     });
 
     // Master Karton

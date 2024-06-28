@@ -7,8 +7,8 @@ use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
 use Illuminate\Support\Facades\Auth;
-use App\Models\PPICMasterSo;
-use App\Models\OutputPacking;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ExportLaporanPackingOut;
 
 class PackingPackingOutController extends Controller
 {
@@ -197,5 +197,10 @@ class PackingPackingOutController extends Controller
         ");
 
         return json_encode($data_header ? $data_header[0] : null);
+    }
+
+    public function export_excel_packing_out(Request $request)
+    {
+        return Excel::download(new ExportLaporanPackingOut($request->from, $request->to), 'Laporan_Hasil_Scan.xlsx');
     }
 }
