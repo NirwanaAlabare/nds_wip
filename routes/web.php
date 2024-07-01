@@ -891,6 +891,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store_trf_garment');
         Route::post('/undo', 'undo')->name('undo-trf-garment');
         Route::post('/reset', 'reset')->name('reset-trf-garment');
+        Route::get('/export_excel_trf_garment', 'export_excel_trf_garment')->name('export_excel_trf_garment');
     });
 
     // Packing In

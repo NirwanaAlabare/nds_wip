@@ -7,8 +7,8 @@ use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
 use Illuminate\Support\Facades\Auth;
-use App\Models\PPICMasterSo;
-use App\Models\OutputPacking;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ExportLaporanTrfGarment;
 
 class PackingTransferGarmentController extends Controller
 {
@@ -331,8 +331,8 @@ order by po asc
 
 
 
-    // public function export_excel_mut_karyawan(Request $request)
-    // {
-    //     return Excel::download(new ExportLaporanMutasiKaryawan($request->from, $request->to), 'Laporan_Mutasi_Karyawan.xlsx');
-    // }
+    public function export_excel_trf_garment(Request $request)
+    {
+        return Excel::download(new ExportLaporanTrfGarment($request->from, $request->to), 'Laporan_Trf_Garment.xlsx');
+    }
 }
