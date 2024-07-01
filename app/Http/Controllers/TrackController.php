@@ -133,6 +133,10 @@ class TrackController extends Controller
                     group by
                         master_sb_ws.id_so_det,
                         marker_track.panel
+                    order by
+                        master_sb_ws.id_act_cost,
+                        master_sb_ws.color,
+                        master_sb_ws.id_so_det
             ");
 
             return DataTables::of($worksheet)->toJson();
