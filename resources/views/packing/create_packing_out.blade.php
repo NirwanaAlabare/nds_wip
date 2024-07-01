@@ -21,40 +21,78 @@
                 </a>
             </div>
         </div>
-        <form id="form_h" name='form_h' method='post'>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-sm">
-                        <div class="form-group">
-                            <label><small><b>PO # :</b></small></label>
-                            <input type="hidden" class="form-control" id="user" name="user"
-                                value="{{ $user }}">
-                            <select class="form-control select2bs4 form-control-sm" id="cbopo" name="cbopo"
-                                style="width: 100%;" onchange="getno_carton();dataTableSummaryReload();">
-                                <option selected="selected" value="" disabled="true">Pilih PO</option>
-                                @foreach ($data_po as $datapo)
-                                    <option value="{{ $datapo->isi }}">
-                                        {{ $datapo->tampil }}
-                                    </option>
-                                @endforeach
-                            </select>
+        <form id="form_h" name='form_h'>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card card-primary card-outline">
+                        <div class="card-header">
+                            <h5 class="card-title"><i class="fas fa-search"></i> Filter </h5>
                         </div>
-                    </div>
-                    <div class="col-sm">
-                        <div class="form-group">
-                            <label><small><b>No. Carton # :</b></small></label>
-                            <select class='form-control select2bs4 form-control-sm' style='width: 100%;' name='cbono_carton'
-                                id='cbono_carton' onchange = "dataTableSummaryReload()"></select>
+                        <div class="card-body">
+                            <div class="col-sm">
+                                <div class="form-group">
+                                    <label><small><b>PO # :</b></small></label>
+                                    <input type="hidden" class="form-control" id="user" name="user"
+                                        value="{{ $user }}">
+                                    <select class="form-control select2bs4 form-control-sm" id="cbopo" name="cbopo"
+                                        style="width: 100%;" onchange="getno_carton();dataTableSummaryReload();">
+                                        <option selected="selected" value="" disabled="true">Pilih PO</option>
+                                        @foreach ($data_po as $datapo)
+                                            <option value="{{ $datapo->isi }}">
+                                                {{ $datapo->tampil }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-sm">
+                                <div class="form-group">
+                                    <label><small><b>No. Carton # :</b></small></label>
+                                    <select class='form-control select2bs4 form-control-sm' style='width: 100%;'
+                                        name='cbono_carton' id='cbono_carton'
+                                        onchange = "dataTableSummaryReload()"></select>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label label-input"><small><b>Barcode</b></small></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control form-control-sm border-input" name="barcode"
+                                        id="barcode" data-prevent-submit="true" autocomplete="off" enterkeyhint="enter"
+                                        autofocus>
+                                    <button class="btn btn-sm btn-primary" type="button" id="scan_qr"
+                                        onclick="scan_barcode()">Scan</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label label-input"><small><b>Barcode</b></small></label>
-                    <div class="input-group">
-                        <input type="text" class="form-control form-control-sm border-input" name="barcode"
-                            id="barcode" data-prevent-submit="true" autocomplete="off" enterkeyhint="go" autofocus>
-                        <button class="btn btn-sm btn-primary" type="button" id="scan_qr"
-                            onclick="scan_barcode()">Scan</button>
+                <div class="col-md-6">
+                    <div class="card card-primary card-outline">
+                        <div class="card-header">
+                            <h5 class="card-title"><i class="fas fa-list"></i> Summary </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table id="datatable_summary" class="table table-bordered table-sm w-100 text-nowrap">
+                                    <thead>
+                                        <tr>
+                                            <th>PO #</th>
+                                            <th>Color</th>
+                                            <th>Size</th>
+                                            <th>Qty Input</th>
+                                        </tr>
+                                    </thead>
+                                    <tfoot>
+                                        <tr>
+                                            <th>Total</th>
+                                            <th></th>
+                                            <th></th>
+                                            <th></th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -74,35 +112,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="card card-primary card-outline">
-                    <div class="card-header">
-                        <h5 class="card-title"><i class="fas fa-list"></i> Summary </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table id="datatable_summary" class="table table-bordered table-sm w-100 text-nowrap">
-                                <thead>
-                                    <tr>
-                                        <th>PO #</th>
-                                        <th>Color</th>
-                                        <th>Size</th>
-                                        <th>Qty Input</th>
-                                    </tr>
-                                </thead>
-                                <tfoot>
-                                    <tr>
-                                        <th>Total</th>
-                                        <th></th>
-                                        <th></th>
-                                        <th></th>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
         </div>
     </div>
 @endsection
@@ -134,6 +144,18 @@
             $("#cbono_carton").val('').trigger('change');
             gettotal_input();
         })
+
+        document.getElementById("barcode").onkeypress = function(e) {
+            var key = e.charCode || e.keyCode || 0;
+            if (key == 13) {
+                e.preventDefault();
+
+                if (e.target.getAttribute('data-prevent-submit') == "true") {
+                    scan_barcode();
+                }
+            }
+        }
+
 
         function gettotal_input() {
             let user = document.form_h.user.value;

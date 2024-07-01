@@ -7,8 +7,8 @@ use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
 use Illuminate\Support\Facades\Auth;
-use App\Models\PPICMasterSo;
-use App\Models\OutputPacking;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ExportLaporanPackingOut;
 
 class PackingPackingOutController extends Controller
 {
@@ -26,14 +26,17 @@ class PackingPackingOutController extends Controller
             o.barcode,
             m.color,
             m.size,
+            m.ws,
             concat((DATE_FORMAT(o.tgl_trans,  '%d')), '-', left(DATE_FORMAT(o.tgl_trans,  '%M'),3),'-',DATE_FORMAT(o.tgl_trans,  '%Y')
-            ) tgl_trans_fix
+            ) tgl_trans_fix,
+            o.created_by,
+            o.created_at
             from packing_packing_out_scan o
             inner join ppic_master_so p on o.po = p.po and o.barcode = p.barcode
             inner join master_sb_ws m on p.id_so_det = m.id_so_det
             where o.tgl_trans >= '$tgl_awal' and o.tgl_trans <= '$tgl_akhir'
-            group by po, no_carton, tgl_trans
-            order by tgl_trans desc
+            group by po, no_carton, tgl_trans, barcode
+            order by created_at desc
             ");
 
             return DataTables::of($data_input)->toJson();
@@ -84,7 +87,7 @@ class PackingPackingOutController extends Controller
                 where no_carton = '" . $request->cbono_carton . "' and po = '" . $request->cbopo . "'
                 group by barcode, no_carton
             ) s on s.barcode = p.barcode and s.po = p.po
-            where p.po = '" . $request->cbopo . "' and p.barcode is not null and p.barcode != '-'
+            where p.po = '" . $request->cbopo . "' and p.barcode is not null and p.barcode != '-' and coalesce(s.tot_scan,0) != '0'
             group by p.barcode, po, m.color, m.size
             order by p.po asc, color asc, msn.urutan asc
             ");
@@ -194,5 +197,10 @@ class PackingPackingOutController extends Controller
         ");
 
         return json_encode($data_header ? $data_header[0] : null);
+    }
+
+    public function export_excel_packing_out(Request $request)
+    {
+        return Excel::download(new ExportLaporanPackingOut($request->from, $request->to), 'Laporan_Hasil_Scan.xlsx');
     }
 }

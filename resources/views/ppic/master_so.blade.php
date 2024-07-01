@@ -171,7 +171,7 @@
                     <div class='row'>
                         <div class="col-md-12 table-responsive">
                             <table id="datatable_tracking"
-                                class="table table-bordered table-hover table-sm w-100 text-wrap">
+                                class="table table-bordered table-striped table-sm w-100 nowrap">
                                 <thead>
                                     <tr>
                                         <th>Tgl. Transaksi</th>
@@ -188,6 +188,16 @@
                                         <th>Dest SB</th>
                                     </tr>
                                 </thead>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="2"></th>
+                                        <th> <input type = 'text' class="form-control form-control-sm"
+                                                style="width:75px" readonly id = 'total_qty_chk'> </th>
+                                        <th>PCS</th>
+                                        <th colspan= "7"></th>
+                                    </tr>
+                                </tfoot>
+
                             </table>
                         </div>
                     </div>
@@ -202,7 +212,7 @@
 
 
 
-    <div class="card card-info  collapsed-card">
+    <div class="card card-info  collapsed-card" id = "upload-master-card">
         <div class="card-header">
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-upload"></i> Upload Master SO PPIC</h5>
             <div class="card-tools">
@@ -256,6 +266,17 @@
                             <th>Act</th>
                         </tr>
                     </thead>
+                    <tfoot>
+                        <tr>
+                            <th colspan="9"></th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_chk'> </th>
+                            <th>PCS</th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
                 </table>
                 <div class="d-flex justify-content-between">
                     <div class="p-2 bd-highlight">
@@ -308,7 +329,7 @@
             </div>
 
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-sm w-100 table-hover display nowrap">
+                <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
                     <thead class="table-primary">
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>ID SO Det</th>
@@ -326,11 +347,28 @@
                             <th>Qty PO</th>
                             <th>Qty Tr Garment</th>
                             <th>Qty Packing In</th>
+                            <th>Qty Packing Out</th>
                             <th>User</th>
                             <th>Tgl. Upload</th>
                             <th>Act</th>
                         </tr>
                     </thead>
+                    <tfoot>
+                        <tr>
+                            <th colspan="12"></th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_po'> </th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_chk'> </th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_p_in'> </th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_p_out'> </th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -400,6 +438,14 @@
             datatable.ajax.reload();
         }
 
+        $(document).ready(function() {
+            dataTableReload();
+            $('#upload-master-card').on('expanded.lte.cardwidget', () => {
+                dataTablePreviewReload();
+            });
+        })
+
+
 
         $('#datatable_preview thead tr').clone(true).appendTo('#datatable_preview thead');
         $('#datatable_preview thead tr:eq(1) th').each(function(i) {
@@ -416,11 +462,38 @@
         });
 
         let datatable_preview = $("#datatable_preview").DataTable({
+            "footerCallback": function(row, data, start, end, display) {
+                var api = this.api(),
+                    data;
+
+                // converting to interger to find total
+                var intVal = function(i) {
+                    return typeof i === 'string' ?
+                        i.replace(/[\$,]/g, '') * 1 :
+                        typeof i === 'number' ?
+                        i : 0;
+                };
+
+                // computing column Total of the complete result
+                var sumTotal = api
+                    .column(9)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                // Update footer by showing the total with the reference of the column index
+                $(api.column(0).footer()).html('Total');
+                $(api.column(9).footer()).html(sumTotal);
+            },
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: true,
+            paging: false,
             searching: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
             ajax: {
                 url: '{{ route('show_tmp_ppic_so') }}',
                 data: function(d) {
@@ -615,13 +688,63 @@
         });
 
         let datatable = $("#datatable").DataTable({
+
+            "footerCallback": function(row, data, start, end, display) {
+                var api = this.api(),
+                    data;
+
+                // converting to interger to find total
+                var intVal = function(i) {
+                    return typeof i === 'string' ?
+                        i.replace(/[\$,]/g, '') * 1 :
+                        typeof i === 'number' ?
+                        i : 0;
+                };
+
+                // computing column Total of the complete result
+                var sumTotalPO = api
+                    .column(12)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalTr = api
+                    .column(13)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalPin = api
+                    .column(14)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalPout = api
+                    .column(15)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                // Update footer by showing the total with the reference of the column index
+                $(api.column(0).footer()).html('Total');
+                $(api.column(12).footer()).html(sumTotalPO);
+                $(api.column(13).footer()).html(sumTotalTr);
+                $(api.column(14).footer()).html(sumTotalPin);
+                $(api.column(15).footer()).html(sumTotalPout);
+            },
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: true,
+            paging: false,
             searching: true,
-            destroy: true,
-            scrollX: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
             ajax: {
                 url: '{{ route('master-so') }}',
                 data: function(d) {
@@ -676,6 +799,9 @@
                     data: 'qty_packing_in'
                 },
                 {
+                    data: 'qty_packing_out'
+                },
+                {
                     data: 'created_by'
                 },
                 {
@@ -686,7 +812,7 @@
                 },
             ],
             columnDefs: [{
-                    targets: [17],
+                    targets: [18],
                     render: (data, type, row, meta) => {
                         return `
                 <div
@@ -803,15 +929,41 @@
 
 
         let datatable_tracking = $("#datatable_tracking").DataTable({
+            "footerCallback": function(row, data, start, end, display) {
+                var api = this.api(),
+                    data;
+
+                // converting to interger to find total
+                var intVal = function(i) {
+                    return typeof i === 'string' ?
+                        i.replace(/[\$,]/g, '') * 1 :
+                        typeof i === 'number' ?
+                        i : 0;
+                };
+
+                // computing column Total of the complete result
+                var sumTotal = api
+                    .column(2)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                // Update footer by showing the total with the reference of the column index
+                $(api.column(0).footer()).html('Total');
+                $(api.column(2).footer()).html(sumTotal);
+            },
+
+
+
             ordering: true,
             processing: true,
             serverSide: true,
-            scrollCollapse: true,
-            scroller: true,
-            paging: true,
+            paging: false,
             searching: true,
-            destroy: true,
-            scrollX: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
             ajax: {
                 url: '{{ route('master_so_tracking_output') }}',
             },

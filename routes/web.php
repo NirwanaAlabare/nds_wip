@@ -892,6 +892,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store_trf_garment');
         Route::post('/undo', 'undo')->name('undo-trf-garment');
         Route::post('/reset', 'reset')->name('reset-trf-garment');
+        Route::get('/export_excel_trf_garment', 'export_excel_trf_garment')->name('export_excel_trf_garment');
     });
 
     // Packing In
@@ -899,6 +900,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('packing-in');
         Route::get('/show_preview_packing_in', 'show_preview_packing_in')->name('show_preview_packing_in');
         Route::post('/store', 'store')->name('store-packing-packing-in');
+        Route::get('/export_excel_packing_in', 'export_excel_packing_in')->name('export_excel_packing_in');
     });
 
     // Packing Out
@@ -909,6 +911,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/packing_out_show_summary', 'packing_out_show_summary')->name('packing_out_show_summary');
         Route::get('/packing_out_show_tot_input', 'packing_out_show_tot_input')->name('packing_out_show_tot_input');
         Route::post('/store', 'store')->name('store_packing_out');
+        Route::get('/export_excel_packing_out', 'export_excel_packing_out')->name('export_excel_packing_out');
     });
 
     // Master Karton

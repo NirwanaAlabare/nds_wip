@@ -36,7 +36,7 @@
                         oninput="dataTableReload()" value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
-                    <a onclick="export_excel_bpb()" class="btn btn-outline-success position-relative btn-sm">
+                    <a onclick="export_excel_trf_garment()" class="btn btn-outline-success position-relative btn-sm">
                         <i class="fas fa-file-excel fa-sm"></i>
                         Export Excel
                     </a>
@@ -56,6 +56,8 @@
                             <th>Size</th>
                             <th>Qty</th>
                             <th>Status</th>
+                            <th>User</th>
+                            <th>Tgl. Input</th>
                         </tr>
                     </thead>
                     <tfoot>
@@ -64,6 +66,8 @@
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
                                     id = 'total_qty_chk'> </th>
                             <th>PCS</th>
+                            <th></th>
+                            <th></th>
                         </tr>
                     </tfoot>
                 </table>
@@ -175,6 +179,12 @@
                 {
                     data: 'status'
                 },
+                {
+                    data: 'created_by'
+                },
+                {
+                    data: 'created_at'
+                },
             ],
 
             columnDefs: [{
@@ -197,5 +207,49 @@
             ]
 
         });
+
+        function export_excel_trf_garment() {
+            let from = document.getElementById("tgl-awal").value;
+            let to = document.getElementById("tgl-akhir").value;
+
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                type: "get",
+                url: '{{ route('export_excel_trf_garment') }}',
+                data: {
+                    from: from,
+                    to: to
+                },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(response) {
+                    {
+                        swal.close();
+                        Swal.fire({
+                            title: 'Data Sudah Di Export!',
+                            icon: "success",
+                            showConfirmButton: true,
+                            allowOutsideClick: false
+                        });
+                        var blob = new Blob([response]);
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = from + " sampai " +
+                            to + "Laporan Trf Garment.xlsx";
+                        link.click();
+
+                    }
+                },
+            });
+        }
     </script>
 @endsection
