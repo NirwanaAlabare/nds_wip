@@ -254,7 +254,7 @@ m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is 
 
         $data_tracking = DB::select("
             select
-            m.id_so_det,
+            a.id_so_det,
             concat((DATE_FORMAT(a.created_at,  '%d')), '-', left(DATE_FORMAT(a.created_at,  '%M'),3),'-',DATE_FORMAT(a.created_at,  '%Y')
 ) tgl_trans,
             sewing_line,count(so_det_id)tot,
