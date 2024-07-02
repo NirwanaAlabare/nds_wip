@@ -10,6 +10,7 @@ use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Sheet;
 use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use Maatwebsite\Excel\Concerns\WithEvents;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use DB;
 
 Sheet::macro('styleCells', function (Sheet $sheet, string $cellRange, array $style) {
@@ -27,7 +28,7 @@ Sheet::macro('styleCells', function (Sheet $sheet, string $cellRange, array $sty
 //     }
 // }
 
-class ExportLaporanPackingOut implements FromView, WithEvents, ShouldAutoSize
+class ExportLaporanPackingOut implements FromView, WithEvents, ShouldAutoSize, WithColumnFormatting
 {
     use Exportable;
 
@@ -100,5 +101,12 @@ class ExportLaporanPackingOut implements FromView, WithEvents, ShouldAutoSize
                 ],
             ]
         );
+    }
+
+    public function columnFormats(): array
+    {
+        return [
+            'D' => NumberFormat::FORMAT_NUMBER,
+        ];
     }
 }

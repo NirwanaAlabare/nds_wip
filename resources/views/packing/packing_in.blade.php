@@ -446,8 +446,9 @@
                         var blob = new Blob([response]);
                         var link = document.createElement('a');
                         link.href = window.URL.createObjectURL(blob);
-                        link.download = from + " sampai " +
-                            to + "Laporan Packing In.xlsx";
+                        link.download = "Laporan Packing In " +
+                            from + " sampai " +
+                            to + ".xlsx";
                         link.click();
 
                     }

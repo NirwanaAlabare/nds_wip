@@ -429,6 +429,6 @@ m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is 
 
     public function export_excel_master_so_ppic(Request $request)
     {
-        return Excel::download(new exportPPIC_Master_so_ppic, 'Laporan_Master_SB_SO.xlsx');
+        return Excel::download(new exportPPIC_Master_so_ppic($request->from, $request->to), 'Laporan_Master_SB_SO.xlsx');
     }
 }

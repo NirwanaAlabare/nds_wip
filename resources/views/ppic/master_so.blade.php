@@ -326,6 +326,12 @@
                         Tracking Output Packing
                     </a>
                 </div>
+                <div class="mb-3">
+                    <a onclick="export_excel_master_so_ppic()" class="btn btn-outline-success position-relative btn-sm">
+                        <i class="fas fa-file-excel fa-sm"></i>
+                        Edit Multiple
+                    </a>
+                </div>
             </div>
 
             <div class="table-responsive">
@@ -855,6 +861,9 @@
 
 
         function export_excel_master_so_ppic() {
+            let from = document.getElementById("tgl-awal").value;
+            let to = document.getElementById("tgl-akhir").value;
+
             Swal.fire({
                 title: 'Please Wait...',
                 html: 'Exporting Data...',
@@ -867,6 +876,10 @@
             $.ajax({
                 type: "get",
                 url: '{{ route('export_excel_master_so_ppic') }}',
+                data: {
+                    from: from,
+                    to: to
+                },
                 xhrFields: {
                     responseType: 'blob'
                 },
@@ -882,7 +895,8 @@
                         var blob = new Blob([response]);
                         var link = document.createElement('a');
                         link.href = window.URL.createObjectURL(blob);
-                        link.download = "Master SO PPIC.xlsx";
+                        link.download = "Laporan PPIC tgl shipment  " + from + " sampai " +
+                            to + ".xlsx";
                         link.click();
 
                     }
