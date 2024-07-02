@@ -262,8 +262,8 @@
                         var blob = new Blob([response]);
                         var link = document.createElement('a');
                         link.href = window.URL.createObjectURL(blob);
-                        link.download = from + " sampai " +
-                            to + "Laporan Hasil Scan.xlsx";
+                        link.download = "Laporan Hasil Scan " + from + " sampai " +
+                            to + ".xlsx";
                         link.click();
 
                     }

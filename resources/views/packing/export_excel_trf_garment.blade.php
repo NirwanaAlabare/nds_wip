@@ -16,7 +16,7 @@
         <tr>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">No</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">No. Trans</th>
-            <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Tgl> Trans</th>
+            <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Tgl Trans</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Line</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">PO</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">WS</th>

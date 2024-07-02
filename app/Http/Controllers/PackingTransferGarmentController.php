@@ -68,7 +68,7 @@ class PackingTransferGarmentController extends Controller
     public function get_po(Request $request)
     {
         $data_po = DB::select("
-select p.po isi,p.po tampil from
+select p.po isi,CONCAT(p.po, ' ( ', m.styleno, ' ) ', '( ', m.styleno_prod , ' )') tampil from
 (
 select so_det_id from output_rfts_packing a
 where sewing_line = '" . $request->cbo_line . "'
