@@ -20,6 +20,7 @@
         @php
             $currentDate = "";
             $currentLine = "";
+            $totalQty = 0;
         @endphp
         @foreach ($data as $d)
             <tr>
@@ -49,8 +50,16 @@
                 <td>{{ $d->color }}</td>
                 <td>{{ $d->size }}</td>
                 <td data-format='0'>{{ $d->loading_qty }}</td>
+
+                @php
+                    $totalQty += $d->loading_qty;
+                @endphp
             </tr>
         @endforeach
+        <tr>
+            <th colspan="6" style="text-align:right;">TOTAL</th>
+            <th data-format='0'>{{ $totalQty }}</th>
+        </tr>
 </table>
 
 </html>
