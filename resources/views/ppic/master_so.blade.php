@@ -994,7 +994,7 @@
                     data: 'unit'
                 },
                 {
-                    data: 'id_so_det'
+                    data: 'so_det_id'
                 },
                 {
                     data: 'ws'
