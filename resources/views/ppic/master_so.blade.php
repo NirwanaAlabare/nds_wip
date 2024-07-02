@@ -327,7 +327,7 @@
                     </a>
                 </div>
                 <div class="mb-3">
-                    <a onclick="export_excel_master_so_ppic()" class="btn btn-outline-success position-relative btn-sm">
+                    <a onclick="export_excel_master_so_ppic()" class="btn btn-outline-warning position-relative btn-sm">
                         <i class="fas fa-file-excel fa-sm"></i>
                         Edit Multiple
                     </a>

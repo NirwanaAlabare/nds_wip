@@ -211,23 +211,28 @@
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="datatableReload()">
+                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
+                        value="{{ date('Y-m-d') }}" onchange="datatableReload()">
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
+                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
+                        value="{{ date('Y-m-d') }}" onchange="datatableReload()">
                 </div>
                 <div class="mb-3">
-                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="reset();"><i class="fas fa-plus"></i> Baru</button>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal"
+                        onclick="reset();"><i class="fas fa-plus"></i> Baru</button>
                 </div>
             </div>
 
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
-                    <button class="btn btn-info btn-sm" onclick="list();" id="list" name="list"><i class="fas fa-list"></i> List</button>
+                    <button class="btn btn-info btn-sm" onclick="list();" id="list" name="list"><i
+                            class="fas fa-list"></i> List</button>
                 </div>
                 <div class="mb-3">
-                    <button class="btn btn-secondary btn-sm" onclick="detail();" id="detail" name="detail"><i class="fas fa-list"></i> Detail</button>
+                    <button class="btn btn-secondary btn-sm" onclick="detail();" id="detail" name="detail"><i
+                            class="fas fa-list"></i> Detail</button>
                 </div>
             </div>
 
@@ -256,8 +261,20 @@
                             <th>Created By</th>
                         </tr>
                     </thead>
-                    <tbody>
-                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="10"></th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_awal'> </th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_reject'> </th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_replace'> </th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_in'> </th>
+                            <th colspan="2"></th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
 
@@ -275,8 +292,18 @@
                             <th>Proses</th>
                         </tr>
                     </thead>
-                    <tbody>
-                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="4"></th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_out'> </th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_int'> </th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_balance'> </th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
 
@@ -294,12 +321,78 @@
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
+        $('#datatable-input thead tr').clone(true).appendTo('#datatable-input thead');
+        $('#datatable-input thead tr:eq(1) th').each(function(i) {
+            var title = $(this).text();
+            $(this).html('<input type="text" class="form-control form-control-sm"/>');
+
+            $('input', this).on('keyup change', function() {
+                if (datatable.column(i).search() !== this.value) {
+                    datatable
+                        .column(i)
+                        .search(this.value)
+                        .draw();
+                }
+            });
+        });
+
+
         let datatable = $("#datatable-input").DataTable({
+            "footerCallback": function(row, data, start, end, display) {
+                var api = this.api(),
+                    data;
+
+                // converting to interger to find total
+                var intVal = function(i) {
+                    return typeof i === 'string' ?
+                        i.replace(/[\$,]/g, '') * 1 :
+                        typeof i === 'number' ?
+                        i : 0;
+                };
+
+                var sumTotalAwal = api
+                    .column(10)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalReject = api
+                    .column(11)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalReplace = api
+                    .column(12)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalIn = api
+                    .column(13)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                // Update footer by showing the total with the reference of the column index
+                $(api.column(0).footer()).html('Total');
+                $(api.column(10).footer()).html(sumTotalAwal);
+                $(api.column(11).footer()).html(sumTotalReject);
+                $(api.column(12).footer()).html(sumTotalReplace);
+                $(api.column(13).footer()).html(sumTotalIn);
+            },
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: true,
-            destroy: true,
+            paging: false,
+            searching: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
             ajax: {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -312,8 +405,7 @@
                     d.dateTo = $('#tgl-akhir').val();
                 },
             },
-            columns: [
-                {
+            columns: [{
                     data: 'tgl_trans_fix',
                 },
                 {
@@ -362,22 +454,25 @@
                     data: 'user',
                 },
             ],
-            columnDefs: [
-                {
-                    targets: "_all",
-                    className: "text-nowrap"
-                }
-            ]
+            columnDefs: [{
+                targets: "_all",
+                className: "text-nowrap"
+            }]
         });
 
-        $('#datatable-input thead tr').clone(true).appendTo('#datatable-input thead');
-        $('#datatable-input thead tr:eq(1) th').each(function(i) {
+
+        function datatableReload() {
+            $('#datatable-input').DataTable().ajax.reload();
+        }
+
+        $('#datatable-detail thead tr').clone(true).appendTo('#datatable-detail thead');
+        $('#datatable-detail thead tr:eq(1) th').each(function(i) {
             var title = $(this).text();
             $(this).html('<input type="text" class="form-control form-control-sm"/>');
 
             $('input', this).on('keyup change', function() {
-                if (datatable.column(i).search() !== this.value) {
-                    datatable
+                if (datatable_detail.column(i).search() !== this.value) {
+                    datatable_detail
                         .column(i)
                         .search(this.value)
                         .draw();
@@ -385,16 +480,54 @@
             });
         });
 
-        function datatableReload() {
-            $('#datatable-input').DataTable().ajax.reload();
-        }
-
         let datatable_detail = $("#datatable-detail").DataTable({
+            "footerCallback": function(row, data, start, end, display) {
+                var api = this.api(),
+                    data;
+
+                // converting to interger to find total
+                var intVal = function(i) {
+                    return typeof i === 'string' ?
+                        i.replace(/[\$,]/g, '') * 1 :
+                        typeof i === 'number' ?
+                        i : 0;
+                };
+
+                var sumTotalOut = api
+                    .column(4)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalIn = api
+                    .column(5)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalBalance = api
+                    .column(6)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                // Update footer by showing the total with the reference of the column index
+                $(api.column(0).footer()).html('Total');
+                $(api.column(4).footer()).html(sumTotalOut);
+                $(api.column(5).footer()).html(sumTotalIn);
+                $(api.column(6).footer()).html(sumTotalBalance);
+            },
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: true,
-            destroy: true,
+            paging: false,
+            searching: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
             ajax: {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -407,8 +540,7 @@
                     d.dateTo = $('#tgl-akhir').val();
                 },
             },
-            columns: [
-                {
+            columns: [{
                     data: 'act_costing_ws',
                 },
                 {
@@ -433,27 +565,10 @@
                     data: 'lokasi',
                 },
             ],
-            columnDefs: [
-                {
-                    targets: "_all",
-                    className: "text-nowrap"
-                }
-            ]
-        });
-
-        $('#datatable-detail thead tr').clone(true).appendTo('#datatable-detail thead');
-        $('#datatable-detail thead tr:eq(1) th').each(function(i) {
-            var title = $(this).text();
-            $(this).html('<input type="text" class="form-control form-control-sm"/>');
-
-            $('input', this).on('keyup change', function() {
-                if (datatable_detail.column(i).search() !== this.value) {
-                    datatable_detail
-                        .column(i)
-                        .search(this.value)
-                        .draw();
-                }
-            });
+            columnDefs: [{
+                targets: "_all",
+                className: "text-nowrap"
+            }]
         });
     </script>
 
@@ -638,6 +753,7 @@
             document.getElementById("judul").textContent = "Detail Transaksi Inhouse / Dalam";
             document.getElementById("show_datatable_input").style.display = 'none';
             document.getElementById("show_datatable_detail").style.display = 'block';
+            $('#datatable-detail').DataTable().ajax.reload();
         }
     </script>
 @endsection
