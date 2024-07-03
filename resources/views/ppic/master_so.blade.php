@@ -209,7 +209,94 @@
         </div>
     </div>
 
-
+    <form id="form_e" name='form_e' method='post' action="{{ route('edit_multiple_ppic_master_so') }}"
+        onsubmit="submitForm(this, event)">
+        <div class="modal fade" id="exampleModalEditMultiple" tabindex="-1" role="dialog"
+            aria-labelledby="exampleModalEditMultipleLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header bg-sb text-light">
+                        <h1 class="modal-title fs-5" id="exampleModalEditMultipleLabel"> <i class="fas fa-edit"></i> Edit
+                            Multiple
+                        </h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>WS</label>
+                                <div class="input-group">
+                                    <select class="form-control select2bs4 " id="cbows" name="cbows"
+                                        onchange="dataTableEditReload()" style="width: 100%;">
+                                        @foreach ($data_ws as $dataws)
+                                            <option value="{{ $dataws->isi }}">
+                                                {{ $dataws->tampil }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='row'>
+                            <div class="col-md-12 table-responsive">
+                                <table id="datatable_edit"
+                                    class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                                    <thead class="table-primary">
+                                        <tr style='text-align:center; vertical-align:middle'>
+                                            <th>ID SO Det</th>
+                                            <th>Buyer</th>
+                                            <th>Tgl. Shipment</th>
+                                            <th>WS</th>
+                                            <th>Style</th>
+                                            <th>Barcode</th>
+                                            <th>Qty PO</th>
+                                            <th>No. PO</th>
+                                            <th>Reff</th>
+                                            <th>Dest</th>
+                                            <th>Desc</th>
+                                            <th>Color</th>
+                                            <th>Size</th>
+                                            {{-- <th>Qty Tr Garment</th>
+                                        <th>Qty Packing In</th>
+                                        <th>Qty Packing Out</th> --}}
+                                            <th>User</th>
+                                            <th>Tgl. Upload</th>
+                                        </tr>
+                                    </thead>
+                                    {{-- <tfoot>
+                                        <tr>
+                                            <th colspan="6"></th>
+                                            <th> <input type = 'text' class="form-control form-control-sm"
+                                                    style="width:75px" readonly id = 'total_qty_chk'> </th>
+                                            <th>PCS</th>
+                                            <th colspan="7"></th>
+                                        </tr>
+                                    </tfoot> --}}
+                                </table>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <div class="p-2 bd-highlight">
+                                {{-- <a class="btn btn-outline-warning" onclick="delete_multiple()">
+                                    <i class="fas fa-sync-alt
+                            fa-spin"></i>
+                                    Delete
+                                </a> --}}
+                            </div>
+                            <div class="p-2 bd-highlight">
+                                <button type="submit" class="btn btn-outline-success"><i class="fas fa-edit"></i>
+                                    Update
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    </div>
+                </div>
+            </div>
+    </form>
+    </div>
 
 
     <div class="card card-info  collapsed-card" id = "upload-master-card">
@@ -327,11 +414,19 @@
                     </a>
                 </div>
                 <div class="mb-3">
-                    <a onclick="export_excel_master_so_ppic()" class="btn btn-outline-warning position-relative btn-sm">
-                        <i class="fas fa-file-excel fa-sm"></i>
+                    <a class="btn btn-outline-warning position-relative btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#exampleModalEditMultiple">
+                        <i class="far fa-edit fa-sm"></i>
                         Edit Multiple
                     </a>
                 </div>
+                {{-- <div class="mb-3">
+                    <a class="btn btn-outline-danger position-relative btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#exampleModalEditMultiple">
+                        <i class="far fa-window-close fa-sm"></i>
+                        Delete Multiple
+                    </a>
+                </div> --}}
             </div>
 
             <div class="table-responsive">
@@ -387,6 +482,21 @@
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+    <script>
+        // Select2 Autofocus
+        $(document).on('select2:open', () => {
+            document.querySelector('.select2-search__field').focus();
+        });
+
+        // Initialize Select2 Elements
+        $('.select2').select2();
+
+        // Initialize Select2BS4 Elements
+        $('.select2bs4').select2({
+            theme: 'bootstrap4',
+        });
+    </script>
     <script>
         function notif() {
             alert("Maaf, Fitur belum tersedia!");
@@ -432,6 +542,20 @@
         }
     </script>
     <script>
+        $('#exampleModalEditMultiple').on('show.bs.modal', function(e) {
+            // $(document).on('select2:open', () => {
+            //     document.querySelector('.select2-search__field').focus();
+            // });
+            // $('.select2').select2()
+            $('.select2bs4').select2({
+                theme: 'bootstrap4',
+                dropdownParent: $("#exampleModalEditMultiple")
+            })
+            $('#cbows').val('').trigger('change');
+
+        })
+
+
         function OpenModal() {
             $('#importExcel').modal('show');
         }
@@ -927,20 +1051,9 @@
             datatable_tracking.ajax.reload();
         }
 
-        // $('#datatable_tracking thead tr').clone(true).appendTo('#datatable_tracking thead');
-        // $('#datatable_tracking thead tr:eq(1) th').each(function(i) {
-        //     var title = $(this).text();
-        //     $(this).html('<input type="text" class="form-control form-control-sm"/>');
-        //     $('input', this).on('keyup change', function() {
-        //         if (datatable_tracking.column(i).search() !== this.value) {
-        //             datatable_tracking
-        //                 .column(i)
-        //                 .search(this.value)
-        //                 .draw();
-        //         }
-        //     });
-        // });
-
+        function dataTableEditReload() {
+            datatable_edit.ajax.reload();
+        }
 
         let datatable_tracking = $("#datatable_tracking").DataTable({
             "footerCallback": function(row, data, start, end, display) {
@@ -1022,6 +1135,143 @@
                 "className": "dt-left",
                 "targets": "_all"
             }, ]
+        });
+
+
+        $('#datatable_edit thead tr').clone(true).appendTo('#datatable_edit thead');
+        $('#datatable_edit thead tr:eq(1) th').each(function(i) {
+            var title = $(this).text();
+            $(this).html('<input type="text" class="form-control form-control-sm"/>');
+            $('input', this).on('keyup change', function() {
+                if (datatable_edit.column(i).search() !== this.value) {
+                    datatable_edit
+                        .column(i)
+                        .search(this.value)
+                        .draw();
+                }
+            });
+        });
+
+        let datatable_edit = $("#datatable_edit").DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            paging: false,
+            searching: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
+            ajax: {
+                url: '{{ route('list_master_ppic_edit') }}',
+                data: function(d) {
+                    d.ws = $('#cbows').val();
+                },
+            },
+            columns: [{
+                    data: 'id_so_det'
+
+                },
+                {
+                    data: 'buyer'
+
+                }, {
+                    data: 'tgl_shipment_fix'
+                },
+                {
+                    data: 'ws'
+                },
+                {
+                    data: 'styleno'
+                },
+                {
+                    data: 'barcode'
+                },
+                {
+                    data: 'qty_po'
+                },
+                {
+                    data: 'po'
+                },
+                {
+                    data: 'reff_no'
+                },
+                {
+                    data: 'dest'
+                },
+                {
+                    data: 'desc'
+                },
+                {
+                    data: 'color'
+                },
+                {
+                    data: 'size'
+                },
+                // {
+                //     data: 'qty_trf'
+                // },
+                // {
+                //     data: 'qty_packing_in'
+                // },
+                // {
+                //     data: 'qty_packing_out'
+                // },
+                {
+                    data: 'created_by'
+                },
+                {
+                    data: 'created_at'
+                },
+            ],
+            columnDefs: [{
+                    "className": "dt-left",
+                    "targets": "_all"
+                },
+                {
+                    targets: [5],
+                    render: (data, type, row, meta) => {
+                        return `
+                            <div class='d-flex gap-1 justify-content-center'>
+							<input type ='text' style='width:120px' class='form-control form-control-sm'
+                            id="barcode` + row.id + `"
+                            name="barcode[` + row.id + `]"
+                            value="` + row.barcode + `">
+							<input type ='hidden' style='width:120px' class='form-control form-control-sm'
+                            id="id` + row.id + `"
+                            name="id[` + row.id + `]"
+                            value="` + row.id + `">
+                            </div>
+                            `
+                    }
+                },
+                {
+                    targets: [2],
+                    render: (data, type, row, meta) => {
+                        return `
+                            <div class='d-flex gap-1 justify-content-center'>
+							<input type ='text' style='width:100px' class='form-control form-control-sm'
+                            id="tgl_shipment` + row.id + `"
+                            name="tgl_shipment[` + row.id + `]"
+                            value="` + row.tgl_shipment + `">
+                            </div>
+                            `
+                    }
+                },
+                {
+                    targets: [6],
+                    render: (data, type, row, meta) => {
+                        return `
+                            <div class='d-flex gap-1 justify-content-center'>
+							<input type ='text' style='width:100px' class='form-control form-control-sm'
+                            id="qty_po` + row.id + `"
+                            name="qty_po[` + row.id + `]"
+                            value="` + row.qty_po + `">
+                            </div>
+                            `
+                    }
+                },
+
+            ]
         });
     </script>
 @endsection

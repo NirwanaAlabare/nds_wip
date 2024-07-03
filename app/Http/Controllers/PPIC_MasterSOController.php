@@ -20,6 +20,7 @@ class PPIC_MasterSOController extends Controller
     {
         $tgl_awal = $request->dateFrom;
         $tgl_akhir = $request->dateTo;
+        $tgl_skrg = date('Y-m-d');
         $user = Auth::user()->name;
 
         if ($request->ajax()) {
@@ -69,11 +70,20 @@ group by a.barcode, a.po
 
             return DataTables::of($data_input)->toJson();
         }
+
+        $data_ws = DB::select("select ws isi, ws tampil from
+(select * from ppic_master_so p
+where created_by = '$user' and tgl_shipment >= '$tgl_skrg' ) p
+inner join master_sb_ws m on p.id_so_det = m.id_so_det
+group by ws
+order by ws asc");
+
         return view(
             'ppic.master_so',
             [
                 'page' => 'dashboard-ppic', "subPageGroup" => "ppic-master",
                 "subPage" => "ppic-master-master-so",
+                'data_ws' => $data_ws,
                 "user" => $user
             ]
         );
@@ -426,6 +436,109 @@ m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is 
 
         // return Excel::download(new exportPPIC_Master_so_sb, 'Laporan_Master_SB_SO.xlsx');
     }
+
+    public function list_master_ppic_edit(Request $request)
+    {
+        $user = Auth::user()->name;
+        $tgl_skrg = date('Y-m-d');
+        $ws = $request->ws;
+
+
+        $data_list = DB::select("
+            SELECT
+            a.id,
+            a.id_so_det,
+            m.buyer,
+            concat((DATE_FORMAT(a.tgl_shipment,  '%d')), '-', left(DATE_FORMAT(a.tgl_shipment,  '%M'),3),'-',DATE_FORMAT(a.tgl_shipment,  '%Y')
+            ) tgl_shipment_fix,
+            a.tgl_shipment,
+            a.barcode,
+            m.reff_no,
+            a.po,
+            a.dest,
+            a.desc,
+            m.ws,
+            m.styleno,
+            m.color,
+            m.size,
+            a.qty_po,
+            coalesce(trf.qty_trf,0) qty_trf,
+            coalesce(pck.qty_packing_in,0) qty_packing_in,
+            coalesce(pck_out.qty_packing_out,0) qty_packing_out,
+            m.ws,
+            a.created_by,
+            a.created_at
+            FROM ppic_master_so a
+            inner join master_sb_ws m on a.id_so_det = m.id_so_det
+            left join master_size_new msn on m.size = msn.size
+            left join
+            (
+                select id_ppic_master_so, coalesce(sum(qty),0) qty_trf from packing_trf_garment group by id_ppic_master_so
+            ) trf on trf.id_ppic_master_so = a.id
+            left join
+            (
+                select id_ppic_master_so, coalesce(sum(qty),0) qty_packing_in from packing_packing_in group by id_ppic_master_so
+            ) pck on pck.id_ppic_master_so = a.id
+            left join
+            (
+select p.id, coalesce(count(a.barcode),0) qty_packing_out from packing_packing_out_scan a
+inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po
+group by a.barcode, a.po
+            ) pck_out on pck_out.id = a.id
+            where a.created_by = '$user' and ws = '$ws' and tgl_shipment >= '$tgl_skrg'
+            order by tgl_shipment desc, buyer asc, ws asc , msn.urutan asc
+            ");
+
+        return DataTables::of($data_list)->toJson();
+    }
+
+    public function edit_multiple_ppic_master_so(Request $request)
+    {
+        $timestamp = Carbon::now();
+        $user = Auth::user()->name;
+        $JmlArray                                   = $_POST['id'];
+        $barcodeArray                               = $_POST['barcode'];
+        $tgl_shipmentArray                          = $_POST['tgl_shipment'];
+        $qty_poArray                                = $_POST['qty_po'];
+
+        foreach ($JmlArray as $key => $value) {
+            if ($value != '') {
+                $txtid                      = $JmlArray[$key];
+                $txtbarcode                     = $barcodeArray[$key];
+                $txttgl_shipment                = $tgl_shipmentArray[$key];
+                $qty_po                         = $qty_poArray[$key]; {
+
+                    $update =  DB::update("
+            update ppic_master_so
+            set
+            barcode = '$txtbarcode',
+            tgl_shipment = '$txttgl_shipment',
+            qty_po = '$qty_po'
+            where id = '$txtid'");
+                }
+            }
+
+            // "callback" => "getdetail(`$no_form_modal`,`$txtket_modal`)"
+        }
+
+        return array(
+            'status' => 200,
+            'message' => 'Data  Berhasil Diupdate',
+            'redirect' => '',
+            'table' => '',
+            'additional' => [],
+        );
+
+        // return array(
+        //     "status" => 202,
+        //     "message" => 'No Form Berhasil Di Update',
+        //     "additional" => [],
+        //     "redirect" => '',
+        //     "callback" => "getdetail(`$no_form_modal`,`$txtket_modal_input`)"
+
+        // );
+    }
+
 
     public function export_excel_master_so_ppic(Request $request)
     {
