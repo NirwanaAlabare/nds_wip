@@ -53,11 +53,31 @@ class ExportLaporanLoading implements FromView, WithEvents, WithColumnWidths, Sh
             }
         }
 
+        $innerDateFilter = "";
+        if ($this->dateFrom || $this->dateTo) {
+            $innerDateFilter = "WHERE ";
+            $innerDateFromFilter = " loading_line.tanggal_loading >= '".$this->dateFrom."' ";
+            $innerDateToFilter = " loading_line.tanggal_loading <= '".$this->dateTo."' ";
+
+            if ($this->dateFrom && $this->dateTo) {
+                $innerDateFilter .= $innerDateFromFilter." AND ".$innerDateToFilter;
+            } else {
+                if ($this->dateTo) {
+                    $innerDateFilter .= $innerDateFromFilter;
+                }
+
+                if ($this->dateFrom) {
+                    $innerDateFilter .= $innerDateToFilter;
+                }
+            }
+        }
+
         $data = DB::select("
             SELECT
                 loading_stock.tanggal_loading,
                 loading_line_plan.id,
                 loading_line_plan.line_id,
+                loading_stock.nama_line,
                 loading_line_plan.act_costing_ws,
                 loading_line_plan.style,
                 loading_line_plan.color,
@@ -69,6 +89,7 @@ class ExportLaporanLoading implements FromView, WithEvents, WithColumnWidths, Sh
                     SELECT
                         COALESCE(loading_line.tanggal_loading, DATE(loading_line.updated_at)) tanggal_loading,
                         loading_line.loading_plan_id,
+                        loading_line.nama_line,
                         COALESCE((MAX(dc_in_input.qty_awal) - (MAX(COALESCE(dc_in_input.qty_reject, 0)) + MAX(COALESCE(dc_in_input.qty_replace, 0))) - (MAX(COALESCE(secondary_in_input.qty_reject, 0)) + MAX(COALESCE(secondary_in_input.qty_replace, 0))) - (MAX(COALESCE(secondary_inhouse_input.qty_reject, 0)) + MAX(COALESCE(secondary_inhouse_input.qty_replace, 0)))), COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply)) qty,
                         trolley.id trolley_id,
                         trolley.nama_trolley,
@@ -81,6 +102,8 @@ class ExportLaporanLoading implements FromView, WithEvents, WithColumnWidths, Sh
                         LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
                         LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
                         LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
+                        LEFT JOIN master_size_new on master_size_new.size = stocker_input.size
+                        ".$innerDateFilter."
                     GROUP BY
                         loading_line.tanggal_loading,
                         stocker_input.form_cut_id,
@@ -103,7 +126,7 @@ class ExportLaporanLoading implements FromView, WithEvents, WithColumnWidths, Sh
 
         $lineData = UserLine::get();
 
-        $this->rowCount = count($data) + 3;
+        $this->rowCount = count($data) + 4;
 
         return view('dc.loading-line.export.loading', [
             'data' => collect($data),
