@@ -10,8 +10,10 @@ use App\Models\Part;
 use App\Models\MasterPart;
 use App\Models\MasterTujuan;
 use App\Models\Stocker;
+use App\Exports\ExportTrackWorksheet;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
+use Excel;
 
 class TrackController extends Controller
 {
@@ -51,81 +53,92 @@ class TrackController extends Controller
                     sum(marker_track.total_cut_marker) total_cut_marker,
                     sum(marker_track.total_lembar_form) total_lembar_form,
                     sum(marker_track.total_cut_form) total_cut_form,
-                    sum(marker_track.total_stocker) total_stocker
+                    sum(marker_track.total_stocker) total_stocker,
+                    sum(marker_track.total_dc) total_dc,
+                    sum(marker_track.total_sec) total_sec,
+                    sum(marker_track.total_sec_in) total_sec_in
                 from
                     master_sb_ws
                 left join
                     (
-                        select
-                            marker.id,
-                            marker.act_costing_id,
-                            marker.kode,
-                            marker.panel,
-                            marker_detail.so_det_id,
-                            marker.gelar_qty total_gelar_marker,
-                            sum(marker_detail.ratio) total_ratio_marker,
-                            sum(marker_detail.cut_qty) total_cut_marker,
-                            sum(form_cut.qty_ply) total_lembar_form,
-                            sum(marker_detail.ratio * form_cut.qty_ply) total_cut_form,
-                            sum(stocker.qty_ply) total_stocker
-                        from
-                            marker_input marker
-                        left join
-                            (
-                                select
-                                    marker_input_detail.marker_id,
-                                    marker_input_detail.so_det_id,
-                                    marker_input_detail.size,
-                                    marker_input_detail.ratio,
-                                    marker_input_detail.cut_qty
-                                from
-                                    marker_input_detail
-                                where
-                                    marker_input_detail.ratio > 0
-                                group by
-                                    marker_id,
-                                    so_det_id
-                            ) marker_detail on marker_detail.marker_id = marker.id
-                        left join
-                            (
-                                select
-                                    form_cut_input.id,
-                                    form_cut_input.id_marker,
-                                    form_cut_input.no_form,
-                                    coalesce(form_cut_input.total_lembar, form_cut_input.qty_ply) qty_ply
-                                from
-                                    form_cut_input
-                                where
-                                    form_cut_input.qty_ply is not null and form_cut_input.id_marker is not null
-                                group by
-                                    form_cut_input.id_marker,
-                                    form_cut_input.no_form
-                            ) form_cut on form_cut.id_marker = marker.kode
-                        left join
-                            (
-                                select
-                                    *
-                                from
-                                (
-                                    select
-                                        stocker_input.form_cut_id,
-                                        stocker_input.part_detail_id,
-                                        stocker_input.so_det_id,
-                                        sum(coalesce(stocker_input.qty_ply_mod, stocker_input.qty_ply)) qty_ply
-                                    from
-                                        stocker_input
-                                    group by
-                                        stocker_input.form_cut_id,
-                                        stocker_input.part_detail_id,
-                                        stocker_input.so_det_id
-                                ) stocker
-                                group by
-                                    stocker.form_cut_id,
-                                    stocker.so_det_id
-                            ) stocker on stocker.form_cut_id = form_cut.id and stocker.so_det_id = marker_detail.so_det_id
+                    select
+                        marker.id,
+                        marker.act_costing_id,
+                        marker.kode,
+                        marker.panel,
+                        marker_detail.so_det_id,
+                        marker.gelar_qty total_gelar_marker,
+                        marker_detail.ratio total_ratio_marker,
+                        marker_detail.cut_qty total_cut_marker,
+                        form_cut.qty_ply total_lembar_form,
+                        sum(marker_detail.ratio * form_cut.qty_ply) total_cut_form,
+                        sum(stocker.qty_ply) total_stocker,
+                        sum(stocker.dc_qty_ply) total_dc,
+                        sum(stocker.sec_qty_ply) total_sec,
+                        sum(stocker.sec_in_qty_ply) total_sec_in
+                    from
+                        marker_input marker
+                    left join
+                        (
+                            select
+                                marker_input_detail.marker_id,
+                                marker_input_detail.so_det_id,
+                                marker_input_detail.size,
+                                sum(marker_input_detail.ratio) ratio,
+                                sum(marker_input_detail.cut_qty) cut_qty
+                            from
+                                marker_input_detail
+                            where
+                                marker_input_detail.ratio > 0
                             group by
-                                marker.id,
-                                marker_detail.so_det_id
+                                marker_id,
+                                so_det_id
+                        ) marker_detail on marker_detail.marker_id = marker.id
+                    left join
+                        (
+                            select
+                                form_cut_input.id,
+                                form_cut_input.id_marker,
+                                form_cut_input.no_form,
+                                sum(coalesce(form_cut_input.total_lembar, form_cut_input.qty_ply)) qty_ply
+                            from
+                                form_cut_input
+                            where
+                                form_cut_input.qty_ply is not null and form_cut_input.id_marker is not null
+                            group by
+                                form_cut_input.id_marker
+                        ) form_cut on form_cut.id_marker = marker.kode
+                    left join
+                        (
+                            select
+                                *
+                            from
+                            (
+                                select
+                                    stocker_input.form_cut_id,
+                                    stocker_input.part_detail_id,
+                                    stocker_input.so_det_id,
+                                    sum(coalesce(stocker_input.qty_ply_mod, stocker_input.qty_ply)) qty_ply,
+                                    sum((dc_in_input.qty_awal - dc_in_input.qty_reject + dc_in_input.qty_replace)) dc_qty_ply,
+                                    sum(secondary_in_input.qty_in) sec_qty_ply,
+                                    sum(secondary_inhouse_input.qty_in) sec_in_qty_ply
+                                from
+                                    stocker_input
+                                    inner join dc_in_input on dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                                    left join secondary_in_input on secondary_in_input.id_qr_stocker = dc_in_input.id_qr_stocker
+                                    left join secondary_inhouse_input on secondary_inhouse_input.id_qr_stocker = secondary_in_input.id_qr_stocker
+                                group by
+                                    stocker_input.form_cut_id,
+                                    stocker_input.part_detail_id,
+                                    stocker_input.so_det_id
+                            ) stocker
+                            group by
+                                stocker.form_cut_id,
+                                stocker.so_det_id
+                        ) stocker on stocker.form_cut_id = form_cut.id and stocker.so_det_id = marker_detail.so_det_id
+                        group by
+                            marker.id,
+                            marker_detail.so_det_id
                     ) marker_track on marker_track.act_costing_id = master_sb_ws.id_act_cost and marker_track.so_det_id = master_sb_ws.id_so_det
                     where
                         MONTH( master_sb_ws.tgl_kirim ) = '".$month."' AND
@@ -136,6 +149,7 @@ class TrackController extends Controller
                     order by
                         master_sb_ws.id_act_cost,
                         master_sb_ws.color,
+                        marker_track.panel,
                         master_sb_ws.id_so_det
             ");
 
@@ -146,6 +160,15 @@ class TrackController extends Controller
         $years = array_reverse(range(1999, date('Y')));
 
         return view("track.worksheet.worksheet", ["page" => "dashboard-track", "subPageGroup" => "track-ws", "subPage" => "ws", "head" => "Track", "months" => $months, "years" => $years]);
+    }
+
+    public function worksheetExport(Request $request) {
+        ini_set('max_execution_time', 36000);
+
+        $month = $request->month ? $request->month : date('m');
+        $year = $request->year ? $request->year : date('Y');
+
+        return Excel::download(new ExportTrackWorksheet($month, $year), 'Laporan_track_worksheet.xlsx');
     }
 
     public function showWorksheet($actCostingId = null)
@@ -319,8 +342,10 @@ class TrackController extends Controller
                 color,
                 panel,
                 panjang_marker marker_p,
+                comma_marker marker_c,
                 lebar_marker marker_l,
                 unit_panjang_marker unit_marker_p,
+                unit_comma_marker unit_marker_c,
                 unit_lebar_marker unit_marker_l,
                 CONCAT(panjang_marker, ' ', UPPER(unit_panjang_marker)) panjang_marker,
                 CONCAT(comma_marker, ' ', UPPER(unit_comma_marker)) comma_marker,
@@ -364,8 +389,16 @@ class TrackController extends Controller
             $markersQuery->whereRaw("color = '" . $request->color . "'");
         }
 
+        if ($request->mrk_color) {
+            $markersQuery->whereRaw("LOWER(color) LIKE '%" . $request->mrk_color . "%'");
+        }
+
         if ($request->panel) {
             $markersQuery->whereRaw("panel = '" . $request->panel . "'");
+        }
+
+        if ($request->mrk_panel) {
+            $markersQuery->whereRaw("LOWER(panel) LIKE '%" . $request->mrk_panel . "%'");
         }
 
         if ($request->dateFrom) {
@@ -377,56 +410,60 @@ class TrackController extends Controller
         }
 
         if ($request->kode) {
-            $request->kode = $markersQuery->whereRaw("LOWER(kode) LIKE LOWER('%" . $request->kode . "%')");
+            $markersQuery->whereRaw("LOWER(kode) LIKE LOWER('%" . $request->kode . "%')");
         }
 
         if ($request->color) {
-            $request->color = $markersQuery->whereRaw("LOWER(color) LIKE LOWER('%" . $request->color . "%')");
+            $markersQuery->whereRaw("LOWER(color) LIKE LOWER('%" . $request->color . "%')");
         }
 
         if ($request->panel) {
-            $request->panel = $markersQuery->whereRaw("LOWER(panel) LIKE LOWER('%" . $request->panel . "%')");
+            $markersQuery->whereRaw("LOWER(panel) LIKE LOWER('%" . $request->panel . "%')");
         }
 
         if ($request->urutan) {
-            $request->urutan = $markersQuery->whereRaw("LOWER(urutan_marker) LIKE LOWER('%" . $request->urutan . "%')");
+            $markersQuery->whereRaw("LOWER(urutan_marker) LIKE LOWER('%" . $request->urutan . "%')");
         }
 
         if ($request->panjang) {
-            $request->panjang = $markersQuery->whereRaw("LOWER(panjang_marker) LIKE LOWER('%" . $request->panjang . "%')");
+            $markersQuery->whereRaw("LOWER(panjang_marker) LIKE LOWER('%" . $request->panjang . "%')");
         }
 
         if ($request->lebar) {
-            $request->lebar = $markersQuery->whereRaw("LOWER(lebar_marker) LIKE LOWER('%" . $request->lebar . "%')");
+            $markersQuery->whereRaw("LOWER(lebar_marker) LIKE LOWER('%" . $request->lebar . "%')");
         }
 
         if ($request->gramasi) {
-            $request->gramasi = $markersQuery->whereRaw("LOWER(gramasi_marker) LIKE LOWER('%" . $request->gramasi . "%')");
+            $markersQuery->whereRaw("LOWER(gramasi_marker) LIKE LOWER('%" . $request->gramasi . "%')");
         }
 
         if ($request->gelar_qty) {
-            $request->gelar_qty = $markersQuery->whereRaw("LOWER(gelar_qty) LIKE LOWER('%" . $request->gelar_qty . "%')");
+            $markersQuery->whereRaw("LOWER(gelar_qty) LIKE LOWER('%" . $request->gelar_qty . "%')");
         }
 
         if ($request->total_form) {
-            $request->total_form = $markersQuery->whereRaw("COALESCE(b.total_form, 0) LIKE Lrequest->OWER('%" . $total_form . "%')");
+            $markersQuery->whereRaw("COALESCE(b.total_form, 0) LIKE Lrequest->OWER('%" . $total_form . "%')");
         }
 
         if ($request->po) {
-            $request->po = $markersQuery->whereRaw("LOWER(po_marker) LIKE LOWER('%" . $request->po . "%')");
+            $markersQuery->whereRaw("LOWER(po_marker) LIKE LOWER('%" . $request->po . "%')");
         }
 
         if ($request->ket) {
-            $request->ket = $markersQuery->whereRaw("LOWER(notes) LIKE LOWER('%" . $request->ket . "%')");
+            $markersQuery->whereRaw("LOWER(notes) LIKE LOWER('%" . $request->ket . "%')");
         }
 
-        $totalMarkerPanjang =  $markersQuery->sum("marker_input.panjang_marker")." ".$markersQuery->first()->unit_marker_p;
-        $totalMarkerLebar =  $markersQuery->sum("marker_input.lebar_marker")." ".$markersQuery->first()->unit_marker_p;
-        $totalMarkerGelar =  $markersQuery->sum("gelar_qty");
-        $totalMarkerForm =  $markersQuery->sum("total_form");
-        $totalMarkerFormLembar =  $markersQuery->sum("total_lembar");
+        $totalMarker = $markersQuery ? ($markersQuery->count()) : 0;
+        $totalMarkerGramasi =  $markersQuery ? (round($markersQuery->sum("marker_input.gramasi"), 2)) : 0;
+        $totalMarkerPanjang =  $markersQuery ? (round($markersQuery->sum("marker_input.panjang_marker") + ($markersQuery->sum("marker_input.comma_marker") / 100), 2)." ".(substr($markersQuery->first()->unit_marker_p, 0, 1))) : 0;
+        $totalMarkerLebar =  $markersQuery ? (round($markersQuery->sum("marker_input.lebar_marker") / 100, 2)." ".(substr($markersQuery->first()->unit_marker_p, 0, 1))) : 0;
+        $totalMarkerGelar =  $markersQuery ? (round($markersQuery->sum("gelar_qty"), 2)) : 0;
+        $totalMarkerForm =  $markersQuery ? (round($markersQuery->sum("total_form"), 2)) : 0;
+        $totalMarkerFormLembar =  $markersQuery ? (round($markersQuery->sum("total_lembar"), 2)) : 0;
 
         return array(
+            "totalMarker" => $totalMarker,
+            "totalMarkerGramasi" => $totalMarkerGramasi,
             "totalMarkerPanjang" => $totalMarkerPanjang,
             "totalMarkerLebar" => $totalMarkerLebar,
             "totalMarkerGelar" => $totalMarkerGelar,
@@ -531,6 +568,89 @@ class TrackController extends Controller
 
             return DataTables::of($form)->toJson();
         }
+    }
+
+    public function wsTotalForm(Request $request) {
+        $additionalQuery = "";
+
+        if ($request->actCostingId) {
+            $additionalQuery .= " and b.act_costing_id = '" . $request->actCostingId . "' ";
+        }
+
+        if ($request->color) {
+            $additionalQuery .= " and b.color = '" . $request->color . "' ";
+        }
+
+        if ($request->panel) {
+            $additionalQuery .= " and b.panel = '" . $request->panel . "' ";
+        }
+
+        if ($request->dateFrom) {
+            $additionalQuery .= " and a.tgl_form_cut >= '" . $request->dateFrom . "' ";
+        }
+
+        if ($request->dateTo) {
+            $additionalQuery .= " and a.tgl_form_cut <= '" . $request->dateTo . "' ";
+        }
+
+        if ($request->marker) {
+            $additionalQuery .= " and a.id_marker like '%" . $request->marker . "%' ";
+        }
+
+        if ($request->meja) {
+            $additionalQuery .= " and users.name like '%" . $request->meja . "%' ";
+        }
+
+        if ($request->no_form) {
+            $additionalQuery .= " and a.no_form like '%" . $request->meja . "%' ";
+        }
+
+        if ($request->tanggal) {
+            $additionalQuery .= " and a.tgl_form_cut like '%" . $request->tanggal . "%' ";
+        }
+
+        if ($request->frm_color) {
+            $additionalQuery .= " and b.color like '%" . $request->color . "%' ";
+        }
+
+        if ($request->frm_panel) {
+            $additionalQuery .= " and panel like '%" . $request->color . "%' ";
+        }
+
+        if ($request->qty_ply) {
+            $additionalQuery .= " and (a.qty_ply like '%" . $request->qty_ply . "% OR a.total_lembar like '%" . $request->qty_ply . "%') ";
+        }
+
+        if ($request->plan) {
+            $additionalQuery .= " and cutting_plan.tgl_plan like '%" . $request->plan . "%' ";
+        }
+
+        $form = DB::select("
+            SELECT
+                COALESCE(a.qty_ply, 0) qty_ply,
+                COALESCE(a.total_lembar, '0') total_lembar
+            FROM `form_cut_input` a
+                left join cutting_plan on cutting_plan.no_form_cut_input = a.no_form
+                left join users on users.id = a.no_meja
+                left join marker_input b on a.id_marker = b.kode and b.cancel = 'N'
+                left join marker_input_detail on b.id = marker_input_detail.marker_id and marker_input_detail.ratio > 0
+                left join master_size_new on marker_input_detail.size = master_size_new.size
+            where
+                a.id is not null
+                " . $additionalQuery . "
+            GROUP BY a.id
+            ORDER BY
+                FIELD(a.status, 'PENGERJAAN MARKER', 'PENGERJAAN FORM CUTTING', 'PENGERJAAN FORM CUTTING DETAIL', 'PENGERJAAN FORM CUTTING SPREAD', 'SPREADING', 'SELESAI PENGERJAAN'),
+                b.color,
+                b.panel,
+                b.urutan_marker desc
+        ");
+
+        return array(
+            "total_form" => $form ? $form->count() : 0,
+            "qty_ply" => $form ? $form->sum('qty_ply') : 0,
+            "total_lembar" => $form ? $form->sum('total_lembar') : 0,
+        );
     }
 
     public function wsRoll(Request $request) {
@@ -704,7 +824,52 @@ class TrackController extends Controller
                 orderBy("stocker_input.shade", "desc")->
                 orderBy("stocker_input.id_qr_stocker", "asc");
 
-            return DataTables::eloquent($stocker)->toJson();
+            return DataTables::eloquent($stocker)->filter(function ($query) {
+                $tglAwal = request('tgl_awal');
+                $tglAkhir = request('tgl_akhir');
+
+                if ($tglAwal) {
+                    $query->whereRaw("tgl_cutting >= '" . $tglAwal . "'");
+                }
+
+                if ($tglAkhir) {
+                    $query->whereRaw("tgl_cutting <= '" . $tglAkhir . "'");
+                }
+
+                if (request('search')) {
+                    $query->whereRaw("(
+                        marker_input.color LIKE '%".request('search')."%' OR
+                        marker_input.panel LIKE '%".request('search')."%' OR
+                        master_part.nama_part LIKE '%".request('search')."%' OR
+                        form_cut_input.no_form LIKE '%".request('search')."%' OR
+                        form_cut_input.no_cut LIKE '%".request('search')."%' OR
+                        stocker_input.size LIKE '%".request('search')."%' OR
+                        stocker_input.shade LIKE '%".request('search')."%' OR
+                        stocker_input.id_qr_stocker LIKE '%".request('search')."%' OR
+                        secondary_in_input. LIKE '%".request('search')."%' OR
+                        (CASE WHEN dc_in_input.tujuan = 'SECONDARY DALAM' OR dc_in_input.tujuan = 'SECONDARY LUAR' THEN dc_in_input.lokasi ELSE '-' END) LIKE '%".request('search')."%' OR
+                        COALESCE(rack_detail_stocker.nm_rak, (CASE WHEN dc_in_input.tempat = 'RAK' THEN dc_in_input.lokasi ELSE null END), (CASE WHEN dc_in_input.lokasi = 'RAK' THEN dc_in_input.det_alokasi ELSE null END), '-') LIKE '%".request('search')."%' OR
+                        COALESCE(trolley.nama_trolley, (CASE WHEN dc_in_input.tempat = 'TROLLEY' THEN dc_in_input.lokasi ELSE null END), '-') LIKE '%".request('search')."%' OR
+                        COALESCE(UPPER(loading_line.nama_line), '-') LIKE '%".request('search')."%'
+                    )");
+                }
+            }, true)->
+            filterColumn('color', function ($query, $keyword) {
+                $query->whereRaw("LOWER(marker_input.color) LIKE LOWER('%" . $keyword . "%')");
+            })->
+            filterColumn('panel', function ($query, $keyword) {
+                $query->whereRaw("LOWER(marker_input.panel) LIKE LOWER('%" . $keyword . "%')");
+            })->
+            filterColumn('nama_part', function ($query, $keyword) {
+                $query->whereRaw("LOWER(master_part.nama_part) LIKE LOWER('%" . $keyword . "%')");
+            })->
+            filterColumn('kode', function ($query, $keyword) {
+                $query->whereRaw("LOWER(kode) LIKE LOWER('%" . $keyword . "%')");
+            })->
+            filterColumn('kode', function ($query, $keyword) {
+                $query->whereRaw("LOWER(kode) LIKE LOWER('%" . $keyword . "%')");
+            })->
+            toJson();
         }
     }
 }

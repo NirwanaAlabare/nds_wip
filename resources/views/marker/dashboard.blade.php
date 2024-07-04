@@ -83,7 +83,6 @@
             <table class="table table-bordered table-sm" id="datatable-marker">
                 <thead>
                     <tr>
-                        <th>Tanggal</th>
                         <th>Buyer</th>
                         <th>No. WS</th>
                         <th>Style</th>

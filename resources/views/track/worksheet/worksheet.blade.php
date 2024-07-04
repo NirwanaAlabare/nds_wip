@@ -23,6 +23,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="card-title fw-bold mb-0"><i class="fas fa-ticket fa-sm"></i> Stock List</h5>
                 <div class="d-flex justify-content-end gap-1">
+                    <button type="button" class="btn btn-success" onclick="exportExcel(this);"><i class="fa fa-file-excel"></i></button>
                     <select class="form-select form-select-sm select2bs4 w-auto" id="ws-month-filter" readonly value="{{ date('m') }}">
                         <option value="" selected disabled>Bulan</option>
                         @foreach ($months as $month)
@@ -57,6 +58,9 @@
                             <th>Ply Form</th>
                             <th>Cut Form</th>
                             <th>Stocker</th>
+                            <th>DC</th>
+                            <th>Secondary In</th>
+                            <th>Secondary Inhouse</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -98,7 +102,7 @@
 
         $('#ws-table thead tr').clone(true).appendTo('#ws-table thead');
         $('#ws-table thead tr:eq(1) th').each(function(i) {
-            if (i != 7 && i != 8 && i != 9 && i != 10 && i != 11 && i != 12 && i != 13) {
+            if (i != 7 && i != 8 && i != 9 && i != 10 && i != 11 && i != 12 && i != 13 && i != 14 && i != 15 && i != 16) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%"/>');
 
@@ -183,6 +187,18 @@
                     data: 'total_stocker',
                     searchable: false
                 },
+                {
+                    data: 'total_dc',
+                    searchable: false
+                },
+                {
+                    data: 'total_sec',
+                    searchable: false
+                },
+                {
+                    data: 'total_sec_in',
+                    searchable: false
+                },
             ],
             columnDefs: [
                 // Act Column
@@ -208,7 +224,7 @@
                     }
                 },
                 {
-                    targets: [7, 8, 9, 10, 11, 12, 13],
+                    targets: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
                     className: "text-nowrap",
                     render: function (data, type, row, meta) {
                         return Number(data).toLocaleString("id-ID");
@@ -223,6 +239,73 @@
 
         function dataTableReload() {
             wsTable.ajax.reload();
+        }
+
+        function exportExcel (elm) {
+            elm.setAttribute('disabled', 'true');
+            elm.innerText = "";
+            let loading = document.createElement('div');
+            loading.classList.add('loading-small');
+            elm.appendChild(loading);
+
+            iziToast.info({
+                title: 'Exporting...',
+                message: 'Data sedang di export. Mohon tunggu...',
+                position: 'topCenter'
+            });
+
+            let date = new Date();
+
+            let day = date.getDate();
+            let month = date.getMonth() + 1;
+            let year = date.getFullYear();
+
+            // This arrangement can be altered based on how we want the date's format to appear.
+            let currentDate = `${day}-${month}-${year}`;
+
+            $.ajax({
+                url: "{{ route("track-ws-export") }}",
+                type: 'post',
+                data: {
+                    month : $('#ws-month-filter').val(),
+                    year : $('#ws-year-filter').val()
+                },
+                xhrFields: { responseType : 'blob' },
+                success: function(res) {
+                    elm.removeChild(loading);
+                    elm.removeAttribute('disabled');
+                    let icon = document.createElement('i');
+                    icon.classList.add('fa-solid');
+                    icon.classList.add('fa-file-excel');
+                    elm.appendChild(icon);
+
+                    iziToast.success({
+                        title: 'Success',
+                        message: 'Success',
+                        position: 'topCenter'
+                    });
+
+                    var blob = new Blob([res]);
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = "Track WS - "+$('#ws-month-filter').val()+" - "+$('#ws-year-filter').val()+".xlsx";
+                    link.click();
+                }, error: function (jqXHR) {
+                    elm.removeChild(loading);
+                    let res = jqXHR.responseJSON;
+                    let message = '';
+                    console.log(res.message);
+                    for (let key in res.errors) {
+                        message += res.errors[key]+' ';
+                        document.getElementById(key).classList.add('is-invalid');
+                    };
+                    iziToast.error({
+                        title: 'Error',
+                        message: message,
+                        position: 'topCenter'
+                    });
+                }
+            });
         }
 
         $('#ws-month-filter').on('change', () => {

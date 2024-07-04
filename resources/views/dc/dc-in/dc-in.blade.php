@@ -12,8 +12,7 @@
 @endsection
 
 @section('content')
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <form action="{{ route('store-secondary-inhouse') }}" method="post" onsubmit="submitForm(this, event)"
             name='form' id='form'>
             @method('POST')
@@ -35,8 +34,7 @@
                                             autofocus>
                                         {{-- <input type="button" class="btn btn-sm btn-primary" value="Scan Line" /> --}}
                                         {{-- style="display: none;" --}}
-                                        <button class="btn btn-sm btn-primary" type="button" id="scanqr"
-                                            onclick="scan_qr()">Scan</button>
+                                        <button class="btn btn-sm btn-primary" type="button" id="scanqr" onclick="scan_qr()">Scan</button>
                                     </div>
                                 </div>
                             </div>

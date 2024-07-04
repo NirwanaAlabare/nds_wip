@@ -222,6 +222,27 @@
                         data: 'proses',
                     },
                 ],
+                columnDefs: [
+                    {
+                        targets: [0],
+                        className: "text-center",
+                        render: (data, type, row, meta) => {
+                            if (row.total_stocker > 0) {
+                                return `
+                                    <button class='btn btn-secondary btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['id']+`' onclick='deleteData(this)' disabled>
+                                        <i class='fa fa-trash'></i>
+                                    </button>
+                                `;
+                            }
+
+                            return `
+                                <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['id']+`' onclick='deleteData(this)' `+(row.total_stocker > 0 ? 'disabled' : '')+`>
+                                    <i class='fa fa-trash'></i>
+                                </a>
+                            `;
+                        }
+                    },
+                ]
             });
         }
 
