@@ -940,6 +940,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/master_so_tracking_output', 'master_so_tracking_output')->name('master_so_tracking_output');
         Route::get('/show_data_ppic_master_so', 'show_data_ppic_master_so')->name('show_data_ppic_master_so');
         Route::post('/update_data_ppic_master_so', 'update_data_ppic_master_so')->name('update_data_ppic_master_so');
+        Route::get('/list_master_ppic_edit', 'list_master_ppic_edit')->name('list_master_ppic_edit');
+        Route::post('/edit_multiple_ppic_master_so', 'edit_multiple_ppic_master_so')->name('edit_multiple_ppic_master_so');
     });
 
     // GA
