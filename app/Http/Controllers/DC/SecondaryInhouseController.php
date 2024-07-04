@@ -190,7 +190,7 @@ class SecondaryInhouseController extends Controller
             'qty_awal' => $request['txtqtyawal'],
             'qty_reject' => $request['txtqtyreject'],
             'qty_replace' => $request['txtqtyreplace'],
-            'qty_in' => $request['txtqtyin'],
+            'qty_in' => $request['txtqtyawal'] - $request['txtqtyreject'] + $request['txtqtyreplace'],
             'user' => Auth::user()->name,
             'ket' => $request['txtket'],
             'created_at' => $timestamp,
