@@ -768,11 +768,21 @@ class PartController extends Controller
                 ms.tujuan,
                 ms.proses,
                 cons,
-                UPPER(unit) unit
+                UPPER(unit) unit,
+                stocker.total total_stocker
             FROM
                 `part_detail` pd
                 inner join master_part mp on pd.master_part_id = mp.id
                 left join master_secondary ms on pd.master_secondary_id = ms.id
+                left join (
+                    select
+                        COUNT(id) total,
+                        part_detail_id
+                    from
+                        stocker_input
+                    group by
+                        part_detail_id
+                ) stocker on stocker.part_detail_id = pd.id
             where
                 part_id = '" . $request->id . "'
             "

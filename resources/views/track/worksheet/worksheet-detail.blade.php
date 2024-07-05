@@ -226,6 +226,20 @@
                                 <th>Ket.</th>
                             </tr>
                         </thead>
+                        <tbody></tbody>
+                        <tfoot>
+                            <tr>
+                                <th class="text-end" colspan="5">Total</th>
+                                <th id="total-marker"></th>
+                                <th id="total-panjang-marker"></th>
+                                <th id="total-lebar-marker"></th>
+                                <th id="total-gramasi-marker"></th>
+                                <th id="total-gelar-marker"></th>
+                                <th id="total-form-marker"></th>
+                                <th></th>
+                                <th></th>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -344,6 +358,15 @@
                             </thead>
                             <tbody>
                             </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="8" class="text-end">Total</th>
+                                    <th id="total-form-qty"></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>
@@ -778,6 +801,7 @@
                 ordering: false,
                 processing: true,
                 serverSide: true,
+                dom: 'rtip',
                 pageLength: 50,
                 scrollX: '500px',
                 scrollY: '350px',
@@ -944,10 +968,62 @@
                         $('td', row).css('border', '0.15px solid #d0d0d0');
                     }
                 },
+                footerCallback: async function (row, data, start, end, display) {
+                    let api = this.api();
+
+                    api.column(5).footer().innerHTML = "...";
+                    api.column(6).footer().innerHTML = "...";
+                    api.column(7).footer().innerHTML = "...";
+                    api.column(8).footer().innerHTML = "...";
+                    api.column(9).footer().innerHTML = "...";
+                    api.column(10).footer().innerHTML = "...";
+
+                    let totalMarker = await getTotalMarker();
+
+                    if (await totalMarker) {
+                        api.column(5).footer().innerHTML = totalMarker.totalMarker;
+                        api.column(6).footer().innerHTML = totalMarker.totalMarkerPanjang;
+                        api.column(7).footer().innerHTML = totalMarker.totalMarkerLebar;
+                        api.column(8).footer().innerHTML = totalMarker.totalMarkerGramasi;
+                        api.column(9).footer().innerHTML = `
+                            <div class="progress border border-sb position-relative" style="height: 21px; width: 100px;">
+                                <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">` + totalMarker.totalMarkerFormLembar + `/` + totalMarker.totalMarkerGelar + `</p>
+                                <div class="progress-bar" style="background-color: #75baeb;width: ` + ((totalMarker.totalMarkerFormLembar / totalMarker.totalMarkerGelar) * 100) + `%" role="progressbar"></div>
+                            </div>
+                        `;
+                        api.column(10).footer().innerHTML = totalMarker.totalMarkerForm;
+                    }
+                }
             });
 
             function filterMarkerTable() {
                 markerTable.ajax.reload();
+            }
+
+            async function getTotalMarker() {
+                return $.ajax({
+                    url: '{{ route('track-ws-marker-total') }}',
+                    type: 'GET',
+                    dataType: 'json',
+                    data: {
+                        actCostingId : $('#id').val(),
+                        dateFrom : $('#marker-from').val(),
+                        dateTo : $('#marker-to').val(),
+                        color : $('#ws-color-filter').val(),
+                        panel : $('#ws-panel-filter').val(),
+                        no_marker : $('#mrk_no_marker').val(),
+                        mrk_color : $('#mrk_color').val(),
+                        mrk_panel : $('#mrk_panel').val(),
+                        urutan : $('#mrk_urutan').val(),
+                        panjang : $('#mrk_panjang').val(),
+                        lebar : $('#mrk_lebar').val(),
+                        gramasi : $('#mrk_gramasi').val(),
+                        qty_ply : $('#mrk_qty_ply').val(),
+                        total_form : $('#mrk_total_form').val(),
+                        po : $('#mrk_po').val(),
+                        ket : $('#mrk_ket').val()
+                    },
+                });
             }
 
             function getdetail(id_c) {
@@ -1113,37 +1189,6 @@
                     error: function(jqXHR) {
                         console.log(jqXHR);
                     },
-                });
-            }
-
-            function getTotalMarkerPly() {
-                $("#total-marker-ply").html("Calculating...");
-                $.ajax({
-                    url: '{{ route('track-ws-marker-total') }}',
-                    type: 'get',
-                    dataType: 'json',
-                    data: {
-                        actCostingId : $('#id').val(),
-                        dateFrom : $('#marker-from').val(),
-                        dateTo : $('#marker-to').val(),
-                        color : $('#ws-color-filter').val(),
-                        panel : $('#ws-panel-filter').val(),
-                        tanggal : $('#mrk_tanggal').val(),
-                        no_marker : $('#mrk_no_marker').val(),
-                        color : $('#mrk_color').val(),
-                        panel : $('#mrk_panel').val(),
-                        urutan : $('#mrk_urutan').val(),
-                        panjang : $('#mrk_panjang').val(),
-                        lebar : $('#mrk_lebar').val(),
-                        gramasi : $('#mrk_gramasi').val(),
-                        qty_ply : $('#mrk_qty_ply').val(),
-                        total_form : $('#mrk_total_form').val(),
-                        po : $('#mrk_po').val(),
-                        ket : $('#mrk_ket').val()
-                    },
-                    success: function(res) {
-                        console.log(res);
-                    }
                 });
             }
 
@@ -1364,12 +1409,13 @@
             }
 
         // Spreading Form :
+        var formTableParameter = ['frm_action', 'frm_tanggal', 'frm_no_form', 'frm_no_marker', 'frm_color', 'frm_panel', 'frm_ratio', 'frm_qty_ply', 'frm_keterangan', 'frm_status', 'frm_plan'];
 
             $('#form-table thead tr').clone(true).appendTo('#form-table thead');
             $('#form-table thead tr:eq(1) th').each(function(i) {
                 if (i != 0 && i != 9 && i != 10 && i != 12) {
                     var title = $(this).text();
-                    $(this).html('<input type="text" class="form-control form-control-sm"/>');
+                    $(this).html('<input type="text" class="form-control form-control-sm" id="'+formTableParameter[i]+'""/>');
 
                     $('input', this).on('keyup change', function() {
                         if (formTable.column(i).search() !== this.value) {
@@ -1389,6 +1435,7 @@
                 processing: true,
                 serverSide: true,
                 pageLength: 50,
+                dom: 'rtip',
                 scrollX: "500px",
                 scrollY: "350px",
                 ajax: {
@@ -1532,11 +1579,50 @@
                         $('td', row).css('background-color', '#c5e0fa');
                         $('td', row).css('border', '0.15px solid #d0d0d0');
                     }
+                },
+                footerCallback: async function (row, data, start, end, display) {
+                    let api = this.api();
+
+                    api.column(8).footer().innerHTML = "...";
+
+                    let totalForm = await getTotalForm();
+
+                    if (await totalForm) {
+                        api.column(8).footer().innerHTML = `
+                            <div class="progress border border-sb position-relative" style="min-width: 50px;height: 21px">
+                                <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">`+totalForm.total_lembar+`/`+totalForm.qty_ply+`</p>
+                                <div class="progress-bar" style="background-color: #75baeb;width: `+((totalForm.total_lembar/totalForm.qty_ply)*100)+`%" role="progressbar"></div>
+                            </div>
+                        `;
+                    }
                 }
             });
 
             function formTableReload() {
                 formTable.ajax.reload();
+            }
+
+            function getTotalForm() {
+                return $.ajax({
+                    url: '{{ route('track-ws-form-total') }}',
+                    type: 'GET',
+                    dataType: 'json',
+                    data: {
+                        actCostingId : $('#id').val(),
+                        dateFrom : $('#marker-from').val(),
+                        dateTo : $('#marker-to').val(),
+                        color : $('#ws-color-filter').val(),
+                        panel : $('#ws-panel-filter').val(),
+                        tanggal : $('#frm_tanggal').val(),
+                        meja : $('#frm_no_meja').val(),
+                        no_marker : $('#frm_no_marker').val(),
+                        frm_color : $('#frm_color').val(),
+                        frm_panel : $('#frm_panel').val(),
+                        ratio : $('#frm_ratio').val(),
+                        qty_ply : $('#frm_qty_ply').val(),
+                        plan : $('#frm_plan').val()
+                    },
+                });
             }
 
             let formRatioTable = $("#form-ratio-table").DataTable({
@@ -1618,6 +1704,7 @@
                 processing: true,
                 serverSide: true,
                 ordering: false,
+                dom: 'rtip',
                 scrollX: "500px",
                 scrollY: "350px",
                 pageLength: 50,
@@ -1734,6 +1821,7 @@
                     processing: true,
                     serverSide: true,
                     pageLength: 50,
+                    dom: 'rtip',
                     scrollX: "500px",
                     scrollY: "350px",
                     ajax: {

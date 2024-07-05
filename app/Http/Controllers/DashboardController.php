@@ -64,13 +64,12 @@ class DashboardController extends Controller
                 whereRaw("(YEAR(marker_input.tgl_cutting) = '".$year."')")->
                 whereRaw("marker_input_detail.ratio > 0")->
                 groupBy("marker_input.act_costing_id", "marker_input.buyer", "marker_input.style", "marker_input.color", "marker_input.panel", "marker_input.id", "part_detail.id")->
-                orderBy("marker_input.tgl_cutting", "desc")->
                 orderBy("marker_input.buyer", "asc")->
                 orderBy("marker_input.act_costing_ws", "asc")->
                 orderBy("marker_input.style", "asc")->
                 orderBy("marker_input.color", "asc")->
                 orderBy("marker_input.panel", "asc")->
-                orderBy("marker_input.urutan_marker", "asc");
+                orderByRaw("CAST(marker_input.urutan_marker AS UNSIGNED) asc");
 
             return DataTables::eloquent($marker)->toJson();
         }

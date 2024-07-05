@@ -38,7 +38,7 @@
                 <?php
                     if ($currentLine != $d->line_id) {
                         ?>
-                            <td style="text-align: center;vertical-align: middle;" rowspan="{{ $data->where("line_id", $d->line_id)->where("tanggal_loading", $currentDate)->count() }}">{{ strtoupper(str_replace("_", " ", $lineData->where("line_id", $d->line_id)->first()->username)) }}</td>
+                            <td style="text-align: center;vertical-align: middle;" rowspan="{{ $data->where("line_id", $d->line_id)->where("tanggal_loading", $currentDate)->count() }}">{{ strtoupper(str_replace("_", " ", $d->nama_line)) }}</td>
                         <?php
 
                         $currentLine = $d->line_id;

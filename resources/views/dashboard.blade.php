@@ -2455,9 +2455,6 @@
                     },
                     columns: [
                         {
-                            data: 'tgl_cutting',
-                        },
-                        {
                             data: 'buyer',
                         },
                         {
@@ -2489,28 +2486,12 @@
                         }
                     ],
                     columnDefs: [
-                        // {
-                        //     targets: [0 ,1 ,2 ,3 ,4 ,5 , 6, 7, 8, 9],
-                        //     className: "text-nowrap align-middle"
-                        // },
                         {
                             targets: "_all",
                             className: "text-nowrap colorize"
                         }
                     ],
-                    // rowGroup: {
-                    //     dataSrc: ['tgl_cutting', 'buyer', 'act_costing_ws', 'style', 'color', 'panel', 'kode', 'urutan_marker', 'gelar_qty', 'marker_details',]
-                    // },
-                    rowsGroup: [0 ,1 ,2 ,3 ,4 ,5 , 6, 7, 8, 9]
-                    // rowCallback: function( row, data, index ) {
-                    //     if (data['line'] != '-') {
-                    //         $('td.colorize', row).css('color', '#2e8a57');
-                    //         $('td.colorize', row).css('font-weight', '600');
-                    //     } else if (!data['dc_in_id'] && data['troli'] == '-') {
-                    //         $('td.colorize', row).css('color', '#da4f4a');
-                    //         $('td.colorize', row).css('font-weight', '600');
-                    //     }
-                    // }
+                    rowsGroup: [0 ,1 ,2 ,3 ,4 ,5 ,6, 7],
                 });
 
                 $('#datatable-marker thead tr').clone(true).appendTo('#datatable-marker thead');
@@ -2875,7 +2856,7 @@
                     columnDefs: [
                         {
                             targets: [0, 1, 2, 3, 4, 5],
-                            className: "text-nowrap text-center align-middle"
+                            className: "text-nowrap text-center align-middle",
                         },
                         {
                             targets: "_all",
@@ -2895,6 +2876,7 @@
                             $('td.colorize', row).css('color', '#2e8a57');
                             $('td.colorize', row).css('font-weight', '600');
                         } else if (!data['dc_in_id'] && data['troli'] == '-') {
+                            console.log(data['dc_in_id'], data['troli'] == '-');
                             $('td.colorize', row).css('color', '#da4f4a');
                             $('td.colorize', row).css('font-weight', '600');
                         }

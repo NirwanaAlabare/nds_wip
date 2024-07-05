@@ -558,6 +558,7 @@ Route::middleware('auth')->group(function () {
     // Track
     Route::controller(TrackController::class)->prefix("track")->middleware('admin')->group(function () {
         Route::get('/worksheet', 'worksheet')->name('track-ws');
+        Route::post('/worksheet/export', 'worksheetExport')->name('track-ws-export');
         Route::get('/worksheet/show/{actCostingId?}', 'showWorksheet')->name('track-ws-detail');
         Route::get('/worksheet/show-part', 'wsPart')->name('track-ws-part');
         Route::get('/worksheet/show-part-id', 'wsPartId')->name('track-ws-part-id');
