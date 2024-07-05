@@ -321,13 +321,21 @@
                 columnDefs: [{
                         targets: [5],
                         render: (data, type, row, meta) => {
-                            return `
+                            if (row.cek_stat == 'ok') {
+                                return `
                 <div
                 class='d-flex gap-1 justify-content-center'>
                 <a class='btn btn-danger btn-sm'  data-bs-toggle="tooltip"
                 onclick="hapus(` + row.id + `)"><i class='fas fa-trash'></i></a>
                 </div>
                     `;
+                            } else {
+                                return `
+                <div
+                </div>
+                    `;
+                            }
+
                         }
                     },
                     {

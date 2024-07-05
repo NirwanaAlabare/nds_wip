@@ -99,11 +99,14 @@ class PackingPackingOutController extends Controller
     public function packing_out_show_history(Request $request)
     {
         $user = Auth::user()->name;
+        $tgl_trans = date('Y-m-d');
         if ($request->ajax()) {
 
             $data_history = DB::select("
 select
 o.id,
+tgl_trans,
+if (o.tgl_trans = $tgl_trans,'ok','no') cek_stat,
 DATE_FORMAT(o.created_at, '%d-%m-%Y %H:%i:%s') created_at,
 o.po,
 o.barcode,
