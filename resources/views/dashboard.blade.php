@@ -2491,7 +2491,7 @@
                             className: "text-nowrap colorize"
                         }
                     ],
-                    rowsGroup: [0 ,1 ,2 ,3 ,4 ,5 ,6, 7],
+                    rowsGroup: [0 ,1 ,2 ,3 ,4 ,5 ,6, 7, 8],
                 });
 
                 $('#datatable-marker thead tr').clone(true).appendTo('#datatable-marker thead');
