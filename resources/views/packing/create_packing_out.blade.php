@@ -35,7 +35,8 @@
                                     <input type="hidden" class="form-control" id="user" name="user"
                                         value="{{ $user }}">
                                     <select class="form-control select2bs4 form-control-sm" id="cbopo" name="cbopo"
-                                        style="width: 100%;" onchange="getno_carton();dataTableSummaryReload();">
+                                        style="width: 100%;"
+                                        onchange="getno_carton();dataTableSummaryReload();dataTableHistoryReload();">
                                         <option selected="selected" value="" disabled="true">Pilih PO</option>
                                         @foreach ($data_po as $datapo)
                                             <option value="{{ $datapo->isi }}">
@@ -50,7 +51,7 @@
                                     <label><small><b>No. Carton # :</b></small></label>
                                     <select class='form-control select2bs4 form-control-sm' style='width: 100%;'
                                         name='cbono_carton' id='cbono_carton'
-                                        onchange = "dataTableSummaryReload()"></select>
+                                        onchange = "dataTableSummaryReload();dataTableHistoryReload()"></select>
                                 </div>
                             </div>
                             <div class="mb-3">
@@ -95,7 +96,6 @@
                         </div>
                     </div>
                 </div>
-
             </div>
         </form>
         <div class="row">
@@ -108,6 +108,30 @@
                         <div class="form-group">
                             <input class="form-control form-control-lg" style="text-align:center;" id="tot_input"
                                 name="tot_input" type="text" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card card-primary card-outline">
+                    <div class="card-header">
+                        <h5 class="card-title"><i class="fas fa-history"></i> History Transaksi </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table id="datatable_history" class="table table-bordered table-sm w-100 text-nowrap">
+                                <thead>
+                                    <tr>
+                                        <th>Tgl. Input</th>
+                                        <th>PO</th>
+                                        <th>Barcode</th>
+                                        <th>Color</th>
+                                        <th>Size</th>
+                                        <th>Act</th>
+                                    </tr>
+                                </thead>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -254,6 +278,97 @@
             });
         }
 
+        function dataTableHistoryReload() {
+            let datatable = $("#datatable_history").DataTable({
+                ordering: false,
+                processing: true,
+                serverSide: true,
+                paging: true,
+                destroy: true,
+                info: true,
+                searching: true,
+                ajax: {
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    url: '{{ route('packing_out_show_history') }}',
+                    dataType: 'json',
+                    dataSrc: 'data',
+                    data: function(d) {
+                        d.cbopo = $('#cbopo').val();
+                        d.cbono_carton = $('#cbono_carton').val();
+                    },
+                },
+                columns: [{
+                        data: 'created_at',
+                    },
+                    {
+                        data: 'po',
+                    },
+                    {
+                        data: 'barcode',
+                    },
+                    {
+                        data: 'color',
+                    },
+                    {
+                        data: 'size',
+                    },
+                    {
+                        data: 'id',
+                    },
+                ],
+                columnDefs: [{
+                        targets: [5],
+                        render: (data, type, row, meta) => {
+                            if (row.cek_stat == 'ok') {
+                                return `
+                <div
+                class='d-flex gap-1 justify-content-center'>
+                <a class='btn btn-danger btn-sm'  data-bs-toggle="tooltip"
+                onclick="hapus(` + row.id + `)"><i class='fas fa-trash'></i></a>
+                </div>
+                    `;
+                            } else {
+                                return `
+                <div
+                </div>
+                    `;
+                            }
+
+                        }
+                    },
+                    {
+                        "className": "align-middle",
+                        "targets": "_all"
+                    },
+                ]
+            });
+        }
+
+        function hapus(id_history) {
+            $.ajax({
+                type: "post",
+                url: '{{ route('packing_out_hapus_history') }}',
+                data: {
+                    id_history: id_history
+                },
+                success: async function(res) {
+                    iziToast.success({
+                        message: 'Data Berhasil Dihapus',
+                        position: 'topCenter'
+                    });
+                    dataTableSummaryReload();
+                    dataTableHistoryReload();
+                    document.getElementById('barcode').value = "";
+                    document.getElementById("barcode").focus();
+                    gettotal_input();
+                }
+            });
+
+        }
+
+
         function scan_barcode() {
             let cbopo = document.form_h.cbopo.value;
             let cbono_carton = document.form_h.cbono_carton.value;
@@ -300,6 +415,7 @@
                             gettotal_input();
                         }
                         dataTableSummaryReload();
+                        dataTableHistoryReload();
                         document.getElementById('barcode').value = "";
                         document.getElementById("barcode").focus();
                         gettotal_input();

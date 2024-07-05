@@ -96,6 +96,40 @@ class PackingPackingOutController extends Controller
         }
     }
 
+    public function packing_out_show_history(Request $request)
+    {
+        $user = Auth::user()->name;
+        $tgl_trans = date('Y-m-d');
+        if ($request->ajax()) {
+
+            $data_history = DB::select("
+select
+o.id,
+tgl_trans,
+if (o.tgl_trans = $tgl_trans,'ok','no') cek_stat,
+DATE_FORMAT(o.created_at, '%d-%m-%Y %H:%i:%s') created_at,
+o.po,
+o.barcode,
+m.color,
+m.size
+from packing_packing_out_scan o
+inner join ppic_master_so p on o.barcode = p.barcode and o.po = p.po
+inner join master_sb_ws m on p.id_so_det = m.id_so_det
+where o.no_carton = '" . $request->cbono_carton . "' and o.po = '" . $request->cbopo . "'
+order by o.created_at desc
+            ");
+
+            return DataTables::of($data_history)->toJson();
+        }
+    }
+
+    public function packing_out_hapus_history(Request $request)
+    {
+        $id_history = $request->id_history;
+
+        $del_history =  DB::delete("
+        delete from packing_packing_out_scan where id = '$id_history'");
+    }
 
     public function create(Request $request)
     {

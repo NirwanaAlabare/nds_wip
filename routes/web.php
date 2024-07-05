@@ -911,8 +911,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/getno_carton', 'getno_carton')->name('getno_carton');
         Route::get('/packing_out_show_summary', 'packing_out_show_summary')->name('packing_out_show_summary');
         Route::get('/packing_out_show_tot_input', 'packing_out_show_tot_input')->name('packing_out_show_tot_input');
+        Route::get('/packing_out_show_history', 'packing_out_show_history')->name('packing_out_show_history');
         Route::post('/store', 'store')->name('store_packing_out');
         Route::get('/export_excel_packing_out', 'export_excel_packing_out')->name('export_excel_packing_out');
+        Route::post('/packing_out_hapus_history', 'packing_out_hapus_history')->name('packing_out_hapus_history');
     });
 
     // Master Karton
