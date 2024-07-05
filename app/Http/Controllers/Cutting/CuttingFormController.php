@@ -1014,8 +1014,6 @@ class CuttingFormController extends Controller
             where("act_costing_id", $formCutInputData->marker->act_costing_id)->
             where("act_costing_ws", $formCutInputData->marker->act_costing_ws)->
             where("panel", $formCutInputData->marker->panel)->
-            where("buyer", $formCutInputData->marker->buyer)->
-            // where("style", $formCutInputData->marker->style)->
             first();
 
         if ($partData) {
