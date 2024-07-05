@@ -941,6 +941,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/update_data_ppic_master_so', 'update_data_ppic_master_so')->name('update_data_ppic_master_so');
         Route::get('/list_master_ppic_edit', 'list_master_ppic_edit')->name('list_master_ppic_edit');
         Route::post('/edit_multiple_ppic_master_so', 'edit_multiple_ppic_master_so')->name('edit_multiple_ppic_master_so');
+        Route::get('/getpo_ppic_edit_tgl', 'getpo_ppic_edit_tgl')->name('getpo_ppic_edit_tgl');
+        Route::post('/update_tgl_ppic_master_so', 'update_tgl_ppic_master_so')->name('update_tgl_ppic_master_so');
+        Route::get('/getpo_ppic_hapus', 'getpo_ppic_hapus')->name('getpo_ppic_hapus');
+        Route::post('/hapus_multiple_ppic_master_so', 'hapus_multiple_ppic_master_so')->name('hapus_multiple_ppic_master_so');
     });
 
     // GA
