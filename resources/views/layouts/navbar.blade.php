@@ -23,7 +23,8 @@
             <img src="{{ asset('dist/img/logo-icon.png') }}" alt="nds Logo" class="brand-image">
         </a>
 
-        <button class="navbar-toggler order-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler order-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
+            aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
@@ -32,10 +33,13 @@
             <ul class="navbar-nav">
                 @if ($page == 'dashboard-track')
                     <li class="nav-item dropdown">
-                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'track-ws' ? 'active' : '' }}">Worksheet</a>
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'track-ws' ? 'active' : '' }}">Worksheet</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
-                                <a href="{{ route('track-ws') }}" class="dropdown-item {{ $subPage == 'ws' ? 'active' : '' }}">
+                                <a href="{{ route('track-ws') }}"
+                                    class="dropdown-item {{ $subPage == 'ws' ? 'active' : '' }}">
                                     Worksheet
                                 </a>
                             </li>
@@ -480,12 +484,14 @@
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @dc
                                 <li>
-                                    <a href="{{ route('loading-line') }}" class="dropdown-item {{ $subPage == 'loading-line' ? 'active' : '' }}">
+                                    <a href="{{ route('loading-line') }}"
+                                        class="dropdown-item {{ $subPage == 'loading-line' ? 'active' : '' }}">
                                         Line <i class="fa-solid fa-users-line"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('summary-loading') }}" class="dropdown-item {{ $subPage == 'summary-loading' ? 'active' : '' }}">
+                                    <a href="{{ route('summary-loading') }}"
+                                        class="dropdown-item {{ $subPage == 'summary-loading' ? 'active' : '' }}">
                                         Summary <i class="fa-solid fa-list-check"></i>
                                     </a>
                                 </li>
@@ -642,6 +648,19 @@
                                 <a href="{{ route('master-so') }}"
                                     class="dropdown-item {{ $subPage == 'ppic-master-master-so' ? 'active' : '' }}">
                                     Master Sales Order <i class="fa-solid fa-list-ul fa-sm"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'ppic-master' ? 'active' : '' }}">Laporan</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('master-so') }}"
+                                    class="dropdown-item {{ $subPage == 'ppic-master-master-so' ? 'active' : '' }}">
+                                    Laporan Tracking <i class="fa-solid fa-list-ul fa-sm"></i>
                                 </a>
                             </li>
                         </ul>
