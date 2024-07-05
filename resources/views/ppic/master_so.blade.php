@@ -209,93 +209,207 @@
         </div>
     </div>
 
-    <form id="form_e" name='form_e' method='post' action="{{ route('edit_multiple_ppic_master_so') }}"
-        onsubmit="submitForm(this, event)">
-        <div class="modal fade" id="exampleModalEditMultiple" tabindex="-1" role="dialog"
-            aria-labelledby="exampleModalEditMultipleLabel" aria-hidden="true">
-            <div class="modal-dialog modal-xl modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header bg-sb text-light">
-                        <h1 class="modal-title fs-5" id="exampleModalEditMultipleLabel"> <i class="fas fa-edit"></i> Edit
-                            Multiple
-                        </h1>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label>WS</label>
-                                <div class="input-group">
-                                    <select class="form-control select2bs4 " id="cbows" name="cbows"
-                                        onchange="dataTableEditReload()" style="width: 100%;">
-                                        @foreach ($data_ws as $dataws)
-                                            <option value="{{ $dataws->isi }}">
-                                                {{ $dataws->tampil }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class='row'>
-                            <div class="col-md-12 table-responsive">
-                                <table id="datatable_edit"
-                                    class="table table-bordered table-striped table-sm w-100 text-nowrap">
-                                    <thead class="table-primary">
-                                        <tr style='text-align:center; vertical-align:middle'>
-                                            <th>ID SO Det</th>
-                                            <th>Buyer</th>
-                                            <th>Tgl. Shipment</th>
-                                            <th>WS</th>
-                                            <th>Style</th>
-                                            <th>Barcode</th>
-                                            <th>Qty PO</th>
-                                            <th>No. PO</th>
-                                            <th>Reff</th>
-                                            <th>Dest</th>
-                                            <th>Desc</th>
-                                            <th>Color</th>
-                                            <th>Size</th>
-                                            {{-- <th>Qty Tr Garment</th>
-                                        <th>Qty Packing In</th>
-                                        <th>Qty Packing Out</th> --}}
-                                            <th>User</th>
-                                            <th>Tgl. Upload</th>
-                                        </tr>
-                                    </thead>
-                                    {{-- <tfoot>
-                                        <tr>
-                                            <th colspan="6"></th>
-                                            <th> <input type = 'text' class="form-control form-control-sm"
-                                                    style="width:75px" readonly id = 'total_qty_chk'> </th>
-                                            <th>PCS</th>
-                                            <th colspan="7"></th>
-                                        </tr>
-                                    </tfoot> --}}
-                                </table>
-                            </div>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <div class="p-2 bd-highlight">
-                                {{-- <a class="btn btn-outline-warning" onclick="delete_multiple()">
-                                    <i class="fas fa-sync-alt
-                            fa-spin"></i>
-                                    Delete
-                                </a> --}}
-                            </div>
-                            <div class="p-2 bd-highlight">
-                                <button type="submit" class="btn btn-outline-success"><i class="fas fa-edit"></i>
-                                    Update
+    <div class="modal fade" id="exampleModalEditMultiple" tabindex="-1" role="dialog"
+        aria-labelledby="exampleModalEditMultipleLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-light">
+                    <h1 class="modal-title fs-5" id="exampleModalEditMultipleLabel"> <i class="fas fa-edit"></i> Edit
+                        Multiple
+                    </h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="card card-primary collapsed-card">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="far fa-edit"></i> Edit
+                            </h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i
+                                        class="fas fa-plus"></i>
                                 </button>
                             </div>
                         </div>
+                        <div class="card-body">
+                            <form id="form_e" name='form_e' method='post'
+                                action="{{ route('edit_multiple_ppic_master_so') }}" onsubmit="submitForm(this, event)">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>WS</label>
+                                            <div class="input-group">
+                                                <select class="form-control select2bs4 form-control-sm rounded"
+                                                    id="cbows_edit_tgl" name="cbows_edit_tgl"
+                                                    onchange="dataTableEditReload();getno_po_edit_tgl();"
+                                                    style="width: 100%;">
+                                                    @foreach ($data_ws as $dataws)
+                                                        <option value="{{ $dataws->isi }}">
+                                                            {{ $dataws->tampil }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label><small><b>No. PO</b></small></label>
+                                            <select class='form-control select2bs4 form-control-sm rounded'
+                                                style='width: 100%;' name='cbopo_edit_tgl' id='cbopo_edit_tgl'
+                                                onchange="dataTableEditReload()"></select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label><small><b>Tanggal Ubah</b></small></label>
+                                            <input type="date" class="form-control form-control-sm" id="tgl_ubah"
+                                                name="tgl_ubah" value="{{ date('Y-m-d') }}" min="{{ date('Y-m-d') }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                                            <div class="input-group">
+                                                {{-- <button type="submit" class="btn btn-outline-success btn-sm"><i
+                                                    class="fas fa-edit"></i>
+                                                Update
+                                            </button> --}}
+                                                <input class="btn btn-outline-success btn-sm" type="button"
+                                                    value="Update Tanggal" onclick="update_tgl()">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class='row'>
+                                    <div class="col-md-12 table-responsive">
+                                        <table id="datatable_edit"
+                                            class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                                            <thead class="table-primary">
+                                                <tr style='text-align:center; vertical-align:middle'>
+                                                    <th>ID SO Det</th>
+                                                    <th>Buyer</th>
+                                                    <th>Tgl. Shipment</th>
+                                                    <th>WS</th>
+                                                    <th>Style</th>
+                                                    <th>Barcode</th>
+                                                    <th>Qty PO</th>
+                                                    <th>No. PO</th>
+                                                    <th>Reff</th>
+                                                    <th>Dest</th>
+                                                    <th>Desc</th>
+                                                    <th>Color</th>
+                                                    <th>Size</th>
+                                                    <th>Qty Packing Out</th>
+                                                    <th>User</th>
+                                                    <th>Tgl. Upload</th>
+                                                </tr>
+                                            </thead>
+                                        </table>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <div class="p-2 bd-highlight">
+                                        </div>
+                                        <div class="p-2 bd-highlight">
+                                            <button type="submit" class="btn btn-outline-success"><i
+                                                    class="fas fa-edit"></i>
+                                                Update
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <div class="card card-danger collapsed-card">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-trash-alt"></i> Hapus
+                            </h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i
+                                        class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <form id="form_d" name='form_d' method='post'
+                                action="{{ route('hapus_multiple_ppic_master_so') }}" onsubmit="submitForm(this, event)">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>WS</label>
+                                            <div class="input-group">
+                                                <select class="form-control select2bs4 form-control-sm rounded"
+                                                    id="cbows_hapus" name="cbows_hapus"
+                                                    onchange="dataTableHapusReload();getno_po_hapus();"
+                                                    style="width: 100%;">
+                                                    @foreach ($data_ws as $dataws)
+                                                        <option value="{{ $dataws->isi }}">
+                                                            {{ $dataws->tampil }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label><small><b>No. PO</b></small></label>
+                                            <select class='form-control select2bs4 form-control-sm rounded'
+                                                style='width: 100%;' name='cbopo_hapus' id='cbopo_hapus'
+                                                onchange="dataTableHapusReload()"></select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class='row'>
+                                    <div class="col-md-12 table-responsive">
+                                        <table id="datatable_hapus"
+                                            class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                                            <thead class="table-primary">
+                                                <tr style='text-align:center; vertical-align:middle'>
+                                                    <th>
+                                                        <input class="form-check checkbox-xl" type="checkbox"
+                                                            onclick="toggle(this);">
+                                                    </th>
+                                                    <th>Buyer</th>
+                                                    <th>Tgl. Shipment</th>
+                                                    <th>WS</th>
+                                                    <th>Style</th>
+                                                    <th>Barcode</th>
+                                                    <th>Qty PO</th>
+                                                    <th>No. PO</th>
+                                                    <th>Reff</th>
+                                                    <th>Dest</th>
+                                                    <th>Desc</th>
+                                                    <th>Color</th>
+                                                    <th>Size</th>
+                                                    <th>Qty Trf</th>
+                                                    <th>User</th>
+                                                    <th>Tgl. Upload</th>
+                                                </tr>
+                                            </thead>
+                                        </table>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <div class="p-2 bd-highlight">
+                                        </div>
+                                        <div class="p-2 bd-highlight">
+                                            <button type="submit" class="btn btn-outline-danger"><i
+                                                    class="fas fa-trash"></i>
+                                                Hapus
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                </div>
             </div>
-    </form>
+        </div>
+
     </div>
 
 
@@ -483,6 +597,22 @@
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+    <style>
+        .checkbox-xl .form-check-input {
+            /* top: 1.2rem; */
+            scale: 1.5;
+            /* margin-right: 0.8rem; */
+        }
+    </style>
+    <script>
+        function toggle(source) {
+            var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            for (var i = 0; i < checkboxes.length; i++) {
+                if (checkboxes[i] != source)
+                    checkboxes[i].checked = source.checked;
+            }
+        }
+    </script>
     <script>
         // Select2 Autofocus
         $(document).on('select2:open', () => {
@@ -495,6 +625,7 @@
         // Initialize Select2BS4 Elements
         $('.select2bs4').select2({
             theme: 'bootstrap4',
+            containerCssClass: 'form-control-sm rounded'
         });
     </script>
     <script>
@@ -549,9 +680,11 @@
             // $('.select2').select2()
             $('.select2bs4').select2({
                 theme: 'bootstrap4',
-                dropdownParent: $("#exampleModalEditMultiple")
+                dropdownParent: $("#exampleModalEditMultiple"),
+                containerCssClass: 'form-control-sm rounded'
             })
-            $('#cbows').val('').trigger('change');
+            $('#cbows_edit_tgl').val('').trigger('change');
+            $('#cbows_hapus').val('').trigger('change');
 
         })
 
@@ -1055,6 +1188,10 @@
             datatable_edit.ajax.reload();
         }
 
+        function dataTableHapusReload() {
+            datatable_hapus.ajax.reload();
+        }
+
         let datatable_tracking = $("#datatable_tracking").DataTable({
             "footerCallback": function(row, data, start, end, display) {
                 var api = this.api(),
@@ -1164,7 +1301,8 @@
             ajax: {
                 url: '{{ route('list_master_ppic_edit') }}',
                 data: function(d) {
-                    d.ws = $('#cbows').val();
+                    d.ws = $('#cbows_edit_tgl').val();
+                    d.po = $('#cbopo_edit_tgl').val();
                 },
             },
             columns: [{
@@ -1213,9 +1351,9 @@
                 // {
                 //     data: 'qty_packing_in'
                 // },
-                // {
-                //     data: 'qty_packing_out'
-                // },
+                {
+                    data: 'qty_packing_out'
+                },
                 {
                     data: 'created_by'
                 },
@@ -1230,18 +1368,27 @@
                 {
                     targets: [5],
                     render: (data, type, row, meta) => {
-                        return `
-                            <div class='d-flex gap-1 justify-content-center'>
+
+                        if (row.qty_packing_out == '0') {
+                            return `
+                               <div class='d-flex gap-1 justify-content-center'>
 							<input type ='text' style='width:120px' class='form-control form-control-sm'
                             id="barcode` + row.id + `"
                             name="barcode[` + row.id + `]"
                             value="` + row.barcode + `">
-							<input type ='hidden' style='width:120px' class='form-control form-control-sm'
-                            id="id` + row.id + `"
-                            name="id[` + row.id + `]"
-                            value="` + row.id + `">
                             </div>
                             `
+                        } else {
+                            return `
+                               <div class='d-flex gap-1 justify-content-center'>
+							<input type ='text' style='width:120px' class='form-control form-control-sm'
+                            id="barcode` + row.id + `"
+                            name="barcode[` + row.id + `]"
+                            value="` + row.barcode + `" readonly>
+                            </div>
+                            `
+                        }
+
                     }
                 },
                 {
@@ -1253,6 +1400,14 @@
                             id="tgl_shipment` + row.id + `"
                             name="tgl_shipment[` + row.id + `]"
                             value="` + row.tgl_shipment + `">
+							<input type ='hidden' style='width:120px' class='form-control form-control-sm'
+                            id="id` + row.id + `"
+                            name="id[` + row.id + `]"
+                            value="` + row.id + `">
+                            <input type ='hidden' style='width:120px' class='form-control form-control-sm'
+                            id="id` + row.id + `"
+                            name="id[` + row.id + `]"
+                            value="` + row.id + `">
                             </div>
                             `
                     }
@@ -1273,5 +1428,198 @@
 
             ]
         });
+
+        $('#datatable_hapus thead tr').clone(true).appendTo('#datatable_hapus thead');
+        $('#datatable_hapus thead tr:eq(1) th').each(function(i) {
+            var title = $(this).text();
+            $(this).html('<input type="text" class="form-control form-control-sm"/>');
+            $('input', this).on('keyup change', function() {
+                if (datatable_hapus.column(i).search() !== this.value) {
+                    datatable_hapus
+                        .column(i)
+                        .search(this.value)
+                        .draw();
+                }
+            });
+        });
+
+        let datatable_hapus = $("#datatable_hapus").DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            paging: false,
+            searching: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
+            ajax: {
+                url: '{{ route('list_master_ppic_edit') }}',
+                data: function(d) {
+                    d.ws = $('#cbows_hapus').val();
+                    d.po = $('#cbopo_hapus').val();
+                },
+            },
+            columns: [{
+                    data: 'id_so_det'
+
+                },
+                {
+                    data: 'buyer'
+
+                }, {
+                    data: 'tgl_shipment_fix'
+                },
+                {
+                    data: 'ws'
+                },
+                {
+                    data: 'styleno'
+                },
+                {
+                    data: 'barcode'
+                },
+                {
+                    data: 'qty_po'
+                },
+                {
+                    data: 'po'
+                },
+                {
+                    data: 'reff_no'
+                },
+                {
+                    data: 'dest'
+                },
+                {
+                    data: 'desc'
+                },
+                {
+                    data: 'color'
+                },
+                {
+                    data: 'size'
+                },
+                // {
+                //     data: 'qty_trf'
+                // },
+                // {
+                //     data: 'qty_packing_in'
+                // },
+                {
+                    data: 'qty_trf'
+                },
+                {
+                    data: 'created_by'
+                },
+                {
+                    data: 'created_at'
+                },
+            ],
+            columnDefs: [{
+                    "className": "dt-left",
+                    "targets": "_all"
+                },
+                {
+                    targets: [0],
+                    render: (data, type, row, meta) => {
+                        if (row.qty_trf == '0') {
+                            return `
+                    <div
+                        class="form-check checkbox-xl" style="text-align:center">
+                        <input class="form-check-input" type="checkbox"
+                        value="` + row.id + `" id="cek_data" onchange="ceklis(this)"
+                        name="cek_data[` + row.id + `] "/>
+                    </div>
+                    <div>
+                            <input type="hidden" size="10" id="id"
+                            name="id[` + row.id + `]" value = "` + row.id + `"/>
+                    </div>
+                    `;
+
+                        } else {
+                            return `
+                    <div>
+                            <input type="hidden" size="10" id="id"
+                            name="id[` + row.id + `]" value = "` + row.id + `"/>
+                    </div>
+                    `;
+                        }
+
+                    }
+                },
+
+            ]
+        });
+
+
+        function getno_po_edit_tgl() {
+            let cbows_edit_tgl = document.form_e.cbows_edit_tgl.value;
+            let html = $.ajax({
+                type: "GET",
+                url: '{{ route('getpo_ppic_edit_tgl') }}',
+                data: {
+                    cbows_edit_tgl: cbows_edit_tgl
+                },
+                async: false
+            }).responseText;
+            if (html != "") {
+                $("#cbopo_edit_tgl").html(html);
+            }
+        };
+
+
+        function getno_po_hapus() {
+            let cbows_hapus = document.form_d.cbows_hapus.value;
+            let html = $.ajax({
+                type: "GET",
+                url: '{{ route('getpo_ppic_hapus') }}',
+                data: {
+                    cbows_hapus: cbows_hapus
+                },
+                async: false
+            }).responseText;
+            if (html != "") {
+                $("#cbopo_hapus").html(html);
+            }
+        };
+
+        function update_tgl() {
+            let cbows_edit_tgl = document.form_e.cbows_edit_tgl.value;
+            let cbopo_edit_tgl = document.form_e.cbopo_edit_tgl.value;
+            let tgl_ubah = document.form_e.tgl_ubah.value;
+            $.ajax({
+                type: "post",
+                url: '{{ route('update_tgl_ppic_master_so') }}',
+                data: {
+                    cbows_edit_tgl: cbows_edit_tgl,
+                    cbopo_edit_tgl: cbopo_edit_tgl,
+                    tgl_ubah: tgl_ubah
+                },
+                success: function(response) {
+                    if (response.icon == 'salah') {
+                        iziToast.warning({
+                            message: response.msg,
+                            position: 'topCenter'
+                        });
+                    } else {
+                        iziToast.success({
+                            message: response.msg,
+                            position: 'topCenter'
+                        });
+                    }
+                    dataTableEditReload();
+                    dataTableReload();
+                },
+                // error: function(request, status, error) {
+                //     alert(request.responseText);
+                // },
+            });
+        };
+
+        function ceklis(checkeds) {
+            //get id..and check if checked
+            console.log($(checkeds).attr("value"), checkeds.checked)
+
+        }
     </script>
 @endsection

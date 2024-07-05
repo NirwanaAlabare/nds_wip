@@ -437,13 +437,60 @@ m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is 
         // return Excel::download(new exportPPIC_Master_so_sb, 'Laporan_Master_SB_SO.xlsx');
     }
 
+
+    public function getpo_ppic_edit_tgl(Request $request)
+    {
+        $tgl_skrg = date('Y-m-d');
+        $user = Auth::user()->name;
+        $data_po = DB::select("
+select p.po isi, p.po tampil from
+(select * from ppic_master_so p
+where created_by = '$user' and tgl_shipment >= '$tgl_skrg' ) p
+inner join master_sb_ws m on p.id_so_det = m.id_so_det
+where m.ws = '" . $request->cbows_edit_tgl . "'
+group by ws
+order by ws asc
+        ");
+
+        $html = "<option value=''>Pilih No PO</option>";
+
+        foreach ($data_po as $datapo) {
+            $html .= " <option value='" . $datapo->isi . "'>" . $datapo->tampil . "</option> ";
+        }
+
+        return $html;
+    }
+
+    public function getpo_ppic_hapus(Request $request)
+    {
+        $tgl_skrg = date('Y-m-d');
+        $user = Auth::user()->name;
+        $data_po = DB::select("
+select p.po isi, p.po tampil from
+(select * from ppic_master_so p
+where created_by = '$user' and tgl_shipment >= '$tgl_skrg' ) p
+inner join master_sb_ws m on p.id_so_det = m.id_so_det
+where m.ws = '" . $request->cbows_hapus . "'
+group by ws
+order by ws asc
+        ");
+
+        $html = "<option value=''>Pilih No PO</option>";
+
+        foreach ($data_po as $datapo) {
+            $html .= " <option value='" . $datapo->isi . "'>" . $datapo->tampil . "</option> ";
+        }
+
+        return $html;
+    }
+
+
     public function list_master_ppic_edit(Request $request)
     {
         $user = Auth::user()->name;
         $tgl_skrg = date('Y-m-d');
         $ws = $request->ws;
-
-
+        $po = $request->po;
         $data_list = DB::select("
             SELECT
             a.id,
@@ -485,7 +532,7 @@ select p.id, coalesce(count(a.barcode),0) qty_packing_out from packing_packing_o
 inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po
 group by a.barcode, a.po
             ) pck_out on pck_out.id = a.id
-            where a.created_by = '$user' and ws = '$ws' and tgl_shipment >= '$tgl_skrg'
+            where a.created_by = '$user' and ws = '$ws' and a.po like '$po' and tgl_shipment >= '$tgl_skrg'
             order by tgl_shipment desc, buyer asc, ws asc , msn.urutan asc
             ");
 
@@ -539,6 +586,72 @@ group by a.barcode, a.po
         // );
     }
 
+    public function hapus_multiple_ppic_master_so(Request $request)
+    {
+        $timestamp = Carbon::now();
+        $user               = Auth::user()->name;
+
+        $JmlArray           = $_POST['cek_data'];
+
+        if ($JmlArray != '') {
+            foreach ($JmlArray as $key => $value) {
+                if ($value != '') {
+                    $id         = $JmlArray[$key]; {
+                        $insert_log =  DB::insert("
+                        INSERT INTO ppic_master_so_log (id_ppic_master_so, id_so_det, barcode, po, dest, ppic_master_so_log.desc, tgl_shipment, qty_po, created_at, updated_at, created_by, tgl_update, user_update, old_qty_po, old_tgl_shipment)
+                        SELECT id, id_so_det, barcode, po, dest, ppic_master_so.desc, tgl_shipment, qty_po, created_at, updated_at, created_by, tgl_update, user_update, old_qty_po, old_tgl_shipment
+                        FROM ppic_master_so where id = '$id'
+                        ");
+                        $del =  DB::delete("delete from ppic_master_so where id = '$id'");
+                    }
+                }
+            }
+
+            return array(
+                "status" => 200,
+                "message" => 'Data Sudah di Hapus',
+                "additional" => [],
+                "redirect" => 'reload'
+            );
+        } else {
+            return array(
+                "status" => 400,
+                "message" => 'Tidak ada Data',
+                "additional" => [],
+            );
+        }
+    }
+
+
+    public function update_tgl_ppic_master_so(Request $request)
+    {
+        $user = Auth::user()->name;
+        $timestamp = Carbon::now();
+        $tgl_skrg = date('Y-m-d');
+        $ws = $request->cbows_edit_tgl;
+        $po = $request->cbopo_edit_tgl;
+        $tgl_ubah = $request->tgl_ubah;
+
+
+        $update_tgl = DB::update("
+            update ppic_master_so p
+            inner join master_sb_ws m on p.id_so_det = m.id_so_det
+            set p.tgl_shipment = '$tgl_ubah'
+            where p.created_by = '$user' and tgl_shipment >= '$tgl_skrg' and m.ws = '$ws' and po = '$po'
+            ");
+
+        if ($update_tgl) {
+            return array(
+                'icon' => 'benar',
+                'msg' => 'Data Berhasil Ditambahkan',
+            );
+        } else {
+            return array(
+                'icon' => 'salah',
+                'msg' => 'Tidak ada yang ditambahkan',
+            );
+        }
+    }
 
     public function export_excel_master_so_ppic(Request $request)
     {
