@@ -19,22 +19,38 @@ class PackingMasterKartonController extends Controller
         if ($request->ajax()) {
             $additionalQuery = '';
             $data_carton = DB::select("
-            select
-            a.po,
-            concat((DATE_FORMAT(b.tgl_shipment,  '%d')), '-', left(DATE_FORMAT(b.tgl_shipment,  '%M'),3),'-',DATE_FORMAT(b.tgl_shipment,  '%Y')
-            ) tgl_shipment_fix,
-            tot_carton from
-                (
-                SELECT po,count(no_carton) tot_carton
-                FROM `packing_master_carton`
-                group by po
-                ) a
-            left join (
-                    select po, tgl_shipment from ppic_master_so
-                    group by po
-                ) b on a.po = b.po
-            where b.tgl_shipment >= '$tgl_awal' and b.tgl_shipment <= '$tgl_akhir'
-            order by tgl_shipment asc, po asc
+SELECT
+a.po,
+b.ws,
+b.buyer,
+b.styleno,
+b.product_group,
+b.product_item,
+concat((DATE_FORMAT(b.tgl_shipment,  '%d')), '-', left(DATE_FORMAT(b.tgl_shipment,  '%M'),3),'-',DATE_FORMAT(b.tgl_shipment,  '%Y')) tgl_shipment_fix,
+tot_carton,
+coalesce(s.tot_scan,0) tot_scan
+from
+  (
+   SELECT po,count(no_carton) tot_carton
+   FROM `packing_master_carton`
+   group by po) a
+left join (
+select
+p.po,
+m.ws,
+m.styleno,
+tgl_shipment,
+m.buyer,
+m.product_group,
+m.product_item
+from ppic_master_so p
+inner join master_sb_ws m on p.id_so_det = m.id_so_det
+) b on a.po = b.po
+left join
+(select po,count(barcode) tot_scan from packing_packing_out_scan group by po) s on a.po = s.po
+ where tgl_shipment >= '$tgl_awal' and tgl_shipment <= '$tgl_akhir'
+ group by po
+order by tgl_shipment asc, po asc
             ");
 
             return DataTables::of($data_carton)->toJson();

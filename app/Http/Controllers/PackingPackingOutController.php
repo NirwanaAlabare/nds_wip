@@ -106,7 +106,7 @@ class PackingPackingOutController extends Controller
 select
 o.id,
 tgl_trans,
-if (o.tgl_trans = $tgl_trans,'ok','no') cek_stat,
+if (o.tgl_trans = '" . $tgl_trans . "','ok','no') cek_stat,
 DATE_FORMAT(o.created_at, '%d-%m-%Y %H:%i:%s') created_at,
 o.po,
 o.barcode,
@@ -118,7 +118,6 @@ inner join master_sb_ws m on p.id_so_det = m.id_so_det
 where o.no_carton = '" . $request->cbono_carton . "' and o.po = '" . $request->cbopo . "'
 order by o.created_at desc
             ");
-
             return DataTables::of($data_history)->toJson();
         }
     }
@@ -126,6 +125,10 @@ order by o.created_at desc
     public function packing_out_hapus_history(Request $request)
     {
         $id_history = $request->id_history;
+
+        $ins_history =  DB::insert("
+insert into packing_packing_out_scan_log (id_packing_Packing_out_scan, tgl_trans, barcode, po, no_carton, created_at, updated_at, created_by)
+SELECT * FROM `packing_packing_out_scan` where id = '$id_history'");
 
         $del_history =  DB::delete("
         delete from packing_packing_out_scan where id = '$id_history'");
@@ -135,9 +138,11 @@ order by o.created_at desc
     {
         $user = Auth::user()->name;
 
-        $data_po = DB::select("SELECT po isi, po tampil from ppic_master_so
+        $data_po = DB::select("SELECT p.po isi, concat(p.po, ' - ( ', coalesce(max(m.no_carton),0) , ' ) ') tampil
+        from ppic_master_so p
+        left join packing_master_carton m on p.po = m.po
         where barcode is not null and barcode != '' and barcode != '-'
-        group by po");
+        group by p.po");
 
         return view('packing.create_packing_out', [
             'page' => 'dashboard-packing', "subPageGroup" => "packing-packing-out",
