@@ -684,6 +684,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-outmaterial-fabric');
         Route::get('/approve-outmaterial', 'approveOutMaterial')->name('approve-outmaterial');
         Route::post('/print-pdf-outmaterial/{id?}', 'pdfoutmaterial')->name('print-pdf-outmaterial');
+        Route::get('/delete-scan-temp', 'deletescantemp')->name('delete-scan-temp');
+        Route::get('/delete-all-temp', 'deletealltemp')->name('delete-all-temp');
     });
 
 

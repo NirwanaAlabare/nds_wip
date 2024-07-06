@@ -522,6 +522,20 @@ class OutMaterialController extends Controller
         
     }
 
+    public function deletescantemp(Request $request)
+    {
+        
+        $deletescan = BppbDetTemp::where('id_jo',$request['id_jo'])->where('id_item',$request['id_item'])->where('created_by',Auth::user()->name)->delete();
+        
+    }
+
+    public function deletealltemp(Request $request)
+    {
+        
+        $deletescan = BppbDetTemp::where('no_bppb',$request['no_bppb'])->where('created_by',Auth::user()->name)->delete();
+        
+    }
+
 
     public function updatedet(Request $request)
     {
