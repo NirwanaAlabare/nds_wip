@@ -189,7 +189,13 @@
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>Tgl. Shipment</th>
                             <th>PO #</th>
+                            <th>WS</th>
+                            <th>Buyer</th>
+                            <th>Style</th>
+                            <th>Product Group</th>
+                            <th>Product Item</th>
                             <th>Jumlah Carton</th>
+                            <th>Tot Scan</th>
                         </tr>
                     </thead>
                 </table>
@@ -316,11 +322,30 @@
             columns: [{
                     data: 'tgl_shipment_fix'
 
-                }, {
+                },
+                {
                     data: 'po'
                 },
                 {
+                    data: 'ws'
+                },
+                {
+                    data: 'buyer'
+                },
+                {
+                    data: 'styleno'
+                },
+                {
+                    data: 'product_group'
+                },
+                {
+                    data: 'product_item'
+                },
+                {
                     data: 'tot_carton'
+                },
+                {
+                    data: 'tot_scan'
                 },
             ],
             columnDefs: [{
