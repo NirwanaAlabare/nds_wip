@@ -72,6 +72,7 @@ use App\Http\Controllers\FGStokMutasiController;
 use App\Http\Controllers\KonfPemasukanController;
 use App\Http\Controllers\KonfPengeluaranController;
 use App\Http\Controllers\PPIC_MasterSOController;
+use App\Http\Controllers\PPIC_LaporanTrackingController;
 use App\Http\Controllers\TransferBpbController;
 
 use App\Http\Controllers\PackingTransferGarmentController;
@@ -949,6 +950,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/getpo_ppic_hapus', 'getpo_ppic_hapus')->name('getpo_ppic_hapus');
         Route::post('/hapus_multiple_ppic_master_so', 'hapus_multiple_ppic_master_so')->name('hapus_multiple_ppic_master_so');
     });
+
+    // PPIC Laporan Tracking
+    Route::controller(PPIC_LaporanTrackingController::class)->prefix("laporan-ppic")->middleware('packing')->group(function () {
+        Route::get('/', 'index')->name('ppic-laporan-tracking');
+        Route::get('/show_lap_tracking_ppic', 'show_lap_tracking_ppic')->name('show_lap_tracking_ppic');
+    });
+
 
     // GA
     // Pengajuan
