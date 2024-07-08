@@ -565,7 +565,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/worksheet/show-marker', 'wsMarker')->name('track-ws-marker');
         Route::get('/worksheet/show-marker-total', 'wsMarkerTotal')->name('track-ws-marker-total');
         Route::get('/worksheet/show-form', 'wsForm')->name('track-ws-form');
-        Route::get('/worksheet/show-form-total', 'wsForm')->name('track-ws-form-total');
+        Route::get('/worksheet/show-form-total', 'wsFormTotal')->name('track-ws-form-total');
         Route::get('/worksheet/show-roll', 'wsRoll')->name('track-ws-roll');
         Route::get('/worksheet/show-stocker', 'wsStocker')->name('track-ws-stocker');
     });
