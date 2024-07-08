@@ -1409,7 +1409,7 @@
             }
 
         // Spreading Form :
-        var formTableParameter = ['frm_action', 'frm_tanggal', 'frm_no_form', 'frm_no_marker', 'frm_color', 'frm_panel', 'frm_ratio', 'frm_qty_ply', 'frm_keterangan', 'frm_status', 'frm_plan'];
+        var formTableParameter = ['frm_action', 'frm_tanggal', 'frm_no_form', 'frm_no_meja', 'frm_no_marker', 'frm_color', 'frm_panel', 'frm_ratio', 'frm_qty_ply', 'frm_keterangan', 'frm_status', 'frm_plan'];
 
             $('#form-table thead tr').clone(true).appendTo('#form-table thead');
             $('#form-table thead tr:eq(1) th').each(function(i) {

@@ -584,7 +584,7 @@ class TrackController extends Controller
         }
 
         if ($request->no_form) {
-            $additionalQuery .= " and a.no_form like '%" . $request->meja . "%' ";
+            $additionalQuery .= " and a.no_form like '%" . $request->no_form . "%' ";
         }
 
         if ($request->tanggal) {
@@ -592,15 +592,15 @@ class TrackController extends Controller
         }
 
         if ($request->frm_color) {
-            $additionalQuery .= " and b.color like '%" . $request->color . "%' ";
+            $additionalQuery .= " and b.color like '%" . $request->frm_color . "%' ";
         }
 
         if ($request->frm_panel) {
-            $additionalQuery .= " and panel like '%" . $request->color . "%' ";
+            $additionalQuery .= " and panel like '%" . $request->frm_panel . "%' ";
         }
 
         if ($request->qty_ply) {
-            $additionalQuery .= " and (a.qty_ply like '%" . $request->qty_ply . "% OR a.total_lembar like '%" . $request->qty_ply . "%') ";
+            $additionalQuery .= " and (a.qty_ply like '%" . $request->qty_ply . "%' OR a.total_lembar like '%" . $request->qty_ply . "%') ";
         }
 
         if ($request->plan) {
