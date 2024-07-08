@@ -273,9 +273,15 @@ class StockerController extends Controller
                             MAX( stocker_numbering.id ) numbering_id,
                             MAX( stocker_numbering.number ) range_akhir
                         FROM
-                            `stocker_numbering`
+                            form_cut_input
+                            INNER JOIN marker_input ON form_cut_input.id_marker = marker_input.kode
+                            INNER JOIN `stocker_numbering` ON form_cut_input.id = stocker_numbering.form_cut_id
                         WHERE
-			                ( stocker_numbering.cancel IS NULL OR stocker_numbering.cancel != 'Y' )
+                            `marker_input`.`act_costing_ws` = '".$dataSpreading->ws."'
+                            AND `marker_input`.`color` = '".$dataSpreading->color."'
+                            AND `marker_input`.`panel` = '".$dataSpreading->panel."'
+                            AND ( stocker_numbering.cancel IS NULL OR stocker_numbering.cancel != 'Y' )
+                            AND `form_cut_input`.`no_cut` <= ".$dataSpreading->no_cut."
                         GROUP BY
                             stocker_numbering.form_cut_id,
                             stocker_numbering.so_det_id
