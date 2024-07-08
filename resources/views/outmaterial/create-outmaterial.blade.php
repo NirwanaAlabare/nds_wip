@@ -266,7 +266,7 @@
             <div class="mb-1">
                 <div class="form-group">
                     <button class="btn btn-sb float-end mt-2 ml-2"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
-                    <a href="{{ route('out-material') }}" class="btn btn-danger float-end mt-2">
+                    <a href="{{ route('out-material') }}" class="btn btn-danger float-end mt-2" onclick="delete_all_temp()">
                     <i class="fas fa-arrow-circle-left"></i> Kembali</a>
                 </div>
             </div>
@@ -879,6 +879,7 @@ function submitFormScan(e, evt) {
                     return `<div class='d-flex gap-1 justify-content-center'>
                     <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='out_manual("` + row.id_item + `","` + row.id_jo + `","` + row.qty_sisa_out + `","` + row.unit + `")'><i class="fa-solid fa-table-list"></i></button>
                     <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='out_scan("` + row.id_item + `","` + row.id_jo + `","` + row.qty_sisa_out + `","` + row.unit + `","` + row.no_req + `")'><i class="fa-solid fa-barcode"></i></i></button>
+                    <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='delete_scan("` + row.id_item + `","` + row.id_jo + `")'><i class="fa-solid fa-undo"></i></i></button>
                     </div>`;
                 }
                 },
@@ -920,6 +921,44 @@ function submitFormScan(e, evt) {
                         document.getElementById('detail_showbarcode').innerHTML = res;
                         sum_qty_barcode('1');
                     }
+                }
+            });
+
+    }
+
+    function delete_scan($id_item,$id_jo){
+        let id_item = $id_item;
+        let id_jo = $id_jo;
+        return $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '{{ route("delete-scan-temp") }}',
+                type: 'get',
+                data: {
+                    id_item: id_item,
+                    id_jo: id_jo,
+                },
+                success: function (res) {
+                    getlistdata();
+                }
+            });
+
+    }
+
+    function delete_all_temp(){
+        let no_bppb = $('#txt_nobppb').val();
+        return $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '{{ route("delete-all-temp") }}',
+                type: 'get',
+                data: {
+                    no_bppb: no_bppb,
+                },
+                success: function (res) {
+                    // getlistdata();
                 }
             });
 

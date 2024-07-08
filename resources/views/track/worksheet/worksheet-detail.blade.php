@@ -936,7 +936,7 @@
                         targets: [9],
                         render: (data, type, row, meta) => {
                             return `
-                                <div class="progress border border-sb position-relative" style="height: 21px; width: 100px;">
+                                <div class="progress border border-sb position-relative" style="height: 21px; width: 150px;">
                                     <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">` + row.total_lembar + `/` + row.gelar_qty + `</p>
                                     <div class="progress-bar" style="background-color: #75baeb;width: ` + ((row.total_lembar / row.gelar_qty) * 100) + `%" role="progressbar"></div>
                                 </div>
@@ -986,7 +986,7 @@
                         api.column(7).footer().innerHTML = totalMarker.totalMarkerLebar;
                         api.column(8).footer().innerHTML = totalMarker.totalMarkerGramasi;
                         api.column(9).footer().innerHTML = `
-                            <div class="progress border border-sb position-relative" style="height: 21px; width: 100px;">
+                            <div class="progress border border-sb position-relative" style="height: 21px; width: 150px;">
                                 <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">` + totalMarker.totalMarkerFormLembar + `/` + totalMarker.totalMarkerGelar + `</p>
                                 <div class="progress-bar" style="background-color: #75baeb;width: ` + ((totalMarker.totalMarkerFormLembar / totalMarker.totalMarkerGelar) * 100) + `%" role="progressbar"></div>
                             </div>
@@ -1409,7 +1409,7 @@
             }
 
         // Spreading Form :
-        var formTableParameter = ['frm_action', 'frm_tanggal', 'frm_no_form', 'frm_no_marker', 'frm_color', 'frm_panel', 'frm_ratio', 'frm_qty_ply', 'frm_keterangan', 'frm_status', 'frm_plan'];
+        var formTableParameter = ['frm_action', 'frm_tanggal', 'frm_no_form', 'frm_no_meja', 'frm_no_marker', 'frm_color', 'frm_panel', 'frm_ratio', 'frm_qty_ply', 'frm_keterangan', 'frm_status', 'frm_plan'];
 
             $('#form-table thead tr').clone(true).appendTo('#form-table thead');
             $('#form-table thead tr:eq(1) th').each(function(i) {
@@ -1516,7 +1516,7 @@
                         targets: [8],
                         render: (data, type, row, meta) => {
                             return `
-                                <div class="progress border border-sb position-relative" style="min-width: 50px;height: 21px">
+                                <div class="progress border border-sb position-relative" style="min-width: 150px;height: 21px">
                                     <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">`+row.total_lembar+`/`+row.qty_ply+`</p>
                                     <div class="progress-bar" style="background-color: #75baeb;width: `+((row.total_lembar/row.qty_ply)*100)+`%" role="progressbar"></div>
                                 </div>
@@ -1602,7 +1602,7 @@
                 formTable.ajax.reload();
             }
 
-            function getTotalForm() {
+            async function getTotalForm() {
                 return $.ajax({
                     url: '{{ route('track-ws-form-total') }}',
                     type: 'GET',

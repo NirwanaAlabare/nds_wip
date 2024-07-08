@@ -566,7 +566,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/worksheet/show-marker', 'wsMarker')->name('track-ws-marker');
         Route::get('/worksheet/show-marker-total', 'wsMarkerTotal')->name('track-ws-marker-total');
         Route::get('/worksheet/show-form', 'wsForm')->name('track-ws-form');
-        Route::get('/worksheet/show-form-total', 'wsForm')->name('track-ws-form-total');
+        Route::get('/worksheet/show-form-total', 'wsFormTotal')->name('track-ws-form-total');
         Route::get('/worksheet/show-roll', 'wsRoll')->name('track-ws-roll');
         Route::get('/worksheet/show-stocker', 'wsStocker')->name('track-ws-stocker');
     });
@@ -685,6 +685,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-outmaterial-fabric');
         Route::get('/approve-outmaterial', 'approveOutMaterial')->name('approve-outmaterial');
         Route::post('/print-pdf-outmaterial/{id?}', 'pdfoutmaterial')->name('print-pdf-outmaterial');
+        Route::get('/delete-scan-temp', 'deletescantemp')->name('delete-scan-temp');
+        Route::get('/delete-all-temp', 'deletealltemp')->name('delete-all-temp');
     });
 
 
