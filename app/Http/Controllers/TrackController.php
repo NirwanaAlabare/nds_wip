@@ -25,6 +25,8 @@ class TrackController extends Controller
     public function worksheet(Request $request)
     {
         if ($request->ajax()) {
+            ini_set("max_execution_time", 36000);
+
             $month = date("m");
             $year = date("Y");
 
@@ -153,7 +155,39 @@ class TrackController extends Controller
                     master_sb_ws.id_so_det
             ");
 
-            return DataTables::of($worksheet)->toJson();
+            return DataTables::of($worksheet)
+                ->addColumn('output_sewing', function ($row) {
+                    $outputData = DB::connection("mysql_sb")->select("
+                        SELECT
+                            COUNT( output_rfts.id ) total_output
+                        FROM
+                            output_rfts
+                        WHERE
+                            so_det_id = '".$row->id_so_det."'
+                        GROUP BY
+                            so_det_id
+                    ");
+
+                    $output = $outputData && count($outputData) > 0 ? num($outputData[0]->total_output) : 0;
+
+                    return $output;
+                })
+                ->addColumn('output_packing', function ($row) {
+                    $outputData = DB::connection("mysql_sb")->select("
+                        SELECT
+                            COUNT( output_rfts_packing.id ) total_output
+                        FROM
+                            output_rfts_packing
+                        WHERE
+                            so_det_id = '".$row->id_so_det."'
+                        GROUP BY
+                            so_det_id
+                    ");
+                    $output = $outputData && count($outputData) > 0 ? num($outputData[0]->total_output) : 0;
+
+                    return $output;
+                })->
+                toJson();
         }
 
         $months = [['angka' => 1,'nama' => 'Januari'],['angka' => 2,'nama' => 'Februari'],['angka' => 3,'nama' => 'Maret'],['angka' => 4,'nama' => 'April'],['angka' => 5,'nama' => 'Mei'],['angka' => 6,'nama' => 'Juni'],['angka' => 7,'nama' => 'Juli'],['angka' => 8,'nama' => 'Agustus'],['angka' => 9,'nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
@@ -245,29 +279,30 @@ class TrackController extends Controller
     {
         if ($request->ajax()) {
             $markersQuery = Marker::selectRaw("
-                id,
-                tgl_cutting,
-                DATE_FORMAT(tgl_cutting, '%d-%m-%Y') tgl_cut_fix,
-                kode,
-                act_costing_ws,
-                style,
-                color,
-                panel,
-                CONCAT(panjang_marker, ' ', UPPER(unit_panjang_marker)) panjang_marker,
-                CONCAT(comma_marker, ' ', UPPER(unit_comma_marker)) comma_marker,
-                CONCAT(panjang_marker, ' ', UPPER(unit_panjang_marker), ' ',comma_marker, ' ', UPPER(unit_comma_marker)) panjang_marker_fix,
-                CONCAT(lebar_marker, ' ', UPPER(unit_lebar_marker)) lebar_marker,
-                COALESCE(gramasi, 0) gramasi,
-                gelar_qty,
-                gelar_qty_balance,
-                po_marker,
-                urutan_marker,
-                tipe_marker,
+                marker_input.id,
+                marker_input.tgl_cutting,
+                DATE_FORMAT(marker_input.tgl_cutting, '%d-%m-%Y') tgl_cut_fix,
+                marker_input.kode,
+                marker_input.act_costing_ws,
+                marker_input.style,
+                marker_input.color,
+                marker_input.panel,
+                CONCAT(marker_input.panjang_marker, ' ', UPPER(marker_input.unit_panjang_marker)) panjang_marker,
+                CONCAT(marker_input.comma_marker, ' ', UPPER(marker_input.unit_comma_marker)) comma_marker,
+                CONCAT(marker_input.panjang_marker, ' ', UPPER(marker_input.unit_panjang_marker), ' ',marker_input.comma_marker, ' ', UPPER(marker_input.unit_comma_marker)) panjang_marker_fix,
+                CONCAT(marker_input.lebar_marker, ' ', UPPER(marker_input.unit_lebar_marker)) lebar_marker,
+                COALESCE(marker_input.gramasi, 0) gramasi,
+                marker_input.gelar_qty,
+                marker_input.gelar_qty_balance,
+                marker_input.po_marker,
+                marker_input.urutan_marker,
+                marker_input.tipe_marker,
                 COALESCE(b.total_form, 0) total_form,
                 COALESCE(b.total_lembar, 0) total_lembar,
                 CONCAT(COALESCE(b.total_lembar, 0), '/', gelar_qty) ply_progress,
-                COALESCE(notes, '-') notes,
-                cancel
+                COALESCE(marker_input.notes, '-') notes,
+                GROUP_CONCAT(DISTINCT CONCAT(master_sb_ws.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' /  ') marker_details,
+                marker_input.cancel
             ")->
             leftJoin(
                 DB::raw("
@@ -285,7 +320,14 @@ class TrackController extends Controller
                 "marker_input.kode",
                 "=",
                 "b.id_marker"
-            );
+            )->
+            leftJoin("marker_input_detail", function ($join) {
+                $join->on("marker_input_detail.marker_id", "=", "marker_input.id");
+                $join->on("marker_input_detail.ratio", ">", DB::raw("0"));
+            })->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
+            leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
+            groupBy("marker_input.id");
 
             return DataTables::eloquent($markersQuery)->filter(function ($query) {
                     $actCostingId = request('actCostingId');
@@ -295,36 +337,36 @@ class TrackController extends Controller
                     $dateTo = request('dateTo');
 
                     if ($actCostingId) {
-                        $query->whereRaw("act_costing_id = '" . $actCostingId . "'");
+                        $query->whereRaw("marker_input.act_costing_id = '" . $actCostingId . "'");
                     }
 
                     if ($color) {
-                        $query->whereRaw("color = '" . $color . "'");
+                        $query->whereRaw("marker_input.color = '" . $color . "'");
                     }
 
                     if ($panel) {
-                        $query->whereRaw("panel = '" . $panel . "'");
+                        $query->whereRaw("marker_input.panel = '" . $panel . "'");
                     }
 
                     if ($dateFrom) {
-                        $query->whereRaw("tgl_cutting >= '" . $dateFrom . "'");
+                        $query->whereRaw("marker_input.tgl_cutting >= '" . $dateFrom . "'");
                     }
 
                     if ($dateTo) {
-                        $query->whereRaw("tgl_cutting <= '" . $dateTo . "'");
+                        $query->whereRaw("marker_input.tgl_cutting <= '" . $dateTo . "'");
                     }
                 }, true)->filterColumn('kode', function ($query, $keyword) {
-                    $query->whereRaw("LOWER(kode) LIKE LOWER('%" . $keyword . "%')");
+                    $query->whereRaw("LOWER(marker_input.kode) LIKE LOWER('%" . $keyword . "%')");
                 })->filterColumn('act_costing_ws', function ($query, $keyword) {
-                    $query->whereRaw("LOWER(act_costing_ws) LIKE LOWER('%" . $keyword . "%')");
+                    $query->whereRaw("LOWER(marker_input.act_costing_ws) LIKE LOWER('%" . $keyword . "%')");
                 })->filterColumn('color', function ($query, $keyword) {
-                    $query->whereRaw("LOWER(color) LIKE LOWER('%" . $keyword . "%')");
+                    $query->whereRaw("LOWER(marker_input.color) LIKE LOWER('%" . $keyword . "%')");
                 })->filterColumn('panel', function ($query, $keyword) {
-                    $query->whereRaw("LOWER(panel) LIKE LOWER('%" . $keyword . "%')");
+                    $query->whereRaw("LOWER(marker_input.panel) LIKE LOWER('%" . $keyword . "%')");
                 })->filterColumn('po_marker', function ($query, $keyword) {
-                    $query->whereRaw("LOWER(po_marker) LIKE LOWER('%" . $keyword . "%')");
+                    $query->whereRaw("LOWER(marker_input.po_marker) LIKE LOWER('%" . $keyword . "%')");
                 })->order(function ($query) {
-                    $query->orderBy('cancel', 'asc')->orderBy('color', 'asc')->orderBy('panel', 'asc')->orderBy('urutan_marker', 'desc')->orderBy('updated_at', 'desc');
+                    $query->orderBy('marker_input.cancel', 'asc')->orderBy('marker_input.color', 'asc')->orderBy('marker_input.panel', 'asc')->orderByRaw('CAST(marker_input.urutan_marker AS UNSIGNED) desc')->orderBy('marker_input.updated_at', 'desc');
                 })->toJson();
         }
 
@@ -545,7 +587,7 @@ class TrackController extends Controller
                     FIELD(a.status, 'PENGERJAAN MARKER', 'PENGERJAAN FORM CUTTING', 'PENGERJAAN FORM CUTTING DETAIL', 'PENGERJAAN FORM CUTTING SPREAD', 'SPREADING', 'SELESAI PENGERJAAN'),
                     b.color,
                     b.panel,
-                    b.urutan_marker desc
+                    CAST(b.urutan_marker AS UNSIGNED) desc
             ");
 
             return DataTables::of($form)->toJson();
@@ -624,8 +666,7 @@ class TrackController extends Controller
             ORDER BY
                 FIELD(a.status, 'PENGERJAAN MARKER', 'PENGERJAAN FORM CUTTING', 'PENGERJAAN FORM CUTTING DETAIL', 'PENGERJAAN FORM CUTTING SPREAD', 'SPREADING', 'SELESAI PENGERJAAN'),
                 b.color,
-                b.panel,
-                b.urutan_marker desc
+                b.panel
         "));
 
         return array(
@@ -723,6 +764,137 @@ class TrackController extends Controller
 
             return DataTables::of($pemakaianRoll)->toJson();
         }
+    }
+
+    public function wsRollTotal(Request $request) {
+        $additionalQuery = "";
+        $additionalGroupQuery = "";
+
+        if ($request->actCostingId) {
+            $additionalQuery .= " and mrk.act_costing_id = '" . $request->actCostingId . "' ";
+        }
+
+        if ($request->panel) {
+            $additionalQuery .= " and mrk.panel = '" . $request->panel . "' ";
+        }
+
+        if ($request->color) {
+            $additionalQuery .= " and mrk.color = '" . $request->color . "' ";
+        }
+
+        if ($request->dateFrom) {
+            $additionalQuery .= " and b.created_at >= '" . $request->dateFrom . " 00:00:00'";
+        }
+
+        if ($request->dateTo) {
+            $additionalQuery .= " and b.created_at <= '" . $request->dateTo . " 23:59:59'";
+        }
+
+        if ($request->roll_color) {
+            $additionalQuery .= " and mrk.color LIKE '%" . $request->roll_color . "%' ";
+        }
+
+        if ($request->roll_panel) {
+            $additionalQuery .= " and mrk.panel LIKE '%" . $request->roll_panel . "%' ";
+        }
+
+        if ($request->roll_no_form) {
+            $additionalQuery .= " and b.no_form_cut_input LIKE '%" . $request->roll_no_form . "%' ";
+        }
+
+        if ($request->roll_id_item) {
+            $additionalQuery .= " and id_item LIKE '%" . $request->roll_id_item . "%' ";
+        }
+
+        if ($request->roll_nama_barang) {
+            $additionalQuery .= " and detail_item LIKE '%" . $request->roll_nama_barang . "%' ";
+        }
+
+        if ($request->roll_qty || $request->roll_unit) {
+            $additionalGroupQuery .= " HAVING ";
+
+            if ($request->roll_qty && $request->roll_unit) {
+                $additionalGroupQuery .= "qty_item LIKE '%".$request->roll_qty."%' AND unit_item LIKE '%".$request->roll_unit."%'";
+            } else {
+                if ($request->roll_qty) {
+                    $additionalGroupQuery .= "qty_item LIKE '%".$request->roll_qty."%' ";
+                }
+
+                if ($request->roll_unit) {
+                    $additionalGroupQuery .= "unit_item LIKE '%".$request->roll_unit."%' ";
+                }
+            }
+        }
+
+        $pemakaianRoll = collect(DB::select("
+            select
+                a.tgl_form_cut,
+                DATE_FORMAT(b.created_at, '%d-%m-%Y') tgl_input,
+                act_costing_ws,
+                mrk.color,
+                mrk.panel,
+                COALESCE(id_roll, '-') id_roll,
+                id_item,
+                detail_item,
+                COALESCE(b.color_act, '-') color_act,
+                COALESCE(b.group_roll, '-') group_roll,
+                COALESCE(b.lot, '-') lot,
+                COALESCE(b.roll, '-') roll,
+                b.no_form_cut_input,
+                SUM(b.qty) qty_item,
+                MAX(b.unit) unit_item,
+                SUM(b.sisa_gelaran) sisa_gelaran,
+                SUM(b.sambungan) sambungan,
+                SUM(b.est_amparan) est_amparan,
+                SUM(b.lembar_gelaran) lembar_gelaran,
+                SUM(b.kepala_kain) kepala_kain,
+                SUM(b.sisa_tidak_bisa) sisa_tidak_bisa,
+                SUM(b.reject) reject,
+                SUM(COALESCE(b.sisa_kain, 0)) sisa_kain,
+                SUM(b.total_pemakaian_roll) total_pemakaian_roll,
+                SUM(b.short_roll) short_roll,
+                SUM(b.piping) piping,
+                SUM(b.remark) remark,
+                UPPER(meja.name) nama_meja
+            from
+                form_cut_input a
+                left join form_cut_input_detail b on a.no_form = b.no_form_cut_input
+                left join marker_input mrk on a.id_marker = mrk.kode
+                left join users meja on meja.id = a.no_meja
+            where
+                a.cancel = 'N' and mrk.cancel = 'N' and id_item is not null
+                " . $additionalQuery . "
+            group by
+                mrk.act_costing_id,
+                mrk.color,
+                mrk.panel,
+                a.no_form,
+                b.id_item
+                ". $additionalGroupQuery ."
+            order by
+                mrk.color asc,
+                mrk.panel asc,
+                b.id_item asc,
+                b.no_form_cut_input desc
+        "));
+
+        return array(
+            "totalRoll" => $pemakaianRoll ? num($pemakaianRoll->count()) : 0,
+            "totalQty" => $pemakaianRoll ? num($pemakaianRoll->sum("qty_item")) : 0,
+            "totalUnit" => $pemakaianRoll ? $pemakaianRoll->max("unit_item") : '-',
+            "totalSisaGelaran" => $pemakaianRoll ? num($pemakaianRoll->sum("sisa_gelaran")) : 0,
+            "totalSambungan" => $pemakaianRoll ? num($pemakaianRoll->sum("sambungan")) : 0,
+            "totalEstAmparan" => $pemakaianRoll ? num($pemakaianRoll->sum("est_amparan")) : 0,
+            "totalLembarGelaran" => $pemakaianRoll ? num($pemakaianRoll->sum("lembar_gelaran")) : 0,
+            "totalKepalaKain" => $pemakaianRoll ? num($pemakaianRoll->sum("kepala_kain")) : 0,
+            "totalSisaTidakBisa" => $pemakaianRoll ? num($pemakaianRoll->sum("sisa_tidak_bisa")) : 0,
+            "totalReject" => $pemakaianRoll ? num($pemakaianRoll->sum("reject")) : 0,
+            "totalSisaKain" => $pemakaianRoll ? num($pemakaianRoll->sum("sisa_kain")) : 0,
+            "totalTotalPemakaian" => $pemakaianRoll ? num($pemakaianRoll->sum("total_pemakaian_roll")) : 0,
+            "totalShortRoll" => $pemakaianRoll ? num($pemakaianRoll->sum("short_roll")) : 0,
+            "totalPiping" => $pemakaianRoll ? num($pemakaianRoll->sum("piping")) : 0,
+            "totalRemark" => $pemakaianRoll ? num($pemakaianRoll->sum("remark")) : 0,
+        );
     }
 
     public function wsStocker(Request $request) {
@@ -853,5 +1025,128 @@ class TrackController extends Controller
             })->
             toJson();
         }
+    }
+
+    public function wsStockerTotal(Request $request) {
+        $actCostingId = $request->actCostingId;
+        $color = $request->color;
+        $panel = $request->panel;
+        $size = $request->size;
+        $dateFrom = $request->dateFrom;
+        $dateTo = $request->dateTo;
+        $stkColor = $request->stkColor;
+        $stkPanel = $request->stkPanel;
+        $stkPart = $request->stkPart;
+        $stkNoForm = $request->stkNoForm;
+        $stkNoCut = $request->stkNoCut;
+        $stkSize = $request->stkSize;
+        $stkGroup = $request->stkGroup;
+        $stkNoStocker = $request->stkNoStocker;
+        $stkSecondary = $request->stkSecondary;
+        $stkRack = $request->stkRack;
+        $stkTrolley = $request->stkTrolley;
+        $stkLine = $request->stkLine;
+
+        $stockerSql = Stocker::selectRaw("
+            marker_input.color,
+            marker_input.panel,
+            form_cut_input.no_form,
+            form_cut_input.no_cut,
+            stocker_input.id stocker_id,
+            stocker_input.id_qr_stocker,
+            stocker_input.act_costing_ws,
+            stocker_input.so_det_id,
+            stocker_input.size,
+            stocker_input.shade,
+            stocker_input.ratio,
+            COALESCE(master_part.nama_part, ' - ') nama_part,
+            CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir, (CASE WHEN dc_in_input.qty_reject IS NOT NULL AND dc_in_input.qty_replace IS NOT NULL THEN CONCAT(' (', (COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0)), ') ') ELSE ' (0)' END)) stocker_range,
+            stocker_input.status,
+            dc_in_input.id dc_in_id,
+            dc_in_input.tujuan,
+            dc_in_input.tempat,
+            dc_in_input.lokasi,
+            (CASE WHEN dc_in_input.tujuan = 'SECONDARY DALAM' OR dc_in_input.tujuan = 'SECONDARY LUAR' THEN dc_in_input.lokasi ELSE '-' END) secondary,
+            COALESCE(rack_detail_stocker.nm_rak, (CASE WHEN dc_in_input.tempat = 'RAK' THEN dc_in_input.lokasi ELSE null END), (CASE WHEN dc_in_input.lokasi = 'RAK' THEN dc_in_input.det_alokasi ELSE null END), '-') rak,
+            COALESCE(trolley.nama_trolley, (CASE WHEN dc_in_input.tempat = 'TROLLEY' THEN dc_in_input.lokasi ELSE null END), '-') troli,
+            COALESCE((COALESCE(dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0)), stocker_input.qty_ply) qty_ply,
+            COALESCE(UPPER(loading_line.nama_line), '-') line,
+            stocker_input.updated_at latest_update
+        ")->
+        leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+        leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+        leftJoin("part_detail", "stocker_input.part_detail_id", "=", "part_detail.id")->
+        leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+        leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+        leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+        leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+        leftJoin("rack_detail_stocker", "rack_detail_stocker.stocker_id", "=", "stocker_input.id_qr_stocker")->
+        leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->
+        leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
+        leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id");
+
+        if ($actCostingId) {
+            $stockerSql->whereRaw("marker_input.act_costing_id = '" . $actCostingId . "'");
+        }
+
+        if ($color) {
+            $stockerSql->whereRaw("marker_input.color = '" . $color . "'");
+        }
+
+        if ($panel) {
+            $stockerSql->whereRaw("marker_input.panel = '" . $panel . "'");
+        }
+
+        if ($size) {
+            $stockerSql->whereRaw("stocker_input.size = '" . $size . "'");
+        }
+
+        if ($dateFrom) {
+            $stockerSql->whereRaw("DATE(stocker_input.created_at) >= '" . $dateFrom . "'");
+        }
+
+        if ($dateTo) {
+            $stockerSql->whereRaw("DATE(stocker_input.updated_at) <= '" . $dateTo . "'");
+        }
+
+        if ($stkColor) {
+            $stockerSql->whereRaw("stocker_input.color LIKE '%" . $stkColor . "%'");
+        }
+
+        if ($stkPanel) {
+            $stockerSql->whereRaw("stocker_input.panel LIKE '%'" . $stkPanel . "%'");
+        }
+
+        if ($stkSize) {
+            $stockerSql->whereRaw("stocker_input.size LIKE '%" . $stkSize . "%'");
+        }
+
+        $stocker = $stockerSql->
+            groupBy("stocker_input.id_qr_stocker")->
+            orderBy("stocker_input.act_costing_ws", "asc")->
+            orderBy("stocker_input.color", "asc")->
+            orderBy("form_cut_input.no_cut", "asc")->
+            orderBy("master_part.nama_part", "asc")->
+            orderBy("stocker_input.so_det_id", "asc")->
+            orderBy("stocker_input.shade", "desc")->
+            orderBy("stocker_input.id_qr_stocker", "asc");
+
+        return array(
+            "totalRoll" => $pemakaianRoll ? num($pemakaianRoll->count()) : 0,
+            "totalQty" => $pemakaianRoll ? num($pemakaianRoll->sum("qty_item")) : 0,
+            "totalUnit" => $pemakaianRoll ? $pemakaianRoll->max("unit_item") : '-',
+            "totalSisaGelaran" => $pemakaianRoll ? num($pemakaianRoll->sum("sisa_gelaran")) : 0,
+            "totalSambungan" => $pemakaianRoll ? num($pemakaianRoll->sum("sambungan")) : 0,
+            "totalEstAmparan" => $pemakaianRoll ? num($pemakaianRoll->sum("est_amparan")) : 0,
+            "totalLembarGelaran" => $pemakaianRoll ? num($pemakaianRoll->sum("lembar_gelaran")) : 0,
+            "totalKepalaKain" => $pemakaianRoll ? num($pemakaianRoll->sum("kepala_kain")) : 0,
+            "totalSisaTidakBisa" => $pemakaianRoll ? num($pemakaianRoll->sum("sisa_tidak_bisa")) : 0,
+            "totalReject" => $pemakaianRoll ? num($pemakaianRoll->sum("reject")) : 0,
+            "totalSisaKain" => $pemakaianRoll ? num($pemakaianRoll->sum("sisa_kain")) : 0,
+            "totalTotalPemakaian" => $pemakaianRoll ? num($pemakaianRoll->sum("total_pemakaian_roll")) : 0,
+            "totalShortRoll" => $pemakaianRoll ? num($pemakaianRoll->sum("short_roll")) : 0,
+            "totalPiping" => $pemakaianRoll ? num($pemakaianRoll->sum("piping")) : 0,
+            "totalRemark" => $pemakaianRoll ? num($pemakaianRoll->sum("remark")) : 0,
+        );
     }
 }

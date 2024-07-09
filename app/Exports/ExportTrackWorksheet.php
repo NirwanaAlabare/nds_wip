@@ -34,6 +34,26 @@ class ExportTrackWorksheet implements FromView, WithEvents, /*WithColumnWidths,*
 
     public function view(): View
     {
+        $outputSewing = DB::connection("mysql_sb")->select("
+            SELECT
+                output_rfts.so_det_id,
+                COUNT( output_rfts.id ) total_output
+            FROM
+                output_rfts
+            GROUP BY
+                so_det_id
+        ");
+
+        $outputPacking = DB::connection("mysql_sb")->select("
+            SELECT
+                output_rfts_packing.so_det_id,
+                COUNT( output_rfts_packing.id ) total_output
+            FROM
+                output_rfts_packing
+            GROUP BY
+                so_det_id
+        ");
+
         $worksheet = DB::select("
             SELECT DATE
                     ( master_sb_ws.tgl_kirim ) tgl_kirim,
@@ -156,6 +176,8 @@ class ExportTrackWorksheet implements FromView, WithEvents, /*WithColumnWidths,*
 
         return view('track.worksheet.export.worksheet', [
             'worksheet' => collect($worksheet),
+            'outputSewing' => collect($outputSewing),
+            'outputPacking' => collect($outputPacking),
             'month' => $this->month,
             'year' => $this->year
         ]);
@@ -171,7 +193,7 @@ class ExportTrackWorksheet implements FromView, WithEvents, /*WithColumnWidths,*
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A3:P' . $event->getConcernable()->rowCount,
+            'A3:R' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [

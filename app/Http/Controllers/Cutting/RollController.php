@@ -99,6 +99,8 @@ class RollController extends Controller
 
     public function export_excel(Request $request)
     {
+        ini_set("max_execution_time", 36000);
+
         return Excel::download(new ExportLaporanRoll($request->from, $request->to), 'Laporan_pemakaian_cutting.xlsx');
     }
 
