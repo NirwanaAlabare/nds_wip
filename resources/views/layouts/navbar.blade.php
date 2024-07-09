@@ -655,11 +655,11 @@
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
                             aria-haspopup="true"aria-expanded="false"
-                            class="nav-link dropdown-toggle {{ $subPageGroup == 'ppic-master' ? 'active' : '' }}">Laporan</a>
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'ppic-laporan' ? 'active' : '' }}">Laporan</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
-                                <a href="{{ route('master-so') }}"
-                                    class="dropdown-item {{ $subPage == 'ppic-master-master-so' ? 'active' : '' }}">
+                                <a href="{{ route('ppic-laporan-tracking') }}"
+                                    class="dropdown-item {{ $subPage == 'ppic-laporan-tracking' ? 'active' : '' }}">
                                     Laporan Tracking <i class="fa-solid fa-list-ul fa-sm"></i>
                                 </a>
                             </li>
