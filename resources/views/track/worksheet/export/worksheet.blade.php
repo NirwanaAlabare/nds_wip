@@ -3,10 +3,10 @@
 
 <table >
     <tr>
-        <td colspan="16">Track WS</td>
+        <td colspan="18">Track WS</td>
     </tr>
     <tr>
-        <td colspan="16">{{ $month."-".$year }}</td>
+        <td colspan="18">{{ $month."-".$year }}</td>
     </tr>
     <tr>
         <th>Worksheet</th>
@@ -25,6 +25,8 @@
         <th>DC</th>
         <th>Secondary In</th>
         <th>Secondary Inhouse</th>
+        <th>QC Sewing</th>
+        <th>Packing Sewing</th>
     </tr>
     @php
         $currentWorksheet = null;
@@ -35,6 +37,10 @@
         $currentRowspan = 0;
     @endphp
     @foreach ($worksheet as $ws)
+        @php
+            $thisOutputSewing = $outputSewing->where('so_det_id', $ws->id_so_det)->first();
+            $thisOutputPacking = $outputPacking->where('so_det_id', $ws->id_so_det)->first();
+        @endphp
         <tr>
             <td style="vertical-align: top;">{{ $ws->ws }}</td>
             <td style="vertical-align: top;">{{ $ws->styleno ? $ws->styleno : '-'  }}</td>
@@ -52,6 +58,8 @@
             <td style="vertical-align: top;">{{ $ws->total_dc ? $ws->total_dc : '0'  }}</td>
             <td style="vertical-align: top;">{{ $ws->total_sec ? $ws->total_sec : '0'  }}</td>
             <td style="vertical-align: top;">{{ $ws->total_sec_in ? $ws->total_sec_in : '0'  }}</td>
+            <td style="vertical-align: top;">{{ $thisOutputSewing ? $thisOutputSewing->total_output : '0'  }}</td>
+            <td style="vertical-align: top;">{{ $thisOutputPacking ? $thisOutputPacking->total_output : '0'  }}</td>
         </tr>
     @endforeach
 </table>

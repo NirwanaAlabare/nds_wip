@@ -222,6 +222,7 @@
                                 <th>Gramasi</th>
                                 <th>Gelar QTYs</th>
                                 <th>Total Form</th>
+                                <th>Ratio</th>
                                 <th>PO</th>
                                 <th>Ket.</th>
                             </tr>
@@ -236,6 +237,7 @@
                                 <th id="total-gramasi-marker"></th>
                                 <th id="total-gelar-marker"></th>
                                 <th id="total-form-marker"></th>
+                                <th></th>
                                 <th></th>
                                 <th></th>
                             </tr>
@@ -349,8 +351,8 @@
                                     <th>No. Marker</th>
                                     <th>Color</th>
                                     <th>Panel</th>
-                                    <th>Size Ratio</th>
                                     <th>Qty Ply</th>
+                                    <th>Size Ratio</th>
                                     <th>Ket.</th>
                                     <th class="align-bottom" style="text-align: left !important;">Status</th>
                                     <th>Plan</th>
@@ -360,8 +362,10 @@
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <th colspan="8" class="text-end">Total</th>
+                                    <th colspan="6" class="text-end">Total</th>
+                                    <th id="total-form"></th>
                                     <th id="total-form-qty"></th>
+                                    <th></th>
                                     <th></th>
                                     <th></th>
                                     <th></th>
@@ -613,6 +617,24 @@
                         </thead>
                         <tbody>
                         </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="6" class="text-end">Total</th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -850,6 +872,10 @@
                     },
                     {
                         data: 'total_form',
+                        searchable: false
+                    },
+                    {
+                        data: 'marker_details',
                         searchable: false
                     },
                     {
@@ -1409,7 +1435,7 @@
             }
 
         // Spreading Form :
-        var formTableParameter = ['frm_action', 'frm_tanggal', 'frm_no_form', 'frm_no_meja', 'frm_no_marker', 'frm_color', 'frm_panel', 'frm_ratio', 'frm_qty_ply', 'frm_keterangan', 'frm_status', 'frm_plan'];
+            var formTableParameter = ['frm_action', 'frm_tanggal', 'frm_no_form', 'frm_no_meja', 'frm_no_marker', 'frm_color', 'frm_panel', 'frm_qty_ply', 'frm_ratio', 'frm_keterangan', 'frm_status', 'frm_plan'];
 
             $('#form-table thead tr').clone(true).appendTo('#form-table thead');
             $('#form-table thead tr:eq(1) th').each(function(i) {
@@ -1471,10 +1497,10 @@
                         data: 'panel'
                     },
                     {
-                        data: 'marker_details'
+                        data: 'ply_progress'
                     },
                     {
-                        data: 'ply_progress'
+                        data: 'marker_details'
                     },
                     {
                         data: 'notes'
@@ -1513,7 +1539,7 @@
                         }
                     },
                     {
-                        targets: [8],
+                        targets: [7],
                         render: (data, type, row, meta) => {
                             return `
                                 <div class="progress border border-sb position-relative" style="min-width: 150px;height: 21px">
@@ -1583,12 +1609,13 @@
                 footerCallback: async function (row, data, start, end, display) {
                     let api = this.api();
 
-                    api.column(8).footer().innerHTML = "...";
+                    api.column(7).footer().innerHTML = "...";
 
                     let totalForm = await getTotalForm();
 
                     if (await totalForm) {
-                        api.column(8).footer().innerHTML = `
+                        api.column(6).footer().innerHTML = totalForm.total_form;
+                        api.column(7).footer().innerHTML = `
                             <div class="progress border border-sb position-relative" style="min-width: 50px;height: 21px">
                                 <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">`+totalForm.total_lembar+`/`+totalForm.qty_ply+`</p>
                                 <div class="progress-bar" style="background-color: #75baeb;width: `+((totalForm.total_lembar/totalForm.qty_ply)*100)+`%" role="progressbar"></div>
@@ -1681,11 +1708,13 @@
             }
 
         // Roll Consumption
+            var rollTableParameter = ['roll_color', 'roll_panel', 'roll_no_form', 'roll_id_item', 'roll_nama_barang', 'roll_no_meja', 'roll_qty', 'roll_unit'];
+
             $('#roll-table thead tr').clone(true).appendTo('#roll-table thead');
             $('#roll-table thead tr:eq(1) th').each(function(i) {
                 if (i != 6 && i != 8 && i != 9 && i != 10 && i != 11 && i != 12 && i != 13 && i != 14 && i != 15 && i != 16 && i != 17 && i != 18) {
                     var title = $(this).text();
-                    $(this).html('<input type="text" class="form-control form-control-sm" />');
+                    $(this).html('<input type="text" class="form-control form-control-sm" id="'+rollTableParameter[i]+'" />');
 
                     $('input', this).on('keyup change', function() {
                         if (rollTable.column(i).search() !== this.value) {
@@ -1786,17 +1815,77 @@
                         targets: [6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
                         className: "text-nowrap",
                         render: (data, type, row, meta) => {
-                            return data > 0 ? (Number(data).round(2)).toLocaleString("id-ID") : 0;
+                            return data ? '<div style="min-width: 100px;">'+(Number(data).round(2)).toLocaleString("id-ID")+'</div>' : 0;
                         }
                     },
                 ],
+                footerCallback: async function (row, data, start, end, display) {
+                    let api = this.api();
+
+                    api.column(6).footer().innerHTML = "...";
+                    api.column(7).footer().innerHTML = "...";
+                    api.column(8).footer().innerHTML = "...";
+                    api.column(9).footer().innerHTML = "...";
+                    api.column(10).footer().innerHTML = "...";
+                    api.column(11).footer().innerHTML = "...";
+                    api.column(12).footer().innerHTML = "...";
+                    api.column(13).footer().innerHTML = "...";
+                    api.column(14).footer().innerHTML = "...";
+                    api.column(15).footer().innerHTML = "...";
+                    api.column(16).footer().innerHTML = "...";
+                    api.column(17).footer().innerHTML = "...";
+                    api.column(18).footer().innerHTML = "...";
+
+                    let totalRoll = await getTotalRoll();
+
+                    if (await totalRoll) {
+                        api.column(6).footer().innerHTML = totalRoll.totalQty;
+                        api.column(7).footer().innerHTML = totalRoll.totalUnit;
+                        api.column(8).footer().innerHTML = totalRoll.totalLembarGelaran;
+                        api.column(9).footer().innerHTML = totalRoll.totalTotalPemakaian;
+                        api.column(10).footer().innerHTML = totalRoll.totalShortRoll;
+                        api.column(11).footer().innerHTML = totalRoll.totalRemark;
+                        api.column(12).footer().innerHTML = totalRoll.totalSisaGelaran;
+                        api.column(13).footer().innerHTML = totalRoll.totalSambungan;
+                        api.column(14).footer().innerHTML = totalRoll.totalKepalaKain;
+                        api.column(15).footer().innerHTML = totalRoll.totalSisaTidakBisa;
+                        api.column(16).footer().innerHTML = totalRoll.totalReject;
+                        api.column(17).footer().innerHTML = totalRoll.totalSisaKain;
+                        api.column(18).footer().innerHTML = totalRoll.totalPiping;
+                    }
+                }
             });
 
             function rollTableReload() {
                 rollTable.ajax.reload();
             }
 
+            async function getTotalRoll() {
+                return $.ajax({
+                    url: '{{ route('track-ws-roll-total') }}',
+                    type: 'GET',
+                    dataType: 'json',
+                    data: {
+                        actCostingId : $('#id').val(),
+                        dateFrom : $('#marker-from').val(),
+                        dateTo : $('#marker-to').val(),
+                        color : $('#ws-color-filter').val(),
+                        panel : $('#ws-panel-filter').val(),
+                        roll_color : $('#roll_color').val(),
+                        roll_panel : $('#roll_panel').val(),
+                        roll_no_form : $('#roll_no_form').val(),
+                        roll_id_item : $('#roll_id_item').val(),
+                        roll_nama_barang : $('#roll_nama_barang').val(),
+                        roll_no_meja : $('#roll_no_meja').val(),
+                        roll_qty : $('#roll_qty').val(),
+                        roll_unit : $('#roll_unit').val(),
+                    },
+                });
+            }
+
         // Stocker
+            var stockerTableParameter = ['stk_color', 'stk_panel', 'stk_part', 'stk_no_form', 'stk_no_cut', 'stk_size', 'stk_group', 'stk_no_stocker', 'stk_qty', 'stk_range', 'stk_secondary','stk_rack', 'stk_trolley', 'stk_line', 'updated_at'];
+
             $('#stocker-table thead tr').clone(true).appendTo('#stocker-table thead');
                 $('#stocker-table thead tr:eq(1) th').each(function(i) {
                     if (i != 8 && i != 9 && i != 14) {

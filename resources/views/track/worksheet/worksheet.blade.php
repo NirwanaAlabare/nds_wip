@@ -61,6 +61,8 @@
                             <th>DC</th>
                             <th>Secondary In</th>
                             <th>Secondary Inhouse</th>
+                            <th>QC Sewing</th>
+                            <th>Packing Sewing</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -102,7 +104,7 @@
 
         $('#ws-table thead tr').clone(true).appendTo('#ws-table thead');
         $('#ws-table thead tr:eq(1) th').each(function(i) {
-            if (i != 7 && i != 8 && i != 9 && i != 10 && i != 11 && i != 12 && i != 13 && i != 14 && i != 15 && i != 16) {
+            if (i != 7 && i != 8 && i != 9 && i != 10 && i != 11 && i != 12 && i != 13 && i != 14 && i != 15 && i != 16 && i != 17 && i != 18) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%"/>');
 
@@ -122,7 +124,7 @@
         let wsTable = $("#ws-table").DataTable({
             ordering: false,
             processing: true,
-            serverSide: true,
+            // serverSide: true,
             scrollY: "500px",
             scrollX: "500px",
             pageLength: 100,
@@ -197,6 +199,14 @@
                 },
                 {
                     data: 'total_sec_in',
+                    searchable: false
+                },
+                {
+                    data: 'output_sewing',
+                    searchable: false
+                },
+                {
+                    data: 'output_packing',
                     searchable: false
                 },
             ],

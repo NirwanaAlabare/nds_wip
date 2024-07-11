@@ -2441,7 +2441,7 @@
                 $('#marker-year-filter').val(todayYear).trigger("change");
 
                 var datatableMarker = $("#datatable-marker").DataTable({
-                    serveSide: true,
+                    serverSide: true,
                     processing: true,
                     ordering: false,
                     pageLength: 50,
