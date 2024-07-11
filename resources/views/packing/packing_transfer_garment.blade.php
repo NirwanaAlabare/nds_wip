@@ -17,13 +17,21 @@
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-shirt"></i> Transfer Garment</h5>
         </div>
         <div class="card-body">
-            <div class="mb-3">
-                <a href="{{ route('create-transfer-garment') }}" class="btn btn-outline-primary position-relative">
-                    <i class="fas fa-plus"></i>
-                    Baru
-                </a>
+            <div class="d-flex align-items-end gap-3 mb-3">
+                <div class="mb-3">
+                    <a href="{{ route('create-transfer-garment') }}" class="btn btn-outline-primary position-relative">
+                        <i class="fas fa-hand"></i>
+                        Ambil Sewing
+                    </a>
+                </div>
+                <div class="mb-3">
+                    <a href="{{ route('create-transfer-garment-temporary') }}"
+                        class="btn btn-outline-warning position-relative">
+                        <i class="fas fa-warehouse"></i>
+                        Ambil Temporary Packing
+                    </a>
+                </div>
             </div>
-
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Awal</b></small></label>
@@ -55,6 +63,7 @@
                             <th>Color</th>
                             <th>Size</th>
                             <th>Qty</th>
+                            <th>Tujuan</th>
                             <th>Status</th>
                             <th>User</th>
                             <th>Tgl. Input</th>
@@ -66,6 +75,7 @@
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
                                     id = 'total_qty_chk'> </th>
                             <th>PCS</th>
+                            <th></th>
                             <th></th>
                             <th></th>
                         </tr>
@@ -177,6 +187,9 @@
                     data: 'qty'
                 },
                 {
+                    data: 'tujuan'
+                },
+                {
                     data: 'status'
                 },
                 {
@@ -195,10 +208,24 @@
                     targets: '_all',
                     className: 'text-nowrap',
                     render: (data, type, row, meta) => {
-                        if (row.status == 'Full') {
+                        if (row.tujuan == 'Temporary') {
+                            color = ' #d68910';
+                        } else if (row.status == 'Full' && row.tujuan != 'Temporary' && row.line !=
+                            'Temporary') {
                             color = '#087521';
-                        } else {
+                        } else if (row.status != 'Full' && row.tujuan != 'Temporary' && row.line !=
+                            'Temporary') {
                             color = 'blue';
+                        } else if (row.status != 'Full' && row.tujuan != 'Temporary' && row.line !=
+                            'Temporary') {
+                            color = 'blue';
+                        } else if (row.status != 'Full' && row.tujuan != 'Temporary' && row.line !=
+                            'Temporary') {
+                            color = 'blue';
+                        } else if (row.status != 'Full' && row.line == 'Temporary') {
+                            color = 'purple';
+                        } else if (row.status == 'Full' && row.line == 'Temporary') {
+                            color = 'green';
                         }
                         return '<span style="font-weight: 600; color:' + color + '">' + data + '</span>';
                     }

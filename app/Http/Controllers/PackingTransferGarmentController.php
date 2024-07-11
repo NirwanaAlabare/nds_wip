@@ -32,6 +32,7 @@ class PackingTransferGarmentController extends Controller
                 a.qty,
                 if(a.qty - c.qty_in = '0','Full','-') status,
                 a.id,
+                a.tujuan,
                 a.created_at,
                 a.created_by
                 from packing_trf_garment a
@@ -39,10 +40,38 @@ class PackingTransferGarmentController extends Controller
                 inner join master_sb_ws m on a.id_so_det = m.id_so_det
                 left join
                     (
-                    select id_trf_garment, sum(qty) qty_in from packing_packing_in group by 							id_trf_garment
+                    select id_trf_garment, sum(qty) qty_in from packing_packing_in
+                    where sumber = 'Sewing'
+                    group by id_trf_garment
                     ) c on a.id = c.id_trf_garment
                 where tgl_trans >= '$tgl_awal' and tgl_trans <= '$tgl_akhir'
-                order by a.created_at desc
+            union
+                SELECT
+                a.no_trans,
+                concat((DATE_FORMAT(tgl_trans,  '%d')), '-', left(DATE_FORMAT(tgl_trans,  '%M'),3),'-',DATE_FORMAT(tgl_trans,  '%Y')
+                ) tgl_trans_fix,
+                'Temporary' line,
+                a.po,
+                m.ws,
+                m.color,
+                m.size,
+                a.qty,
+                if(a.qty - c.qty_in = '0','Full','-') status,
+                a.id,
+                'Packing' tujuan,
+                a.created_at,
+                a.created_by
+                from packing_trf_garment_out_temporary a
+                inner join ppic_master_so p on a.id_ppic_master_so = p.id
+                inner join master_sb_ws m on a.id_so_det = m.id_so_det
+                left join
+                    (
+                    select id_trf_garment, sum(qty) qty_in from packing_packing_in
+                    where sumber = 'Temporary'
+                    group by id_trf_garment
+                    ) c on a.id = c.id_trf_garment
+                where tgl_trans >= '$tgl_awal' and tgl_trans <= '$tgl_akhir'
+								order by created_at desc
             ");
 
             return DataTables::of($data_input)->toJson();
@@ -55,11 +84,18 @@ class PackingTransferGarmentController extends Controller
     {
         $user = Auth::user()->name;
 
-        $data_line = DB::connection('mysql_sb')->select("SELECT username isi, username tampil from userpassword where groupp = 'sewing' order by isi asc");
+        $data_tujuan = DB::select("SELECT 'Packing' isi, 'Packing' tampil
+union
+SELECT 'Temporary' isi, 'Temporary' tampil");
+
+        $data_line = DB::connection('mysql_sb')->select("SELECT username isi, username tampil from userpassword
+        where groupp = 'sewing' and locked != '1' or groupp = 'sewing' and locked is null
+order by isi asc");
 
         return view('packing.create_packing_transfer_garment', [
             'page' => 'dashboard-packing', "subPageGroup" => "packing-transfer-garment",
             "subPage" => "transfer-garment",
+            "data_tujuan" => $data_tujuan,
             "data_line" => $data_line,
             "user" => $user
         ]);
@@ -71,7 +107,7 @@ class PackingTransferGarmentController extends Controller
 select p.po isi,CONCAT(p.po, ' ( ', m.styleno, ' ) ', '( ', m.styleno_prod , ' )') tampil from
 (
 select so_det_id from output_rfts_packing a
-where sewing_line = '" . $request->cbo_line . "'
+where created_by = '" . $request->cbo_line . "'
 group by so_det_id
 ) a
 left join ppic_master_so p on a.so_det_id = p.id_so_det
@@ -79,8 +115,6 @@ left join master_sb_ws m on a.so_det_id = m.id_so_det
 group by po
 having po is not null
 order by po asc
-
-
         ");
 
         $html = "<option value=''>Pilih PO</option>";
@@ -94,23 +128,49 @@ order by po asc
 
     public function get_garment(Request $request)
     {
-        $data_garment = DB::select("
-        SELECT p.id isi,
-        concat(m.ws, ' - ', m.color, ' - ', m.size, ' => ', count(so_det_id) - coalesce(tmp.tot_tmp,0) - coalesce(ptg.tot_in,0) , ' PCS' ) tampil
-        FROM output_rfts_packing a
-        left join ppic_master_so p on a.so_det_id = p.id_so_det
-        left join master_sb_ws m on a.so_det_id = m.id_so_det
-        left join
-            (
-                select sum(qty_tmp_trf_garment) tot_tmp,id_ppic_master_so from packing_trf_garment_tmp group by id_ppic_master_so
-            ) tmp on p.id = tmp.id_ppic_master_so
-        left join
-            (
-                select sum(qty) tot_in,id_ppic_master_so from packing_trf_garment group by id_ppic_master_so
-            ) ptg on p.id = ptg.id_ppic_master_so
-        where sewing_line = '" . $request->cbo_line . "' and p.po = '" . $request->cbo_po . "'
-        group by a.so_det_id, p.po, p.barcode
-        having po is not null");
+        $data_garment = DB::select("SELECT
+            p.id isi,
+            concat (m.ws, ' - ', m.color, ' - ', m.size, ' => ', sum(qty_p_line) - sum(qty_trf_garment) -  sum(qty_tmp), ' PCS' ) tampil
+            from
+    (
+select a.so_det_id id_so_det,count(so_det_id) qty_p_line, '0' qty_trf_garment, '0' qty_tmp
+FROM output_rfts_packing a
+where created_by = '" . $request->cbo_line . "'
+group by so_det_id
+union
+select id_so_det, '0' qty_p_line, sum(qty) qty_trf_garment , '0' qty_tmp
+from packing_trf_garment
+where line = '" . $request->cbo_line . "'
+group by id_so_det
+union
+select id_so_det, '0' qty_p_line, '0' qty_trf_garment, sum(qty_tmp_trf_garment) qty_tmp from packing_trf_garment_tmp tmp
+inner join ppic_master_so p on tmp.id_ppic_master_so = p.id
+where line = '" . $request->cbo_line . "'
+group by id_so_det
+) a
+left join ppic_master_so p on a.id_so_det = p.id_so_det
+left join master_sb_ws m on p.id_so_det = m.id_so_det
+where p.po = '" . $request->cbo_po . "'
+group by a.id_so_det
+");
+
+        // SELECT p.id isi,
+        // concat(m.ws, ' - ', m.color, ' - ', m.size, ' => ', count(so_det_id) - coalesce(tmp.tot_tmp,0) - coalesce(ptg.tot_in,0) , ' PCS' ) tampil
+        // FROM output_rfts_packing a
+        // left join ppic_master_so p on a.so_det_id = p.id_so_det
+        // left join master_sb_ws m on a.so_det_id = m.id_so_det
+        // left join
+        //     (
+        //         select sum(qty_tmp_trf_garment) tot_tmp,id_ppic_master_so from packing_trf_garment_tmp group by id_ppic_master_so
+        //     ) tmp on p.id = tmp.id_ppic_master_so
+        // left join
+        //     (
+        //         select sum(qty) tot_in,id_ppic_master_so from packing_trf_garment group by id_ppic_master_so
+        //     ) ptg on p.id = ptg.id_ppic_master_so
+        // where sewing_line = '" . $request->cbo_line . "' and p.po = '" . $request->cbo_po . "'
+        // group by a.so_det_id, p.po, p.barcode
+        // having po is not null
+
 
         $html = "<option value=''>Pilih Garment</option>";
 
@@ -204,6 +264,7 @@ order by po asc
         $user = Auth::user()->name;
         $timestamp = Carbon::now();
         $tgltrans = date('Y-m-d');
+        $cbotuj = $request->cbotuj;
         $tahun = date('Y', strtotime($tgltrans));
         $bulan = date('m', strtotime($tgltrans));
         $tgl = date('d', strtotime($tgltrans));
@@ -234,7 +295,7 @@ order by po asc
             $insert = DB::insert(
                 "
                 insert into packing_trf_garment
-                (no_trans,tgl_trans,id_ppic_master_so,id_so_det,qty,line,po,barcode,dest,created_by,created_at,updated_at)
+                (no_trans,tgl_trans,id_ppic_master_so,id_so_det,qty,line,po,barcode,dest,tujuan,created_by,created_at,updated_at)
                 SELECT '$kode_trans','$tgltrans',
                 a.id_ppic_master_so,
                 p.id_so_det,
@@ -243,6 +304,7 @@ order by po asc
                 p.po,
                 p.barcode,
                 p.dest,
+                '$cbotuj',
                 '$user',
                 '$timestamp',
                 '$timestamp'
@@ -294,42 +356,249 @@ order by po asc
         );
     }
 
+    public function create_transfer_garment_temporary(Request $request)
+    {
+        $user = Auth::user()->name;
 
-    // public function gettipe_garment(Request $request)
-    // {
-    //     // $data_ws = DB::connection('mysql_sb')->select("
-    //     //     select so_det_id isi,
-    //     //         concat(ac.kpno,' - ', ac.styleno,' - ', sd.color,' - ', sd.size, ' - > ',count(so_det_id)) tampil
-    //     //     from output_rfts_packing a
-    //     //         inner join master_plan mp on a.master_plan_id = mp.id
-    //     //         inner join act_costing ac on mp.id_ws = ac.id
-    //     //         inner join so_det sd on a.so_det_id = sd.id
-    //     //         left join master_size_new msn on sd.size = msn.size
-    //     //     where sewing_line = '" . $request->cbo_line . "'
-    //     //     group by so_det_id
-    //     //     having count(so_det_id) != '0'
-    //     //     order by ac.kpno asc, sd.color asc, styleno asc, msn.urutan asc
-    //     // ");
+        $data_po = DB::select("SELECT
+p.po isi,
+CONCAT(p.po, ' ( ', m.styleno, ' ) ', '( ', m.styleno_prod , ' )') tampil
+FROM `packing_trf_garment` a
+inner join ppic_master_so p on a.id_ppic_master_so = p.id
+inner join master_sb_ws m on p.id_so_det = m.id_so_det
+where tujuan = 'Temporary'
+group by p.po");
 
-    //     $data_ws = PPICMasterSo::all();
-
-    //     $html = "<option value=''>Pilih Garment</option>";
-
-    //     foreach ($data_ws as $dataws) {
-    //         if ($dataws->outputPacking) {
-    //             // $res = $dataws->outputPacking->ppicOutput($request->cbo_line)->get();
-    //             $res = $dataws->outputPacking->ppicOutput($request->cbo_line);
-
-    //             foreach ($res as $r) {
-    //                 $html .= " <option value='" . $r->isi . "'>" . $dataws->po . " - " . $r->tampil . "</option> ";
-    //             }
-    //         }
-    //     }
-
-    //     return $html;
-    // }
+        //data_po filter qty 0
+        // select
+        // p.po isi,
+        // CONCAT(p.po, ' ( ', m.styleno, ' ) ', '( ', m.styleno_prod , ' )') tampil
+        // from
+        // (
+        // select id_ppic_master_so, sum(qty) qty_in, '0' qty_out from packing_trf_garment
+        // where tujuan = 'Temporary'
+        // group by id_ppic_master_so
+        // union
+        // select id_ppic_master_so, '0' qty_in, sum(qty) qty_out from packing_trf_garment_out_temporary
+        // group by id_ppic_master_so
+        // ) a
+        // inner join ppic_master_so p on a.id_ppic_master_so = p.id
+        // inner join master_sb_ws m on p.id_so_det = m.id_so_det
+        // group by po
+        // having sum(qty_in) - sum(qty_out) >= '0'
 
 
+        $data_line = DB::connection('mysql_sb')->select("SELECT username isi, username tampil from userpassword
+        where groupp = 'sewing' and locked != '1' or groupp = 'sewing' and locked is null
+order by isi asc");
+
+        return view('packing.create_packing_transfer_garment_temporary', [
+            'page' => 'dashboard-packing', "subPageGroup" => "packing-transfer-garment",
+            "subPage" => "transfer-garment",
+            "data_po" => $data_po,
+            "data_line" => $data_line,
+            "user" => $user
+        ]);
+    }
+
+    public function get_garment_temporary(Request $request)
+    {
+        $data_garment_tmp = DB::select("SELECT
+p.id isi,
+concat (m.ws, ' - ', m.color, ' - ', m.size, ' => ', sum(a.qty_in) - sum(a.qty_tmp) - sum(a.qty_out), ' PCS' ) tampil
+from
+(
+select a.id_ppic_master_so,m.id_so_det, sum(a.qty) qty_in, '0' qty_tmp, '0' qty_out
+from packing_trf_garment a
+inner join ppic_master_so p on a.id_ppic_master_so = p.id
+inner join master_sb_ws m on p.id_so_det = m.id_so_det
+where tujuan = 'Temporary' and p.po = '" . $request->cbo_po . "'
+group by a.id_ppic_master_so
+union
+select tmp.id_ppic_master_so,p.id_so_det, '0' qty_in, sum(qty_tmp_trf_garment) qty_tmp, '0' qty_out from packing_trf_garment_tmp_out_temporary tmp
+inner join ppic_master_so p on tmp.id_ppic_master_so = p.id
+where p.po = '" . $request->cbo_po . "'
+group by tmp.id_ppic_master_so
+union
+select o.id_ppic_master_so,p.id_so_det, '0' qty_in, '0' qty_tmp, sum(qty) qty_out from packing_trf_garment_out_temporary o
+inner join ppic_master_so p on o.id_ppic_master_so = p.id
+where p.po = '" . $request->cbo_po . "'
+group by o.id_ppic_master_so
+) a
+left join ppic_master_so p on a.id_ppic_master_so = p.id
+left join master_sb_ws m on p.id_so_det = m.id_so_det
+group by a.id_ppic_master_so
+        ");
+
+        $html = "<option value=''>Pilih Garment</option>";
+
+        foreach ($data_garment_tmp as $datagarmenttmp) {
+            $html .= " <option value='" . $datagarmenttmp->isi . "'>" . $datagarmenttmp->tampil . "</option> ";
+        }
+
+        return $html;
+    }
+
+    public function store_tmp_trf_garment_temporary(Request $request)
+    {
+        $user = Auth::user()->name;
+        $timestamp = Carbon::now();
+        $validatedRequest = $request->validate([
+            "cbopo" => "required",
+            "cbogarment" => "required",
+            "txtqty" => "required",
+        ]);
+
+        $insert_tmp = DB::insert("
+            insert into packing_trf_garment_tmp_out_temporary
+            (id_ppic_master_so,qty_tmp_trf_garment,created_by,created_at,updated_at)
+            values
+            (
+                '" . $validatedRequest['cbogarment'] . "',
+                '" . $validatedRequest['txtqty'] . "',
+                '$user',
+                '$timestamp',
+                '$timestamp'
+            )
+            ");
+
+        if ($insert_tmp) {
+            return array(
+                'icon' => 'benar',
+                'msg' => 'Data Produk Berhasil Ditambahkan',
+            );
+        } else {
+            return array(
+                'icon' => 'salah',
+                'msg' => 'Tidak ada yang ditambahkan',
+            );
+        }
+    }
+
+    public function show_tmp_trf_garment_temporary(Request $request)
+    {
+        $user = Auth::user()->name;
+        if ($request->ajax()) {
+
+            $data_list = DB::select("
+            select
+            a.id_tmp_trf_garment,
+            po,
+            qty_tmp_trf_garment,
+            m.ws,
+            m.color,
+            m.size
+            from packing_trf_garment_tmp_out_temporary a
+            inner join ppic_master_so b on a.id_ppic_master_so = b.id
+            inner join master_sb_ws m on b.id_so_det = m.id_so_det
+            where a.created_by = '$user'
+            ");
+
+            return DataTables::of($data_list)->toJson();
+        }
+    }
+
+    public function hapus_tmp_trf_garment_temporary(Request $request)
+    {
+        $id = $request->id;
+
+        $del_tmp =  DB::delete("
+        delete from packing_trf_garment_tmp_out_temporary where id_tmp_trf_garment = '$id'");
+    }
+
+    public function store_trf_garment_temporary(Request $request)
+    {
+        $user = Auth::user()->name;
+        $timestamp = Carbon::now();
+        $tgltrans = date('Y-m-d');
+        $tahun = date('Y', strtotime($tgltrans));
+        $bulan = date('m', strtotime($tgltrans));
+        $tgl = date('d', strtotime($tgltrans));
+        $no = date('dmy', strtotime($tgltrans));
+        $kode = 'TMP/OUT/';
+        $cek_nomor = DB::select("
+        select max(cast(SUBSTR(no_trans,15,3) as int)) nomor from packing_trf_garment_out_temporary where year(tgl_trans) = '" . $tahun . "'
+        and month(tgl_trans) = '" . $bulan . "'
+        and day(tgl_trans) = '" . $tgl . "'
+        ");
+        $nomor_tr = $cek_nomor[0]->nomor;
+        $urutan = (int)($nomor_tr);
+        $urutan++;
+        $kodepay = sprintf("%01s", $urutan);
+
+        $kode_trans = $kode . $no . '/' . $kodepay;
+
+        $cek = DB::select("select * from packing_trf_garment_tmp_out_temporary where created_by = '$user'");
+
+        $cekinput = $cek[0]->id_tmp_trf_garment;
+
+        if ($cekinput == '') {
+            return array(
+                'icon' => 'salah',
+                'msg' => 'Tidak ada yang disimpan',
+            );
+        } else {
+            $insert = DB::insert(
+                "
+                insert into packing_trf_garment_out_temporary
+                (no_trans,tgl_trans,id_ppic_master_so,id_so_det,qty,po,barcode,dest,created_by,created_at,updated_at)
+                SELECT '$kode_trans','$tgltrans',
+                a.id_ppic_master_so,
+                p.id_so_det,
+                a.qty_tmp_trf_garment,
+                p.po,
+                p.barcode,
+                p.dest,
+                '$user',
+                '$timestamp',
+                '$timestamp'
+                from packing_trf_garment_tmp_out_temporary a
+                inner join ppic_master_so p on a.id_ppic_master_so = p.id
+                where a.created_by = '$user'
+                "
+            );
+            if ($insert) {
+                $delete =  DB::delete(
+                    "DELETE FROM packing_trf_garment_tmp_out_temporary where created_by = '$user'"
+                );
+                return array(
+                    'icon' => 'benar',
+                    'title' => $kode_trans,
+                    'msg' => 'No Transaksi Sudah Terbuat',
+                );
+            }
+        }
+    }
+
+    public function undo_trf_garment_temporary(Request $request)
+    {
+        $user = Auth::user()->name;
+
+        $undo =  DB::delete(
+            "DELETE FROM packing_trf_garment_tmp_out_temporary where created_by = '$user'"
+        );
+
+        if ($undo) {
+            return array(
+                'icon' => 'benar',
+                'msg' => 'Data berhasil diundo',
+            );
+        } else {
+            return array(
+                'icon' => 'salah',
+                'msg' => 'Tidak ada yang diundo',
+            );
+        }
+    }
+
+    public function reset_trf_garment_temporary(Request $request)
+    {
+        $user = Auth::user()->name;
+
+        $undo =  DB::delete(
+            "DELETE FROM packing_trf_garment_tmp_out_temporary where created_by = '$user'"
+        );
+    }
 
     public function export_excel_trf_garment(Request $request)
     {

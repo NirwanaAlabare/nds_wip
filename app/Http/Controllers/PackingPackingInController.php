@@ -39,8 +39,30 @@ class PackingPackingInController extends Controller
             inner join packing_trf_garment b on a.id_trf_garment = b.id
             inner join ppic_master_so p on a.id_ppic_master_so = p.id
             inner join master_sb_ws m on p.id_so_det = m.id_so_det
-                where a.tgl_penerimaan >= '$tgl_awal' and a.tgl_penerimaan <= '$tgl_akhir'
-                order by a.created_at desc
+                where a.tgl_penerimaan >= '$tgl_awal' and a.tgl_penerimaan <= '$tgl_akhir' and sumber = 'Sewing'
+            union
+            select
+            a.no_trans,
+            concat((DATE_FORMAT(a.tgl_penerimaan,  '%d')), '-', left(DATE_FORMAT(a.tgl_penerimaan,  '%M'),3),'-',DATE_FORMAT(a.tgl_penerimaan,  '%Y')
+            ) tgl_penerimaan_fix,
+            b.no_trans no_trf_garment,
+            'Temporary' line,
+            p.barcode,
+            p.po,
+            p.dest,
+            a.qty,
+            m.ws,
+            m.color,
+            m.size,
+            a.created_at,
+            a.created_by
+            from packing_packing_in a
+            inner join packing_trf_garment_out_temporary b on a.id_trf_garment = b.id
+            inner join ppic_master_so p on a.id_ppic_master_so = p.id
+            inner join master_sb_ws m on p.id_so_det = m.id_so_det
+                where a.tgl_penerimaan >= '$tgl_awal' and a.tgl_penerimaan <= '$tgl_akhir' and sumber = 'Temporary' and a.line = 'Temporary'
+order by created_at desc
+
             ");
 
             return DataTables::of($data_input)->toJson();
@@ -51,10 +73,26 @@ class PackingPackingInController extends Controller
         from
             (
             SELECT
-            a.*,
+            a.id,
+            a.no_trans,
+            a.qty,
             b.qty_in
             from packing_trf_garment a
             left join
+                (
+                select id_trf_garment,sum(qty) qty_in from packing_packing_in
+                group by id_trf_garment
+                ) b on a.id = b.id_trf_garment
+                 where a.tujuan = 'Packing'
+            having a.qty - coalesce(b.qty_in,0) != '0'
+            union
+            SELECT
+            a.id,
+            a.no_trans,
+            a.qty,
+            b.qty_in
+            from packing_trf_garment_out_temporary a
+		    left join
                 (
                 select id_trf_garment,sum(qty) qty_in from packing_packing_in
                 group by id_trf_garment
@@ -96,7 +134,30 @@ class PackingPackingInController extends Controller
             from packing_trf_garment a
             left join
                 (
-                select id_trf_garment,sum(qty) qty_in from packing_packing_in
+                select id_trf_garment,sum(qty) qty_in from packing_packing_in where sumber != 'Temporary'
+                group by id_trf_garment
+                ) b on a.id = b.id_trf_garment
+						inner join ppic_master_so  p on a.id_ppic_master_so = p.id
+						inner join master_sb_ws m on p.id_so_det = m.id_so_det
+						where a.no_trans = '" . $request->cbono . "'
+            having a.qty - coalesce(b.qty_in,0) != '0'
+			union
+            SELECT
+            a.id,
+            'Temporary' line,
+			a.qty,
+            b.qty_in,
+			m.ws,
+			m.color,
+			m.size,
+			p.barcode,
+			p.dest,
+			p.po,
+            'PCS' unit
+            from packing_trf_garment_out_temporary a
+            left join
+                (
+                select id_trf_garment,sum(qty) qty_in from packing_packing_in where sumber = 'Temporary'
                 group by id_trf_garment
                 ) b on a.id = b.id_trf_garment
 						inner join ppic_master_so  p on a.id_ppic_master_so = p.id
@@ -179,43 +240,67 @@ class PackingPackingInController extends Controller
         $user = Auth::user()->name;
         $JmlArray               = $_POST['txtqty'];
         $id_trf_garmentArray    = $_POST['id_trf_garment'];
+        $status              = implode(',', $_POST['status']);
         $tgl_penerimaan = date('Y-m-d');
 
         $tahun = date('Y', strtotime($tgl_penerimaan));
         $no = date('my', strtotime($tgl_penerimaan));
         $kode = 'PCK/IN/';
         $cek_nomor = DB::select("
-        select max(cast(SUBSTR(no_trans,16,3) as int))nomor from packing_packing_in where year(tgl_penerimaan) = '" . $tahun . "'
+        select max(cast(SUBSTR(no_trans,13,5) as int))nomor from packing_packing_in where year(tgl_penerimaan) = '" . $tahun . "'
         ");
         $nomor_tr = $cek_nomor[0]->nomor;
         $urutan = (int)($nomor_tr);
         $urutan++;
-        $kodepay = sprintf("%05s", $urutan);
+        $kode_cek = $urutan++;
+        $kodepay = sprintf("%05s", $kode_cek);
 
         $kode_trans = $kode . $no . '/' . $kodepay;
 
+        if ($status != 'Temporary') {
+            foreach ($JmlArray as $key => $value) {
+                if ($value != '0' && $value != '') {
+                    $txtqty         = $JmlArray[$key];
+                    $txtid_trf_garment   = $id_trf_garmentArray[$key]; {
 
-        foreach ($JmlArray as $key => $value) {
-            if ($value != '0' && $value != '') {
-                $txtqty         = $JmlArray[$key];
-                $txtid_trf_garment   = $id_trf_garmentArray[$key]; {
+                        $cek = DB::select("select * from packing_trf_garment where id = '$txtid_trf_garment'");
+                        $id_ppic_master_so = $cek[0]->id_ppic_master_so;
+                        $id_so_det = $cek[0]->id_so_det;
+                        $line = $cek[0]->line;
+                        $po = $cek[0]->po;
+                        $barcode = $cek[0]->barcode;
+                        $dest = $cek[0]->dest;
 
-                    $cek = DB::select("select * from packing_trf_garment where id = '$txtid_trf_garment'");
-                    $id_ppic_master_so = $cek[0]->id_ppic_master_so;
-                    $id_so_det = $cek[0]->id_so_det;
-                    $line = $cek[0]->line;
-                    $po = $cek[0]->po;
-                    $barcode = $cek[0]->barcode;
-                    $dest = $cek[0]->dest;
-
-
-                    $insert_penerimaan =  DB::insert("
+                        $insert_penerimaan =  DB::insert("
         insert into packing_packing_in
-        (id_trf_garment,no_trans,tgl_penerimaan,id_ppic_master_so,id_so_det,qty,line,po,barcode,dest,created_by,created_at,updated_at)
-        values('$txtid_trf_garment','$kode_trans','$tgl_penerimaan','$id_ppic_master_so','$id_so_det','$txtqty','$line','$po','$barcode','$dest','$user','$timestamp','$timestamp')");
+        (id_trf_garment,no_trans,tgl_penerimaan,id_ppic_master_so,id_so_det,qty,line,po,barcode,dest,sumber,created_by,created_at,updated_at)
+        values('$txtid_trf_garment','$kode_trans','$tgl_penerimaan','$id_ppic_master_so','$id_so_det','$txtqty','$line','$po','$barcode','$dest','Sewing','$user','$timestamp','$timestamp')");
+                    }
+                }
+            }
+        } else  if ($status == 'Temporary') {
+            foreach ($JmlArray as $key => $value) {
+                if ($value != '0' && $value != '') {
+                    $txtqty         = $JmlArray[$key];
+                    $txtid_trf_garment   = $id_trf_garmentArray[$key]; {
+
+                        $cek = DB::select("select * from packing_trf_garment_out_temporary where id = '$txtid_trf_garment'");
+                        $id_ppic_master_so = $cek[0]->id_ppic_master_so;
+                        $id_so_det = $cek[0]->id_so_det;
+                        $line = 'Temporary';
+                        $po = $cek[0]->po;
+                        $barcode = $cek[0]->barcode;
+                        $dest = $cek[0]->dest;
+
+                        $insert_penerimaan =  DB::insert("
+        insert into packing_packing_in
+        (id_trf_garment,no_trans,tgl_penerimaan,id_ppic_master_so,id_so_det,qty,line,po,barcode,dest,sumber,created_by,created_at,updated_at)
+        values('$txtid_trf_garment','$kode_trans','$tgl_penerimaan','$id_ppic_master_so','$id_so_det','$txtqty','$line','$po','$barcode','$dest','Temporary','$user','$timestamp','$timestamp')");
+                    }
                 }
             }
         }
+
         if ($insert_penerimaan != '') {
             return array(
                 "status" => 900,
