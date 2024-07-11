@@ -1061,6 +1061,9 @@ class TrackController extends Controller
             stocker_input.ratio,
             COALESCE(master_part.nama_part, ' - ') nama_part,
             CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir, (CASE WHEN dc_in_input.qty_reject IS NOT NULL AND dc_in_input.qty_replace IS NOT NULL THEN CONCAT(' (', (COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0)), ') ') ELSE ' (0)' END)) stocker_range,
+            stocker_input.range_awal,
+            stocker_input.range_akhir,
+            (CASE WHEN dc_in_input.qty_reject IS NOT NULL AND dc_in_input.qty_replace IS NOT NULL THEN (COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0)) ELSE 0 END) difference_qty,
             stocker_input.status,
             dc_in_input.id dc_in_id,
             dc_in_input.tujuan,
@@ -1069,7 +1072,7 @@ class TrackController extends Controller
             (CASE WHEN dc_in_input.tujuan = 'SECONDARY DALAM' OR dc_in_input.tujuan = 'SECONDARY LUAR' THEN dc_in_input.lokasi ELSE '-' END) secondary,
             COALESCE(rack_detail_stocker.nm_rak, (CASE WHEN dc_in_input.tempat = 'RAK' THEN dc_in_input.lokasi ELSE null END), (CASE WHEN dc_in_input.lokasi = 'RAK' THEN dc_in_input.det_alokasi ELSE null END), '-') rak,
             COALESCE(trolley.nama_trolley, (CASE WHEN dc_in_input.tempat = 'TROLLEY' THEN dc_in_input.lokasi ELSE null END), '-') troli,
-            COALESCE((COALESCE(dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0)), stocker_input.qty_ply) qty_ply,
+            COALESCE((COALESCE(dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0)), stocker_input.qty_ply) stocker_qty_ply,
             COALESCE(UPPER(loading_line.nama_line), '-') line,
             stocker_input.updated_at latest_update
         ")->
@@ -1114,11 +1117,47 @@ class TrackController extends Controller
         }
 
         if ($stkPanel) {
-            $stockerSql->whereRaw("stocker_input.panel LIKE '%'" . $stkPanel . "%'");
+            $stockerSql->whereRaw("stocker_input.panel LIKE '%" . $stkPanel . "%'");
+        }
+
+        if ($stkPart) {
+            $stockerSql->whereRaw("master_part.nama_part LIKE '%" . $stkPart . "%'");
+        }
+
+        if ($stkNoForm) {
+            $stockerSql->whereRaw("form_cut_input.no_form LIKE '%" . $stkNoForm . "%'");
+        }
+
+        if ($stkNoCut) {
+            $stockerSql->whereRaw("form_cut_input.no_cut LIKE '%" . $stkNoCut . "%'");
         }
 
         if ($stkSize) {
             $stockerSql->whereRaw("stocker_input.size LIKE '%" . $stkSize . "%'");
+        }
+
+        if ($stkGroup) {
+            $stockerSql->whereRaw("stocker_input.shade LIKE '%" . $stkGroup . "%'");
+        }
+
+        if ($stkNoStocker) {
+            $stockerSql->whereRaw("stocker_input.id_qr_stocker LIKE '%" . $stkNoStocker . "%'");
+        }
+
+        if ($stkSecondary) {
+            $stockerSql->whereRaw("(CASE WHEN dc_in_input.tujuan = 'SECONDARY DALAM' OR dc_in_input.tujuan = 'SECONDARY LUAR' THEN dc_in_input.lokasi ELSE '-' END) LIKE '%" . $stkSecondary . "%'");
+        }
+
+        if ($stkRack) {
+            $stockerSql->whereRaw("COALESCE(rack_detail_stocker.nm_rak, (CASE WHEN dc_in_input.tempat = 'RAK' THEN dc_in_input.lokasi ELSE null END), (CASE WHEN dc_in_input.lokasi = 'RAK' THEN dc_in_input.det_alokasi ELSE null END), '-') LIKE '%" . $stkRack . "%'");
+        }
+
+        if ($stkTrolley) {
+            $stockerSql->whereRaw("COALESCE(trolley.nama_trolley, (CASE WHEN dc_in_input.tempat = 'TROLLEY' THEN dc_in_input.lokasi ELSE null END), '-') LIKE '%" . $stkTrolley . "%'");
+        }
+
+        if ($stkLine) {
+            $stockerSql->whereRaw("COALESCE(UPPER(loading_line.nama_line), '-') LIKE '%" . $stkLine . "%'");
         }
 
         $stocker = $stockerSql->
@@ -1129,24 +1168,13 @@ class TrackController extends Controller
             orderBy("master_part.nama_part", "asc")->
             orderBy("stocker_input.so_det_id", "asc")->
             orderBy("stocker_input.shade", "desc")->
-            orderBy("stocker_input.id_qr_stocker", "asc");
+            orderBy("stocker_input.id_qr_stocker", "asc")->
+            get();
 
         return array(
-            "totalRoll" => $pemakaianRoll ? num($pemakaianRoll->count()) : 0,
-            "totalQty" => $pemakaianRoll ? num($pemakaianRoll->sum("qty_item")) : 0,
-            "totalUnit" => $pemakaianRoll ? $pemakaianRoll->max("unit_item") : '-',
-            "totalSisaGelaran" => $pemakaianRoll ? num($pemakaianRoll->sum("sisa_gelaran")) : 0,
-            "totalSambungan" => $pemakaianRoll ? num($pemakaianRoll->sum("sambungan")) : 0,
-            "totalEstAmparan" => $pemakaianRoll ? num($pemakaianRoll->sum("est_amparan")) : 0,
-            "totalLembarGelaran" => $pemakaianRoll ? num($pemakaianRoll->sum("lembar_gelaran")) : 0,
-            "totalKepalaKain" => $pemakaianRoll ? num($pemakaianRoll->sum("kepala_kain")) : 0,
-            "totalSisaTidakBisa" => $pemakaianRoll ? num($pemakaianRoll->sum("sisa_tidak_bisa")) : 0,
-            "totalReject" => $pemakaianRoll ? num($pemakaianRoll->sum("reject")) : 0,
-            "totalSisaKain" => $pemakaianRoll ? num($pemakaianRoll->sum("sisa_kain")) : 0,
-            "totalTotalPemakaian" => $pemakaianRoll ? num($pemakaianRoll->sum("total_pemakaian_roll")) : 0,
-            "totalShortRoll" => $pemakaianRoll ? num($pemakaianRoll->sum("short_roll")) : 0,
-            "totalPiping" => $pemakaianRoll ? num($pemakaianRoll->sum("piping")) : 0,
-            "totalRemark" => $pemakaianRoll ? num($pemakaianRoll->sum("remark")) : 0,
+            "totalStocker" => $stocker ? num($stocker->count()) : 0,
+            "totalQtyPly" => $stocker ? num($stocker->sum("stocker_qty_ply")) : 0,
+            "totalRange" => $stocker ? $stocker->min("range_awal").' - '.$stocker->max("range_akhir").' ('.$stocker->sum("difference_qty").')' : '-',
         );
     }
 }
