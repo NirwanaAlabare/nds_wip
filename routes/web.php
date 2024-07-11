@@ -23,8 +23,9 @@ use App\Http\Controllers\Cutting\CuttingFormController;
 use App\Http\Controllers\Cutting\CuttingFormManualController;
 use App\Http\Controllers\Cutting\CuttingFormPilotController;
 use App\Http\Controllers\Cutting\CuttingPlanController;
-use App\Http\Controllers\Cutting\RollController;
+use App\Http\Controllers\Cutting\ReportCuttingController;
 use App\Http\Controllers\Cutting\CompletedFormController;
+use App\Http\Controllers\Cutting\RollController;
 
 // Stocker
 use App\Http\Controllers\Stocker\StockerController;
@@ -354,14 +355,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-cut-plan-form', 'getCutPlanForm')->name('get-cut-plan-form');
     });
 
-    // Roll
-    Route::controller(RollController::class)->prefix("lap_pemakaian")->middleware('admin')->group(function () {
-        Route::get('/', 'index')->name('lap_pemakaian');
-        // export excel
-        Route::get('/export_excel', 'export_excel')->name('export_excel');
-        Route::get('/export', 'export')->name('export');
-    });
-
     // CompletedForm
     Route::controller(CompletedFormController::class)->prefix("manager")->middleware('manager')->group(function () {
         Route::get('/cutting', 'cutting')->name('manage-cutting');
@@ -370,6 +363,21 @@ Route::middleware('auth')->group(function () {
         Route::post('/cutting/update-form', 'updateCutting')->name('update-spreading-form');
         Route::put('/cutting/update-finish/{id?}', 'updateFinish')->name('finish-update-spreading-form');
         Route::delete('/cutting/destroy-roll/{id?}', 'destroySpreadingRoll')->name('destroy-spreading-roll');
+    });
+
+    // ReportCutting
+    Route::controller(ReportCuttingController::class)->prefix("report-cutting")->middleware('admin')->group(function () {
+        Route::get('/cutting', 'cutting')->name('report-cutting');
+        // export excel
+        Route::post('/cutting/export', 'export')->name('report-cutting-export');
+    });
+
+    // Roll
+    Route::controller(RollController::class)->prefix("lap_pemakaian")->middleware('admin')->group(function () {
+        Route::get('/', 'index')->name('lap_pemakaian');
+        // export excel
+        Route::get('/export_excel', 'export_excel')->name('export_excel');
+        Route::post('/export', 'export')->name('export');
     });
 
     // Stocker :
@@ -570,6 +578,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/worksheet/show-roll', 'wsRoll')->name('track-ws-roll');
         Route::get('/worksheet/show-roll-total', 'wsRollTotal')->name('track-ws-roll-total');
         Route::get('/worksheet/show-stocker', 'wsStocker')->name('track-ws-stocker');
+        Route::get('/worksheet/show-stocker-total', 'wsStockerTotal')->name('track-ws-stocker-total');
     });
 
     //Mutasi Karywawan
