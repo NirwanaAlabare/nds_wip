@@ -897,7 +897,15 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store_trf_garment');
         Route::post('/undo', 'undo')->name('undo-trf-garment');
         Route::post('/reset', 'reset')->name('reset-trf-garment');
+        Route::get('/create_transfer_garment_temporary', 'create_transfer_garment_temporary')->name('create-transfer-garment-temporary');
+        Route::get('/get_garment_temporary', 'get_garment_temporary')->name('get_garment_temporary');
         Route::get('/export_excel_trf_garment', 'export_excel_trf_garment')->name('export_excel_trf_garment');
+        Route::post('/store_tmp_trf_garment_temporary', 'store_tmp_trf_garment_temporary')->name('store_tmp_trf_garment_temporary');
+        Route::get('/show_tmp_trf_garment_temporary', 'show_tmp_trf_garment_temporary')->name('show_tmp_trf_garment_temporary');
+        Route::post('/hapus_tmp_trf_garment_temporary', 'hapus_tmp_trf_garment_temporary')->name('hapus_tmp_trf_garment_temporary');
+        Route::post('/store_trf_garment_temporary', 'store_trf_garment_temporary')->name('store_trf_garment_temporary');
+        Route::post('/undo_trf_garment_temporary', 'undo_trf_garment_temporary')->name('undo_trf_garment_temporary');
+        Route::post('/reset_trf_garment_temporary', 'reset_trf_garment_temporary')->name('reset_trf_garment_temporary');
     });
 
     // Packing In

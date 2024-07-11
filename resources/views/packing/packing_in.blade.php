@@ -379,6 +379,8 @@
                         <div>
                             <input type="hidden" size="4" id="id_trf_garment[` + row.id + `]"
                             name="id_trf_garment[` + row.id + `]" value = "` + row.id + `"/>
+                            <input type="hidden" size="4" id="status[` + row.id + `]"
+                            name="status[` + row.id + `]" value = "` + row.line + `"/>
                         </div>
                         `;
                     }
