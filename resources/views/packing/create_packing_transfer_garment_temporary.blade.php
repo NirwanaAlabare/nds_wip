@@ -12,10 +12,11 @@
 @endsection
 
 @section('content')
-    <div class="card card-primary">
+    <div class="card card-warning">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center ">
-                <h5 class="card-title fw-bold mb-0"><i class="fas fa-shirt"></i> Input Transfer Garment Dari Sewing</h5>
+                <h5 class="card-title fw-bold mb-0"><i class="fas fa-warehouse"></i> Input Transfer Garment Dari Temporary
+                </h5>
                 <a href="{{ route('transfer-garment') }}" class="btn btn-sm btn-light">
                     <i class="fa fa-reply"></i> Kembali
                 </a>
@@ -26,40 +27,18 @@
                 <div class="row justify-content-center align-items-end">
                     <div class="col-md-12">
                         <div class="mb-3">
-                            <label>Tujuan</label>
-                            <select class="form-control select2bs4" id="cbotuj" name="cbotuj" style="width: 100%;">
-                                <option selected="selected" value="" disabled="true">Pilih Tujuan</option>
-                                @foreach ($data_tujuan as $datatujuan)
-                                    <option value="{{ $datatujuan->isi }}">
-                                        {{ $datatujuan->tampil }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-12">
-                        <div class="mb-3">
                             <input type="hidden" class="form-control " name="user" id="user"
                                 value = "{{ $user }}">
-                            <label>Line</label>
-                            <select class="form-control select2bs4" id="cboline" name="cboline" style="width: 100%;"
-                                onchange="getpo();getgarment();">
-                                <option selected="selected" value="" disabled="true">Pilih Line</option>
-                                @foreach ($data_line as $dataline)
-                                    <option value="{{ $dataline->isi }}">
-                                        {{ $dataline->tampil }}
+                            <label>No. PO</label>
+                            <select class="form-control select2bs4" id="cbopo" name="cbopo" style="width: 100%;"
+                                onchange="getgarment();">
+                                <option selected="selected" value="" disabled="true">Pilih PO</option>
+                                @foreach ($data_po as $datapo)
+                                    <option value="{{ $datapo->isi }}">
+                                        {{ $datapo->tampil }}
                                     </option>
                                 @endforeach
                             </select>
-                        </div>
-                    </div>
-                    <div class="col-md-12">
-                        <div class="mb-3">
-                            <div class="form-group">
-                                <label>No. PO</label>
-                                <select class='form-control select2bs4 form-control-sm' style='width: 100%;' name='cbopo'
-                                    id='cbopo' onchange="getgarment()"></select>
-                            </div>
                         </div>
                     </div>
                     <div class="col-md-12">
@@ -96,7 +75,7 @@
         </form>
         <div class="row">
             <div class="col-md-12">
-                <div class="card card-primary card-outline">
+                <div class="card card-warning card-outline">
                     <div class="card-header">
                         <h5 class="card-title"><i class="fas fa-list"></i> List Garment</h5>
                     </div>
@@ -105,7 +84,6 @@
                             <table id="datatable_tmp" class="table table-bordered table-sm w-100 text-nowrap">
                                 <thead>
                                     <tr>
-                                        <th>Line</th>
                                         <th>PO</th>
                                         <th>WS</th>
                                         <th>Color</th>
@@ -116,7 +94,7 @@
                                 </thead>
                                 <tfoot>
                                     <tr>
-                                        <th colspan="5"></th>
+                                        <th colspan="4"></th>
                                         <th></th>
                                         <th></th>
                                     </tr>
@@ -174,51 +152,30 @@
             dataTableTmpReload();
         })
 
-
-        function getpo() {
-            let cboline = document.form_h.cboline.value;
-            let html = $.ajax({
-                type: "GET",
-                url: '{{ route('get_po') }}',
-                data: {
-                    cbo_line: cboline
-                },
-                async: false
-            }).responseText;
-            // console.log(html != "");
-            if (html != "") {
-                $("#cbopo").html(html);
-            }
-        };
-
         function getgarment() {
-            let cboline = document.form_h.cboline.value;
             let cbopo = document.form_h.cbopo.value;
             let html = $.ajax({
                 type: "GET",
-                url: '{{ route('get_garment') }}',
+                url: '{{ route('get_garment_temporary') }}',
                 data: {
-                    cbo_line: cboline,
                     cbo_po: cbopo
                 },
                 async: false
             }).responseText;
-            // console.log(html != "");
+            // console.log(cbopo);
             if (html != "") {
                 $("#cbogarment").html(html);
             }
         };
 
         function tambah_data() {
-            let cboline = document.form_h.cboline.value;
             let cbopo = document.form_h.cbopo.value;
             let cbogarment = document.form_h.cbogarment.value;
             let txtqty = document.form_h.txtqty.value;
             $.ajax({
                 type: "post",
-                url: '{{ route('store_tmp_trf_garment') }}',
+                url: '{{ route('store_tmp_trf_garment_temporary') }}',
                 data: {
-                    cboline: cboline,
                     cbopo: cbopo,
                     cbogarment: cbogarment,
                     txtqty: txtqty
@@ -263,7 +220,7 @@
 
                     // computing column Total of the complete result
                     var sumTotal = api
-                        .column(5)
+                        .column(4)
                         .data()
                         .reduce(function(a, b) {
                             return intVal(a) + intVal(b);
@@ -271,7 +228,7 @@
 
                     // Update footer by showing the total with the reference of the column index
                     $(api.column(0).footer()).html('Total');
-                    $(api.column(5).footer()).html(sumTotal);
+                    $(api.column(4).footer()).html(sumTotal);
                 },
 
 
@@ -284,7 +241,7 @@
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
-                    url: '{{ route('show_tmp_trf_garment') }}',
+                    url: '{{ route('show_tmp_trf_garment_temporary') }}',
                     dataType: 'json',
                     dataSrc: 'data',
                     data: function(d) {
@@ -292,9 +249,6 @@
                     },
                 },
                 columns: [{
-                        data: 'line',
-                    },
-                    {
                         data: 'po',
                     },
                     {
@@ -311,16 +265,16 @@
                     },
                 ],
                 columnDefs: [{
-                    targets: [6],
+                    targets: [5],
                     render: (data, type, row, meta) => {
                         return `
-                    <div
-                    class='d-flex gap-1 justify-content-center'>
-                    <a  class='btn btn-sm' data-bs-toggle='tooltip' onclick="hapus('` + row.id_tmp_trf_garment + `');">
-                        <i class='fas fa-minus-square fa-lg' style='color: #ff0000;'></i>
-                    </a>
-                    </div>
-                        `;
+                <div
+                class='d-flex gap-1 justify-content-center'>
+                <a  class='btn btn-sm' data-bs-toggle='tooltip' onclick="hapus('` + row.id_tmp_trf_garment + `');">
+                    <i class='fas fa-minus-square fa-lg' style='color: #ff0000;'></i>
+                </a>
+                </div>
+                    `;
                     }
                 }, ]
             });
@@ -328,16 +282,14 @@
 
         function clear_h() {
             document.getElementById('txtqty').value = "";
-            $("#cboline").val('').trigger('change');
             $("#cbopo").val('').trigger('change');
             $("#cbogarment").val('').trigger('change');
         }
 
         function hapus(id) {
-            let cbopo = document.form_h.cbopo.value;
             $.ajax({
                 type: "post",
-                url: '{{ route('hapus_tmp_trf_garment') }}',
+                url: '{{ route('hapus_tmp_trf_garment_temporary') }}',
                 data: {
                     id: id
                 },
@@ -356,13 +308,9 @@
         }
 
         function simpan() {
-            let cbotuj = document.form_h.cbotuj.value;
             $.ajax({
                 type: "post",
-                url: '{{ route('store_trf_garment') }}',
-                data: {
-                    cbotuj: cbotuj
-                },
+                url: '{{ route('store_trf_garment_temporary') }}',
                 success: function(response) {
                     if (response.icon == 'salah') {
                         iziToast.warning({
@@ -393,7 +341,7 @@
             let user = document.form_h.user.value;
             $.ajax({
                 type: "post",
-                url: '{{ route('undo-trf-garment') }}',
+                url: '{{ route('undo_trf_garment_temporary') }}',
                 data: {
                     user: user
                 },
@@ -421,7 +369,7 @@
             let user = document.form_h.user.value;
             $.ajax({
                 type: "post",
-                url: '{{ route('reset-trf-garment') }}',
+                url: '{{ route('reset_trf_garment_temporary') }}',
                 data: {
                     user: user
                 },

@@ -448,8 +448,8 @@ select p.po isi, p.po tampil from
 where created_by = '$user' and tgl_shipment >= '$tgl_skrg' ) p
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
 where m.ws = '" . $request->cbows_edit_tgl . "'
-group by ws
-order by ws asc
+group by po
+order by po asc
         ");
 
         $html = "<option value=''>Pilih No PO</option>";
@@ -471,8 +471,8 @@ select p.po isi, p.po tampil from
 where created_by = '$user' and tgl_shipment >= '$tgl_skrg' ) p
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
 where m.ws = '" . $request->cbows_hapus . "'
-group by ws
-order by ws asc
+group by po
+order by po asc
         ");
 
         $html = "<option value=''>Pilih No PO</option>";
