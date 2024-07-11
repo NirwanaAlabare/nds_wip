@@ -161,7 +161,7 @@
                                 </div>
                                 <div class="col-6">
                                     <div class="mb-4">
-                                        <label><small><b>&nbsp</b></small></label>
+                                        <label><small><b>&nbsp;</b></small></label>
                                         <button type="button" class="btn btn-block bg-primary" name="simpan" id="simpan" onclick="savePartData();"><i class="fa fa-save"></i></button>
                                         {{-- <input type="button" class="btn bg-primary w-100" name="simpan" id="simpan" value="Simpan" onclick="simpan_data();"> --}}
                                     </div>
@@ -680,6 +680,15 @@
                         </thead>
                         <tbody>
                         </tbody>
+                        <tfoot>
+                            <tr>
+                                <th class="text-end" colspan="7">Total</th>
+                                <th id="total-stocker"></th>
+                                <th id="total-stocker-qty"></th>
+                                <th id="total-stocker-range"></th>
+                                <th colspan="5"></th>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -1884,13 +1893,13 @@
             }
 
         // Stocker
-            var stockerTableParameter = ['stk_color', 'stk_panel', 'stk_part', 'stk_no_form', 'stk_no_cut', 'stk_size', 'stk_group', 'stk_no_stocker', 'stk_qty', 'stk_range', 'stk_secondary','stk_rack', 'stk_trolley', 'stk_line', 'updated_at'];
+            var stockerTableParameter = ['stk_color', 'stk_panel', 'stk_part', 'stk_no_form', 'stk_no_cut', 'stk_size', 'stk_group', 'stk_no_stocker', 'stk_qty', 'stk_range', 'stk_secondary','stk_rack', 'stk_trolley', 'stk_line', 'stk_updated_at'];
 
             $('#stocker-table thead tr').clone(true).appendTo('#stocker-table thead');
                 $('#stocker-table thead tr:eq(1) th').each(function(i) {
                     if (i != 8 && i != 9 && i != 14) {
                         var title = $(this).text();
-                        $(this).html('<input type="text" class="form-control form-control-sm" />');
+                        $(this).html('<input type="text" class="form-control form-control-sm" id="'+stockerTableParameter[i]+'" />');
 
                         $('input', this).on('keyup change', function() {
                             if (stockerTable.column(i).search() !== this.value) {
@@ -1982,6 +1991,12 @@
                             className: "text-nowrap"
                         },
                         {
+                            targets: [7, 8, 9],
+                            render: (data, type, row, meta) => {
+                                return `<div style="min-width: 100px;">`+data+`</div>`;
+                            }
+                        },
+                        {
                             targets: "_all",
                             className: "text-nowrap colorize"
                         }
@@ -2002,11 +2017,54 @@
                             $('td.colorize', row).css('color', '#da4f4a');
                             $('td.colorize', row).css('font-weight', '600');
                         }
+                    },
+                    footerCallback: async function (row, data, start, end, display) {
+                        let api = this.api();
+
+                        api.column(7).footer().innerHTML = "...";
+                        api.column(8).footer().innerHTML = "...";
+                        api.column(9).footer().innerHTML = "...";
+
+                        let totalStocker = await getTotalStocker();
+
+                        if (await totalStocker) {
+                            api.column(7).footer().innerHTML = totalStocker.totalStocker;
+                            api.column(8).footer().innerHTML = totalStocker.totalQtyPly;
+                            api.column(9).footer().innerHTML = totalStocker.totalRange;
+                        }
                     }
                 });
 
                 function stockerTableReload() {
                     stockerTable.ajax.reload();
+                }
+
+                async function getTotalStocker() {
+                    return $.ajax({
+                        url: '{{ route('track-ws-stocker-total') }}',
+                        type: 'GET',
+                        dataType: 'json',
+                        data: {
+                            actCostingId : $('#id').val(),
+                            dateFrom : $('#stocker-from').val(),
+                            dateTo : $('#stocker-to').val(),
+                            color : $('#ws-color-filter').val(),
+                            panel : $('#ws-panel-filter').val(),
+                            size : $('#ws-size-filter').val(),
+                            stkColor : $('#stk_color').val(),
+                            stkPanel : $('#stk_panel').val(),
+                            stkPart : $('#stk_part').val(),
+                            stkNoForm : $('#stk_no_form').val(),
+                            stkNoCut : $('#stk_no_cut').val(),
+                            stkSize : $('#stk_size').val(),
+                            stkGroup : $('#stk_group').val(),
+                            stkNoStocker : $('#stk_no_stocker').val(),
+                            stkSecondary : $('#stk_secondary').val(),
+                            stkRack : $('#stk_rack').val(),
+                            stkTrolley : $('#stk_trolley').val(),
+                            stkLine : $('#stk_line').val()
+                        },
+                    });
                 }
     </script>
 @endsection

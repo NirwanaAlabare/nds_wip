@@ -304,6 +304,18 @@
                         <li class="nav-item dropdown">
                             <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
                                 aria-expanded="false"
+                                class="nav-link dropdown-toggle {{ $subPageGroup == 'cutting-report' ? 'active' : '' }}">Report</a>
+                            <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
+                                <li>
+                                    <a href="{{ route('report-cutting') }}" class="dropdown-item {{ $subPage == 'cutting' ? 'active' : '' }}">
+                                        Report Cutting <i class="fa fa-file"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                                aria-expanded="false"
                                 class="nav-link dropdown-toggle {{ $subPageGroup == 'laporan-cutting' ? 'active' : '' }}">Roll</a>
                             <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
                                 <li>
