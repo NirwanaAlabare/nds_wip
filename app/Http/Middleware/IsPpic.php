@@ -17,7 +17,7 @@ class IsPpic
      */
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::user() &&  (Auth::user()->type == 'admin' || Auth::user()->type == 'ppic')) {
+        if (Auth::user() &&  (Auth::user()->type == 'admin' || Auth::user()->type == 'ppic' || Auth::user()->type == 'packing')) {
             return $next($request);
         }
 
