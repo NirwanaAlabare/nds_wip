@@ -170,11 +170,11 @@
                 <td>{{ $totalBalanceToTarget }}</td>
                 <td>{{ $totalTotalTargetSpr }}</td>
                 <td>{{ $totalOutputSpr }}</td>
-                <td>{{ $totalBalanceSpr }}</td>
+                <td style="{{ $totalBalanceSpr > 0 ? 'background: #c4edc2; color: #199e08;' : ($totalBalanceSpr == 0 ? 'background: #dde7f7;color: #2683ed;' : 'background: #f7dedd;color: #ed2626;') }}">{{ $totalBalanceSpr }}</td>
                 <td>{{ $totalBalanceToSpr }}</td>
                 <td>{{ $totalTotalTargetCut }}</td>
                 <td>{{ $totalOutputCut }}</td>
-                <td>{{ $totalBalanceCut }}</td>
+                <td style="{{ $totalBalanceCut > 0 ? 'background: #c4edc2; color: #199e08;' : ($totalBalanceCut == 0 ? 'background: #dde7f7;color: #2683ed;' : 'background: #f7dedd;color: #ed2626;') }}">{{ $totalBalanceCut }}</td>
                 <td>{{ $totalConsWs }}</td>
                 <td>{{ $totalNeed }}</td>
                 <td>{{ $totalSisaKemarin }}</td>
