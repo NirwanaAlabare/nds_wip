@@ -256,42 +256,44 @@
                             </button>
                         </h2>
                         <div id="marker-detail-1" class="accordion-collapse collapse" data-bs-parent="#marker-detail">
-                            <div class="table-responsive">
-                                <table id="marker-table" class="table table-bordered table-sm w-100">
-                                    <thead>
-                                        <tr>
-                                            <th class="align-bottom">Action</th>
-                                            <th>Tanggal</th>
-                                            <th>No. Marker</th>
-                                            <th>Color</th>
-                                            <th>Panel</th>
-                                            <th>Urutan</th>
-                                            <th>Panjang</th>
-                                            <th>Lebar</th>
-                                            <th>Gramasi</th>
-                                            <th>Gelar QTYs</th>
-                                            <th>Total Form</th>
-                                            <th>Ratio</th>
-                                            <th>PO</th>
-                                            <th>Ket.</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <th class="text-end" colspan="5">Total</th>
-                                            <th id="total-marker"></th>
-                                            <th id="total-panjang-marker"></th>
-                                            <th id="total-lebar-marker"></th>
-                                            <th id="total-gramasi-marker"></th>
-                                            <th id="total-gelar-marker"></th>
-                                            <th id="total-form-marker"></th>
-                                            <th></th>
-                                            <th></th>
-                                            <th></th>
-                                        </tr>
-                                    </tfoot>
-                                </table>
+                            <div class="accordion-body">
+                                <div class="table-responsive">
+                                    <table id="marker-table" class="table table-bordered table-sm w-100">
+                                        <thead>
+                                            <tr>
+                                                <th class="align-bottom">Action</th>
+                                                <th>Tanggal</th>
+                                                <th>No. Marker</th>
+                                                <th>Color</th>
+                                                <th>Panel</th>
+                                                <th>Urutan</th>
+                                                <th>Panjang</th>
+                                                <th>Lebar</th>
+                                                <th>Gramasi</th>
+                                                <th>Gelar QTYs</th>
+                                                <th>Total Form</th>
+                                                <th>Ratio</th>
+                                                <th>PO</th>
+                                                <th>Ket.</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <th class="text-end" colspan="5">Total</th>
+                                                <th id="total-marker"></th>
+                                                <th id="total-panjang-marker"></th>
+                                                <th id="total-lebar-marker"></th>
+                                                <th id="total-gramasi-marker"></th>
+                                                <th id="total-gelar-marker"></th>
+                                                <th id="total-form-marker"></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -931,9 +933,10 @@
                     </div>
                 </div>
                 <div id="output-line-chart" style="height: 350px;"></div>
+                <a href="http://10.10.5.62:8000/sb_wip_report/public/index.php/track-order-output" target="_blank" class="btn btn-sb w-100"><i class="fa fa-search"></i> Track Detail Output</a>
             </div>
         </div>
-    {{-- OUTPUT SEWING END --}}
+    {{-- OUTPUT LINE END --}}
 @endsection
 
 @section('custom-script')
