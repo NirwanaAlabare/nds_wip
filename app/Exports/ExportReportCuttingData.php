@@ -35,7 +35,7 @@ class ExportReportCuttingData implements FromView, WithEvents, ShouldAutoSize, W
 
     public function title(): string
     {
-        return $this->date;
+        return localeDateFormat($this->date);
     }
 
     public function view(): View
@@ -43,7 +43,7 @@ class ExportReportCuttingData implements FromView, WithEvents, ShouldAutoSize, W
         $additionalQuery = "";
 
         if ($this->date) {
-            $additionalQuery .= " and form_cut_input.tgl_form_cut = '".$this->date."'";
+            $additionalQuery .= " and DATE(form_cut_input.waktu_mulai) = '".$this->date."'";
         }
 
         $reportCutting = DB::select("
@@ -85,7 +85,7 @@ class ExportReportCuttingData implements FromView, WithEvents, ShouldAutoSize, W
                             (
                                 SELECT
                                     meja.`name` meja,
-                                    form_cut_input.tgl_form_cut,
+                                    DATE(form_cut_input.waktu_mulai) tgl_form_cut,
                                     form_cut_input.id_marker,
                                     form_cut_input.no_form,
                                     form_cut_input.qty_ply,
@@ -98,10 +98,13 @@ class ExportReportCuttingData implements FromView, WithEvents, ShouldAutoSize, W
                                     INNER JOIN form_cut_input_detail ON form_cut_input_detail.no_form_cut_input = form_cut_input.no_form
                                 WHERE
                                     form_cut_input.`status` != 'SPREADING'
+                                    AND form_cut_input.waktu_mulai is not null
                                     ".$additionalQuery."
                                 GROUP BY
                                     form_cut_input.no_form
                             ) form_cut on form_cut.id_marker = marker_input.kode
+                        where
+                            (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
                         group by
                             marker_input.id,
                             form_cut.tgl_form_cut
@@ -143,7 +146,19 @@ class ExportReportCuttingData implements FromView, WithEvents, ShouldAutoSize, W
         foreach ( $event->getConcernable()->reportCutting->groupBy('panel') as $cutting ) {
             if ($currentRow > 1) {
                 $event->sheet->styleCells(
-                    'A'.$currentRow.':AC' . ($currentRow+$event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+1),
+                    'A'.$currentRow.':AB' . ($currentRow+$event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+1),
+                    [
+                        'borders' => [
+                            'allBorders' => [
+                                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                                'color' => ['argb' => '000000'],
+                            ],
+                        ],
+                    ]
+                );
+
+                $event->sheet->styleCells(
+                    'F'.($currentRow+$event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+2).':AB' . ($currentRow+$event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+2),
                     [
                         'borders' => [
                             'allBorders' => [
@@ -155,7 +170,19 @@ class ExportReportCuttingData implements FromView, WithEvents, ShouldAutoSize, W
                 );
             } else {
                 $event->sheet->styleCells(
-                    'A1:AC' . ($event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+2),
+                    'A1:AB' . ($event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+2),
+                    [
+                        'borders' => [
+                            'allBorders' => [
+                                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                                'color' => ['argb' => '000000'],
+                            ],
+                        ],
+                    ]
+                );
+
+                $event->sheet->styleCells(
+                    'F'.($event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+3).':AB' . ($event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+3),
                     [
                         'borders' => [
                             'allBorders' => [

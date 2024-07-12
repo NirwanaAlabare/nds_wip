@@ -27,16 +27,16 @@
 
             if($dateFrom < $dateTo) {
                 if ($dateFrom) {
-                    $additionalQuery .= " and form_cut_input.tgl_form_cut >= '".$dateFrom."'";
+                    $additionalQuery .= " and DATE(form_cut_input.waktu_mulai) >= '".$dateFrom."'";
                 }
 
                 if ($dateTo) {
-                    $additionalQuery .= " and form_cut_input.tgl_form_cut <= '".$dateTo."'";
+                    $additionalQuery .= " and DATE(form_cut_input.waktu_mulai) <= '".$dateTo."'";
                 }
 
                 $reportCutting = DB::select("
                     SELECT
-                        form_cut_input.tgl_form_cut
+                        DATE(form_cut_input.waktu_mulai) tgl_form_cut
                     FROM
                         form_cut_input
                         LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
@@ -45,7 +45,7 @@
                         form_cut_input.`status` != 'SPREADING'
                         ".$additionalQuery."
                     GROUP BY
-                        form_cut_input.tgl_form_cut
+                        DATE(form_cut_input.waktu_mulai)
                 ");
 
 
