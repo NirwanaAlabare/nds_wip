@@ -308,7 +308,7 @@
                             <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
                                 <li>
                                     <a href="{{ route('report-cutting') }}" class="dropdown-item {{ $subPage == 'cutting' ? 'active' : '' }}">
-                                        Report Cutting <i class="fa fa-file"></i>
+                                        Output Cutting <i class="fa fa-file"></i>
                                     </a>
                                 </li>
                             </ul>

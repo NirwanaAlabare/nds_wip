@@ -14,7 +14,7 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-file fa-sm"></i> Report Cutting</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-file fa-sm"></i> Output Cutting</h5>
         </div>
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-end gap-3">
@@ -80,6 +80,7 @@
             let oneWeeksBeforeFull = oneWeeksBeforeYear + '-' + oneWeeksBeforeMonth + '-' + oneWeeksBeforeDate;
 
             $("#from").val(oneWeeksBeforeFull).trigger("change");
+            $("#to").val("").trigger("change");
 
             window.addEventListener("focus", () => {
                 $('#datatable').DataTable().ajax.reload(null, false);
@@ -88,7 +89,7 @@
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i <= 9) {
+            if (i <= 7) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" />');
 
@@ -203,6 +204,7 @@
                     icon.classList.add('fa-solid');
                     icon.classList.add('fa-file-excel');
                     elm.appendChild(icon);
+                    elm.innerText += " Export";
 
                     iziToast.success({
                         title: 'Success',
@@ -213,7 +215,7 @@
                     var blob = new Blob([res]);
                     var link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
-                    link.download = "Report Cutting - "+$('#from').val()+" - "+$('#to').val()+".xlsx";
+                    link.download = "Output Cutting - "+$('#from').val()+" - "+$('#to').val()+".xlsx";
                     link.click();
                 }, error: function (jqXHR) {
                     elm.removeChild(loading);
@@ -222,6 +224,7 @@
                     icon.classList.add('fa-solid');
                     icon.classList.add('fa-file-excel');
                     elm.appendChild(icon);
+                    elm.innerText += " Export";
 
                     let res = jqXHR.responseJSON;
                     let message = '';

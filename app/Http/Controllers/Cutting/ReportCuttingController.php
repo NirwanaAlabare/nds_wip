@@ -53,6 +53,8 @@ class ReportCuttingController extends Controller
                     marker_cutting.style,
                     marker_cutting.color,
                     marker_cutting.panel,
+                    marker_cutting.cons_ws,
+                    marker_cutting.unit,
                     COALESCE(marker_cutting.notes, '-') notes,
                     SUM(marker_cutting.marker_gelar) marker_gelar,
                     SUM(marker_cutting.spreading_gelar) spreading_gelar,
@@ -69,6 +71,8 @@ class ReportCuttingController extends Controller
                             marker_input.style,
                             marker_input.color,
                             marker_input.panel,
+                            marker_input.cons_ws,
+                            marker_input.unit_panjang_marker unit,
                             COALESCE(marker_input.notes, form_cut.notes) notes,
                             marker_input.gelar_qty marker_gelar,
                             SUM(form_cut.qty_ply) spreading_gelar,
@@ -79,7 +83,7 @@ class ReportCuttingController extends Controller
                                 (
                                     SELECT
                                         meja.`name` meja,
-                                        form_cut_input.tgl_form_cut,
+                                        DATE(form_cut_input.waktu_mulai) tgl_form_cut,
                                         form_cut_input.id_marker,
                                         form_cut_input.no_form,
                                         form_cut_input.qty_ply,
@@ -92,14 +96,17 @@ class ReportCuttingController extends Controller
                                         INNER JOIN form_cut_input_detail ON form_cut_input_detail.no_form_cut_input = form_cut_input.no_form
                                     WHERE
                                         form_cut_input.`status` != 'SPREADING'
+                                        AND form_cut_input.waktu_mulai is not null
                                         ".$additionalQuery."
                                     GROUP BY
                                         form_cut_input.no_form
                                 ) form_cut on form_cut.id_marker = marker_input.kode
+                            where
+                                (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
                             group by
                                 marker_input.id,
                                 form_cut.tgl_form_cut
-                        ) marker_cutting
+                    ) marker_cutting
                 GROUP BY
                     marker_cutting.meja,
                     marker_cutting.act_costing_id,
@@ -117,7 +124,7 @@ class ReportCuttingController extends Controller
             return DataTables::of($reportCutting)->toJson();
         }
 
-        return view('cutting.report.report-cutting', ['page' => 'dashboard-cutting', "subPageGroup" => "report-cutting", "subPage" => "cutting"]);
+        return view('cutting.report.report-cutting', ['page' => 'dashboard-cutting', "subPageGroup" => "cutting-report", "subPage" => "cutting"]);
     }
 
     /**
