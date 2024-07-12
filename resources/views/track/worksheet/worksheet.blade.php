@@ -52,10 +52,7 @@
                             <th>Destination</th>
                             <th>Panel</th>
                             <th>Qty</th>
-                            <th>Ratio</th>
-                            <th>Ply Marker</th>
                             <th>Cut Marker</th>
-                            <th>Ply Form</th>
                             <th>Cut Form</th>
                             <th>Stocker</th>
                             <th>DC</th>
@@ -166,19 +163,7 @@
                     data: 'qty',
                 },
                 {
-                    data: 'total_ratio_marker',
-                    searchable: false
-                },
-                {
-                    data: 'total_gelar_marker',
-                    searchable: false
-                },
-                {
                     data: 'total_cut_marker',
-                    searchable: false
-                },
-                {
-                    data: 'total_lembar_form',
                     searchable: false
                 },
                 {
@@ -234,7 +219,7 @@
                     }
                 },
                 {
-                    targets: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+                    targets: [7, 8, 9, 10, 11, 12, 13, 14, 15],
                     className: "text-nowrap",
                     render: function (data, type, row, meta) {
                         return Number(data).toLocaleString("id-ID");

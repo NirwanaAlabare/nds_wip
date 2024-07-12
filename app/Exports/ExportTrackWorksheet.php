@@ -67,10 +67,7 @@ class ExportTrackWorksheet implements FromView, WithEvents, /*WithColumnWidths,*
                     master_sb_ws.qty,
                     marker_track.kode,
                     marker_track.panel,
-                    sum( marker_track.total_gelar_marker ) total_gelar_marker,
-                    sum( marker_track.total_ratio_marker ) total_ratio_marker,
                     sum( marker_track.total_cut_marker ) total_cut_marker,
-                    sum( marker_track.total_lembar_form ) total_lembar_form,
                     sum( marker_track.total_cut_form ) total_cut_form,
                     sum( marker_track.total_stocker ) total_stocker,
                     sum( marker_track.total_dc ) total_dc,
@@ -193,7 +190,7 @@ class ExportTrackWorksheet implements FromView, WithEvents, /*WithColumnWidths,*
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A3:R' . $event->getConcernable()->rowCount,
+            'A3:O' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [
