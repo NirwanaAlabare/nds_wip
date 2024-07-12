@@ -579,6 +579,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/worksheet/show-roll-total', 'wsRollTotal')->name('track-ws-roll-total');
         Route::get('/worksheet/show-stocker', 'wsStocker')->name('track-ws-stocker');
         Route::get('/worksheet/show-stocker-total', 'wsStockerTotal')->name('track-ws-stocker-total');
+        Route::get('/worksheet/ws-sewing-output', 'wsSewingOutput')->name('track-ws-sewing-output');
     });
 
     //Mutasi Karywawan

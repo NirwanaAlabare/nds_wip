@@ -10,11 +10,14 @@
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
 
+    <!-- apexchart CSS -->
+    <link href="{{ asset('plugins/apexcharts/apexcharts.css') }}" rel="stylesheet">
+
     <style>
         div.sticky {
             position: -webkit-sticky; /* Safari */
             position: sticky;
-            z-index: 4;
+            z-index:999;
             top: 0;
         }
 
@@ -83,7 +86,7 @@
     </div>
 
     {{-- PART START --}}
-        <div class="card card-sb h-100" id="part-card">
+        <div class="card card-sb h-100 collapsed collapsed-card" id="part-card">
             <div class="card-header">
                 <div class="row justify-content-between align-items-center">
                     <div class="col-6">
@@ -207,42 +210,91 @@
                 </div>
             </div>
             <div class="card-body" style="display: block;">
-                <div class="table-responsive">
-                    <table id="marker-table" class="table table-bordered table-sm w-100">
-                        <thead>
-                            <tr>
-                                <th class="align-bottom">Action</th>
-                                <th>Tanggal</th>
-                                <th>No. Marker</th>
-                                <th>Color</th>
-                                <th>Panel</th>
-                                <th>Urutan</th>
-                                <th>Panjang</th>
-                                <th>Lebar</th>
-                                <th>Gramasi</th>
-                                <th>Gelar QTYs</th>
-                                <th>Total Form</th>
-                                <th>Ratio</th>
-                                <th>PO</th>
-                                <th>Ket.</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                        <tfoot>
-                            <tr>
-                                <th class="text-end" colspan="5">Total</th>
-                                <th id="total-marker"></th>
-                                <th id="total-panjang-marker"></th>
-                                <th id="total-lebar-marker"></th>
-                                <th id="total-gramasi-marker"></th>
-                                <th id="total-gelar-marker"></th>
-                                <th id="total-form-marker"></th>
-                                <th></th>
-                                <th></th>
-                                <th></th>
-                            </tr>
-                        </tfoot>
-                    </table>
+                <div class="row mb-3" id="marker-summary">
+                    <div class="col-md-3">
+                        <div class="info-box h-100">
+                            <span class="info-box-icon bg-sb"><i class="fa-solid fa-marker"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text text-sb fw-bold">Marker</span>
+                                <span class="info-box-number" id="total-marker"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-box h-100">
+                            <span class="info-box-icon bg-sb-secondary"><i class="fa-solid fa-ruler-combined"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text text-sb-secondary fw-bold">Panjang Lebar</span>
+                                <span class="info-box-number" id="total-marker-pl"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-box h-100">
+                            <span class="info-box-icon bg-sb"><i class="fa-solid fa-scroll"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text text-sb fw-bold">Gelar</span>
+                                <span class="info-box-number" id="total-marker-gelar"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-box h-100">
+                            <span class="info-box-icon bg-sb-secondary"><i class="fa-solid fa-copy"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text text-sb-secondary fw-bold">Form</span>
+                                <span class="info-box-number" id="total-marker-form"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion" id="marker-detail">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed bg-sb-secondary text-light" type="button" data-bs-toggle="collapse" data-bs-target="#marker-detail-1" aria-expanded="true" aria-controls="marker-detail-1">
+                                <b>Detail</b>
+                            </button>
+                        </h2>
+                        <div id="marker-detail-1" class="accordion-collapse collapse" data-bs-parent="#marker-detail">
+                            <div class="table-responsive">
+                                <table id="marker-table" class="table table-bordered table-sm w-100">
+                                    <thead>
+                                        <tr>
+                                            <th class="align-bottom">Action</th>
+                                            <th>Tanggal</th>
+                                            <th>No. Marker</th>
+                                            <th>Color</th>
+                                            <th>Panel</th>
+                                            <th>Urutan</th>
+                                            <th>Panjang</th>
+                                            <th>Lebar</th>
+                                            <th>Gramasi</th>
+                                            <th>Gelar QTYs</th>
+                                            <th>Total Form</th>
+                                            <th>Ratio</th>
+                                            <th>PO</th>
+                                            <th>Ket.</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th class="text-end" colspan="5">Total</th>
+                                            <th id="total-marker"></th>
+                                            <th id="total-panjang-marker"></th>
+                                            <th id="total-lebar-marker"></th>
+                                            <th id="total-gramasi-marker"></th>
+                                            <th id="total-gelar-marker"></th>
+                                            <th id="total-form-marker"></th>
+                                            <th></th>
+                                            <th></th>
+                                            <th></th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -339,39 +391,70 @@
                 </div>
             </div>
             <div class="card-body" style="display: block;">
-                <div>
-                    <div class="table-responsive">
-                        <table id="form-table" class="table table-bordered table-sm w-100">
-                            <thead>
-                                <tr>
-                                    <th>Action</th>
-                                    <th>Tanggal Form</th>
-                                    <th>No. Form</th>
-                                    <th>No. Meja</th>
-                                    <th>No. Marker</th>
-                                    <th>Color</th>
-                                    <th>Panel</th>
-                                    <th>Qty Ply</th>
-                                    <th>Size Ratio</th>
-                                    <th>Ket.</th>
-                                    <th class="align-bottom" style="text-align: left !important;">Status</th>
-                                    <th>Plan</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <th colspan="6" class="text-end">Total</th>
-                                    <th id="total-form"></th>
-                                    <th id="total-form-qty"></th>
-                                    <th></th>
-                                    <th></th>
-                                    <th></th>
-                                    <th></th>
-                                </tr>
-                            </tfoot>
-                        </table>
+                <div class="row mb-3" id="form-summary">
+                    <div class="col-md-4">
+                        <div class="info-box h-100">
+                            <span class="info-box-icon bg-sb"><i class="fa-solid fa-copy"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text text-sb fw-bold">Form</span>
+                                <span class="info-box-number" id="total-form"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="info-box h-100">
+                            <span class="info-box-icon bg-sb-secondary"><i class="fa-solid fa-scroll"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text text-sb-secondary fw-bold">Qty Ply</span>
+                                <span class="info-box-number" id="total-form-ply"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion" id="form-detail">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed bg-sb-secondary text-light" type="button" data-bs-toggle="collapse" data-bs-target="#form-detail-1" aria-expanded="true" aria-controls="form-detail-1">
+                                <b>Detail</b>
+                            </button>
+                        </h2>
+                        <div id="form-detail-1" class="accordion-collapse collapse" data-bs-parent="#form-detail">
+                            <div class="accordion-body">
+                                <div class="table-responsive">
+                                    <table id="form-table" class="table table-bordered table-sm w-100">
+                                        <thead>
+                                            <tr>
+                                                <th>Action</th>
+                                                <th>Tanggal Form</th>
+                                                <th>No. Form</th>
+                                                <th>No. Meja</th>
+                                                <th>No. Marker</th>
+                                                <th>Color</th>
+                                                <th>Panel</th>
+                                                <th>Qty Ply</th>
+                                                <th>Size Ratio</th>
+                                                <th>Ket.</th>
+                                                <th class="align-bottom" style="text-align: left !important;">Status</th>
+                                                <th>Plan</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <th colspan="6" class="text-end">Total</th>
+                                                <th id="total-form"></th>
+                                                <th id="total-form-qty"></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -590,52 +673,94 @@
                 </div>
             </div>
             <div class="card-body">
-                <div class="table-responsive">
-                    <table id="roll-table" class="table table-bordered table-hover table-sm w-100">
-                        <thead>
-                            <tr>
-                                <th>Color</th>
-                                <th>Panel</th>
-                                <th>No. Form</th>
-                                <th>ID Item</th>
-                                <th>Nama Barang</th>
-                                <th>No. Meja</th>
-                                <th>Qty</th>
-                                <th>Unit</th>
-                                <th>Lembar Gelaran</th>
-                                <th>Total Pemakaian</th>
-                                <th>Short Roll</th>
-                                <th>Remark</th>
-                                <th>Sisa Gelaran</th>
-                                <th>Sambungan</th>
-                                <th>Kepala Kain</th>
-                                <th>Sisa Tidak Bisa</th>
-                                <th>Reject</th>
-                                <th>Sisa Kain</th>
-                                <th>Piping</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <th colspan="6" class="text-end">Total</th>
-                                <th></th>
-                                <th></th>
-                                <th></th>
-                                <th></th>
-                                <th></th>
-                                <th></th>
-                                <th></th>
-                                <th></th>
-                                <th></th>
-                                <th></th>
-                                <th></th>
-                                <th></th>
-                                <th></th>
-                            </tr>
-                        </tfoot>
-                    </table>
+                <div class="row mb-3" id="roll-summary">
+                    <div class="col-md-4">
+                        <div class="info-box h-100">
+                            <span class="info-box-icon bg-sb"><i class="fa-solid fa-toilet-paper"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text text-sb fw-bold">Roll</span>
+                                <span class="info-box-number" id="total-roll-qty"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="info-box h-100">
+                            <span class="info-box-icon bg-sb-secondary"><i class="fa-solid fa-scroll"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text text-sb-secondary fw-bold">Lembar</span>
+                                <span class="info-box-number" id="total-roll-lembar"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="info-box h-100">
+                            <span class="info-box-icon bg-sb"><i class="fa-solid fa-scissors"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text text-sb fw-bold">Total Pemakaian</span>
+                                <span class="info-box-number" id="total-roll-pemakaian"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion" id="roll-detail">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed bg-sb-secondary text-light" type="button" data-bs-toggle="collapse" data-bs-target="#roll-detail-1" aria-expanded="true" aria-controls="roll-detail-1">
+                                <b>Detail</b>
+                            </button>
+                        </h2>
+                        <div id="roll-detail-1" class="accordion-collapse collapse" data-bs-parent="#roll-detail">
+                            <div class="accordion-body">
+                                <div class="table-responsive">
+                                    <table id="roll-table" class="table table-bordered table-hover table-sm w-100">
+                                        <thead>
+                                            <tr>
+                                                <th>Color</th>
+                                                <th>Panel</th>
+                                                <th>No. Form</th>
+                                                <th>ID Item</th>
+                                                <th>Nama Barang</th>
+                                                <th>No. Meja</th>
+                                                <th>Qty</th>
+                                                <th>Unit</th>
+                                                <th>Lembar Gelaran</th>
+                                                <th>Total Pemakaian</th>
+                                                <th>Short Roll</th>
+                                                <th>Remark</th>
+                                                <th>Sisa Gelaran</th>
+                                                <th>Sambungan</th>
+                                                <th>Kepala Kain</th>
+                                                <th>Sisa Tidak Bisa</th>
+                                                <th>Reject</th>
+                                                <th>Sisa Kain</th>
+                                                <th>Piping</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <th colspan="6" class="text-end">Total</th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -657,46 +782,164 @@
                 </div>
             </div>
             <div class="card-body">
-                <div class="table-responsive">
-                    <table id="stocker-table" class="table table-bordered table-sm w-100">
-                        <thead>
-                            <tr>
-                                <th>Color</th>
-                                <th>Panel</th>
-                                <th>Part</th>
-                                <th>No. Form</th>
-                                <th>No. Cut</th>
-                                <th>Size</th>
-                                <th>Group</th>
-                                <th>No. Stocker</th>
-                                <th>Qty</th>
-                                <th>Range</th>
-                                <th>Secondary</th>
-                                <th>Rak</th>
-                                <th>Trolley</th>
-                                <th>Line</th>
-                                <th>Updated At</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <th class="text-end" colspan="7">Total</th>
-                                <th id="total-stocker"></th>
-                                <th id="total-stocker-qty"></th>
-                                <th id="total-stocker-range"></th>
-                                <th colspan="5"></th>
-                            </tr>
-                        </tfoot>
-                    </table>
+                <div class="row mb-3" id="stocker-summary">
+                    <div class="col-md-4">
+                        <div class="info-box h-100">
+                            <span class="info-box-icon bg-sb"><i class="fa-solid fa-receipt"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text text-sb fw-bold">Stocker</span>
+                                <span class="info-box-number" id="total-stocker"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="info-box h-100">
+                            <span class="info-box-icon bg-sb-secondary"><i class="fa-solid fa-table-cells"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text text-sb-secondary fw-bold">Part Stock Qty</span>
+                                <span class="info-box-number" id="total-stocker-qty"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="info-box h-100">
+                            <span class="info-box-icon bg-sb"><i class="fa-solid fa-list-ol"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text text-sb fw-bold">Max Range</span>
+                                <span class="info-box-number" id="total-stocker-range"></span>
+                            </div>
+                        </div>
+                    </div>
+                    {{-- <div class="col-md-3">
+                        <div class="info-box h-100">
+                            <span class="info-box-icon bg-sb"><i class="fa-solid fa-box"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text text-sb fw-bold">PACKING</span>
+                                <span class="info-box-number" id="output-packing"></span>
+                            </div>
+                        </div>
+                    </div>--}}
+                </div>
+                <div class="accordion" id="stocker-detail">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed bg-sb-secondary text-light" type="button" data-bs-toggle="collapse" data-bs-target="#stocker-detail-1" aria-expanded="true" aria-controls="stocker-detail-1">
+                                <b>Detail</b>
+                            </button>
+                        </h2>
+                        <div id="stocker-detail-1" class="accordion-collapse collapse" data-bs-parent="#stocker-detail">
+                            <div class="accordion-body">
+                                <div class="table-responsive">
+                                    <table id="stocker-table" class="table table-bordered table-sm w-100">
+                                        <thead>
+                                            <tr>
+                                                <th>Color</th>
+                                                <th>Panel</th>
+                                                <th>Part</th>
+                                                <th>No. Form</th>
+                                                <th>No. Cut</th>
+                                                <th>Size</th>
+                                                <th>Group</th>
+                                                <th>No. Stocker</th>
+                                                <th>Qty</th>
+                                                <th>Range</th>
+                                                <th>Secondary</th>
+                                                <th>Rak</th>
+                                                <th>Trolley</th>
+                                                <th>Line</th>
+                                                <th>Updated At</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <th class="text-end" colspan="7">Total</th>
+                                                <th id="total-stocker"></th>
+                                                <th id="total-stocker-qty"></th>
+                                                <th id="total-stocker-range"></th>
+                                                <th colspan="5"></th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     {{-- STOCKER END --}}
+
+    {{-- OUTPUT LINE START --}}
+        <div class="card card-sb" id="output-line-card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-users-line"></i> Output Line</h5>
+                    <div class="d-flex justify-content-end align-items-center gap-1">
+                        <input type="date" class="form-control form-control-sm" id="output-line-from">
+                        <span>-</span>
+                        <input type="date" class="form-control form-control-sm" id="output-line-to">
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="d-none mb-3" id="loading-output-line">
+                    <div class="loading-container">
+                        <div class="loading"></div>
+                    </div>
+                </div>
+                <div class="row mb-3" id="output-line-summary">
+                    <div class="col-md-3">
+                        <div class="info-box h-100">
+                            <span class="info-box-icon bg-success"><i class="fa-solid fa-check"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text text-success fw-bold">RFT</span>
+                                <span class="info-box-number" id="output-rft"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-box h-100">
+                            <span class="info-box-icon bg-primary"><i class="fa-solid fa-triangle-exclamation"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text text-primary fw-bold">DEFECT</span>
+                                <span class="info-box-number" id="output-defect"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-box h-100">
+                            <span class="info-box-icon bg-danger"><i class="fa-solid fa-xmark"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text text-danger fw-bold">REJECT</span>
+                                <span class="info-box-number" id="output-reject"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-box h-100">
+                            <span class="info-box-icon bg-sb"><i class="fa-solid fa-box"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text text-sb fw-bold">PACKING</span>
+                                <span class="info-box-number" id="output-packing"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="output-line-chart" style="height: 350px;"></div>
+            </div>
+        </div>
+    {{-- OUTPUT SEWING END --}}
 @endsection
 
 @section('custom-script')
+    <!-- apexchart JavaScript -->
+    <script src="{{ asset('plugins/apexcharts/apexcharts.min.js') }}"></script>
+
     <!-- DataTables & Plugins -->
     <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
@@ -724,7 +967,15 @@
                 filterMarkerTable();
             });
 
+            $('#marker-detail-1').on('shown.bs.collapse', () => {
+                filterMarkerTable();
+            });
+
             $('#form-card').on('expanded.lte.cardwidget', () => {
+                formTableReload();
+            });
+
+            $('#form-detail-1').on('shown.bs.collapse', () => {
                 formTableReload();
             });
 
@@ -732,9 +983,21 @@
                 rollTableReload();
             });
 
+            $('#roll-detail-1').on('shown.bs.collapse', () => {
+                rollTableReload();
+            });
+
             $('#stocker-card').on('expanded.lte.cardwidget', () => {
                 stockerTableReload();
             });
+
+            $('#stocker-detail-1').on("shown.bs.collapse", () => {
+                stockerTableReload();
+            });
+
+            // $('#output-line-card').on('expanded.lte.cardwidget', () => {
+            //     getLineOutput();
+            // });
 
             let today = new Date();
             let todayDate = ("0" + today.getDate()).slice(-2);
@@ -747,6 +1010,7 @@
                 formTableReload();
                 rollTableReload();
                 stockerTableReload();
+                getLineOutput();
             });
 
             $('#ws-panel-filter').on("change", () => {
@@ -754,10 +1018,12 @@
                 formTableReload();
                 rollTableReload();
                 stockerTableReload();
+                getLineOutput();
             });
 
             $('#ws-size-filter').on("change", () => {
                 stockerTableReload();
+                getLineOutput();
             });
 
             // Marker
@@ -801,6 +1067,15 @@
             });
             $('#stocker-to').on("change", () => {
                 stockerTableReload();
+            });
+
+            // Sewing
+            getLineOutput();
+            $('#output-line-from').on("change", () => {
+                getLineOutput();
+            });
+            $('#output-line-to').on("change", () => {
+                getLineOutput();
             });
 
             document.getElementById("loading").classList.add("d-none");
@@ -1027,6 +1302,16 @@
                             </div>
                         `;
                         api.column(10).footer().innerHTML = totalMarker.totalMarkerForm;
+
+                        document.getElementById("total-marker").innerHTML = totalMarker.totalMarker;
+                        document.getElementById("total-marker-pl").innerHTML = totalMarker.totalMarkerPanjang+" <br> "+totalMarker.totalMarkerLebar;
+                        document.getElementById("total-marker-gelar").innerHTML = `
+                            <div class="progress border border-sb position-relative" style="height: 21px; width: 100%;">
+                                <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">` + totalMarker.totalMarkerFormLembar + `/` + totalMarker.totalMarkerGelar + `</p>
+                                <div class="progress-bar" style="background-color: #75baeb;width: ` + ((totalMarker.totalMarkerFormLembar / totalMarker.totalMarkerGelar) * 100) + `%" role="progressbar"></div>
+                            </div>
+                        `;
+                        document.getElementById("total-marker-form").innerHTML = totalMarker.totalMarkerForm;
                     }
                 }
             });
@@ -1626,7 +1911,15 @@
                         api.column(6).footer().innerHTML = totalForm.total_form;
                         api.column(7).footer().innerHTML = `
                             <div class="progress border border-sb position-relative" style="min-width: 50px;height: 21px">
-                                <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">`+totalForm.total_lembar+`/`+totalForm.qty_ply+`</p>
+                                <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">`+(totalForm.total_lembar).toLocaleString("id-ID")+`/`+(totalForm.qty_ply).toLocaleString("id-ID")+`</p>
+                                <div class="progress-bar" style="background-color: #75baeb;width: `+((totalForm.total_lembar/totalForm.qty_ply)*100)+`%" role="progressbar"></div>
+                            </div>
+                        `;
+
+                        document.getElementById('total-form').innerHTML = totalForm.total_form;
+                        document.getElementById('total-form-ply').innerHTML = `
+                            <div class="progress border border-sb position-relative" style="min-width: 50px;height: 30px">
+                                <p class="position-absolute" style="font-size: 16px;top: 50%;left: 50%;transform: translate(-50%, -50%);">`+(totalForm.total_lembar).toLocaleString("id-ID")+`/`+(totalForm.qty_ply).toLocaleString("id-ID")+`</p>
                                 <div class="progress-bar" style="background-color: #75baeb;width: `+((totalForm.total_lembar/totalForm.qty_ply)*100)+`%" role="progressbar"></div>
                             </div>
                         `;
@@ -1861,6 +2154,10 @@
                         api.column(16).footer().innerHTML = totalRoll.totalReject;
                         api.column(17).footer().innerHTML = totalRoll.totalSisaKain;
                         api.column(18).footer().innerHTML = totalRoll.totalPiping;
+
+                        document.getElementById('total-roll-qty').innerText = totalRoll.totalQty+" "+totalRoll.totalUnit;
+                        document.getElementById('total-roll-lembar').innerText = totalRoll.totalLembarGelaran+" Lembar";
+                        document.getElementById('total-roll-pemakaian').innerText = totalRoll.totalTotalPemakaian+" "+totalRoll.totalUnit;
                     }
                 }
             });
@@ -2031,12 +2328,20 @@
                             api.column(7).footer().innerHTML = totalStocker.totalStocker;
                             api.column(8).footer().innerHTML = totalStocker.totalQtyPly;
                             api.column(9).footer().innerHTML = totalStocker.totalRange;
+
+                            document.getElementById("total-stocker").innerText = totalStocker.totalStocker;
+                            document.getElementById("total-stocker-qty").innerText = totalStocker.totalQtyPly;
+                            document.getElementById("total-stocker-range").innerText = totalStocker.totalRange;
                         }
                     }
                 });
 
-                function stockerTableReload() {
+                async function stockerTableReload() {
+                    document.getElementById('loading').classList.remove("d-none");
+
                     stockerTable.ajax.reload();
+
+                    document.getElementById('loading').classList.add("d-none");
                 }
 
                 async function getTotalStocker() {
@@ -2066,5 +2371,145 @@
                         },
                     });
                 }
+
+        // Sewing Output
+            // Output Chart
+            var options = {
+                series: [],
+                chart: {
+                    type: 'line',
+                    toolbar: {
+                        show: true
+                    }
+                },
+                colors: ['#b02ffa', '#428af5', '#1c59ff', '#2e8a57'],
+                grid: {
+                    borderColor: '#e7e7e7',
+                    row: {
+                        colors: ['#ebebeb', 'transparent'], // takes an array which will be repeated on columns
+                        opacity: 0.5
+                    },
+                },
+                yaxis: {
+                    tickAmount: 10,
+                    labels: {
+                        formatter: function (value) {
+                            return Math.round(value);
+                        }
+                    },
+                },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (val, opts) {
+                        return val.toLocaleString('ID-id');
+                    },
+                    style: {
+                        fontSize: '10px',
+                        fontFamily: 'Helvetica, Arial, sans-serif',
+                    },
+                },
+                legend: {
+                    show: true,
+                    position: 'top',
+                    horizontalAlign: 'left',
+                },
+                noData: {
+                    text: 'Loading...'
+                }
+            };
+
+            var chart = new ApexCharts(document.querySelector("#output-line-chart"), options);
+            chart.render();
+
+            async function getLineOutput() {
+                document.getElementById("loading").classList.remove("d-none");
+
+                return $.ajax({
+                    url: '{{ route('track-ws-sewing-output') }}',
+                    type: 'get',
+                    data: {
+                        actCostingId : $('#id').val(),
+                        panel : $('#ws-panel-filter').val(),
+                        color : $('#ws-color-filter').val(),
+                        size : $('#ws-size-filter').val(),
+                        dateFrom : $('#output-line-from').val(),
+                        dateTo : $('#output-line-to').val()
+                    },
+                    dataType: 'json',
+                    success: async function(res) {
+                        let tglArr = [];
+                        let rftArr = [];
+                        let defectArr = [];
+                        let rejectArr = [];
+                        let packingArr = [];
+
+                        let rftTotal = 0;
+                        let defectTotal = 0;
+                        let rejectTotal = 0;
+                        let packingTotal = 0;
+
+                        if (res) {
+                            res.forEach(item => {
+                                tglArr.push(item.tgl_produksi);
+                                rftArr.push(item.rft_output);
+                                defectArr.push(item.defect_output);
+                                rejectArr.push(item.reject_output);
+                                packingArr.push(item.rft_packing_output);
+
+                                rftTotal += Number(item.rft_output);
+                                defectTotal += Number(item.defect_output);
+                                rejectTotal += Number(item.reject_output);
+                                packingTotal += Number(item.rft_packing_output);
+                            });
+
+                            document.getElementById("output-rft").innerText = rftTotal.toLocaleString("ID-id");
+                            document.getElementById("output-defect").innerText = defectTotal.toLocaleString("ID-id");
+                            document.getElementById("output-reject").innerText = rejectTotal.toLocaleString("ID-id");
+                            document.getElementById("output-packing").innerText = packingTotal.toLocaleString("ID-id");
+
+                            await chart.updateSeries(
+                            [
+                                {
+                                    name: 'Rft',
+                                    data: rftArr
+                                },
+                                {
+                                    name: 'Defect',
+                                    data: defectArr
+                                },
+                                {
+                                    name: 'Reject',
+                                    data: rejectArr
+                                },
+                                {
+                                    name: 'Packing',
+                                    data: packingArr
+                                }
+                            ], true);
+
+                            await chart.updateOptions({
+                                xaxis: {
+                                    categories: tglArr,
+                                },
+                                noData: {
+                                    text: 'Data Not Found'
+                                }
+                            });
+                        }
+
+                        document.getElementById("loading").classList.add("d-none");
+                    }, error: function (jqXHR) {
+                        let res = jqXHR.responseJSON;
+                        console.error(res.message);
+                        iziToast.error({
+                            title: 'Error',
+                            message: res.message,
+                            position: 'topCenter'
+                        });
+
+                        document.getElementById("loading").classList.add("d-none");
+                    }
+                });
+            }
     </script>
 @endsection

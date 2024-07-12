@@ -495,13 +495,13 @@ class TrackController extends Controller
             $markersQuery->whereRaw("LOWER(notes) LIKE LOWER('%" . $request->ket . "%')");
         }
 
-        $totalMarker = $markersQuery ? ($markersQuery->count()) : 0;
-        $totalMarkerGramasi =  $markersQuery ? (round($markersQuery->sum("marker_input.gramasi"), 2)) : 0;
-        $totalMarkerPanjang =  $markersQuery ? (round($markersQuery->sum("marker_input.panjang_marker") + ($markersQuery->sum("marker_input.comma_marker") / 100), 2)." ".(substr($markersQuery->first()->unit_marker_p, 0, 1))) : 0;
-        $totalMarkerLebar =  $markersQuery ? (round($markersQuery->sum("marker_input.lebar_marker") / 100, 2)." ".(substr($markersQuery->first()->unit_marker_p, 0, 1))) : 0;
-        $totalMarkerGelar =  $markersQuery ? (round($markersQuery->sum("gelar_qty"), 2)) : 0;
-        $totalMarkerForm =  $markersQuery ? (round($markersQuery->sum("total_form"), 2)) : 0;
-        $totalMarkerFormLembar =  $markersQuery ? (round($markersQuery->sum("total_lembar"), 2)) : 0;
+        $totalMarker = $markersQuery ? num($markersQuery->count()) : 0;
+        $totalMarkerGramasi =  $markersQuery ? num(round($markersQuery->sum("marker_input.gramasi"), 2)) : 0;
+        $totalMarkerPanjang =  $markersQuery ? (num(round($markersQuery->sum("marker_input.panjang_marker") + ($markersQuery->sum("marker_input.comma_marker") / 100), 2))." ".(substr($markersQuery->first()->unit_marker_p, 0, 1))) : 0;
+        $totalMarkerLebar =  $markersQuery ? (num(round($markersQuery->sum("marker_input.lebar_marker") / 100, 2))." ".(substr($markersQuery->first()->unit_marker_p, 0, 1))) : 0;
+        $totalMarkerGelar =  $markersQuery ? num(round($markersQuery->sum("gelar_qty"), 2)) : 0;
+        $totalMarkerForm =  $markersQuery ? num(round($markersQuery->sum("total_form"), 2)) : 0;
+        $totalMarkerFormLembar =  $markersQuery ? num(round($markersQuery->sum("total_lembar"), 2)) : 0;
 
         return array(
             "totalMarker" => $totalMarker,
@@ -670,7 +670,7 @@ class TrackController extends Controller
         "));
 
         return array(
-            "total_form" => $form ? $form->count() : 0,
+            "total_form" => $form ? num($form->count()) : 0,
             "qty_ply" => $form ? $form->sum('qty_ply') : 0,
             "total_lembar" => $form ? $form->sum('total_lembar') : 0,
         );
@@ -1174,7 +1174,43 @@ class TrackController extends Controller
         return array(
             "totalStocker" => $stocker ? num($stocker->count()) : 0,
             "totalQtyPly" => $stocker ? num($stocker->sum("stocker_qty_ply")) : 0,
-            "totalRange" => $stocker ? $stocker->min("range_awal").' - '.$stocker->max("range_akhir").' ('.$stocker->sum("difference_qty").')' : '-',
+            "totalRange" => $stocker ? num($stocker->min("range_awal")).' - '.num($stocker->max("range_akhir")).' ('.num($stocker->sum("difference_qty")).')' : '-',
         );
+    }
+
+    public function wsSewingOutput(Request $request) {
+        $dateFrom = $request->dateFrom;
+        $dateTo = $request->dateTo;
+        $actCostingId = $request->actCostingId;
+        $color = $request->color;
+        $size = $request->size;
+
+        $sewingData = DB::connection('mysql_sb')->table('master_plan')->
+            selectRaw("
+                tgl_plan tgl_produksi,
+                SUM(IFNULL( rfts.rft, 0 )) rft_output,
+                SUM(IFNULL( defects.defect, 0 ) + IFNULL( reworks.rework, 0 )) defect_output,
+                SUM(IFNULL( rejects.reject, 0 )) reject_output,
+                SUM(IFNULL( rfts_packing.rft, 0 )) rft_packing_output,
+                ROUND((SUM(IFNULL( rfts.rft, 0 )) / SUM((IFNULL( rfts.rft, 0 ) + IFNULL( defects.defect, 0 ) + IFNULL( reworks.rework, 0 ) + IFNULL( rejects.reject, 0 ))) * 100 ), 2) rft,
+                AVG(master_plan.target_effy) target_efficiency,
+                ROUND((SUM(((IFNULL( rfts.rft, 0 ) + IFNULL( reworks.rework, 0 ))* master_plan.smv ))/SUM( master_plan.man_power * master_plan.jam_kerja * 60 ) * 100 ), 2) efficiency
+            ")->
+            leftJoin(DB::raw("(SELECT count(rfts.id) rft, master_plan.id master_plan_id from output_rfts rfts inner join master_plan on master_plan.id = rfts.master_plan_id inner join so_det on so_det.id = rfts.so_det_id where status = 'NORMAL' ".($dateFrom ? "AND DATE(rfts.updated_at) >= '".$dateFrom."'" : "")." ".($dateTo ? "AND DATE(rfts.updated_at) <= '".$dateTo."'" : "")." ".($dateFrom ? "AND master_plan.tgl_plan >= '".$dateFrom."'" : "")." ".($dateTo ? "AND master_plan.tgl_plan <= '".$dateTo."'" : "")." ".($actCostingId ? "AND master_plan.id_ws = '".$actCostingId."'" : "")." ".($color ? "AND master_plan.color = '".$color."'" : "")." ".($size ? "AND so_det.size = '".$size."'" : "")." GROUP BY master_plan.id, master_plan.tgl_plan) as rfts"), "master_plan.id", "=", "rfts.master_plan_id")->
+            leftJoin(DB::raw("(SELECT count(defects.id) defect, master_plan.id master_plan_id from output_defects defects inner join master_plan on master_plan.id = defects.master_plan_id inner join so_det on so_det.id = defects.so_det_id where defects.defect_status = 'defect' ".($dateFrom ? "AND DATE(defects.updated_at) >= '".$dateFrom."'" : "")." ".($dateTo ? "AND DATE(defects.updated_at) <= '".$dateTo."'" : "")." ".($dateFrom ? "AND master_plan.tgl_plan >= '".$dateFrom."'" : "")." ".($dateTo ? "AND master_plan.tgl_plan <= '".$dateTo."'" : "")." ".($actCostingId ? "AND master_plan.id_ws = '".$actCostingId."'" : "")." ".($color ? "AND master_plan.color = '".$color."'" : "")." ".($size ? "AND so_det.size = '".$size."'" : "")." GROUP BY master_plan.id, master_plan.tgl_plan) as defects"), "master_plan.id", "=", "defects.master_plan_id")->
+            leftJoin(DB::raw("(SELECT count(defrew.id) rework, master_plan.id master_plan_id from output_defects defrew inner join master_plan on master_plan.id = defrew.master_plan_id inner join so_det on so_det.id = defrew.so_det_id where defrew.defect_status = 'reworked' ".($dateFrom ? "AND DATE(defrew.updated_at) >= '".$dateFrom."'" : "")." ".($dateTo ? "AND DATE(defrew.updated_at) <= '".$dateTo."'" : "")." ".($dateFrom ? "AND master_plan.tgl_plan >= '".$dateFrom."'" : "")." ".($dateTo ? "AND master_plan.tgl_plan <= '".$dateTo."'" : "")." ".($actCostingId ? "AND master_plan.id_ws = '".$actCostingId."'" : "")." ".($color ? "AND master_plan.color = '".$color."'" : "")." ".($size ? "AND so_det.size = '".$size."'" : "")." GROUP BY master_plan.id, master_plan.tgl_plan) as reworks"), "master_plan.id", "=", "reworks.master_plan_id")->
+            leftJoin(DB::raw("(SELECT count(rejects.id) reject, master_plan.id master_plan_id from output_rejects rejects inner join master_plan on master_plan.id = rejects.master_plan_id inner join so_det on so_det.id = rejects.so_det_id where status = 'NORMAL' ".($dateFrom ? "AND DATE(rejects.updated_at) >= '".$dateFrom."'" : "")." ".($dateTo ? "AND DATE(rejects.updated_at) <= '".$dateTo."'" : "")." ".($dateFrom ? "AND master_plan.tgl_plan >= '".$dateFrom."'" : "")." ".($dateTo ? "AND master_plan.tgl_plan <= '".$dateTo."'" : "")." ".($actCostingId ? "AND master_plan.id_ws = '".$actCostingId."'" : "")." ".($color ? "AND master_plan.color = '".$color."'" : "")." ".($size ? "AND so_det.size = '".$size."'" : "")." GROUP BY master_plan.id, master_plan.tgl_plan) as rejects"), "master_plan.id", "=", "rejects.master_plan_id")->
+            leftJoin(DB::raw("(SELECT count(rfts.id) rft, master_plan.id master_plan_id from output_rfts_packing rfts inner join master_plan on master_plan.id = rfts.master_plan_id inner join so_det on so_det.id = rfts.so_det_id where status = 'NORMAL' ".($dateFrom ? "AND DATE(rfts.updated_at) >= '".$dateFrom."'" : "")." ".($dateTo ? "AND DATE(rfts.updated_at) <= '".$dateTo."'" : "")." ".($dateFrom ? "AND master_plan.tgl_plan >= '".$dateFrom."'" : "")." ".($dateTo ? "AND master_plan.tgl_plan <= '".$dateTo."'" : "")." ".($actCostingId ? "AND master_plan.id_ws = '".$actCostingId."'" : "")." ".($color ? "AND master_plan.color = '".$color."'" : "")." ".($size ? "AND so_det.size = '".$size."'" : "")." GROUP BY master_plan.id, master_plan.tgl_plan) as rfts_packing"), "master_plan.id", "=", "rfts_packing.master_plan_id")->
+            whereRaw("
+                master_plan.cancel = 'N'
+                ".($actCostingId ? "AND master_plan.id_ws = '".$actCostingId."'" : "")."
+                ".($color ? "AND master_plan.color = '".$color."'" : "")."
+                ".($dateFrom ? "AND master_plan.tgl_plan >= '".$dateFrom."'" : "")."
+                ".($dateTo ? "AND master_plan.tgl_plan <= '".$dateTo."'" : "")."
+            ")->
+            groupBy("master_plan.tgl_plan")->
+            get();
+
+        return json_encode($sewingData);
     }
 }
