@@ -3,27 +3,27 @@
 
 <table >
     <tr>
-        <td colspan="15">Track WS</td>
+        <td colspan="15" style="font-weight: 800;">Track WS</td>
     </tr>
     <tr>
-        <td colspan="15">{{ $month."-".$year }}</td>
+        <td colspan="15" style="font-weight: 800;">{{ $month."-".$year }}</td>
     </tr>
     <tr>
-        <th>Worksheet</th>
-        <th>Style</th>
-        <th>Color</th>
-        <th>Size</th>
-        <th>Destination</th>
-        <th>Qty</th>
-        <th>Panel</th>
-        <th>Cut Marker</th>
-        <th>Cut Form</th>
-        <th>Stocker</th>
-        <th>DC</th>
-        <th>Secondary In</th>
-        <th>Secondary Inhouse</th>
-        <th>QC Sewing</th>
-        <th>Packing Sewing</th>
+        <th style="font-weight: 800;">Worksheet</th>
+        <th style="font-weight: 800;">Style</th>
+        <th style="font-weight: 800;">Color</th>
+        <th style="font-weight: 800;">Size</th>
+        <th style="font-weight: 800;">Destination</th>
+        <th style="font-weight: 800;">Qty</th>
+        <th style="font-weight: 800;">Panel</th>
+        <th style="font-weight: 800;">Cut Marker</th>
+        <th style="font-weight: 800;">Cut Form</th>
+        <th style="font-weight: 800;">Stocker</th>
+        <th style="font-weight: 800;">DC</th>
+        <th style="font-weight: 800;">Secondary In</th>
+        <th style="font-weight: 800;">Secondary Inhouse</th>
+        <th style="font-weight: 800;">QC Sewing</th>
+        <th style="font-weight: 800;">Packing Sewing</th>
     </tr>
     @php
         $currentWorksheet = null;
