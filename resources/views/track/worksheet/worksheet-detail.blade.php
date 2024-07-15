@@ -785,7 +785,7 @@
             </div>
             <div class="card-body">
                 <div class="row mb-3" id="stocker-summary">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="info-box h-100">
                             <span class="info-box-icon bg-sb"><i class="fa-solid fa-receipt"></i></span>
                             <div class="info-box-content">
@@ -794,7 +794,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="info-box h-100">
                             <span class="info-box-icon bg-sb-secondary"><i class="fa-solid fa-table-cells"></i></span>
                             <div class="info-box-content">
@@ -803,7 +803,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="info-box h-100">
                             <span class="info-box-icon bg-sb"><i class="fa-solid fa-list-ol"></i></span>
                             <div class="info-box-content">
@@ -812,15 +812,15 @@
                             </div>
                         </div>
                     </div>
-                    {{-- <div class="col-md-3">
+                    <div class="col-md-3">
                         <div class="info-box h-100">
-                            <span class="info-box-icon bg-sb"><i class="fa-solid fa-box"></i></span>
+                            <span class="info-box-icon bg-sb-secondary"><i class="fa-solid fa-plus-minus"></i></span>
                             <div class="info-box-content">
-                                <span class="info-box-text text-sb fw-bold">PACKING</span>
-                                <span class="info-box-number" id="output-packing"></span>
+                                <span class="info-box-text text-sb-secondary fw-bold">Modified Qty</span>
+                                <span class="info-box-number" id="total-stocker-difference"></span>
                             </div>
                         </div>
-                    </div>--}}
+                    </div>
                 </div>
                 <div class="accordion" id="stocker-detail">
                     <div class="accordion-item">
@@ -845,6 +845,7 @@
                                                 <th>No. Stocker</th>
                                                 <th>Qty</th>
                                                 <th>Range</th>
+                                                <th>Difference</th>
                                                 <th>Secondary</th>
                                                 <th>Rak</th>
                                                 <th>Trolley</th>
@@ -860,6 +861,7 @@
                                                 <th id="total-stocker"></th>
                                                 <th id="total-stocker-qty"></th>
                                                 <th id="total-stocker-range"></th>
+                                                <th id="total-stocker-difference"></th>
                                                 <th colspan="5"></th>
                                             </tr>
                                         </tfoot>
@@ -1025,6 +1027,9 @@
             });
 
             $('#ws-size-filter').on("change", () => {
+                filterMarkerTable();
+                formTableReload();
+                rollTableReload();
                 stockerTableReload();
                 getLineOutput();
             });
@@ -1122,6 +1127,7 @@
                         d.dateTo = $('#marker-to').val();
                         d.color = $('#ws-color-filter').val();
                         d.panel = $('#ws-panel-filter').val();
+                        d.size = $('#ws-size-filter').val();
                     },
                 },
                 columns: [
@@ -1250,7 +1256,7 @@
                         render: (data, type, row, meta) => {
                             return `
                                 <div class="progress border border-sb position-relative" style="height: 21px; width: 150px;">
-                                    <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">` + row.total_lembar + `/` + row.gelar_qty + `</p>
+                                    <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">` + (row.total_lembar).toLocaleString("ID-id") + `/` + (row.gelar_qty).toLocaleString("ID-id") + `</p>
                                     <div class="progress-bar" style="background-color: #75baeb;width: ` + ((row.total_lembar / row.gelar_qty) * 100) + `%" role="progressbar"></div>
                                 </div>
                             `;
@@ -1300,7 +1306,7 @@
                         api.column(8).footer().innerHTML = totalMarker.totalMarkerGramasi;
                         api.column(9).footer().innerHTML = `
                             <div class="progress border border-sb position-relative" style="height: 21px; width: 150px;">
-                                <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">` + totalMarker.totalMarkerFormLembar + `/` + totalMarker.totalMarkerGelar + `</p>
+                                <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">` + (totalMarker.totalMarkerFormLembar).toLocaleString("ID-id") + `/` + (totalMarker.totalMarkerGelar).toLocaleString("ID-id") + `</p>
                                 <div class="progress-bar" style="background-color: #75baeb;width: ` + ((totalMarker.totalMarkerFormLembar / totalMarker.totalMarkerGelar) * 100) + `%" role="progressbar"></div>
                             </div>
                         `;
@@ -1310,7 +1316,7 @@
                         document.getElementById("total-marker-pl").innerHTML = totalMarker.totalMarkerPanjang+" <br> "+totalMarker.totalMarkerLebar;
                         document.getElementById("total-marker-gelar").innerHTML = `
                             <div class="progress border border-sb position-relative" style="height: 21px; width: 100%;">
-                                <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">` + totalMarker.totalMarkerFormLembar + `/` + totalMarker.totalMarkerGelar + `</p>
+                                <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">` + (totalMarker.totalMarkerFormLembar).toLocaleString("ID-id") + `/` + (totalMarker.totalMarkerGelar).toLocaleString("ID-id") + `</p>
                                 <div class="progress-bar" style="background-color: #75baeb;width: ` + ((totalMarker.totalMarkerFormLembar / totalMarker.totalMarkerGelar) * 100) + `%" role="progressbar"></div>
                             </div>
                         `;
@@ -1334,6 +1340,7 @@
                         dateTo : $('#marker-to').val(),
                         color : $('#ws-color-filter').val(),
                         panel : $('#ws-panel-filter').val(),
+                        size : $('#ws-size-filter').val(),
                         no_marker : $('#mrk_no_marker').val(),
                         mrk_color : $('#mrk_color').val(),
                         mrk_panel : $('#mrk_panel').val(),
@@ -2193,11 +2200,11 @@
             }
 
         // Stocker
-            var stockerTableParameter = ['stk_color', 'stk_panel', 'stk_part', 'stk_no_form', 'stk_no_cut', 'stk_size', 'stk_group', 'stk_no_stocker', 'stk_qty', 'stk_range', 'stk_secondary','stk_rack', 'stk_trolley', 'stk_line', 'stk_updated_at'];
+            var stockerTableParameter = ['stk_color', 'stk_panel', 'stk_part', 'stk_no_form', 'stk_no_cut', 'stk_size', 'stk_group', 'stk_no_stocker', 'stk_qty', 'stk_range', 'stk_difference', 'stk_secondary','stk_rack', 'stk_trolley', 'stk_line', 'stk_updated_at'];
 
             $('#stocker-table thead tr').clone(true).appendTo('#stocker-table thead');
                 $('#stocker-table thead tr:eq(1) th').each(function(i) {
-                    if (i != 8 && i != 9 && i != 14) {
+                    if (i != 8 && i != 9 && i != 15) {
                         var title = $(this).text();
                         $(this).html('<input type="text" class="form-control form-control-sm" id="'+stockerTableParameter[i]+'" />');
 
@@ -2270,6 +2277,9 @@
                             data: 'stocker_range',
                         },
                         {
+                            data: 'difference_qty',
+                        },
+                        {
                             data: 'secondary',
                         },
                         {
@@ -2324,6 +2334,7 @@
                         api.column(7).footer().innerHTML = "...";
                         api.column(8).footer().innerHTML = "...";
                         api.column(9).footer().innerHTML = "...";
+                        api.column(10).footer().innerHTML = "...";
 
                         let totalStocker = await getTotalStocker();
 
@@ -2331,10 +2342,12 @@
                             api.column(7).footer().innerHTML = totalStocker.totalStocker;
                             api.column(8).footer().innerHTML = totalStocker.totalQtyPly;
                             api.column(9).footer().innerHTML = totalStocker.totalRange;
+                            api.column(10).footer().innerHTML = totalStocker.totalDifference;
 
                             document.getElementById("total-stocker").innerText = totalStocker.totalStocker;
                             document.getElementById("total-stocker-qty").innerText = totalStocker.totalQtyPly;
                             document.getElementById("total-stocker-range").innerText = totalStocker.totalRange;
+                            document.getElementById("total-stocker-difference").innerText = totalStocker.totalDifference;
                         }
                     }
                 });
@@ -2370,7 +2383,8 @@
                             stkSecondary : $('#stk_secondary').val(),
                             stkRack : $('#stk_rack').val(),
                             stkTrolley : $('#stk_trolley').val(),
-                            stkLine : $('#stk_line').val()
+                            stkLine : $('#stk_line').val(),
+                            stkDifference : $('#stk_difference').val()
                         },
                     });
                 }

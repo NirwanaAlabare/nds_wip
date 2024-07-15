@@ -59,84 +59,87 @@ class TrackController extends Controller
                 FROM
                     master_sb_ws
                     LEFT JOIN (
-                    SELECT
-                        marker.id,
-                        marker.act_costing_id,
-                        marker.kode,
-                        marker.panel,
-                        marker_detail.so_det_id,
-                        marker.gelar_qty total_gelar_marker,
-                        marker_detail.ratio total_ratio_marker,
-                        marker_detail.cut_qty total_cut_marker,
-                        form_cut.qty_ply total_lembar_form,
-                        sum( marker_detail.ratio * form_cut.qty_ply ) total_cut_form,
-                        sum( stocker.qty_ply ) total_stocker,
-                        sum( stocker.dc_qty_ply ) total_dc,
-                        sum( stocker.sec_qty_ply ) total_sec,
-                        sum( stocker.sec_in_qty_ply ) total_sec_in
-                    FROM
-                        marker_input marker
-                        LEFT JOIN (
                         SELECT
-                            marker_input_detail.marker_id,
-                            marker_input_detail.so_det_id,
-                            marker_input_detail.size,
-                            sum( marker_input_detail.ratio ) ratio,
-                            sum( marker_input_detail.cut_qty ) cut_qty
+                            marker.id,
+                            marker.act_costing_id,
+                            marker.kode,
+                            marker.panel,
+                            marker_detail.so_det_id,
+                            marker.gelar_qty total_gelar_marker,
+                            marker_detail.ratio total_ratio_marker,
+                            marker_detail.cut_qty total_cut_marker,
+                            form_cut.qty_ply total_lembar_form,
+                            sum( marker_detail.ratio * form_cut.qty_ply ) total_cut_form,
+                            sum( stocker.qty_ply ) total_stocker,
+                            sum( stocker.dc_qty_ply ) total_dc,
+                            sum( stocker.sec_qty_ply ) total_sec,
+                            sum( stocker.sec_in_qty_ply ) total_sec_in
                         FROM
-                            marker_input_detail
+                            marker_input marker
+                            LEFT JOIN (
+                                SELECT
+                                    marker_input_detail.marker_id,
+                                    marker_input_detail.so_det_id,
+                                    marker_input_detail.size,
+                                    sum( marker_input_detail.ratio ) ratio,
+                                    sum( marker_input_detail.cut_qty ) cut_qty
+                                FROM
+                                    marker_input_detail
+                                WHERE
+                                    marker_input_detail.ratio > 0
+                                GROUP BY
+                                    marker_id,
+                                    so_det_id
+                                ) marker_detail ON marker_detail.marker_id = marker.id
+                                LEFT JOIN (
+                                SELECT
+                                    form_cut_input.id,
+                                    form_cut_input.id_marker,
+                                    form_cut_input.no_form,
+                                    COALESCE ( form_cut_input.total_lembar ) qty_ply
+                                FROM
+                                    form_cut_input
+                                WHERE
+                                    (form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y')
+                                    AND form_cut_input.qty_ply IS NOT NULL
+                                    AND form_cut_input.id_marker IS NOT NULL
+                            ) form_cut ON form_cut.id_marker = marker.kode
+                            LEFT JOIN (
+                                SELECT
+                                    *
+                                FROM
+                                    (
+                                    SELECT
+                                        stocker_input.form_cut_id,
+                                        stocker_input.part_detail_id,
+                                        stocker_input.so_det_id,
+                                        sum(
+                                        COALESCE ( stocker_input.qty_ply_mod, stocker_input.qty_ply )) qty_ply,
+                                        sum((
+                                                dc_in_input.qty_awal - dc_in_input.qty_reject + dc_in_input.qty_replace
+                                            )) dc_qty_ply,
+                                        sum( secondary_in_input.qty_in ) sec_qty_ply,
+                                        sum( secondary_inhouse_input.qty_in ) sec_in_qty_ply
+                                    FROM
+                                        stocker_input
+                                        LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                                        LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = dc_in_input.id_qr_stocker
+                                        LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = secondary_in_input.id_qr_stocker
+                                    GROUP BY
+                                        stocker_input.form_cut_id,
+                                        stocker_input.part_detail_id,
+                                        stocker_input.so_det_id
+                                    ) stocker
+                                GROUP BY
+                                    stocker.form_cut_id,
+                                    stocker.so_det_id
+                            ) stocker ON stocker.form_cut_id = form_cut.id
+                            AND stocker.so_det_id = marker_detail.so_det_id
                         WHERE
-                            marker_input_detail.ratio > 0
+                            (marker.cancel IS NULL OR marker.cancel != 'Y')
                         GROUP BY
-                            marker_id,
-                            so_det_id
-                        ) marker_detail ON marker_detail.marker_id = marker.id
-                        LEFT JOIN (
-                        SELECT
-                            form_cut_input.id,
-                            form_cut_input.id_marker,
-                            form_cut_input.no_form,
-                            COALESCE ( form_cut_input.total_lembar, form_cut_input.qty_ply ) qty_ply
-                        FROM
-                            form_cut_input
-                        WHERE
-                            form_cut_input.qty_ply IS NOT NULL
-                            AND form_cut_input.id_marker IS NOT NULL
-                        ) form_cut ON form_cut.id_marker = marker.kode
-                        LEFT JOIN (
-                        SELECT
-                            *
-                        FROM
-                            (
-                            SELECT
-                                stocker_input.form_cut_id,
-                                stocker_input.part_detail_id,
-                                stocker_input.so_det_id,
-                                sum(
-                                COALESCE ( stocker_input.qty_ply_mod, stocker_input.qty_ply )) qty_ply,
-                                sum((
-                                        dc_in_input.qty_awal - dc_in_input.qty_reject + dc_in_input.qty_replace
-                                    )) dc_qty_ply,
-                                sum( secondary_in_input.qty_in ) sec_qty_ply,
-                                sum( secondary_inhouse_input.qty_in ) sec_in_qty_ply
-                            FROM
-                                stocker_input
-                                LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
-                                LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = dc_in_input.id_qr_stocker
-                                LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = secondary_in_input.id_qr_stocker
-                            GROUP BY
-                                stocker_input.form_cut_id,
-                                stocker_input.part_detail_id,
-                                stocker_input.so_det_id
-                            ) stocker
-                        GROUP BY
-                            stocker.form_cut_id,
-                            stocker.so_det_id
-                        ) stocker ON stocker.form_cut_id = form_cut.id
-                        AND stocker.so_det_id = marker_detail.so_det_id
-                    GROUP BY
-                        marker.id,
-                        marker_detail.so_det_id
+                            marker.id,
+                            marker_detail.so_det_id
                     ) marker_track ON marker_track.act_costing_id = master_sb_ws.id_act_cost
                     AND marker_track.so_det_id = master_sb_ws.id_so_det
                 WHERE
@@ -310,6 +313,8 @@ class TrackController extends Controller
                             sum(total_lembar) total_lembar
                         from
                             form_cut_input
+                        where
+                            (form_cut_input.cancel IS NULL or form_cut_input.cancel != 'Y')
                         group by
                             id_marker
                     ) b"
@@ -324,12 +329,14 @@ class TrackController extends Controller
             })->
             leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
             leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
+            whereRaw("(marker_input.cancel IS NULL OR marker_input.cancel != 'Y')")->
             groupBy("marker_input.id");
 
             return DataTables::eloquent($markersQuery)->filter(function ($query) {
                     $actCostingId = request('actCostingId');
                     $color = request('color');
                     $panel = request('panel');
+                    $size = request('size');
                     $dateFrom = request('dateFrom');
                     $dateTo = request('dateTo');
 
@@ -343,6 +350,10 @@ class TrackController extends Controller
 
                     if ($panel) {
                         $query->whereRaw("marker_input.panel = '" . $panel . "'");
+                    }
+
+                    if ($size) {
+                        $query->whereRaw("marker_input_detail.size = '" . $size . "'");
                     }
 
                     if ($dateFrom) {
@@ -372,7 +383,7 @@ class TrackController extends Controller
 
     public function wsMarkerTotal(Request $request) {
         $markersQuery = Marker::selectRaw("
-                id,
+                marker_input.id,
                 tgl_cutting,
                 DATE_FORMAT(tgl_cutting, '%d-%m-%Y') tgl_cut_fix,
                 kode,
@@ -400,7 +411,7 @@ class TrackController extends Controller
                 COALESCE(b.total_lembar, 0) total_lembar,
                 CONCAT(COALESCE(b.total_lembar, 0), '/', gelar_qty) ply_progress,
                 COALESCE(notes, '-') notes,
-                cancel
+                marker_input.cancel
             ")->
             leftJoin(
                 DB::raw("
@@ -411,6 +422,8 @@ class TrackController extends Controller
                             sum(total_lembar) total_lembar
                         from
                             form_cut_input
+                        where
+                            (form_cut_input.cancel IS NULL or form_cut_input.cancel != 'Y')
                         group by
                             id_marker
                     ) b"
@@ -418,7 +431,12 @@ class TrackController extends Controller
                 "marker_input.kode",
                 "=",
                 "b.id_marker"
-            );
+            )->
+            leftJoin("marker_input_detail", function ($join) {
+                $join->on("marker_input_detail.marker_id", "=", "marker_input.id");
+                $join->on("marker_input_detail.ratio", ">", DB::raw("0"));
+            })->
+            whereRaw("(marker_input.cancel IS NULL OR marker_input.cancel != 'Y')");
 
         if ($request->actCostingId) {
             $markersQuery->whereRaw("act_costing_id = '" . $request->actCostingId . "'");
@@ -440,6 +458,10 @@ class TrackController extends Controller
             $markersQuery->whereRaw("LOWER(panel) LIKE '%" . $request->mrk_panel . "%'");
         }
 
+        if ($request->size) {
+            $markersQuery->whereRaw("marker_input_detail.size = '" . $request->size . "'");
+        }
+
         if ($request->dateFrom) {
             $markersQuery->whereRaw("tgl_cutting >= '" . $request->dateFrom . "'");
         }
@@ -450,14 +472,6 @@ class TrackController extends Controller
 
         if ($request->kode) {
             $markersQuery->whereRaw("LOWER(kode) LIKE LOWER('%" . $request->kode . "%')");
-        }
-
-        if ($request->color) {
-            $markersQuery->whereRaw("LOWER(color) LIKE LOWER('%" . $request->color . "%')");
-        }
-
-        if ($request->panel) {
-            $markersQuery->whereRaw("LOWER(panel) LIKE LOWER('%" . $request->panel . "%')");
         }
 
         if ($request->urutan) {
@@ -496,9 +510,9 @@ class TrackController extends Controller
         $totalMarkerGramasi =  $markersQuery ? num(round($markersQuery->sum("marker_input.gramasi"), 2)) : 0;
         $totalMarkerPanjang =  $markersQuery ? (num(round($markersQuery->sum("marker_input.panjang_marker") + ($markersQuery->sum("marker_input.comma_marker") / 100), 2))." ".(substr($markersQuery->first()->unit_marker_p, 0, 1))) : 0;
         $totalMarkerLebar =  $markersQuery ? (num(round($markersQuery->sum("marker_input.lebar_marker") / 100, 2))." ".(substr($markersQuery->first()->unit_marker_p, 0, 1))) : 0;
-        $totalMarkerGelar =  $markersQuery ? num(round($markersQuery->sum("gelar_qty"), 2)) : 0;
-        $totalMarkerForm =  $markersQuery ? num(round($markersQuery->sum("total_form"), 2)) : 0;
-        $totalMarkerFormLembar =  $markersQuery ? num(round($markersQuery->sum("total_lembar"), 2)) : 0;
+        $totalMarkerGelar =  $markersQuery ? round($markersQuery->sum("gelar_qty"), 2) : 0;
+        $totalMarkerForm =  $markersQuery ? round($markersQuery->sum("total_form"), 2) : 0;
+        $totalMarkerFormLembar =  $markersQuery ? round($markersQuery->sum("total_lembar"), 2) : 0;
 
         return array(
             "totalMarker" => $totalMarker,
@@ -577,7 +591,9 @@ class TrackController extends Controller
                     left join marker_input_detail on b.id = marker_input_detail.marker_id and marker_input_detail.ratio > 0
                     left join master_size_new on marker_input_detail.size = master_size_new.size
                 where
-                    a.id is not null
+                    a.id is not null AND
+                    (b.cancel IS NULL OR b.cancel != 'Y') AND
+                    (a.cancel IS NULL OR a.cancel != 'Y')
                     " . $additionalQuery . "
                 GROUP BY a.id
                 ORDER BY
@@ -657,7 +673,9 @@ class TrackController extends Controller
                 left join marker_input_detail on b.id = marker_input_detail.marker_id and marker_input_detail.ratio > 0
                 left join master_size_new on marker_input_detail.size = master_size_new.size
             where
-                a.id is not null
+                a.id is not null AND
+                (b.cancel IS NULL OR b.cancel != 'Y') AND
+                (a.cancel IS NULL OR a.cancel != 'Y')
                 " . $additionalQuery . "
             GROUP BY a.id
             ORDER BY
@@ -697,66 +715,56 @@ class TrackController extends Controller
                 $additionalQuery .= " and b.created_at <= '" . $request->dateTo . " 23:59:59'";
             }
 
-            $keywordQuery = "";
-            if ($request->search["value"]) {
-                $keywordQuery = "
-                    and (
-                        act_costing_ws like '%" . $request->search["value"] . "%' OR
-                        DATE_FORMAT(b.created_at, '%d-%m-%Y') like '%" . $request->search["value"] . "%'
-                    )
-                ";
-            }
-
             $pemakaianRoll = DB::select("
-                select
+                SELECT
                     a.tgl_form_cut,
-                    DATE_FORMAT(b.created_at, '%d-%m-%Y') tgl_input,
+                    DATE_FORMAT( b.created_at, '%d-%m-%Y' ) tgl_input,
                     act_costing_ws,
                     mrk.color,
                     mrk.panel,
-                    COALESCE(id_roll, '-') id_roll,
+                    COALESCE ( id_roll, '-' ) id_roll,
                     id_item,
                     detail_item,
-                    COALESCE(b.color_act, '-') color_act,
-                    COALESCE(b.group_roll, '-') group_roll,
-                    COALESCE(b.lot, '-') lot,
-                    COALESCE(b.roll, '-') roll,
+                    COALESCE ( b.color_act, '-' ) color_act,
+                    COALESCE ( b.group_roll, '-' ) group_roll,
+                    COALESCE ( b.lot, '-' ) lot,
+                    COALESCE ( b.roll, '-' ) roll,
                     b.no_form_cut_input,
-                    SUM(b.qty) qty_item,
-                    MAX(b.unit) unit_item,
-                    SUM(b.sisa_gelaran) sisa_gelaran,
-                    SUM(b.sambungan) sambungan,
-                    SUM(b.est_amparan) est_amparan,
-                    SUM(b.lembar_gelaran) lembar_gelaran,
-                    SUM(b.kepala_kain) kepala_kain,
-                    SUM(b.sisa_tidak_bisa) sisa_tidak_bisa,
-                    SUM(b.reject) reject,
-                    SUM(COALESCE(b.sisa_kain, 0)) sisa_kain,
-                    SUM(b.total_pemakaian_roll) total_pemakaian_roll,
-                    SUM(b.short_roll) short_roll,
-                    SUM(b.piping) piping,
-                    SUM(b.remark) remark,
-                    UPPER(meja.name) nama_meja
-                from
+                    SUM( b.qty ) qty_item,
+                    MAX( b.unit ) unit_item,
+                    SUM( b.sisa_gelaran ) sisa_gelaran,
+                    SUM( b.sambungan ) sambungan,
+                    SUM( b.est_amparan ) est_amparan,
+                    SUM( b.lembar_gelaran ) lembar_gelaran,
+                    SUM( b.kepala_kain ) kepala_kain,
+                    SUM( b.sisa_tidak_bisa ) sisa_tidak_bisa,
+                    SUM( b.reject ) reject,
+                    SUM(
+                    COALESCE ( b.sisa_kain, 0 )) sisa_kain,
+                    SUM( b.total_pemakaian_roll ) total_pemakaian_roll,
+                    SUM( b.short_roll ) short_roll,
+                    SUM( b.piping ) piping,
+                    SUM( b.remark ) remark,
+                    UPPER( meja.NAME ) nama_meja
+                FROM
                     form_cut_input a
-                    left join form_cut_input_detail b on a.no_form = b.no_form_cut_input
-                    left join marker_input mrk on a.id_marker = mrk.kode
-                    left join users meja on meja.id = a.no_meja
-                where
-                    a.cancel = 'N' and mrk.cancel = 'N' and id_item is not null
-                    " . $additionalQuery . "
-                    " . $keywordQuery . "
-                group by
-                    mrk.act_costing_id,
-                    mrk.color,
-                    mrk.panel,
+                    LEFT JOIN form_cut_input_detail b ON a.no_form = b.no_form_cut_input
+                    LEFT JOIN marker_input mrk ON a.id_marker = mrk.kode
+                    LEFT JOIN users meja ON meja.id = a.no_meja
+                WHERE
+                    id_item IS NOT NULL
+                    and (mrk.cancel IS NULL OR mrk.cancel != 'Y')
+                    and (a.cancel IS NULL OR a.cancel != 'Y')
+                    and a.`status` = 'SELESAI PENGERJAAN'
+                    ".$additionalQuery."
+                GROUP BY
                     a.no_form,
-                    b.id_item
-                order by
-                    mrk.color asc,
-                    mrk.panel asc,
-                    b.id_item asc,
-                    b.no_form_cut_input desc
+                    id_item
+                ORDER BY
+                    mrk.color ASC,
+                    mrk.panel ASC,
+                    b.id_item ASC,
+                    b.no_form_cut_input DESC
             ");
 
             return DataTables::of($pemakaianRoll)->toJson();
@@ -805,6 +813,10 @@ class TrackController extends Controller
 
         if ($request->roll_nama_barang) {
             $additionalQuery .= " and detail_item LIKE '%" . $request->roll_nama_barang . "%' ";
+        }
+
+        if ($request->roll_no_meja) {
+            $additionalQuery .= " and meja.name LIKE '%" . $request->roll_no_meja . "%' ";
         }
 
         if ($request->roll_qty || $request->roll_unit) {
@@ -859,8 +871,11 @@ class TrackController extends Controller
                 left join marker_input mrk on a.id_marker = mrk.kode
                 left join users meja on meja.id = a.no_meja
             where
-                a.cancel = 'N' and mrk.cancel = 'N' and id_item is not null
-                " . $additionalQuery . "
+                id_item IS NOT NULL
+                and (mrk.cancel IS NULL OR mrk.cancel != 'Y')
+                and (a.cancel IS NULL OR a.cancel != 'Y')
+                and a.`status` = 'SELESAI PENGERJAAN'
+                ".$additionalQuery."
             group by
                 mrk.act_costing_id,
                 mrk.color,
@@ -917,6 +932,7 @@ class TrackController extends Controller
                 stocker_input.ratio,
                 COALESCE(master_part.nama_part, ' - ') nama_part,
                 CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir, (CASE WHEN dc_in_input.qty_reject IS NOT NULL AND dc_in_input.qty_replace IS NOT NULL THEN CONCAT(' (', (COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0)), ') ') ELSE ' (0)' END)) stocker_range,
+                (CASE WHEN dc_in_input.qty_reject IS NOT NULL AND dc_in_input.qty_replace IS NOT NULL THEN (COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0)) ELSE 0 END) difference_qty,
                 stocker_input.status,
                 dc_in_input.id dc_in_id,
                 dc_in_input.tujuan,
@@ -939,7 +955,12 @@ class TrackController extends Controller
             leftJoin("rack_detail_stocker", "rack_detail_stocker.stocker_id", "=", "stocker_input.id_qr_stocker")->
             leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->
             leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
-            leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id");
+            leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
+            whereRaw("
+                (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
+                and (form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y')
+                and form_cut_input.`status` = 'SELESAI PENGERJAAN'
+            ");
 
             if ($actCostingId) {
                 $stockerSql->whereRaw("marker_input.act_costing_id = '" . $actCostingId . "'");
@@ -972,6 +993,7 @@ class TrackController extends Controller
                 orderBy("form_cut_input.no_cut", "asc")->
                 orderBy("master_part.nama_part", "asc")->
                 orderBy("stocker_input.so_det_id", "asc")->
+                orderBy("stocker_input.group_stocker", "desc")->
                 orderBy("stocker_input.shade", "desc")->
                 orderBy("stocker_input.id_qr_stocker", "asc");
 
@@ -1017,8 +1039,20 @@ class TrackController extends Controller
             filterColumn('kode', function ($query, $keyword) {
                 $query->whereRaw("LOWER(kode) LIKE LOWER('%" . $keyword . "%')");
             })->
-            filterColumn('kode', function ($query, $keyword) {
-                $query->whereRaw("LOWER(kode) LIKE LOWER('%" . $keyword . "%')");
+            filterColumn('difference_qty', function ($query, $keyword) {
+                $query->whereRaw("(CASE WHEN dc_in_input.qty_reject IS NOT NULL AND dc_in_input.qty_replace IS NOT NULL THEN (COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0)) ELSE 0 END) LIKE LOWER('%" . $keyword . "%')");
+            })->
+            filterColumn('secondary', function ($query, $keyword) {
+                $query->whereRaw("(CASE WHEN dc_in_input.tujuan = 'SECONDARY DALAM' OR dc_in_input.tujuan = 'SECONDARY LUAR' THEN dc_in_input.lokasi ELSE '-' END) LIKE LOWER('%" . $keyword . "%')");
+            })->
+            filterColumn('rak', function ($query, $keyword) {
+                $query->whereRaw("COALESCE(rack_detail_stocker.nm_rak, (CASE WHEN dc_in_input.tempat = 'RAK' THEN dc_in_input.lokasi ELSE null END), (CASE WHEN dc_in_input.lokasi = 'RAK' THEN dc_in_input.det_alokasi ELSE null END), '-') LIKE LOWER('%" . $keyword . "%')");
+            })->
+            filterColumn('troli', function ($query, $keyword) {
+                $query->whereRaw("COALESCE(trolley.nama_trolley, (CASE WHEN dc_in_input.tempat = 'TROLLEY' THEN dc_in_input.lokasi ELSE null END), '-') LIKE LOWER('%" . $keyword . "%')");
+            })->
+            filterColumn('line', function ($query, $keyword) {
+                $query->whereRaw("COALESCE(UPPER(loading_line.nama_line), '-') LIKE LOWER('%" . $keyword . "%')");
             })->
             toJson();
         }
@@ -1043,6 +1077,7 @@ class TrackController extends Controller
         $stkRack = $request->stkRack;
         $stkTrolley = $request->stkTrolley;
         $stkLine = $request->stkLine;
+        $stkDifference = $request->stkDifference;
 
         $stockerSql = Stocker::selectRaw("
             marker_input.color,
@@ -1083,7 +1118,12 @@ class TrackController extends Controller
         leftJoin("rack_detail_stocker", "rack_detail_stocker.stocker_id", "=", "stocker_input.id_qr_stocker")->
         leftJoin("trolley_stocker", "trolley_stocker.stocker_id", "=", "stocker_input.id")->
         leftJoin("trolley", "trolley.id", "=", "trolley_stocker.trolley_id")->
-        leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id");
+        leftJoin("loading_line", "loading_line.stocker_id", "=", "stocker_input.id")->
+        whereRaw("
+            (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
+            and (form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y')
+            and form_cut_input.`status` = 'SELESAI PENGERJAAN'
+        ");
 
         if ($actCostingId) {
             $stockerSql->whereRaw("marker_input.act_costing_id = '" . $actCostingId . "'");
@@ -1157,6 +1197,10 @@ class TrackController extends Controller
             $stockerSql->whereRaw("COALESCE(UPPER(loading_line.nama_line), '-') LIKE '%" . $stkLine . "%'");
         }
 
+        if ($stkDifference) {
+            $stockerSql->whereRaw("(CASE WHEN dc_in_input.qty_reject IS NOT NULL AND dc_in_input.qty_replace IS NOT NULL THEN (COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0)) ELSE 0 END) LIKE '%" . $stkDifference . "%'");
+        }
+
         $stocker = $stockerSql->
             groupBy("stocker_input.id_qr_stocker")->
             orderBy("stocker_input.act_costing_ws", "asc")->
@@ -1171,7 +1215,8 @@ class TrackController extends Controller
         return array(
             "totalStocker" => $stocker ? num($stocker->count()) : 0,
             "totalQtyPly" => $stocker ? num($stocker->sum("stocker_qty_ply")) : 0,
-            "totalRange" => $stocker ? num($stocker->min("range_awal")).' - '.num($stocker->max("range_akhir")).' ('.num($stocker->sum("difference_qty")).')' : '-',
+            "totalDifference" => $stocker ? num($stocker->sum("difference_qty")) : 0,
+            "totalRange" => $stocker ? num($stocker->min("range_awal")).' - '.num($stocker->max("range_akhir")) : '-',
         );
     }
 

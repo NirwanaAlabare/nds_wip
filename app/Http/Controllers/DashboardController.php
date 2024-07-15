@@ -505,4 +505,127 @@ class DashboardController extends Controller
 
         return $dataQty;
     }
+
+    public function sewingEff(Request $request) {
+        ini_set("max_execution_time", 0);
+        ini_set("memory_limit", '2048M');
+
+        $months = [['angka' => 1,'nama' => 'Januari'],['angka' => 2,'nama' => 'Februari'],['angka' => 3,'nama' => 'Maret'],['angka' => 4,'nama' => 'April'],['angka' => 5,'nama' => 'Mei'],['angka' => 6,'nama' => 'Juni'],['angka' => 7,'nama' => 'Juli'],['angka' => 8,'nama' => 'Agustus'],['angka' => 9,'nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
+        $years = array_reverse(range(1999, date('Y')));
+
+        if ($request->ajax()) {
+            $month = date("m");
+            $year = date("Y");
+
+            if ($request->month) {
+                $month = $request->month;
+            }
+            if ($request->year) {
+                $year = $request->year;
+            }
+
+            $sewingEfficiencyData = DB::connection('mysql_sb')->table('master_plan')->
+                selectRaw("
+                    tgl_plan tgl_produksi,
+                    ROUND((SUM(IFNULL( rfts.rft, 0 )) / SUM((IFNULL( rfts.rft, 0 ) + IFNULL( defects.defect, 0 ) + IFNULL( reworks.rework, 0 ) + IFNULL( rejects.reject, 0 ))) * 100 ), 2) rft,
+                    AVG(master_plan.target_effy) target_efficiency,
+                    ROUND((SUM(((IFNULL( rfts.rft, 0 ) + IFNULL( reworks.rework, 0 ))* master_plan.smv ))/SUM( master_plan.man_power * master_plan.jam_kerja * 60 ) * 100 ), 2) efficiency
+                ")->
+                leftJoin(DB::raw("(SELECT count(rfts.id) rft, master_plan.id master_plan_id from output_rfts rfts inner join master_plan on master_plan.id = rfts.master_plan_id where (MONTH(rfts.updated_at) = '".$month."' AND YEAR(rfts.updated_at) = '".$year."') and status = 'NORMAL' and (MONTH(master_plan.tgl_plan) = '".$month."' AND YEAR(master_plan.tgl_plan) = '".$year."') GROUP BY master_plan.id, master_plan.tgl_plan) as rfts"), "master_plan.id", "=", "rfts.master_plan_id")->
+                leftJoin(DB::raw("(SELECT count(defects.id) defect, master_plan.id master_plan_id from output_defects defects inner join master_plan on master_plan.id = defects.master_plan_id where defects.defect_status = 'defect' and (MONTH(defects.updated_at) = '".$month."' AND YEAR(defects.updated_at) = '".$year."') and (MONTH(master_plan.tgl_plan) = '".$month."' AND YEAR(master_plan.tgl_plan) = '".$year."') GROUP BY master_plan.id, master_plan.tgl_plan) as defects"), "master_plan.id", "=", "defects.master_plan_id")->
+                leftJoin(DB::raw("(SELECT count(defrew.id) rework, master_plan.id master_plan_id from output_defects defrew inner join master_plan on master_plan.id = defrew.master_plan_id where defrew.defect_status = 'reworked' and (MONTH(defrew.updated_at) = '".$month."' AND YEAR(defrew.updated_at) = '".$year."') and (MONTH(master_plan.tgl_plan) = '".$month."' AND YEAR(master_plan.tgl_plan) = '".$year."') GROUP BY master_plan.id, master_plan.tgl_plan) as reworks"), "master_plan.id", "=", "reworks.master_plan_id")->
+                leftJoin(DB::raw("(SELECT count(rejects.id) reject, master_plan.id master_plan_id from output_rejects rejects inner join master_plan on master_plan.id = rejects.master_plan_id where (MONTH(rejects.updated_at) = '".$month."' AND YEAR(rejects.updated_at) = '".$year."') and (MONTH(master_plan.tgl_plan) = '".$month."' AND YEAR(master_plan.tgl_plan) = '".$year."') GROUP BY master_plan.id, master_plan.tgl_plan) as rejects"), "master_plan.id", "=", "rejects.master_plan_id")->
+                where("master_plan.cancel", 'N')->
+                whereRaw("(
+                    MONTH(master_plan.tgl_plan) = '".$month."'
+                    AND
+                    YEAR(master_plan.tgl_plan) = '".$year."'
+                )")->
+                groupBy("master_plan.tgl_plan")->get();
+
+            return json_encode($sewingEfficiencyData);
+        }
+
+        return view('dashboard', ['page' => 'dashboard-sewing-eff', 'months' => $months, 'years' => $years]);
+    }
+
+    public function sewingSummary(Request $request) {
+        $month = date("m");
+        $year = date("Y");
+
+        if ($request->month) {
+            $month = $request->month;
+        }
+        if ($request->year) {
+            $year = $request->year;
+        }
+
+        $sewingSummaryData = DB::connection('mysql_sb')->table('master_plan')->
+            selectRaw("
+                COUNT(DISTINCT master_plan.id_ws) total_order,
+                SUM(IFNULL( rfts.rft, 0 ) + IFNULL( reworks.rework, 0 )) total_output,
+                ROUND((SUM(((IFNULL( rfts.rft, 0 )+ IFNULL( reworks.rework, 0 ))* master_plan.smv ))/SUM( master_plan.man_power * master_plan.jam_kerja * 60 ) * 100 ), 2) total_efficiency
+            ")->
+            leftJoin(DB::raw("(SELECT count(rfts.id) rft, master_plan.id master_plan_id from output_rfts rfts inner join master_plan on master_plan.id = rfts.master_plan_id where (MONTH(rfts.updated_at) = '".$month."' AND YEAR(rfts.updated_at) = '".$year."') and status = 'NORMAL' and (MONTH(master_plan.tgl_plan) = '".$month."' AND YEAR(master_plan.tgl_plan) = '".$year."') GROUP BY master_plan.id, master_plan.tgl_plan) as rfts"), "master_plan.id", "=", "rfts.master_plan_id")->
+            leftJoin(DB::raw("(SELECT count(defects.id) defect, master_plan.id master_plan_id from output_defects defects inner join master_plan on master_plan.id = defects.master_plan_id where defects.defect_status = 'defect' and (MONTH(defects.updated_at) = '".$month."' AND YEAR(defects.updated_at) = '".$year."') and (MONTH(master_plan.tgl_plan) = '".$month."' AND YEAR(master_plan.tgl_plan) = '".$year."') GROUP BY master_plan.id, master_plan.tgl_plan) as defects"), "master_plan.id", "=", "defects.master_plan_id")->
+            leftJoin(DB::raw("(SELECT count(defrew.id) rework, master_plan.id master_plan_id from output_defects defrew inner join master_plan on master_plan.id = defrew.master_plan_id where defrew.defect_status = 'reworked' and (MONTH(defrew.updated_at) = '".$month."' AND YEAR(defrew.updated_at) = '".$year."') and (MONTH(master_plan.tgl_plan) = '".$month."' AND YEAR(master_plan.tgl_plan) = '".$year."') GROUP BY master_plan.id, master_plan.tgl_plan) as reworks"), "master_plan.id", "=", "reworks.master_plan_id")->
+            leftJoin(DB::raw("(SELECT count(rejects.id) reject, master_plan.id master_plan_id from output_rejects rejects inner join master_plan on master_plan.id = rejects.master_plan_id where (MONTH(rejects.updated_at) = '".$month."' AND YEAR(rejects.updated_at) = '".$year."') and (MONTH(master_plan.tgl_plan) = '".$month."' AND YEAR(master_plan.tgl_plan) = '".$year."') GROUP BY master_plan.id, master_plan.tgl_plan) as rejects"), "master_plan.id", "=", "rejects.master_plan_id")->
+            where("master_plan.cancel", 'N')->
+            whereRaw("(
+                MONTH(master_plan.tgl_plan) = '".$month."'
+                AND
+                YEAR(master_plan.tgl_plan) = '".$year."'
+            )")->
+            groupByRaw("MONTH(master_plan.tgl_plan), YEAR(master_plan.tgl_plan)")->first();
+
+        return json_encode($sewingSummaryData);
+    }
+
+    public function sewingOutputData(Request $request) {
+        $groupBy = $request->groupBy;
+        $outputType = $request->outputType;
+
+        $dailyOrderOutputSql = MasterPlan::selectRaw("
+                master_plan.tgl_plan tanggal,
+                ".($this->groupBy == 'size' ? ' output_rfts'.($this->outputType).'.so_det_id, so_det.size, ' : '')."
+                count(output_rfts".($this->outputType).".id) output,
+                act_costing.kpno ws,
+                act_costing.styleno style,
+                master_plan.color,
+                master_plan.sewing_line,
+                master_plan.smv smv,
+                master_plan.jam_kerja jam_kerja,
+                master_plan.man_power man_power,
+                master_plan.plan_target plan_target,
+                coalesce(max(output_rfts".($this->outputType).".updated_at), master_plan.tgl_plan) latest_output
+            ")->
+            leftJoin("output_rfts".($this->outputType)."", "output_rfts".($this->outputType).".master_plan_id", "=", "master_plan.id")->
+            leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws");
+            if ($this->groupBy == "size") {
+                $dailyOrderOutputSql->leftJoin('so_det', 'so_det.id', '=', 'output_rfts'.($this->outputType).'.so_det_id');
+            }
+            $dailyOrderOutputSql->
+                where("act_costing.id", $this->selectedOrder)->
+                groupByRaw("master_plan.id_ws, act_costing.styleno, master_plan.color, master_plan.sewing_line , master_plan.tgl_plan ".($this->groupBy == 'size' ? ', so_det.size' : '')."")->
+                orderBy("master_plan.id_ws", "asc")->
+                orderBy("act_costing.styleno", "asc")->
+                orderBy("master_plan.color", "asc")->
+                orderByRaw("master_plan.sewing_line asc ".($this->groupBy == 'size' ? ', so_det.id asc' : ''));
+            if ($this->dateFromFilter) {
+                $dailyOrderOutputSql->where('master_plan.tgl_plan', '>=', $this->dateFromFilter);
+            }
+            if ($this->dateToFilter) {
+                $dailyOrderOutputSql->where('master_plan.tgl_plan', '<=', $this->dateToFilter);
+            }
+            if ($this->colorFilter) {
+                $dailyOrderOutputSql->where('master_plan.color', $this->colorFilter);
+            }
+            if ($this->lineFilter) {
+                $dailyOrderOutputSql->where('master_plan.sewing_line', $this->lineFilter);
+            }
+            if ($this->groupBy == "size" && $this->sizeFilter) {
+                $dailyOrderOutputSql->where('so_det.size', $this->sizeFilter);
+            }
+            $this->dailyOrderOutputs = $dailyOrderOutputSql->get();
+    }
 }

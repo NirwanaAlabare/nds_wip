@@ -512,6 +512,48 @@
                     </li>
                 @endif
 
+                @if ($page == 'dashboard-sewing-eff')
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing-master' ? 'active' : '' }}">Master</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @admin
+                                <li>
+                                    <a {{-- href="{{ route('master-plan') }}" --}} class="dropdown-item {{ $subPage == 'daily-sewing' ? 'active' : '' }}">
+                                        Master Plan <i class="fa-solid fa-gears"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a {{-- href="{{ route('daily-sewing-line') }}" --}} class="dropdown-item {{ $subPage == 'summary-loading' ? 'active' : '' }}">
+                                        Master Defect <i class="fa-solid fa-triangle-exclamation"></i>
+                                    </a>
+                                </li>
+                            @endadmin
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing' ? 'active' : '' }}">Sewing</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @admin
+                                <li>
+                                    <a {{-- href="{{ route('daily-sewing') }}" --}} class="dropdown-item {{ $subPage == 'daily-sewing' ? 'active' : '' }}">
+                                        Daily Sewing Output <i class="fa-solid fa-calendar-days"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a {{-- href="{{ route('daily-sewing-line') }}" --}} class="dropdown-item {{ $subPage == 'summary-loading' ? 'active' : '' }}">
+                                        Daily Sewing Line Output <i class="fa-solid fa-users-line"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a {{-- href="{{ route('daily-sewing-line') }}" --}} class="dropdown-item {{ $subPage == 'summary-loading' ? 'active' : '' }}">
+                                        Track Output <i class="fa-solid fa-shuffle"></i>
+                                    </a>
+                                </li>
+                            @endadmin
+                        </ul>
+                    </li>
+                @endif
+
                 @if ($page == 'dashboard-fg-stock')
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"

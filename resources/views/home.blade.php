@@ -87,7 +87,7 @@
 
                     @admin
                         <div class="col-lg-2 col-3">
-                            <a href="/" class="home-item">
+                            <a href="{{ route('dashboard-sewing-eff') }}" class="home-item">
                                 <div class="card h-100">
                                     <div class="card-body">
                                         <div class="d-flex h-100 flex-column justify-content-between">
