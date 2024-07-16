@@ -52,6 +52,12 @@ class PackingPackingOutController extends Controller
 
     public function getno_carton(Request $request)
     {
+        $cek_po = DB::select("
+        select * from ppic_master_so where id = '" . $request->cbopo . "'
+        ");
+
+        $po = $cek_po[0]->po;
+
         $data_carton = DB::select("
         select a.no_carton isi, a.no_carton tampil
         from packing_master_carton a where a.po = '$po'
@@ -147,7 +153,7 @@ SELECT id, tgl_trans, barcode, po, no_carton,created_at, updated_at, created_by 
     {
         $user = Auth::user()->name;
 
-        $data_po = DB::select("SELECT p.id isi, 	concat(p.po, ' - ', p.dest,  ' - ( ', coalesce(max(m.no_carton),0) , ' ) ') tampil
+        $data_po = DB::select("SELECT p.id isi, concat(p.po, ' - ', p.dest,  ' - ( ', coalesce(max(m.no_carton),0) , ' ) ') tampil
 from
 (
 select id, po, dest from ppic_master_so
@@ -155,9 +161,7 @@ where barcode is not null and barcode != '' and barcode != '-'
 group by po	, dest
 ) p
 left join
-(
-select * from packing_master_carton
-) m on p.po = m.po
+packing_master_carton m on p.po = m.po
 group by p.po, p.dest");
 
 
