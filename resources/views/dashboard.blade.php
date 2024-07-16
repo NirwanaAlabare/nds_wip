@@ -2996,6 +2996,14 @@
 
                 // Sewing Efficiency Chart
                 await sewingEfficiencyData();
+
+                if (!$('#sewing-output-month-filter').val()) {
+                    $('#sewing-output-month-filter').val((today.getMonth() + 1)).trigger("change");
+                }
+
+                if (!$('#sewing-output-year-filter').val()) {
+                    $('#sewing-output-year-filter').val(todayYear).trigger("change");
+                }
             });
 
             var options = {
@@ -3139,12 +3147,113 @@
             }
 
             async function sewingEfficiencyData() {
-                document.getElementById("loading").classList.remove("d-none");
+                document.getElementById("loading-sewing-chart").classList.remove("d-none");
                 await getSewingEfficiency();
                 await getSewingSummary();
-                document.getElementById("loading").classList.add("d-none");
+                document.getElementById("loading-sewing-chart").classList.add("d-none");
             }
 
+            $('#datatable-sewing-output thead tr').clone(true).appendTo('#datatable-sewing-output thead');
+            $('#datatable-sewing-output thead tr:eq(1) th').each(function(i) {
+                var title = $(this).text();
+                $(this).html('<input type="text" class="form-control form-control-sm"/>');
+
+                $('input', this).on('keyup change', function() {
+                    if (datatableSewingOutput.column(i).search() !== this.value) {
+                        datatableSewingOutput
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            });
+
+            var datatableSewingOutput = $("#datatable-sewing-output").DataTable({
+                serveSide: true,
+                processing: true,
+                ordering: false,
+                pageLength: 50,
+                scrollX: '400px',
+                scrollY: '400px',
+                ajax: {
+                    url: '{{ route('dashboard-sewing-output') }}',
+                    dataType: 'json',
+                    data: function (d) {
+                        d.month = $('#sewing-output-month-filter').val();
+                        d.year = $('#sewing-output-year-filter').val();
+                    }
+                },
+                columns: [
+                    {
+                        data: 'tanggal_order',
+                    },
+                    {
+                        data: 'buyer',
+                    },
+                    {
+                        data: 'act_costing_ws',
+                    },
+                    {
+                        data: 'style',
+                    },
+                    {
+                        data: 'color',
+                    },
+                    {
+                        data: 'size',
+                    },
+                    {
+                        data: 'qty',
+                    },
+                    {
+                        data: 'qty_output',
+                    },
+                    {
+                        data: 'qty_balance',
+                    },
+                    {
+                        data: 'qty_output_p',
+                    },
+                    {
+                        data: 'qty_balance_p',
+                    },
+                    {
+                        data: 'rft_rate',
+                    },
+                    {
+                        data: 'defect_rate',
+                    },
+                    {
+                        data: 'tanggal_delivery',
+                    },
+                ],
+                columnDefs: [
+                    {
+                        targets: [6, 7, 8, 9, 10],
+                        render: (data, type, row, meta) => {
+                            return "<b>"+formatNumber(data)+"</b>";
+                        }
+                    },
+                    {
+                        targets: [11, 12],
+                        render: (data, type, row, meta) => {
+                            return "<b>"+formatNumber(data)+" % </b>";
+                        }
+                    },
+                    {
+                        targets: "_all",
+                        className: "text-nowrap colorize"
+                    }
+                ],
+            });
+
+            $('#sewing-output-month-filter').on('change', () => {
+                $('#datatable-sewing-output').DataTable().ajax.reload();
+            });
+
+            $('#sewing-output-year-filter').on('change', () => {
+                $('#datatable-sewing-output').DataTable().ajax.reload();
+            });
 
             function formatDecimalNumber(number) {
                 if (number) {
@@ -3164,27 +3273,31 @@
                     val = -val;
                 }
 
-                // trim the number decimal point if it exists
-                let num = val.toString().includes('.') ? val.toString().split('.')[0] : val.toString();
-                let len = num.toString().length;
-                let result = '';
-                let count = 1;
+                if (val) {
+                    // trim the number decimal point if it exists
+                    let num = val.toString().includes('.') ? val.toString().split('.')[0] : val.toString();
+                    let len = num.toString().length;
+                    let result = '';
+                    let count = 1;
 
-                for (let i = len - 1; i >= 0; i--) {
-                    result = num.toString()[i] + result;
-                    if (count % 3 === 0 && count !== 0 && i !== 0) {
-                    result = '.' + result;
+                    for (let i = len - 1; i >= 0; i--) {
+                        result = num.toString()[i] + result;
+                        if (count % 3 === 0 && count !== 0 && i !== 0) {
+                        result = '.' + result;
+                        }
+                        count++;
                     }
-                    count++;
+
+                    // add number after decimal point
+                    if (val.toString().includes('.')) {
+                        result = result + ',' + val.toString().split('.')[1];
+                    }
+
+                    // return result with - sign if negative
+                    return sign < 0 ? '-' + result : result;
                 }
 
-                // add number after decimal point
-                if (val.toString().includes('.')) {
-                    result = result + ',' + val.toString().split('.')[1];
-                }
-
-                // return result with - sign if negative
-                return sign < 0 ? '-' + result : result;
+                return 0;
             }
 
             $("#sewing-eff-month-filter").on("change", async () => {
