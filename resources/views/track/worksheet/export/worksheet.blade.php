@@ -3,30 +3,27 @@
 
 <table >
     <tr>
-        <td colspan="18">Track WS</td>
+        <td colspan="15" style="font-weight: 800;">Track WS</td>
     </tr>
     <tr>
-        <td colspan="18">{{ $month."-".$year }}</td>
+        <td colspan="15" style="font-weight: 800;">{{ $month."-".$year }}</td>
     </tr>
     <tr>
-        <th>Worksheet</th>
-        <th>Style</th>
-        <th>Color</th>
-        <th>Size</th>
-        <th>Destination</th>
-        <th>Qty</th>
-        <th>Panel</th>
-        <th>Ratio</th>
-        <th>Ply Marker</th>
-        <th>Cut Marker</th>
-        <th>Ply Form</th>
-        <th>Cut Form</th>
-        <th>Stocker</th>
-        <th>DC</th>
-        <th>Secondary In</th>
-        <th>Secondary Inhouse</th>
-        <th>QC Sewing</th>
-        <th>Packing Sewing</th>
+        <th style="font-weight: 800;">Worksheet</th>
+        <th style="font-weight: 800;">Style</th>
+        <th style="font-weight: 800;">Color</th>
+        <th style="font-weight: 800;">Size</th>
+        <th style="font-weight: 800;">Destination</th>
+        <th style="font-weight: 800;">Qty</th>
+        <th style="font-weight: 800;">Panel</th>
+        <th style="font-weight: 800;">Cut Marker</th>
+        <th style="font-weight: 800;">Cut Form</th>
+        <th style="font-weight: 800;">Stocker</th>
+        <th style="font-weight: 800;">DC</th>
+        <th style="font-weight: 800;">Secondary In</th>
+        <th style="font-weight: 800;">Secondary Inhouse</th>
+        <th style="font-weight: 800;">QC Sewing</th>
+        <th style="font-weight: 800;">Packing Sewing</th>
     </tr>
     @php
         $currentWorksheet = null;
@@ -49,10 +46,7 @@
             <td style="vertical-align: top;">{{ $ws->dest ? $ws->dest : '-'  }}</td>
             <td style="vertical-align: top;">{{ $ws->qty ? $ws->qty : '0'  }}</td>
             <td style="vertical-align: top;">{{ $ws->panel ? $ws->panel : '-'  }}</td>
-            <td style="vertical-align: top;">{{ $ws->total_ratio_marker ? $ws->total_ratio_marker : '0'  }}</td>
-            <td style="vertical-align: top;">{{ $ws->total_gelar_marker ? $ws->total_gelar_marker : '0'  }}</td>
             <td style="vertical-align: top;">{{ $ws->total_cut_marker ? $ws->total_cut_marker : '0'  }}</td>
-            <td style="vertical-align: top;">{{ $ws->total_lembar_form ? $ws->total_lembar_form : '0'  }}</td>
             <td style="vertical-align: top;">{{ $ws->total_cut_form ? $ws->total_cut_form : '0'  }}</td>
             <td style="vertical-align: top;">{{ $ws->total_stocker ? $ws->total_stocker : '0'  }}</td>
             <td style="vertical-align: top;">{{ $ws->total_dc ? $ws->total_dc : '0'  }}</td>

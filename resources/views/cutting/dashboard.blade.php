@@ -95,6 +95,7 @@
             <table class="table table-bordered table-hover table-sm" id="datatable-cutting">
                 <thead>
                     <tr>
+                        <th>Tanggal Form</th>
                         <th>Buyer</th>
                         <th>No. WS</th>
                         <th>Style</th>
@@ -102,7 +103,6 @@
                         <th>No. Marker</th>
                         <th>Urutan Marker</th>
                         <th>Panel Marker</th>
-                        <th>Tanggal Form</th>
                         <th>No. Form</th>
                         <th>No. Cut Form</th>
                         <th>Total Lembar</th>

@@ -85,6 +85,22 @@
                         </div>
                     @enddc
 
+                    @admin
+                        <div class="col-lg-2 col-3">
+                            <a href="{{ route('dashboard-sewing-eff') }}" class="home-item">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex h-100 flex-column justify-content-between">
+                                            <img src="{{ asset('dist/img/sewingline.png') }}" class="img-fluid p-3"
+                                                alt="qr code image">
+                                            <p class="text-center fw-bold text-uppercase text-dark">Sewing Line</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    @endadmin
+
                     {{-- @hr
                         <div class="col-lg-2 col-3">
                             <a href="{{ route('dashboard-mut-karyawan') }}" class="home-item">

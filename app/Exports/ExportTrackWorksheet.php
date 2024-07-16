@@ -56,29 +56,26 @@ class ExportTrackWorksheet implements FromView, WithEvents, /*WithColumnWidths,*
 
         $worksheet = DB::select("
             SELECT DATE
-                    ( master_sb_ws.tgl_kirim ) tgl_kirim,
-                    master_sb_ws.id_act_cost,
-                    master_sb_ws.ws,
-                    master_sb_ws.styleno,
-                    master_sb_ws.color,
-                    master_sb_ws.id_so_det,
-                    master_sb_ws.size,
-                    master_sb_ws.dest,
-                    master_sb_ws.qty,
-                    marker_track.kode,
-                    marker_track.panel,
-                    sum( marker_track.total_gelar_marker ) total_gelar_marker,
-                    sum( marker_track.total_ratio_marker ) total_ratio_marker,
-                    sum( marker_track.total_cut_marker ) total_cut_marker,
-                    sum( marker_track.total_lembar_form ) total_lembar_form,
-                    sum( marker_track.total_cut_form ) total_cut_form,
-                    sum( marker_track.total_stocker ) total_stocker,
-                    sum( marker_track.total_dc ) total_dc,
-                    sum( marker_track.total_sec ) total_sec,
-                    sum( marker_track.total_sec_in ) total_sec_in
-                FROM
-                    master_sb_ws
-                    LEFT JOIN (
+                ( master_sb_ws.tgl_kirim ) tgl_kirim,
+                master_sb_ws.id_act_cost,
+                master_sb_ws.ws,
+                master_sb_ws.styleno,
+                master_sb_ws.color,
+                master_sb_ws.id_so_det,
+                master_sb_ws.size,
+                master_sb_ws.dest,
+                master_sb_ws.qty,
+                marker_track.kode,
+                marker_track.panel,
+                sum( marker_track.total_cut_marker ) total_cut_marker,
+                sum( marker_track.total_cut_form ) total_cut_form,
+                sum( marker_track.total_stocker ) total_stocker,
+                sum( marker_track.total_dc ) total_dc,
+                sum( marker_track.total_sec ) total_sec,
+                sum( marker_track.total_sec_in ) total_sec_in
+            FROM
+                master_sb_ws
+                LEFT JOIN (
                     SELECT
                         marker.id,
                         marker.act_costing_id,
@@ -97,80 +94,83 @@ class ExportTrackWorksheet implements FromView, WithEvents, /*WithColumnWidths,*
                     FROM
                         marker_input marker
                         LEFT JOIN (
-                        SELECT
-                            marker_input_detail.marker_id,
-                            marker_input_detail.so_det_id,
-                            marker_input_detail.size,
-                            sum( marker_input_detail.ratio ) ratio,
-                            sum( marker_input_detail.cut_qty ) cut_qty
-                        FROM
-                            marker_input_detail
-                        WHERE
-                            marker_input_detail.ratio > 0
-                        GROUP BY
-                            marker_id,
-                            so_det_id
-                        ) marker_detail ON marker_detail.marker_id = marker.id
-                        LEFT JOIN (
-                        SELECT
-                            form_cut_input.id,
-                            form_cut_input.id_marker,
-                            form_cut_input.no_form,
-                            COALESCE ( form_cut_input.total_lembar, form_cut_input.qty_ply ) qty_ply
-                        FROM
-                            form_cut_input
-                        WHERE
-                            form_cut_input.qty_ply IS NOT NULL
-                            AND form_cut_input.id_marker IS NOT NULL
+                            SELECT
+                                marker_input_detail.marker_id,
+                                marker_input_detail.so_det_id,
+                                marker_input_detail.size,
+                                sum( marker_input_detail.ratio ) ratio,
+                                sum( marker_input_detail.cut_qty ) cut_qty
+                            FROM
+                                marker_input_detail
+                            WHERE
+                                marker_input_detail.ratio > 0
+                            GROUP BY
+                                marker_id,
+                                so_det_id
+                            ) marker_detail ON marker_detail.marker_id = marker.id
+                            LEFT JOIN (
+                            SELECT
+                                form_cut_input.id,
+                                form_cut_input.id_marker,
+                                form_cut_input.no_form,
+                                COALESCE ( form_cut_input.total_lembar ) qty_ply
+                            FROM
+                                form_cut_input
+                            WHERE
+                                (form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y')
+                                AND form_cut_input.qty_ply IS NOT NULL
+                                AND form_cut_input.id_marker IS NOT NULL
                         ) form_cut ON form_cut.id_marker = marker.kode
                         LEFT JOIN (
-                        SELECT
-                            *
-                        FROM
-                            (
                             SELECT
-                                stocker_input.form_cut_id,
-                                stocker_input.part_detail_id,
-                                stocker_input.so_det_id,
-                                sum(
-                                COALESCE ( stocker_input.qty_ply_mod, stocker_input.qty_ply )) qty_ply,
-                                sum((
-                                        dc_in_input.qty_awal - dc_in_input.qty_reject + dc_in_input.qty_replace
-                                    )) dc_qty_ply,
-                                sum( secondary_in_input.qty_in ) sec_qty_ply,
-                                sum( secondary_inhouse_input.qty_in ) sec_in_qty_ply
+                                *
                             FROM
-                                stocker_input
-                                LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
-                                LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = dc_in_input.id_qr_stocker
-                                LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = secondary_in_input.id_qr_stocker
+                                (
+                                SELECT
+                                    stocker_input.form_cut_id,
+                                    stocker_input.part_detail_id,
+                                    stocker_input.so_det_id,
+                                    sum(
+                                    COALESCE ( stocker_input.qty_ply_mod, stocker_input.qty_ply )) qty_ply,
+                                    sum((
+                                            dc_in_input.qty_awal - dc_in_input.qty_reject + dc_in_input.qty_replace
+                                        )) dc_qty_ply,
+                                    sum( secondary_in_input.qty_in ) sec_qty_ply,
+                                    sum( secondary_inhouse_input.qty_in ) sec_in_qty_ply
+                                FROM
+                                    stocker_input
+                                    LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                                    LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = dc_in_input.id_qr_stocker
+                                    LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = secondary_in_input.id_qr_stocker
+                                GROUP BY
+                                    stocker_input.form_cut_id,
+                                    stocker_input.part_detail_id,
+                                    stocker_input.so_det_id
+                                ) stocker
                             GROUP BY
-                                stocker_input.form_cut_id,
-                                stocker_input.part_detail_id,
-                                stocker_input.so_det_id
-                            ) stocker
-                        GROUP BY
-                            stocker.form_cut_id,
-                            stocker.so_det_id
+                                stocker.form_cut_id,
+                                stocker.so_det_id
                         ) stocker ON stocker.form_cut_id = form_cut.id
                         AND stocker.so_det_id = marker_detail.so_det_id
+                    WHERE
+                        (marker.cancel IS NULL OR marker.cancel != 'Y')
                     GROUP BY
                         marker.id,
                         marker_detail.so_det_id
-                    ) marker_track ON marker_track.act_costing_id = master_sb_ws.id_act_cost
-                    AND marker_track.so_det_id = master_sb_ws.id_so_det
-                WHERE
-                    MONTH ( master_sb_ws.tgl_kirim ) = '".$this->month."'
-                    AND YEAR ( master_sb_ws.tgl_kirim ) = '".$this->year."'
-                GROUP BY
-                    master_sb_ws.id_so_det,
-                    marker_track.panel
-                ORDER BY
-                    master_sb_ws.id_act_cost,
-                    master_sb_ws.color,
-                    marker_track.panel,
-                    master_sb_ws.id_so_det
-            ");
+                ) marker_track ON marker_track.act_costing_id = master_sb_ws.id_act_cost
+                AND marker_track.so_det_id = master_sb_ws.id_so_det
+            WHERE
+                MONTH ( master_sb_ws.tgl_kirim ) = '".$this->month."'
+                AND YEAR ( master_sb_ws.tgl_kirim ) = '".$this->year."'
+            GROUP BY
+                master_sb_ws.id_so_det,
+                marker_track.panel
+            ORDER BY
+                master_sb_ws.id_act_cost,
+                master_sb_ws.color,
+                marker_track.panel,
+                master_sb_ws.id_so_det
+        ");
 
         $this->rowCount = count($worksheet) + 3;
 
@@ -193,7 +193,7 @@ class ExportTrackWorksheet implements FromView, WithEvents, /*WithColumnWidths,*
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A3:R' . $event->getConcernable()->rowCount,
+            'A3:O' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [

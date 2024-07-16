@@ -47,6 +47,10 @@
             @include('dc.dashboard', ["months" => $months, "years" => $years])
         @endif
 
+        @if ($page == 'dashboard-sewing-eff')
+            @include('sewing.dashboard', ["months" => $months, "years" => $years])
+        @endif
+
         @if ($page == 'dashboard-mut-karyawan')
             <div class="container-fluid">
                 <div class="card">
@@ -2969,6 +2973,340 @@
                     }
                 });
             }
+        </script>
+    @endif
+
+    @if ($page == 'dashboard-sewing-eff')
+        <script>
+            $(document).ready(async function() {
+                let today = new Date();
+                let todayDate = ("0" + today.getDate()).slice(-2);
+                let todayMonth = ("0" + (today.getMonth() + 1)).slice(-2);
+                let todayYear = today.getFullYear();
+                let todayFullDate = todayYear + '-' + todayMonth + '-' + todayDate;
+
+                // Sewing Chart
+                if (!$('#sewing-eff-month-filter').val()) {
+                    $('#sewing-eff-month-filter').val((today.getMonth() + 1)).trigger("change");
+                }
+
+                if (!$('#sewing-eff-year-filter').val()) {
+                    $('#sewing-eff-year-filter').val(todayYear).trigger("change");
+                }
+
+                // Sewing Efficiency Chart
+                await sewingEfficiencyData();
+
+                if (!$('#sewing-output-month-filter').val()) {
+                    $('#sewing-output-month-filter').val((today.getMonth() + 1)).trigger("change");
+                }
+
+                if (!$('#sewing-output-year-filter').val()) {
+                    $('#sewing-output-year-filter').val(todayYear).trigger("change");
+                }
+            });
+
+            var options = {
+                series: [],
+                chart: {
+                    height: 450,
+                    type: 'line',
+                    toolbar: {
+                        show: true
+                    }
+                },
+                colors: ['#b02ffa', '#428af5', '#1c59ff'],
+                grid: {
+                    borderColor: '#e7e7e7',
+                    row: {
+                        colors: ['#ebebeb', 'transparent'], // takes an array which will be repeated on columns
+                        opacity: 0.5
+                    },
+                },
+                yaxis: {
+                    tickAmount: 10,
+                    labels: {
+                        formatter: function (value) {
+                            return formatDecimalNumber(value) + "%";
+                        }
+                    },
+                },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (val, opts) {
+                        return formatDecimalNumber(val);
+                    },
+                    style: {
+                        fontSize: '10px',
+                        fontFamily: 'Helvetica, Arial, sans-serif',
+                    },
+                },
+                legend: {
+                    show: true,
+                    position: 'top',
+                    horizontalAlign: 'left',
+                },
+                noData: {
+                    text: 'Loading...'
+                }
+            };
+
+            var chart = new ApexCharts(document.querySelector("#sewing-eff-chart"), options);
+            chart.render();
+
+            function getSewingEfficiency() {
+                return $.ajax({
+                    url: '{{ route('dashboard-sewing-eff') }}',
+                    type: 'get',
+                    data: {
+                        month: $("#sewing-eff-month-filter").val(),
+                        year: $("#sewing-eff-year-filter").val(),
+                    },
+                    dataType: 'json',
+                    success: async function(res) {
+                        let tglArr = [];
+                        let efficiencyArr = [];
+                        let targetEfficiencyArr = [];
+                        let rftArr = [];
+
+                        if (res) {
+                            res.forEach(item => {
+                                tglArr.push(item.tgl_produksi.substr(-2));
+                                efficiencyArr.push(item.efficiency);
+                                targetEfficiencyArr.push(item.target_efficiency);
+                                rftArr.push(item.rft);
+                            });
+
+                            await chart.updateSeries(
+                            [
+                                {
+                                    name: 'Efficiency',
+                                    data: efficiencyArr
+                                },
+                                {
+                                    name: 'Target Efficiency',
+                                    data: targetEfficiencyArr
+                                },
+                                {
+                                    name: 'RFT',
+                                    data: rftArr
+                                }
+                            ], true);
+
+                            await chart.updateOptions({
+                                xaxis: {
+                                    categories: tglArr,
+                                },
+                                noData: {
+                                    text: 'Data Not Found'
+                                }
+                            });
+                        }
+                    }, error: function (jqXHR) {
+                        let res = jqXHR.responseJSON;
+                        console.error(res.message);
+                        iziToast.error({
+                            title: 'Error',
+                            message: res.message,
+                            position: 'topCenter'
+                        });
+                    }
+                });
+            }
+
+            function getSewingSummary() {
+                return $.ajax({
+                    url: '{{ route('dashboard-sewing-sum') }}',
+                    type: 'get',
+                    data: {
+                        month: $("#sewing-eff-month-filter").val(),
+                        year: $("#sewing-eff-year-filter").val(),
+                    },
+                    dataType: 'json',
+                    success: async function(res) {
+                        let totalOrderEl = document.getElementById('sewing-total-order');
+                        let totalOutputEl = document.getElementById('sewing-total-output');
+                        let totalEfficiencyEl = document.getElementById('sewing-total-efficiency');
+
+                        if (res) {
+                            totalOrderEl.innerText = formatNumber(res.total_order);
+                            totalOutputEl.innerText = formatNumber(res.total_output);
+                            totalEfficiencyEl.innerText = formatNumber(res.total_efficiency)+ '%';
+                        }
+                    },
+                    error: function (jqXHR) {
+                        let res = jqXHR.responseJSON;
+                        console.error(res.message);
+                        iziToast.error({
+                            title: 'Error',
+                            message: res.message,
+                            position: 'topCenter'
+                        });
+                    }
+                });
+            }
+
+            async function sewingEfficiencyData() {
+                document.getElementById("loading-sewing-chart").classList.remove("d-none");
+                await getSewingEfficiency();
+                await getSewingSummary();
+                document.getElementById("loading-sewing-chart").classList.add("d-none");
+            }
+
+            $('#datatable-sewing-output thead tr').clone(true).appendTo('#datatable-sewing-output thead');
+            $('#datatable-sewing-output thead tr:eq(1) th').each(function(i) {
+                var title = $(this).text();
+                $(this).html('<input type="text" class="form-control form-control-sm"/>');
+
+                $('input', this).on('keyup change', function() {
+                    if (datatableSewingOutput.column(i).search() !== this.value) {
+                        datatableSewingOutput
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            });
+
+            var datatableSewingOutput = $("#datatable-sewing-output").DataTable({
+                serveSide: true,
+                processing: true,
+                ordering: false,
+                pageLength: 50,
+                scrollX: '400px',
+                scrollY: '400px',
+                ajax: {
+                    url: '{{ route('dashboard-sewing-output') }}',
+                    dataType: 'json',
+                    data: function (d) {
+                        d.month = $('#sewing-output-month-filter').val();
+                        d.year = $('#sewing-output-year-filter').val();
+                    }
+                },
+                columns: [
+                    {
+                        data: 'tanggal_order',
+                    },
+                    {
+                        data: 'buyer',
+                    },
+                    {
+                        data: 'act_costing_ws',
+                    },
+                    {
+                        data: 'style',
+                    },
+                    {
+                        data: 'color',
+                    },
+                    {
+                        data: 'size',
+                    },
+                    {
+                        data: 'qty',
+                    },
+                    {
+                        data: 'qty_output',
+                    },
+                    {
+                        data: 'qty_balance',
+                    },
+                    {
+                        data: 'qty_output_p',
+                    },
+                    {
+                        data: 'qty_balance_p',
+                    },
+                    {
+                        data: 'rft_rate',
+                    },
+                    {
+                        data: 'defect_rate',
+                    },
+                    {
+                        data: 'tanggal_delivery',
+                    },
+                ],
+                columnDefs: [
+                    {
+                        targets: [6, 7, 8, 9, 10],
+                        render: (data, type, row, meta) => {
+                            return "<b>"+formatNumber(data)+"</b>";
+                        }
+                    },
+                    {
+                        targets: [11, 12],
+                        render: (data, type, row, meta) => {
+                            return "<b>"+formatNumber(data)+" % </b>";
+                        }
+                    },
+                    {
+                        targets: "_all",
+                        className: "text-nowrap colorize"
+                    }
+                ],
+            });
+
+            $('#sewing-output-month-filter').on('change', () => {
+                $('#datatable-sewing-output').DataTable().ajax.reload();
+            });
+
+            $('#sewing-output-year-filter').on('change', () => {
+                $('#datatable-sewing-output').DataTable().ajax.reload();
+            });
+
+            function formatDecimalNumber(number) {
+                if (number) {
+                    if (Math.round(number) !== number) {
+                        return formatNumber(number.toFixed(1));
+                    }
+                }
+
+                return formatNumber(number);
+            }
+
+            function formatNumber(val) {
+                // remove sign if negative
+                var sign = 1;
+                if (val < 0) {
+                    sign = -1;
+                    val = -val;
+                }
+
+                if (val) {
+                    // trim the number decimal point if it exists
+                    let num = val.toString().includes('.') ? val.toString().split('.')[0] : val.toString();
+                    let len = num.toString().length;
+                    let result = '';
+                    let count = 1;
+
+                    for (let i = len - 1; i >= 0; i--) {
+                        result = num.toString()[i] + result;
+                        if (count % 3 === 0 && count !== 0 && i !== 0) {
+                        result = '.' + result;
+                        }
+                        count++;
+                    }
+
+                    // add number after decimal point
+                    if (val.toString().includes('.')) {
+                        result = result + ',' + val.toString().split('.')[1];
+                    }
+
+                    // return result with - sign if negative
+                    return sign < 0 ? '-' + result : result;
+                }
+
+                return 0;
+            }
+
+            $("#sewing-eff-month-filter").on("change", async () => {
+                await sewingEfficiencyData();
+            })
+
+            $("#sewing-eff-year-filter").on("change", async () => {
+                await sewingEfficiencyData();
+            })
         </script>
     @endif
 

@@ -23,8 +23,9 @@ use App\Http\Controllers\Cutting\CuttingFormController;
 use App\Http\Controllers\Cutting\CuttingFormManualController;
 use App\Http\Controllers\Cutting\CuttingFormPilotController;
 use App\Http\Controllers\Cutting\CuttingPlanController;
-use App\Http\Controllers\Cutting\RollController;
+use App\Http\Controllers\Cutting\ReportCuttingController;
 use App\Http\Controllers\Cutting\CompletedFormController;
+use App\Http\Controllers\Cutting\RollController;
 
 // Stocker
 use App\Http\Controllers\Stocker\StockerController;
@@ -354,14 +355,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-cut-plan-form', 'getCutPlanForm')->name('get-cut-plan-form');
     });
 
-    // Roll
-    Route::controller(RollController::class)->prefix("lap_pemakaian")->middleware('admin')->group(function () {
-        Route::get('/', 'index')->name('lap_pemakaian');
-        // export excel
-        Route::get('/export_excel', 'export_excel')->name('export_excel');
-        Route::get('/export', 'export')->name('export');
-    });
-
     // CompletedForm
     Route::controller(CompletedFormController::class)->prefix("manager")->middleware('manager')->group(function () {
         Route::get('/cutting', 'cutting')->name('manage-cutting');
@@ -370,6 +363,21 @@ Route::middleware('auth')->group(function () {
         Route::post('/cutting/update-form', 'updateCutting')->name('update-spreading-form');
         Route::put('/cutting/update-finish/{id?}', 'updateFinish')->name('finish-update-spreading-form');
         Route::delete('/cutting/destroy-roll/{id?}', 'destroySpreadingRoll')->name('destroy-spreading-roll');
+    });
+
+    // ReportCutting
+    Route::controller(ReportCuttingController::class)->prefix("report-cutting")->middleware('admin')->group(function () {
+        Route::get('/cutting', 'cutting')->name('report-cutting');
+        // export excel
+        Route::post('/cutting/export', 'export')->name('report-cutting-export');
+    });
+
+    // Roll
+    Route::controller(RollController::class)->prefix("lap_pemakaian")->middleware('admin')->group(function () {
+        Route::get('/', 'index')->name('lap_pemakaian');
+        // export excel
+        Route::get('/export_excel', 'export_excel')->name('export_excel');
+        Route::post('/export', 'export')->name('export');
     });
 
     // Stocker :
@@ -407,15 +415,6 @@ Route::middleware('auth')->group(function () {
     });
 
     // DC :
-    // DC Dashboard
-    Route::get('/dashboard-track', [DashboardController::class, 'track'])->middleware('auth')->name('dashboard-track');
-    Route::get('/dashboard-marker', [DashboardController::class, 'marker'])->middleware('auth')->name('dashboard-marker');
-    Route::get('/marker-qty', [DashboardController::class, 'markerQty'])->middleware('auth')->name('marker-qty');
-    Route::get('/dashboard-cutting', [DashboardController::class, 'cutting'])->middleware('auth')->name('dashboard-cutting');
-    Route::get('/cutting-qty', [DashboardController::class, 'cuttingQty'])->middleware('auth')->name('cutting-qty');
-    Route::get('/dashboard-dc', [DashboardController::class, 'dc'])->middleware('auth')->name('dashboard-dc');
-    Route::get('/dc-qty', [DashboardController::class, 'dcQty'])->middleware('auth')->name('dc-qty');
-
     // // DC IN BACKUP
     // Route::controller(DCInController::class)->prefix("dc-in")->middleware('dc')->group(function () {
     //     Route::get('/', 'index')->name('dc-in');
@@ -570,6 +569,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/worksheet/show-roll', 'wsRoll')->name('track-ws-roll');
         Route::get('/worksheet/show-roll-total', 'wsRollTotal')->name('track-ws-roll-total');
         Route::get('/worksheet/show-stocker', 'wsStocker')->name('track-ws-stocker');
+        Route::get('/worksheet/show-stocker-total', 'wsStockerTotal')->name('track-ws-stocker-total');
+        Route::get('/worksheet/ws-sewing-output', 'wsSewingOutput')->name('track-ws-sewing-output');
     });
 
     //Mutasi Karywawan
@@ -1018,6 +1019,18 @@ Route::middleware('auth')->group(function () {
         Route::get('/show/{partId?}', 'show')->name('stock-dc-wip-detail');
     });
 });
+
+// Dashboard
+Route::get('/dashboard-track', [DashboardController::class, 'track'])->middleware('auth')->name('dashboard-track');
+Route::get('/dashboard-marker', [DashboardController::class, 'marker'])->middleware('auth')->name('dashboard-marker');
+Route::get('/marker-qty', [DashboardController::class, 'markerQty'])->middleware('auth')->name('marker-qty');
+Route::get('/dashboard-cutting', [DashboardController::class, 'cutting'])->middleware('auth')->name('dashboard-cutting');
+Route::get('/cutting-qty', [DashboardController::class, 'cuttingQty'])->middleware('auth')->name('cutting-qty');
+Route::get('/dashboard-dc', [DashboardController::class, 'dc'])->middleware('auth')->name('dashboard-dc');
+Route::get('/dc-qty', [DashboardController::class, 'dcQty'])->middleware('auth')->name('dc-qty');
+Route::get('/dashboard-sewing-eff', [DashboardController::class, 'sewingEff'])->middleware('auth')->name('dashboard-sewing-eff');
+Route::get('/sewing-summary', [DashboardController::class, 'sewingSummary'])->middleware('auth')->name('dashboard-sewing-sum');
+Route::get('/sewing-output-data', [DashboardController::class, 'sewingOutputData'])->middleware('auth')->name('dashboard-sewing-output');
 
 // Dashboard
 // Route::get('/dashboard-marker', function () {
