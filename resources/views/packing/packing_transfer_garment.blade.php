@@ -31,6 +31,13 @@
                         Ambil Temporary Packing
                     </a>
                 </div>
+                {{-- <div class="mb-3">
+                    <a href="{{ route('create-transfer-garment-temporary') }}"
+                        class="btn btn-outline-secondary position-relative">
+                        <i class="fas fa-box-open"></i>
+                        Stok Temporary
+                    </a>
+                </div> --}}
             </div>
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
