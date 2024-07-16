@@ -61,8 +61,8 @@ class PPIC_MasterSOController extends Controller
             left join
             (
 select p.id, coalesce(count(a.barcode),0) qty_packing_out from packing_packing_out_scan a
-inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po
-group by a.barcode, a.po
+inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po and a.dest = p.dest
+group by a.barcode, a.po, a.dest
             ) pck_out on pck_out.id = a.id
             where tgl_shipment >= '$tgl_awal' and tgl_shipment <= '$tgl_akhir'
             order by tgl_shipment desc, buyer asc, ws asc , msn.urutan asc

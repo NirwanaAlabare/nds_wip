@@ -922,6 +922,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('packing-out');
         Route::get('/create', 'create')->name('create-packing-out');
         Route::get('/getno_carton', 'getno_carton')->name('getno_carton');
+        Route::get('/getpo', 'getpo')->name('getpo');
         Route::get('/packing_out_show_summary', 'packing_out_show_summary')->name('packing_out_show_summary');
         Route::get('/packing_out_show_tot_input', 'packing_out_show_tot_input')->name('packing_out_show_tot_input');
         Route::get('/packing_out_show_history', 'packing_out_show_history')->name('packing_out_show_history');

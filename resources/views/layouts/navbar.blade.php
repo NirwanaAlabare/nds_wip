@@ -647,6 +647,12 @@
                                     Transfer Garment <i class="fa-solid fa-right-left fa-sm"></i>
                                 </a>
                             </li>
+                            {{-- <li>
+                                <a href="{{ route('transfer-garment') }}"
+                                    class="dropdown-item {{ $subPage == 'transfer-garment' ? 'active' : '' }}">
+                                    Stok <i class="fa-solid fa-warehouse fa-sm"></i>
+                                </a>
+                            </li> --}}
                         </ul>
                     </li>
                     <li class="nav-item dropdown">

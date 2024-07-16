@@ -52,9 +52,15 @@ class PackingPackingOutController extends Controller
 
     public function getno_carton(Request $request)
     {
+        $cek_po = DB::select("
+        select * from ppic_master_so where id = '" . $request->cbopo . "'
+        ");
+
+        $po = $cek_po[0]->po;
+
         $data_carton = DB::select("
         select a.no_carton isi, a.no_carton tampil
-        from packing_master_carton a where a.po = '" . $request->cbopo . "'
+        from packing_master_carton a where a.po = '$po'
         order by no_carton asc
         ");
 
@@ -65,6 +71,15 @@ class PackingPackingOutController extends Controller
         }
 
         return $html;
+    }
+
+
+    public function getpo(Request $request)
+    {
+        $cek_po = DB::select("
+        select * from ppic_master_so where id = '" . $request->cbopo . "'
+        ");
+        return json_encode($cek_po[0]);
     }
 
 
@@ -113,7 +128,7 @@ o.barcode,
 m.color,
 m.size
 from packing_packing_out_scan o
-inner join ppic_master_so p on o.barcode = p.barcode and o.po = p.po
+inner join ppic_master_so p on o.barcode = p.barcode and o.po = p.po and o.po = p.po and o.dest = p.dest
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
 where o.no_carton = '" . $request->cbono_carton . "' and o.po = '" . $request->cbopo . "'
 order by o.created_at desc
@@ -138,11 +153,21 @@ SELECT id, tgl_trans, barcode, po, no_carton,created_at, updated_at, created_by 
     {
         $user = Auth::user()->name;
 
-        $data_po = DB::select("SELECT p.po isi, concat(p.po, ' - ( ', coalesce(max(m.no_carton),0) , ' ) ') tampil
+        $data_po = DB::select("SELECT p.id isi, concat(p.po, ' - ', p.dest,  ' - ( ', coalesce(max(m.no_carton),0) , ' ) ') tampil
         from ppic_master_so p
-        left join packing_master_carton m on p.po = m.po
+        inner join master_sb_ws m_sb on p.id_so_det = m_sb.id_so_det
+		left join packing_master_carton m on p.po = m.po
         where barcode is not null and barcode != '' and barcode != '-'
-        group by p.po");
+        group by p.po, p.dest");
+
+
+        // $data_po = DB::select("SELECT p.po isi, concat(p.po, ' - ( ', coalesce(max(m.no_carton),0) , ' ) ') tampil
+        // from ppic_master_so p
+        // left join packing_master_carton m on p.po = m.po
+        // where barcode is not null and barcode != '' and barcode != '-'
+        // group by p.po");
+
+
 
         return view('packing.create_packing_out', [
             'page' => 'dashboard-packing', "subPageGroup" => "packing-packing-out",
@@ -162,9 +187,16 @@ SELECT id, tgl_trans, barcode, po, no_carton,created_at, updated_at, created_by 
         $no_carton    = $request->cbono_carton;
         $tgl_trans = date('Y-m-d');
 
+        $cek_dest = DB::select("
+        select * from ppic_master_so where id = '$po'
+        ");
+
+        $cek_dest_po = $cek_dest[0]->po;
+        $cek_dest_dest = $cek_dest[0]->dest;
+
         $cek_data = DB::select("
         select count(barcode) cek from ppic_master_so p
-        where barcode = '$barcode' and po = '$po'
+        where barcode = '$barcode' and po = '$cek_dest_po' and dest = '$cek_dest_dest'
         ");
 
         $cek_data_fix = $cek_data[0]->cek;
@@ -177,7 +209,7 @@ SELECT id, tgl_trans, barcode, po, no_carton,created_at, updated_at, created_by 
             left join
             (
                 select sum(qty) tot_in, id_ppic_master_so from packing_packing_in
-                where barcode = '$barcode' and po = '$po'
+                where barcode = '$barcode' and po = '$cek_dest_po' and dest = '$cek_dest_dest'
                 group by id_ppic_master_so
             ) pack_in on p.id = pack_in.id_ppic_master_so
             left join
@@ -185,22 +217,23 @@ SELECT id, tgl_trans, barcode, po, no_carton,created_at, updated_at, created_by 
                 select count(p.barcode) tot_out, p.id
                 from packing_packing_out_scan a
                 inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po
-                where p.barcode = '$barcode' and p.po = '$po'
+                where p.barcode = '$barcode' and p.po = '$cek_dest_po' and p.dest = '$cek_dest_dest'
                 group by a.barcode, a.po
             ) pack_out on p.id = pack_out.id
-            where p.barcode = '$barcode' and p.po = '$po'
+            where p.barcode = '$barcode' and p.po = '$cek_dest_po' and dest = '$cek_dest_dest'
             ");
             $cek_stok_fix = $cek_stok[0]->tot_s;
 
             if ($cek_stok_fix >= '1') {
                 $insert = DB::insert("
                 insert into packing_packing_out_scan
-                (tgl_trans,barcode,po,no_carton,created_by,created_at,updated_at)
+                (tgl_trans,barcode,po,dest,no_carton,created_by,created_at,updated_at)
                 values
                 (
                     '$tgl_trans',
                     '$barcode',
-                    '$po',
+                    '$cek_dest_po',
+                    '$cek_dest_dest',
                     '$no_carton',
                     '$user',
                     '$timestamp',
