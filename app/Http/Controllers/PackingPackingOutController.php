@@ -128,7 +128,7 @@ order by o.created_at desc
 
         $ins_history =  DB::insert("
 insert into packing_packing_out_scan_log (id_packing_Packing_out_scan, tgl_trans, barcode, po, no_carton, created_at, updated_at, created_by)
-SELECT * FROM `packing_packing_out_scan` where id = '$id_history'");
+SELECT id, tgl_trans, barcode, po, no_carton,created_at, updated_at, created_by  FROM `packing_packing_out_scan` where id = '$id_history'");
 
         $del_history =  DB::delete("
         delete from packing_packing_out_scan where id = '$id_history'");

@@ -193,8 +193,8 @@ order by ws asc");
         and tmp.size = m.size
         and tmp.style = m.styleno
         and tmp.dest = m.dest
-left join ppic_master_so p on m.id_so_det = p.id_so_det
-        and tmp.tgl_shipment = p.tgl_shipment
+        left join ppic_master_so p on m.id_so_det = p.id_so_det
+        and tmp.tgl_shipment = p.tgl_shipment and tmp.po = p.po
 where tmp.created_by = '$user' and if(
 m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is null,'Ok','Check') = 'Ok'");
 
@@ -229,6 +229,7 @@ m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is 
                                     and tmp.dest = m.dest
                 left join ppic_master_so p on m.id_so_det = p.id_so_det
                                     and tmp.tgl_shipment = p.tgl_shipment
+                                    and tmp.po = p.po
                 where tmp.created_by = '$user' and if(
                 m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is null,'Ok','Check') = 'Ok'
                 "
