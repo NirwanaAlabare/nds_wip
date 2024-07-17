@@ -151,7 +151,7 @@ tot_qc,
 '0' qty_packing_in,
 '0' qty_packing_out
 from ppic_laporan_tracking_tmp_qc_output
-where buyer = '$buyer' and created_by = 'admin 01'
+where buyer = '$buyer' and created_by = '$user'
 union
 select
 buyer,
@@ -164,7 +164,7 @@ tot_p_line,
 '0' qty_packing_in,
 '0' qty_packing_out
 from ppic_laporan_tracking_tmp_packing_line
-where buyer = '$buyer' and created_by = 'admin 01'
+where buyer = '$buyer' and created_by = '$user'
 union
 select
 buyer,
