@@ -69,7 +69,7 @@ order by buyer asc");
         delete from ppic_laporan_tracking_tmp_packing_line where created_by = '$user' and ws = '$buyer'");
 
         $data_qc = DB::connection('mysql_sb')->select("SELECT
-sd.id,ms.supplier buyer, ac.kpno ws, sd.color, sd.size, dest, sum(a.tot) tot_qc from
+ms.supplier buyer, ac.kpno ws, sd.color, sd.size, dest, sum(a.tot) tot_qc from
 (select so_det_id,count(so_det_id) tot from output_rfts group by so_det_id) a
 inner join so_det sd on a.so_det_id = sd.id
 inner join so on sd.id_so = so.id
@@ -81,7 +81,6 @@ group by ac.kpno, sd.color, sd.size, ac.styleno
 order by ac.kpno asc, sd.color asc, msn.urutan asc
             ");
         for ($i = 0; $i < count($data_qc); $i++) {
-            $i_id = $data_qc[$i]->id;
             $i_buyer = $data_qc[$i]->buyer;
             $i_ws = $data_qc[$i]->ws;
             $i_color = $data_qc[$i]->color;
@@ -90,8 +89,8 @@ order by ac.kpno asc, sd.color asc, msn.urutan asc
 
             $insert_mut =  DB::insert("
                 insert into ppic_laporan_tracking_tmp_qc_output
-                (id_so_det,buyer,ws,color,size,tot_qc,created_by,created_at,updated_at)
-                values('$i_id','$i_buyer','$i_ws','$i_color','$i_size','$i_tot_qc','$user','$timestamp','$timestamp')");
+                (buyer,ws,color,size,tot_qc,created_by,created_at,updated_at)
+                values('$i_buyer','$i_ws','$i_color','$i_size','$i_tot_qc','$user','$timestamp','$timestamp')");
         }
 
         $data_packing_line = DB::select("SELECT
