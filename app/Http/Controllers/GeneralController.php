@@ -62,7 +62,7 @@ class GeneralController extends Controller
             where ac.id = '" . $request->act_costing_id . "' and sd.cancel = 'N'
             group by sd.color");
 
-        return $colors ? $colors[0] : null;
+        return $colors ? $colors : null;
     }
 
     public function getSizeList(Request $request)

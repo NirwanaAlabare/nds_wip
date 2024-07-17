@@ -14,6 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 });
 
+function isImage(i) {
+    return i instanceof HTMLImageElement;
+}
+
 // Capitalize
 function capitalizeFirstLetter(string) {
     if (string) {
@@ -247,6 +251,11 @@ function editData(e, modal, addons = []) {
 
     for (let key in data) {
         if (document.getElementById('edit_'+key)) {
+            console.log("img", isImage(document.getElementById('edit_'+key)));
+            if (isImage(document.getElementById('edit_'+key))) {
+                document.getElementById('edit_'+key).src = data[key];
+            }
+
             document.getElementById('edit_'+key).value = data[key];
             document.getElementById('edit_'+key).setAttribute('value', data[key]);
 
@@ -319,6 +328,8 @@ function deleteData(e) {
 
                         if (res.table != '') {
                             $('#'+res.table).DataTable().ajax.reload();
+                        } else {
+                            location.reload();
                         }
                     }, error: function (jqXHR) {
                         if (document.getElementById("loading")) {

@@ -564,6 +564,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('master-plan');
         Route::get('show/{line?}/{date?}', 'show')->name('master-plan-detail');
         Route::put('update', 'update')->name('update-master-plan');
+        Route::post('store', 'store')->name('store-master-plan');
+        Route::delete('destroy/{id}', 'destroy')->name('destroy-master-plan');
+    });
+
+    Route::get('/symlink', function () {
+        Artisan::call('storage:link');
     });
 
     // Track
