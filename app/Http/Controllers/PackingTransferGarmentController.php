@@ -103,18 +103,38 @@ order by isi asc");
 
     public function get_po(Request $request)
     {
+        // select p.po isi,CONCAT(p.po, ' ( ', m.styleno, ' ) ', '( ', m.styleno_prod , ' )') tampil from
+        // (
+        // select so_det_id from output_rfts_packing a
+        // where created_by = '" . $request->cbo_line . "'
+        // group by so_det_id
+        // ) a
+        // left join ppic_master_so p on a.so_det_id = p.id_so_det
+        // left join master_sb_ws m on a.so_det_id = m.id_so_det
+        // group by po
+        // having po is not null
+        // order by po asc
+
+
         $data_po = DB::select("
-select p.po isi,CONCAT(p.po, ' ( ', m.styleno, ' ) ', '( ', m.styleno_prod , ' )') tampil from
+select
+p.po isi,
+CONCAT(p.po, ' ( ', m_po.styleno, ' ) ', '( ', m_po.styleno_prod , ' )') tampil
+from (
+select ws, color, size, styleno, styleno_prod from
 (
-select so_det_id from output_rfts_packing a
-where created_by = '" . $request->cbo_line . "'
-group by so_det_id
+	select so_det_id from output_rfts_packing a
+	where created_by = '" . $request->cbo_line . "'
+	group by so_det_id
 ) a
-left join ppic_master_so p on a.so_det_id = p.id_so_det
 left join master_sb_ws m on a.so_det_id = m.id_so_det
-group by po
-having po is not null
-order by po asc
+)m_po
+left join (
+select p.po,ws,color,size from ppic_master_so p
+inner join master_sb_ws m on p.id_so_det = m.id_so_det
+group by ws, color, size, po
+) p on m_po.ws = p.ws and m_po.color = p.color and m_po.size = p.size
+group by p.po
         ");
 
         $html = "<option value=''>Pilih PO</option>";
@@ -129,10 +149,24 @@ order by po asc
     public function get_garment(Request $request)
     {
         $data_garment = DB::select("SELECT
-            p.id isi,
-            concat (m.ws, ' - ', m.color, ' - ', m.size, ' => ', sum(qty_p_line) - sum(qty_trf_garment) -  sum(qty_tmp), ' PCS' ) tampil
-            from
-    (
+p.id isi,
+concat (p.ws, ' - ', p.color, ' - ', p.size, ' - ',p.dest, ' => ', coalesce(qty_sisa,0), ' PCS' ) tampil
+from
+(
+select p.*, m.color, m.size, m.ws from ppic_master_so p
+inner join master_sb_ws m on p.id_so_det = m.id_so_det
+where p.po = '" . $request->cbo_po . "'
+) p
+left join
+(
+select
+m_trans.id_so_det,
+m.color,
+m.size,
+m.ws,
+coalesce(sum(qty_p_line) - sum(qty_trf_garment) - sum(qty_tmp),0) qty_sisa
+from
+(
 select a.so_det_id id_so_det,count(so_det_id) qty_p_line, '0' qty_trf_garment, '0' qty_tmp
 FROM output_rfts_packing a
 where created_by = '" . $request->cbo_line . "'
@@ -146,13 +180,80 @@ union
 select id_so_det, '0' qty_p_line, '0' qty_trf_garment, sum(qty_tmp_trf_garment) qty_tmp from packing_trf_garment_tmp tmp
 inner join ppic_master_so p on tmp.id_ppic_master_so = p.id
 where line = '" . $request->cbo_line . "'
+) m_trans
+left join master_sb_ws m on m_trans.id_so_det = m.id_so_det
 group by id_so_det
-) a
-left join ppic_master_so p on a.id_so_det = p.id_so_det
-left join master_sb_ws m on p.id_so_det = m.id_so_det
-where p.po = '" . $request->cbo_po . "'
-group by a.id_so_det
+) c on p.ws = c.ws and p.color = c.color and p.size = c.size
+
 ");
+
+        // SELECT p.id isi,
+        // concat (p.ws, ' - ', p.color, ' - ', p.size, ' - ', p.barcode, ' - ', p.dest, ' => ', qty_sisa ) tampil
+        //  from
+        // (
+        // select p.*, m.color, m.size, m.ws from ppic_master_so p
+        // inner join master_sb_ws m on p.id_so_det = m.id_so_det
+        // where p.po = '" . $request->cbo_po . "'
+        // ) p
+        // left join (
+        // select
+        // m_trans.id_so_det,
+        // m.color,
+        // m.size,
+        // p.po,
+        // sum(qty_p_line) - sum(qty_trf_garment) - sum(qty_tmp) qty_sisa
+        // from
+        // (
+        // select a.so_det_id id_so_det,count(so_det_id) qty_p_line, '0' qty_trf_garment, '0' qty_tmp
+        // FROM output_rfts_packing a
+        // where created_by = '" . $request->cbo_line . "'
+        // group by so_det_id
+        // union
+        // select id_so_det, '0' qty_p_line, sum(qty) qty_trf_garment , '0' qty_tmp
+        // from packing_trf_garment
+        // where line = '" . $request->cbo_line . "'
+        // group by id_so_det
+        // union
+        // select id_so_det, '0' qty_p_line, '0' qty_trf_garment, sum(qty_tmp_trf_garment) qty_tmp from packing_trf_garment_tmp tmp
+        // inner join ppic_master_so p on tmp.id_ppic_master_so = p.id
+        // where line = '" . $request->cbo_line . "') m_trans
+        // left join master_sb_ws m on m_trans.id_so_det = m.id_so_det
+        // left join ppic_master_so p on m_trans.id_so_det = p.id_so_det
+        // where m_trans.id_so_det != '' and p.po = '" . $request->cbo_po . "'
+        // group by m_trans.id_so_det
+        // ) tg on p.color = tg.color and p.size = tg.size and p.po = tg.po
+        // inner join master_size_new msn on p.size = msn.size
+        // where qty_sisa != 'null'
+        // group by p.id
+        // order by p.color asc, msn.urutan asc
+
+
+        // backup
+        // SELECT
+        //             p.id isi,
+        //             concat (m.ws, ' - ', m.color, ' - ', m.size, ' => ', sum(qty_p_line) - sum(qty_trf_garment) -  sum(qty_tmp), ' PCS' ) tampil
+        //             from
+        //     (
+        // select a.so_det_id id_so_det,count(so_det_id) qty_p_line, '0' qty_trf_garment, '0' qty_tmp
+        // FROM output_rfts_packing a
+        // where created_by = '" . $request->cbo_line . "'
+        // group by so_det_id
+        // union
+        // select id_so_det, '0' qty_p_line, sum(qty) qty_trf_garment , '0' qty_tmp
+        // from packing_trf_garment
+        // where line = '" . $request->cbo_line . "'
+        // group by id_so_det
+        // union
+        // select id_so_det, '0' qty_p_line, '0' qty_trf_garment, sum(qty_tmp_trf_garment) qty_tmp from packing_trf_garment_tmp tmp
+        // inner join ppic_master_so p on tmp.id_ppic_master_so = p.id
+        // where line = '" . $request->cbo_line . "'
+        // group by id_so_det
+        // ) a
+        // left join ppic_master_so p on a.id_so_det = p.id_so_det
+        // left join master_sb_ws m on p.id_so_det = m.id_so_det
+        // where p.po = '" . $request->cbo_po . "'
+        // group by a.id_so_det
+
 
         // SELECT p.id isi,
         // concat(m.ws, ' - ', m.color, ' - ', m.size, ' => ', count(so_det_id) - coalesce(tmp.tot_tmp,0) - coalesce(ptg.tot_in,0) , ' PCS' ) tampil

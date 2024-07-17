@@ -34,9 +34,11 @@
                                     <label><small><b>PO # :</b></small></label>
                                     <input type="hidden" class="form-control" id="user" name="user"
                                         value="{{ $user }}">
+                                    <input type="hidden" class="form-control" id="cbopo_det" name="cbopo_det">
+                                    <input type="hidden" class="form-control" id="txtdest" name="txtdest">
                                     <select class="form-control select2bs4 form-control-sm" id="cbopo" name="cbopo"
                                         style="width: 100%;"
-                                        onchange="getno_carton();dataTableSummaryReload();dataTableHistoryReload();">
+                                        onchange="getpo();getno_carton();dataTableSummaryReload();dataTableHistoryReload();">
                                         <option selected="selected" value="" disabled="true">Pilih PO</option>
                                         @foreach ($data_po as $datapo)
                                             <option value="{{ $datapo->isi }}">
@@ -166,6 +168,8 @@
         $(document).ready(function() {
             $("#cbopo").val('').trigger('change');
             $("#cbono_carton").val('').trigger('change');
+            $("#cbopo_det").val('');
+            $("#txtdest").val('');
             gettotal_input();
         })
 
@@ -215,6 +219,26 @@
             }
         };
 
+        function getpo() {
+            let cbopo = document.form_h.cbopo.value;
+            let html = $.ajax({
+                type: "get",
+                url: '{{ route('getpo') }}',
+                data: {
+                    cbopo: cbopo
+                },
+                dataType: 'json',
+                success: function(response) {
+                    document.getElementById('cbopo_det').value = response.po;
+                    document.getElementById('txtdest').value = response.dest;
+                },
+                error: function(request, status, error) {
+
+                },
+            });
+        };
+
+
         function dataTableSummaryReload() {
             let datatable = $("#datatable_summary").DataTable({
 
@@ -258,7 +282,7 @@
                     dataType: 'json',
                     dataSrc: 'data',
                     data: function(d) {
-                        d.cbopo = $('#cbopo').val();
+                        d.cbopo = $('#cbopo_det').val();
                         d.cbono_carton = $('#cbono_carton').val();
                     },
                 },
@@ -295,7 +319,7 @@
                     dataType: 'json',
                     dataSrc: 'data',
                     data: function(d) {
-                        d.cbopo = $('#cbopo').val();
+                        d.cbopo = $('#cbopo_det').val();
                         d.cbono_carton = $('#cbono_carton').val();
                     },
                 },

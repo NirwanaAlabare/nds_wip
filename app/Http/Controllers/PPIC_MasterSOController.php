@@ -61,8 +61,8 @@ class PPIC_MasterSOController extends Controller
             left join
             (
 select p.id, coalesce(count(a.barcode),0) qty_packing_out from packing_packing_out_scan a
-inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po
-group by a.barcode, a.po
+inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po and a.dest = p.dest
+group by a.barcode, a.po, a.dest
             ) pck_out on pck_out.id = a.id
             where tgl_shipment >= '$tgl_awal' and tgl_shipment <= '$tgl_akhir'
             order by tgl_shipment desc, buyer asc, ws asc , msn.urutan asc
@@ -193,8 +193,8 @@ order by ws asc");
         and tmp.size = m.size
         and tmp.style = m.styleno
         and tmp.dest = m.dest
-left join ppic_master_so p on m.id_so_det = p.id_so_det
-        and tmp.tgl_shipment = p.tgl_shipment
+        left join ppic_master_so p on m.id_so_det = p.id_so_det
+        and tmp.tgl_shipment = p.tgl_shipment and tmp.po = p.po
 where tmp.created_by = '$user' and if(
 m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is null,'Ok','Check') = 'Ok'");
 
@@ -229,6 +229,7 @@ m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is 
                                     and tmp.dest = m.dest
                 left join ppic_master_so p on m.id_so_det = p.id_so_det
                                     and tmp.tgl_shipment = p.tgl_shipment
+                                    and tmp.po = p.po
                 where tmp.created_by = '$user' and if(
                 m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is null,'Ok','Check') = 'Ok'
                 "
@@ -547,20 +548,23 @@ group by a.barcode, a.po
         $barcodeArray                               = $_POST['barcode'];
         $tgl_shipmentArray                          = $_POST['tgl_shipment'];
         $qty_poArray                                = $_POST['qty_po'];
+        $poArray                                    = $_POST['po'];
 
         foreach ($JmlArray as $key => $value) {
             if ($value != '') {
-                $txtid                      = $JmlArray[$key];
+                $txtid                          = $JmlArray[$key];
                 $txtbarcode                     = $barcodeArray[$key];
                 $txttgl_shipment                = $tgl_shipmentArray[$key];
-                $qty_po                         = $qty_poArray[$key]; {
+                $qty_po                         = $qty_poArray[$key];
+                $po                             = $poArray[$key]; {
 
                     $update =  DB::update("
             update ppic_master_so
             set
             barcode = '$txtbarcode',
             tgl_shipment = '$txttgl_shipment',
-            qty_po = '$qty_po'
+            qty_po = '$qty_po',
+            po = '$po'
             where id = '$txtid'");
                 }
             }
