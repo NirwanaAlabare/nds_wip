@@ -20,14 +20,14 @@
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="col-md-7">
                     <div class="form-group">
-                        <label>WS</label>
+                        <label>Buyer</label>
                         <div class="input-group">
-                            <select class="form-control select2bs4 form-control-sm rounded" id="cbows" name="cbows"
+                            <select class="form-control select2bs4 form-control-sm rounded" id="cbobuyer" name="cbobuyer"
                                 style="width: 100%;">
-                                <option selected="selected" value="" disabled="true">Pilih WS</option>
-                                @foreach ($data_ws as $dataws)
-                                    <option value="{{ $dataws->isi }}">
-                                        {{ $dataws->tampil }}
+                                <option selected="selected" value="" disabled="true">Pilih Buyer</option>
+                                @foreach ($data_buyer as $databuyer)
+                                    <option value="{{ $databuyer->isi }}">
+                                        {{ $databuyer->tampil }}
                                     </option>
                                 @endforeach
                             </select>
@@ -107,7 +107,7 @@
     </script>
     <script>
         $(document).ready(() => {
-            $('#cbows').val('').trigger('change');
+            $('#cbobuyer').val('').trigger('change');
             dataTableReload();
         });
 
@@ -201,7 +201,7 @@
                 dataType: 'json',
                 dataSrc: 'data',
                 data: function(d) {
-                    d.ws = $('#cbows').val();
+                    d.buyer = $('#cbobuyer').val();
                 },
             },
             columns: [{
