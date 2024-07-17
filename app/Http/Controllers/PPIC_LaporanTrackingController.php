@@ -214,7 +214,7 @@ inner join master_sb_ws m on p.id_so_det = m.id_so_det
 where m.buyer = '$buyer'
 group by ws, color, size
 ) a
-inner join master_size_new msn on a.size = msn.size
+left join master_size_new msn on a.size = msn.size
 group by ws, color, a.size
 order by ws asc, color asc, urutan asc, a.size asc
                     ");
