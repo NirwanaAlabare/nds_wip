@@ -151,7 +151,7 @@
                 className: 'align-middle',
             },
             {
-                targets: [8],
+                targets: [9],
                 className: 'align-middle',
                 render: (data, type, row, meta) => {
                     return data ? data.toLocaleString("ID-id")+' %' : '0 %'
