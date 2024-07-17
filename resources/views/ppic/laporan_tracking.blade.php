@@ -20,14 +20,14 @@
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="col-md-7">
                     <div class="form-group">
-                        <label>WS</label>
+                        <label>Buyer</label>
                         <div class="input-group">
-                            <select class="form-control select2bs4 form-control-sm rounded" id="cbows" name="cbows"
+                            <select class="form-control select2bs4 form-control-sm rounded" id="cbobuyer" name="cbobuyer"
                                 style="width: 100%;">
-                                <option selected="selected" value="" disabled="true">Pilih WS</option>
-                                @foreach ($data_ws as $dataws)
-                                    <option value="{{ $dataws->isi }}">
-                                        {{ $dataws->tampil }}
+                                <option selected="selected" value="" disabled="true">Pilih Buyer</option>
+                                @foreach ($data_buyer as $databuyer)
+                                    <option value="{{ $databuyer->isi }}">
+                                        {{ $databuyer->tampil }}
                                     </option>
                                 @endforeach
                             </select>
@@ -40,7 +40,7 @@
                     </a>
                 </div>
                 <div class="mb-3">
-                    <a onclick="notif()" class="btn btn-outline-success position-relative btn-sm">
+                    <a onclick="export_excel_tracking()" class="btn btn-outline-success position-relative btn-sm">
                         <i class="fas fa-file-excel fa-sm"></i>
                         Export Excel
                     </a>
@@ -107,7 +107,7 @@
     </script>
     <script>
         $(document).ready(() => {
-            $('#cbows').val('').trigger('change');
+            $('#cbobuyer').val('').trigger('change');
             dataTableReload();
         });
 
@@ -201,7 +201,7 @@
                 dataType: 'json',
                 dataSrc: 'data',
                 data: function(d) {
-                    d.ws = $('#cbows').val();
+                    d.buyer = $('#cbobuyer').val();
                 },
             },
             columns: [{
@@ -242,6 +242,46 @@
 
         function dataTableReload() {
             datatable.ajax.reload();
+        }
+
+        function export_excel_tracking() {
+            let buyer = document.getElementById("cbobuyer").value;
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                type: "get",
+                url: '{{ route('export_excel_tracking') }}',
+                data: {
+                    buyer: buyer
+                },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(response) {
+                    {
+                        swal.close();
+                        Swal.fire({
+                            title: 'Data Sudah Di Export!',
+                            icon: "success",
+                            showConfirmButton: true,
+                            allowOutsideClick: false
+                        });
+                        var blob = new Blob([response]);
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = "Laporan Tracking " + buyer + ".xlsx";
+                        link.click();
+
+                    }
+                },
+            });
         }
     </script>
 @endsection

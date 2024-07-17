@@ -184,6 +184,8 @@ where line = '" . $request->cbo_line . "'
 left join master_sb_ws m on m_trans.id_so_det = m.id_so_det
 group by id_so_det
 ) c on p.ws = c.ws and p.color = c.color and p.size = c.size
+left join master_size_new msn on p.size = msn.size
+order by p.ws asc, p.color asc, urutan asc
 
 ");
 

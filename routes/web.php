@@ -985,6 +985,7 @@ Route::middleware('auth')->group(function () {
     Route::controller(PPIC_LaporanTrackingController::class)->prefix("laporan-ppic")->middleware('packing')->group(function () {
         Route::get('/', 'index')->name('ppic-laporan-tracking');
         Route::get('/show_lap_tracking_ppic', 'show_lap_tracking_ppic')->name('show_lap_tracking_ppic');
+        Route::get('/export_excel_tracking', 'export_excel_tracking')->name('export_excel_tracking');
     });
 
 
