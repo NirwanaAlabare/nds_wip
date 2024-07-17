@@ -43,6 +43,9 @@ use App\Http\Controllers\DC\TrolleyController;
 use App\Http\Controllers\DC\TrolleyStockerController;
 use App\Http\Controllers\DC\LoadingLineController;
 
+// Sewing
+use App\Http\Controllers\Sewing\MasterPlanController;
+
 // Track
 use App\Http\Controllers\TrackController;
 
@@ -553,6 +556,14 @@ Route::middleware('auth')->group(function () {
     Route::controller(StockDcWipController::class)->prefix("stock-dc-wip")->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('stock-dc-wip');
         Route::get('/show/{partId?}', 'show')->name('stock-dc-wip-detail');
+    });
+
+    // Sewing :
+    // Master Plan
+    Route::controller(MasterPlanController::class)->prefix("master-plan")->middleware('admin')->group(function () {
+        Route::get('/', 'index')->name('master-plan');
+        Route::get('show/{line?}/{date?}', 'show')->name('master-plan-detail');
+        Route::put('update', 'update')->name('update-master-plan');
     });
 
     // Track
