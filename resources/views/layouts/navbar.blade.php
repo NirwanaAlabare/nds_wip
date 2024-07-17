@@ -518,12 +518,12 @@
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @admin
                                 <li>
-                                    <a {{-- href="{{ route('master-plan') }}" --}} class="dropdown-item {{ $subPage == 'daily-sewing' ? 'active' : '' }}">
+                                    <a href="{{ route('master-plan') }}" class="dropdown-item {{ $subPage == 'master-plan' ? 'active' : '' }}">
                                         Master Plan <i class="fa-solid fa-gears"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a {{-- href="{{ route('daily-sewing-line') }}" --}} class="dropdown-item {{ $subPage == 'summary-loading' ? 'active' : '' }}">
+                                    <a {{-- href="{{ route('daily-sewing-line') }}" --}} class="dropdown-item {{ $subPage == 'master-defect' ? 'active' : '' }}">
                                         Master Defect <i class="fa-solid fa-triangle-exclamation"></i>
                                     </a>
                                 </li>
