@@ -548,20 +548,23 @@ group by a.barcode, a.po
         $barcodeArray                               = $_POST['barcode'];
         $tgl_shipmentArray                          = $_POST['tgl_shipment'];
         $qty_poArray                                = $_POST['qty_po'];
+        $poArray                                    = $_POST['po'];
 
         foreach ($JmlArray as $key => $value) {
             if ($value != '') {
-                $txtid                      = $JmlArray[$key];
+                $txtid                          = $JmlArray[$key];
                 $txtbarcode                     = $barcodeArray[$key];
                 $txttgl_shipment                = $tgl_shipmentArray[$key];
-                $qty_po                         = $qty_poArray[$key]; {
+                $qty_po                         = $qty_poArray[$key];
+                $po                             = $poArray[$key]; {
 
                     $update =  DB::update("
             update ppic_master_so
             set
             barcode = '$txtbarcode',
             tgl_shipment = '$txttgl_shipment',
-            qty_po = '$qty_po'
+            qty_po = '$qty_po',
+            po = '$po'
             where id = '$txtid'");
                 }
             }

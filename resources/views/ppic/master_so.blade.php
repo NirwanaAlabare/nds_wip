@@ -299,6 +299,7 @@
                                                     <th>Desc</th>
                                                     <th>Color</th>
                                                     <th>Size</th>
+                                                    <th>Qty Trf Garment</th>
                                                     <th>Qty Packing Out</th>
                                                     <th>User</th>
                                                     <th>Tgl. Upload</th>
@@ -1345,9 +1346,9 @@
                 {
                     data: 'size'
                 },
-                // {
-                //     data: 'qty_trf'
-                // },
+                {
+                    data: 'qty_trf'
+                },
                 // {
                 //     data: 'qty_packing_in'
                 // },
@@ -1423,6 +1424,31 @@
                             value="` + row.qty_po + `">
                             </div>
                             `
+                    }
+                },
+                {
+                    targets: [7],
+                    render: (data, type, row, meta) => {
+                        if (row.qty_trf == '0') {
+                            return `
+                            <div class='d-flex gap-1 justify-content-center'>
+							<input type ='text' style='width:100px' class='form-control form-control-sm'
+                            id="po` + row.id + `"
+                            name="po[` + row.id + `]"
+                            value="` + row.po + `">
+                            </div>
+                            `
+                        } else {
+                            return `
+                            <div class='d-flex gap-1 justify-content-center'>
+							<input type ='text' style='width:100px' class='form-control form-control-sm' readonly
+                            id="po` + row.id + `"
+                            name="po[` + row.id + `]"
+                            value="` + row.po + `">
+                            </div>
+                            `
+                        }
+
                     }
                 },
 
