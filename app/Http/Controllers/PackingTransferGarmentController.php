@@ -465,12 +465,20 @@ order by p.ws asc, p.color asc, urutan asc
 
         $data_po = DB::select("SELECT
 p.po isi,
-CONCAT(p.po, ' ( ', m.styleno, ' ) ', '( ', m.styleno_prod , ' )') tampil
-FROM `packing_trf_garment` a
-inner join ppic_master_so p on a.id_ppic_master_so = p.id
-inner join master_sb_ws m on p.id_so_det = m.id_so_det
+p.po tampil
+from
+(
+select id_ppic_master_so, sum(qty) qty_in, '0' qty_out from packing_trf_garment
 where tujuan = 'Temporary'
-group by p.po");
+group by id_ppic_master_so
+UNION
+select id_ppic_master_so,'0' qty_in,sum(qty) qty_out from packing_trf_garment_out_temporary
+group by id_ppic_master_so
+) data_mut
+inner join ppic_master_so p on data_mut.id_ppic_master_so = p.id
+group by p.po
+having sum(data_mut.qty_in) - sum(data_mut.qty_out) >='1'
+order by p.po asc");
 
         //data_po filter qty 0
         // select
@@ -530,7 +538,10 @@ group by o.id_ppic_master_so
 ) a
 left join ppic_master_so p on a.id_ppic_master_so = p.id
 left join master_sb_ws m on p.id_so_det = m.id_so_det
+left join master_size_new msn on m.size = msn.size
 group by a.id_ppic_master_so
+having sum(a.qty_in) - sum(a.qty_tmp) - sum(a.qty_out) >= '1'
+order by msn.urutan asc
         ");
 
         $html = "<option value=''>Pilih Garment</option>";
@@ -702,6 +713,44 @@ group by a.id_ppic_master_so
             "DELETE FROM packing_trf_garment_tmp_out_temporary where created_by = '$user'"
         );
     }
+
+    public function stok_temporary_transfer_garment(Request $request)
+    {
+        $user = Auth::user()->name;
+        $data_stok = DB::select("SELECT
+m.buyer,
+p.po,
+m.ws,
+m.styleno,
+m.color,
+m.size,
+p.dest,
+a.stok
+from (
+select
+id_ppic_master_so,
+sum(qty_in) - sum(qty_out) stok
+from
+(
+select id_ppic_master_so, sum(qty) qty_in, '0' qty_out from packing_trf_garment
+where tujuan = 'Temporary'
+group by id_ppic_master_so
+UNION
+select id_ppic_master_so,'0' qty_in,sum(qty) qty_out from packing_trf_garment_out_temporary
+group by id_ppic_master_so
+) data_mut
+group by id_ppic_master_so
+) a
+inner join ppic_master_so p on a.id_ppic_master_so = p.id
+inner join master_sb_ws m on p.id_so_det = m.id_so_det
+left join master_size_new msn on m.size = msn.size
+order by m.buyer asc, m.ws asc, p.po asc, m.color asc, msn.urutan asc
+
+            ");
+
+        return DataTables::of($data_stok)->toJson();
+    }
+
 
     public function export_excel_trf_garment(Request $request)
     {

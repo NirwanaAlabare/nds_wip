@@ -155,8 +155,6 @@
         </form>
     </div>
 
-
-
     <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
@@ -535,6 +533,7 @@
                         Edit Multiple
                     </a>
                 </div>
+
                 {{-- <div class="mb-3">
                     <a class="btn btn-outline-danger position-relative btn-sm" data-bs-toggle="modal"
                         data-bs-target="#exampleModalEditMultiple">
