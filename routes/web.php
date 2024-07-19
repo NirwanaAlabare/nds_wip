@@ -954,6 +954,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('master-karton');
         Route::post('/store', 'store')->name('store-tambah-karton');
         Route::get('/show_tot', 'show_tot')->name('show_tot');
+        Route::get('/show_detail_karton', 'show_detail_karton')->name('show_detail_karton');
         // Route::get('/show_preview_packing_in', 'show_preview_packing_in')->name('show_preview_packing_in');
         // Route::post('/store', 'store')->name('store-packing-packing-in');
     });

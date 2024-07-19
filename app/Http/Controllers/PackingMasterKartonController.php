@@ -108,4 +108,36 @@ order by tgl_shipment asc, po asc
 
         return json_encode($data_header ? $data_header[0] : null);
     }
+
+    public function show_detail_karton(Request $request)
+    {
+        $po = $request->po;
+
+        $data_det_karton = DB::select("SELECT
+mc.no_carton,
+mc.po,
+m.buyer,
+dc.barcode,
+m.ws,
+m.color,
+m.size,
+p.dest,
+p.desc,
+m.styleno,
+m.product_group,
+m.product_item,
+dc.tot
+from
+(select * from packing_master_carton a where po = '$po')mc
+left join
+(
+select count(barcode) tot, po, barcode, no_carton  from packing_packing_out_scan
+where po = '$po'
+group by po, no_carton, barcode, po
+) dc on mc.po = dc.po and mc.no_carton = dc.no_carton
+left join ppic_master_so p on dc.po = p.po and dc.barcode = p.barcode
+left join master_sb_ws m on p.id_so_det = m.id_so_det
+                    ");
+        return DataTables::of($data_det_karton)->toJson();
+    }
 }
