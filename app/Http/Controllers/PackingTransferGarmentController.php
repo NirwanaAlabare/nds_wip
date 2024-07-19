@@ -134,7 +134,7 @@ select p.po,ws,color,size from ppic_master_so p
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
 group by ws, color, size, po
 ) p on m_po.ws = p.ws and m_po.color = p.color and m_po.size = p.size
-group by p.po
+group by p.po, styleno
         ");
 
         $html = "<option value=''>Pilih PO</option>";
@@ -150,10 +150,10 @@ group by p.po
     {
         $data_garment = DB::select("SELECT
 p.id isi,
-concat (p.ws, ' - ',p.id_so_det, ' - ', p.color, ' - ', p.size, ' - ',p.dest, ' => ', coalesce(qty_sisa,0), ' PCS' ) tampil
+concat (p.ws, ' - ',p.id_so_det,' - ', p.product_item, ' - ', p.color, ' - ', p.size, ' - ',p.dest, ' => ', coalesce(qty_sisa,0), ' PCS' ) tampil
  from
 (
-select p.*, m.color, m.size, m.ws from ppic_master_so p
+select p.*, m.color, m.size, m.ws, m.product_item from ppic_master_so p
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
 where p.po = '" . $request->cbo_po . "'
 ) p
