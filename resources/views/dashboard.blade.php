@@ -2763,14 +2763,14 @@
 
                             console.log(pendingQty, pendingTotal, planQty, planTotal, progressQty, progressTotal, finishedQty, finishedTotal)
 
-                            document.getElementById("pending-qty").innerText = pendingQty.toLocaleString('ID-id');
-                            document.getElementById("pending-total").innerText = pendingTotal.toLocaleString('ID-id');
-                            document.getElementById("plan-qty").innerText = planQty.toLocaleString('ID-id');
-                            document.getElementById("plan-total").innerText = planTotal.toLocaleString('ID-id');
-                            document.getElementById("progress-qty").innerText = progressQty.toLocaleString('ID-id');
-                            document.getElementById("progress-total").innerText = progressTotal.toLocaleString('ID-id');
-                            document.getElementById("finished-qty").innerText = finishedQty.toLocaleString('ID-id');
-                            document.getElementById("finished-total").innerText = finishedTotal.toLocaleString('ID-id');
+                            document.getElementById("pending-qty").innerText = Number(pendingQty).toLocaleString('ID-id');
+                            document.getElementById("pending-total").innerText = Number(pendingTotal).toLocaleString('ID-id');
+                            document.getElementById("plan-qty").innerText = Number(planQty).toLocaleString('ID-id');
+                            document.getElementById("plan-total").innerText = Number(planTotal).toLocaleString('ID-id');
+                            document.getElementById("progress-qty").innerText = Number(progressQty).toLocaleString('ID-id');
+                            document.getElementById("progress-total").innerText = Number(progressTotal).toLocaleString('ID-id');
+                            document.getElementById("finished-qty").innerText = Number(finishedQty).toLocaleString('ID-id');
+                            document.getElementById("finished-total").innerText = Number(finishedTotal).toLocaleString('ID-id');
                         }
 
                         document.getElementById("cutting-qty-data").classList.remove("d-none");

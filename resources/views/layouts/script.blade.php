@@ -16,10 +16,15 @@
 <script src="{{ asset('dist/js/script.js') }}"></script>
 <!-- HTML5 QR Code -->
 <script src="{{ asset('plugins/html5-qrcode/html5-qrcode.min.js') }}"></script>
+<!-- HTML5 QR Code -->
+<script src="{{ asset('plugins/inputmask/inputmask.min.js') }}"></script>
+<script src="{{ asset('plugins/inputmask/jquery.inputmask.min.js') }}"></script>
+<!-- Livewire Scripts -->
+@livewireScripts
 
 <script type="text/javascript">
 	function getmodalwarehouse(){
-		$('#modal-pilih-gudang').modal('show'); 
+		$('#modal-pilih-gudang').modal('show');
 	}
 </script>
 

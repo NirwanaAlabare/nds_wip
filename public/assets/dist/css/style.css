@@ -62,6 +62,10 @@ table.vertical tbody td {
     display: block;
 }
 
+.hidden {
+    display: none !important;
+}
+
 .fa-solid {
     transform: translateY(0.5px) !important;
 }
@@ -190,6 +194,22 @@ table.vertical tbody td {
     color: var(--sb-secondary-color) !important;
 }
 
+.text-rft {
+    color: var(--rft-color);
+}
+
+.text-defect {
+    color: var(--defect-color);
+}
+
+.text-reject {
+    color: var(--reject-color);
+}
+
+.text-rework {
+    color: var(--rework-color);
+}
+
 /* Button Color */
 .btn-sb {
     border-color: var(--sb-color);
@@ -237,6 +257,73 @@ table.vertical tbody td {
     border-color: var(--light-color) !important;
     background-color: var(--dark-color) !important;
     color: var(--light-color) !important;
+}
+
+.btn-rft {
+    border-color: var(--rft-color-sec) !important;
+    background: var(--light-color) !important;
+    color: var(--rft-color) !important;
+    transition: 0.3s;
+}
+
+.btn-rft:hover, .btn-rft:focus, .btn-rft.active {
+    scale: 1.03;
+    transition: 0.3s;
+    color: var(--light-color) !important;
+    background: var(--rft-color) !important;
+}
+
+.btn-defect {
+    border-color: var(--defect-color-sec) !important;
+    background: var(--light-color) !important;
+    color: var(--defect-color) !important;
+    transition: 0.3s;
+}
+
+.btn-defect:hover, .btn-defect:focus, .btn-defect.active {
+    scale: 1.03;
+    transition: 0.3s;
+    color: var(--light-color) !important;
+    background: var(--defect-color) !important;
+}
+
+.btn-reject {
+    border-color: var(--reject-color-sec) !important;
+    background: var(--light-color) !important;
+    color: var(--reject-color) !important;
+    transition: 0.3s;
+}
+
+.btn-reject:hover, .btn-reject:focus, .btn-reject.active {
+    scale: 1.03;
+    transition: 0.3s;
+    color: var(--light-color) !important;
+    background: var(--reject-color) !important;
+}
+
+.btn-rework {
+    border-color: var(--rework-color-sec) !important;
+    background: var(--light-color) !important;
+    color: var(--rework-color) !important;
+    transition: 0.3s;
+}
+
+.btn-rework:hover, .btn-rework:focus, .btn-rework.active {
+    scale: 1.03;
+    transition: 0.3s;
+    color: var(--light-color) !important;
+    background: var(--rework-color) !important;
+}
+
+.btn-pale {
+    background-color: var(--pale-color) !important;
+    color: var(--dark-color) !important;
+    transition: 0.3s;
+}
+
+.btn-pale:hover {
+    opacity: 0.5 !important;
+    transition: 0.3s;
 }
 
 /* Yes/No Button */
