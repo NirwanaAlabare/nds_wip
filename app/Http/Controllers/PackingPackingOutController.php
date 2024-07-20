@@ -220,7 +220,7 @@ group by p.po, p.dest");
             (
                 select count(p.barcode) tot_out, p.id
                 from packing_packing_out_scan a
-                inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po
+                inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po and a.dest = p.dest
                 where p.barcode = '$barcode' and p.po = '$cek_dest_po' and p.dest = '$cek_dest_dest'
                 group by a.barcode, a.po
             ) pack_out on p.id = pack_out.id
