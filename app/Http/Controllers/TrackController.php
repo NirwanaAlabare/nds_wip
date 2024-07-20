@@ -383,79 +383,81 @@ class TrackController extends Controller
 
     public function wsMarkerTotal(Request $request) {
         $markersQuery = Marker::selectRaw("
-                marker_input.id,
-                tgl_cutting,
-                DATE_FORMAT(tgl_cutting, '%d-%m-%Y') tgl_cut_fix,
-                kode,
-                act_costing_ws,
-                style,
-                color,
-                panel,
-                panjang_marker marker_p,
-                comma_marker marker_c,
-                lebar_marker marker_l,
-                unit_panjang_marker unit_marker_p,
-                unit_comma_marker unit_marker_c,
-                unit_lebar_marker unit_marker_l,
-                CONCAT(panjang_marker, ' ', UPPER(unit_panjang_marker)) panjang_marker,
-                CONCAT(comma_marker, ' ', UPPER(unit_comma_marker)) comma_marker,
-                CONCAT(panjang_marker, ' ', UPPER(unit_panjang_marker), ' ',comma_marker, ' ', UPPER(unit_comma_marker)) panjang_marker_fix,
-                CONCAT(lebar_marker, ' ', UPPER(unit_lebar_marker)) lebar_marker,
-                COALESCE(gramasi, 0) gramasi,
-                gelar_qty,
-                gelar_qty_balance,
-                po_marker,
-                urutan_marker,
-                tipe_marker,
-                COALESCE(b.total_form, 0) total_form,
-                COALESCE(b.total_lembar, 0) total_lembar,
-                CONCAT(COALESCE(b.total_lembar, 0), '/', gelar_qty) ply_progress,
-                COALESCE(notes, '-') notes,
-                marker_input.cancel
-            ")->
-            leftJoin(
-                DB::raw("
-                    (
-                        select
-                            id_marker,
-                            count(id_marker) total_form,
-                            sum(total_lembar) total_lembar
-                        from
-                            form_cut_input
-                        where
-                            (form_cut_input.cancel IS NULL or form_cut_input.cancel != 'Y')
-                        group by
-                            id_marker
-                    ) b"
-                ),
-                "marker_input.kode",
-                "=",
-                "b.id_marker"
-            )->
-            leftJoin("marker_input_detail", function ($join) {
-                $join->on("marker_input_detail.marker_id", "=", "marker_input.id");
-                $join->on("marker_input_detail.ratio", ">", DB::raw("0"));
-            })->
-            whereRaw("(marker_input.cancel IS NULL OR marker_input.cancel != 'Y')");
+            marker_input.id,
+            tgl_cutting,
+            DATE_FORMAT(tgl_cutting, '%d-%m-%Y') tgl_cut_fix,
+            marker_input.kode,
+            marker_input.act_costing_ws,
+            marker_input.style,
+            marker_input.color,
+            marker_input.panel,
+            panjang_marker marker_p,
+            comma_marker marker_c,
+            lebar_marker marker_l,
+            unit_panjang_marker unit_marker_p,
+            unit_comma_marker unit_marker_c,
+            unit_lebar_marker unit_marker_l,
+            CONCAT(panjang_marker, ' ', UPPER(unit_panjang_marker)) panjang_marker,
+            CONCAT(comma_marker, ' ', UPPER(unit_comma_marker)) comma_marker,
+            CONCAT(panjang_marker, ' ', UPPER(unit_panjang_marker), ' ',comma_marker, ' ', UPPER(unit_comma_marker)) panjang_marker_fix,
+            CONCAT(lebar_marker, ' ', UPPER(unit_lebar_marker)) lebar_marker,
+            COALESCE(gramasi, 0) gramasi,
+            gelar_qty,
+            gelar_qty_balance,
+            po_marker,
+            urutan_marker,
+            tipe_marker,
+            COALESCE(b.total_form, 0) total_form,
+            COALESCE(b.total_lembar, 0) total_lembar,
+            CONCAT(COALESCE(b.total_lembar, 0), '/', gelar_qty) ply_progress,
+            COALESCE(notes, '-') notes,
+            marker_input.cancel
+        ")->
+        leftJoin(
+            DB::raw("
+                (
+                    select
+                        id_marker,
+                        count(id_marker) total_form,
+                        sum(total_lembar) total_lembar
+                    from
+                        form_cut_input
+                    where
+                        (form_cut_input.cancel IS NULL or form_cut_input.cancel != 'Y')
+                    group by
+                        id_marker
+                ) b"
+            ),
+            "marker_input.kode",
+            "=",
+            "b.id_marker"
+        )->
+        leftJoin("marker_input_detail", function ($join) {
+            $join->on("marker_input_detail.marker_id", "=", "marker_input.id");
+            $join->on("marker_input_detail.ratio", ">", DB::raw("0"));
+        })->
+        leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
+        leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
+        whereRaw("(marker_input.cancel IS NULL OR marker_input.cancel != 'Y')");
 
         if ($request->actCostingId) {
-            $markersQuery->whereRaw("act_costing_id = '" . $request->actCostingId . "'");
+            $markersQuery->whereRaw("marker_input.act_costing_id = '" . $request->actCostingId . "'");
         }
 
         if ($request->color) {
-            $markersQuery->whereRaw("color = '" . $request->color . "'");
+            $markersQuery->whereRaw("marker_input.color = '" . $request->color . "'");
         }
 
         if ($request->mrk_color) {
-            $markersQuery->whereRaw("LOWER(color) LIKE '%" . $request->mrk_color . "%'");
+            $markersQuery->whereRaw("LOWER(marker_input.color) LIKE '%" . $request->mrk_color . "%'");
         }
 
         if ($request->panel) {
-            $markersQuery->whereRaw("panel = '" . $request->panel . "'");
+            $markersQuery->whereRaw("marker_input.panel = '" . $request->panel . "'");
         }
 
         if ($request->mrk_panel) {
-            $markersQuery->whereRaw("LOWER(panel) LIKE '%" . $request->mrk_panel . "%'");
+            $markersQuery->whereRaw("LOWER(marker_input.panel) LIKE '%" . $request->mrk_panel . "%'");
         }
 
         if ($request->size) {
@@ -506,13 +508,15 @@ class TrackController extends Controller
             $markersQuery->whereRaw("LOWER(notes) LIKE LOWER('%" . $request->ket . "%')");
         }
 
-        $totalMarker = $markersQuery ? num($markersQuery->count()) : 0;
-        $totalMarkerGramasi =  $markersQuery ? num(round($markersQuery->sum("marker_input.gramasi"), 2)) : 0;
-        $totalMarkerPanjang =  $markersQuery ? (num(round($markersQuery->sum("marker_input.panjang_marker") + ($markersQuery->sum("marker_input.comma_marker") / 100), 2))." ".(substr($markersQuery->first()->unit_marker_p, 0, 1))) : 0;
-        $totalMarkerLebar =  $markersQuery ? (num(round($markersQuery->sum("marker_input.lebar_marker") / 100, 2))." ".(substr($markersQuery->first()->unit_marker_p, 0, 1))) : 0;
-        $totalMarkerGelar =  $markersQuery ? round($markersQuery->sum("gelar_qty"), 2) : 0;
-        $totalMarkerForm =  $markersQuery ? round($markersQuery->sum("total_form"), 2) : 0;
-        $totalMarkerFormLembar =  $markersQuery ? round($markersQuery->sum("total_lembar"), 2) : 0;
+        $markers = $markersQuery->groupBy("marker_input.id")->get();
+
+        $totalMarker = $markers ? num($markers->count()) : 0;
+        $totalMarkerGramasi =  $markers ? num(round($markers->sum("gramasi"), 2)) : 0;
+        $totalMarkerPanjang =  $markers ? (num(round($markers->sum("marker_p") + ($markers->sum("marker_c") / 100), 2))." ".(substr($markers->first()->unit_marker_p, 0, 1))) : 0;
+        $totalMarkerLebar =  $markers ? (num(round($markers->sum("marker_l") / 100, 2))." ".(substr($markers->first()->unit_marker_p, 0, 1))) : 0;
+        $totalMarkerGelar =  $markers ? round($markers->sum("gelar_qty"), 2) : 0;
+        $totalMarkerForm =  $markers ? round($markers->sum("total_form"), 2) : 0;
+        $totalMarkerFormLembar =  $markers ? round($markers->sum("total_lembar"), 2) : 0;
 
         return array(
             "totalMarker" => $totalMarker,

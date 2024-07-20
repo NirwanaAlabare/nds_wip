@@ -45,6 +45,24 @@ use App\Http\Controllers\DC\LoadingLineController;
 
 // Sewing
 use App\Http\Controllers\Sewing\MasterPlanController;
+use App\Http\Controllers\Sewing\ReportController;
+use App\Http\Controllers\Sewing\OrderDefectController;
+use App\Http\Controllers\Sewing\TrackOrderOutputController;
+use App\Http\Controllers\Sewing\TransferOutputController;
+use App\Http\Controllers\Sewing\LineDashboardController;
+
+// Production
+use App\Http\Controllers\Sewing\MasterKursBiController;
+use App\Http\Controllers\Sewing\MasterBuyerController;
+use App\Http\Controllers\Sewing\MasterJabatanController;
+use App\Http\Controllers\Sewing\MasterKaryawanController;
+use App\Http\Controllers\Sewing\DataProduksiController;
+use App\Http\Controllers\Sewing\DataDetailProduksiController;
+use App\Http\Controllers\Sewing\DataDetailProduksiDayController;
+use App\Http\Controllers\Sewing\ReportOutputController;
+use App\Http\Controllers\Sewing\ReportProductionController;
+use App\Http\Controllers\Sewing\ReportEfficiencyController;
+use App\Http\Controllers\Sewing\ReportDetailOutputController;
 
 // Track
 use App\Http\Controllers\TrackController;
@@ -566,6 +584,132 @@ Route::middleware('auth')->group(function () {
         Route::put('update', 'update')->name('update-master-plan');
         Route::post('store', 'store')->name('store-master-plan');
         Route::delete('destroy/{id}', 'destroy')->name('destroy-master-plan');
+    });
+
+    // Report Daily
+    Route::controller(ReportController::class)->prefix('report')->group(function () {
+        Route::get('/{type}', 'index')->name("daily-sewing");
+        Route::post('/output/export', 'exportOutput');
+        Route::post('/production/export', 'exportProduction');
+        Route::post('/production-all/export', 'exportProductionAll');
+        Route::post('/track-order-output/export', 'exportOrderOutput');
+    });
+
+    // Pareto Chart
+    Route::controller(OrderDefectController::class)->prefix('order-defects')->group(function () {
+        Route::get('/', 'index');
+        Route::get('/{buyerId}/{dateFrom}/{dateTo}', 'getOrderDefects');
+    });
+
+    // Track Order Output
+    Route::controller(TrackOrderOutputController::class)->prefix('track-order-output')->group(function () {
+        Route::get('/', 'index')->name('sewing-track-order-output');
+    });
+
+    // Transfer Output
+    Route::controller(TransferOutputController::class)->prefix('transfer-output')->group(function () {
+        Route::get('/', 'index')->name('sewing-transfer-output');
+    });
+
+    // Dashboard List
+    Route::controller(LineDashboardController::class)->prefix('line-dashboards')->group(function () {
+        Route::get('/', 'index')->name('sewing-dashboard');
+    });
+
+    // Report
+    Route::controller(MasterKursBiController::class)->prefix('master-kurs-bi')->group(function () {
+        Route::get('/', 'index')->name('kursBi');
+        Route::get('/get-data', 'getData')->name('kursBi.getData');
+        Route::post('/scrap-data', 'scrapData')->name('kursBi.scrapData');
+    });
+
+    Route::controller(MasterJabatanController::class)->prefix('master-jabatan')->group(function () {
+        Route::get('/', 'index')->name('jabatan');
+        Route::get('/get-data', 'getData')->name('jabatan.getData');
+        Route::post('/store-data', 'store')->name('jabatan.storeData');
+        Route::put('/update-data', 'update')->name('jabatan.updateData');
+        Route::delete('/destroy-data/{id}', 'destroy')->name('jabatan.destroyData');
+    });
+
+    Route::controller(MasterKaryawanController::class)->prefix('master-karyawan')->group(function () {
+        Route::get('/', 'index')->name('karyawan');
+        Route::get('/get-data', 'getData')->name('karyawan.getData');
+        Route::put('/update-data', 'update')->name('karyawan.updateData');
+        Route::delete('/destroy-data/{id}', 'destroy')->name('karyawan.destroyData');
+
+        Route::get('/other-source', 'otherSource')->name('karyawan.otherSource');
+        Route::post('/transfer-data', 'transfer')->name('karyawan.transferData');
+    });
+
+    Route::controller(MasterBuyerController::class)->prefix('master-buyer')->group(function () {
+        Route::get('/', 'index')->name('buyer');
+        Route::get('/get-data', 'getData')->name('buyer.getData');
+        Route::put('/update-data', 'update')->name('buyer.updateData');
+        Route::delete('/destroy-data/{id}', 'destroy')->name('buyer.destroyData');
+
+        Route::get('/other-source', 'otherSource')->name('buyer.otherSource');
+        Route::post('/transfer-data', 'transfer')->name('buyer.transferData');
+    });
+
+    Route::controller(DataProduksiController::class)->prefix('data-produksi')->group(function () {
+        Route::get('/', 'index')->name('dataProduksi');
+        Route::get('/get-data', 'getData')->name('dataProduksi.getData');
+        Route::put('/update-data', 'update')->name('dataProduksi.updateData');
+        Route::delete('/destroy-data/{id}', 'destroy')->name('dataProduksi.destroyData');
+
+        Route::post('/transfer-data', 'transfer')->name('dataProduksi.transferData');
+    });
+
+    Route::controller(DataDetailProduksiController::class)->prefix('data-detail-produksi')->group(function () {
+        Route::get('/', 'index')->name('dataDetailProduksi');
+        Route::get('/get-data', 'getData')->name('dataDetailProduksi.getData');
+        Route::put('/update-data', 'update')->name('dataDetailProduksi.updateData');
+        Route::delete('/destroy-data/{id}', 'destroy')->name('dataDetailProduksi.destroyData');
+
+        Route::post('/transfer-data', 'transfer')->name('dataDetailProduksi.transferData');
+    });
+
+    Route::controller(DataDetailProduksiDayController::class)->prefix('data-detail-produksi-day')->group(function () {
+        Route::get('/', 'index')->name('dataDetailProduksiDay');
+        Route::get('/get-data', 'getData')->name('dataDetailProduksiDay.getData');
+        Route::put('/update-data', 'update')->name('dataDetailProduksiDay.updateData');
+        Route::delete('/destroy-data/{id}', 'destroy')->name('dataDetailProduksiDay.destroyData');
+
+        Route::post('/transfer-data', 'transfer')->name('dataDetailProduksiDay.transferData');
+    });
+
+    Route::controller(ReportOutputController::class)->prefix('report-output')->group(function () {
+        Route::get('/', 'index')->name('reportOutput');
+        Route::get('/get-data', 'getData')->name('reportOutput.getData');
+        Route::post('/export-data', 'exportData')->name('reportOutput.exportData');
+
+        Route::post('/transfer-data', 'transfer')->name('reportOutput.transferData');
+    });
+
+    Route::controller(ReportProductionController::class)->prefix('report-production')->group(function () {
+        Route::get('/', 'index')->name('reportProduction');
+        Route::get('/get-data', 'getData')->name('reportProduction.getData');
+        Route::post('/export-data', 'exportData')->name('reportProduction.exportData');
+
+        Route::post('/transfer-data', 'transfer')->name('reportProduction.transferData');
+    });
+
+    Route::controller(ReportEfficiencyController::class)->prefix('report-efficiency')->group(function () {
+        Route::get('/', 'index')->name('reportEfficiency');
+        Route::get('/get-data', 'getData')->name('reportEfficiency.getData');
+        Route::post('/export-data', 'exportData')->name('reportEfficiency.exportData');
+
+        Route::post('/transfer-data', 'transfer')->name('reportEfficiency.transferData');
+    });
+
+    Route::controller(ReportDetailOutputController::class)->prefix('report-detail-output')->group(function () {
+        Route::get('/', 'index')->name('reportDetailOutput');
+        Route::get('/packing', 'packing')->name('reportDetailOutputPacking');
+        Route::get('/get-data', 'getData')->name('reportDetailOutput.getData');
+        Route::post('/export-data', 'exportData')->name('reportDetailOutput.exportData');
+        Route::post('/export-data-packing', 'exportDataPacking')->name('reportDetailOutput.exportDataPacking');
+
+        Route::post('/transfer-data', 'transfer')->name('reportDetailOutput.transferData');
     });
 
     Route::get('/symlink', function () {

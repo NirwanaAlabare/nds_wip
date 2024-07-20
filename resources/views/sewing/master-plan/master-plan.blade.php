@@ -18,11 +18,11 @@
             <h5 class="card-title fw-bold mb-0"><i class="fa fa-cogs"></i> Data Master Plan</h5>
         </div>
         <div class="card-body">
-            <div class="d-flex align-items-end gap-3 mb-3">
+            <div class="d-flex align-items-end gap-3">
                 <div class="mb-1">
-                    <div class="form-group">
+                    <div>
                         <label>Tanggal</label>
-                        <input type="date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" id="master-plan-date" onchange="dataTableMasterPlanReload()">
+                        <input type="date" class="form-control form-control-sm" value="" id="master-plan-date" onchange="dataTableMasterPlanReload()">
                     </div>
                 </div>
             </div>
@@ -30,8 +30,8 @@
                 <table id="datatable-master-plan" class="table table-bordered table-sm w-100">
                     <thead>
                         <tr>
-                            <th class="align-bottom">Act</th>
-                            <th class="align-bottom">Line</th>
+                            <th>Act</th>
+                            <th>Line</th>
                             <th>No. WS</th>
                             <th>Style</th>
                             <th>Color</th>
@@ -79,7 +79,6 @@
     // $( document ).ready(function() {
 
     // });
-
     let datatableMasterPlan = $("#datatable-master-plan").DataTable({
         ordering: false,
         processing: true,

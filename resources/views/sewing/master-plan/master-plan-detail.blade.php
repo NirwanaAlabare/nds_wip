@@ -12,8 +12,8 @@
 @endsection
 
 @section('content')
-    <div class="d-flex justify-content-between">
-        <h5 class="text-sb text-center fw-bold mb-3">{{ strtoupper(str_replace("_", " ", $line)) }}, Master Plan</h5>
+    <div class="d-flex justify-content-between align-items-end">
+        <h5 class="text-sb text-center fw-bold">{{ strtoupper(str_replace("_", " ", $line)) }}, Master Plan</h5>
         <input type="hidden" id="line" value="{{ $line }}">
         <div class="d-flex justify-conten-end gap-3">
             <input type="date" class="form-control" value="{{ $date }}" id="date">
