@@ -449,24 +449,24 @@
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing-master' ? 'active' : '' }}">Master</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-                            @admin
+                            @sewing
                                 <li>
                                     <a href="{{ route('master-plan') }}" class="dropdown-item {{ $subPage == 'master-plan' ? 'active' : '' }}">
                                         Master Plan <i class="fa-solid fa-gears"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a {{-- href="{{ route('daily-sewing-line') }}" --}} class="dropdown-item {{ $subPage == 'master-defect' ? 'active' : '' }}">
+                                    <a href="{{ route('master-defect') }}" class="dropdown-item {{ $subPage == 'master-defect' ? 'active' : '' }}">
                                         Master Defect <i class="fa-solid fa-triangle-exclamation"></i>
                                     </a>
                                 </li>
-                            @endadmin
+                            @endsewing
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing-sewing' ? 'active' : '' }}">Output</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-                            @admin
+                            @sewing
                                 <li>
                                     <a href="{{ route('daily-sewing', ['type' => 'output']) }}" class="dropdown-item {{ $subPage == 'sewing-output' ? 'active' : '' }}">
                                         Daily Sewing Output <i class="fa-solid fa-calendar-days"></i>
@@ -492,13 +492,13 @@
                                         Transfer Output <i class="fa-solid fa-arrow-right-arrow-left"></i>
                                     </a>
                                 </li>
-                            @endadmin
+                            @endsewing
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing-report' ? 'active' : '' }}">Report</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-                            @admin
+                            @sewing
                                 <li>
                                     <a href="{{ route('reportOutput') }}" class="dropdown-item {{ $subPage == 'report-output' ? 'active' : '' }}">
                                         Report Output <i class="fa-solid fa-file"></i>
@@ -519,7 +519,7 @@
                                         Report Detail Output <i class="fa-solid fa-file"></i>
                                     </a>
                                 </li>
-                            @endadmin
+                            @endsewing
                         </ul>
                     </li>
                 @endif

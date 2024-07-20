@@ -68,6 +68,7 @@ class Kernel extends HttpKernel
         'stocker' => \App\Http\Middleware\IsStocker::class,
         'dc' => \App\Http\Middleware\IsDc::class,
         'meja' => \App\Http\Middleware\IsMeja::class,
+        'sewing' => \App\Http\Middleware\IsSewing::class,
         'warehouse' => \App\Http\Middleware\IsWarehouse::class,
         'master-lokasi' => \App\Http\Middleware\IsWarehouse::class,
         'in-material' => \App\Http\Middleware\IsMaterial::class,

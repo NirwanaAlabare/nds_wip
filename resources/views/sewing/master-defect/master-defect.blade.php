@@ -15,7 +15,7 @@
 
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fa fa-cogs"></i> Data Master Plan</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-triangle-exclamation"></i> Data Master Plan</h5>
         </div>
         <div class="card-body">
             <div class="d-flex align-items-end gap-3">
