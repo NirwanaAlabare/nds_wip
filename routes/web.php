@@ -1068,6 +1068,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/store_trf_garment_temporary', 'store_trf_garment_temporary')->name('store_trf_garment_temporary');
         Route::post('/undo_trf_garment_temporary', 'undo_trf_garment_temporary')->name('undo_trf_garment_temporary');
         Route::post('/reset_trf_garment_temporary', 'reset_trf_garment_temporary')->name('reset_trf_garment_temporary');
+        Route::get('/stok_temporary_transfer_garment', 'stok_temporary_transfer_garment')->name('stok-temporary-transfer-garment');
     });
 
     // Packing In
@@ -1097,6 +1098,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('master-karton');
         Route::post('/store', 'store')->name('store-tambah-karton');
         Route::get('/show_tot', 'show_tot')->name('show_tot');
+        Route::get('/show_detail_karton', 'show_detail_karton')->name('show_detail_karton');
         // Route::get('/show_preview_packing_in', 'show_preview_packing_in')->name('show_preview_packing_in');
         // Route::post('/store', 'store')->name('store-packing-packing-in');
     });

@@ -86,6 +86,58 @@
         </form>
     </div>
 
+    <div class="modal fade" id="exampleModalCheck" tabindex="-1" role="dialog" aria-labelledby="exampleModalCheckLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h3 class="modal-title fs-5">List Data</h3>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class='row'>
+                        <div class="col-md-12 table-responsive">
+                            <table id="datatable_detail_karton"
+                                class="table table-bordered table-striped table-sm w-100 nowrap">
+                                <thead>
+                                    <tr>
+                                        <th>No.carton</th>
+                                        <th>PO</th>
+                                        <th>Buyer</th>
+                                        <th>Barcode</th>
+                                        <th>WS</th>
+                                        <th>Color</th>
+                                        <th>Size</th>
+                                        <th>Dest</th>
+                                        <th>Desc</th>
+                                        <th>Style</th>
+                                        <th>Product</th>
+                                        <th>Qty</th>
+                                    </tr>
+                                </thead>
+                                {{-- <tfoot>
+                                    <tr>
+                                        <th colspan="2"></th>
+                                        <th> <input type = 'text' class="form-control form-control-sm" style="width:75px"
+                                                readonly id = 'total_qty_chk'> </th>
+                                        <th>PCS</th>
+                                        <th colspan= "7"></th>
+                                    </tr>
+                                </tfoot> --}}
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-outline-success btn-sm"><i class="fas fa-check"></i> Simpan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
     <div class="card card-info  collapsed-card">
         <div class="card-header">
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-upload"></i> Upload Master Karton</h5>
@@ -99,8 +151,8 @@
                 <div class="mb-3">
                     <input type="hidden" class="form-control form-control-sm" id="user" name= "user"
                         value="{{ $user }}">
-                    <a class="btn btn-outline-info position-relative btn-sm" data-toggle="modal" data-target="#importExcel"
-                        onclick="OpenModal()">
+                    <a class="btn btn-outline-info position-relative btn-sm" data-toggle="modal"
+                        data-target="#importExcel" onclick="OpenModal()">
                         <i class="fas fa-file-upload fa-sm"></i>
                         Upload
                     </a>
@@ -196,8 +248,19 @@
                             <th>Product Item</th>
                             <th>Jumlah Carton</th>
                             <th>Tot Scan</th>
+                            <th>Act</th>
                         </tr>
                     </thead>
+                    <tfoot>
+                        <tr>
+                            <th colspan="7"></th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_carton'> </th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_scan'> </th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -306,12 +369,63 @@
             datatable.ajax.reload();
         }
 
+
+        $('#datatable thead tr').clone(true).appendTo('#datatable thead');
+        $('#datatable thead tr:eq(1) th').each(function(i) {
+            var title = $(this).text();
+            $(this).html('<input type="text" class="form-control form-control-sm"/>');
+            $('input', this).on('keyup change', function() {
+                if (datatable.column(i).search() !== this.value) {
+                    datatable
+                        .column(i)
+                        .search(this.value)
+                        .draw();
+                }
+            });
+        });
+
         let datatable = $("#datatable").DataTable({
+            "footerCallback": function(row, data, start, end, display) {
+                var api = this.api(),
+                    data;
+
+                // converting to interger to find total
+                var intVal = function(i) {
+                    return typeof i === 'string' ?
+                        i.replace(/[\$,]/g, '') * 1 :
+                        typeof i === 'number' ?
+                        i : 0;
+                };
+
+                // computing column Total of the complete result
+                var sumTotal = api
+                    .column(7)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                // computing column Total of the complete result
+                var sumTotalS = api
+                    .column(8)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                // Update footer by showing the total with the reference of the column index
+                $(api.column(0).footer()).html('Total');
+                $(api.column(7).footer()).html(sumTotal);
+                $(api.column(8).footer()).html(sumTotalS);
+            },
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: true,
+            paging: false,
             searching: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
             ajax: {
                 url: '{{ route('master-karton') }}',
                 data: function(d) {
@@ -347,13 +461,99 @@
                 {
                     data: 'tot_scan'
                 },
+                {
+                    data: 'po'
+                },
             ],
             columnDefs: [{
-                "className": "dt-center",
-                "targets": "_all"
-            }, ]
+                    "className": "dt-center",
+                    "targets": "_all"
+                },
+                {
+                    targets: [9],
+                    render: (data, type, row, meta) => {
+                        return `
+                <div class='d-flex gap-1 justify-content-center'>
+                <a class='btn btn-primary btn-sm'  data-bs-toggle="modal"
+                        data-bs-target="#exampleModalCheck"
+                onclick="show_data('` + row.po + `')"><i class='fas fa-search'></i></a>
+                <a class='btn btn-info btn-sm'  data-bs-toggle="modal"
+                        data-bs-target="#exampleModalEdit"
+                onclick="edit(` + row.id + `)"><i class='fas fa-box-open'></i></a>
+                </div>
+                    `;
+                    }
+                },
+
+
+            ]
 
 
         }, );
+
+        function show_data(po_s) {
+            // console.log(po_s);
+            // datatable_detail_karton.ajax.reload();
+            let datatable_detail_karton = $("#datatable_detail_karton").DataTable({
+                ordering: true,
+                processing: true,
+                serverSide: true,
+                paging: false,
+                searching: true,
+                scrollY: '300px',
+                scrollX: '300px',
+                scrollCollapse: true,
+                destroy: true,
+                ajax: {
+                    url: '{{ route('show_detail_karton') }}',
+                    method: 'GET',
+                    data: {
+                        po: po_s
+                    },
+                },
+                columns: [{
+                        data: 'no_carton'
+
+                    },
+                    {
+                        data: 'po'
+                    },
+                    {
+                        data: 'buyer'
+                    },
+                    {
+                        data: 'barcode'
+                    },
+                    {
+                        data: 'ws'
+                    },
+                    {
+                        data: 'color'
+                    },
+                    {
+                        data: 'size'
+                    },
+                    {
+                        data: 'dest'
+                    },
+                    {
+                        data: 'desc'
+                    },
+                    {
+                        data: 'styleno'
+                    },
+                    {
+                        data: 'product_item'
+                    },
+                    {
+                        data: 'tot'
+                    },
+                ],
+                columnDefs: [{
+                    "className": "dt-left",
+                    "targets": "_all"
+                }, ]
+            });
+        }
     </script>
 @endsection
