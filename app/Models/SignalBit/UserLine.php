@@ -14,4 +14,14 @@ class UserLine extends Model
     protected $table = "userpassword";
 
     protected $guarded = [];
+
+    public function masterPlans()
+    {
+        return $this->hasMany(MasterPlan::class, 'sewing_line', 'username');
+    }
+
+    public function users()
+    {
+        return $this->hasMany(UserSbWip::class, 'line_id', 'line_id');
+    }
 }

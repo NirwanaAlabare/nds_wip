@@ -1774,6 +1774,7 @@
                         d.actCostingId = $('#id').val();
                         d.panel = $('#ws-panel-filter').val();
                         d.color = $('#ws-color-filter').val();
+                        d.size = $('#ws-size-filter').val();
                         d.dateFrom = $('#form-from').val();
                         d.dateTo = $('#form-to').val();
                     },
@@ -1951,6 +1952,7 @@
                         dateFrom : $('#marker-from').val(),
                         dateTo : $('#marker-to').val(),
                         color : $('#ws-color-filter').val(),
+                        size : $('#ws-size-filter').val(),
                         panel : $('#ws-panel-filter').val(),
                         tanggal : $('#frm_tanggal').val(),
                         meja : $('#frm_no_meja').val(),
