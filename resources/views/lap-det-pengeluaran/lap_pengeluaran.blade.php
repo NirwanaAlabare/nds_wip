@@ -15,7 +15,7 @@
     <form action="{{ route('export_excel_pengeluaran') }}" method="get">
         <div class="card card-sb">
             <div class="card-header">
-                <h5 class="card-title fw-bold mb-0"><i class="fas fa-file-alt fa-sm"></i> Laporan Pengeluaran</h5>
+                <h5 class="card-title fw-bold mb-0"><i class="fas fa-file-alt fa-sm"></i> Laporan Pengeluaran Detail Item</h5>
             </div>
             <div class="card-body">
                 <div class="d-flex align-items-end gap-3 mb-3">
@@ -32,18 +32,22 @@
                     <div class="mb-3">
                         {{-- <button class="btn btn-primary btn-sm" onclick="export_excel()">Search</button> --}}
                         <input type='button' class='btn btn-primary btn-sm' onclick="dataTableReload();" value="Search">
-                        <button type='submit' name='submit' class='btn btn-success btn-sm'>
-                            <i class="fas fa-file-excel"></i> Export</button>
+                        <!-- <button type='submit' name='submit' class='btn btn-success btn-sm'>
+                            <i class="fas fa-file-excel"></i> Export</button> -->
+                            <a onclick="export_excel()" class="btn btn-success position-relative btn-sm">
+                        <i class="fas fa-file-excel"></i>
+                        Export
+                    </a>
                     </div>
                 </div>
     </form>
-    <div class="d-flex justify-content-between">
+    <!-- <div class="d-flex justify-content-between">
             <div class="ml-auto">
                 <span class="input-group-text"><i class="fas fa-search"></i></span>
             </div>
                 <input type="text"  id="cari_item" name="cari_item" autocomplete="off" placeholder="Search Data..." onkeyup="caridata()">
-        </div>
-    <div class="table-responsive" style="max-height: 400px">
+        </div> -->
+    <div class="table-responsive">
         <table id="datatable" class="table table-bordered table-striped table-head-fixed table-sm w-100 text-nowrap">
             <thead>
                 <tr>
@@ -94,10 +98,13 @@
     <script>
         let datatable = $("#datatable").DataTable({
             ordering: false,
-            processing: false,
-            serverSide: false,
+            processing: true,
+            serverSide: true,
             paging: false,
-            searching: false,
+            searching: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
             ajax: {
                 url: '{{ route('lap-det-pengeluaran') }}',
                 data: function(d) {
@@ -207,6 +214,50 @@
 
         function dataTableReload() {
             datatable.ajax.reload();
+        }
+
+        function export_excel() {
+            let from = document.getElementById("from").value;
+            let to = document.getElementById("to").value;
+
+            Swal.fire({
+                title: 'Please Wait,',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                type: "get",
+                url: '{{ route('export_excel_pengeluaran') }}',
+                data: {
+                    from: from,
+                    to: to
+                },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(response) {
+                    {
+                        swal.close();
+                        Swal.fire({
+                            title: 'Data Berhasil Di Export!',
+                            icon: "success",
+                            showConfirmButton: true,
+                            allowOutsideClick: false
+                        });
+                        var blob = new Blob([response]);
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = "Laporan Pengeluaran Detail Item Dari  " + from + " sampai " +
+                            to + ".xlsx";
+                        link.click();
+
+                    }
+                },
+            });
         }
 
         function caridata() {
