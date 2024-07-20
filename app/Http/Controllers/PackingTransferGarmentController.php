@@ -115,26 +115,43 @@ order by isi asc");
         // having po is not null
         // order by po asc
 
+        //backup 
+        // select
+        // p.po isi,
+        // CONCAT(p.po, ' ( ', m_po.styleno, ' ) ', '( ', m_po.styleno_prod , ' )') tampil
+        // from (
+        // select ws, color, size, styleno, styleno_prod from
+        // (
+        //     select so_det_id from output_rfts_packing a
+        //     where created_by = '" . $request->cbo_line . "'
+        //     group by so_det_id
+        // ) a
+        // left join master_sb_ws m on a.so_det_id = m.id_so_det
+        // )m_po
+        // inner join (
+        // select p.po,ws,color,size from ppic_master_so p
+        // inner join master_sb_ws m on p.id_so_det = m.id_so_det
+        // group by ws, color, size, po
+        // ) p on m_po.ws = p.ws and m_po.color = p.color and m_po.size = p.size
+        // group by p.po, styleno
 
-        $data_po = DB::select("
-select
-p.po isi,
-CONCAT(p.po, ' ( ', m_po.styleno, ' ) ', '( ', m_po.styleno_prod , ' )') tampil
-from (
-select ws, color, size, styleno, styleno_prod from
-(
-	select so_det_id from output_rfts_packing a
-	where created_by = '" . $request->cbo_line . "'
-	group by so_det_id
-) a
-left join master_sb_ws m on a.so_det_id = m.id_so_det
-)m_po
-left join (
-select p.po,ws,color,size from ppic_master_so p
-inner join master_sb_ws m on p.id_so_det = m.id_so_det
-group by ws, color, size, po
-) p on m_po.ws = p.ws and m_po.color = p.color and m_po.size = p.size
-group by p.po, styleno
+
+
+
+        $data_po = DB::select("SELECT
+        p.po isi,
+        CONCAT(p.po, ' ( ', p.styleno, ' ) ', '( ', p.styleno_prod , ' )') tampil 
+        from 
+        (
+        select ws,color,size,so_det_id from output_rfts_packing a
+        inner join master_sb_ws m on a.so_det_id = m.id_so_det
+        where a.created_by = '" . $request->cbo_line . "'
+        group by so_det_id
+        ) a
+        inner join (select p.*, m.styleno, m.styleno_prod, m.ws, m.color, m.size from ppic_master_so p
+        inner join master_sb_ws m on p.id_so_det = m.id_so_det)
+        p on a.ws = p.ws and a.color = p.color and a.size = p.size
+        group by po, p.styleno
         ");
 
         $html = "<option value=''>Pilih PO</option>";
