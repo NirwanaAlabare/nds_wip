@@ -295,6 +295,8 @@
         });
 
         function exportExcel(elm, type, date, line) {
+            @this.set('loadingLine', true);
+
             elm.setAttribute('disabled', 'true');
             elm.innerText = "";
             let loading = document.createElement('div');
@@ -314,6 +316,8 @@
                     data: { date : date, line : line },
                     xhrFields: { responseType : 'blob' },
                     success: function(res) {
+                        @this.set('loadingLine', false);
+
                         elm.removeAttribute('disabled');
                         elm.innerText = "Export ";
                         let icon = document.createElement('i');
@@ -333,6 +337,8 @@
                         link.download = line.replace("_", "-")+" "+date+" Production Report.xlsx";
                         link.click();
                     }, error: function (jqXHR) {
+                        @this.set('loadingLine', false);
+
                         let res = jqXHR.responseJSON;
                         let message = '';
                         console.log(res.message);
@@ -348,12 +354,16 @@
                     }
                 });
             } else if (type == 'production-all') {
+                @this.set('loadingLine', true);
+
                 $.ajax({
-                    url: "{{ "/report/production-all/export" }}",
+                    url: "{{ url("/report/production-all/export") }}",
                     type: 'post',
                     data: { date : date },
                     xhrFields: { responseType : 'blob' },
                     success: function(res) {
+                        @this.set('loadingLine', false);
+
                         elm.removeAttribute('disabled');
                         elm.innerText = "Export All ";
                         let icon = document.createElement('i');
@@ -373,6 +383,8 @@
                         link.download = date+" Production Report.xlsx";
                         link.click();
                     }, error: function (jqXHR) {
+                        @this.set('loadingLine', false);
+
                         let res = jqXHR.responseJSON;
                         let message = '';
                         console.log(res.message);

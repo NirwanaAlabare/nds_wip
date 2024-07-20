@@ -3,7 +3,7 @@
 namespace App\Http\Livewire;
 
 use Livewire\Component;
-use App\Models\SignalBit\UserPassword;
+use App\Models\SignalBit\UserLine;
 use App\Models\SignalBit\MasterPlan;
 use DB;
 
@@ -399,7 +399,7 @@ class TransferOutput extends Component
     {
         $this->loadingMasterPlan = false;
 
-        $this->lines = UserPassword::where("Groupp", "SEWING")->orderBy("line_id", "asc")->get();
+        $this->lines = UserLine::where("Groupp", "SEWING")->orderBy("line_id", "asc")->get();
 
         // Master Plan for From
         $fromMasterPlanSql = MasterPlan::selectRaw('

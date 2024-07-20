@@ -45,6 +45,7 @@
                                     <h5 class="card-title text-light fw-bold">
                                         RFT
                                     </h5>
+                                    <br>
                                     <h5 class="text-light fw-bold">
                                         {{ $this->fromMasterPlanOutput ? $this->fromMasterPlanOutput->rft : '-' }}
                                     </h5>
@@ -57,6 +58,7 @@
                                     <h5 class="card-title text-light fw-bold">
                                         DEFECT
                                     </h5>
+                                    <br>
                                     <h5 class="text-light fw-bold">
                                         {{ $this->fromMasterPlanOutput ? $this->fromMasterPlanOutput->defect : '-' }}
                                     </h5>
@@ -69,6 +71,7 @@
                                     <h5 class="card-title text-light fw-bold">
                                         REWORK
                                     </h5>
+                                    <br>
                                     <h5 class="text-light fw-bold">
                                         {{ $this->fromMasterPlanOutput ? $this->fromMasterPlanOutput->rework : '-' }}
                                     </h5>
@@ -81,6 +84,7 @@
                                     <h5 class="card-title text-light fw-bold">
                                         REJECT
                                     </h5>
+                                    <br>
                                     <h5 class="text-light fw-bold">
                                         {{ $this->fromMasterPlanOutput ? $this->fromMasterPlanOutput->reject : '-' }}
                                     </h5>
@@ -131,6 +135,7 @@
                                     <h5 class="card-title text-light fw-bold">
                                         RFT
                                     </h5>
+                                    <br>
                                     <h5 class="text-light fw-bold">
                                         {{ $this->toMasterPlanOutput ? $this->toMasterPlanOutput->rft : '-' }}
                                     </h5>
@@ -143,6 +148,7 @@
                                     <h5 class="card-title text-light fw-bold">
                                         DEFECT
                                     </h5>
+                                    <br>
                                     <h5 class="text-light fw-bold">
                                         {{ $this->toMasterPlanOutput ? $this->toMasterPlanOutput->defect : '-' }}
                                     </h5>
@@ -155,6 +161,7 @@
                                     <h5 class="card-title text-light fw-bold">
                                         REWORK
                                     </h5>
+                                    <br>
                                     <h5 class="text-light fw-bold">
                                         {{ $this->toMasterPlanOutput ? $this->toMasterPlanOutput->rework : '-' }}
                                     </h5>
@@ -167,6 +174,7 @@
                                     <h5 class="card-title text-light fw-bold">
                                         REJECT
                                     </h5>
+                                    <br>
                                     <h5 class="text-light fw-bold">
                                         {{ $this->toMasterPlanOutput ? $this->toMasterPlanOutput->reject : '-' }}
                                     </h5>

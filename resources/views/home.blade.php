@@ -9,7 +9,7 @@
                 <br>
                 <div class="row g-3 mt-3">
                     @admin
-                        <div class="col-lg-2 col-3">
+                        <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('track-ws') }}" class="home-item">
                                 <div class="card h-100">
                                     <div class="card-body">
@@ -24,7 +24,7 @@
                     @endadmin
 
                     @if (auth()->user()->type == 'admin' || auth()->user()->type == 'marker' || auth()->user()->type == 'spreading')
-                        <div class="col-lg-2 col-3">
+                        <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('dashboard-marker') }}" class="home-item">
                                 <div class="card h-100">
                                     <div class="card-body">
@@ -38,7 +38,7 @@
                             </a>
                         </div>
 
-                        <div class="col-lg-2 col-3">
+                        <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('dashboard-cutting') }}" class="home-item">
                                 <div class="card h-100">
                                     <div class="card-body">
@@ -53,7 +53,7 @@
                         </div>
 
                         @stocker
-                            <div class="col-lg-2 col-3">
+                            <div class="col-lg-2 col-md-3 col-sm-6">
                                 <a href="{{ route('dashboard-stocker') }}" class="home-item">
                                     <div class="card h-100">
                                         <div class="card-body">
@@ -70,7 +70,7 @@
                     @endif
 
                     @dc
-                        <div class="col-lg-2 col-3">
+                        <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('dashboard-dc') }}" class="home-item">
                                 <div class="card h-100">
                                     <div class="card-body">
@@ -86,7 +86,7 @@
                     @enddc
 
                     @admin
-                        <div class="col-lg-2 col-3">
+                        <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('dashboard-sewing-eff') }}" class="home-item">
                                 <div class="card h-100">
                                     <div class="card-body">
@@ -102,7 +102,7 @@
                     @endadmin
 
                     {{-- @hr
-                        <div class="col-lg-2 col-3">
+                        <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('dashboard-mut-karyawan') }}" class="home-item">
                                 <div class="card h-100">
                                     <div class="card-body">
@@ -118,7 +118,7 @@
                     @endhr --}}
 
                     @hr
-                        <div class="col-lg-2 col-3">
+                        <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('dashboard-mut-mesin') }}" class="home-item">
                                 <div class="card h-100">
                                     <div class="card-body">
@@ -135,7 +135,7 @@
 
 
                     <!-- warehouse -->
-                    <!-- <div class="col-lg-2 col-3">
+                    <!-- <div class="col-lg-2 col-md-3 col-sm-6">
                         <a href="{{ route('dashboard-warehouse') }}" class="home-item">
                             <div class="card h-100">
                                 <div class="card-body">
@@ -149,7 +149,7 @@
                     </div> -->
 
                     @warehouse
-                        <div class="col-lg-2 col-3">
+                        <div class="col-lg-2 col-md-3 col-sm-6">
                             <!-- <a href="{{ route('dashboard-warehouse') }}" class="home-item"> -->
                             <a href="#" class="home-item" onclick="getmodalwarehouse()">
                                 <div class="card h-100">
@@ -167,7 +167,7 @@
                     @endwarehouse
 
                     @ppic
-                        <div class="col-lg-2 col-3">
+                        <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('dashboard-ppic') }}" class="home-item">
                                 <div class="card h-100">
                                     <div class="card-body">
@@ -183,7 +183,7 @@
                     @endppic
 
                     @packing
-                        <div class="col-lg-2 col-3">
+                        <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('dashboard-packing') }}" class="home-item">
                                 <div class="card h-100">
                                     <div class="card-body">
@@ -199,7 +199,7 @@
                     @endpacking
 
                     @ga
-                        <div class="col-lg-2 col-3">
+                        <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('dashboard-ga') }}" class="home-item">
                                 <div class="card h-100">
                                     <div class="card-body">
@@ -213,7 +213,7 @@
                         </div>
                     @endga
 
-                    <div class="col-lg-2 col-3">
+                    <div class="col-lg-2 col-md-3 col-sm-6">
                         <a href="{{ route('logout') }}"
                             onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
                             class="home-item">

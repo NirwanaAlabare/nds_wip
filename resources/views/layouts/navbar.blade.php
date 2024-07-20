@@ -464,7 +464,7 @@
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
-                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing-sewing' ? 'active' : '' }}">Sewing</a>
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing-sewing' ? 'active' : '' }}">Output</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @admin
                                 <li>
@@ -485,6 +485,11 @@
                                 <li>
                                     <a href="{{ route('sewing-track-order-output') }}" class="dropdown-item {{ $subPage == 'sewing-track' ? 'active' : '' }}">
                                         Track Output <i class="fa-solid fa-shuffle"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('sewing-transfer-output') }}" class="dropdown-item {{ $subPage == 'sewing-transfer' ? 'active' : '' }}">
+                                        Transfer Output <i class="fa-solid fa-arrow-right-arrow-left"></i>
                                     </a>
                                 </li>
                             @endadmin
