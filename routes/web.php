@@ -589,9 +589,9 @@ Route::middleware('auth')->group(function () {
 
     Route::controller(MasterDefectController::class)->prefix("master-defect")->middleware('sewing')->group(function () {
         Route::get('/', 'index')->name('master-defect');
-        Route::put('update-defect-type', 'updateDefectType')->name('update-master-plan');
-        Route::post('store', 'store')->name('store-master-plan');
-        Route::delete('destroy/{id}', 'destroy')->name('destroy-master-plan');
+        Route::put('update-defect-type', 'updateDefectType')->name('update-defect-type');
+        Route::post('store', 'store')->name('store-defect-type');
+        Route::delete('destroy/{id}', 'destroy')->name('destroy-defect-type');
     });
 
     // Report Daily
