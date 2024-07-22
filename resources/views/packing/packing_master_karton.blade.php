@@ -88,13 +88,25 @@
 
     <div class="modal fade" id="exampleModalCheck" tabindex="-1" role="dialog" aria-labelledby="exampleModalCheckLabel"
         aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
-                <div class="modal-header bg-warning">
-                    <h3 class="modal-title fs-5">List Data</h3>
+                <div class="modal-header bg-primary">
+                    <h3 class="modal-title fs-5">List Detail karton</h3>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <div class='row'>
+                        <div class="col-md-3">
+                            <label class="form-label"><small><b>PO</b></small></label>
+                            <input type="text" class="form-control form-control-sm" id = "modal_po" name = "modal_po">
+                        </div>
+                        <div class="col-3">
+                            <label class="form-label"><small><b>Buyer</b></small></label>
+                            <input type="text" class="form-control form-control-sm" id = "modal_buyer"
+                                name = "modal_buyer">
+                        </div>
+                    </div>
+
                     <div class='row'>
                         <div class="col-md-12 table-responsive">
                             <table id="datatable_detail_karton"
@@ -115,15 +127,13 @@
                                         <th>Qty</th>
                                     </tr>
                                 </thead>
-                                {{-- <tfoot>
+                                <tfoot>
                                     <tr>
-                                        <th colspan="2"></th>
-                                        <th> <input type = 'text' class="form-control form-control-sm" style="width:75px"
-                                                readonly id = 'total_qty_chk'> </th>
-                                        <th>PCS</th>
-                                        <th colspan= "7"></th>
+                                        <th colspan="11"></th>
+                                        <th> <input type = 'text' class="form-control form-control-sm"
+                                                style="width:75px" readonly id = 'total_qty_chk'> </th>
                                     </tr>
-                                </tfoot> --}}
+                                </tfoot>
                             </table>
                         </div>
                     </div>
@@ -466,7 +476,7 @@
                 },
             ],
             columnDefs: [{
-                    "className": "dt-center",
+                    "className": "dt-left",
                     "targets": "_all"
                 },
                 {
@@ -491,11 +501,28 @@
 
         }, );
 
+
+        $('#datatable_detail_karton thead tr').clone(true).appendTo('#datatable_detail_karton thead');
+        $('#datatable_detail_karton thead tr:eq(1) th').each(function(i) {
+            var title = $(this).text();
+            $(this).html('<input type="text" class="form-control form-control-sm"/>');
+            $('input', this).on('keyup change', function() {
+                if (datatable_detail_karton.column(i).search() !== this.value) {
+                    datatable_detail_karton
+                        .column(i)
+                        .search(this.value)
+                        .draw();
+                }
+            });
+        });
+
+
         function show_data(po_s) {
             // console.log(po_s);
             // datatable_detail_karton.ajax.reload();
+            $('#modal_po').val(po_s);
             let datatable_detail_karton = $("#datatable_detail_karton").DataTable({
-                ordering: true,
+                ordering: false,
                 processing: true,
                 serverSide: true,
                 paging: false,
