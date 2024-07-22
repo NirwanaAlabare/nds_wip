@@ -17,6 +17,7 @@ class DefectArea extends Model
         'id',
         'defect_area',
         'image',
+        'hidden',
         'created_at',
         'updated_at',
     ];
