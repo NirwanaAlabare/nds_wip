@@ -457,7 +457,7 @@
                                 </li>
                                 <li>
                                     <a href="{{ route('master-defect') }}" class="dropdown-item {{ $subPage == 'master-defect' ? 'active' : '' }}">
-                                        Master Defect <i class="fa-solid fa-triangle-exclamation"></i>
+                                        Master Defect <i class="fa-solid fa-circle-exclamation"></i>
                                     </a>
                                 </li>
                             @endsewing
@@ -485,6 +485,11 @@
                                 <li>
                                     <a href="{{ route('sewing-track-order-output') }}" class="dropdown-item {{ $subPage == 'sewing-track' ? 'active' : '' }}">
                                         Track Output <i class="fa-solid fa-shuffle"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" class="dropdown-item {{ $subPage == 'sewing-pareto' ? 'active' : '' }}">
+                                        Pareto Chart <i class="fa-solid fa-triangle-exclamation"></i>
                                     </a>
                                 </li>
                                 <li>

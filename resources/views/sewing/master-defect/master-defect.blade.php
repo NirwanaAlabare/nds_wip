@@ -15,164 +15,293 @@
 
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-triangle-exclamation"></i> Data Master Plan</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-circle-exclamation"></i> Master Defect</h5>
         </div>
         <div class="card-body">
-            <div class="d-flex align-items-end gap-3">
-                <div class="mb-1">
-                    <div>
-                        <label>Tanggal</label>
-                        <input type="date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" id="master-plan-date" onchange="dataTableMasterPlanReload()">
+            <div class="row g-3">
+                <div class="col-12 col-lg-6">
+                    <button type="button" class="btn btn-success btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#createDefectTypeModal">
+                        <i class="fas fa-plus"></i>
+                        Defect Type Baru
+                    </button>
+                    <div class="table-responsive">
+                        <table id="datatable-defect-type" class="table table-bordered table-sm w-100">
+                            <thead>
+                                <tr>
+                                    <th>Act</th>
+                                    <th>Defect Type</th>
+                                    <th>Alokasi</th>
+                                    <th>Updated At</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-            </div>
-            <div class="table-responsive">
-                <table id="datatable-master-plan" class="table table-bordered table-sm w-100">
-                    <thead>
-                        <tr>
-                            <th>Act</th>
-                            <th>Line</th>
-                            <th>No. WS</th>
-                            <th>Style</th>
-                            <th>Color</th>
-                            <th>SMV</th>
-                            <th>Jam Kerja</th>
-                            <th>Man Power</th>
-                            <th>Plan Target</th>
-                            <th>Target Efficiency</th>
-                            {{-- <th>Total Jam</th> --}}
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
+                <div class="col-12 col-lg-6">
+                    <button type="button" class="btn btn-success btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#createDefectAreaModal">
+                        <i class="fas fa-plus"></i>
+                        Defect Area Baru
+                    </button>
+                    <div class="table-responsive">
+                        <table id="datatable-defect-area" class="table table-bordered table-sm w-100">
+                            <thead>
+                                <tr>
+                                    <th>Act</th>
+                                    <th>Defect Area</th>
+                                    <th>Updated At</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
+    {{-- Create Defect Type --}}
+    <div class="modal fade" id="createDefectTypeModal" tabindex="-1" aria-labelledby="createDefectTypeLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{{ route('store-defect-type') }}" method="post" onsubmit="submitForm(this, event)">
+                    <div class="modal-header bg-sb text-light">
+                        <h1 class="modal-title fs-5" id="createDefectTypeLabel"><i class="fa fa-plus-square"></i> Tambah Data Defect Type</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">DefectType</label>
+                            <input type="text" class="form-control" name="defect_type" id="defect_type" value="">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Alokasi</label>
+                            <select class="form-select" name="allocation" id="allocation">
+                                <option value="SEWING">SEWING</option>
+                                <option value="MANDING">MANDING</option>
+                                <option value="SPOTCLEANING">SPOTCLEANING</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Tutup</button>
+                        <button type="submit" class="btn btn-success"><i class="fa fa-save"></i> Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- Create Defect Area --}}
+    <div class="modal fade" id="createDefectAreaModal" tabindex="-1" aria-labelledby="createDefectAreaLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{{ route('store-defect-area') }}" method="post" onsubmit="submitForm(this, event)">
+                    <div class="modal-header bg-sb text-light">
+                        <h1 class="modal-title fs-5" id="createDefectAreaLabel"><i class="fa fa-plus-square"></i> Tambah Data Defect Area</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Defect Area</label>
+                            <input type="text" class="form-control" name="defect_area" id="defect_area" value="">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Tutup</button>
+                        <button type="submit" class="btn btn-success fw-bold"><i class="fa fa-save"></i> Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- Defect Type Modal --}}
+    <div class="modal fade" id="editDefectTypeModal" tabindex="-1" aria-labelledby="editDefectTypeLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{{ route('update-defect-type') }}" method="post" onsubmit="submitForm(this, event)">
+                    @method('PUT')
+                    <div class="modal-header bg-sb text-light">
+                        <h1 class="modal-title fs-5" id="editDefectTypeLabel"><i class="fa fa-edit"></i> Edit Defect Type</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="edit_id" id="edit_id">
+                        <div class="mb-3">
+                            <label class="form-label">Defect Type</label>
+                            <input type="text" class="form-control" name="edit_defect_type" id="edit_defect_type" value="">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Alokasi</label>
+                            <select class="form-select" name="edit_allocation" id="edit_allocation">
+                                <option value="SEWING">SEWING</option>
+                                <option value="MANDING">MANDING</option>
+                                <option value="SPOTCLEANING">SPOTCLEANING</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Tutup</button>
+                        <button type="submit" class="btn btn-success fw-bold"><i class="fa fa-save"></i> Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- Defect Area Modal --}}
+    <div class="modal fade" id="editDefectAreaModal" tabindex="-1" aria-labelledby="editDefectAreaLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{{ route('update-defect-area') }}" method="post" onsubmit="submitForm(this, event)">
+                    @method('PUT')
+                    <div class="modal-header bg-sb text-light">
+                        <h1 class="modal-title fs-5" id="editDefectAreaLabel"><i class="fa fa-edit"></i> Edit Defect Type</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="edit_id" id="edit_id">
+                        <div class="mb-3">
+                            <label class="form-label">Defect Area</label>
+                            <input type="text" class="form-control" name="edit_defect_type" id="edit_defect_type" value="">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Close</button>
+                        <button type="submit" class="btn btn-success"><i class="fa fa-save"></i> Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('custom-script')
-<!-- DataTables & Plugins -->
-<script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
-<script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
-<script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
-<script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
-<script src="{{ asset('plugins/datatables-rowsgroup/dataTables.rowsGroup.js') }}"></script>
+    <!-- DataTables & Plugins -->
+    <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-rowsgroup/dataTables.rowsGroup.js') }}"></script>
 
-<!-- Select2 -->
-<script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
-<script>
-    $('.select2master').select2({
-        theme: 'bootstrap4'
-    })
-    $('.select2bs4').select2({
-        theme: 'bootstrap4'
-    })
+    <!-- Select2 -->
+    <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+    <script>
+        $('.select2').select2({
+            theme: 'bootstrap4'
+        })
+        $('.select2bs4').select2({
+            theme: 'bootstrap4'
+        })
+    </script>
 
-    $('.select2roll').select2({
-        theme: 'bootstrap4'
-    })
-</script>
+    <script>
+        let datatableDefectType = $("#datatable-defect-type").DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            paging: 10,
+            ajax: {
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '{{ route('master-defect') }}',
+                dataType: 'json',
+                dataSrc: 'data',
+                data: {
+                    type:"type"
+                },
+            },
+            columns: [
+                {
+                    data: 'id'
+                },
+                {
+                    data: 'defect_type'
+                },
+                {
+                    data: 'allocation'
+                },
+                {
+                    data: 'updated_at'
+                },
+            ],
+            columnDefs: [
+                {
+                    targets: [0],
+                    className: 'align-middle',
+                    render: (data, type, row, meta) => {
+                        return `
+                            <div class='d-flex gap-1 justify-content-center'>
+                                <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editDefectTypeModal" onclick='editData(` + JSON.stringify(row) + `, "editDefectTypeModal", [{"function" : "dataTableDefectTypeReload()"}]);'>
+                                    <i class='fa fa-edit'></i>
+                                </a>
+                                <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-defect-type') }}/`+row['id']+`' onclick='deleteData(this)'>
+                                    <i class='fa fa-trash'></i>
+                                </a>
+                            </div>
+                        `;
+                    }
+                },
+            ],
+        });
 
-<script>
-    // $( document ).ready(function() {
+        function dataTableDefectTypeReload() {
+            datatableDefectType.ajax.reload();
+        }
 
-    // });
-    let datatableMasterPlan = $("#datatable-master-plan").DataTable({
-        ordering: false,
-        processing: true,
-        serverSide: true,
-        paging: false,
-        ajax: {
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        let datatableDefectArea = $("#datatable-defect-area").DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            paging: 10,
+            ajax: {
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '{{ route('master-defect') }}',
+                dataType: 'json',
+                dataSrc: 'data',
+                data: {
+                    type:"area"
+                },
             },
-            url: '{{ route('master-plan') }}',
-            dataType: 'json',
-            dataSrc: 'data',
-            data: function(d) {
-                d.date = $('#master-plan-date').val();
-            },
-        },
-        columns: [
-            {
-                data: 'sewing_line'
-            },
-            {
-                data: 'sewing_line'
-            },
-            {
-                data: 'no_ws'
-            },
-            {
-                data: 'style'
-            },
-            {
-                data: 'color'
-            },
-            {
-                data: 'smv'
-            },
-            {
-                data: 'jam_kerja'
-            },
-            {
-                data: 'man_power'
-            },
-            {
-                data: 'plan_target'
-            },
-            {
-                data: 'target_effy'
-            },
-            // {
-            //     data: 'sewing_line'
-            // },
-        ],
-        columnDefs: [
-            {
-                targets: [0],
-                className: 'align-middle',
-                render: (data, type, row, meta) => {
-                    return "<a class='btn btn-primary btn-sm' href='{{ route('master-plan-detail') }}/"+row.sewing_line+"/"+row.tgl_plan+"'><i class='fa fa-edit'></i></a>";
-                }
-            },
-            {
-                targets: [1],
-                className: 'align-middle',
-                render: (data, type, row, meta) => {
-                    return data ? (data.replace(/_/g, " ")).toUpperCase() : "-"
-                }
-            },
-            {
-                targets: [2, 3, 4, 5, 6, 7, 8],
-                className: 'align-middle',
-            },
-            {
-                targets: [9],
-                className: 'align-middle',
-                render: (data, type, row, meta) => {
-                    return data ? data.toLocaleString("ID-id")+' %' : '0 %'
-                }
-            },
-            // {
-            //     targets: [9],
-            //     visible: false,
-            //     render: (data, type, row, meta) => {
-            //         console.log(meta);
-            //         // return row.filter((item) => item.sewing_line == data).reduce((sum, record) => sum + record.jam_kerja);
-            //     }
-            // }
-        ],
-        rowsGroup: [
-            0,
-            1
-        ]
-    });
+            columns: [
+                {
+                    data: 'id'
+                },
+                {
+                    data: 'defect_area'
+                },
+                {
+                    data: 'updated_at'
+                },
+            ],
+            columnDefs: [
+                {
+                    targets: [0],
+                    className: 'align-middle',
+                    render: (data, type, row, meta) => {
+                        return `
+                            <div class='d-flex gap-1 justify-content-center'>
+                                <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#editDefectAreaModal" onclick='editData(` + JSON.stringify(row) + `, "editDefectAreaModal", [{"function" : "dataTableDefectAreaReload()"}]);'>
+                                    <i class='fa fa-edit'></i>
+                                </a>
+                                <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-defect-area') }}/`+row['id']+`' onclick='deleteData(this)'>
+                                    <i class='fa fa-trash'></i>
+                                </a>
+                            </div>
+                        `;
+                    }
+                },
+            ],
+        });
 
-    function dataTableMasterPlanReload() {
-        datatableMasterPlan.ajax.reload();
-    }
-</script>
+        function dataTableDefectAreaReload() {
+            datatableDefectArea.ajax.reload();
+        }
+    </script>
 @endsection

@@ -16,6 +16,8 @@ class DefectType extends Model
     protected $fillable = [
         'id',
         'defect_type',
+        'allocation',
+        'hidden',
         'created_at',
         'updated_at',
     ];

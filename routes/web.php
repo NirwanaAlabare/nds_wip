@@ -584,14 +584,19 @@ Route::middleware('auth')->group(function () {
         Route::get('show/{line?}/{date?}', 'show')->name('master-plan-detail');
         Route::put('update', 'update')->name('update-master-plan');
         Route::post('store', 'store')->name('store-master-plan');
-        Route::delete('destroy/{id}', 'destroy')->name('destroy-master-plan');
+        Route::delete('destroy/{id?}', 'destroy')->name('destroy-master-plan');
     });
 
     Route::controller(MasterDefectController::class)->prefix("master-defect")->middleware('sewing')->group(function () {
         Route::get('/', 'index')->name('master-defect');
-        Route::put('update-defect-type', 'updateDefectType')->name('update-master-plan');
-        Route::post('store', 'store')->name('store-master-plan');
-        Route::delete('destroy/{id}', 'destroy')->name('destroy-master-plan');
+
+        Route::put('update-defect-type', 'updateDefectType')->name('update-defect-type');
+        Route::post('store-defect-type', 'storeDefectType')->name('store-defect-type');
+        Route::delete('destroy-defect-type/{id?}', 'destroyDefectType')->name('destroy-defect-type');
+
+        Route::put('update-defect-area', 'updateDefectArea')->name('update-defect-area');
+        Route::post('store-defect-area', 'storeDefectArea')->name('store-defect-area');
+        Route::delete('destroy-defect-area/{id?}', 'destroyDefectArea')->name('destroy-defect-area');
     });
 
     // Report Daily
