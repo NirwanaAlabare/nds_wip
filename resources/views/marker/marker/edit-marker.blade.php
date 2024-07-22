@@ -48,7 +48,11 @@
                         <div class="mb-1">
                             <div class="form-group">
                                 <label><small>Color</small></label>
-                                <input type="text" class="form-control" id="color" name="color" value="{{ $marker->color }}" readonly>
+                                <input type="hidden" class="form-control" id="color_default" name="color_default" value="{{ $marker->color }}">
+                                <select class="form-control select2bs4" id="color" name="color" style="width: 100%;">
+                                    <option selected="selected" value="">Pilih Color</option>
+                                    {{-- select 2 option --}}
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -56,7 +60,11 @@
                         <div class="mb-1">
                             <div class="form-group">
                                 <label><small>Panel</small></label>
-                                <input type="text" class="form-control" id="panel" name="panel" value="{{ $marker->panel }}" readonly>
+                                <input type="hidden" class="form-control" id="panel_default" name="panel_default" value="{{ $marker->panel }}">
+                                <select class="form-control select2bs4" id="panel" name="panel" style="width: 100%;">
+                                    <option selected="selected" value="">Pilih Panel</option>
+                                    {{-- select 2 option --}}
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -124,13 +132,13 @@
                             <div class="col-4 col-md-4">
                                 <div class="mb-1">
                                     <label class="form-label"><small>Cons Piping</small></label>
-                                    <input type="number" class="form-control" id="cons_piping" name="cons_piping" step=".001" value="{{ $marker->cons_piping }}" {{ $totalForm > 0 ? "readonly" : "" }}>
+                                    <input type="number" class="form-control" id="cons_piping" name="cons_piping" step=".001" value="{{ $marker->cons_piping }}" {{-- $totalForm > 0 ? "readonly" : "" --}}>
                                 </div>
                             </div>
                             <div class="col-4 col-md-4">
                                 <div class="mb-1">
                                     <label class="form-label"><small>Gramasi</small></label>
-                                    <input type="number" class="form-control" id="gramasi" name="gramasi" step=".001" value="{{ $marker->gramasi }}" {{-- {{ $totalForm > 0 ? "readonly" : "" }} --}}>
+                                    <input type="number" class="form-control" id="gramasi" name="gramasi" step=".001" value="{{ $marker->gramasi }}" {{-- $totalForm > 0 ? "readonly" : "" --}}>
                                 </div>
                             </div>
                             <div class="col-4 col-md-4">
@@ -236,11 +244,22 @@
 
         // Initial Window On Load Event
         $(document).ready(async function () {
+            document.getElementById("loading").classList.remove("d-none");
+
             // Call Get Total Cut Qty ( set sum cut qty variable )
             await getTotalCutQty($("#ws_id").val(), $("#color").val(), $("#panel").val());
 
-            getNumber();
-            updateSizeList();
+            await getNumber();
+
+            await updateColorList();
+            await $('#color').val($('#color_default').val()).trigger('change');
+
+            await updatePanelList();
+            await $('#panel').val($('#panel_default').val()).trigger('change');
+
+            await updateSizeList();
+
+            document.getElementById("loading").classList.add("d-none");
         });
 
         // Select2 Autofocus
@@ -255,6 +274,72 @@
         $('.select2bs4').select2({
             theme: 'bootstrap4',
         })
+
+        // Step Two (Color) on change event
+        $('#color').on('change', function(e) {
+            if (this.value) {
+                updatePanelList();
+                updateSizeList();
+            }
+        });
+
+        // Step Three (Panel) on change event
+        $('#panel').on('change', function(e) {
+            if (this.value) {
+                updateSizeList();
+            }
+        });
+
+        // Update Color Select Option Based on Order WS
+        function updateColorList() {
+            document.getElementById('color').value = null;
+
+            return $.ajax({
+                url: '{{ route("get-marker-colors") }}',
+                type: 'get',
+                data: {
+                    act_costing_id: $('#ws_id').val(),
+                },
+                success: function (res) {
+                    if (res) {
+                        // Update this step
+                        document.getElementById('color').innerHTML = res;
+
+                        // Reset next step
+                        document.getElementById('panel').innerHTML = null;
+                        document.getElementById('panel').value = null;
+
+                        // Open this step
+                        $("#color").prop("disabled", false);
+
+                        // Close next step
+                        $("#panel").prop("disabled", true);
+                    }
+                },
+            });
+        }
+
+        // Update Panel Select Option Based on Order WS and Color WS
+        function updatePanelList() {
+            document.getElementById('panel').value = null;
+            return $.ajax({
+                url: '{{ route("get-marker-panels") }}',
+                type: 'get',
+                data: {
+                    act_costing_id: $('#ws_id').val(),
+                    color: $('#color').val(),
+                },
+                success: function (res) {
+                    if (res) {
+                        // Update this step
+                        document.getElementById('panel').innerHTML = res;
+
+                        // Open this step
+                        $("#panel").prop("disabled", false);
+                    }
+                },
+            });
+        }
 
         // Get & Set Total Cut Qty Based on Order WS and Order Color ( to know remaining cut qty )
         async function getTotalCutQty(wsId, color, panel) {
