@@ -97,25 +97,57 @@
                 <div class="modal-body">
                     <div class='row'>
                         <div class="col-md-3">
-                            <label class="form-label"><small><b>PO</b></small></label>
-                            <input type="text" class="form-control form-control-sm" id = "modal_po" name = "modal_po">
+                            <div class="form-group">
+                                <label class="form-label"><small><b>PO</b></small></label>
+                                <input type="text" class="form-control form-control-sm" id = "modal_po" name = "modal_po"
+                                    readonly>
+                            </div>
                         </div>
-                        <div class="col-3">
-                            <label class="form-label"><small><b>Buyer</b></small></label>
-                            <input type="text" class="form-control form-control-sm" id = "modal_buyer"
-                                name = "modal_buyer">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label"><small><b>Buyer</b></small></label>
+                                <input type="text" class="form-control form-control-sm" id = "modal_buyer"
+                                    name = "modal_buyer" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="form-label"><small><b>Tgl.Shipment</b></small></label>
+                                <input type="text" class="form-control form-control-sm" id = "modal_tgl_shipment"
+                                    name = "modal_tgl_shipment" readonly>
+                            </div>
                         </div>
                     </div>
-
+                    <div class='row'>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label"><small><b>Total Karton</b></small></label>
+                                <input type="text" class="form-control form-control-sm" id = "modal_tot_karton"
+                                    name = "modal_tot_karton" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label"><small><b>Karton Isi</b></small></label>
+                                <input type="text" class="form-control form-control-sm" id = "modal_tot_isi"
+                                    name = "modal_tot_isi" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label"><small><b>Karton Kosong</b></small></label>
+                                <input type="text" class="form-control form-control-sm" id = "modal_tot_kosong"
+                                    name = "modal_tot_kosong" readonly>
+                            </div>
+                        </div>
+                    </div>
                     <div class='row'>
                         <div class="col-md-12 table-responsive">
                             <table id="datatable_detail_karton"
-                                class="table table-bordered table-striped table-sm w-100 nowrap">
+                                class="table table-bordered table-hover table-sm w-100 nowrap">
                                 <thead>
                                     <tr>
                                         <th>No.carton</th>
-                                        <th>PO</th>
-                                        <th>Buyer</th>
                                         <th>Barcode</th>
                                         <th>WS</th>
                                         <th>Color</th>
@@ -125,13 +157,15 @@
                                         <th>Style</th>
                                         <th>Product</th>
                                         <th>Qty</th>
+                                        <th>Status</th>
                                     </tr>
                                 </thead>
                                 <tfoot>
                                     <tr>
-                                        <th colspan="11"></th>
+                                        <th colspan="9"></th>
                                         <th> <input type = 'text' class="form-control form-control-sm"
                                                 style="width:75px" readonly id = 'total_qty_chk'> </th>
+                                        <th></th>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -256,7 +290,9 @@
                             <th>Style</th>
                             <th>Product Group</th>
                             <th>Product Item</th>
-                            <th>Jumlah Carton</th>
+                            <th>Jumlah Karton</th>
+                            <th>Karton Isi</th>
+                            <th>Karton Kosong</th>
                             <th>Tot Scan</th>
                             <th>Act</th>
                         </tr>
@@ -266,6 +302,10 @@
                             <th colspan="7"></th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
                                     id = 'total_qty_carton'> </th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_carton_isi'> </th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_carton_kosong'> </th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
                                     id = 'total_qty_scan'> </th>
                             <th></th>
@@ -415,9 +455,23 @@
                         return intVal(a) + intVal(b);
                     }, 0);
 
+                var sumTotalI = api
+                    .column(8)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalK = api
+                    .column(9)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
                 // computing column Total of the complete result
                 var sumTotalS = api
-                    .column(8)
+                    .column(10)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
@@ -426,7 +480,9 @@
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
                 $(api.column(7).footer()).html(sumTotal);
-                $(api.column(8).footer()).html(sumTotalS);
+                $(api.column(8).footer()).html(sumTotalI);
+                $(api.column(9).footer()).html(sumTotalK);
+                $(api.column(10).footer()).html(sumTotalS);
             },
             ordering: false,
             processing: true,
@@ -466,7 +522,13 @@
                     data: 'product_item'
                 },
                 {
-                    data: 'tot_carton'
+                    data: 'tot_karton'
+                },
+                {
+                    data: 'tot_karton_isi'
+                },
+                {
+                    data: 'tot_karton_kosong'
                 },
                 {
                     data: 'tot_scan'
@@ -480,13 +542,14 @@
                     "targets": "_all"
                 },
                 {
-                    targets: [9],
+                    targets: [11],
                     render: (data, type, row, meta) => {
                         return `
                 <div class='d-flex gap-1 justify-content-center'>
                 <a class='btn btn-primary btn-sm'  data-bs-toggle="modal"
                         data-bs-target="#exampleModalCheck"
-                onclick="show_data('` + row.po + `')"><i class='fas fa-search'></i></a>
+                onclick="show_data('` + row.po + `','` + row.buyer + `','` + row.tgl_shipment_fix + `','` + row
+                            .tot_karton + `','` + row.tot_karton_isi + `','` + row.tot_karton_kosong + `' )"><i class='fas fa-search'></i></a>
                 <a class='btn btn-info btn-sm'  data-bs-toggle="modal"
                         data-bs-target="#exampleModalEdit"
                 onclick="edit(` + row.id + `)"><i class='fas fa-box-open'></i></a>
@@ -502,26 +565,57 @@
         }, );
 
 
-        $('#datatable_detail_karton thead tr').clone(true).appendTo('#datatable_detail_karton thead');
-        $('#datatable_detail_karton thead tr:eq(1) th').each(function(i) {
-            var title = $(this).text();
-            $(this).html('<input type="text" class="form-control form-control-sm"/>');
-            $('input', this).on('keyup change', function() {
-                if (datatable_detail_karton.column(i).search() !== this.value) {
-                    datatable_detail_karton
-                        .column(i)
-                        .search(this.value)
-                        .draw();
-                }
-            });
-        });
 
-
-        function show_data(po_s) {
+        function show_data(po_s, po_b, tgl_shipment_fix, tot_karton, tot_karton_isi, tot_karton_kosong) {
             // console.log(po_s);
             // datatable_detail_karton.ajax.reload();
             $('#modal_po').val(po_s);
+            $('#modal_buyer').val(po_b);
+            $('#modal_tgl_shipment').val(tgl_shipment_fix);
+            $('#modal_tot_karton').val(tot_karton);
+            $('#modal_tot_isi').val(tot_karton_isi);
+            $('#modal_tot_kosong').val(tot_karton_kosong);
+
+            $('#datatable_detail_karton thead tr').clone(true).appendTo('#datatable_detail_karton thead');
+            $('#datatable_detail_karton thead tr:eq(1) th').each(function(i) {
+                var title = $(this).text();
+                $(this).html('<input type="text" class="form-control form-control-sm"/>');
+                $('input', this).on('keyup change', function() {
+                    if (datatable_detail_karton.column(i).search() !== this.value) {
+                        datatable_detail_karton
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            });
+
             let datatable_detail_karton = $("#datatable_detail_karton").DataTable({
+                "footerCallback": function(row, data, start, end, display) {
+                    var api = this.api(),
+                        data;
+
+                    // converting to interger to find total
+                    var intVal = function(i) {
+                        return typeof i === 'string' ?
+                            i.replace(/[\$,]/g, '') * 1 :
+                            typeof i === 'number' ?
+                            i : 0;
+                    };
+
+                    // computing column Total of the complete result
+                    var sumTotal = api
+                        .column(9)
+                        .data()
+                        .reduce(function(a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+
+                    // Update footer by showing the total with the reference of the column index
+                    $(api.column(0).footer()).html('Total');
+                    $(api.column(9).footer()).html(sumTotal);
+                },
+
                 ordering: false,
                 processing: true,
                 serverSide: true,
@@ -541,12 +635,6 @@
                 columns: [{
                         data: 'no_carton'
 
-                    },
-                    {
-                        data: 'po'
-                    },
-                    {
-                        data: 'buyer'
                     },
                     {
                         data: 'barcode'
@@ -575,11 +663,29 @@
                     {
                         data: 'tot'
                     },
+                    {
+                        data: 'stat'
+                    },
                 ],
                 columnDefs: [{
-                    "className": "dt-left",
-                    "targets": "_all"
-                }, ]
+                        "className": "dt-left",
+                        "targets": "_all"
+                    },
+                    // {
+                    //     targets: '_all',
+                    //     className: 'text-nowrap',
+                    //     render: (data, type, row, meta) => {
+                    //         if (row.stat == 'isi') {
+                    //             color = 'green';
+                    //         } else {
+                    //             color = '#blue';
+                    //         }
+                    //         return '<span style="color:' + color + '">' + data +
+                    //             '</span>';
+                    //     }
+                    // },
+
+                ]
             });
         }
     </script>
