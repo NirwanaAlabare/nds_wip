@@ -221,7 +221,7 @@ class MarkerController extends Controller
 
     public function getCount(Request $request)
     {
-        $countMarker = Marker::where('act_costing_id', $request->act_costing_id)->where('color', $request->color)->where('panel', $request->panel)->count() + 1;
+        $countMarker = Marker::where('act_costing_id', $request->act_costing_id)->where('color', $request->color)->where('panel', $request->panel)->whereRaw('(cancel != "Y" OR cancel is null)')->count() + 1;
 
         return $countMarker ? $countMarker : 1;
     }
