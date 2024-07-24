@@ -27,14 +27,24 @@ b.styleno,
 b.product_group,
 b.product_item,
 concat((DATE_FORMAT(b.tgl_shipment,  '%d')), '-', left(DATE_FORMAT(b.tgl_shipment,  '%M'),3),'-',DATE_FORMAT(b.tgl_shipment,  '%Y')) tgl_shipment_fix,
-tot_carton,
+tot_karton,
+tot_karton_isi,
+tot_karton_kosong,
 coalesce(s.tot_scan,0) tot_scan
 from
   (
-   SELECT po,count(no_carton) tot_carton
-   FROM `packing_master_carton`
-   group by po) a
+select a.po,
+max(a.no_carton)tot_karton,
+count(IF(b.no_carton is not null,1,null)) tot_karton_isi,
+count(IF(b.no_carton is null,1,null)) tot_karton_kosong
+from  packing_master_carton a
 left join (
+select no_carton, po from packing_packing_out_scan group by no_carton,po  ) b on
+a.po = b.po and  a.no_carton = b.no_carton
+group by a.po
+) a
+left join
+(
 select
 p.po,
 m.ws,
@@ -45,13 +55,47 @@ m.product_group,
 m.product_item
 from ppic_master_so p
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
+group by po
 ) b on a.po = b.po
 left join
 (select po,count(barcode) tot_scan from packing_packing_out_scan group by po) s on a.po = s.po
- where tgl_shipment >= '$tgl_awal' and tgl_shipment <= '$tgl_akhir'
- group by po
-order by tgl_shipment asc, po asc
-            ");
+where tgl_shipment >= '$tgl_awal' and tgl_shipment <= '$tgl_akhir'
+ order by tgl_shipment asc, po asc
+          ");
+
+            //   SELECT
+            //   a.po,
+            //   b.ws,
+            //   b.buyer,
+            //   b.styleno,
+            //   b.product_group,
+            //   b.product_item,
+            //   concat((DATE_FORMAT(b.tgl_shipment,  '%d')), '-', left(DATE_FORMAT(b.tgl_shipment,  '%M'),3),'-',DATE_FORMAT(b.tgl_shipment,  '%Y')) tgl_shipment_fix,
+            //   tot_carton,
+            //   coalesce(s.tot_scan,0) tot_scan
+            //   from
+            //     (
+            //      SELECT po,count(no_carton) tot_carton
+            //      FROM `packing_master_carton`
+            //      group by po) a
+            //   left join (
+            //   select
+            //   p.po,
+            //   m.ws,
+            //   m.styleno,
+            //   tgl_shipment,
+            //   m.buyer,
+            //   m.product_group,
+            //   m.product_item
+            //   from ppic_master_so p
+            //   inner join master_sb_ws m on p.id_so_det = m.id_so_det
+            //   ) b on a.po = b.po
+            //   left join
+            //   (select po,count(barcode) tot_scan from packing_packing_out_scan group by po) s on a.po = s.po
+            //    where tgl_shipment >= '$tgl_awal' and tgl_shipment <= '$tgl_akhir'
+            //    group by po
+            //   order by tgl_shipment asc, po asc
+
 
             return DataTables::of($data_carton)->toJson();
         }
@@ -126,7 +170,8 @@ p.desc,
 m.styleno,
 m.product_group,
 m.product_item,
-dc.tot
+coalesce(dc.tot,'0') tot,
+if (mc.po = dc.po,'isi','kosong')stat
 from
 (select * from packing_master_carton a where po = '$po')mc
 left join
