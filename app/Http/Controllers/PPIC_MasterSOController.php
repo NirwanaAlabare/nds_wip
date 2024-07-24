@@ -572,6 +572,19 @@ group by a.barcode, a.po
             // "callback" => "getdetail(`$no_form_modal`,`$txtket_modal`)"
         }
 
+        $update_packing_trf =  DB::update("
+            update packing_trf_garment a
+            INNER JOIN ppic_master_so p ON a.id_ppic_master_so = p.id
+            SET a.barcode = p.barcode
+            where a.po = '$poArray'");
+
+        $update_packing_in =  DB::update("
+            update packing_packing_in a
+            INNER JOIN ppic_master_so p ON a.id_ppic_master_so = p.id
+            SET a.barcode = p.barcode
+            where a.po = '$poArray'");
+
+
         return array(
             'status' => 200,
             'message' => 'Data  Berhasil Diupdate',
