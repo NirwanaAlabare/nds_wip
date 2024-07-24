@@ -204,7 +204,7 @@ class MarkerController extends Controller
     public function getNumber(Request $request)
     {
         $number = DB::connection('mysql_sb')->select("
-                select k.cons cons_ws,sum(sd.qty) order_qty from bom_jo_item k
+                select k.cons cons_ws,sum(coalesce(sd.qty, 0)) order_qty from bom_jo_item k
                     inner join so_det sd on k.id_so_det = sd.id
                     inner join so on sd.id_so = so.id
                     inner join act_costing ac on so.id_cost = ac.id
@@ -829,11 +829,36 @@ class MarkerController extends Controller
         return json_encode($data_gramasi[0]);
     }
 
-    public function update_status(Request $request, Marker $marker)
+    public function update_status(Request $request)
     {
+        $thisMarker = Marker::find($request->id_c);
+
+        if ($thisMarker) {
+            if ($thisMarker->cancel == "Y") {
+                $afterMarker = Marker::where('act_costing_id', $thisMarker->act_costing_id)->
+                    where('style', $thisMarker->style)->
+                    where('color', $thisMarker->color)->
+                    where('panel', $thisMarker->panel)->
+                    whereRaw('(cancel != "Y" OR cancel IS NULL)')->
+                    update([
+                        'urutan' => DB::raw('urutan + 1')
+                    ]);
+            } else {
+                $afterMarker = Marker::where('act_costing_id', $thisMarker->act_costing_id)->
+                    where('style', $thisMarker->style)->
+                    where('color', $thisMarker->color)->
+                    where('panel', $thisMarker->panel)->
+                    whereRaw('(cancel != "Y" OR cancel IS NULL)')->
+                    update([
+                        'urutan' => DB::raw('urutan - 1')
+                    ]);
+            }
+        }
+
         $update_data = DB::update("
-        update marker_input set cancel = case when cancel = 'Y' then'N' else 'Y' end
-        where id = '$request->id_c'");
+            update marker_input set cancel = case when cancel = 'Y' then'N' else 'Y' end
+            where id = '$request->id_c'
+        ");
     }
 
     public function update_marker(Request $request)
@@ -992,7 +1017,7 @@ class MarkerController extends Controller
 
         return array(
             "status" => 200,
-            "message" => $markers->count()." marker telah diperbaiki.",
+            "message" => $markers->count()." Balance Marker telah berhasil dihitung ulang.",
             "redirect" => '',
             "additional" => []
         );

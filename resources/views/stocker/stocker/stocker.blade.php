@@ -171,6 +171,13 @@
                     className: "text-nowrap",
                     render: (data, type, row, meta) => data ? data.toUpperCase() : "-"
                 },
+                // Marker Hyperlink
+                {
+                    targets: [10],
+                    render: (data, type, row, meta) => {
+                        return data ? `<a class='fw-bold' href='{{ route('edit-marker') }}/ `+row.marker_id+`' target='_blank'><u>`+data+`</u></a>` : "-";
+                    }
+                },
                 // Text No Wrap
                 {
                     targets: "_all",

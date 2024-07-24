@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Sewing;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\SignalBit\Defect;
 use DB;
@@ -10,7 +11,7 @@ class OrderDefectController extends Controller
 {
     public function index(Request $request) {
         if ($request->ajax()) {
-            $suppliers = DB::table('mastersupplier')->
+            $suppliers = DB::connection('mysql_sb')->table('mastersupplier')->
                 selectRaw('Id_Supplier as id, Supplier as name')->
                 leftJoin('act_costing', 'act_costing.id_buyer', '=', 'mastersupplier.Id_Supplier')->
                 leftJoin('master_plan', 'master_plan.id_ws', '=', 'act_costing.id')->
@@ -24,7 +25,7 @@ class OrderDefectController extends Controller
             return $suppliers;
         }
 
-        $suppliers = DB::table('mastersupplier')->
+        $suppliers = DB::connection('mysql_sb')->table('mastersupplier')->
             selectRaw('Id_Supplier as id, Supplier as name')->
             leftJoin('act_costing', 'act_costing.id_buyer', '=', 'mastersupplier.Id_Supplier')->
             leftJoin('master_plan', 'master_plan.id_ws', '=', 'act_costing.id')->
@@ -38,7 +39,7 @@ class OrderDefectController extends Controller
         return view('sewing.order-defects', [
             'suppliers' => $suppliers,
             "subPageGroup" => "sewing-sewing",
-            "subPage" => "sewing-output",
+            "subPage" => "sewing-pareto",
             "page" => "dashboard-sewing-eff"
         ]);
     }

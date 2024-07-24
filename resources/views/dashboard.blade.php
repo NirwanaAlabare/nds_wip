@@ -2603,9 +2603,6 @@
                             data: 'tgl_form_cut',
                         },
                         {
-                            data: 'buyer',
-                        },
-                        {
                             data: 'act_costing_ws',
                         },
                         {
@@ -2671,8 +2668,36 @@
                     ],
                     columnDefs: [
                         {
-                            targets: [0 ,1 ,2 ,3 ,4 ,5 , 6, 7, 8, 9, 10],
+                            targets: [0 ,1 ,2 ,3 ,5 , 6, 8, 9],
                             className: "text-nowrap align-middle"
+                        },
+                        {
+                            targets: [4],
+                            className: "text-nowrap align-middle",
+                            render: (data, type, row, meta) => {
+                                return data ? `<a class='fw-bold' href='{{ route('edit-marker') }}/ `+row.marker_id+`' target='_blank'><u>`+data+`</u></a>` : "-";
+                            }
+                        },
+                        {
+                            targets: [7],
+                            className: "text-nowrap align-middle",
+                            render: (data, type, row, meta) => {
+                                let formLink = "";
+
+                                if (row.form_status == 'SELESAI PENGERJAAN') {
+                                    formLink = `<a class="fw-bold" href='{{ route('detail-cutting') }}/` + row.form_id + `' target='_blank'><u>`+ (data) +`</u></a>`;
+                                } else {
+                                    if (row.tipe_form_cut == 'MANUAL') {
+                                        formLink = `<a class="fw-bold" href='{{ route('process-manual-form-cut') }}/` +row.form_id + `' target='_blank'><u>`+data+`</u></a>`;
+                                    } else if (row.tipe_form_cut == 'PILOT') {
+                                        formLink = `<a class="fw-bold" href='{{ route('process-pilot-form-cut') }}/` + row.form_id + `' target='_blank'><u>`+data+`</u></a>`;
+                                    } else {
+                                        formLink = `<a class="fw-bold" href='{{ route('process-form-cut-input') }}/` + row.form_id + `' target='_blank'><u>`+data+`</u></a>`;
+                                    }
+                                }
+
+                                return formLink;
+                            }
                         },
                         {
                             targets: "_all",
@@ -2689,8 +2714,7 @@
                         6,
                         7,
                         8,
-                        9,
-                        10
+                        9
                     ],
                     // rowCallback: function( row, data, index ) {
                     //     if (data['line'] != '-') {

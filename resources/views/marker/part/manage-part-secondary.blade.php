@@ -15,7 +15,7 @@
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="card-title fw-bold">
-                    <i class="fa fa-cog fa-sm"></i> Atur Part Secondary
+                    <i class="fa fa-circle-plus fa-sm"></i> Tambah Part Secondary
                 </h5>
                 <a href="{{ route('part') }}" class="btn btn-sm btn-primary">
                     <i class="fa fa-reply"></i> Kembali ke Part

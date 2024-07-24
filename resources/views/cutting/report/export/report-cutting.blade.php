@@ -38,8 +38,8 @@
                 <td colspan="2" style="font-weight: 800;background: #ffd966;">PLANNING</td>
                 <td colspan="2" style="font-weight: 800;background: #ffd966;">{{ $cutting->panel }}</td>
                 <td colspan="7" style="font-weight: 800;background: #ffd966;">{{ localeDateFormat($date) }}</td>
-                <td colspan="4" style="font-weight: 800;background: #bdd7ee;text-align: center;">SPREADING</td>
                 <td colspan="4" style="font-weight: 800;background: #f8cbad;text-align: center;">CUTTING</td>
+                {{-- <td colspan="4" style="font-weight: 800;background: #bdd7ee;text-align: center;">SPREADING</td> --}}
                 <td colspan="9" style="font-weight: 800;background: #ccccff;text-align: center;">MATERIAL</td>
             </tr>
             <tr>
@@ -54,10 +54,10 @@
                 <th style="font-weight: 800;background: #ffd966;">Target Shift 2</th>
                 <th style="font-weight: 800;background: #ffd966;">Pending Shift 2</th>
                 <th style="font-weight: 800;background: #ffd966;">Total Target</th>
-                <th style="font-weight: 800;background: #bdd7ee;">Balance To Target</th>
+                {{-- <th style="font-weight: 800;background: #bdd7ee;">Balance To Target</th>
                 <th style="font-weight: 800;background: #bdd7ee;">Total Target</th>
                 <th style="font-weight: 800;background: #bdd7ee;">Output Spreading</th>
-                <th style="font-weight: 800;background: #bdd7ee;">Balance</th>
+                <th style="font-weight: 800;background: #bdd7ee;">Balance</th> --}}
                 <th style="font-weight: 800;background: #f8cbad;">Balance To Spreading</th>
                 <th style="font-weight: 800;background: #f8cbad;">Total Target</th>
                 <th style="font-weight: 800;background: #f8cbad;">Output Cutting</th>
@@ -113,20 +113,20 @@
             <td style="vertical-align: top;"></td>
             <td style="vertical-align: top;">{{ $cutting->marker_gelar ? $cutting->marker_gelar : '-'  }}</td>
             <td style="vertical-align: top;"></td>
-            <td style="vertical-align: top;">{{ $cutting->marker_gelar ? $cutting->marker_gelar : '-'  }}</td>
+            {{-- <td style="vertical-align: top;">{{ $cutting->marker_gelar ? $cutting->marker_gelar : '-'  }}</td>
             <td style="vertical-align: top;">{{ $cutting->spreading_gelar ? $cutting->spreading_gelar : '-'  }}</td>
             <td style="vertical-align: top;">{{ ($cutting->spreading_gelar ? $cutting->spreading_gelar : 0) - ($cutting->marker_gelar ? $cutting->marker_gelar : 0) }}</td>
-            <td style="vertical-align: top;"></td>
-            <td style="vertical-align: top;">{{ $cutting->spreading_gelar ? $cutting->spreading_gelar : '-'  }}</td>
+            <td style="vertical-align: top;"></td> --}}
+            <td style="vertical-align: top;">{{ $cutting->marker_gelar ? $cutting->marker_gelar : '-'  }}</td>
             <td style="vertical-align: top;">{{ $cutting->form_gelar ? $cutting->form_gelar : '-'  }}</td>
-            <td style="vertical-align: top;">{{ ($cutting->form_gelar ? $cutting->form_gelar : 0) - ($cutting->spreading_gelar ? $cutting->spreading_gelar : 0) }}</td>
+            <td style="vertical-align: top;">{{ ($cutting->form_gelar ? $cutting->form_gelar : 0) - ($cutting->marker_gelar ? $cutting->marker_gelar : 0) }}</td>
             <td style="vertical-align: top;">{{ ($cutting->cons_ws ? $cutting->cons_ws : 0) }}</td>
             <td style="vertical-align: top;"></td>
             <td style="vertical-align: top;"></td>
             <td style="vertical-align: top;"></td>
             <td style="vertical-align: top;"></td>
             <td style="vertical-align: top;"></td>
-            <td style="vertical-align: top;">{{ ($cutting->spreading_gelar ? $cutting->spreading_gelar : 0) * ($cutting->cons_ws ? $cutting->cons_ws : 0) }}</td>
+            <td style="vertical-align: top;">{{ ($cutting->form_gelar ? $cutting->form_gelar : 0) * ($cutting->cons_ws ? $cutting->cons_ws : 0) }}</td>
             <td style="vertical-align: top;"></td>
             <td style="vertical-align: top;">{{ ($cutting->unit ? $cutting->unit : '-') }}</td>
         </tr>
@@ -168,10 +168,10 @@
                 <td>{{ $totalPendingShift2 }}</td>
                 <td>{{ $totalTotalTarget }}</td>
                 <td>{{ $totalBalanceToTarget }}</td>
-                <td>{{ $totalTotalTargetSpr }}</td>
+                {{-- <td>{{ $totalTotalTargetSpr }}</td>
                 <td>{{ $totalOutputSpr }}</td>
                 <td style="{{ $totalBalanceSpr > 0 ? 'background: #c4edc2; color: #199e08;' : ($totalBalanceSpr == 0 ? 'background: #dde7f7;color: #2683ed;' : 'background: #f7dedd;color: #ed2626;') }}">{{ $totalBalanceSpr }}</td>
-                <td>{{ $totalBalanceToSpr }}</td>
+                <td>{{ $totalBalanceToSpr }}</td> --}}
                 <td>{{ $totalTotalTargetCut }}</td>
                 <td>{{ $totalOutputCut }}</td>
                 <td style="{{ $totalBalanceCut > 0 ? 'background: #c4edc2; color: #199e08;' : ($totalBalanceCut == 0 ? 'background: #dde7f7;color: #2683ed;' : 'background: #f7dedd;color: #ed2626;') }}">{{ $totalBalanceCut }}</td>

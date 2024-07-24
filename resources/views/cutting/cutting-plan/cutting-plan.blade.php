@@ -17,7 +17,7 @@
         <div class="modal-dialog modal-lg modal-dialog-scrollable" style="max-width: 75%;">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-light">
-                    <h1 class="modal-title fs-5" id="cutPlanDetailModalLabel">Cutting Plan</h1>
+                    <h1 class="modal-title fs-5" id="cutPlanDetailModalLabel"><i class="fa fa-search"></i> Detail Cutting Plan</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -56,17 +56,16 @@
     </div>
 
     {{-- Manage Cutting Plan Modal --}}
-    <div class="modal fade" id="manageCutPlanModal" tabindex="-1" role="dialog" aria-labelledby="manageCutPlanModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header bg-sb text-light">
-                    <h1 class="modal-title fs-5" id="manageCutPlanModalLabel">Atur Form Cut</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form action="{{ route('update-cut-plan') }}" method="post" id="manage-cut-plan-form">
-                        @method('PUT')
+    <form action="{{ route('update-cut-plan') }}" method="post" id="manage-cut-plan-form">
+        @method('PUT')
+        <div class="modal fade" id="manageCutPlanModal" tabindex="-1" role="dialog" aria-labelledby="manageCutPlanModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header bg-sb text-light">
+                        <h5 class="modal-title fs-5" id="manageCutPlanModalLabel"><i class="fa fa-edit"></i> Edit Plan Form Cut</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
                         <div class='row'>
                             <div class='col-sm-6'>
                                 <div class='form-group'>
@@ -124,15 +123,17 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div class="my-3">
-                            <button type="button" class="btn btn-success btn-block fw-bold mb-3" onclick="submitManageForm();">SIMPAN</button>
-                            <button type="button" class="btn btn-no btn-block fw-bold mb-3" data-bs-dismiss="modal">BATAL</button>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="d-flex w-100 justify-content-between">
+                            <button type="button" class="btn btn-no fw-bold" data-bs-dismiss="modal"><i class="fa fa-times"></i> BATAL</button>
+                            <button type="button" class="btn btn-success fw-bold" onclick="submitManageForm();"><i class="fa fa-check"></i> SIMPAN</button>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </form>
 
 
     <div class="card card-sb">
@@ -142,7 +143,7 @@
         <div class="card-body">
             <a href="{{ route('create-cut-plan') }}" class="btn btn-success btn-sm mb-3">
                 <i class="fa fa-cog"></i>
-                Atur
+                Plan
             </a>
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
@@ -252,11 +253,11 @@
                     render: (data, type, row, meta) => {
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
-                                <a class='btn btn-primary btn-sm' onclick='editData(` + JSON.stringify(row) + `, \"cutPlanDetailModal\", [{\"function\" : \"datatableFormReload()\"}]);'>
+                                <a class='btn btn-info btn-sm' onclick='editData(` + JSON.stringify(row) + `, \"cutPlanDetailModal\", [{\"function\" : \"datatableFormReload()\"}]);'>
                                     <i class='fa fa-search'></i>
                                 </a>
-                                <a class='btn btn-success btn-sm' onclick='manageCutPlan(` + JSON.stringify(row) + `);'>
-                                    <i class='fa fa-cog'></i>
+                                <a class='btn btn-primary btn-sm' onclick='manageCutPlan(` + JSON.stringify(row) + `);'>
+                                    <i class='fa fa-edit'></i>
                                 </a>
                             </div>
                         `;
@@ -354,6 +355,12 @@
                     }
                 },
                 {
+                    targets: [10],
+                    render: (data, type, row, meta) => {
+                        return data ? `<a class='fw-bold' href='{{ route('edit-marker') }}/ `+row.marker_id+`' target='_blank'><u>`+data+`</u></a>` : "-";
+                    }
+                },
+                {
                     targets: [12],
                     className: "text-center align-middle",
                     render: (data, type, row, meta) => {
@@ -431,6 +438,7 @@
         let manageFormDatatable = $("#manage-form-datatable").DataTable({
             processing: true,
             serverSide: true,
+            paging: false,
             ajax: {
                 url: '{{ route('get-cut-plan-form') }}',
                 data: function(d) {

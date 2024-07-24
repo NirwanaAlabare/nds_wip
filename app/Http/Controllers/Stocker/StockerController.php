@@ -36,6 +36,7 @@ class StockerController extends Controller
                     form_cut_input.no_form,
                     DATE(form_cut_input.waktu_selesai) tanggal_selesai,
                     users.name nama_meja,
+                    marker_input.id as marker_id,
                     marker_input.act_costing_ws,
                     marker_input.buyer,
                     marker_input.urutan_marker,

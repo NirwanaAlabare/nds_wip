@@ -504,7 +504,7 @@ class CuttingPlanController extends Controller
                 $markerData = $row->formCutInput ? $row->formCutInput->marker : null;
 
                 $markerInfo = "<ul class='list-group'>";
-                $markerInfo = $markerInfo . "<li class='list-group-item'>Kode Marker :<br><b>" . ($markerData ? $markerData->kode : "-") . "</b></li>";
+                $markerInfo = $markerInfo . "<li class='list-group-item'>Kode Marker : <br>" . ($markerData ? "<a href='".route('edit-marker')."/".$markerData->id."' target='_blank'>" : '') . "<b><u>" . ($markerData ? $markerData->kode : "-") . "</u></b>" . ($markerData ? "</a>" : "") . "</li>";
                 $markerInfo = $markerInfo . "<li class='list-group-item'>WS Number :<br><b>" . ($markerData ? $markerData->act_costing_ws : "-") . "</b></li>";
                 $markerInfo = $markerInfo . "<li class='list-group-item'>Buyer :<br><b>" . ($markerData ? $markerData->buyer : "-") . "</b></li>";
                 $markerInfo = $markerInfo . "<li class='list-group-item'>Style :<br><b>" . ($markerData ? $markerData->style : "-") . "</b></li>";
@@ -549,7 +549,7 @@ class CuttingPlanController extends Controller
                     foreach ($markerDetailData as $markerDetail) {
                         $markerDetailInfo .= "
                                 <tr>
-                                    <td>" . $markerDetail->size . "</td>
+                                    <td>" . $markerDetail->masterSbWs->size . ($markerDetail->masterSbWs->dest && $markerDetail->masterSbWs->dest != "-" ? " - ". $markerDetail->masterSbWs->dest : "") . "</td>
                                     <td>" . $markerDetail->ratio . "</td>
                                     <td>" . $markerDetail->cut_qty . "</td>
                                     <td>" . ($markerDetail->ratio * ($row->formCutInput ? $row->formCutInput->qty_ply : 1)) . "</td>
