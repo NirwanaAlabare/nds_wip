@@ -14,7 +14,8 @@
                                 <div class="card h-100">
                                     <div class="card-body">
                                         <div class="d-flex h-100 flex-column justify-content-between">
-                                            <img src="{{ asset('dist/img/track.png') }}" class="img-fluid p-3" alt="cutting image">
+                                            <img src="{{ asset('dist/img/track.png') }}" class="img-fluid p-3"
+                                                alt="cutting image">
                                             <p class="text-center fw-bold text-uppercase text-dark">Track</p>
                                         </div>
                                     </div>
@@ -136,17 +137,17 @@
 
                     <!-- warehouse -->
                     <!-- <div class="col-lg-2 col-md-3 col-sm-6">
-                        <a href="{{ route('dashboard-warehouse') }}" class="home-item">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <div class="d-flex h-100 flex-column justify-content-between">
-                                        <img src="{{ asset('dist/img/warehouse.png') }}" class="img-fluid p-3" alt="cutting image">
-                                        <p class="text-center fw-bold text-uppercase text-dark">Warehouse</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div> -->
+                                                                                                                <a href="{{ route('dashboard-warehouse') }}" class="home-item">
+                                                                                                                    <div class="card h-100">
+                                                                                                                        <div class="card-body">
+                                                                                                                            <div class="d-flex h-100 flex-column justify-content-between">
+                                                                                                                                <img src="{{ asset('dist/img/warehouse.png') }}" class="img-fluid p-3" alt="cutting image">
+                                                                                                                                <p class="text-center fw-bold text-uppercase text-dark">Warehouse</p>
+                                                                                                                            </div>
+                                                                                                                        </div>
+                                                                                                                    </div>
+                                                                                                                </a>
+                                                                                                            </div> -->
 
                     @warehouse
                         <div class="col-lg-2 col-md-3 col-sm-6">
@@ -196,7 +197,35 @@
                                 </div>
                             </a>
                         </div>
+
+                        {{-- <div class="col-lg-2 col-md-3 col-sm-6">
+                            <a href="{{ route('dashboard-finish-good') }}" class="home-item">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex h-100 flex-column justify-content-between">
+                                            <img src="{{ asset('dist/img/finish_good.png') }}" class="img-fluid p-3"
+                                                alt="qr code image">
+                                            <p class="text-center fw-bold text-uppercase text-dark">Finish Good</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div> --}}
                     @endpacking
+
+                    <div class="col-lg-2 col-md-3 col-sm-6">
+                        <a href="{{ route('dashboard-report-doc') }}" class="home-item">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex h-100 flex-column justify-content-between">
+                                        <img src="{{ asset('dist/img/doc_report.png') }}" class="img-fluid p-3"
+                                            alt="qr code image">
+                                        <p class="text-center fw-bold text-uppercase text-dark">Document Report</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
 
                     @ga
                         <div class="col-lg-2 col-md-3 col-sm-6">
@@ -204,7 +233,8 @@
                                 <div class="card h-100">
                                     <div class="card-body">
                                         <div class="d-flex h-100 flex-column justify-content-between">
-                                            <img src="{{ asset('dist/img/general_affair.png') }}" class="img-fluid p-3" alt="qr code image">
+                                            <img src="{{ asset('dist/img/general_affair.png') }}" class="img-fluid p-3"
+                                                alt="qr code image">
                                             <p class="text-center fw-bold text-uppercase text-dark">G.A.I.S</p>
                                         </div>
                                     </div>
@@ -278,7 +308,6 @@
                                     </div>
                                 </a>
                             </div>
-
                             <div class="col-md-4 col-4">
                                 <a href="{{ route('dashboard-fg-stock') }}" class="home-item">
                                     <div class="card h-100">
@@ -292,10 +321,7 @@
                                     </div>
                                 </a>
                             </div>
-                            <div>
-                            </div>
                         </div>
-                    </div>
         </form>
     </div>
 
