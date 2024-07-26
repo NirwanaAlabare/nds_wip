@@ -935,7 +935,7 @@
                     </div>
                 </div>
                 <div id="output-line-chart" style="height: 350px;"></div>
-                <a href="http://10.10.5.62:8000/sb_wip_report/public/index.php/track-order-output" target="_blank" class="btn btn-sb w-100"><i class="fa fa-search"></i> Track Detail Output</a>
+                <a href="{{ route('sewing-track-order-output') }}" target="_blank" class="btn btn-sb w-100"><i class="fa fa-search"></i> Track Detail Output</a>
             </div>
         </div>
     {{-- OUTPUT LINE END --}}

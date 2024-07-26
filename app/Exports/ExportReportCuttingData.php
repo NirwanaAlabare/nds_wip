@@ -146,7 +146,7 @@ class ExportReportCuttingData implements FromView, WithEvents, ShouldAutoSize, W
         foreach ( $event->getConcernable()->reportCutting->groupBy('panel') as $cutting ) {
             if ($currentRow > 1) {
                 $event->sheet->styleCells(
-                    'A'.$currentRow.':AB' . ($currentRow+$event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+1),
+                    'A'.$currentRow.':X' . ($currentRow+$event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+1),
                     [
                         'borders' => [
                             'allBorders' => [
@@ -158,7 +158,7 @@ class ExportReportCuttingData implements FromView, WithEvents, ShouldAutoSize, W
                 );
 
                 $event->sheet->styleCells(
-                    'F'.($currentRow+$event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+2).':AB' . ($currentRow+$event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+2),
+                    'F'.($currentRow+$event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+2).':X' . ($currentRow+$event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+2),
                     [
                         'borders' => [
                             'allBorders' => [
@@ -170,7 +170,7 @@ class ExportReportCuttingData implements FromView, WithEvents, ShouldAutoSize, W
                 );
             } else {
                 $event->sheet->styleCells(
-                    'A1:AB' . ($event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+2),
+                    'A1:X' . ($event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+2),
                     [
                         'borders' => [
                             'allBorders' => [
@@ -182,7 +182,7 @@ class ExportReportCuttingData implements FromView, WithEvents, ShouldAutoSize, W
                 );
 
                 $event->sheet->styleCells(
-                    'F'.($event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+3).':AB' . ($event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+3),
+                    'F'.($event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+3).':X' . ($event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+3),
                     [
                         'borders' => [
                             'allBorders' => [

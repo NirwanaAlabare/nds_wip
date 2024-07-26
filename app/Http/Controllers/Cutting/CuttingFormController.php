@@ -965,7 +965,7 @@ class CuttingFormController extends Controller
             "cons_ws_uprate_nosr" => $request->consWsUprateNoSr,
             "cons_marker_uprate_nosr" => $request->consMarkerUprateNoSr,
             "operator" => $request->operator,
-        ])  ;
+        ]);
 
         $notCompletedDetails = FormCutInputDetail::where("no_form_cut_input", $formCutInputData->no_form)->whereRaw("(status = 'not complete' OR status = 'extension')")->get();
         if ($notCompletedDetails->count() > 0) {

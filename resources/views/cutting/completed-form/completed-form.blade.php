@@ -360,6 +360,12 @@
                     }
                 },
                 {
+                    targets: [10],
+                    render: (data, type, row, meta) => {
+                        return data ? `<a class='fw-bold' href='{{ route('edit-marker') }}/ `+row.marker_id+`' target='_blank'><u>`+data+`</u></a>` : "-";
+                    }
+                },
+                {
                     targets: [12],
                     className: "text-center align-middle",
                     render: (data, type, row, meta) => {
@@ -451,7 +457,7 @@
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i != 0 && i != 9 && i != 10) {
+            if (i != 0 && i != 10) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm"/>');
 

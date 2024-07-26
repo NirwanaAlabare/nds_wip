@@ -4,15 +4,15 @@
     @endphp
 @endif
 
-@if (!isset($subPage))
-    @php
-        $subPage = '';
-    @endphp
-@endif
-
 @if (!isset($subPageGroup))
     @php
         $subPageGroup = '';
+    @endphp
+@endif
+
+@if (!isset($subPage))
+    @php
+        $subPage = '';
     @endphp
 @endif
 
@@ -562,7 +562,7 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="#"
+                                    <a href="{{ route('order-defects') }}"
                                         class="dropdown-item {{ $subPage == 'sewing-pareto' ? 'active' : '' }}">
                                         Pareto Chart <i class="fa-solid fa-triangle-exclamation"></i>
                                     </a>

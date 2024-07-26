@@ -615,8 +615,8 @@ Route::middleware('auth')->group(function () {
 
     // Pareto Chart
     Route::controller(OrderDefectController::class)->prefix('order-defects')->middleware('sewing')->group(function () {
-        Route::get('/', 'index');
-        Route::get('/{buyerId}/{dateFrom}/{dateTo}', 'getOrderDefects');
+        Route::get('/', 'index')->name('order-defects');
+        Route::get('/{buyerId?}/{dateFrom?}/{dateTo?}', 'getOrderDefects')->name('get-order-defects');
     });
 
     // Track Order Output

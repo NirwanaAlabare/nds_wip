@@ -111,9 +111,8 @@
                     </div>
                 </div>
                 <div class="d-flex justify-content-end align-items-end gap-3 mb-3">
-                    <button class="btn btn-sb-secondary btn-sm mb-3" onclick="fixMarkerBalanceQty()">
+                    <button class="btn btn-info btn-sm mb-3 fw-bold" onclick="fixMarkerBalanceQty()">
                         <i class="fa-solid fa-screwdriver-wrench fa-sm"></i>
-                        Balance Qty
                     </button>
                 </div>
             </div>
@@ -511,8 +510,6 @@
                         showCancelButton: false,
                         showConfirmButton: true,
                         confirmButtonText: 'Oke',
-                        timer: (res.status == 200 ? 5000 : 200),
-                        timerProgressBar: true
                     }).then(() => {
                         if (isNotNull(res.redirect)) {
                             if (res.redirect != 'reload') {

@@ -48,8 +48,8 @@
                         <div class="mb-1">
                             <div class="form-group">
                                 <label><small>Color</small></label>
-                                <input type="hidden" class="form-control" id="color_default" name="color_default" value="{{ $marker->color }}">
-                                <select class="form-control select2bs4" id="color" name="color" style="width: 100%;">
+                                <input type="hidden" class="form-control" id="color" name="color" value="{{ $marker->color }}">
+                                <select class="form-control select2bs4" id="color_select2" name="color_select2" style="width: 100%;">
                                     <option selected="selected" value="">Pilih Color</option>
                                     {{-- select 2 option --}}
                                 </select>
@@ -252,7 +252,7 @@
             await getNumber();
 
             await updateColorList();
-            await $('#color').val($('#color_default').val()).trigger('change');
+            await $('#color_select2').val($('#color').val()).trigger('change');
 
             await updatePanelList();
             await $('#panel').val($('#panel_default').val()).trigger('change');
@@ -276,8 +276,9 @@
         })
 
         // Step Two (Color) on change event
-        $('#color').on('change', function(e) {
+        $('#color_select2').on('change', function(e) {
             if (this.value) {
+                $('#color').val(this.value);
                 updatePanelList();
                 updateSizeList();
             }
@@ -287,12 +288,13 @@
         $('#panel').on('change', function(e) {
             if (this.value) {
                 updateSizeList();
+                getNumber();
             }
         });
 
         // Update Color Select Option Based on Order WS
         function updateColorList() {
-            document.getElementById('color').value = null;
+            document.getElementById('color_select2').value = null;
 
             return $.ajax({
                 url: '{{ route("get-marker-colors") }}',
@@ -303,14 +305,14 @@
                 success: function (res) {
                     if (res) {
                         // Update this step
-                        document.getElementById('color').innerHTML = res;
+                        document.getElementById('color_select2').innerHTML = res;
 
                         // Reset next step
                         document.getElementById('panel').innerHTML = null;
                         document.getElementById('panel').value = null;
 
                         // Open this step
-                        $("#color").prop("disabled", false);
+                        $("#color_select2").prop("disabled", false);
 
                         // Close next step
                         $("#panel").prop("disabled", true);
@@ -327,7 +329,7 @@
                 type: 'get',
                 data: {
                     act_costing_id: $('#ws_id').val(),
-                    color: $('#color').val(),
+                    color: $('#color_select2').val(),
                 },
                 success: function (res) {
                     if (res) {
@@ -336,6 +338,9 @@
 
                         // Open this step
                         $("#panel").prop("disabled", false);
+
+                        // Close step before
+                        $("#color_select2").prop("disabled", true);
                     }
                 },
             });
@@ -377,7 +382,7 @@
                 data: function (d) {
                     d.marker_id = '{{ $marker->id }}';
                     d.act_costing_id = $('#ws_id').val();
-                    d.color = $('#color').val();
+                    d.color = $('#color_select2').val();
                 },
             },
             columns: [
@@ -540,7 +545,7 @@
                 dataType: 'json',
                 data: {
                     act_costing_id: $('#ws_id').val(),
-                    color: $('#color').val(),
+                    color: $('#color_select2').val(),
                     panel: $('#panel').val()
                 },
                 success: function (res) {

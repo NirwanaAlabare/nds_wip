@@ -168,7 +168,7 @@ class TrackController extends Controller
                             so_det_id
                     ");
 
-                    $output = $outputData && count($outputData) > 0 ? num($outputData[0]->total_output) : 0;
+                    $output = $outputData && count($outputData) > 0 ? $outputData[0]->total_output : 0;
 
                     return $output;
                 })
@@ -183,7 +183,7 @@ class TrackController extends Controller
                         GROUP BY
                             so_det_id
                     ");
-                    $output = $outputData && count($outputData) > 0 ? num($outputData[0]->total_output) : 0;
+                    $output = $outputData && count($outputData) > 0 ? $outputData[0]->total_output : 0;
 
                     return $output;
                 })->
@@ -391,9 +391,9 @@ class TrackController extends Controller
             marker_input.style,
             marker_input.color,
             marker_input.panel,
-            panjang_marker marker_p,
-            comma_marker marker_c,
-            lebar_marker marker_l,
+            (CASE WHEN panjang_marker > 0 THEN panjang_marker ELSE 0 END) marker_p,
+            (CASE WHEN comma_marker > 0 THEN comma_marker ELSE 0 END) marker_c,
+            (CASE WHEN lebar_marker > 0 THEN lebar_marker ELSE 0 END) marker_l,
             unit_panjang_marker unit_marker_p,
             unit_comma_marker unit_marker_c,
             unit_lebar_marker unit_marker_l,
@@ -402,7 +402,7 @@ class TrackController extends Controller
             CONCAT(panjang_marker, ' ', UPPER(unit_panjang_marker), ' ',comma_marker, ' ', UPPER(unit_comma_marker)) panjang_marker_fix,
             CONCAT(lebar_marker, ' ', UPPER(unit_lebar_marker)) lebar_marker,
             COALESCE(gramasi, 0) gramasi,
-            gelar_qty,
+            COALESCE(gelar_qty, 0) gelar_qty,
             gelar_qty_balance,
             po_marker,
             urutan_marker,
@@ -497,7 +497,7 @@ class TrackController extends Controller
         }
 
         if ($request->total_form) {
-            $markersQuery->whereRaw("COALESCE(b.total_form, 0) LIKE Lrequest->OWER('%" . $total_form . "%')");
+            $markersQuery->whereRaw("COALESCE(b.total_form, 0) LIKE LOWER('%" . $total_form . "%')");
         }
 
         if ($request->po) {
@@ -511,12 +511,12 @@ class TrackController extends Controller
         $markers = $markersQuery->groupBy("marker_input.id")->get();
 
         $totalMarker = $markers ? num($markers->count()) : 0;
-        $totalMarkerGramasi =  $markers ? num(round($markers->sum("gramasi"), 2)) : 0;
-        $totalMarkerPanjang =  $markers ? (num(round($markers->sum("marker_p") + ($markers->sum("marker_c") / 100), 2))." ".(substr($markers->first()->unit_marker_p, 0, 1))) : 0;
-        $totalMarkerLebar =  $markers ? (num(round($markers->sum("marker_l") / 100, 2))." ".(substr($markers->first()->unit_marker_p, 0, 1))) : 0;
-        $totalMarkerGelar =  $markers ? round($markers->sum("gelar_qty"), 2) : 0;
-        $totalMarkerForm =  $markers ? round($markers->sum("total_form"), 2) : 0;
-        $totalMarkerFormLembar =  $markers ? round($markers->sum("total_lembar"), 2) : 0;
+        $totalMarkerGramasi =  $markers ? num($markers->sum("gramasi"), 2) : 0;
+        $totalMarkerPanjang =  $markers ? (num($markers->sum("marker_p") + ($markers->sum("marker_c") / 100), 2))." ".(substr($markers->first()->unit_marker_p, 0, 1)) : 0;
+        $totalMarkerLebar =  $markers ? (num($markers->sum("marker_l") / 100, 2))." ".(substr($markers->first()->unit_marker_p, 0, 1)) : 0;
+        $totalMarkerGelar =  $markers ? num($markers->sum("gelar_qty")) : 0;
+        $totalMarkerForm =  $markers ? num($markers->sum("total_form")) : 0;
+        $totalMarkerFormLembar =  $markers ? num($markers->sum("total_lembar")) : 0;
 
         return array(
             "totalMarker" => $totalMarker,
