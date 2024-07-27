@@ -23,7 +23,7 @@
                         <label class="form-label"><small>Tanggal</small></label>
                         <div class="d-flex justify-content-start align-items-end gap-3">
                             <input type="date" class="form-control form-control-sm" id="from" name="date-from" onchange="datatableReload()">
-                            <input type="date" class="form-control form-control-sm" id="to" name="date-to" onchange="datatableReload()">
+                            <input type="date" class="form-control form-control-sm" id="to" name="date-to" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
                         </div>
                     </div>
                     <button type="button" class="btn btn-primary btn-sm mb-3" onclick="datatableReload()"><i class="fa fa-search fa-sm"></i></button>
@@ -48,9 +48,8 @@
                             <th>Color</th>
                             <th>Panel</th>
                             <th>Notes</th>
-                            <th>Marker</th>
-                            <th>Spreading</th>
-                            <th>Form</th>
+                            <th>Marker Ply</th>
+                            <th>Cutting Ply</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -147,9 +146,6 @@
                 },
                 {
                     data: 'marker_gelar'
-                },
-                {
-                    data: 'spreading_gelar'
                 },
                 {
                     data: 'form_gelar'

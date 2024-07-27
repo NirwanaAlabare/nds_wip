@@ -96,7 +96,6 @@
                 <thead>
                     <tr>
                         <th>Tanggal Form</th>
-                        <th>Buyer</th>
                         <th>No. WS</th>
                         <th>Style</th>
                         <th>Color</th>

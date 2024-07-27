@@ -38,6 +38,7 @@ class DashboardController extends Controller
             }
 
             $marker = Marker::selectRaw("
+                    marker_input.id as marker_id,
                     marker_input.buyer,
                     marker_input.act_costing_ws,
                     marker_input.style,
@@ -164,6 +165,7 @@ class DashboardController extends Controller
             }
 
             $form = FormCutInput::selectRaw("
+                    marker_input.id marker_id,
                     marker_input.buyer,
                     marker_input.act_costing_ws,
                     marker_input.style,
@@ -171,6 +173,9 @@ class DashboardController extends Controller
                     marker_input.kode,
                     marker_input.urutan_marker,
                     marker_input.panel,
+                    form_cut_input.id form_id,
+                    form_cut_input.status form_status,
+                    form_cut_input.tipe_form_cut,
                     COALESCE(form_cut_input.tgl_form_cut, '-') tgl_form_cut,
                     COALESCE(form_cut_input.no_form, '-') no_form,
                     COALESCE(form_cut_input.no_cut, '-') no_cut,

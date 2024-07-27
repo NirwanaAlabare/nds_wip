@@ -22,7 +22,7 @@
                 <div class="mb-1">
                     <div>
                         <label>Tanggal</label>
-                        <input type="date" class="form-control form-control-sm" value="" id="master-plan-date" onchange="dataTableMasterPlanReload()">
+                        <input type="date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" id="master-plan-date" onchange="dataTableMasterPlanReload()">
                     </div>
                 </div>
             </div>
@@ -146,7 +146,7 @@
                 }
             },
             {
-                targets: [2, 3, 4, 5, 6, 7, 9],
+                targets: [2, 3, 4, 5, 6, 7, 8],
                 className: 'align-middle',
             },
             {

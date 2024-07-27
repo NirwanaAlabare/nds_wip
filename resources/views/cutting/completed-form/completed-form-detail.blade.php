@@ -805,8 +805,14 @@
                                 </div>
                             </div>
                             <div class="col-md-12">
-                                <button type="button" class="btn btn-success btn-sm btn-block my-3" id="stopLapButton" onclick="storeTimeRecord()"><i class="fa fa-check"></i> Simpan</button>
-                                <button type="button" class="btn btn-no btn-sm btn-block my-3" id="stopLapButton" onclick="deleteTimeRecord()"><i class="fa fa-trash"></i> Hapus</button>
+                                <div class="row justify-content-between">
+                                    <div class="col-md-4">
+                                        <button type="button" class="btn btn-no btn-sm btn-block my-3 fw-bold" id="stopLapButton" onclick="deleteTimeRecord()"><i class="fa fa-trash"></i> HAPUS</button>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <button type="button" class="btn btn-yes btn-sm btn-block my-3 fw-bold" id="stopLapButton" onclick="storeTimeRecord()"><i class="fa fa-save"></i> SIMPAN</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </form>

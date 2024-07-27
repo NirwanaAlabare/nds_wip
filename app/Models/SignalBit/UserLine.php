@@ -9,6 +9,8 @@ class UserLine extends Model
 {
     use HasFactory;
 
+    protected $primaryKey = 'line_id';
+
     protected $connection = 'mysql_sb';
 
     protected $table = "userpassword";

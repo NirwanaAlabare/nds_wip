@@ -111,9 +111,8 @@
                     </div>
                 </div>
                 <div class="d-flex justify-content-end align-items-end gap-3 mb-3">
-                    <button class="btn btn-sb-secondary btn-sm mb-3" onclick="fixMarkerBalanceQty()">
+                    <button class="btn btn-info btn-sm mb-3 fw-bold" onclick="fixMarkerBalanceQty()">
                         <i class="fa-solid fa-screwdriver-wrench fa-sm"></i>
-                        Balance Qty
                     </button>
                 </div>
             </div>
@@ -255,7 +254,7 @@
                             </button>
                         `;
 
-                        if (row.cancel != 'Y' && row.tot_form != 0 && row.tipe_marker != "pilot marker") {
+                        if (row.cancel != 'Y' && row.total_form > 0 /* && row.tipe_marker != "pilot marker" */) {
                             return `
                                 <div class='d-flex gap-1 justify-content-start mb-1'>
                                     <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
@@ -270,7 +269,7 @@
                                     </button>
                                 </div>
                             `;
-                        } else if ((row.cancel != 'Y' && row.tot_form == 0) || (row.cancel != 'Y' && row.gelar_qty_balance > 0 && row.tipe_marker == "pilot marker")) {
+                        } else if ((row.cancel != 'Y' && row.total_form < 1) /*|| (row.cancel != 'Y' && row.gelar_qty_balance > 0  && row.tipe_marker == "pilot marker" )*/) {
                             return `
                                 <div class='d-flex gap-1 justify-content-start mb-1'>
                                     <a class='btn btn-primary btn-sm' data-bs-toggle="modal" data-bs-target="#showMarkerModal" onclick='getdetail(` + row.id + `);'>
@@ -334,9 +333,9 @@
                     className: 'text-nowrap',
                     render: (data, type, row, meta) => {
                         var color = '#2b2f3a';
-                        if (row.tot_form != '0' && row.cancel == 'N') {
+                        if (row.total_form != '0' && row.cancel == 'N') {
                             color = '#087521';
-                        } else if (row.tot_form == '0' && row.cancel == 'N') {
+                        } else if (row.total_form == '0' && row.cancel == 'N') {
                             color = '#2243d6';
                         } else if (row.cancel == 'Y') {
                             color = '#d33141';
@@ -382,6 +381,8 @@
         };
 
         function edit(id_c) {
+            document.getElementById("loading").classList.remove('d-none');
+
             $("#editMarkerModalLabel").html('<i class="fa fa-edit fa-sm"></i> Marker Edit');
             $.ajax({
                 url: '{{ route('show_gramasi') }}',
@@ -414,9 +415,13 @@
 
                     document.getElementById('advanced-edit-link').setAttribute('href','{{ route('edit-marker') }}/' + response.id);
                     document.getElementById('advanced-edit-section').classList.remove('d-none');
+
+                    document.getElementById("loading").classList.add('d-none');
                 },
                 error: function(request, status, error) {
                     alert(request.responseText);
+
+                    document.getElementById("loading").classList.add('d-none');
                 },
             });
         };
@@ -505,8 +510,6 @@
                         showCancelButton: false,
                         showConfirmButton: true,
                         confirmButtonText: 'Oke',
-                        timer: (res.status == 200 ? 5000 : 200),
-                        timerProgressBar: true
                     }).then(() => {
                         if (isNotNull(res.redirect)) {
                             if (res.redirect != 'reload') {

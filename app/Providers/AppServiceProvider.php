@@ -56,6 +56,10 @@ class AppServiceProvider extends ServiceProvider
             return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "dc");
         });
 
+        Blade::if('sewing', function () {
+            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "sewing");
+        });
+
         Blade::if('hr', function () {
             return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "hr");
         });
@@ -66,6 +70,10 @@ class AppServiceProvider extends ServiceProvider
 
         Blade::if('ppic', function () {
             return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "ppic" || auth()->user()->type == "packing");
+        });
+
+        Blade::if('finishgood', function () {
+            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "ppic" || auth()->user()->type == "packing" || auth()->user()->type == "finishgood");
         });
 
         Blade::if('packing', function () {

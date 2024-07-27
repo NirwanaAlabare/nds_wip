@@ -34,10 +34,10 @@
             // Calculate realtime mins avail and real time target
             if(strtotime(date('Y-m-d H:i:s')) <= strtotime($date.' 13:00:00')) {
                 $minsAvailNow = count($lineData) > 0 ? $lineData->max('man_power') * floor(strtotime(date('Y-m-d H:i:s')) - strtotime(date('Y-m-d').' 07:00:00'))/60 : 0;
-                $targetNow = count($lineData)  > 0 && $lineDataCurrent->avg('smv') > 0 ? floor($lineData->max('man_power') * (floor(strtotime(date('Y-m-d H:i:s')) - strtotime(date('Y-m-d').' 07:00:00'))/60) / $lineData->avg('smv')) : 0;
+                $targetNow = count($lineData)  > 0 && $lineData->avg('smv') > 0 ? floor($lineData->max('man_power') * (floor(strtotime(date('Y-m-d H:i:s')) - strtotime(date('Y-m-d').' 07:00:00'))/60) / $lineData->avg('smv')) : 0;
             } else {
                 $minsAvailNow = count($lineData) > 0 ? $lineData->max('man_power') * floor(((strtotime(date('Y-m-d H:i:s')) - strtotime(date('Y-m-d').' 07:00:00'))/60)-60) : 0;
-                $targetNow = count($lineData)  > 0 && $lineDataCurrent->avg('smv') > 0 ? floor($lineData->max('man_power') * floor(((strtotime(date('Y-m-d H:i:s')) - strtotime(date('Y-m-d').' 07:00:00'))/60)-60) / $lineData->avg('smv')) : 0;
+                $targetNow = count($lineData)  > 0 && $lineData->avg('smv') > 0 ? floor($lineData->max('man_power') * floor(((strtotime(date('Y-m-d H:i:s')) - strtotime(date('Y-m-d').' 07:00:00'))/60)-60) / $lineData->avg('smv')) : 0;
             }
         @endphp
         @for ($i = 0; $i < count($hours); $i++)

@@ -60,9 +60,13 @@ class PPIC_MasterSOController extends Controller
             ) pck on pck.id_ppic_master_so = a.id
             left join
             (
-select p.id, coalesce(count(a.barcode),0) qty_packing_out from packing_packing_out_scan a
-inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po and a.dest = p.dest
-group by a.barcode, a.po, a.dest
+            select p.id, qty_packing_out from
+                (
+                select count(barcode) qty_packing_out,po, barcode, dest from packing_packing_out_scan
+                group by barcode, po, dest
+                ) a
+            inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po and a.dest = p.dest
+            group by p.id
             ) pck_out on pck_out.id = a.id
             where tgl_shipment >= '$tgl_awal' and tgl_shipment <= '$tgl_akhir'
             order by tgl_shipment desc, buyer asc, ws asc , msn.urutan asc
@@ -572,6 +576,18 @@ group by a.barcode, a.po
             // "callback" => "getdetail(`$no_form_modal`,`$txtket_modal`)"
         }
 
+        $update_packing_trf =  DB::update("
+        update packing_trf_garment a
+        INNER JOIN ppic_master_so p ON a.id_ppic_master_so = p.id
+        SET a.barcode = p.barcode
+        where a.po = '$poArray'");
+
+        $update_packing_in =  DB::update("
+        update packing_packing_in a
+        INNER JOIN ppic_master_so p ON a.id_ppic_master_so = p.id
+        SET a.barcode = p.barcode
+        where a.po = '$poArray'");
+
         return array(
             'status' => 200,
             'message' => 'Data  Berhasil Diupdate',
@@ -612,10 +628,11 @@ group by a.barcode, a.po
             }
 
             return array(
-                "status" => 200,
+                "status" => 201,
                 "message" => 'Data Sudah di Hapus',
                 "additional" => [],
-                "redirect" => 'reload'
+                "redirect" => '',
+                "table" => 'datatable_hapus',
             );
         } else {
             return array(

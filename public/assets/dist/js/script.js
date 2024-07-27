@@ -10,8 +10,11 @@ document.addEventListener('DOMContentLoaded', () => {
     $.fn.modal.Constructor.prototype.enforceFocus = function() {};
 
     // Enable bootstrap tooltip
-    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+
 });
 
 function isImage(i) {
@@ -173,8 +176,39 @@ function submitForm(e, evt) {
                 if (res.callback != '') {
                     eval(res.callback);
                 }
-            }
-            else {
+            } else if (res.status == 201) {
+                // $('.modal').modal('hide');
+
+                Swal.fire({
+                    icon: 'success',
+                    title: res.message,
+                    showCancelButton: false,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Oke',
+                    timer: (res.status == 200 ? 5000 : 3000),
+                    timerProgressBar: true
+                }).then(() => {
+                    if (isNotNull(res.redirect)) {
+                        if (res.redirect != 'reload') {
+                            location.href = res.redirect;
+                        } else {
+                            location.reload();
+                        }
+                    } else {
+                        // location.reload();
+                    }
+                });
+
+                e.reset();
+                if (document.getElementsByClassName('select2')) {
+                    $(".select2").val('').trigger('change');
+                    $(".select2bs4").val('').trigger('change');
+                }
+
+                if (res.callback != '') {
+                    eval(res.callback);
+                }
+            } else {
                 for(let i = 0;i < res.errors; i++) {
                     document.getElementById(res.errors[i]).classList.add('is-invalid');
                     modified.push([res.errors[i], 'classList', 'remove(', "'is-invalid')"])

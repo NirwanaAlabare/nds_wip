@@ -185,6 +185,26 @@ table.vertical tbody td {
     background: rgba(251, 251, 251, 0.05) !important;
 }
 
+.bg-rft {
+    background: var(--rft-color) !important;
+}
+
+.bg-defect {
+    background: var(--defect-color) !important;
+}
+
+.bg-reject {
+    background: var(--reject-color) !important;
+}
+
+.bg-rework {
+    background: var(--rework-color) !important;
+}
+
+.bg-pale {
+    background-color: var(--pale-color) !important;
+}
+
 /* Text Color */
 .text-sb {
     color: var(--sb-color);

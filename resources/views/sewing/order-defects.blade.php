@@ -1,5 +1,13 @@
 @extends('layouts.index')
 
+@section('custom-link')
+    <!-- Select2 -->
+    <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+    <!-- Apex Charts -->
+    <link rel="stylesheet" href="{{ asset('plugins/apexcharts/apexcharts.css') }}">
+@endsection
+
 @section('content')
     <div class="container-fluid">
         <h3 class="my-3 text-sb text-center fw-bold">Pareto Chart</h3>
@@ -32,6 +40,11 @@
 @endsection
 
 @section('custom-script')
+    <!-- Select2 -->
+    <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+    <!-- Apex Charts -->
+    <script src="{{ asset('plugins/apexcharts/apexcharts.min.js') }}"></script>
+
     <script>
         function autoBreak(label) {
             const maxLength = 5;
@@ -237,7 +250,7 @@
 
             // select2
             $('#supplier').select2({
-                theme: "bootstrap-5",
+                theme: "bootstrap4",
             });
 
             // initial fetch
@@ -258,8 +271,10 @@
             getOrderDefectData($('#supplier').val(), $('#supplier option:selected').text(), $('#date-from').val(), $('#date-to').val())
 
             // fetch on select supplier
-            $('#supplier').on('select2:select', function (e) {
-                getOrderDefectData(e.params.data.element.value, e.params.data.element.innerText, $('#date-from').val(), $('#date-to').val());
+            $('#supplier').on('select2:select', async function (e) {
+                document.getElementById('loading').classList.remove('d-none');
+                await getOrderDefectData(e.params.data.element.value, e.params.data.element.innerText, $('#date-from').val(), $('#date-to').val());
+                document.getElementById('loading').classList.add('d-none');
             });
 
             // fetch on select date

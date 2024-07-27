@@ -45,6 +45,7 @@ use App\Http\Controllers\DC\LoadingLineController;
 
 // Sewing
 use App\Http\Controllers\Sewing\MasterPlanController;
+use App\Http\Controllers\Sewing\MasterDefectController;
 use App\Http\Controllers\Sewing\ReportController;
 use App\Http\Controllers\Sewing\OrderDefectController;
 use App\Http\Controllers\Sewing\TrackOrderOutputController;
@@ -101,6 +102,11 @@ use App\Http\Controllers\PackingTransferGarmentController;
 use App\Http\Controllers\PackingPackingInController;
 use App\Http\Controllers\PackingPackingOutController;
 use App\Http\Controllers\PackingMasterKartonController;
+
+use App\Http\Controllers\FinishGoodPenerimaanController;
+
+use App\Http\Controllers\ReportDocController;
+
 use App\Http\Controllers\GAPengajuanBahanBakarController;
 use App\Http\Controllers\GAApprovalBahanBakarController;
 /*
@@ -578,16 +584,28 @@ Route::middleware('auth')->group(function () {
 
     // Sewing :
     // Master Plan
-    Route::controller(MasterPlanController::class)->prefix("master-plan")->middleware('admin')->group(function () {
+    Route::controller(MasterPlanController::class)->prefix("master-plan")->middleware('sewing')->group(function () {
         Route::get('/', 'index')->name('master-plan');
         Route::get('show/{line?}/{date?}', 'show')->name('master-plan-detail');
         Route::put('update', 'update')->name('update-master-plan');
         Route::post('store', 'store')->name('store-master-plan');
-        Route::delete('destroy/{id}', 'destroy')->name('destroy-master-plan');
+        Route::delete('destroy/{id?}', 'destroy')->name('destroy-master-plan');
+    });
+
+    Route::controller(MasterDefectController::class)->prefix("master-defect")->middleware('sewing')->group(function () {
+        Route::get('/', 'index')->name('master-defect');
+
+        Route::put('update-defect-type', 'updateDefectType')->name('update-defect-type');
+        Route::post('store-defect-type', 'storeDefectType')->name('store-defect-type');
+        Route::delete('destroy-defect-type/{id?}', 'destroyDefectType')->name('destroy-defect-type');
+
+        Route::put('update-defect-area', 'updateDefectArea')->name('update-defect-area');
+        Route::post('store-defect-area', 'storeDefectArea')->name('store-defect-area');
+        Route::delete('destroy-defect-area/{id?}', 'destroyDefectArea')->name('destroy-defect-area');
     });
 
     // Report Daily
-    Route::controller(ReportController::class)->prefix('report')->group(function () {
+    Route::controller(ReportController::class)->prefix('report')->middleware('sewing')->group(function () {
         Route::get('/{type}', 'index')->name("daily-sewing");
         Route::post('/output/export', 'exportOutput');
         Route::post('/production/export', 'exportProduction');
@@ -596,34 +614,34 @@ Route::middleware('auth')->group(function () {
     });
 
     // Pareto Chart
-    Route::controller(OrderDefectController::class)->prefix('order-defects')->group(function () {
-        Route::get('/', 'index');
-        Route::get('/{buyerId}/{dateFrom}/{dateTo}', 'getOrderDefects');
+    Route::controller(OrderDefectController::class)->prefix('order-defects')->middleware('sewing')->group(function () {
+        Route::get('/', 'index')->name('order-defects');
+        Route::get('/{buyerId?}/{dateFrom?}/{dateTo?}', 'getOrderDefects')->name('get-order-defects');
     });
 
     // Track Order Output
-    Route::controller(TrackOrderOutputController::class)->prefix('track-order-output')->group(function () {
+    Route::controller(TrackOrderOutputController::class)->prefix('track-order-output')->middleware('sewing')->group(function () {
         Route::get('/', 'index')->name('sewing-track-order-output');
     });
 
     // Transfer Output
-    Route::controller(TransferOutputController::class)->prefix('transfer-output')->group(function () {
+    Route::controller(TransferOutputController::class)->prefix('transfer-output')->middleware('sewing')->group(function () {
         Route::get('/', 'index')->name('sewing-transfer-output');
     });
 
     // Dashboard List
-    Route::controller(LineDashboardController::class)->prefix('line-dashboards')->group(function () {
+    Route::controller(LineDashboardController::class)->prefix('line-dashboards')->middleware('sewing')->group(function () {
         Route::get('/', 'index')->name('sewing-dashboard');
     });
 
     // Report
-    Route::controller(MasterKursBiController::class)->prefix('master-kurs-bi')->group(function () {
+    Route::controller(MasterKursBiController::class)->prefix('master-kurs-bi')->middleware('sewing')->group(function () {
         Route::get('/', 'index')->name('kursBi');
         Route::get('/get-data', 'getData')->name('kursBi.getData');
         Route::post('/scrap-data', 'scrapData')->name('kursBi.scrapData');
     });
 
-    Route::controller(MasterJabatanController::class)->prefix('master-jabatan')->group(function () {
+    Route::controller(MasterJabatanController::class)->prefix('master-jabatan')->middleware('sewing')->group(function () {
         Route::get('/', 'index')->name('jabatan');
         Route::get('/get-data', 'getData')->name('jabatan.getData');
         Route::post('/store-data', 'store')->name('jabatan.storeData');
@@ -631,7 +649,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/destroy-data/{id}', 'destroy')->name('jabatan.destroyData');
     });
 
-    Route::controller(MasterKaryawanController::class)->prefix('master-karyawan')->group(function () {
+    Route::controller(MasterKaryawanController::class)->prefix('master-karyawan')->middleware('sewing')->group(function () {
         Route::get('/', 'index')->name('karyawan');
         Route::get('/get-data', 'getData')->name('karyawan.getData');
         Route::put('/update-data', 'update')->name('karyawan.updateData');
@@ -641,7 +659,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/transfer-data', 'transfer')->name('karyawan.transferData');
     });
 
-    Route::controller(MasterBuyerController::class)->prefix('master-buyer')->group(function () {
+    Route::controller(MasterBuyerController::class)->prefix('master-buyer')->middleware('sewing')->group(function () {
         Route::get('/', 'index')->name('buyer');
         Route::get('/get-data', 'getData')->name('buyer.getData');
         Route::put('/update-data', 'update')->name('buyer.updateData');
@@ -651,7 +669,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/transfer-data', 'transfer')->name('buyer.transferData');
     });
 
-    Route::controller(DataProduksiController::class)->prefix('data-produksi')->group(function () {
+    Route::controller(DataProduksiController::class)->prefix('data-produksi')->middleware('sewing')->group(function () {
         Route::get('/', 'index')->name('dataProduksi');
         Route::get('/get-data', 'getData')->name('dataProduksi.getData');
         Route::put('/update-data', 'update')->name('dataProduksi.updateData');
@@ -660,7 +678,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/transfer-data', 'transfer')->name('dataProduksi.transferData');
     });
 
-    Route::controller(DataDetailProduksiController::class)->prefix('data-detail-produksi')->group(function () {
+    Route::controller(DataDetailProduksiController::class)->prefix('data-detail-produksi')->middleware('sewing')->group(function () {
         Route::get('/', 'index')->name('dataDetailProduksi');
         Route::get('/get-data', 'getData')->name('dataDetailProduksi.getData');
         Route::put('/update-data', 'update')->name('dataDetailProduksi.updateData');
@@ -669,7 +687,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/transfer-data', 'transfer')->name('dataDetailProduksi.transferData');
     });
 
-    Route::controller(DataDetailProduksiDayController::class)->prefix('data-detail-produksi-day')->group(function () {
+    Route::controller(DataDetailProduksiDayController::class)->prefix('data-detail-produksi-day')->middleware('sewing')->group(function () {
         Route::get('/', 'index')->name('dataDetailProduksiDay');
         Route::get('/get-data', 'getData')->name('dataDetailProduksiDay.getData');
         Route::put('/update-data', 'update')->name('dataDetailProduksiDay.updateData');
@@ -678,7 +696,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/transfer-data', 'transfer')->name('dataDetailProduksiDay.transferData');
     });
 
-    Route::controller(ReportOutputController::class)->prefix('report-output')->group(function () {
+    Route::controller(ReportOutputController::class)->prefix('report-output')->middleware('sewing')->group(function () {
         Route::get('/', 'index')->name('reportOutput');
         Route::get('/get-data', 'getData')->name('reportOutput.getData');
         Route::post('/export-data', 'exportData')->name('reportOutput.exportData');
@@ -686,7 +704,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/transfer-data', 'transfer')->name('reportOutput.transferData');
     });
 
-    Route::controller(ReportProductionController::class)->prefix('report-production')->group(function () {
+    Route::controller(ReportProductionController::class)->prefix('report-production')->middleware('sewing')->group(function () {
         Route::get('/', 'index')->name('reportProduction');
         Route::get('/get-data', 'getData')->name('reportProduction.getData');
         Route::post('/export-data', 'exportData')->name('reportProduction.exportData');
@@ -694,7 +712,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/transfer-data', 'transfer')->name('reportProduction.transferData');
     });
 
-    Route::controller(ReportEfficiencyController::class)->prefix('report-efficiency')->group(function () {
+    Route::controller(ReportEfficiencyController::class)->prefix('report-efficiency')->middleware('sewing')->group(function () {
         Route::get('/', 'index')->name('reportEfficiency');
         Route::get('/get-data', 'getData')->name('reportEfficiency.getData');
         Route::post('/export-data', 'exportData')->name('reportEfficiency.exportData');
@@ -702,7 +720,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/transfer-data', 'transfer')->name('reportEfficiency.transferData');
     });
 
-    Route::controller(ReportDetailOutputController::class)->prefix('report-detail-output')->group(function () {
+    Route::controller(ReportDetailOutputController::class)->prefix('report-detail-output')->middleware('sewing')->group(function () {
         Route::get('/', 'index')->name('reportDetailOutput');
         Route::get('/packing', 'packing')->name('reportDetailOutputPacking');
         Route::get('/get-data', 'getData')->name('reportDetailOutput.getData');
@@ -1091,6 +1109,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store_packing_out');
         Route::get('/export_excel_packing_out', 'export_excel_packing_out')->name('export_excel_packing_out');
         Route::post('/packing_out_hapus_history', 'packing_out_hapus_history')->name('packing_out_hapus_history');
+        Route::get('/packing_out_tot_barcode', 'packing_out_tot_barcode')->name('packing_out_tot_barcode');
     });
 
     // Master Karton
@@ -1101,6 +1120,20 @@ Route::middleware('auth')->group(function () {
         Route::get('/show_detail_karton', 'show_detail_karton')->name('show_detail_karton');
         // Route::get('/show_preview_packing_in', 'show_preview_packing_in')->name('show_preview_packing_in');
         // Route::post('/store', 'store')->name('store-packing-packing-in');
+    });
+
+    // Finish Good
+    // Penerimaan Finish Good
+    Route::controller(FinishGoodPenerimaanController::class)->prefix("finish_good_penerimaan")->middleware('finishgood')->group(function () {
+        Route::get('/', 'index')->name('finish_good_penerimaan');
+        Route::get('/create', 'create')->name('create_penerimaan_finish_good');
+    });
+
+    // Report Doc
+    // Laporan BC
+    Route::controller(ReportDocController::class)->prefix("report_doc_laporan")->middleware('bc')->group(function () {
+        Route::get('/report_doc_laporan_wip', 'report_doc_laporan_wip')->name('report-doc-laporan-wip');
+        Route::get('/show_report_doc_lap_wip', 'show_report_doc_lap_wip')->name('show_report_doc_lap_wip');
     });
 
 
@@ -1223,6 +1256,16 @@ Route::get('/dashboard-fg-stock', function () {
 Route::get('/dashboard-packing', function () {
     return view('dashboard', ['page' => 'dashboard-packing']);
 })->middleware('auth')->name('dashboard-packing');
+
+//Finish Good
+Route::get('/dashboard-finish-good', function () {
+    return view('dashboard', ['page' => 'dashboard-finish-good']);
+})->middleware('auth')->name('dashboard-finish-good');
+
+//Report Doc
+Route::get('/dashboard-report-doc', function () {
+    return view('dashboard', ['page' => 'dashboard-report-doc']);
+})->middleware('auth')->name('dashboard-report-doc');
 
 //GA
 Route::get('/dashboard-ga', function () {
