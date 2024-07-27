@@ -537,7 +537,7 @@ class CuttingFormManualController extends Controller
 
             $updateFormCutInput = FormCutInput::where("id", $id)->
                 update([
-                    "no_meja" => $request->no_meja,
+                    "no_meja" => Auth::user()->type != "admin" ? Auth::user()->id : $request->no_meja,
                     "status" => "PENGERJAAN MARKER",
                     "waktu_mulai" => $request->startTime,
                     "app" => "Y",
@@ -1139,6 +1139,7 @@ class CuttingFormManualController extends Controller
                 "remark" => $validatedRequest['current_remark'],
                 "status" => "extension complete",
                 "group_stocker" => $groupStocker,
+                "metode" => $request->metode ? $request->metode : "scan",
             ]
         );
 
@@ -1188,6 +1189,7 @@ class CuttingFormManualController extends Controller
                         "unit" => $itemUnit,
                         "sambungan" => 0,
                         "status" => "not complete",
+                        "metode" => $request->metode ? $request->metode : "scan",
                     ]);
 
                     if ($storeTimeRecordSummaryNext) {
