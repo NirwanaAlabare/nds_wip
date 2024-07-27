@@ -31,6 +31,11 @@ class FormCutInput extends Model
         return $this->belongsTo(User::class, 'no_meja', 'id');
     }
 
+    public function cuttingPlanOutput()
+    {
+        return $this->hasOne(CutPlanOutputForm::class, 'id', 'form_cut_id');
+    }
+
     /**
      * Get the cutting plan for the form cut.
      */

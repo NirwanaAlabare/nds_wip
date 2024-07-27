@@ -256,7 +256,12 @@
                                 <li>
                                     <a href="{{ route('cut-plan') }}"
                                         class="dropdown-item {{ $subPage == 'cut-plan' ? 'active' : '' }}">
-                                        Cutting Plan <i class="fas fa-map fa-sm"></i>
+                                        Cutting Plan Date <i class="fas fa-map fa-sm"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('cut-plan-output') }}" class="dropdown-item {{ $subPage == 'cut-plan-output' ? 'active' : '' }}">
+                                        Cutting Plan Output <i class="fa-solid fa-map-location"></i>
                                     </a>
                                 </li>
                             </ul>
