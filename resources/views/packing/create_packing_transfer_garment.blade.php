@@ -357,36 +357,42 @@
 
         function simpan() {
             let cbotuj = document.form_h.cbotuj.value;
-            $.ajax({
-                type: "post",
-                url: '{{ route('store_trf_garment') }}',
-                data: {
-                    cbotuj: cbotuj
-                },
-                success: function(response) {
-                    if (response.icon == 'salah') {
+            if (cbotuj == '') {
+                iziToast.error({
+                    message: 'Tujuan Kosong Harap Diisi',
+                    position: 'topCenter'
+                });
+            } else {
+                $.ajax({
+                    type: "post",
+                    url: '{{ route('store_trf_garment') }}',
+                    data: {
+                        cbotuj: cbotuj
+                    },
+                    success: function(response) {
+                        if (response.icon == 'salah') {
+                            iziToast.warning({
+                                message: response.msg,
+                                position: 'topCenter'
+                            });
+                        } else {
+                            Swal.fire({
+                                text: response.msg,
+                                icon: "success",
+                                title: response.title
+                            });
+                        }
+                        dataTableTmpReload();
+                        clear_h();
+                    },
+                    error: function(request, status, error) {
                         iziToast.warning({
-                            message: response.msg,
+                            message: 'Data Temporary Kosong cek lagi',
                             position: 'topCenter'
                         });
-                    } else {
-                        Swal.fire({
-                            text: response.msg,
-                            icon: "success",
-                            title: response.title
-                        });
-                    }
-                    dataTableTmpReload();
-                    clear_h();
-                },
-                error: function(request, status, error) {
-                    iziToast.warning({
-                        message: 'Data Temporary Kosong cek lagi',
-                        position: 'topCenter'
-                    });
-                },
-            });
-
+                    },
+                });
+            }
         };
 
         function undo() {
