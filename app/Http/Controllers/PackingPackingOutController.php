@@ -94,7 +94,7 @@ class PackingPackingOutController extends Controller
             select p.barcode, p.po, m.color, m.size,coalesce(s.tot_scan,0)tot_scan
             from ppic_master_so p
             inner join master_sb_ws m on p.id_so_det = m.id_so_det
-            inner join master_size_new msn on m.size = msn.size
+            left join master_size_new msn on m.size = msn.size
             left join
             (
                 select count(barcode)tot_scan, barcode, po, no_carton
@@ -274,6 +274,69 @@ group by p.po, p.dest");
 
         return json_encode($data_header ? $data_header[0] : null);
     }
+
+    public function packing_out_tot_barcode(Request $request)
+    {
+        $user = Auth::user()->name;
+        $po    = $request->cbopo;
+        $dest    = $request->dest;
+        if ($request->ajax()) {
+
+
+            $data_summary = DB::select("
+            SELECT
+            a.id,
+            a.id_so_det,
+            m.buyer,
+            concat((DATE_FORMAT(a.tgl_shipment,  '%d')), '-', left(DATE_FORMAT(a.tgl_shipment,  '%M'),3),'-',DATE_FORMAT(a.tgl_shipment,  '%Y')
+            ) tgl_shipment_fix,
+            a.barcode,
+            m.reff_no,
+            a.po,
+            a.dest,
+            a.desc,
+            m.ws,
+            m.styleno,
+            m.color,
+            m.size,
+            a.qty_po,
+            coalesce(trf.qty_trf,0) qty_trf,
+            coalesce(pck.qty_packing_in,0) qty_packing_in,
+            coalesce(pck_out.qty_packing_out,0) qty_packing_out,
+            coalesce(pck.qty_packing_in,0) - coalesce(pck_out.qty_packing_out,0) sisa,
+            m.ws,
+            a.created_by,
+            a.created_at
+            FROM ppic_master_so a
+            inner join master_sb_ws m on a.id_so_det = m.id_so_det
+            left join master_size_new msn on m.size = msn.size
+            left join
+            (
+                select id_ppic_master_so, coalesce(sum(qty),0) qty_trf from packing_trf_garment group by id_ppic_master_so
+            ) trf on trf.id_ppic_master_so = a.id
+            left join
+            (
+                select id_ppic_master_so, coalesce(sum(qty),0) qty_packing_in from packing_packing_in group by id_ppic_master_so
+            ) pck on pck.id_ppic_master_so = a.id
+            left join
+            (
+            select p.id, qty_packing_out from
+                (
+                select count(barcode) qty_packing_out,po, barcode, dest from packing_packing_out_scan
+                group by barcode, po, dest
+                ) a
+            inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po and a.dest = p.dest
+            group by p.id
+            ) pck_out on pck_out.id = a.id
+            where a.po = '$po' and a.dest = '$dest'
+            order by tgl_shipment desc, buyer asc, ws asc , msn.urutan asc
+            ");
+
+            return DataTables::of($data_summary)->toJson();
+        }
+    }
+
+
 
     public function export_excel_packing_out(Request $request)
     {

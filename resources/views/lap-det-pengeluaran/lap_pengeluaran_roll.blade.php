@@ -63,6 +63,7 @@
                     <th>Id Item</th>
                     <th>Id Jo</th>
                     <th>No WS</th>
+                    <th>No Style</th>
                     <th>Kode Barang</th>
                     <th>Nama Barang</th>
                     <th>Warna</th>
@@ -144,6 +145,9 @@
                     data: 'ws'
                 },
                 {
+                    data: 'styleno'
+                },
+                {
                     data: 'goods_code'
                 },
                 {
@@ -173,7 +177,7 @@
                 render: (data, type, row, meta) => data ? data.round(2) : "0.00"
             },
             {
-                targets: [19],
+                targets: [20],
                 className: "d-none",
                 render: (data, type, row, meta) => data ? data : "-"
             },
@@ -238,7 +242,7 @@
 
         // Loop through all table rows, and hide those who don't match the search query
         for (i = 0; i < tr.length; i++) {
-            td = tr[i].getElementsByTagName("td")[19]; //kolom ke berapa
+            td = tr[i].getElementsByTagName("td")[20]; //kolom ke berapa
             if (td) {
                 txtValue = td.textContent || td.innerText;
                 if (txtValue.toUpperCase().indexOf(filter) > -1) {

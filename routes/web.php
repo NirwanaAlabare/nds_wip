@@ -102,6 +102,11 @@ use App\Http\Controllers\PackingTransferGarmentController;
 use App\Http\Controllers\PackingPackingInController;
 use App\Http\Controllers\PackingPackingOutController;
 use App\Http\Controllers\PackingMasterKartonController;
+
+use App\Http\Controllers\FinishGoodPenerimaanController;
+
+use App\Http\Controllers\ReportDocController;
+
 use App\Http\Controllers\GAPengajuanBahanBakarController;
 use App\Http\Controllers\GAApprovalBahanBakarController;
 /*
@@ -1114,6 +1119,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store_packing_out');
         Route::get('/export_excel_packing_out', 'export_excel_packing_out')->name('export_excel_packing_out');
         Route::post('/packing_out_hapus_history', 'packing_out_hapus_history')->name('packing_out_hapus_history');
+        Route::get('/packing_out_tot_barcode', 'packing_out_tot_barcode')->name('packing_out_tot_barcode');
     });
 
     // Master Karton
@@ -1124,6 +1130,20 @@ Route::middleware('auth')->group(function () {
         Route::get('/show_detail_karton', 'show_detail_karton')->name('show_detail_karton');
         // Route::get('/show_preview_packing_in', 'show_preview_packing_in')->name('show_preview_packing_in');
         // Route::post('/store', 'store')->name('store-packing-packing-in');
+    });
+
+    // Finish Good
+    // Penerimaan Finish Good
+    Route::controller(FinishGoodPenerimaanController::class)->prefix("finish_good_penerimaan")->middleware('finishgood')->group(function () {
+        Route::get('/', 'index')->name('finish_good_penerimaan');
+        Route::get('/create', 'create')->name('create_penerimaan_finish_good');
+    });
+
+    // Report Doc
+    // Laporan BC
+    Route::controller(ReportDocController::class)->prefix("report_doc_laporan")->middleware('bc')->group(function () {
+        Route::get('/report_doc_laporan_wip', 'report_doc_laporan_wip')->name('report-doc-laporan-wip');
+        Route::get('/show_report_doc_lap_wip', 'show_report_doc_lap_wip')->name('show_report_doc_lap_wip');
     });
 
 
@@ -1246,6 +1266,16 @@ Route::get('/dashboard-fg-stock', function () {
 Route::get('/dashboard-packing', function () {
     return view('dashboard', ['page' => 'dashboard-packing']);
 })->middleware('auth')->name('dashboard-packing');
+
+//Finish Good
+Route::get('/dashboard-finish-good', function () {
+    return view('dashboard', ['page' => 'dashboard-finish-good']);
+})->middleware('auth')->name('dashboard-finish-good');
+
+//Report Doc
+Route::get('/dashboard-report-doc', function () {
+    return view('dashboard', ['page' => 'dashboard-report-doc']);
+})->middleware('auth')->name('dashboard-report-doc');
 
 //GA
 Route::get('/dashboard-ga', function () {

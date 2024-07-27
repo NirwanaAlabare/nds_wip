@@ -76,7 +76,7 @@ inner join so_det sd on a.so_det_id = sd.id
 inner join so on sd.id_so = so.id
 inner join act_costing ac on so.id_cost = ac.id
 inner join mastersupplier ms on ac.id_buyer = ms.id_supplier
-inner join master_size_new msn on sd.size = msn.size
+left join master_size_new msn on sd.size = msn.size
 where ms.supplier = '$buyer'
 group by ac.kpno, sd.color, sd.size, ac.styleno
 order by ac.kpno asc, sd.color asc, msn.urutan asc
@@ -98,7 +98,7 @@ order by ac.kpno asc, sd.color asc, msn.urutan asc
         buyer, ws, color, m.size, tot_p_line from
         (select so_det_id,count(so_det_id) tot_p_line from output_rfts_packing a group by so_det_id) a
         inner join master_sb_ws m on a.so_det_id = m.id_so_det
-        inner join master_size_new msn on m.size = msn.size
+        left join master_size_new msn on m.size = msn.size
         where m.buyer = '$buyer'
         group by ws, color, m.size, m.styleno
         order by ws asc, color asc, msn.urutan asc
