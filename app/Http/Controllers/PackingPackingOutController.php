@@ -94,7 +94,7 @@ class PackingPackingOutController extends Controller
             select p.barcode, p.po, m.color, m.size,coalesce(s.tot_scan,0)tot_scan
             from ppic_master_so p
             inner join master_sb_ws m on p.id_so_det = m.id_so_det
-            inner join master_size_new msn on m.size = msn.size
+            left join master_size_new msn on m.size = msn.size
             left join
             (
                 select count(barcode)tot_scan, barcode, po, no_carton
