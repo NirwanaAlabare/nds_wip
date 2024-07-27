@@ -51,7 +51,7 @@
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>No Request</small></label>
-                <select class="form-control select2req" id="txt_noreq" name="txt_noreq" style="width: 100%;" onchange="det_request(this.value)">
+                <select class="form-control select2bs4" id="txt_noreq" name="txt_noreq" style="width: 100%;" onchange="det_request(this.value)">
                     <option selected="selected" value="">Pilih Request</option>
                         @foreach ($no_req as $noreq)
                     <option value="{{ $noreq->isi }}">
@@ -435,6 +435,7 @@
         $(document).on('select2:open', () => {
             document.querySelector('.select2-search__field').focus();
         });
+        
 
         //Initialize Select2 Elements
         $('.select2').select2()
@@ -680,7 +681,7 @@ function submitFormScan(e, evt) {
 
             for (let i = 1; i < (table.rows.length); i++) {
                 var cek =  document.getElementById("pil_item"+i);
-                satuan = document.getElementById("tableshow").rows[i].cells[5].children[0].value;
+                satuan = document.getElementById("tableshow").rows[i].cells[6].children[0].value;
                 qty_stok = document.getElementById("qty_stok"+i).value || 0;
                 qty_out = document.getElementById("qty_out"+i).value || 0;
                 sisa_qty = parseFloat(qty_stok) - parseFloat(qty_out) ;
@@ -721,7 +722,7 @@ function submitFormScan(e, evt) {
             var sum_out = 0;
 
             for (let i = 1; i < (table.rows.length); i++) {
-                satuan = document.getElementById("tableshow").rows[i].cells[6].children[0].value;
+                satuan = document.getElementById("tableshow").rows[i].cells[7].children[0].value;
                 qty_stok = document.getElementById("qty_stok"+i).value || 0;
                 qty_out = document.getElementById("qty_out"+i).value || 0;
                 sisa_qty = parseFloat(qty_stok) - parseFloat(qty_out) ;
