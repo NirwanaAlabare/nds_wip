@@ -68,7 +68,7 @@ class PPIC_MasterSOController extends Controller
             inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po and a.dest = p.dest
             group by p.id
             ) pck_out on pck_out.id = a.id
-            where tgl_shipment >= '$tgl_awal' and tgl_shipment <= '$tgl_akhir'
+            where tgl_shipment >= '".$tgl_awal."' and tgl_shipment <= '".$tgl_akhir."'
             order by tgl_shipment desc, buyer asc, ws asc , msn.urutan asc
             ");
 
@@ -77,7 +77,7 @@ class PPIC_MasterSOController extends Controller
 
         $data_ws = DB::select("select ws isi, ws tampil from
 (select * from ppic_master_so p
-where created_by = '$user' and tgl_shipment >= '$tgl_skrg' ) p
+where created_by = '".$user."' and tgl_shipment >= '".$tgl_skrg."' ) p
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
 group by ws
 order by ws asc");
