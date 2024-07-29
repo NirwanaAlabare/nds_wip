@@ -69,7 +69,7 @@ class PPIC_MasterSOController extends Controller
             group by p.id
             ) pck_out on pck_out.id = a.id
             where tgl_shipment >= '" . $tgl_awal . "' and tgl_shipment <= '" . $tgl_akhir . "'
-            order by tgl_shipment desc, buyer asc, ws asc , msn.urutan asc
+            order by tgl_shipment desc, buyer asc, ws asc, dest asc, color asc, msn.urutan asc, dest asc
             ");
 
             return DataTables::of($data_input)->toJson();
