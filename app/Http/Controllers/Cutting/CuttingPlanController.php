@@ -550,7 +550,7 @@ class CuttingPlanController extends Controller
                     foreach ($markerDetailData as $markerDetail) {
                         $markerDetailInfo .= "
                                 <tr>
-                                    <td>" . $markerDetail->masterSbWs->size . ($markerDetail->masterSbWs->dest && $markerDetail->masterSbWs->dest != "-" ? " - ". $markerDetail->masterSbWs->dest : "") . "</td>
+                                    <td>" . ($markerDetail->masterSbWs ? $markerDetail->masterSbWs->size : $markerDetail->size) . ($markerDetail->masterSbWs && $markerDetail->masterSbWs->dest && $markerDetail->masterSbWs->dest != "-" ? " - ". $markerDetail->masterSbWs->dest : "") . "</td>
                                     <td>" . $markerDetail->ratio . "</td>
                                     <td>" . $markerDetail->cut_qty . "</td>
                                     <td>" . ($markerDetail->ratio * ($row->formCutInput ? $row->formCutInput->qty_ply : 1)) . "</td>
