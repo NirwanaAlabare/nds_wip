@@ -21,12 +21,12 @@
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Awal</b></small></label>
                     <input type="date" class="form-control form-control-sm " id="tgl-awal" name="tgl_awal"
-                        value="{{ date('Y-m-d') }}">
+                        value="{{ date('Y-m-d') }}" readonly>
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Akhir</b></small></label>
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                        value="{{ date('Y-m-d') }}">
+                        value="{{ date('Y-m-d') }}" readonly>
                 </div>
                 <div class="mb-3">
                     <a onclick="dataTableReload();dataTableWipReload();"
@@ -35,7 +35,7 @@
                     </a>
                 </div>
                 <div class="mb-3">
-                    <a onclick="export_excel_trf_garment()" class="btn btn-outline-success position-relative btn-sm">
+                    <a onclick="notif()" class="btn btn-outline-success position-relative btn-sm">
                         <i class="fas fa-file-excel fa-sm"></i>
                         Export Excel
                     </a>
