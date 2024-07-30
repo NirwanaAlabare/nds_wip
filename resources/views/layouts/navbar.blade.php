@@ -589,25 +589,25 @@
                             @sewing
                                 <li>
                                     <a href="{{ route('reportOutput') }}"
-                                        class="dropdown-item {{ $subPage == 'report-output' ? 'active' : '' }}">
+                                        class="dropdown-item {{ $subPage == 'reportOutput' ? 'active' : '' }}">
                                         Report Output <i class="fa-solid fa-file"></i>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="{{ route('reportProduction') }}"
-                                        class="dropdown-item {{ $subPage == 'report-production' ? 'active' : '' }}">
+                                        class="dropdown-item {{ $subPage == 'reportProduction' ? 'active' : '' }}">
                                         Report Production <i class="fa-solid fa-file"></i>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="{{ route('reportEfficiency') }}"
-                                        class="dropdown-item {{ $subPage == 'report-efficiency' ? 'active' : '' }}">
+                                        class="dropdown-item {{ $subPage == 'reportEfficiency' ? 'active' : '' }}">
                                         Report Efficiency <i class="fa-solid fa-file"></i>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="{{ route('reportDetailOutput') }}"
-                                        class="dropdown-item {{ $subPage == 'report-detail-output' ? 'active' : '' }}">
+                                        class="dropdown-item {{ $subPage == 'reportDetailOutput' ? 'active' : '' }}">
                                         Report Detail Output <i class="fa-solid fa-file"></i>
                                     </a>
                                 </li>

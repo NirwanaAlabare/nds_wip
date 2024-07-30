@@ -95,7 +95,7 @@ class ReportDetailOutputController extends Controller
                 rawColumns(['order_cfm_price', 'earning', 'cumulative_earning'])->toJson();
         }
 
-        return view('sewing.report.report-detail-output', ['parentPage' => 'report', 'page' => 'report-detail-output', 'months' => $months, 'years' => $years]);
+        return view('sewing.report.report-detail-output', ['page' => 'dashboard-sewing-eff', 'subPageGroup' => 'sewing-report', 'subPage' => 'reportDetailOutput', 'months' => $months, 'years' => $years]);
     }
 
     public function packing(Request $request)

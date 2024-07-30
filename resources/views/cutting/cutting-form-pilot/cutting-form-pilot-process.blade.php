@@ -2720,7 +2720,7 @@
 
             // -Open Item input on Spreading Form-
             function openItemSpreading() {
-                document.getElementById("current_id_item").removeAttribute("readonly");
+                // document.getElementById("current_id_item").removeAttribute("readonly");
                 document.getElementById("current_lot").removeAttribute("readonly");
                 document.getElementById("current_roll").removeAttribute("readonly");
                 document.getElementById("current_qty").removeAttribute("readonly");

@@ -436,7 +436,7 @@ class DCInController extends Controller
         $data_tmp_dc_in = DB::select("
             SELECT
                 s.id_qr_stocker,
-                coalesce(s.qty_ply_mod, s.qty_ply) - coalesce(tmp.qty_reject,0) + coalesce(tmp.qty_replace,0) qty_in,
+                (case when s.qty_ply_mod > 0 THEN s.qty_ply_mod ELSE s.qty_ply END) - coalesce(tmp.qty_reject,0) + coalesce(tmp.qty_replace,0) qty_in,
                 tmp.qty_reject,
                 tmp.qty_replace,
                 ms.tujuan,
@@ -668,7 +668,7 @@ class DCInController extends Controller
                 tmp.tujuan,
                 tmp.lokasi,
                 tmp.tempat,
-                coalesce(ms.qty_ply_mod, ms.qty_ply),
+                (case when ms.qty_ply_mod > 0 THEN ms.qty_ply_mod ELSE s.qty_ply END),
                 qty_reject,
                 qty_replace,
                 user,
@@ -698,7 +698,7 @@ class DCInController extends Controller
             select
                 r.id,nama_detail_rak,
                 tmp.id_qr_stocker,
-                coalesce(s.qty_ply_mod, s.qty_ply) - qty_reject + qty_replace qty_in,
+                (case when s.qty_ply_mod > 0 THEN s.qty_ply_mod ELSE s.qty_ply END) - qty_reject + qty_replace qty_in,
                 '$timestamp',
                 '$timestamp'
             from
