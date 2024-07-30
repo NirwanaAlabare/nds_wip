@@ -111,7 +111,7 @@ class ReportProductionController extends Controller
                 rawColumns(['order_cfm_price', 'earning', 'cumulative_earning'])->toJson();
         }
 
-        return view('sewing.report.report-production', ['parentPage' => 'report', 'page' => 'dashboard-sewing-eff', 'months' => $months, 'years' => $years]);
+        return view('sewing.report.report-production', ['page' => 'dashboard-sewing-eff', 'subPageGroup' => 'sewing-report', 'subPage' => 'reportProduction', 'months' => $months, 'years' => $years]);
     }
 
     public function exportData(Request $request) {
