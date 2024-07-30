@@ -1143,6 +1143,7 @@ Route::middleware('auth')->group(function () {
     // Laporan BC
     Route::controller(ReportDocController::class)->prefix("report_doc_laporan")->middleware('bc')->group(function () {
         Route::get('/report_doc_laporan_wip', 'report_doc_laporan_wip')->name('report-doc-laporan-wip');
+        Route::get('/show_report_doc_lap_fab', 'show_report_doc_lap_fab')->name('show_report_doc_lap_fab');
         Route::get('/show_report_doc_lap_wip', 'show_report_doc_lap_wip')->name('show_report_doc_lap_wip');
     });
 
