@@ -668,7 +668,7 @@ class DCInController extends Controller
                 tmp.tujuan,
                 tmp.lokasi,
                 tmp.tempat,
-                (case when ms.qty_ply_mod > 0 THEN ms.qty_ply_mod ELSE s.qty_ply END),
+                (case when ms.qty_ply_mod > 0 THEN ms.qty_ply_mod ELSE ms.qty_ply END),
                 qty_reject,
                 qty_replace,
                 user,
