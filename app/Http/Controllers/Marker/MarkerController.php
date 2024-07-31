@@ -352,7 +352,7 @@ class MarkerController extends Controller
         from marker_input_detail a
         left join master_sb_ws on master_sb_ws.id_so_det = a.so_det_id
         left join master_size_new b on master_sb_ws.size = b.size
-        where marker_id = '$request->id_c'
+        where marker_id = '$request->id_c' and a.ratio > 0
         order by urutan asc");
 
         $data_marker_tracking = DB::select("

@@ -3,7 +3,7 @@
     use App\Models\Summary\DataProduksi;
     use App\Models\Summary\DataDetailProduksi;
     use App\Models\Summary\DataDetailProduksiDay;
-    use App\Models\Summary\UserPassword;
+    use App\Models\SignalBit\UserLine;
     use App\Models\Summary\MasterKursBi;
     use Maatwebsite\Excel\Concerns\Exportable;
     use Maatwebsite\Excel\Concerns\FromView;
@@ -102,7 +102,7 @@
                 ->orderBy("data_detail_produksi.sewing_line", "ASC")
                 ->get();
 
-            $allLine = UserPassword::select('username')->where('Groupp', 'SEWING')->whereRaw('(Locked != 1 OR Locked IS NULL)')->orderBy('username', 'ASC')->get();
+            $allLine = UserLine::select('username')->where('Groupp', 'SEWING')->whereRaw('(Locked != 1 OR Locked IS NULL)')->orderBy('username', 'ASC')->get();
 
             $kurs = MasterKursBi::select("kurs_tengah")->where("tanggal_kurs_bi", $this->tanggalProduksi)->first();
 

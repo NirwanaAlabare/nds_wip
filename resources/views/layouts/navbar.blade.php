@@ -38,8 +38,7 @@
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'track-ws' ? 'active' : '' }}">Worksheet</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
-                                <a href="{{ route('track-ws') }}"
-                                    class="dropdown-item {{ $subPage == 'ws' ? 'active' : '' }}">
+                                <a href="{{ route('track-ws') }}" class="dropdown-item {{ $subPage == 'ws' ? 'active' : '' }}">
                                     Worksheet
                                 </a>
                             </li>

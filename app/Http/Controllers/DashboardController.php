@@ -61,6 +61,7 @@ class DashboardController extends Controller
                 leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
                 leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
                 leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
+                whereRaw("(marker_input.cancel IS NULL OR marker_input.cancel != 'Y')")->
                 whereRaw("(MONTH(marker_input.tgl_cutting) = '".$month."')")->
                 whereRaw("(YEAR(marker_input.tgl_cutting) = '".$year."')")->
                 whereRaw("marker_input_detail.ratio > 0")->
@@ -103,7 +104,8 @@ class DashboardController extends Controller
                 FROM
                     marker_input
                 WHERE
-                    MONTH(tgl_cutting) = '".$month."' AND YEAR(tgl_cutting) = '".$year."'
+                    MONTH(tgl_cutting) = '".$month."' AND YEAR(tgl_cutting) = '".$year."' AND
+                    (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
             ) marker
         ")[0];
 
@@ -116,8 +118,7 @@ class DashboardController extends Controller
                 FROM
                     part
                 WHERE
-                    (MONTH(created_at) = '".$month."' AND  YEAR(created_at) = '".$year."') OR
-                    (MONTH(updated_at) = '".$month."' AND  YEAR(updated_at) = '".$year."')
+                    (MONTH(created_at) = '".$month."' AND  YEAR(created_at) = '".$year."') OR (MONTH(updated_at) = '".$month."' AND  YEAR(updated_at) = '".$year."')
             ) part
         ")[0]->part_count;
 
@@ -130,8 +131,8 @@ class DashboardController extends Controller
                 FROM
                     marker_input
                 WHERE
-                    (MONTH(tgl_cutting) = '".$month."' AND  YEAR(tgl_cutting) = '".$year."') OR
-                    (MONTH(tgl_cutting) = '".$month."' AND  YEAR(tgl_cutting) = '".$year."')
+                    ((MONTH(tgl_cutting) = '".$month."' AND  YEAR(tgl_cutting) = '".$year."') OR (MONTH(tgl_cutting) = '".$month."' AND  YEAR(tgl_cutting) = '".$year."')) AND
+                    (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
                 GROUP BY
                     act_costing_ws
             ) ws
@@ -176,29 +177,29 @@ class DashboardController extends Controller
                     form_cut_input.id form_id,
                     form_cut_input.status form_status,
                     form_cut_input.tipe_form_cut,
-                    COALESCE(form_cut_input.tgl_form_cut, '-') tgl_form_cut,
+                    COALESCE(DATE(form_cut_input.waktu_mulai), '-') tgl_form_cut,
                     COALESCE(form_cut_input.no_form, '-') no_form,
                     COALESCE(form_cut_input.no_cut, '-') no_cut,
                     COALESCE(form_cut_input.total_lembar, '-') total_lembar,
-                    COALESCE(form_cut_input_detail.id_roll, '-') id_roll,
-                    COALESCE(form_cut_input_detail.id_item, '-') id_item,
-                    COALESCE(LEFT(form_cut_input_detail.detail_item, 10), '-') detail_item,
-                    COALESCE(form_cut_input_detail.group_roll, '-') group_roll,
+                    COALESCE(GROUP_CONCAT(DISTINCT form_cut_input_detail.id_roll), '-') id_roll,
+                    COALESCE(GROUP_CONCAT(DISTINCT form_cut_input_detail.id_item), '-') id_item,
                     COALESCE(form_cut_input_detail.lot, '-') lot,
                     COALESCE(form_cut_input_detail.roll, '-') roll,
-                    COALESCE(form_cut_input_detail.qty, '-') qty,
+                    COALESCE(ROUND(SUM(COALESCE(form_cut_input_detail.qty, 0)), 2), '-') qty,
                     COALESCE(form_cut_input_detail.unit, '-') unit,
-                    COALESCE(form_cut_input_detail.total_pemakaian_roll, '-') total_pemakaian_roll,
-                    COALESCE(form_cut_input_detail.piping, '-') piping,
-                    COALESCE(form_cut_input_detail.short_roll, '-') short_roll,
-                    COALESCE(form_cut_input_detail.remark, '-') remark
+                    COALESCE(ROUND(SUM(COALESCE(form_cut_input_detail.total_pemakaian_roll, 0)), 2), '-') total_pemakaian_roll,
+                    COALESCE(ROUND(SUM(COALESCE(form_cut_input_detail.piping, 0)), 2), '-') piping,
+                    COALESCE(ROUND(SUM(COALESCE(form_cut_input_detail.short_roll, 0)), 2), '-') short_roll,
+                    COALESCE(ROUND(SUM(COALESCE(form_cut_input_detail.remark, 0)), 2), '-') remark
                 ")->
                 leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
                 leftJoin("form_cut_input_detail", "form_cut_input_detail.no_form_cut_input", "=", "form_cut_input.no_form")->
-                whereRaw("(MONTH(form_cut_input.tgl_form_cut) = '".$month."')")->
-                whereRaw("(YEAR(form_cut_input.tgl_form_cut) = '".$year."')")->
-                groupBy("marker_input.id", "form_cut_input.id", "form_cut_input_detail.id")->
-                orderBy("marker_input.tgl_cutting", "desc")->
+                whereRaw("(marker_input.cancel IS NULL OR marker_input.cancel != 'Y')")->
+                whereRaw("(form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y')")->
+                whereRaw("(MONTH(form_cut_input.waktu_mulai) = '".$month."')")->
+                whereRaw("(YEAR(form_cut_input.waktu_mulai) = '".$year."')")->
+                groupBy("marker_input.id", "form_cut_input.id", "form_cut_input_detail.unit")->
+                orderBy("form_cut_input.waktu_mulai", "desc")->
                 orderBy("marker_input.buyer", "asc")->
                 orderBy("marker_input.act_costing_ws", "asc")->
                 orderBy("marker_input.style", "asc")->
@@ -245,10 +246,12 @@ class DashboardController extends Controller
                         cutting_plan.id cutting_plan_id
                     FROM
                         form_cut_input
+                        LEFT JOIN marker_input ON marker_input.kode = form_cut_input.id_marker
                         LEFT JOIN cutting_plan ON cutting_plan.no_form_cut_input = form_cut_input.no_form
                     WHERE
-                        ( MONTH ( form_cut_input.tgl_form_cut ) = '".$month."' ) AND ( YEAR ( form_cut_input.tgl_form_cut ) = '".$year."' ) OR
-                        ( MONTH ( form_cut_input.waktu_selesai ) = '".$month."' ) AND ( YEAR ( form_cut_input.waktu_selesai ) = '".$year."' )
+                        ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' ) AND
+                        ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' ) AND
+                        ( MONTH ( form_cut_input.waktu_mulai ) = '".$month."' ) AND ( YEAR ( form_cut_input.waktu_mulai ) = '".$year."' )
                     GROUP BY
                         form_cut_input.id
                 ) frm
