@@ -16,17 +16,17 @@
 
                         <div class="mb-3">
                             <label><small>Name</small></label>
-                            <input type="text" class="form-control form-control-sm" name="name" value="{{ auth()->user()->name }}">
+                            <input type="text" class="form-control form-control-sm" name="name" value="{{ auth()->user()->name }}" readonly>
                         </div>
                         <div class="mb-3">
                             <label><small>Username</small></label>
                             <input type="text" class="form-control form-control-sm" name="username" value="{{ auth()->user()->username }}" readonly>
                         </div>
-                        <div class="mb-3">
+                        <div class="d-none">
                             <label><small>New Password</small></label>
                             <input type="password" class="form-control form-control-sm" name="password">
                         </div>
-                        <button class="btn btn-sm btn-sb" type="submit">Update</button>
+                        <button class="btn btn-sm btn-sb mt-3" type="submit">Update</button>
                     </form>
                 </div>
             </div>
