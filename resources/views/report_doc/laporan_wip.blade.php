@@ -21,32 +21,29 @@
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Awal</b></small></label>
                     <input type="date" class="form-control form-control-sm " id="tgl-awal" name="tgl_awal"
-                        value="{{ date('Y-m-d') }}">
+                        value="{{ date('Y-m-d') }}" readonly>
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Akhir</b></small></label>
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                        value="{{ date('Y-m-d') }}">
+                        value="{{ date('Y-m-d') }}" readonly>
                 </div>
                 <div class="mb-3">
-                    <a onclick="dataTableReload()" class="btn btn-outline-primary position-relative btn-sm">
+                    <a onclick="dataTableReload();dataTableWipReload();"
+                        class="btn btn-outline-primary position-relative btn-sm">
                         <i class="fas fa-search fa-sm"></i>
                     </a>
                 </div>
                 <div class="mb-3">
-                    <a onclick="export_excel_trf_garment()" class="btn btn-outline-success position-relative btn-sm">
+                    <a onclick="notif()" class="btn btn-outline-success position-relative btn-sm">
                         <i class="fas fa-file-excel fa-sm"></i>
                         Export Excel
                     </a>
                 </div>
             </div>
-
             <div class="table-responsive">
                 <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
-                    <thead class="table-primary">
-                        <tr style='text-align:center; vertical-align:middle'>
-                            <th colspan="8">Fabric</th>
-                        </tr>
+                    <thead class="table-primary  table-sm">
                         <tr class="text-center">
                             <th>WS</th>
                             <th>ID Item</th>
@@ -56,6 +53,22 @@
                             <th>Pengeluaran</th>
                             <th>Sisa</th>
                             <th>Unit</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+
+            <div class="table-responsive">
+                <table id="datatable_wip" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                    <thead class="table-success">
+                        <tr class="text-center">
+                            <th>WS</th>
+                            <th>Dc In</th>
+                            <th>Dc Out</th>
+                            <th>Sewing In</th>
+                            <th>Sewing Out</th>
+                            <th>Packing In</th>
+                            <th>Packing Out</th>
                         </tr>
                     </thead>
                 </table>
@@ -76,6 +89,14 @@
         }
     </script>
     <script>
+        $(document).ready(function() {
+            let datatable = new DataTable('#datatable');
+            datatable.clear().draw();
+            let datatable_wip = new DataTable('#datatable_wip');
+            datatable_wip.clear().draw();
+        })
+
+
         function dataTableReload() {
             let datatable = $("#datatable").DataTable({
                 ordering: false,
@@ -88,7 +109,7 @@
                 scrollCollapse: true,
                 destroy: true,
                 ajax: {
-                    url: '{{ route('show_report_doc_lap_wip') }}',
+                    url: '{{ route('show_report_doc_lap_fab') }}',
                     dataType: 'json',
                     dataSrc: 'data',
                     // data: function(d) {
@@ -112,10 +133,10 @@
                         data: 'qty_in'
                     },
                     {
-                        data: 'qty_out_konversi'
+                        data: 'qty_out'
                     },
                     {
-                        data: 'sisa'
+                        data: 'qty_sisa'
                     },
                     {
                         data: 'unit'
@@ -128,6 +149,54 @@
             });
         }
 
+        function dataTableWipReload() {
+            let datatable_wip = $("#datatable_wip").DataTable({
+                ordering: false,
+                processing: true,
+                serverSide: true,
+                paging: false,
+                searching: true,
+                scrollY: '300px',
+                scrollX: '300px',
+                scrollCollapse: true,
+                destroy: true,
+                ajax: {
+                    url: '{{ route('show_report_doc_lap_wip') }}',
+                    dataType: 'json',
+                    dataSrc: 'data',
+                    // data: function(d) {
+                    //     d.buyer = $('#cbobuyer').val();
+                    // },
+                },
+                columns: [{
+                        data: 'ws'
+
+                    },
+                    {
+                        data: 'dc_in'
+                    },
+                    {
+                        data: 'dc_out'
+                    },
+                    {
+                        data: 'sew_in'
+                    },
+                    {
+                        data: 'sew_out'
+                    },
+                    {
+                        data: 'pck_in'
+                    },
+                    {
+                        data: 'pck_out'
+                    },
+                ],
+                columnDefs: [{
+                    "className": "align-left",
+                    "targets": "_all"
+                }, ]
+            });
+        }
 
 
         function export_excel_trf_garment() {

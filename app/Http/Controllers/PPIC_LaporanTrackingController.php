@@ -208,9 +208,13 @@ size,
 '0' tot_p_line,
 '0' qty_trf_garment,
 '0' qty_packing_in,
-count(o.id) qty_packing_out
-from packing_packing_out_scan o
-inner join ppic_master_so p on o.barcode = p.barcode and o.po = p.po
+sum(o.qty_packing_out) qty_packing_out
+from
+    (
+        select count(barcode) qty_packing_out,po, barcode, dest from packing_packing_out_scan
+        group by barcode, po, dest
+    ) o
+inner join ppic_master_so p on o.barcode = p.barcode and o.po = p.po and o.dest = p.dest
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
 where m.buyer = '$buyer'
 group by ws, color, size
