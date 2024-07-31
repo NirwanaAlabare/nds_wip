@@ -9,6 +9,9 @@ use App\Http\Controllers\UserController;
 // General
 use App\Http\Controllers\GeneralController;
 
+// Worksheet
+use App\Http\Controllers\WorksheetController;
+
 // Part
 use App\Http\Controllers\Part\MasterPartController;
 use App\Http\Controllers\Part\MasterSecondaryController;
@@ -146,6 +149,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-count', 'getCount')->name('get-general-count');
         // get number
         Route::get('/get-number', 'getNumber')->name('get-general-number');
+    });
+
+    // Worksheet
+    Route::controller(WorksheetController::class)->prefix("worksheet")->group(function () {
+        // get worksheet
+        Route::get('/', 'index')->name('worksheet');
+        Route::post('/print-qr', 'printQr')->name('worksheet-print-qr');
     });
 
     // Part :
