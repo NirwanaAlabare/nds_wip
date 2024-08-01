@@ -27,12 +27,12 @@
                 <table id="datatable" class="table table-bordered table-striped table-sm w-100">
                     <thead class="table-success">
                         <tr style='text-align:center; vertical-align:middle'>
-                            <th>Line</th>
-                            <th>WS</th>
-                            <th>Color</th>
-                            <th>Size</th>
-                            <th>Qty</th>
-                            <th>PO</th>
+                            <th width="10%">Line</th>
+                            <th width="15%">WS</th>
+                            <th width="40%">Color</th>
+                            <th width="10%">Size</th>
+                            <th width="10%">Qty</th>
+                            <th width="15%">PO</th>
                         </tr>
                     </thead>
                     <tfoot>
