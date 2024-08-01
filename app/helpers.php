@@ -112,4 +112,10 @@
         // Return the array elements
         return $array;
     }
+
+    function percentage($num)
+    {
+        $hasil = number_format($num, 2, '.', ',');
+        return $hasil;
+    }
 ?>

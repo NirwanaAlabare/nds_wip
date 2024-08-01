@@ -2431,6 +2431,7 @@
         });
     </script>
 
+    {{-- Dashboard Marker --}}
     @if ($page == 'dashboard-marker')
         <script>
             $(document).ready(async function() {
@@ -2445,7 +2446,7 @@
                 $('#marker-year-filter').val(todayYear).trigger("change");
 
                 var datatableMarker = $("#datatable-marker").DataTable({
-                    serverSide: true,
+                    serverSide: false,
                     processing: true,
                     ordering: false,
                     pageLength: 50,
@@ -2495,7 +2496,6 @@
                             className: "text-nowrap colorize"
                         }
                     ],
-                    rowsGroup: [0 ,1 ,2 ,3 ,4 ,5 ,6, 7, 8],
                 });
 
                 $('#datatable-marker thead tr').clone(true).appendTo('#datatable-marker thead');
@@ -2572,6 +2572,7 @@
         </script>
     @endif
 
+    {{-- Dashboard Cutting --}}
     @if ($page == 'dashboard-cutting')
         <script>
             $(document).ready(async function() {
@@ -2585,10 +2586,27 @@
                 $('#cutting-month-filter').val((today.getMonth() + 1)).trigger("change");
                 $('#cutting-year-filter').val(todayYear).trigger("change");
 
+                $('#datatable-cutting thead tr').clone(true).appendTo('#datatable-cutting thead');
+                $('#datatable-cutting thead tr:eq(1) th').each(function(i) {
+                    var title = $(this).text();
+                    $(this).html('<input type="text" class="form-control form-control-sm"/>');
+
+                    $('input', this).on('keyup change', function() {
+                        if (datatableCutting.column(i).search() !== this.value) {
+                            datatableCutting
+                                .column(i)
+                                .search(this.value)
+                                .draw();
+                        }
+                    });
+                });
+
                 var datatableCutting = $("#datatable-cutting").DataTable({
-                    serveSide: true,
+                    serverSide: false,
                     processing: true,
                     ordering: false,
+                    scrollX: '500px',
+                    scrollY: '500px',
                     pageLength: 50,
                     ajax: {
                         url: '{{ route('dashboard-cutting') }}',
@@ -2630,22 +2648,7 @@
                             data: 'total_lembar',
                         },
                         {
-                            data: 'id_roll',
-                        },
-                        {
                             data: 'id_item',
-                        },
-                        {
-                            data: 'detail_item',
-                        },
-                        {
-                            data: 'group_roll',
-                        },
-                        {
-                            data: 'lot',
-                        },
-                        {
-                            data: 'roll',
                         },
                         {
                             data: 'qty',
@@ -2668,7 +2671,7 @@
                     ],
                     columnDefs: [
                         {
-                            targets: [0 ,1 ,2 ,3 ,5 , 6, 8, 9],
+                            targets: "_all",
                             className: "text-nowrap align-middle"
                         },
                         {
@@ -2704,18 +2707,6 @@
                             className: "text-nowrap colorize"
                         }
                     ],
-                    rowsGroup: [
-                        0,
-                        1,
-                        2,
-                        3,
-                        4,
-                        5,
-                        6,
-                        7,
-                        8,
-                        9
-                    ],
                     // rowCallback: function( row, data, index ) {
                     //     if (data['line'] != '-') {
                     //         $('td.colorize', row).css('color', '#2e8a57');
@@ -2725,21 +2716,6 @@
                     //         $('td.colorize', row).css('font-weight', '600');
                     //     }
                     // }
-                });
-
-                $('#datatable-cutting thead tr').clone(true).appendTo('#datatable-cutting thead');
-                $('#datatable-cutting thead tr:eq(1) th').each(function(i) {
-                    var title = $(this).text();
-                    $(this).html('<input type="text" class="form-control form-control-sm"/>');
-
-                    $('input', this).on('keyup change', function() {
-                        if (datatableCutting.column(i).search() !== this.value) {
-                            datatableCutting
-                                .column(i)
-                                .search(this.value)
-                                .draw();
-                        }
-                    });
                 });
 
                 $('#cutting-month-filter').on('change', () => {
@@ -2811,6 +2787,7 @@
         </script>
     @endif
 
+    {{-- Dashboard DC --}}
     @if ($page == 'dashboard-dc')
         <script>
             $(document).ready(async function() {
@@ -2825,7 +2802,7 @@
                 $('#dc-year-filter').val(todayYear).trigger("change");
 
                 var datatableDc = $("#datatable-dc").DataTable({
-                    serveSide: true,
+                    serverSide: false,
                     processing: true,
                     ordering: false,
                     pageLength: 50,
@@ -2890,14 +2867,6 @@
                             targets: "_all",
                             className: "text-nowrap colorize"
                         }
-                    ],
-                    rowsGroup: [
-                        0,
-                        1,
-                        2,
-                        3,
-                        4,
-                        5
                     ],
                     rowCallback: function( row, data, index ) {
                         if (data['line'] != '-') {
@@ -3000,6 +2969,7 @@
         </script>
     @endif
 
+    {{-- Dashboard Sewing --}}
     @if ($page == 'dashboard-sewing-eff')
         <script>
             $(document).ready(async function() {
@@ -3193,7 +3163,7 @@
             });
 
             var datatableSewingOutput = $("#datatable-sewing-output").DataTable({
-                serveSide: true,
+                serverSide: false,
                 processing: true,
                 ordering: false,
                 pageLength: 50,
@@ -3334,6 +3304,7 @@
         </script>
     @endif
 
+    {{-- Dashboard Mutasi Karyawan --}}
     @if ($page == 'dashboard-mut-karyawan')
         <script>
             function autoBreak(label) {

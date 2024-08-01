@@ -105,12 +105,7 @@
                         <th>No. Form</th>
                         <th>No. Cut Form</th>
                         <th>Total Lembar</th>
-                        <th>ID Roll</th>
                         <th>ID Item</th>
-                        <th>Detail Item</th>
-                        <th>Group</th>
-                        <th>Lot</th>
-                        <th>Roll</th>
                         <th>Qty Roll</th>
                         <th>Total Pemakaian Roll</th>
                         <th>Piping Roll</th>
