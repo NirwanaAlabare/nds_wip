@@ -65,9 +65,9 @@
                             <th>WS</th>
                             <th>Dc In</th>
                             <th>Dc Out</th>
-                            <th>Sewing In</th>
                             <th>Sewing Out</th>
                             <th>Packing In</th>
+                            <th>Central In</th>
                             <th>Packing Out</th>
                         </tr>
                     </thead>
