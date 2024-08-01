@@ -1090,6 +1090,7 @@ Route::middleware('auth')->group(function () {
     // Dashboard
     Route::controller(PackingDashboardController::class)->middleware('packing')->group(function () {
         Route::get('/dashboard_packing', 'dashboard_packing')->name('dashboard-packing');
+        Route::get('/show_tot_dash_packing', 'show_tot_dash_packing')->name('show_tot_dash_packing');
     });
 
     // Transfer Garment
