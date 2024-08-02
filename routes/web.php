@@ -101,6 +101,8 @@ use App\Http\Controllers\PPIC_MasterSOController;
 use App\Http\Controllers\PPIC_LaporanTrackingController;
 use App\Http\Controllers\TransferBpbController;
 
+use App\Http\Controllers\PackingDashboardController;
+
 use App\Http\Controllers\PackingTransferGarmentController;
 use App\Http\Controllers\PackingPackingInController;
 use App\Http\Controllers\PackingPackingOutController;
@@ -1093,6 +1095,12 @@ Route::middleware('auth')->group(function () {
     });
 
     // Packing
+    // Dashboard
+    Route::controller(PackingDashboardController::class)->middleware('packing')->group(function () {
+        Route::get('/dashboard_packing', 'dashboard_packing')->name('dashboard-packing');
+        Route::get('/show_tot_dash_packing', 'show_tot_dash_packing')->name('show_tot_dash_packing');
+    });
+
     // Transfer Garment
     Route::controller(PackingTransferGarmentController::class)->prefix("transfer-garment-packing")->middleware('packing')->group(function () {
         Route::get('/', 'index')->name('transfer-garment');
@@ -1281,10 +1289,10 @@ Route::get('/dashboard-fg-stock', function () {
     return view('dashboard', ['page' => 'dashboard-fg-stock']);
 })->middleware('auth')->name('dashboard-fg-stock');
 
-//Packing
-Route::get('/dashboard-packing', function () {
-    return view('dashboard', ['page' => 'dashboard-packing']);
-})->middleware('auth')->name('dashboard-packing');
+// //Packing
+// Route::get('/dashboard-packing', function () {
+//     return view('dashboard', ['page' => 'dashboard-packing']);
+// })->middleware('auth')->name('dashboard-packing');
 
 //Finish Good
 Route::get('/dashboard-finish-good', function () {
