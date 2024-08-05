@@ -31,7 +31,7 @@
                         <button class="btn btn-primary btn-sm" onclick="dataTableReload()"><i class="fa fa-search"></i></button>
                     </div>
                 </div>
-                <a href="{{ route('month-count') }}" class="btn btn-sb btn-sm">Print Month Count</a>
+                <button class="btn btn-sb btn-sm" data-bs-toggle="modal" data-bs-target="#printModal"><i class="fa-regular fa-file-lines fa-sm"></i> Print Month Count</button>
                 {{-- <div class="d-none">
                     <div class="d-flex gap-1">
                         <button class="btn btn-success btn-sm" onclick="fixRedundantStocker()"><i class="fa fa-cog"></i> Stocker Redundant</button>
@@ -67,6 +67,8 @@
             </div>
         </div>
     </div>
+
+    {{-- Stocker List Modal --}}
     <div class="modal fade" id="stockerListModal" tabindex="-1" aria-labelledby="stockerListModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -95,6 +97,42 @@
                             </table>
                         </form>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Numbers Modal -->
+    <div class="modal fade" id="printModal" tabindex="-1" aria-labelledby="printModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-light">
+                    <h1 class="modal-title fs-5" id="printModalLabel">Print Number</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="col-md-12">
+                        <div class="d-flex justify-content-center mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="switch-method" onchange="switchMethod(this)">
+                                <label class="form-check-label" id="to-qty">Qty</label>
+                                <label class="form-check-label d-none" id="to-range">Range</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3" id="qty-method">
+                        <label class="form-label">Print Qty : </label>
+                        <input class="form-control form-control-sm" type="number" name="number" id="print-qty" />
+                    </div>
+                    <div class="mb-3" id="range-method" class="d-none">
+                        <label class="form-label">Print Range : </label>
+                        <input class="form-control form-control-sm" type="number" name="number" id="range-awal" />
+                        <input class="form-control form-control-sm" type="number" name="number" id="range-akhir" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa-solid fa-times fa-sm"></i> Batal</button>
+                    <button class="btn btn-success" onclick="printMonthCount()"><i class="fa-solid fa-file-export fa-sm"></i> Export</button>
                 </div>
             </div>
         </div>
@@ -301,5 +339,73 @@
             });
         }
 
+        function switchMethod(element) {
+            if (element.checked) {
+                toRangeMethod();
+            } else {
+                toQtyMethod();
+            }
+        }
+
+        function toQtyMethod() {
+            $('to-qty').removeClass('d-none');
+            $('to-range').addClass('d-none');
+
+            $('qty-method').removeClass('d-none');
+            $('range-method').addClass('d-none');
+        }
+
+        function toRangeMethod() {
+            $('to-range').removeClass('d-none');
+            $('to-qty').addClass('d-none');
+
+            $('range-method').removeClass('d-none');
+            $('qty-method').addClass('d-none');
+        }
+
+        function printMonthCount() {
+            generating = true;
+
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                url: '{{ route('print-month-count') }}',
+                type: 'post',
+                data: {
+                    qty: $("#print-qty").val()
+                },
+                xhrFields:
+                {
+                    responseType: 'blob'
+                },
+                success: function(res) {
+                    if (res) {
+                        console.log(res);
+
+                        var blob = new Blob([res], {type: 'application/pdf'});
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = "Numbers.pdf";
+                        link.click();
+                    }
+
+                    window.location.reload();
+
+                    generating = false;
+                },
+                error: function(jqXHR) {
+                    console.log(jqXHR);
+
+                    generating = false;
+                }
+            });
+        }
     </script>
 @endsection

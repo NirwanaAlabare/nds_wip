@@ -1941,7 +1941,6 @@ class StockerController extends Controller
                     stocker_numbering ON stocker_numbering.form_cut_id = stocker_input.form_cut_id and stocker_input.so_det_id = stocker_numbering.so_det_id and stocker_numbering.number >= stocker_input.range_awal and stocker_numbering.number <= stocker_input.range_akhir
                 WHERE
                     (form_cut_input.cancel is not null or form_cut_input.cancel != 'Y') AND
-                    (DATE(form_cut_input.waktu_mulai) >= '".$dateFrom."' OR DATE(form_cut_input.waktu_selesai) >= '".$dateFrom."' OR DATE(stocker_input.updated_at) >= '".$dateFrom."' OR DATE(stocker_input.created_at) >= '".$dateFrom."') AND
                     (DATE(form_cut_input.waktu_mulai) <= '".$dateTo."' OR DATE(form_cut_input.waktu_selesai) <= '".$dateTo."' OR DATE(stocker_input.updated_at) <= '".$dateTo."' OR DATE(stocker_input.created_at) <= '".$dateTo."')
                 GROUP BY
                     stocker_input.form_cut_id,
@@ -1966,7 +1965,7 @@ class StockerController extends Controller
     }
 
     public function printMonthCount(Request $request) {
-        ini_set("maximum_execution_time", 36000);
+        ini_set("maximum_execution_time", 360000);
 
         $validatedRequest = $request->validate(([
             "qty" => "required|numeric|min:1"
