@@ -387,12 +387,15 @@
                                                 <td>
                                                     <div class="d-flex gap-3">
                                                         <button type="button" class="btn btn-sm btn-danger" onclick="printNumbering({{ $index }});" {{ $numGeneratable ? '' : 'disabled' }}>
-                                                            <i class="fa fa-print fa-s"></i>
+                                                            <i class="fa fa-print fa-s"></i> {{-- Numbering --}}
                                                         </button>
+                                                        {{-- <button type="button" class="btn btn-sm btn-primary" onclick="printNumbering({{ $index }}, 'month_count');" {{ $numGeneratable ? '' : 'disabled' }}>
+                                                            <i class="fa fa-print fa-s"></i> Month Count
+                                                        </button> --}}
                                                         <div class="form-check mt-1 mb-0">
                                                             <input class="form-check-input generate-num-check" type="checkbox" name="generate_num[{{ $index }}]" id="generate_num_{{ $index }}" value="{{ $ratio->so_det_id }}" {{ $numGeneratable ? '' : 'disabled' }}>
                                                             <label class="form-check-label" for="flexCheckDefault">
-                                                                Generate Numbering
+                                                                Select
                                                             </label>
                                                         </div>
                                                     </div>
@@ -406,8 +409,10 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="d-flex justify-content-end p-3">
-                        <button type="button" class="btn btn-danger btn-sm w-auto" onclick="generateCheckedNumbering()"><i class="fa fa-print"></i> Generate Checked Numbering</button>
+                    <div class="d-flex justify-content-end gap-3 p-3">
+                        <button type="button" class="btn btn-danger btn-sm w-auto" onclick="generateCheckedNumbering()"><i class="fa fa-print"></i> Generate Numbering</button>
+                        {{-- <button type="button" class="btn btn-primary btn-sm w-auto" onclick="generateCheckedNumbering('month_count')"><i class="fa fa-print"></i> Generate Month Count</button>
+                        <button type="button" class="btn btn-sb btn-sm w-auto" onclick="generateCheckedNumbering('both')"><i class="fa fa-print"></i> Generate All</button> --}}
                     </div>
                 </div>
             </form>
@@ -754,10 +759,12 @@
             }
         }
 
-        function printNumbering(index) {
+        function printNumbering(index, type=null) {
             generating = true;
 
             let stockerForm = new FormData(document.getElementById("stocker-form"));
+
+            stockerForm.append("type", type);
 
             let no_ws = document.getElementById("no_ws").value;
             let style = document.getElementById("style").value;
@@ -817,7 +824,7 @@
             });
         }
 
-        function generateCheckedNumbering() {
+        function generateCheckedNumbering(type = null) {
             generating = true;
 
             let generateNumberingCheck = document.getElementsByClassName('generate-num-check');
@@ -831,6 +838,8 @@
 
             if (checkedCount > 0) {
                 let stockerForm = new FormData(document.getElementById("stocker-form"));
+
+                stockerForm.append('type', $type);
 
                 let no_ws = document.getElementById("no_ws").value;
                 let style = document.getElementById("style").value;

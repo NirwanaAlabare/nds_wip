@@ -464,6 +464,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/datatable_list_part/{id?}', 'datatable_list_part')->name('stocker-datatable_list_part');
         Route::get('/get_proses', 'get_proses')->name('stocker-get_proses');
         Route::post('/store_part_secondary', 'store_part_secondary')->name('stocker-store_part_secondary');
+
+        // stocker list
+        Route::get('/stocker-list', 'stockerList')->name('stocker-list');
+        Route::get('/stocker-list/numbering', 'stockerListNumbering')->name('stocker-list-numbering');
+
+        // month count
+        Route::get('/month-count', 'customMonthCount')->name('month-count');
+        Route::post('/month-count/print', 'printMonthCount')->name('print-month-count');
     });
 
     // DC :

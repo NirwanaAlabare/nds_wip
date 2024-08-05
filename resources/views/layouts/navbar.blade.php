@@ -354,15 +354,15 @@
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @stocker
                                 <li>
-                                    <a href="{{ route('stocker-part') }}"
-                                        class="dropdown-item {{ $subPage == 'part' ? 'active' : '' }}"> Part <i
-                                            class="fas fa-th fa-sm"></i>
+                                    <a href="{{ route('stocker-part') }}" class="dropdown-item {{ $subPage == 'part' ? 'active' : '' }}"> Part <i class="fas fa-th fa-sm"></i>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('stocker') }}"
-                                        class="dropdown-item {{ $subPage == 'stocker' ? 'active' : '' }}"> Stocker <i
-                                            class="fas fa-ticket-alt"></i>
+                                    <a href="{{ route('stocker') }}" class="dropdown-item {{ $subPage == 'stocker' ? 'active' : '' }}"> Stocker <i class="fas fa-ticket-alt"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('stocker-list') }}" class="dropdown-item {{ $subPage == 'stocker-list' ? 'active' : '' }}"> Stocker List <i class="fa-solid fa-note-sticky"></i>
                                     </a>
                                 </li>
                             @endstocker
