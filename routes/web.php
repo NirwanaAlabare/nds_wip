@@ -97,9 +97,12 @@ use App\Http\Controllers\FGStokLaporanController;
 use App\Http\Controllers\FGStokMutasiController;
 use App\Http\Controllers\KonfPemasukanController;
 use App\Http\Controllers\KonfPengeluaranController;
+use App\Http\Controllers\TransferBpbController;
+
+use App\Http\Controllers\PPICDashboardController;
+
 use App\Http\Controllers\PPIC_MasterSOController;
 use App\Http\Controllers\PPIC_LaporanTrackingController;
-use App\Http\Controllers\TransferBpbController;
 
 use App\Http\Controllers\PackingDashboardController;
 
@@ -1167,6 +1170,14 @@ Route::middleware('auth')->group(function () {
 
 
     // PPIC
+
+    // Dashboard
+    Route::controller(PPICDashboardController::class)->middleware('packing')->group(function () {
+        Route::get('/dashboard_ppic', 'dashboard_ppic')->name('dashboard-ppic');
+        Route::get('/show_tot_dash_ppic', 'show_tot_dash_ppic')->name('show_tot_dash_ppic');
+        Route::get('/get_data_dash_ppic', 'get_data_dash_ppic')->name('get_data_dash_ppic');
+    });
+
     // Master
     Route::controller(PPIC_MasterSOController::class)->prefix("master-so-ppic")->middleware('packing')->group(function () {
         Route::get('/', 'index')->name('master-so');
@@ -1281,11 +1292,6 @@ Route::get('/dashboard-fg-stock', function () {
     return view('dashboard', ['page' => 'dashboard-fg-stock']);
 })->middleware('auth')->name('dashboard-fg-stock');
 
-// //Packing
-// Route::get('/dashboard-packing', function () {
-//     return view('dashboard', ['page' => 'dashboard-packing']);
-// })->middleware('auth')->name('dashboard-packing');
-
 //Finish Good
 Route::get('/dashboard-finish-good', function () {
     return view('dashboard', ['page' => 'dashboard-finish-good']);
@@ -1300,11 +1306,6 @@ Route::get('/dashboard-report-doc', function () {
 Route::get('/dashboard-ga', function () {
     return view('dashboard', ['page' => 'dashboard-ga']);
 })->middleware('auth')->name('dashboard-ga');
-
-//PPIC
-Route::get('/dashboard-ppic', function () {
-    return view('dashboard', ['page' => 'dashboard-ppic']);
-})->middleware('auth')->name('dashboard-ppic');
 
 Route::get('/dashboard-mut-karyawan', function () {
     return view('dashboard', ['page' => 'dashboard-mut-karyawan']);
