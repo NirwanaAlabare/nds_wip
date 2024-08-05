@@ -1925,8 +1925,8 @@ class StockerController extends Controller
                     stocker_input.shade,
                     stocker_input.ratio,
                     CONCAT(MIN(stocker_input.range_awal), '-', MIN(stocker_input.range_akhir)) stocker_range,
-                    COALESCE(stocker_numbering.year_month, '-') numbering_month,
-                    COALESCE(CONCAT(MIN(stocker_numbering.year_month_number), '-', MAX(stocker_numbering.year_month_number)), '-') numbering_range
+                    '-' numbering_month,
+                    '-' numbering_range
                 FROM
                     stocker_input
                 LEFT JOIN
@@ -1937,10 +1937,9 @@ class StockerController extends Controller
                     master_sb_ws on master_sb_ws.id_so_det = stocker_input.so_det_id
                 LEFT JOIN
                     form_cut_input on form_cut_input.id = stocker_input.form_cut_id
-                LEFT JOIN
-                    stocker_numbering ON stocker_numbering.form_cut_id = stocker_input.form_cut_id and stocker_input.so_det_id = stocker_numbering.so_det_id and stocker_numbering.number >= stocker_input.range_awal and stocker_numbering.number <= stocker_input.range_akhir
                 WHERE
                     (form_cut_input.cancel is not null or form_cut_input.cancel != 'Y') AND
+
                     (DATE(form_cut_input.waktu_mulai) <= '".$dateTo."' OR DATE(form_cut_input.waktu_selesai) <= '".$dateTo."' OR DATE(stocker_input.updated_at) <= '".$dateTo."' OR DATE(stocker_input.created_at) <= '".$dateTo."')
                 GROUP BY
                     stocker_input.form_cut_id,
