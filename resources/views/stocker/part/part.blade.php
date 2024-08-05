@@ -92,7 +92,7 @@
                                 <input type="text" class="form-control" name="detail_part" id="detail_part_details" value="" readonly>
                             </div>
                         </div>
-                        <div class="col-md-6 col-lg-4">
+                        <div class="col-md-6 col-lg-4 d-none">
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
