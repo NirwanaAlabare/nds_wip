@@ -91,6 +91,18 @@ class ReportProductionController extends Controller
                         $query->whereRaw("data_detail_produksi_day.tgl_produksi = '".request('date')."' AND summary_line.summary_tanggal = '".request('date')."'");
                     }
                 }, true)->
+                filterColumn('sewing_line', function($query, $keyword) {
+                    $query->whereRaw("LOWER(CAST(data_detail_produksi.sewing_line as TEXT)) LIKE LOWER('%".$keyword."%')");
+                })->
+                filterColumn('chief_name', function($query, $keyword) {
+                    $query->whereRaw("LOWER(CAST(chief.nama as TEXT)) LIKE LOWER('%".$keyword."%')");
+                })->
+                filterColumn('leader_name', function($query, $keyword) {
+                    $query->whereRaw("LOWER(CAST(leader.nama as TEXT)) LIKE LOWER('%".$keyword."%')");
+                })->
+                filterColumn('admin_name', function($query, $keyword) {
+                    $query->whereRaw("LOWER(CAST(admin.nama as TEXT)) LIKE LOWER('%".$keyword."%')");
+                })->
                 filterColumn('no_ws', function($query, $keyword) {
                     $query->whereRaw("LOWER(CAST(data_produksi.no_ws as TEXT)) LIKE LOWER('%".$keyword."%')");
                 })->
@@ -102,6 +114,12 @@ class ReportProductionController extends Controller
                 })->
                 filterColumn('tanggal_delivery', function($query, $keyword) {
                     $query->whereRaw("LOWER(CAST(data_produksi.tanggal_delivery as TEXT)) LIKE LOWER('%".$keyword."%')");
+                })->
+                filterColumn('order_cfm_price', function($query, $keyword) {
+                    $query->whereRaw("LOWER(CAST(data_produksi.order_cfm_price as TEXT)) LIKE LOWER('%".$keyword."%')");
+                })->
+                filterColumn('kode_mata_uang', function($query, $keyword) {
+                    $query->whereRaw("LOWER(CAST(data_produksi.kode_mata_uang as TEXT)) LIKE LOWER('%".$keyword."%')");
                 })->
                 order(function ($query) {
                     $query->orderBy('data_detail_produksi_day.tgl_produksi','DESC')
