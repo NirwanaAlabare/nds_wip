@@ -18,7 +18,7 @@
                 <h5 class="card-title">
                     Stocker List Detail
                 </h5>
-                <button class="btn btn-primary"><i class="fa fa-reply"></i> Kembali ke Stocker List</button>
+                <a href="{{ route('stocker-list') }}" class="btn btn-primary"><i class="fa fa-reply"></i> Kembali ke Stocker List</a>
             </div>
         </div>
         <div class="card-body">
