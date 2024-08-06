@@ -137,7 +137,8 @@
                     data: 'color'
                 },
                 {
-                    data: 'part_details'
+                    data: 'part_details',
+                    searchable: false
                 },
                 {
                     data: 'total_lembar',
