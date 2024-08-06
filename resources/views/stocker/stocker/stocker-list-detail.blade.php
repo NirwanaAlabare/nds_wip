@@ -16,9 +16,10 @@
         <div class="card-header bg-sb text-light">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="card-title">
+                    <i class="fa-solid fa-note-sticky"></i>
                     Stocker List Detail
                 </h5>
-                <a href="{{ route('stocker-list') }}" class="btn btn-primary"><i class="fa fa-reply"></i> Kembali ke Stocker List</a>
+                <a href="{{ route('stocker-list') }}" class="btn btn-primary btn-sm"><i class="fa fa-reply"></i> Kembali ke Stocker List</a>
             </div>
         </div>
         <div class="card-body">
