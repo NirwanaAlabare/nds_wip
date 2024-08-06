@@ -272,7 +272,7 @@
         }
 
         function validatePrintMonthCount() {
-            if ($('#range_awal_month').val() > 0 && $('#range_awal_month').val() <= $('#range_akhir_month').val()) {
+            if (Number($('#range_awal_month').val()) > 0 && Number($('#range_awal_month').val()) <= Number($('#range_akhir_month').val())) {
                 return true;
             }
 
@@ -301,10 +301,10 @@
                         "form_cut_id": $('#form_cut_id').val(),
                         "so_det_id": $('#so_det_id').val(),
                         "size": $('#size').val(),
-                        "range_awal_stocker": $('#range_awal_stocker').val(),
-                        "range_akhir_stocker": $('#range_akhir_stocker').val(),
-                        "range_awal_month_count": $('#range_awal_month').val(),
-                        "range_akhir_month_count": $('#range_akhir_month').val(),
+                        "range_awal_stocker": Number($('#range_awal_stocker').val()),
+                        "range_akhir_stocker": Number($('#range_akhir_stocker').val()),
+                        "range_awal_month_count": Number($('#range_awal_month').val()),
+                        "range_akhir_month_count": Number($('#range_akhir_month').val()),
                     },
                     xhrFields:
                     {
