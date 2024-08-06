@@ -68,40 +68,6 @@
         </div>
     </div>
 
-    {{-- Stocker List Modal --}}
-    <div class="modal fade" id="stockerListModal" tabindex="-1" aria-labelledby="stockerListModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Stocker List</h5>
-                </div>
-                <div class="modal-body">
-                    <div class="table-responsive">
-                        <form action="#" method="post" id="stocker-form">
-                            <table class="table table-sm">
-                                <thead>
-                                    <th>No. WS</th>
-                                    <th>Color</th>
-                                    <th>Size</th>
-                                    <th>Dest</th>
-                                    <th>Group</th>
-                                    <th>Shade</th>
-                                    <th>Ratio</th>
-                                    <th>Number</th>
-                                    <th>Month</th>
-                                    <th>Month Number</th>
-                                    <th>Print</th>
-                                </thead>
-                                <tbody>
-                                </tbody>
-                            </table>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Print Numbers Modal -->
     <div class="modal fade" id="printModal" tabindex="-1" aria-labelledby="printModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -124,10 +90,13 @@
                         <label class="form-label">Print Qty : </label>
                         <input class="form-control form-control-sm" type="number" name="number" id="print-qty" />
                     </div>
-                    <div class="mb-3" id="range-method" class="d-none">
+                    <div class="mb-3 d-none" id="range-method">
                         <label class="form-label">Print Range : </label>
-                        <input class="form-control form-control-sm" type="number" name="number" id="range-awal" />
-                        <input class="form-control form-control-sm" type="number" name="number" id="range-akhir" />
+                        <div class="d-flex gap-3">
+                            <input class="form-control form-control-sm" type="number" name="number" id="print-range-awal" />
+                            <span> - </span>
+                            <input class="form-control form-control-sm" type="number" name="number" id="print-range-akhir" />
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -166,14 +135,24 @@
             let oneWeeksBeforeYear = oneWeeksBefore.getFullYear();
             let oneWeeksBeforeFull = oneWeeksBeforeYear + '-' + oneWeeksBeforeMonth + '-' + oneWeeksBeforeDate;
 
+            $("#switch-method").prop("checked", false);
+
             $("#tgl-awal").val(oneWeeksBeforeFull).trigger("change");
+        });
+
+        var method = 'qty';
+
+        $("#printModal").on('hide.bs.modal', event => {
+            toQtyMethod();
+
+            $("#switch-method").prop("checked", false);
         });
 
         // Stocker Datatable
         let datatable = $("#datatable").DataTable({
             ordering: false,
             processing: true,
-            serverSide: false,
+            serverSide: true,
             ajax: {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -242,7 +221,14 @@
                 {
                     targets: [0],
                     render: (data, type, row, meta) => {
-                        return `<div class='d-flex gap-1 justify-content-center'><button type='button' class='btn btn-primary btn-sm' onclick='stockerListModal(`+JSON.stringify(row)+`)'><i class='fa fa-search-plus'></i></a></div>`;
+                        return "<div class='d-flex gap-1 justify-content-center'><a class='btn btn-primary btn-sm' href='{{ route('stocker-list-detail') }}/"+row.form_cut_id+"/"+row.so_det_id+"' target='_blank'><i class='fa fa-search-plus'></i></a></div>";
+                    }
+                },
+                // Stocker List
+                {
+                    targets: [1],
+                    render: (data, type, row, meta) => {
+                        return `<div style='width: 300px; overflow-x: auto;'>`+data+`</div>`;
                     }
                 },
                 // Form Hyperlink
@@ -348,64 +334,94 @@
         }
 
         function toQtyMethod() {
-            $('to-qty').removeClass('d-none');
-            $('to-range').addClass('d-none');
+            $('#to-qty').removeClass('d-none');
+            $('#to-range').addClass('d-none');
 
-            $('qty-method').removeClass('d-none');
-            $('range-method').addClass('d-none');
+            $('#qty-method').removeClass('d-none');
+            $('#range-method').addClass('d-none');
+
+            method = 'qty';
         }
 
         function toRangeMethod() {
-            $('to-range').removeClass('d-none');
-            $('to-qty').addClass('d-none');
+            $('#to-range').removeClass('d-none');
+            $('#to-qty').addClass('d-none');
 
-            $('range-method').removeClass('d-none');
-            $('qty-method').addClass('d-none');
+            $('#range-method').removeClass('d-none');
+            $('#qty-method').addClass('d-none');
+
+            method = 'range';
+        }
+
+        function validatePrintMonthCount() {
+            if (method == 'qty' && $('#print-qty').val() > 0) {
+                return true;
+            } else if (method == 'range' && $('#print-range-awal').val() > 0 && $('#print-range-awal').val() <= $('#print-range-akhir').val()) {
+                return true;
+            }
+
+            return false
         }
 
         function printMonthCount() {
-            generating = true;
+            if (validatePrintMonthCount()) {
+                generating = true;
 
-            Swal.fire({
-                title: 'Please Wait...',
-                html: 'Exporting Data...',
-                didOpen: () => {
-                    Swal.showLoading()
-                },
-                allowOutsideClick: false,
-            });
+                Swal.fire({
+                    title: 'Please Wait...',
+                    html: 'Exporting Data...',
+                    didOpen: () => {
+                        Swal.showLoading()
+                    },
+                    allowOutsideClick: false,
+                });
 
-            $.ajax({
-                url: '{{ route('print-month-count') }}',
-                type: 'post',
-                data: {
-                    qty: $("#print-qty").val()
-                },
-                xhrFields:
-                {
-                    responseType: 'blob'
-                },
-                success: function(res) {
-                    if (res) {
-                        console.log(res);
+                $.ajax({
+                    url: '{{ route('print-month-count') }}',
+                    type: 'post',
+                    data: {
+                        method: method,
+                        qty: $("#print-qty").val(),
+                        rangeAwal: $("#print-range-awal").val(),
+                        rangeAkhir: $("#print-range-akhir").val(),
+                    },
+                    xhrFields:
+                    {
+                        responseType: 'blob'
+                    },
+                    success: function(res) {
+                        if (res) {
+                            console.log(res);
 
-                        var blob = new Blob([res], {type: 'application/pdf'});
-                        var link = document.createElement('a');
-                        link.href = window.URL.createObjectURL(blob);
-                        link.download = "Numbers.pdf";
-                        link.click();
+                            var blob = new Blob([res], {type: 'application/pdf'});
+                            var link = document.createElement('a');
+                            link.href = window.URL.createObjectURL(blob);
+                            link.download = "Numbers.pdf";
+                            link.click();
+                        }
+
+                        window.location.reload();
+
+                        generating = false;
+                    },
+                    error: function(jqXHR) {
+                        swal.close();
+
+                        generating = false;
                     }
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal',
+                    html: 'Qty/Range tidak valid.',
+                    allowOutsideClick: false,
+                });
+            }
+        }
 
-                    window.location.reload();
+        function stockerListDetail() {
 
-                    generating = false;
-                },
-                error: function(jqXHR) {
-                    console.log(jqXHR);
-
-                    generating = false;
-                }
-            });
         }
     </script>
 @endsection

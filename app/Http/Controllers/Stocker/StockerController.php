@@ -1924,7 +1924,7 @@ class StockerController extends Controller
                     stocker_input.group_stocker,
                     stocker_input.shade,
                     stocker_input.ratio,
-                    CONCAT(MIN(stocker_input.range_awal), '-', MIN(stocker_input.range_akhir)) stocker_range,
+                    CONCAT(MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir)) stocker_range,
                     '-' numbering_month,
                     '-' numbering_range
                 FROM
@@ -1939,13 +1939,11 @@ class StockerController extends Controller
                     form_cut_input on form_cut_input.id = stocker_input.form_cut_id
                 WHERE
                     (form_cut_input.cancel is not null or form_cut_input.cancel != 'Y') AND
-
+                    (DATE(form_cut_input.waktu_mulai) >= '".$dateFrom."' OR DATE(form_cut_input.waktu_selesai) >= '".$dateFrom."' OR DATE(stocker_input.updated_at) >= '".$dateFrom."' OR DATE(stocker_input.created_at) >= '".$dateFrom."') AND
                     (DATE(form_cut_input.waktu_mulai) <= '".$dateTo."' OR DATE(form_cut_input.waktu_selesai) <= '".$dateTo."' OR DATE(stocker_input.updated_at) <= '".$dateTo."' OR DATE(stocker_input.created_at) <= '".$dateTo."')
                 GROUP BY
                     stocker_input.form_cut_id,
-                    stocker_input.so_det_id,
-                    stocker_input.group_stocker,
-                    stocker_input.ratio
+                    stocker_input.so_det_id
                 ORDER BY
                     stocker_input.updated_at desc,
                     stocker_input.created_at desc,
@@ -1959,6 +1957,144 @@ class StockerController extends Controller
         return view("stocker.stocker.stocker-list", ["page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "stocker-list"]);
     }
 
+    public function stockerListDetail($form_cut_id, $so_det_id) {
+        if ($form_cut_id && $so_det_id) {
+            $months = [['angka' => '01','nama' => 'Januari'],['angka' => '02','nama' => 'Februari'],['angka' => '03','nama' => 'Maret'],['angka' => '04','nama' => 'April'],['angka' => '05','nama' => 'Mei'],['angka' => '06','nama' => 'Juni'],['angka' => '07','nama' => 'Juli'],['angka' => '08','nama' => 'Agustus'],['angka' => '09','nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
+            $years = array_reverse(range(1999, date('Y')));
+
+            $availableMonthCount = MonthCount::selectRaw("
+                    month_year,
+                    month_year_number
+                ")->
+                whereRaw('number IS NULL')->
+                whereRaw('form_cut_id IS NULL')->
+                whereRaw('so_det_id IS NULL')->
+                groupBy('month_year')->
+                get();
+
+            $stockerList = DB::select("
+                    SELECT
+                        GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker) id_qr_stocker,
+                        GROUP_CONCAT(DISTINCT master_part.nama_part) part,
+                        stocker_input.form_cut_id,
+                        stocker_input.act_costing_ws,
+                        stocker_input.so_det_id,
+                        master_sb_ws.styleno style,
+                        master_sb_ws.color,
+                        master_sb_ws.size,
+                        master_sb_ws.dest,
+                        form_cut_input.no_form,
+                        form_cut_input.no_cut,
+                        stocker_input.group_stocker,
+                        stocker_input.shade,
+                        stocker_input.ratio,
+                        MIN(stocker_input.range_awal) range_awal,
+                        MAX(stocker_input.range_akhir) range_akhir,
+                        CONCAT(MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir)) stocker_range
+                    FROM
+                        stocker_input
+                    LEFT JOIN
+                        part_detail on part_detail.id = stocker_input.part_detail_id
+                    LEFT JOIN
+                        master_part on master_part.id = part_detail.master_part_id
+                    LEFT JOIN
+                        master_sb_ws on master_sb_ws.id_so_det = stocker_input.so_det_id
+                    LEFT JOIN
+                        form_cut_input on form_cut_input.id = stocker_input.form_cut_id
+                    WHERE
+                        (form_cut_input.cancel is not null or form_cut_input.cancel != 'Y') AND
+                        stocker_input.form_cut_id = '".$form_cut_id."' AND
+                        stocker_input.so_det_id = '".$so_det_id."'
+                    GROUP BY
+                        stocker_input.form_cut_id,
+                        stocker_input.so_det_id
+                    ORDER BY
+                        stocker_input.updated_at desc,
+                        stocker_input.created_at desc,
+                        form_cut_input.waktu_selesai desc,
+                        form_cut_input.waktu_mulai desc
+                    LIMIT 1
+                ");
+
+            if ($stockerList[0]) {
+                $stockerListNumber = MonthCount::selectRaw("
+                    month_count.id_month_year,
+                    month_count.number,
+                    month_count.month_year,
+                    month_count.month_year_number,
+                    master_sb_ws.size,
+                    master_sb_ws.dest
+                ")->
+                leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "month_count.so_det_id")->
+                whereRaw("
+                    month_count.form_cut_id = '".$form_cut_id."' and
+                    month_count.so_det_id = '".$so_det_id."'
+                ")->
+                get();
+
+                return view("stocker.stocker.stocker-list-detail", ["page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "stocker-list", "availableMonthCount" => $availableMonthCount, "stockerList" => $stockerList[0], "stockerListNumber" => $stockerListNumber, "months" => $months, "years" => $years]);
+            }
+        }
+
+        return redirect()->route('stocker-list');
+    }
+
+    public function setMonthCountNumber(Request $request) {
+        $validatedRequest = $request->validate([
+            "month" => 'required',
+            "year" => 'required',
+            "form_cut_id" => 'required',
+            "so_det_id" => 'required',
+            "size" => 'required',
+            "range_awal_stocker" => 'required',
+            "range_akhir_stocker" => 'required',
+            "range_awal_month_count" => 'required',
+            "range_akhir_month_count" => 'required',
+        ]);
+
+        if ($validatedRequest) {
+            if ($validatedRequest['range_awal_month_count'] > 0 && $validatedRequest['range_awal_month_count'] <= $validatedRequest['range_akhir_month_count']) {
+                $upsertData = [];
+
+                $n = 0;
+                for ($i = $validatedRequest['range_awal_month_count']; $i <= $validatedRequest['range_akhir_month_count']; $i++) {
+                    array_push($upsertData, [
+                        "id_month_year" => $validatedRequest['year']."-".$validatedRequest['month']."_".$i,
+                        "month_year" => $validatedRequest['year']."-".$validatedRequest['month'],
+                        "month_year_number" => $i,
+                        "form_cut_id" => $validatedRequest['form_cut_id'],
+                        "so_det_id" => $validatedRequest['so_det_id'],
+                        "size" => $validatedRequest['size'],
+                        "number" => $validatedRequest['range_awal_stocker']+$n,
+                        "created_at" => Carbon::now(),
+                        "updated_at" => Carbon::now(),
+                    ]);
+
+                    $n++;
+                }
+
+                if (count($upsertData) > 0) {
+                    MonthCount::upsert($upsertData, ['id_month_year', 'month_year', 'month_year_number'], ['form_cut_id', 'so_det_id', 'size', 'number', 'created_at', 'updated_at']);
+
+                    $customPaper = array(0, 0, 35.35, 110.90);
+                    $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearmonth-1', ["data" => $upsertData])->setPaper($customPaper);
+
+                    $path = public_path('pdf/');
+                    $fileName = str_replace("/", "-", ('Month Count.pdf'));
+                    $pdf->save($path . '/' . str_replace("/", "_", $fileName));
+                    $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
+
+                    return response()->download($generatedFilePath);
+                }
+            }
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Data kosong",
+        );
+    }
+
     public function customMonthCount() {
         return view("stocker.stocker.print-month-count", ["page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "stocker-list"]);
     }
@@ -1966,17 +2102,18 @@ class StockerController extends Controller
     public function printMonthCount(Request $request) {
         ini_set("maximum_execution_time", 360000);
 
-        $validatedRequest = $request->validate(([
-            "qty" => "required|numeric|min:1"
-        ]));
+        $method = $request->method ? $request->method : 'qty';
+        $qty = $request->qty ? $request->qty : 0;
+        $rangeAwal = $request->rangeAwal ? $request->rangeAwal : 0;
+        $rangeAkhir = $request->rangeAkhir ? $request->rangeAkhir : 0;
 
-        if ($validatedRequest['qty'] > 0) {
+        if ($method == 'qty' && $qty > 0) {
             $insertData = [];
 
             $monthCount = MonthCount::select("month_year_number")->where("month_year", Carbon::now()->format('Y-m'))->orderBy("month_year_number", "desc")->first();
             $monthCountNumber = $monthCount ? $monthCount->month_year_number + 1 : 1;
 
-            for ($i = 0; $i < $validatedRequest['qty']; $i++) {
+            for ($i = 0; $i < $qty; $i++) {
                 array_push($insertData, [
                     "id_month_year" => Carbon::now()->format('Y-m')."_".$monthCountNumber,
                     "month_year" => Carbon::now()->format('Y-m'),
@@ -2006,6 +2143,32 @@ class StockerController extends Controller
                 "status" => 400,
                 "message" => "Something went wrong",
             );
+        } else if ($method == 'range' && $rangeAwal > 0 && $rangeAkhir > 0 && $rangeAwal <= $rangeAkhir) {
+            $upsertData = [];
+
+            for ($i = $rangeAwal; $i <= $rangeAkhir; $i++) {
+                array_push($upsertData, [
+                    "id_month_year" => Carbon::now()->format('Y-m')."_".$i,
+                    "month_year" => Carbon::now()->format('Y-m'),
+                    "month_year_number" => $i,
+                    "created_at" => Carbon::now(),
+                    "updated_at" => Carbon::now(),
+                ]);
+            }
+
+            if (count($upsertData) > 0) {
+                MonthCount::upsert($upsertData, ['id_month_year', 'month_year', 'month_year_number'], ['created_at', 'updated_at']);
+
+                $customPaper = array(0, 0, 35.35, 110.90);
+                $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearmonth-1', ["data" => $upsertData])->setPaper($customPaper);
+
+                $path = public_path('pdf/');
+                $fileName = str_replace("/", "-", ('Month Count.pdf'));
+                $pdf->save($path . '/' . str_replace("/", "_", $fileName));
+                $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
+
+                return response()->download($generatedFilePath);
+            }
         }
 
         return array(
@@ -2013,5 +2176,19 @@ class StockerController extends Controller
             "message" => "Data kosong",
         );
     }
+
+    // public function printMonthCountChecked(Request $request) {
+    //     $checkedSize = collect($request['generate_num']);
+
+    //     $checkedSizeKeys = $checkedSize->keys();
+
+    //     $n = 0;
+    //     foreach ($checkedSizeKeys as $index) {
+    //         $rangeAwal = $request['range_awal'][$index];
+    //         $rangeAkhir = $request['range_akhir'][$index] + 1;
+
+    //         $now = Carbon::now();
+    //     }
+    // }
 }
 
