@@ -354,16 +354,16 @@
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @stocker
                                 <li>
-                                    <a href="{{ route('stocker-part') }}" class="dropdown-item {{ $subPage == 'part' ? 'active' : '' }}"> Part <i class="fas fa-th fa-sm"></i>
-                                    </a>
+                                    <a href="{{ route('stocker-part') }}" class="dropdown-item {{ $subPage == 'part' ? 'active' : '' }}"> Part <i class="fas fa-th fa-sm"></i></a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('stocker') }}" class="dropdown-item {{ $subPage == 'stocker' ? 'active' : '' }}"> Stocker <i class="fas fa-ticket-alt"></i>
-                                    </a>
+                                    <a href="{{ route('stocker') }}" class="dropdown-item {{ $subPage == 'stocker' ? 'active' : '' }}"> Stocker <i class="fas fa-ticket-alt"></i></a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('stocker-list') }}" class="dropdown-item {{ $subPage == 'stocker-list' ? 'active' : '' }}"> Stocker List <i class="fa-solid fa-note-sticky"></i>
-                                    </a>
+                                    <a href="{{ route('stocker-list') }}" class="dropdown-item {{ $subPage == 'stocker-list' ? 'active' : '' }}"> Stocker List <i class="fa-solid fa-note-sticky"></i></a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('month-count') }}" class="dropdown-item {{ $subPage == 'month-count' ? 'active' : '' }}"> Month Number <i class="fa-solid fa-hashtag"></i></a>
                                 </li>
                             @endstocker
                         </ul>

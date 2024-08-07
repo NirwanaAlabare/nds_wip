@@ -467,11 +467,18 @@ Route::middleware('auth')->group(function () {
 
         // stocker list
         Route::get('/stocker-list', 'stockerList')->name('stocker-list');
-        Route::get('/stocker-list/numbering', 'stockerListNumbering')->name('stocker-list-numbering');
+        Route::get('/stocker-list/detail/{form_cut_id?}/{so_det_id?}', 'stockerListDetail')->name('stocker-list-detail');
+        Route::post('/stocker-list/set-month-count', 'setMonthCountNumber')->name('set-month-count-number');
 
         // month count
         Route::get('/month-count', 'customMonthCount')->name('month-count');
+        Route::get('/month-count/get-range', 'getRangeMonthCount')->name('get-range-month-count');
         Route::post('/month-count/print', 'printMonthCount')->name('print-month-count');
+        Route::post('/month-count/print-checked', 'printMonthCountChecked')->name('print-month-count-checked');
+
+        // get stocker
+        Route::get('/get-stocker', 'getStocker')->name('get-stocker');
+        Route::get('/get-stocker-month-count', 'getStockerMonthCount')->name('get-stocker-month-count');
     });
 
     // DC :
