@@ -58,7 +58,7 @@
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
                     <div class="info-box">
-                        <span class="info-box-icon bg-info elevation-1"><i class="fas fa-store-alt"></i></span>
+                        <span class="info-box-icon bg-info elevation-1"><i class="fas fa-user-tag"></i></span>
                         <div class="info-box-content">
                             <span class="info-box-text">Total Buyer</span>
                             <span class="info-box-number">
@@ -81,10 +81,49 @@
             </div>
         </div>
     </div>
-
-    {{-- <div id="chartContainer" style="height: 370px; width: 100%;"></div> --}}
     <div class="card">
         <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="p-2 bd-highlight">
+                    <h5 class="card-title fw-bold mb-0 text-center">Shipment Hari Ini</h5>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                        <thead class="table-primary">
+                            <tr style='text-align:center; vertical-align:middle'>
+                                <th>Buyer</th>
+                                <th>PO</th>
+                                <th>WS</th>
+                                <th>Color</th>
+                                <th>Style</th>
+                                <th>Qty PO</th>
+                                <th>Qty Packing Out</th>
+                            </tr>
+                        </thead>
+                        <tfoot>
+                            <tr>
+                                <th colspan="5"></th>
+                                <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                        id = 'total_qty_po'> </th>
+                                <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                        id = 'total_qty_p_out'> </th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="p-2 bd-highlight">
+                    <h5 class="card-title fw-bold mb-0 text-center">Summary Order</h5>
+                </div>
+            </div>
             <div class="card-body">
                 <div id="chart" style="height: 370px; width: 100%;"></div>
             </div>
@@ -223,5 +262,80 @@
                 },
             });
         };
+
+        let datatable = $("#datatable").DataTable({
+            "footerCallback": function(row, data, start, end, display) {
+                var api = this.api(),
+                    data;
+
+                // converting to interger to find total
+                var intVal = function(i) {
+                    return typeof i === 'string' ?
+                        i.replace(/[\$,]/g, '') * 1 :
+                        typeof i === 'number' ?
+                        i : 0;
+                };
+
+                // computing column Total of the complete result
+                var sumTotalPO = api
+                    .column(5)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalTr = api
+                    .column(6)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+
+                // Update footer by showing the total with the reference of the column index
+                $(api.column(0).footer()).html('Total');
+                $(api.column(5).footer()).html(sumTotalPO);
+                $(api.column(6).footer()).html(sumTotalTr);
+            },
+
+            ordering: true,
+            processing: true,
+            serverSide: true,
+            paging: false,
+            searching: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
+            ajax: {
+                url: '{{ route('show_data_dash_ship_hr_ini') }}',
+            },
+            columns: [{
+                    data: 'buyer'
+
+                },
+                {
+                    data: 'po'
+
+                }, {
+                    data: 'ws'
+                },
+                {
+                    data: 'color'
+                },
+                {
+                    data: 'styleno'
+                },
+                {
+                    data: 'qty_po'
+                },
+                {
+                    data: 'qty_packing_out'
+                },
+            ],
+            columnDefs: [{
+                "className": "align-middle",
+                "targets": "_all"
+            }, ]
+        });
     </script>
 @endsection
