@@ -849,10 +849,8 @@
                     }
                 } else {
                     for (let i = 0; i < tmpDcStockCheck.length; i++) {
-                        if (tmpDcStockCheck[i].getAttribute('data-tujuan-tempat-proses') == tmpDcStockCheck[0].getAttribute('data-tujuan-tempat-proses')) {
-                            tmpDcStockCheck[i].checked = false;
-                            tmpDcStockCheck[i].removeAttribute('disabled');
-                        }
+                        tmpDcStockCheck[i].checked = false;
+                        tmpDcStockCheck[i].removeAttribute('disabled');
                     }
                 }
 

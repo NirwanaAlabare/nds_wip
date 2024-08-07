@@ -52,25 +52,25 @@
                         <input type="text" class="form-control" name="act_costing_ws" id="act_costing_ws" value="" readonly>
                     </div>
                 </div>
-                <div class="col-md-3 ">
+                <div class="col-sm-6 col-md-3">
                     <div class="mb-3">
                         <label class="form-label">Color</label>
                         <input type="text" class="form-control" name="color" id="color" value="" readonly>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-sm-6 col-md-3">
                     <div class="mb-3">
                         <label class="form-label">Size</label>
                         <input type="text" class="form-control" name="size" id="size" value="" readonly>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-sm-6 col-md-3">
                     <div class="mb-3">
                         <label class="form-label">No. Form</label>
                         <input type="text" class="form-control" name="no_form" id="no_form" value="" readonly>
                     </div>
                 </div>
-                <div class="col-md-3 ">
+                <div class="col-sm-6 col-md-3 ">
                     <div class="mb-3">
                         <label class="form-label">Part</label>
                         <input type="text" class="form-control" name="part" id="part" value="" readonly>
@@ -100,7 +100,7 @@
                 <div class="col-md-3">
                     <div class="mb-3">
                         <div class="row align-items-end">
-                            <div class="col-md-6">
+                            <div class="col-sm-6 col-md-6">
                                 <label class="form-label">Bulan</label>
                                 <select class="form-select select2bs4" name="month_year_month" id="month_year_month" onchange="getRangeMonthCount()">
                                     @foreach ($months as $month)
@@ -108,7 +108,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-sm-6 col-md-6">
                                 <label class="form-label">Tahun</label>
                                 <select class="form-select select2bs4" name="month_year_year" id="month_year_year" onchange="getRangeMonthCount()">
                                     @foreach ($years as $year)
@@ -436,77 +436,84 @@
         function setMonthCountNumber() {
             if (Number($('#print_qty').val()) > Number($('#qty').val())) {
                 Swal.fire({
+                    icon: "info",
                     title: "Konfirmasi",
                     html: "Qty Number melebihi Qty Stocker. Lanjut ?",
                     showDenyButton: true,
-                    showCancelButton: true,
+                    showCancelButton: false,
                     confirmButtonText: "Lanjut",
                     denyButtonText: "Batal"
                 }).then((result) => {
-                    /* Read more about isConfirmed, isDenied below */
                     if (result.isConfirmed) {
-                        if (validatePrintMonthCount()) {
-                            generating = true;
-
-                            Swal.fire({
-                                title: 'Please Wait...',
-                                html: 'Exporting Data...',
-                                didOpen: () => {
-                                    Swal.showLoading()
-                                },
-                                allowOutsideClick: false,
-                            });
-
-                            $.ajax({
-                                url: '{{ route('set-month-count-number') }}',
-                                type: 'post',
-                                data: {
-                                    "month": $('#month_year_month').val(),
-                                    "year": $('#month_year_year').val(),
-                                    "form_cut_id": $('#form_cut_id').val(),
-                                    "so_det_id": $('#so_det_id').val(),
-                                    "size": $('#size').val(),
-                                    "range_awal_stocker": Number($('#range_awal_stocker').val()),
-                                    "range_akhir_stocker": Number($('#range_akhir_stocker').val()),
-                                    "range_awal_month_count": Number($('#range_awal').val()),
-                                    "range_akhir_month_count": Number($('#range_akhir').val()),
-                                },
-                                xhrFields:
-                                {
-                                    responseType: 'blob'
-                                },
-                                success: function(res) {
-                                    if (res) {
-                                        console.log(res);
-
-                                        var blob = new Blob([res], {type: 'application/pdf'});
-                                        var link = document.createElement('a');
-                                        link.href = window.URL.createObjectURL(blob);
-                                        link.download = "Numbers.pdf";
-                                        link.click();
-                                    }
-
-                                    window.location.reload();
-
-                                    generating = false;
-                                },
-                                error: function(jqXHR) {
-                                    swal.close();
-
-                                    generating = false;
-                                }
-                            });
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Gagal',
-                                html: 'Qty/Range tidak valid.',
-                                allowOutsideClick: false,
-                            });
-                        }
+                        setMonthCountNumberAct();
                     } else if (result.isDenied) {
                         Swal.fire("Input dibatalkan", "", "info");
                     }
+                });
+            } else {
+                setMonthCountNumberAct();
+            }
+        }
+
+        function setMonthCountNumberAct() {
+            /* Read more about isConfirmed, isDenied below */
+            if (validatePrintMonthCount()) {
+                generating = true;
+
+                Swal.fire({
+                    title: 'Please Wait...',
+                    html: 'Exporting Data...',
+                    didOpen: () => {
+                        Swal.showLoading()
+                    },
+                    allowOutsideClick: false,
+                });
+
+                $.ajax({
+                    url: '{{ route('set-month-count-number') }}',
+                    type: 'post',
+                    data: {
+                        "month": $('#month_year_month').val(),
+                        "year": $('#month_year_year').val(),
+                        "form_cut_id": $('#form_cut_id').val(),
+                        "so_det_id": $('#so_det_id').val(),
+                        "size": $('#size').val(),
+                        "range_awal_stocker": Number($('#range_awal_stocker').val()),
+                        "range_akhir_stocker": Number($('#range_akhir_stocker').val()),
+                        "range_awal_month_count": Number($('#range_awal').val()),
+                        "range_akhir_month_count": Number($('#range_akhir').val()),
+                    },
+                    xhrFields:
+                    {
+                        responseType: 'blob'
+                    },
+                    success: function(res) {
+                        if (res) {
+                            console.log("123",res);
+
+                            var blob = new Blob([res], {type: 'application/pdf'});
+                            var link = document.createElement('a');
+                            link.href = window.URL.createObjectURL(blob);
+                            link.download = "Numbers.pdf";
+                            link.click();
+                        }
+
+                        window.location.reload();
+
+                        generating = false;
+                    },
+                    error: function(jqXHR) {
+                        Swal.fire("Nomor stocker sudah mencapai "+$("#print_qty").val()+".", "", "info");
+
+                        generating = false;
+                    }
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal',
+                    html: 'Qty/Range tidak valid.',
+                    allowOutsideClick: false,
                 });
             }
         }
