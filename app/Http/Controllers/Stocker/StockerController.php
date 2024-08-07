@@ -2053,22 +2053,37 @@ class StockerController extends Controller
         ]);
 
         if ($validatedRequest) {
+            $currentData = MonthCount::selectRaw("
+                    number
+                ")->
+                where('form_cut_id', $validatedRequest['form_cut_id'])->
+                where('so_det_id', $validatedRequest['so_det_id'])->
+                orderBy('number')->
+                get();
+
             if ($validatedRequest['range_awal_month_count'] > 0 && $validatedRequest['range_awal_month_count'] <= $validatedRequest['range_akhir_month_count']) {
+
                 $upsertData = [];
 
                 $n = 0;
+                $n1 = 0;
                 for ($i = $validatedRequest['range_awal_month_count']; $i <= $validatedRequest['range_akhir_month_count']; $i++) {
-                    array_push($upsertData, [
-                        "id_month_year" => $validatedRequest['year']."-".$validatedRequest['month']."_".$i,
-                        "month_year" => $validatedRequest['year']."-".$validatedRequest['month'],
-                        "month_year_number" => $i,
-                        "form_cut_id" => $validatedRequest['form_cut_id'],
-                        "so_det_id" => $validatedRequest['so_det_id'],
-                        "size" => $validatedRequest['size'],
-                        "number" => $validatedRequest['range_awal_stocker']+$n,
-                        "created_at" => Carbon::now(),
-                        "updated_at" => Carbon::now(),
-                    ]);
+
+                    if ($currentData->where('number', $validatedRequest['range_awal_stocker']+$n)->count() < 1) {
+                        array_push($upsertData, [
+                            "id_month_year" => $validatedRequest['year']."-".$validatedRequest['month']."_".($validatedRequest['range_awal_month_count'] + $n1),
+                            "month_year" => $validatedRequest['year']."-".$validatedRequest['month'],
+                            "month_year_number" => ($validatedRequest['range_awal_month_count'] + $n1),
+                            "form_cut_id" => $validatedRequest['form_cut_id'],
+                            "so_det_id" => $validatedRequest['so_det_id'],
+                            "size" => $validatedRequest['size'],
+                            "number" => $validatedRequest['range_awal_stocker']+$n,
+                            "created_at" => Carbon::now(),
+                            "updated_at" => Carbon::now(),
+                        ]);
+
+                        $n1++;
+                    }
 
                     $n++;
                 }
@@ -2096,7 +2111,10 @@ class StockerController extends Controller
     }
 
     public function customMonthCount() {
-        return view("stocker.stocker.print-month-count", ["page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "stocker-list"]);
+        $months = [['angka' => '01','nama' => 'Januari'],['angka' => '02','nama' => 'Februari'],['angka' => '03','nama' => 'Maret'],['angka' => '04','nama' => 'April'],['angka' => '05','nama' => 'Mei'],['angka' => '06','nama' => 'Juni'],['angka' => '07','nama' => 'Juli'],['angka' => '08','nama' => 'Agustus'],['angka' => '09','nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
+        $years = array_reverse(range(1999, date('Y')));
+
+        return view("stocker.stocker.month-count", ["page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "month-count", "months" => $months,  "years" => $years]);
     }
 
     public function printMonthCount(Request $request) {
@@ -2174,6 +2192,91 @@ class StockerController extends Controller
         return array(
             "status" => 400,
             "message" => "Data kosong",
+        );
+    }
+
+    public function getStocker(Request $request) {
+        if ($request->stocker) {
+            $stockerData = Stocker::selectRaw("
+                    stocker_input.id_qr_stocker,
+                    stocker_input.form_cut_id,
+                    stocker_input.so_det_id,
+                    stocker_input.act_costing_ws,
+                    stocker_input.color,
+                    stocker_input.size,
+                    master_part.nama_part part,
+                    form_cut_input.no_form,
+                    COALESCE(stocker_input.qty_ply, stocker_input.qty_ply_mod) qty,
+                    stocker_input.range_awal,
+                    stocker_input.range_akhir
+                ")->
+                leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+                leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+                leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+                where("stocker_input.id_qr_stocker", $request->stocker)->
+                first();
+
+            if ($stockerData) {
+                return json_encode($stockerData);
+            }
+
+            return array(
+                "status" => "400",
+                "message" => "Stocker tidak ditemukan",
+            );
+        }
+
+        return array(
+            "status" => "400",
+            "message" => "Stocker tidak valid",
+        );
+    }
+
+    public function getStockerMonthCount(Request $request) {
+        $stockerListNumber = MonthCount::selectRaw("
+                month_count.id_month_year,
+                month_count.number,
+                month_count.month_year,
+                month_count.month_year_number,
+                master_sb_ws.size,
+                master_sb_ws.dest
+            ")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "month_count.so_det_id")->
+            whereRaw("
+                month_count.form_cut_id = '".$request->form_cut_id."' and
+                month_count.so_det_id = '".$request->so_det_id."'
+            ")->
+            get();
+
+        return Datatables::of($stockerListNumber)->toJson();
+    }
+
+    public function getRangeMonthCount(Request $request) {
+        if ($request->month && $request->year) {
+
+            $monthYear = $request->year."-".$request->month;
+
+            $availableMonthCount = MonthCount::selectRaw("
+                    month_year,
+                    month_year_number
+                ")->
+                where("month_count.month_year", $monthYear)->
+                whereRaw('number IS NULL')->
+                whereRaw('form_cut_id IS NULL')->
+                whereRaw('so_det_id IS NULL')->
+                orderBy('month_year_number', 'asc')->
+                first();
+
+            if ($availableMonthCount) {
+                return json_encode($availableMonthCount);
+            } else {
+                return json_encode(["month_year" => $monthYear, "month_year_number" => 1]);
+            }
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Bulan dan tahun tidak valid",
         );
     }
 

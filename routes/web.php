@@ -472,8 +472,13 @@ Route::middleware('auth')->group(function () {
 
         // month count
         Route::get('/month-count', 'customMonthCount')->name('month-count');
+        Route::get('/month-count/get-range', 'getRangeMonthCount')->name('get-range-month-count');
         Route::post('/month-count/print', 'printMonthCount')->name('print-month-count');
         Route::post('/month-count/print-checked', 'printMonthCountChecked')->name('print-month-count-checked');
+
+        // get stocker
+        Route::get('/get-stocker', 'getStocker')->name('get-stocker');
+        Route::get('/get-stocker-month-count', 'getStockerMonthCount')->name('get-stocker-month-count');
     });
 
     // DC :
