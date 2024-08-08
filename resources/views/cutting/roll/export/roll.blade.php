@@ -57,7 +57,7 @@
             <td>Reject</td>
             <td>Piping</td>
             <td>Short Roll</td>
-            <td>Ket</td>
+            <td>Remark</td>
             <td>Operator</td>
         </tr>
     </thead>
