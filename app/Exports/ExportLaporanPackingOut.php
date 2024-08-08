@@ -92,7 +92,7 @@ class ExportLaporanPackingOut implements FromView, WithEvents, ShouldAutoSize, W
     {
 
         $event->sheet->styleCells(
-            'A4:K' . $event->getConcernable()->rowCount,
+            'A4:L' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [
