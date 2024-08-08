@@ -76,6 +76,7 @@
                             <th>WS</th>
                             <th>Color</th>
                             <th>Size</th>
+                            <th>Dest</th>
                             <th>Total</th>
                             <th>User</th>
                             <th>Tgl. Input</th>
@@ -83,7 +84,7 @@
                     </thead>
                     <tfoot>
                         <tr>
-                            <th colspan="7"></th>
+                            <th colspan="8"></th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
                                     id = 'total_qty_chk'> </th>
                             <th>PCS</th>
@@ -161,7 +162,7 @@
 
                 // computing column Total of the complete result
                 var sumTotal = api
-                    .column(7)
+                    .column(8)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
@@ -169,7 +170,7 @@
 
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
-                $(api.column(7).footer()).html(sumTotal);
+                $(api.column(8).footer()).html(sumTotal);
             },
             ordering: false,
             processing: true,
@@ -207,6 +208,9 @@
                 },
                 {
                     data: 'size'
+                },
+                {
+                    data: 'dest'
                 },
                 {
                     data: 'tot'

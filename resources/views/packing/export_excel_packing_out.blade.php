@@ -3,10 +3,10 @@
 
 <table class="table">
     <tr>
-        <td colspan='11'>Laporan Hasil Scan</td>
+        <td colspan='12'>Laporan Hasil Scan</td>
     </tr>
     <tr>
-        <td colspan='11'>{{ date('d-M-Y', strtotime($from)) }} - {{ date('d-M-Y', strtotime($to)) }}
+        <td colspan='12'>{{ date('d-M-Y', strtotime($from)) }} - {{ date('d-M-Y', strtotime($to)) }}
         </td>
     </tr>
     <tr>
@@ -22,6 +22,7 @@
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">WS</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Color</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Size</th>
+            <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Dest</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Total</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">User</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Tgl. Input</th>
@@ -41,6 +42,7 @@
                 <td>{{ $item->ws }}</td>
                 <td>{{ $item->color }}</td>
                 <td>{{ $item->size }}</td>
+                <td>{{ $item->dest }}</td>
                 <td>{{ $item->tot }}</td>
                 <td>{{ $item->created_by }}</td>
                 <td>{{ $item->created_at }}</td>

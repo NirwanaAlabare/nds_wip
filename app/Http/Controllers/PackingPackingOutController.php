@@ -27,10 +27,11 @@ class PackingPackingOutController extends Controller
             m.color,
             m.size,
             m.ws,
+            o.dest,
             concat((DATE_FORMAT(o.tgl_trans,  '%d')), '-', left(DATE_FORMAT(o.tgl_trans,  '%M'),3),'-',DATE_FORMAT(o.tgl_trans,  '%Y')
             ) tgl_trans_fix,
             o.created_by,
-            o.created_at
+            max(o.created_at)created_at
             from packing_packing_out_scan o
             inner join ppic_master_so p on o.po = p.po and o.barcode = p.barcode
             inner join master_sb_ws m on p.id_so_det = m.id_so_det
