@@ -215,11 +215,6 @@
                     className: "text-nowrap"
                 }
             ],
-            rowsGroup: [
-                0,
-                1,
-                2
-            ],
         });
 
         function datatableReload() {
