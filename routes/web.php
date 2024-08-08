@@ -1191,6 +1191,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard_ppic', 'dashboard_ppic')->name('dashboard-ppic');
         Route::get('/show_tot_dash_ppic', 'show_tot_dash_ppic')->name('show_tot_dash_ppic');
         Route::get('/get_data_dash_ppic', 'get_data_dash_ppic')->name('get_data_dash_ppic');
+        Route::get('/show_data_dash_ship_hr_ini', 'show_data_dash_ship_hr_ini')->name('show_data_dash_ship_hr_ini');
     });
 
     // Master

@@ -102,4 +102,55 @@ group by month(tgl_shipment)
 ) b on a.bulan = b.bulan");
         return json_encode($data_order);
     }
+
+    public function show_data_dash_ship_hr_ini(Request $request)
+    {
+        $user = Auth::user()->name;
+        $tgl_skrg = date('Y-m-d');
+        if ($request->ajax()) {
+
+            $data_shp = DB::select("
+            SELECT
+            m.buyer,
+            concat((DATE_FORMAT(a.tgl_shipment,  '%d')), '-', left(DATE_FORMAT(a.tgl_shipment,  '%M'),3),'-',DATE_FORMAT(a.tgl_shipment,  '%Y')
+            ) tgl_shipment_fix,
+            a.po,
+            a.dest,
+            a.desc,
+            m.ws,
+            m.styleno,
+            m.color,
+            sum(a.qty_po) qty_po,
+            sum(coalesce(trf.qty_trf,0)) qty_trf,
+            sum(coalesce(pck.qty_packing_in,0)) qty_packing_in,
+            sum(coalesce(pck_out.qty_packing_out,0)) qty_packing_out
+            FROM ppic_master_so a
+            inner join master_sb_ws m on a.id_so_det = m.id_so_det
+            left join master_size_new msn on m.size = msn.size
+            left join
+            (
+                select id_ppic_master_so, coalesce(sum(qty),0) qty_trf from packing_trf_garment group by id_ppic_master_so
+            ) trf on trf.id_ppic_master_so = a.id
+            left join
+            (
+                select id_ppic_master_so, coalesce(sum(qty),0) qty_packing_in from packing_packing_in group by id_ppic_master_so
+            ) pck on pck.id_ppic_master_so = a.id
+            left join
+            (
+            select p.id, qty_packing_out from
+                (
+                select count(barcode) qty_packing_out,po, barcode, dest from packing_packing_out_scan
+                group by barcode, po, dest
+                ) a
+            inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po and a.dest = p.dest
+            group by p.id
+            ) pck_out on pck_out.id = a.id
+            where tgl_shipment = '$tgl_skrg'
+            group by po, color
+            ");
+            // dd($data_shp);
+
+            return DataTables::of($data_shp)->toJson();
+        }
+    }
 }
