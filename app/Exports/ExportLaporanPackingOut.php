@@ -55,6 +55,7 @@ class ExportLaporanPackingOut implements FromView, WithEvents, ShouldAutoSize, W
             m.color,
             m.size,
             m.ws,
+            o.dest,
             concat((DATE_FORMAT(o.tgl_trans,  '%d')), '-', left(DATE_FORMAT(o.tgl_trans,  '%M'),3),'-',DATE_FORMAT(o.tgl_trans,  '%Y')
             ) tgl_trans_fix,
             o.created_by,
@@ -63,7 +64,7 @@ class ExportLaporanPackingOut implements FromView, WithEvents, ShouldAutoSize, W
             inner join ppic_master_so p on o.po = p.po and o.barcode = p.barcode
             inner join master_sb_ws m on p.id_so_det = m.id_so_det
             where o.tgl_trans >= '$this->from' and o.tgl_trans <= '$this->to'
-            group by po, no_carton, tgl_trans, barcode
+            group by po, no_carton, tgl_trans, barcode, dest
             order by created_at desc
         ");
 
