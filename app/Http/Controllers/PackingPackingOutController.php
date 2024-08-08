@@ -27,6 +27,7 @@ class PackingPackingOutController extends Controller
             m.color,
             m.size,
             m.ws,
+            o.dest,
             concat((DATE_FORMAT(o.tgl_trans,  '%d')), '-', left(DATE_FORMAT(o.tgl_trans,  '%M'),3),'-',DATE_FORMAT(o.tgl_trans,  '%Y')
             ) tgl_trans_fix,
             o.created_by,
