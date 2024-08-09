@@ -30,7 +30,7 @@ class MasterDefectController extends Controller
             }
         }
 
-        return view("sewing.master-defect.master-defect", ["page" => "dashboard-sewing-eff", "subPageGroup" => "sewing-master", "subPage" => "sewing-master-defect-type"]);
+        return view("sewing.master-defect.master-defect", ["page" => "dashboard-sewing-eff", "subPageGroup" => "sewing-master", "subPage" => "master-defect"]);
     }
 
     /**

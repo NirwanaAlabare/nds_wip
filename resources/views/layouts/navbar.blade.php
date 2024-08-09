@@ -527,8 +527,7 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('master-defect') }}"
-                                        class="dropdown-item {{ $subPage == 'master-defect' ? 'active' : '' }}">
+                                    <a href="{{ route('master-defect') }}" class="dropdown-item {{ $subPage == 'master-defect' ? 'active' : '' }}">
                                         Master Defect <i class="fa-solid fa-circle-exclamation"></i>
                                     </a>
                                 </li>

@@ -159,14 +159,14 @@
                 <form action="{{ route('update-defect-area') }}" method="post" onsubmit="submitForm(this, event)">
                     @method('PUT')
                     <div class="modal-header bg-sb text-light">
-                        <h1 class="modal-title fs-5" id="editDefectAreaLabel"><i class="fa fa-edit"></i> Edit Defect Type</h1>
+                        <h1 class="modal-title fs-5" id="editDefectAreaLabel"><i class="fa fa-edit"></i> Edit Defect Area</h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         <input type="hidden" name="edit_id" id="edit_id">
                         <div class="mb-3">
                             <label class="form-label">Defect Area</label>
-                            <input type="text" class="form-control" name="edit_defect_type" id="edit_defect_type" value="">
+                            <input type="text" class="form-control" name="edit_defect_area" id="edit_defect_area" value="">
                         </div>
                     </div>
                     <div class="modal-footer">
