@@ -841,7 +841,7 @@ class MarkerController extends Controller
                     where('panel', $thisMarker->panel)->
                     whereRaw('(cancel != "Y" OR cancel IS NULL)')->
                     update([
-                        'urutan' => DB::raw('urutan + 1')
+                        'urutan_marker' => DB::raw('(urutan_marker + 1)')
                     ]);
             } else {
                 $afterMarker = Marker::where('act_costing_id', $thisMarker->act_costing_id)->
@@ -850,7 +850,7 @@ class MarkerController extends Controller
                     where('panel', $thisMarker->panel)->
                     whereRaw('(cancel != "Y" OR cancel IS NULL)')->
                     update([
-                        'urutan' => DB::raw('urutan - 1')
+                        'urutan_marker' => DB::raw('(urutan_marker - 1)')
                     ]);
             }
         }
