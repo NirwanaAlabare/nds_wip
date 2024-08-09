@@ -134,10 +134,10 @@
                             // Calculate mins avail summary and target summary
                             if (strtotime(date('Y-m-d H:i:s')) >= strtotime($date.' 16:00:00')) {
                                 $summaryMinsAvail = $minsAvail;
-                                // $summaryTarget = $planTarget;
+                                $summaryTarget = $planTarget;
                             } else {
                                 $summaryMinsAvail = $minsAvailNow;
-                                // $summaryTarget = $targetNow;
+                                $summaryTarget = $targetNow;
                             }
 
                             // Calculate efficiency
@@ -204,7 +204,7 @@
                         @endphp
                         <td colspan="5" class="fs-5 fw-bold text-center">Summary</td>
                         <td class="fs-5 fw-bold text-center">{{ num($summaryActual) }}</td>
-                        <td class="fs-5 fw-bold text-center">{{ $targetFromEfficiency > 0 ? num($targetFromEfficiency) : $summaryTarget }}</td>
+                        <td class="fs-5 fw-bold text-center">{{ num($summaryTarget) }}</td>
                         <td class="fs-5 fw-bold text-center">{{ num($cumulativeEfficiency) }} %</td>
                     </tr>
                 </tfoot>
