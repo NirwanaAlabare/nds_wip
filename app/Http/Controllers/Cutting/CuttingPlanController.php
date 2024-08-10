@@ -694,7 +694,7 @@ class CuttingPlanController extends Controller
         $thisStoredCutPlan = CutPlanOutput::selectRaw("
                 form_cut_input.no_form
             ")->
-            leftJoin("cutting_plan_form", "cutting_plan_output_form.cutting_plan_id", "=", "cutting_plan_output.id")->
+            leftJoin("cutting_plan_output_form", "cutting_plan_output_form.cutting_plan_id", "=", "cutting_plan_output.id")->
             leftJoin("form_cut_Input", "form_cut_input.no_form", "=", "cutting_plan_output_form.no_form")->
             where("cutting_plan_output.id", $request->id)->
             groupBy("form_cut_input.no_form")->
