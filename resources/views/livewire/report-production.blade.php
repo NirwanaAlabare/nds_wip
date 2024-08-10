@@ -122,7 +122,7 @@
                                 $totalReject += $reject;
                                 $totalActualThis = $rft + $rework;
                                 $totalActual += $totalActualThis;
-                                $minsProd += $totalActualThis * ($line->tgl_plan == $date ? ($line->smv) : 0);
+                                $minsProd += $totalActualThis * $line->smv;
                                 $minsAvail += ($line->tgl_plan == $date ? ($line->man_power) : 0) * ($line->tgl_plan == $date ? ($line->jam_kerja) : 0) * 60;
                             }
 
