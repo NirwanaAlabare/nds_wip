@@ -34,7 +34,7 @@ coalesce(s.tot_scan,0) tot_scan
 from
   (
 select a.po,
-max(a.no_carton)tot_karton,
+count(a.no_carton)tot_karton,
 count(IF(b.no_carton is not null,1,null)) tot_karton_isi,
 count(IF(b.no_carton is null,1,null)) tot_karton_kosong
 from  packing_master_carton a
@@ -106,7 +106,8 @@ where tgl_shipment >= '$tgl_awal' and tgl_shipment <= '$tgl_akhir'
         return view(
             'packing.packing_master_karton',
             [
-                'page' => 'dashboard-packing', "subPageGroup" => "packing-master-karton",
+                'page' => 'dashboard-packing',
+                "subPageGroup" => "packing-master-karton",
                 "subPage" => "master-karton",
                 "data_po" => $data_po,
                 "user" => $user,
@@ -125,12 +126,25 @@ where tgl_shipment >= '$tgl_awal' and tgl_shipment <= '$tgl_akhir'
         $total = $tot_skrg + $tot_input;
 
         for ($i = $tot_skrg_hit; $i <= $total; $i++) {
-            $insert = DB::insert(
-                "insert into packing_master_carton
-                    (po,no_carton,created_at,updated_at,created_by) values
-                    ('$po','$i','$timestamp','$timestamp','$user')
-                    "
+
+            $cek = DB::select(
+                "select count(id) id from packing_master_carton where po = '$po' and no_carton = '$i'"
             );
+            $cek_data = $cek[0]->id;
+            if ($cek_data != '1') {
+                $insert = DB::insert(
+                    "insert into packing_master_carton
+                        (po,no_carton,created_at,updated_at,created_by) values
+                        ('$po','$i','$timestamp','$timestamp','$user')
+                        "
+                );
+            } else {
+                return array(
+                    "status" => 201,
+                    "message" => 'Data Sudah Ada',
+                    "additional" => [],
+                );
+            }
         }
 
         if ($insert) {
@@ -140,6 +154,7 @@ where tgl_shipment >= '$tgl_awal' and tgl_shipment <= '$tgl_akhir'
                 "additional" => [],
             );
         }
+
         // }
     }
 

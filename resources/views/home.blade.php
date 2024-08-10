@@ -14,7 +14,8 @@
                                 <div class="card h-100">
                                     <div class="card-body">
                                         <div class="d-flex h-100 flex-column justify-content-between">
-                                            <img src="{{ asset('dist/img/track.png') }}" class="img-fluid p-3" alt="track image">
+                                            <img src="{{ asset('dist/img/track.png') }}" class="img-fluid p-3"
+                                                alt="track image">
                                             <p class="text-center fw-bold text-uppercase text-dark">Track</p>
                                         </div>
                                     </div>
@@ -26,7 +27,8 @@
                                 <div class="card h-100">
                                     <div class="card-body">
                                         <div class="d-flex h-100 flex-column justify-content-between">
-                                            <img src="{{ asset('dist/img/worksheet.png') }}" class="img-fluid p-3" alt="worksheet image">
+                                            <img src="{{ asset('dist/img/worksheet.png') }}" class="img-fluid p-3"
+                                                alt="worksheet image">
                                             <p class="text-center fw-bold text-uppercase text-dark">Worksheet</p>
                                         </div>
                                     </div>
@@ -148,17 +150,17 @@
 
                     <!-- warehouse -->
                     <!-- <div class="col-lg-2 col-md-3 col-sm-6">
-                        <a href="{{ route('dashboard-warehouse') }}" class="home-item">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <div class="d-flex h-100 flex-column justify-content-between">
-                                        <img src="{{ asset('dist/img/warehouse.png') }}" class="img-fluid p-3" alt="cutting image">
-                                        <p class="text-center fw-bold text-uppercase text-dark">Warehouse</p>
+                                <a href="{{ route('dashboard-warehouse') }}" class="home-item">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <div class="d-flex h-100 flex-column justify-content-between">
+                                                <img src="{{ asset('dist/img/warehouse.png') }}" class="img-fluid p-3" alt="cutting image">
+                                                <p class="text-center fw-bold text-uppercase text-dark">Warehouse</p>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div> -->
+                                </a>
+                            </div> -->
 
                     @warehouse
                         <div class="col-lg-2 col-md-3 col-sm-6">
@@ -209,7 +211,7 @@
                             </a>
                         </div>
 
-                        {{-- <div class="col-lg-2 col-md-3 col-sm-6">
+                        <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('dashboard-finish-good') }}" class="home-item">
                                 <div class="card h-100">
                                     <div class="card-body">
@@ -221,7 +223,7 @@
                                     </div>
                                 </div>
                             </a>
-                        </div> --}}
+                        </div>
                     @endpacking
 
                     <div class="col-lg-2 col-md-3 col-sm-6">
