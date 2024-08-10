@@ -537,19 +537,53 @@ class DashboardController extends Controller
                     tgl_plan tgl_produksi,
                     ROUND((SUM(IFNULL( rfts.rft, 0 )) / SUM((IFNULL( rfts.rft, 0 ) + IFNULL( defects.defect, 0 ) + IFNULL( reworks.rework, 0 ) + IFNULL( rejects.reject, 0 ))) * 100 ), 2) rft,
                     AVG(master_plan.target_effy) target_efficiency,
-                    ROUND((SUM(((IFNULL( rfts.rft, 0 ) + IFNULL( reworks.rework, 0 ))* master_plan.smv ))/SUM( master_plan.man_power * master_plan.jam_kerja * 60 ) * 100 ), 2) efficiency
+                    SUM(IFNULL( rfts.rft, 0 ) + IFNULL( reworks.rework, 0 )) + IFNULL( rfts_1.rft, 0 ) output,
+                    IFNULL( rfts_1.rft, 0 ) additional,
+                    GROUP_CONCAT(IFNULL( rfts_1.rft, 0 )) additional_output,
+                    SUM((IFNULL( rfts.rft, 0 ) + IFNULL( reworks.rework, 0 )) * master_plan.smv) mins_prod,
+                    IFNULL( rfts_1.mins_prod, 0 ) additional_mins_prod,
+                    SUM((IFNULL( rfts.rft, 0 ) + IFNULL( reworks.rework, 0 )) * master_plan.smv ) + IFNULL( rfts_1.mins_prod, 0 ) mins_prod_total,
+                    (SUM( master_plan.man_power * master_plan.jam_kerja ) * 60 ) mins_avail,
+                    (SUM((IFNULL( rfts.rft, 0 ) + IFNULL( reworks.rework, 0 )) * master_plan.smv ) + IFNULL( rfts_1.mins_prod, 0 ) / (SUM( master_plan.man_power * master_plan.jam_kerja ) * 60 )) * 100 efficiency
                 ")->
-                leftJoin(DB::raw("(SELECT count(rfts.id) rft, master_plan.id master_plan_id from output_rfts rfts inner join master_plan on master_plan.id = rfts.master_plan_id where (MONTH(rfts.updated_at) = '".$month."' AND YEAR(rfts.updated_at) = '".$year."') and status = 'NORMAL' and (MONTH(master_plan.tgl_plan) = '".$month."' AND YEAR(master_plan.tgl_plan) = '".$year."') GROUP BY master_plan.id, master_plan.tgl_plan) as rfts"), "master_plan.id", "=", "rfts.master_plan_id")->
-                leftJoin(DB::raw("(SELECT count(defects.id) defect, master_plan.id master_plan_id from output_defects defects inner join master_plan on master_plan.id = defects.master_plan_id where defects.defect_status = 'defect' and (MONTH(defects.updated_at) = '".$month."' AND YEAR(defects.updated_at) = '".$year."') and (MONTH(master_plan.tgl_plan) = '".$month."' AND YEAR(master_plan.tgl_plan) = '".$year."') GROUP BY master_plan.id, master_plan.tgl_plan) as defects"), "master_plan.id", "=", "defects.master_plan_id")->
-                leftJoin(DB::raw("(SELECT count(defrew.id) rework, master_plan.id master_plan_id from output_defects defrew inner join master_plan on master_plan.id = defrew.master_plan_id where defrew.defect_status = 'reworked' and (MONTH(defrew.updated_at) = '".$month."' AND YEAR(defrew.updated_at) = '".$year."') and (MONTH(master_plan.tgl_plan) = '".$month."' AND YEAR(master_plan.tgl_plan) = '".$year."') GROUP BY master_plan.id, master_plan.tgl_plan) as reworks"), "master_plan.id", "=", "reworks.master_plan_id")->
-                leftJoin(DB::raw("(SELECT count(rejects.id) reject, master_plan.id master_plan_id from output_rejects rejects inner join master_plan on master_plan.id = rejects.master_plan_id where (MONTH(rejects.updated_at) = '".$month."' AND YEAR(rejects.updated_at) = '".$year."') and (MONTH(master_plan.tgl_plan) = '".$month."' AND YEAR(master_plan.tgl_plan) = '".$year."') GROUP BY master_plan.id, master_plan.tgl_plan) as rejects"), "master_plan.id", "=", "rejects.master_plan_id")->
+                leftJoin(DB::raw("(SELECT count(rfts.id) rft, master_plan.id master_plan_id, DATE(rfts.updated_at) tgl_output from output_rfts rfts inner join master_plan on master_plan.id = rfts.master_plan_id where (MONTH(rfts.updated_at) = '".$month."' AND YEAR(rfts.updated_at) = '".$year."') and status = 'NORMAL' and (MONTH(master_plan.tgl_plan) = '".$month."' AND YEAR(master_plan.tgl_plan) = '".$year."') GROUP BY master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)) as rfts"), function ($join) { $join->on("master_plan.id", "=", "rfts.master_plan_id"); $join->on("master_plan.tgl_plan", "=", "rfts.tgl_output"); })->
+                leftJoin(DB::raw("(SELECT count(defects.id) defect, master_plan.id master_plan_id, DATE(defects.updated_at) tgl_output from output_defects defects inner join master_plan on master_plan.id = defects.master_plan_id where defects.defect_status = 'defect' and (MONTH(defects.updated_at) = '".$month."' AND YEAR(defects.updated_at) = '".$year."') and (MONTH(master_plan.tgl_plan) = '".$month."' AND YEAR(master_plan.tgl_plan) = '".$year."') GROUP BY master_plan.id, master_plan.tgl_plan, DATE(defects.updated_at)) as defects"), function ($join) { $join->on("master_plan.id", "=", "defects.master_plan_id"); $join->on("master_plan.tgl_plan", "=", "defects.tgl_output"); })->
+                leftJoin(DB::raw("(SELECT count(defrew.id) rework, master_plan.id master_plan_id, DATE(defrew.updated_at) tgl_output from output_defects defrew inner join master_plan on master_plan.id = defrew.master_plan_id where defrew.defect_status = 'reworked' and (MONTH(defrew.updated_at) = '".$month."' AND YEAR(defrew.updated_at) = '".$year."') and (MONTH(master_plan.tgl_plan) = '".$month."' AND YEAR(master_plan.tgl_plan) = '".$year."') GROUP BY master_plan.id, master_plan.tgl_plan, DATE(defrew.updated_at)) as reworks"), function ($join) { $join->on("master_plan.id", "=", "reworks.master_plan_id"); $join->on("master_plan.tgl_plan", "=", "reworks.tgl_output"); })->
+                leftJoin(DB::raw("(SELECT count(rejects.id) reject, master_plan.id master_plan_id, DATE(rejects.updated_at) tgl_output from output_rejects rejects inner join master_plan on master_plan.id = rejects.master_plan_id where (MONTH(rejects.updated_at) = '".$month."' AND YEAR(rejects.updated_at) = '".$year."') and (MONTH(master_plan.tgl_plan) = '".$month."' AND YEAR(master_plan.tgl_plan) = '".$year."') GROUP BY master_plan.id, master_plan.tgl_plan, DATE(rejects.updated_at)) as rejects"), function ($join) { $join->on("master_plan.id", "=", "rejects.master_plan_id"); $join->on("master_plan.tgl_plan", "=", "rejects.tgl_output"); })->
+                leftJoin(DB::raw("(
+                    SELECT
+                        tgl_output,
+                        SUM(rft) rft,
+                        SUM(rft * smv) mins_prod
+                    FROM
+                        (
+                            SELECT
+                                count( rfts.id ) rft,
+                                master_plan.id master_plan_id,
+                                master_plan.tgl_plan,
+                                DATE ( rfts.updated_at ) tgl_output,
+                                master_plan.smv
+                            FROM
+                                output_rfts rfts
+                            inner join master_plan on master_plan.id = rfts.master_plan_id
+                            where
+                                (MONTH(rfts.updated_at) = '08' AND YEAR(rfts.updated_at) = '2024') and
+                                (MONTH(master_plan.tgl_plan) = '08' AND YEAR(master_plan.tgl_plan) = '2024')
+                            GROUP BY
+                                master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)
+                            having tgl_plan != tgl_output
+                        ) back_output
+                    GROUP BY
+                        back_output.tgl_output
+                ) rfts_1"), "master_plan.tgl_plan", "=", "rfts_1.tgl_output")->
                 where("master_plan.cancel", 'N')->
                 whereRaw("(
                     MONTH(master_plan.tgl_plan) = '".$month."'
                     AND
                     YEAR(master_plan.tgl_plan) = '".$year."'
                 )")->
-                groupBy("master_plan.tgl_plan")->get();
+                groupBy("master_plan.tgl_plan")->
+                get();
 
             return json_encode($sewingEfficiencyData);
         }
