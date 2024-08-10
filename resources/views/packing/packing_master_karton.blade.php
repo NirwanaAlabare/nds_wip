@@ -57,7 +57,7 @@
                                     <label><small><b>Total Karton Sekarang # :</b></small></label>
                                     <input type='number' id="tot_skrg" name="tot_skrg"
                                         class='form-control form-control-sm' id="txtinput_carton" name="txtinput_carton"
-                                        value="" readonly>
+                                        value="">
                                 </div>
                             </div>
                             <div class="col-sm">

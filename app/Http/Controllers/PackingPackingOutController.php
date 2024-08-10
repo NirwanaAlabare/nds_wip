@@ -20,24 +20,29 @@ class PackingPackingOutController extends Controller
         if ($request->ajax()) {
             $additionalQuery = '';
             $data_input = DB::select("
-            select count(o.barcode) tot,
-            o.po,
-            no_carton,
-            o.barcode,
-            m.color,
-            m.size,
-            m.ws,
-            o.dest,
-            concat((DATE_FORMAT(o.tgl_trans,  '%d')), '-', left(DATE_FORMAT(o.tgl_trans,  '%M'),3),'-',DATE_FORMAT(o.tgl_trans,  '%Y')
-            ) tgl_trans_fix,
-            o.created_by,
-            max(o.created_at)created_at
-            from packing_packing_out_scan o
-            inner join ppic_master_so p on o.po = p.po and o.barcode = p.barcode
-            inner join master_sb_ws m on p.id_so_det = m.id_so_det
-            where o.tgl_trans >= '$tgl_awal' and o.tgl_trans <= '$tgl_akhir'
-            group by po, no_carton, tgl_trans, barcode
-            order by created_at desc
+select
+tot,
+o.po,
+no_carton,
+o.barcode,
+m.color,
+m.size,
+m.ws,
+o.dest,
+concat((DATE_FORMAT(o.tgl_trans,  '%d')), '-', left(DATE_FORMAT(o.tgl_trans,  '%M'),3),'-',DATE_FORMAT(o.tgl_trans,  '%Y')
+ ) tgl_trans_fix,
+ o.created_by,
+ o.created_at
+ from
+(
+select tgl_trans,count(barcode) tot, barcode, po, dest, no_carton, created_by, max(created_at)created_at
+from packing_packing_out_scan
+where tgl_trans >= '$tgl_awal' and tgl_trans <= '$tgl_akhir'
+group by tgl_trans, po, barcode, dest, no_carton
+) o
+inner join ppic_master_so p on o.po = p.po and o.barcode = p.barcode
+inner join master_sb_ws m on p.id_so_det = m.id_so_det
+order by o.created_at desc
             ");
 
             return DataTables::of($data_input)->toJson();
@@ -45,7 +50,8 @@ class PackingPackingOutController extends Controller
         return view(
             'packing.packing_out',
             [
-                'page' => 'dashboard-packing', "subPageGroup" => "packing-packing-out",
+                'page' => 'dashboard-packing',
+                "subPageGroup" => "packing-packing-out",
                 "subPage" => "packing-out"
             ]
         );
@@ -175,7 +181,8 @@ group by p.po, p.dest");
 
 
         return view('packing.create_packing_out', [
-            'page' => 'dashboard-packing', "subPageGroup" => "packing-packing-out",
+            'page' => 'dashboard-packing',
+            "subPageGroup" => "packing-packing-out",
             "subPage" => "packing-out",
             "data_po" => $data_po,
             "user" => $user
