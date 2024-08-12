@@ -14,7 +14,7 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title"><i class="fa-solid fa-hashtag"></i> Set Month Number</h5>
+            <h5 class="card-title fw-bold"><i class="fa-solid fa-hashtag"></i> Set Month Number</h5>
         </div>
         <div class="card-body">
             <div class="mb-3">
