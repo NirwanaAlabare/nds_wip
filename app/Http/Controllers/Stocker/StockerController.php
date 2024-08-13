@@ -2110,6 +2110,77 @@ class StockerController extends Controller
         );
     }
 
+    public function setYearSequenceNumber(Request $request) {
+        $validatedRequest = $request->validate([
+            "year" => 'required',
+            "year_sequence" => 'required',
+            "form_cut_id" => 'required',
+            "so_det_id" => 'required',
+            "size" => 'required',
+            "range_awal_stocker" => 'required',
+            "range_akhir_stocker" => 'required',
+            "range_awal_year_sequence" => 'required',
+            "range_akhir_year_sequence" => 'required',
+        ]);
+
+        if ($validatedRequest) {
+            $currentData = YearSequence::selectRaw("
+                    number
+                ")->
+                where('form_cut_id', $validatedRequest['form_cut_id'])->
+                where('so_det_id', $validatedRequest['so_det_id'])->
+                orderBy('number')->
+                get();
+
+            if ($validatedRequest['range_awal_year_sequence'] > 0 && $validatedRequest['range_awal_year_sequence'] <= $validatedRequest['range_akhir_year_sequence'] && $validatedRequest['year_sequence'] > 0 && $validatedRequest['year_request_number'] <= 999999) {
+                $upsertData = [];
+
+                $n = 0;
+                $n1 = 0;
+                for ($i = $validatedRequest['range_awal_year_sequence']; $i <= $validatedRequest['range_akhir_year_sequence']; $i++) {
+
+                    if ($currentData->where('number', $validatedRequest['range_awal_stocker']+$n)->count() < 1) {
+                        array_push($upsertData, [
+                            "id_year_sequence" => $validatedRequest['year']."_".($validatedRequest['year_sequence'])."_".($validatedRequest['year_sequence_number'] + $n1),
+                            "year" => $validatedRequest['year'],
+                            "year_sequence" => $validatedRequest['year_sequence'],
+                            "year_sequence_number" => ($validatedRequest['year_sequence_number'] + $n1),
+                            "form_cut_id" => $validatedRequest['form_cut_id'],
+                            "so_det_id" => $validatedRequest['so_det_id'],
+                            "size" => $validatedRequest['size'],
+                            "number" => $validatedRequest['range_awal_stocker']+$n,
+                            "created_at" => Carbon::now(),
+                            "updated_at" => Carbon::now(),
+                        ]);
+
+                        $n1++;
+                    }
+
+                    $n++;
+                }
+
+                if (count($upsertData) > 0) {
+                    YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence'], ['form_cut_id', 'so_det_id', 'size', 'number', 'created_at', 'updated_at']);
+
+                    $customPaper = array(0, 0, 35.35, 110.90);
+                    $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearsequence', ["data" => $upsertData])->setPaper($customPaper);
+
+                    $path = public_path('pdf/');
+                    $fileName = str_replace("/", "-", ('Year Sequence.pdf'));
+                    $pdf->save($path . '/' . str_replace("/", "_", $fileName));
+                    $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
+
+                    return response()->download($generatedFilePath);
+                }
+            }
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Data kosong",
+        );
+    }
+
     public function customMonthCount() {
         $months = [['angka' => '01','nama' => 'Januari'],['angka' => '02','nama' => 'Februari'],['angka' => '03','nama' => 'Maret'],['angka' => '04','nama' => 'April'],['angka' => '05','nama' => 'Mei'],['angka' => '06','nama' => 'Juni'],['angka' => '07','nama' => 'Juli'],['angka' => '08','nama' => 'Agustus'],['angka' => '09','nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
         $years = array_reverse(range(1999, date('Y')));
@@ -2195,6 +2266,97 @@ class StockerController extends Controller
         );
     }
 
+    public function printYearSequence(Request $request) {
+        ini_set("maximum_execution_time", 360000);
+
+        $method = $request->method ? $request->method : 'qty';
+        $qty = $request->qty ? $request->qty : 0;
+        $rangeAwal = $request->rangeAwal ? $request->rangeAwal : 0;
+        $rangeAkhir = $request->rangeAkhir ? $request->rangeAkhir : 0;
+        $rangeYearSequence = $request->rangeYearSequence ? $request->rangeYearSequence : 0;
+
+        if ($method == 'qty' && $qty > 0) {
+            $insertData = [];
+
+            $yearSequence = YearSequence::select("year_sequence, year_sequence_number")->where("year", Carbon::now()->format('Y'))->orderBy("year_sequence", "desc")->orderBy("year_sequence_number", "desc")->first();
+            $yearSequenceSequence = $yearSequence ? $yearSequence->year_sequence : 1;
+            $yearSequenceNumber = $yearSequence ? $yearSequence->year_sequence_number + 1 : 1;
+
+            for ($i = 0; $i < $qty; $i++) {
+                if ($yearSequenceNumber > 999999) {
+                    $yearSequenceSequence = $yearSequenceSequence + 1;
+                    $yearSequenceNumber = 1;
+                }
+
+                array_push($insertData, [
+                    "id_year_sequence" => Carbon::now()->format('Y')."_".$yearSequenceSequence."_".$yearSequenceNumber,
+                    "year" => Carbon::now()->format('Y'),
+                    "year_sequence" => $yearSequenceSequence,
+                    "year_sequence_number" => $yearSequenceNumber,
+                    "created_at" => Carbon::now(),
+                    "updated_at" => Carbon::now(),
+                ]);
+
+                $yearSequenceNumber++;
+            }
+
+            if (count($insertData) > 0) {
+                YearSequence::insert($insertData);
+
+                $customPaper = array(0, 0, 35.35, 110.90);
+                $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearsequence', ["data" => $insertData])->setPaper($customPaper);
+
+                $path = public_path('pdf/');
+                $fileName = str_replace("/", "-", ('Year Sequence.pdf'));
+                $pdf->save($path . '/' . str_replace("/", "_", $fileName));
+                $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
+
+                return response()->download($generatedFilePath);
+            }
+
+            return array(
+                "status" => 400,
+                "message" => "Something went wrong",
+            );
+        } else if ($method == 'range' && $rangeAwal > 0 && $rangeAkhir > 0 && $rangeAwal <= $rangeAkhir && $rangeYearSequence > 0 && $rangeYearSequence <= 999999) {
+            $upsertData = [];
+
+            $yearSequence = YearSequence::select("year_sequence, year_sequence_number")->where("year", Carbon::now()->format('Y'))->where("year_sequence", $rangeYearSequence)->orderBy("year_sequence", "desc")->orderBy("year_sequence_number", "desc")->first();
+            $yearSequenceSequence = $yearSequence ? $yearSequence->year_sequence : 1;
+
+            for ($i = $rangeAwal; $i <= $rangeAkhir; $i++) {
+
+                array_push($upsertData, [
+                    "id_year_sequence" => Carbon::now()->format('Y-m')."_".$yearSequenceSequence."_".$i,
+                    "year" => Carbon::now()->format('Y'),
+                    "year_sequence" => $yearSequenceSequence,
+                    "year_sequence_number" => $i,
+                    "created_at" => Carbon::now(),
+                    "updated_at" => Carbon::now(),
+                ]);
+            }
+
+            if (count($upsertData) > 0) {
+                YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], ['created_at', 'updated_at']);
+
+                $customPaper = array(0, 0, 35.35, 110.90);
+                $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearsequence', ["data" => $upsertData])->setPaper($customPaper);
+
+                $path = public_path('pdf/');
+                $fileName = str_replace("/", "-", ('Year Sequence.pdf'));
+                $pdf->save($path . '/' . str_replace("/", "_", $fileName));
+                $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
+
+                return response()->download($generatedFilePath);
+            }
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Data kosong",
+        );
+    }
+
     public function getStocker(Request $request) {
         if ($request->stocker) {
             $stockerData = Stocker::selectRaw("
@@ -2261,16 +2423,45 @@ class StockerController extends Controller
                     month_year_number
                 ")->
                 where("month_count.month_year", $monthYear)->
-                whereRaw('number IS NULL')->
-                whereRaw('form_cut_id IS NULL')->
-                whereRaw('so_det_id IS NULL')->
-                orderBy('month_year_number', 'asc')->
+                whereRaw('number IS NOT NULL')->
+                whereRaw('form_cut_id IS NOT NULL')->
+                whereRaw('so_det_id IS NOT NULL')->
+                orderBy('month_year_number', 'desc')->
                 first();
 
             if ($availableMonthCount) {
                 return json_encode($availableMonthCount);
             } else {
                 return json_encode(["month_year" => $monthYear, "month_year_number" => 1]);
+            }
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Bulan dan tahun tidak valid",
+        );
+    }
+
+    public function getRangeYearSequence(Request $request) {
+        if ($request->year && $request->sequence) {
+
+            $availableYearSequence = YearSeqeuence::selectRaw("
+                    year,
+                    year_sequence,
+                    year_sequence_number
+                ")->
+                where("year_sequence.year",  $request->year)->
+                where("year_sequence.year_sequence",  $request->year_sequence)->
+                whereRaw('number IS NOT NULL')->
+                whereRaw('form_cut_id IS NOT NULL')->
+                whereRaw('so_det_id IS NOT NULL')->
+                orderBy('year_sequence_number', 'asc')->
+                first();
+
+            if ($availableYearSequence) {
+                return json_encode($availableYearSequence);
+            } else {
+                return json_encode(["year" => $request->year, "year_sequence" => $request->year_sequence, "month_year_number" => 1]);
             }
         }
 

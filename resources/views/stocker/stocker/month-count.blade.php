@@ -384,7 +384,7 @@
 
                     if (res) {
                         if (res.status != "400") {
-                            $("#range_awal").val(res.month_year_number).trigger("change");
+                            $("#range_awal").val(res.month_year_number+1).trigger("change");
                         } else {
                             Swal.fire({
                                 icon: 'error',
@@ -503,6 +503,8 @@
                         generating = false;
                     },
                     error: function(jqXHR) {
+                        console.log(jqXHR);
+
                         Swal.fire("Nomor stocker sudah mencapai "+$("#print_qty").val()+".", "", "info");
 
                         generating = false;
