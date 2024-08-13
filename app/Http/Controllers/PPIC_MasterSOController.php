@@ -85,7 +85,8 @@ order by ws asc");
         return view(
             'ppic.master_so',
             [
-                'page' => 'dashboard-ppic', "subPageGroup" => "ppic-master",
+                'page' => 'dashboard-ppic',
+                "subPageGroup" => "ppic-master",
                 "subPage" => "ppic-master-master-so",
                 'data_ws' => $data_ws,
                 "user" => $user
@@ -595,10 +596,9 @@ order by po asc
         where a.po = '$po'");
 
         return array(
-            'status' => 200,
+            'status' => 201,
             'message' => 'Data  Berhasil Diupdate',
-            'redirect' => '',
-            'table' => '',
+            'table' => 'datatable_edit',
             'additional' => [],
         );
 

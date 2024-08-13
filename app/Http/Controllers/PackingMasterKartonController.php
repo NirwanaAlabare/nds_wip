@@ -200,4 +200,248 @@ left join master_sb_ws m on p.id_so_det = m.id_so_det
                     ");
         return DataTables::of($data_det_karton)->toJson();
     }
+
+    public function getno_carton_hapus(Request $request)
+    {
+        $tgl_skrg = date('Y-m-d');
+        $user = Auth::user()->name;
+        $data_karton = DB::select("SELECT p.no_carton isi, concat (p.no_carton, ' ( ', coalesce(tot,0) , ' )') tampil
+from
+(
+select * from packing_master_carton where po = '" . $request->txtmodal_h_po . "'
+) p
+left join
+(
+SELECT count(barcode) tot,po, no_carton from packing_packing_out_scan where po = '" . $request->txtmodal_h_po . "' group by po, no_carton
+) o on p.po = o.po and p.no_carton = o.no_carton
+        ");
+
+        $html = "<option value=''>Pilih No Karton</option>";
+
+        foreach ($data_karton as $datakarton) {
+            $html .= " <option value='" . $datakarton->isi . "'>" . $datakarton->tampil . "</option> ";
+        }
+
+        return $html;
+    }
+
+    public function list_data_no_carton(Request $request)
+    {
+        $user = Auth::user()->name;
+        $tgl_skrg = date('Y-m-d');
+        $po = $request->po;
+        $no_carton = $request->no_carton;
+        $data_list = DB::select("SELECT
+a.id,
+a.barcode,
+a.po,
+a.dest,
+p.desc,
+m.color,
+m.size,
+m.ws,
+a.no_carton
+from packing_packing_out_scan a
+inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po
+inner join master_sb_ws m on p.id_so_det = m.id_so_det
+where a.po = '$po' and a.no_carton = '$no_carton'
+            ");
+
+        return DataTables::of($data_list)->toJson();
+    }
+
+    public function hapus_master_karton_det(Request $request)
+    {
+
+        $timestamp = Carbon::now();
+        $user = Auth::user()->name;
+        $JmlArray                                   = $_POST['cek_data'];
+        $po                                  = $_POST['txtmodal_h_po'];
+
+        foreach ($JmlArray as $key => $value) {
+            if ($value != '') {
+                $txtid                          = $JmlArray[$key]; {
+                    $ins_history =  DB::insert("
+                    insert into packing_packing_out_scan_log (id_packing_Packing_out_scan, tgl_trans, barcode, po, no_carton, created_at, updated_at, created_by)
+                    SELECT id, tgl_trans, barcode, po, no_carton,created_at, '$timestamp', '$user'  FROM `packing_packing_out_scan` where id = '$txtid'");
+
+                    $del_history =  DB::delete("
+                    delete from packing_packing_out_scan where id = '$txtid'");
+                }
+            }
+        }
+        return array(
+            "status" => 201,
+            "message" => 'Data Sudah di Hapus',
+            "additional" => [],
+            "redirect" => '',
+            "table" => 'datatable_hapus',
+            "callback" => "show_data_edit_h(`$po`)"
+        );
+
+        // return array(
+        //     "status" => 202,
+        //     "message" => 'No Form Berhasil Di Update',
+        //     "additional" => [],
+        //     "redirect" => '',
+        //     "callback" => "getdetail(`$no_form_modal`,`$txtket_modal_input`)"
+
+        // );
+    }
+
+    public function getno_carton_tambah(Request $request)
+    {
+        $tgl_skrg = date('Y-m-d');
+        $user = Auth::user()->name;
+        $data_karton = DB::select("SELECT p.no_carton isi, concat (p.no_carton, ' ( ', coalesce(tot,0) , ' )') tampil
+from
+(
+select * from packing_master_carton where po = '" . $request->txtmodal_p_po . "'
+) p
+left join
+(
+SELECT count(barcode) tot,po, no_carton from packing_packing_out_scan where po = '" . $request->txtmodal_p_po . "' group by po, no_carton
+) o on p.po = o.po and p.no_carton = o.no_carton
+        ");
+
+        $html = "<option value=''>Pilih No Karton</option>";
+
+        foreach ($data_karton as $datakarton) {
+            $html .= " <option value='" . $datakarton->isi . "'>" . $datakarton->tampil . "</option> ";
+        }
+
+        return $html;
+    }
+
+    public function getbarcode_tambah(Request $request)
+    {
+        $tgl_skrg = date('Y-m-d');
+        $user = Auth::user()->name;
+        $data_barcode = DB::select("SELECT barcode isi, barcode tampil
+        from ppic_master_so where po = '" . $request->txtmodal_p_po . "'
+        ");
+
+        $html = "<option value=''>Pilih Barcode</option>";
+
+        foreach ($data_barcode as $databarcode) {
+            $html .= " <option value='" . $databarcode->isi . "'>" . $databarcode->tampil . "</option> ";
+        }
+
+        return $html;
+    }
+
+    public function getdest_tambah(Request $request)
+    {
+        $tgl_skrg = date('Y-m-d');
+        $user = Auth::user()->name;
+        $data_dest = DB::select("SELECT dest isi, dest tampil
+        from ppic_master_so where po = '" . $request->txtmodal_p_po . "' and barcode  = '" . $request->cbomodal_p_barcode . "'
+        ");
+
+        $html = "<option value=''>Pilih Dest</option>";
+
+        foreach ($data_dest as $datadest) {
+            $html .= " <option value='" . $datadest->isi . "'>" . $datadest->tampil . "</option> ";
+        }
+
+        return $html;
+    }
+
+    public function list_data_no_carton_tambah(Request $request)
+    {
+        $user = Auth::user()->name;
+        $tgl_skrg = date('Y-m-d');
+        $po = $request->po;
+        $no_carton = $request->no_carton;
+        $data_list = DB::select("SELECT
+a.*,
+m.color,
+m.size,
+m.ws
+from
+(
+SELECT barcode, po, dest, count(barcode)tot
+from packing_packing_out_scan where po = '$po' and no_carton = '$no_carton'
+group by barcode, po, dest
+) a
+inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po
+inner join master_sb_ws m on p.id_so_det = m.id_so_det
+            ");
+
+        return DataTables::of($data_list)->toJson();
+    }
+
+    public function store_tambah_data_karton_det(Request $request)
+    {
+        $user = Auth::user()->name;
+        $timestamp = Carbon::now();
+        $tgl_skrg = date('Y-m-d');
+
+        $po = $request->txtmodal_p_po;
+        $barcode = $request->cbomodal_p_barcode;
+        $qty = $request->cbomodal_p_qty;
+        $dest = $request->cbomodal_p_dest;
+        $no_carton = $request->cbomodal_p_no_karton;
+        $stok = $request->cbomodal_p_qty_stok;
+
+        $validatedRequest = $request->validate([
+            "cbomodal_p_barcode" => "required",
+            "cbomodal_p_qty" => "required",
+            "cbomodal_p_dest" => "required",
+            "cbomodal_p_no_karton" => "required",
+        ]);
+
+        if ($stok >= $qty) {
+            for ($i = 1; $i <= $qty; $i++) {
+                $insert = DB::insert("
+                insert into packing_packing_out_scan
+                (tgl_trans,barcode,po,dest,no_carton,created_by,created_at,updated_at)
+                values
+                (
+                    '$tgl_skrg',
+                    '$barcode',
+                    '$po',
+                    '$dest',
+                    '$no_carton',
+                    '$user',
+                    '$timestamp',
+                    '$timestamp'
+                )
+                ");
+            }
+            return array(
+                'icon' => 'benar',
+                'msg' => 'Data Sudah Terupdate',
+            );
+        } else {
+            return array(
+                'icon' => 'salah',
+                'msg' => 'Tidak ada yang disimpan',
+            );
+        }
+    }
+
+    public function get_data_stok_packing_in(Request $request)
+    {
+        $cek_stok = DB::select("
+        select coalesce(pack_in.tot_in,0)  - coalesce(pack_out.tot_out,0) tot_s
+        from ppic_master_so p
+        left join
+        (
+            select sum(qty) tot_in, id_ppic_master_so from packing_packing_in
+            where barcode = '$request->barcode' and po = '$request->po' and dest = '$request->dest'
+            group by id_ppic_master_so
+        ) pack_in on p.id = pack_in.id_ppic_master_so
+        left join
+        (
+            select count(p.barcode) tot_out, p.id
+            from packing_packing_out_scan a
+            inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po and a.dest = p.dest
+            where p.barcode = '$request->barcode' and p.po = '$request->po' and p.dest = '$request->dest'
+            group by a.barcode, a.po
+        ) pack_out on p.id = pack_out.id
+        where p.barcode = '$request->barcode' and p.po = '$request->po' and dest = '$request->dest'
+        ");
+        return json_encode($cek_stok[0]);
+    }
 }
