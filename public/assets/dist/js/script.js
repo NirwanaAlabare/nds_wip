@@ -134,39 +134,40 @@ function submitForm(e, evt) {
                 if (res.callback != '') {
                     eval(res.callback);
                 }
-            } else if (res.status == 201) {
-                $('.modal').modal('hide');
+            } 
+            // else if (res.status == 201) {
+            //     $('.modal').modal('hide');
 
-                Swal.fire({
-                    icon: 'warning',
-                    title: res.message,
-                    showCancelButton: false,
-                    showConfirmButton: true,
-                    confirmButtonText: 'Oke',
-                    timer: (res.status == 201 ? 5000 : 3000),
-                    timerProgressBar: true
-                }).then(() => {
-                    if (isNotNull(res.redirect)) {
-                        if (res.redirect != 'reload') {
-                            location.href = res.redirect;
-                        } else {
-                            location.reload();
-                        }
-                    } else {
-                        location.reload();
-                    }
-                });
+            //     Swal.fire({
+            //         icon: 'warning',
+            //         title: res.message,
+            //         showCancelButton: false,
+            //         showConfirmButton: true,
+            //         confirmButtonText: 'Oke',
+            //         timer: (res.status == 201 ? 5000 : 3000),
+            //         timerProgressBar: true
+            //     }).then(() => {
+            //         if (isNotNull(res.redirect)) {
+            //             if (res.redirect != 'reload') {
+            //                 location.href = res.redirect;
+            //             } else {
+            //                 location.reload();
+            //             }
+            //         } else {
+            //             location.reload();
+            //         }
+            //     });
 
-                e.reset();
-                if (document.getElementsByClassName('select2')) {
-                    $(".select2").val('').trigger('change');
-                    $(".select2bs4").val('').trigger('change');
-                }
+            //     e.reset();
+            //     if (document.getElementsByClassName('select2')) {
+            //         $(".select2").val('').trigger('change');
+            //         $(".select2bs4").val('').trigger('change');
+            //     }
 
-                if (res.callback != '') {
-                    eval(res.callback);
-                }
-            }
+            //     if (res.callback != '') {
+            //         eval(res.callback);
+            //     }
+            // }
             else if (res.status == 300) {
                 $('.modal').modal('hide');
 
