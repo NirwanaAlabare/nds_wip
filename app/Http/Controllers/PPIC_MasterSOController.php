@@ -597,7 +597,7 @@ order by po asc
         return array(
             'status' => 201,
             'message' => 'Data  Berhasil Diupdate',
-            'table' => '',
+            'table' => 'datatable_edit',
             'additional' => [],
         );
 
