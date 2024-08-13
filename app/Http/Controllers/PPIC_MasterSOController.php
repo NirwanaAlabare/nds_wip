@@ -595,9 +595,8 @@ order by po asc
         where a.po = '$po'");
 
         return array(
-            'status' => 200,
+            'status' => 201,
             'message' => 'Data  Berhasil Diupdate',
-            'redirect' => '',
             'table' => '',
             'additional' => [],
         );
