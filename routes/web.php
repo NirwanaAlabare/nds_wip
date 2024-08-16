@@ -1173,6 +1173,15 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-tambah-karton');
         Route::get('/show_tot', 'show_tot')->name('show_tot');
         Route::get('/show_detail_karton', 'show_detail_karton')->name('show_detail_karton');
+        Route::get('/getno_carton_hapus', 'getno_carton_hapus')->name('getno_carton_hapus');
+        Route::get('/list_data_no_carton', 'list_data_no_carton')->name('list_data_no_carton');
+        Route::post('/hapus_master_karton_det', 'hapus_master_karton_det')->name('hapus_master_karton_det');
+        Route::get('/getno_carton_tambah', 'getno_carton_tambah')->name('getno_carton_tambah');
+        Route::get('/getbarcode_tambah', 'getbarcode_tambah')->name('getbarcode_tambah');
+        Route::get('/getdest_tambah', 'getdest_tambah')->name('getdest_tambah');
+        Route::get('/list_data_no_carton_tambah', 'list_data_no_carton_tambah')->name('list_data_no_carton_tambah');
+        Route::post('/store_tambah_data_karton_det', 'store_tambah_data_karton_det')->name('store_tambah_data_karton_det');
+        Route::get('/get_data_stok_packing_in', 'get_data_stok_packing_in')->name('get_data_stok_packing_in');
         // Route::get('/show_preview_packing_in', 'show_preview_packing_in')->name('show_preview_packing_in');
         // Route::post('/store', 'store')->name('store-packing-packing-in');
     });

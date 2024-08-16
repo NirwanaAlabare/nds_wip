@@ -85,7 +85,8 @@ order by ws asc");
         return view(
             'ppic.master_so',
             [
-                'page' => 'dashboard-ppic', "subPageGroup" => "ppic-master",
+                'page' => 'dashboard-ppic',
+                "subPageGroup" => "ppic-master",
                 "subPage" => "ppic-master-master-so",
                 'data_ws' => $data_ws,
                 "user" => $user

@@ -172,79 +172,181 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
+                {{-- <div class="modal-footer">
                     <button type="submit" class="btn btn-outline-success btn-sm"><i class="fas fa-check"></i> Simpan
                     </button>
-                </div>
+                </div> --}}
             </div>
         </div>
     </div>
 
 
 
-    <div class="card card-info  collapsed-card">
-        <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-upload"></i> Upload Master Karton</h5>
-            <div class="card-tools">
-                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-plus"></i>
-                </button>
-            </div>
-        </div>
-        <div class="card-body">
-            <div class="d-flex align-items-end gap-3 mb-3">
-                <div class="mb-3">
-                    <input type="hidden" class="form-control form-control-sm" id="user" name= "user"
-                        value="{{ $user }}">
-                    <a class="btn btn-outline-info position-relative btn-sm" data-toggle="modal"
-                        data-target="#importExcel" onclick="OpenModal()">
-                        <i class="fas fa-file-upload fa-sm"></i>
-                        Upload
-                    </a>
+    <div class="modal fade" id="exampleModalEdit" tabindex="-1" role="dialog" aria-labelledby="exampleModalEditLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h3 class="modal-title fs-5"><i class="far fa-edit"></i> Edit Karton</h3>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="mb-3">
-                    <a class="btn btn-outline-warning position-relative btn-sm"
-                        href="{{ route('contoh_upload_ppic_so') }}">
-                        <i class="fas fa-file-download fa-sm"></i>
-                        Contoh Upload
-                    </a>
-                </div>
-                <div class="mb-3">
-                    <a onclick="export_excel_master_so_sb()" class="btn btn-outline-success position-relative btn-sm">
-                        <i class="fas fa-file-download fa-sm"></i>
-                        Master Data SO SB
-                    </a>
-                </div>
-            </div>
-            <label>Preview</label>
-            <div class="table-responsive">
-                <table id="datatable-preview" class="table table-bordered table-sm w-100 text-nowrap">
-                    <thead class="table-info">
-                        <tr style='text-align:center; vertical-align:middle'>
-                            <th>DC Code</th>
-                            <th>PO #</th>
-                            <th>Sku / Item</th>
-                            <th>Unit</th>
-                            <th>Prepack</th>
-                            <th>Gross Weight</th>
-                            <th>No. Carton</th>
-                            <th>Max Carton</th>
-                            <th>Made In</th>
-                        </tr>
-                    </thead>
-                </table>
-                <div class="d-flex justify-content-between">
-                    <div class="p-2 bd-highlight">
-                        <a class="btn btn-outline-warning" onclick="undo()">
-                            <i class="fas fa-sync-alt
-                            fa-spin"></i>
-                            Undo
-                        </a>
+                <div class="modal-body">
+                    <div class="card card-danger collapsed-card" id = "modal_hapus">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-trash"></i> Hapus
+                            </h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i
+                                        class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <form id="form_h" name='form_h' method='post'
+                                action="{{ route('hapus_master_karton_det') }}" onsubmit="submitForm(this, event)">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label><small><b>No. PO</b></small></label>
+                                            <input type="text" class="form-control form-control-sm" id="txtmodal_h_po"
+                                                name="txtmodal_h_po" onchange="getno_carton_modal_hapus();" readonly
+                                                style="width: 100%;">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label><small><b>No. Karton</b></small></label>
+                                            <select class='form-control select2bs4 form-control-sm rounded'
+                                                style='width: 100%;' name='cbomodal_h_no_karton'
+                                                id='cbomodal_h_no_karton' onchange="dataTableHapusReload()"></select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class='row'>
+                                    <div class="col-md-12 table-responsive">
+                                        <table id="datatable_hapus"
+                                            class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                                            <thead class="table-primary">
+                                                <tr style='text-align:center; vertical-align:middle'>
+                                                    <th>
+                                                        <input class="form-check checkbox-xl" type="checkbox"
+                                                            onclick="toggle(this);">
+                                                    </th>
+                                                    <th>Barcode</th>
+                                                    <th>Color</th>
+                                                    <th>Size</th>
+                                                    <th>Dest</th>
+                                                </tr>
+                                            </thead>
+                                        </table>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <div class="p-2 bd-highlight">
+                                        </div>
+                                        <div class="p-2 bd-highlight">
+                                            <button type="submit" class="btn btn-outline-danger"><i
+                                                    class="fas fa-trash"></i>
+                                                Hapus
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                    <div class="p-2 bd-highlight">
-                        <a class="btn btn-outline-success" onclick="simpan()">
-                            <i class="fas fa-check"></i>
-                            Simpan
-                        </a>
+                    <div class="card card-primary collapsed-card" id = "modal_tambah">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-plus"></i> Tambah Data
+                            </h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i
+                                        class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <form id="form_p" name='form_p' method='post'>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label><small><b>No. PO</b></small></label>
+                                            <input type="text" class="form-control form-control-sm" id="txtmodal_p_po"
+                                                name="txtmodal_p_po"
+                                                onchange="getno_carton_modal_tambah();getbarcode_modal_tambah();" readonly
+                                                style="width: 100%;">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label><small><b>Barcode</b></small></label>
+                                            <select class='form-control select2bs4 form-control-sm rounded'
+                                                style='width: 100%;' name='cbomodal_p_barcode' id='cbomodal_p_barcode'
+                                                onchange="getdest_modal_tambah();"></select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-group">
+                                            <label><small><b>Dest</b></small></label>
+                                            <select class='form-control select2bs4 form-control-sm rounded'
+                                                style='width: 100%;' name='cbomodal_p_dest' id='cbomodal_p_dest'
+                                                onchange="getstok_packing_in();"></select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-group">
+                                            <label><small><b>Qty</b></small></label>
+                                            <input type='number' id="cbomodal_p_qty" name="cbomodal_p_qty"
+                                                class='form-control form-control-sm' value="">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-group">
+                                            <label><small><b>No. Karton</b></small></label>
+                                            <select class='form-control select2bs4 form-control-sm rounded'
+                                                style='width: 100%;' name='cbomodal_p_no_karton'
+                                                id='cbomodal_p_no_karton' onchange="dataTableTambahReload();"></select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class='row'>
+                                    <div class="col-md-2">
+                                        <div class="form-group">
+                                            <label><small><b>Qty Stok Packing In</b></small></label>
+                                            <input type='number' id="cbomodal_p_qty_stok" name="cbomodal_p_qty_stok"
+                                                class='form-control form-control-sm' value="" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class='row'>
+                                    <div class="col-md-12 table-responsive">
+                                        <table id="datatable_tambah"
+                                            class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                                            <thead class="table-primary">
+                                                <tr style='text-align:center; vertical-align:middle'>
+                                                    <th>PO</th>
+                                                    <th>Barcode</th>
+                                                    <th>Color</th>
+                                                    <th>Size</th>
+                                                    <th>Dest</th>
+                                                    <th>WS</th>
+                                                    <th>Qty</th>
+                                                </tr>
+                                            </thead>
+                                        </table>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <div class="p-2 bd-highlight">
+                                        </div>
+                                        <div class="p-2 bd-highlight">
+                                            <a class="btn btn-outline-primary" onclick="simpan_modal_tambah()">
+                                                <i class="fas fa-check"></i>
+                                                Simpan
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -324,6 +426,23 @@
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+
+    <style>
+        .checkbox-xl .form-check-input {
+            /* top: 1.2rem; */
+            scale: 1.5;
+            /* margin-right: 0.8rem; */
+        }
+    </style>
+    <script>
+        function toggle(source) {
+            var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            for (var i = 0; i < checkboxes.length; i++) {
+                if (checkboxes[i] != source)
+                    checkboxes[i].checked = source.checked;
+            }
+        }
+    </script>
     <script>
         // Select2 Autofocus
         $(document).on('select2:open', () => {
@@ -343,6 +462,17 @@
                 theme: 'bootstrap4',
                 dropdownParent: $("#exampleModal")
             })
+        })
+
+
+        $('#exampleModalEdit').on('show.bs.modal', function(e) {
+
+            $('.select2bs4').select2({
+                theme: 'bootstrap4',
+                dropdownParent: $("#exampleModalEdit"),
+                containerCssClass: 'form-control-sm rounded'
+            })
+
         })
     </script>
     <script>
@@ -380,12 +510,17 @@
 
             $("#tgl-akhir").val(formattedTodayE).trigger("change");
 
-
-
-
             dataTableReload();
             // dataTablePreviewReload();
             // startCalc();
+
+            $('#modal_hapus').on('expanded.lte.cardwidget', () => {
+                dataTableHapusReload();
+            });
+            $('#modal_tambah').on('expanded.lte.cardwidget', () => {
+                dataTableTambahReload();
+            });
+
         });
 
         function get_total_tambah() {
@@ -549,11 +684,11 @@
                 <a class='btn btn-primary btn-sm'  data-bs-toggle="modal"
                         data-bs-target="#exampleModalCheck"
                 onclick="show_data('` + row.po + `','` + row.buyer + `','` + row.tgl_shipment_fix + `','` + row
-                            .tot_karton + `','` + row.tot_karton_isi + `','` + row.tot_karton_kosong + `' )"><i class='fas fa-search'></i></a>
-                <a class='btn btn-info btn-sm'  data-bs-toggle="modal"
+                            .tot_karton + `','` + row.tot_karton_isi + `','` + row.tot_karton_kosong + `' );dataTableDetKartonReload();"><i class='fas fa-search'></i></a>
+                <a class='btn btn-warning btn-sm'  data-bs-toggle="modal"
                         data-bs-target="#exampleModalEdit"
-                onclick="edit(` + row.id + `)"><i class='fas fa-box-open'></i></a>
-                </div>
+                onclick="show_data_edit_h('` + row.po + `');"><i class='fas fa-edit'></i></a>
+                            </div>
                     `;
                     }
                 },
@@ -565,6 +700,9 @@
         }, );
 
 
+        function dataTableDetKartonReload() {
+            datatable_detail_karton.ajax.reload();
+        }
 
         function show_data(po_s, po_b, tgl_shipment_fix, tot_karton, tot_karton_isi, tot_karton_kosong) {
             // console.log(po_s);
@@ -575,118 +713,415 @@
             $('#modal_tot_karton').val(tot_karton);
             $('#modal_tot_isi').val(tot_karton_isi);
             $('#modal_tot_kosong').val(tot_karton_kosong);
+        }
 
-            $('#datatable_detail_karton thead tr').clone(true).appendTo('#datatable_detail_karton thead');
-            $('#datatable_detail_karton thead tr:eq(1) th').each(function(i) {
-                var title = $(this).text();
-                $(this).html('<input type="text" class="form-control form-control-sm"/>');
-                $('input', this).on('keyup change', function() {
-                    if (datatable_detail_karton.column(i).search() !== this.value) {
-                        datatable_detail_karton
-                            .column(i)
-                            .search(this.value)
-                            .draw();
+        $('#datatable_detail_karton thead tr').clone(true).appendTo('#datatable_detail_karton thead');
+        $('#datatable_detail_karton thead tr:eq(1) th').each(function(i) {
+            var title = $(this).text();
+            $(this).html('<input type="text" class="form-control form-control-sm"/>');
+            $('input', this).on('keyup change', function() {
+                if (datatable_detail_karton.column(i).search() !== this.value) {
+                    datatable_detail_karton
+                        .column(i)
+                        .search(this.value)
+                        .draw();
+                }
+            });
+        });
+
+
+        let datatable_detail_karton = $("#datatable_detail_karton").DataTable({
+
+            "footerCallback": function(row, data, start, end, display) {
+                var api = this.api(),
+                    data;
+
+                // converting to interger to find total
+                var intVal = function(i) {
+                    return typeof i === 'string' ?
+                        i.replace(/[\$,]/g, '') * 1 :
+                        typeof i === 'number' ?
+                        i : 0;
+                };
+
+                // computing column Total of the complete result
+                var sumTotal = api
+                    .column(9)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                // Update footer by showing the total with the reference of the column index
+                $(api.column(0).footer()).html('Total');
+                $(api.column(9).footer()).html(sumTotal);
+            },
+
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            paging: false,
+            searching: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
+            destroy: true,
+            info: true,
+            ajax: {
+                url: '{{ route('show_detail_karton') }}',
+                method: 'GET',
+                data: function(d) {
+                    d.po = $('#modal_po').val();
+                },
+            },
+            columns: [{
+                    data: 'no_carton'
+
+                },
+                {
+                    data: 'barcode'
+                },
+                {
+                    data: 'ws'
+                },
+                {
+                    data: 'color'
+                },
+                {
+                    data: 'size'
+                },
+                {
+                    data: 'dest'
+                },
+                {
+                    data: 'desc'
+                },
+                {
+                    data: 'styleno'
+                },
+                {
+                    data: 'product_item'
+                },
+                {
+                    data: 'tot'
+                },
+                {
+                    data: 'stat'
+                },
+            ],
+            columnDefs: [{
+                    "className": "dt-left",
+                    "targets": "_all"
+                },
+                // {
+                //     targets: '_all',
+                //     className: 'text-nowrap',
+                //     render: (data, type, row, meta) => {
+                //         if (row.stat == 'isi') {
+                //             color = 'green';
+                //         } else {
+                //             color = '#blue';
+                //         }
+                //         return '<span style="color:' + color + '">' + data +
+                //             '</span>';
+                //     }
+                // },
+
+            ]
+        });
+
+
+        function dataTableHapusReload() {
+            datatable_hapus.ajax.reload();
+        }
+
+        let datatable_hapus = $("#datatable_hapus").DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            paging: false,
+            searching: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
+            ajax: {
+                url: '{{ route('list_data_no_carton') }}',
+                data: function(d) {
+                    d.po = $('#txtmodal_h_po').val();
+                    d.no_carton = $('#cbomodal_h_no_karton').val();
+                },
+            },
+            columns: [{
+                    data: 'id'
+
+                },
+                {
+                    data: 'barcode'
+
+                }, {
+                    data: 'color'
+                },
+                {
+                    data: 'size'
+                },
+                {
+                    data: 'dest'
+                },
+            ],
+            columnDefs: [{
+                    "className": "dt-left",
+                    "targets": "_all"
+                },
+                {
+                    targets: [0],
+                    render: (data, type, row, meta) => {
+                        return `
+                    <div
+                        class="form-check checkbox-xl" style="text-align:center">
+                        <input class="form-check-input" type="checkbox"
+                        value="` + row.id + `" id="cek_data"  class = "chk" onchange="ceklis(this)"
+                        name="cek_data[` + row.id + `] "/>
+                    </div>
+                    <div>
+                            <input type="hidden" size="10" id="id"
+                            name="id[` + row.id + `]" value = "` + row.id + `"/>
+                    </div>
+                    `;
                     }
+                },
+
+            ]
+        });
+
+        function dataTableTambahReload() {
+            datatable_tambah.ajax.reload();
+        }
+
+        let datatable_tambah = $("#datatable_tambah").DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            paging: false,
+            searching: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
+            ajax: {
+                url: '{{ route('list_data_no_carton_tambah') }}',
+                data: function(d) {
+                    d.po = $('#txtmodal_p_po').val();
+                    d.no_carton = $('#cbomodal_p_no_karton').val();
+                },
+            },
+            columns: [{
+                    data: 'po'
+
+                },
+                {
+                    data: 'barcode'
+
+                }, {
+                    data: 'color'
+                },
+                {
+                    data: 'size'
+                },
+                {
+                    data: 'dest'
+                },
+                {
+                    data: 'ws'
+                },
+                {
+                    data: 'tot'
+                },
+            ],
+            columnDefs: [{
+                "className": "dt-left",
+                "targets": "_all"
+            }, ]
+        });
+
+
+        function show_data_edit_h(po_h) {
+            dataTableHapusReload();
+            $('#txtmodal_h_po').val(po_h).trigger("change");
+            $('#cbomodal_h_no_karton').val('').trigger("change");
+            $('#txtmodal_p_po').val(po_h).trigger("change");
+            $('#cbomodal_p_no_karton').val('').trigger("change");
+            // $('#cbomodal_p_dest').val('').trigger("change");
+            $('#cbomodal_p_qty_stok').val('0');
+            $('#cbomodal_p_qty').val('');
+            dataTableTambahReload();
+        }
+
+        function getno_carton_modal_hapus() {
+            let txtmodal_h_po = document.form_h.txtmodal_h_po.value;
+            let html = $.ajax({
+                type: "GET",
+                url: '{{ route('getno_carton_hapus') }}',
+                data: {
+                    txtmodal_h_po: txtmodal_h_po
+                },
+                async: false
+            }).responseText;
+            if (html != "") {
+                $("#cbomodal_h_no_karton").html(html);
+            }
+        };
+
+        function getno_carton_modal_tambah() {
+            let txtmodal_p_po = document.form_p.txtmodal_p_po.value;
+            let html = $.ajax({
+                type: "GET",
+                url: '{{ route('getno_carton_tambah') }}',
+                data: {
+                    txtmodal_p_po: txtmodal_p_po
+                },
+                async: false
+            }).responseText;
+            if (html != "") {
+                $("#cbomodal_p_no_karton").html(html);
+            }
+        };
+
+        function getbarcode_modal_tambah() {
+            let txtmodal_p_po = document.form_p.txtmodal_p_po.value;
+            let html = $.ajax({
+                type: "GET",
+                url: '{{ route('getbarcode_tambah') }}',
+                data: {
+                    txtmodal_p_po: txtmodal_p_po
+                },
+                async: false
+            }).responseText;
+            if (html != "") {
+                $("#cbomodal_p_barcode").html(html);
+            }
+        };
+
+        function getdest_modal_tambah() {
+            let txtmodal_p_po = document.form_p.txtmodal_p_po.value;
+            let cbomodal_p_barcode = document.form_p.cbomodal_p_barcode.value;
+            let html = $.ajax({
+                type: "GET",
+                url: '{{ route('getdest_tambah') }}',
+                data: {
+                    txtmodal_p_po: txtmodal_p_po,
+                    cbomodal_p_barcode: cbomodal_p_barcode
+                },
+                async: false
+            }).responseText;
+            if (html != "") {
+                $("#cbomodal_p_dest").html(html);
+            }
+        };
+
+        function getstok_packing_in() {
+            let txtmodal_p_po = document.form_p.txtmodal_p_po.value;
+            let cbomodal_p_barcode = document.form_p.cbomodal_p_barcode.value;
+            let cbomodal_p_dest = document.form_p.cbomodal_p_dest.value;
+            jQuery.ajax({
+                url: '{{ route('get_data_stok_packing_in') }}',
+                method: 'GET',
+                data: {
+                    po: txtmodal_p_po,
+                    barcode: cbomodal_p_barcode,
+                    dest: cbomodal_p_dest
+                },
+                dataType: 'json',
+                success: async function(response) {
+                    document.getElementById('cbomodal_p_qty_stok').value = response.tot_s;
+                },
+                error: function(request, status, error) {
+                    alert(request.responseText);
+                },
+            });
+        }
+
+
+        function simpan_modal_tambah() {
+            let txtmodal_p_po = document.form_p.txtmodal_p_po.value;
+            let cbomodal_p_barcode = document.form_p.cbomodal_p_barcode.value;
+            let cbomodal_p_dest = document.form_p.cbomodal_p_dest.value;
+            let cbomodal_p_qty = document.form_p.cbomodal_p_qty.value;
+            let cbomodal_p_no_karton = document.form_p.cbomodal_p_no_karton.value;
+            let cbomodal_p_qty_stok = document.form_p.cbomodal_p_qty_stok.value;
+
+            if (cbomodal_p_barcode == '') {
+                iziToast.warning({
+                    message: 'Barcode masih kosong, Silahkan pilih barcode',
+                    position: 'topCenter'
                 });
-            });
+            }
+            if (cbomodal_p_dest == '') {
+                iziToast.warning({
+                    message: 'Dest masih kosong, Silahkan pilih dest',
+                    position: 'topCenter'
+                });
+            }
 
-            let datatable_detail_karton = $("#datatable_detail_karton").DataTable({
-                "footerCallback": function(row, data, start, end, display) {
-                    var api = this.api(),
-                        data;
+            if (cbomodal_p_qty == '') {
+                iziToast.warning({
+                    message: 'Qty masih kosong, Silahkan isi qty',
+                    position: 'topCenter'
+                });
+            }
 
-                    // converting to interger to find total
-                    var intVal = function(i) {
-                        return typeof i === 'string' ?
-                            i.replace(/[\$,]/g, '') * 1 :
-                            typeof i === 'number' ?
-                            i : 0;
-                    };
+            if (cbomodal_p_no_karton == '') {
+                iziToast.warning({
+                    message: 'No Carton masih kosong, Silahkan pilih no carton',
+                    position: 'topCenter'
+                });
+            }
 
-                    // computing column Total of the complete result
-                    var sumTotal = api
-                        .column(9)
-                        .data()
-                        .reduce(function(a, b) {
-                            return intVal(a) + intVal(b);
-                        }, 0);
-
-                    // Update footer by showing the total with the reference of the column index
-                    $(api.column(0).footer()).html('Total');
-                    $(api.column(9).footer()).html(sumTotal);
-                },
-
-                ordering: false,
-                processing: true,
-                serverSide: true,
-                paging: false,
-                searching: true,
-                scrollY: '300px',
-                scrollX: '300px',
-                scrollCollapse: true,
-                destroy: true,
-                ajax: {
-                    url: '{{ route('show_detail_karton') }}',
-                    method: 'GET',
+            if (cbomodal_p_barcode != '' && cbomodal_p_qty != '' && cbomodal_p_dest != '') {
+                $.ajax({
+                    type: "post",
+                    url: '{{ route('store_tambah_data_karton_det') }}',
                     data: {
-                        po: po_s
+                        txtmodal_p_po: txtmodal_p_po,
+                        cbomodal_p_barcode: cbomodal_p_barcode,
+                        cbomodal_p_qty: cbomodal_p_qty,
+                        cbomodal_p_dest: cbomodal_p_dest,
+                        cbomodal_p_no_karton: cbomodal_p_no_karton,
+                        cbomodal_p_qty_stok: cbomodal_p_qty_stok
                     },
-                },
-                columns: [{
-                        data: 'no_carton'
+                    success: function(response) {
+                        if (response.icon == 'salah') {
+                            iziToast.warning({
+                                message: response.msg,
+                                position: 'topCenter'
+                            });
+                        } else {
+                            Swal.fire({
+                                text: response.msg,
+                                icon: "success"
+                            });
+                        }
+                        $("#txtmodal_p_po").val(txtmodal_p_po).trigger('change');
+                        // $("#cbomodal_p_no_karton").val(cbomodal_p_no_karton).trigger('change');
+                        // $("#cbomodal_p_dest").val(cbomodal_p_dest).trigger('change');
+                        $('#cbomodal_p_qty').val('');
+                        $('#cbomodal_p_qty_stok').val('0');
+                        dataTableTambahReload();
+                        // dataTableReload();
+                        // cleardet();
+                    },
+                    error: function(request, status, error) {
+                        iziToast.warning({
+                            message: 'Stok tidak mencukupi cek lagi',
+                            position: 'topCenter'
+                        });
+                    },
+                });
+            }
+        };
 
-                    },
-                    {
-                        data: 'barcode'
-                    },
-                    {
-                        data: 'ws'
-                    },
-                    {
-                        data: 'color'
-                    },
-                    {
-                        data: 'size'
-                    },
-                    {
-                        data: 'dest'
-                    },
-                    {
-                        data: 'desc'
-                    },
-                    {
-                        data: 'styleno'
-                    },
-                    {
-                        data: 'product_item'
-                    },
-                    {
-                        data: 'tot'
-                    },
-                    {
-                        data: 'stat'
-                    },
-                ],
-                columnDefs: [{
-                        "className": "dt-left",
-                        "targets": "_all"
-                    },
-                    // {
-                    //     targets: '_all',
-                    //     className: 'text-nowrap',
-                    //     render: (data, type, row, meta) => {
-                    //         if (row.stat == 'isi') {
-                    //             color = 'green';
-                    //         } else {
-                    //             color = '#blue';
-                    //         }
-                    //         return '<span style="color:' + color + '">' + data +
-                    //             '</span>';
-                    //     }
-                    // },
 
-                ]
-            });
+        function ceklis(checkeds) {
+            //get id..and check if checked
+            console.log($(checkeds).attr("value"), checkeds.checked)
         }
     </script>
 @endsection
