@@ -2275,15 +2275,16 @@ class StockerController extends Controller
         ini_set("memory_limit", '2048M');
 
         $method = $request->method ? $request->method : 'qty';
+        $yearSequenceYear = $request->year ? $request->year : Carbon::now()->format('Y');
+        $yearSequenceSequence = $request->yearSequence ? $request->yearSequence : 0;
         $qty = $request->qty ? $request->qty : 0;
         $rangeAwal = $request->rangeAwal ? $request->rangeAwal : 0;
         $rangeAkhir = $request->rangeAkhir ? $request->rangeAkhir : 0;
-        $rangeYearSequence = $request->rangeYearSequence ? $request->rangeYearSequence : 0;
 
         if ($method == 'qty' && $qty > 0) {
             $insertData = [];
 
-            $yearSequence = YearSequence::selectRaw("year_sequence, year_sequence_number")->where("year", Carbon::now()->format('Y'))->orderBy("year_sequence", "desc")->orderBy("year_sequence_number", "desc")->first();
+            $yearSequence = YearSequence::selectRaw("year_sequence, year_sequence_number")->where("year", $yearSequenceYear->year)->where("year_sequence", $yearSequenceSequence)->orderBy("year_sequence", "desc")->orderBy("year_sequence_number", "desc")->first();
             $yearSequenceSequence = $yearSequence ? $yearSequence->year_sequence : 1;
             $yearSequenceNumber = $yearSequence ? $yearSequence->year_sequence_number + 1 : 1;
 
@@ -2323,10 +2324,10 @@ class StockerController extends Controller
                 "status" => 400,
                 "message" => "Something went wrong",
             );
-        } else if ($method == 'range' && $rangeAwal > 0 && $rangeAkhir > 0 && $rangeAwal <= $rangeAkhir && $rangeYearSequence > 0 && $rangeYearSequence <= 999999) {
+        } else if ($method == 'range' && $rangeAwal > 0 && $rangeAkhir > 0 && $rangeAwal <= $rangeAkhir && $rangeAkhir <= 999999) {
             $upsertData = [];
 
-            $yearSequence = YearSequence::select("year_sequence, year_sequence_number")->where("year", Carbon::now()->format('Y'))->where("year_sequence", $rangeYearSequence)->orderBy("year_sequence", "desc")->orderBy("year_sequence_number", "desc")->first();
+            $yearSequence = YearSequence::selectRaw("year_sequence, year_sequence_number")->where("year", Carbon::now()->format('Y'))->where("year_sequence", $yearSequenceSequence)->orderBy("year_sequence", "desc")->orderBy("year_sequence_number", "desc")->first();
             $yearSequenceSequence = $yearSequence ? $yearSequence->year_sequence : 1;
 
             for ($i = $rangeAwal; $i <= $rangeAkhir; $i++) {

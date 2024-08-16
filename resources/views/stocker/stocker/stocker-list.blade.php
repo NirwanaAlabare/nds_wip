@@ -639,6 +639,8 @@
                         generating = false;
                     },
                     error: function(jqXHR) {
+                        console.error(jqXHR)
+
                         swal.close();
 
                         generating = false;
