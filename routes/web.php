@@ -469,6 +469,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/stocker-list', 'stockerList')->name('stocker-list');
         Route::get('/stocker-list/detail/{form_cut_id?}/{so_det_id?}', 'stockerListDetail')->name('stocker-list-detail');
         Route::post('/stocker-list/set-month-count', 'setMonthCountNumber')->name('set-month-count-number');
+        Route::post('/stocker-list/set-year-sequence', 'setYearSequenceNumber')->name('set-year-sequence-number');
 
         // month count
         Route::get('/month-count', 'customMonthCount')->name('month-count');
@@ -476,9 +477,17 @@ Route::middleware('auth')->group(function () {
         Route::post('/month-count/print', 'printMonthCount')->name('print-month-count');
         Route::post('/month-count/print-checked', 'printMonthCountChecked')->name('print-month-count-checked');
 
+        // year sequence
+        Route::get('/year-sequence', 'yearSequence')->name('year-sequence');
+        Route::get('/year-sequence/get-sequence', 'getSequenceYearSequence')->name('get-sequence-year-sequence');
+        Route::get('/year-sequence/get-range', 'getRangeYearSequence')->name('get-range-year-sequence');
+        Route::post('/year-sequence/print', 'printYearSequence')->name('print-year-sequence');
+        // Route::post('/year-sequence/print-checked', 'printYearSequenceChecked')->name('print-year-sequence-checked');
+
         // get stocker
         Route::get('/get-stocker', 'getStocker')->name('get-stocker');
         Route::get('/get-stocker-month-count', 'getStockerMonthCount')->name('get-stocker-month-count');
+        Route::get('/get-stocker-year-sequence', 'getStockerYearSequence')->name('get-stocker-year-sequence');
     });
 
     // DC :
