@@ -2284,7 +2284,7 @@ class StockerController extends Controller
         if ($method == 'qty' && $qty > 0) {
             $insertData = [];
 
-            $yearSequence = YearSequence::selectRaw("year_sequence, year_sequence_number")->where("year", $yearSequenceYear->year)->where("year_sequence", $yearSequenceSequence)->orderBy("year_sequence", "desc")->orderBy("year_sequence_number", "desc")->first();
+            $yearSequence = YearSequence::selectRaw("year_sequence, year_sequence_number")->where("year", $yearSequenceYear)->where("year_sequence", $yearSequenceSequence)->orderBy("year_sequence", "desc")->orderBy("year_sequence_number", "desc")->first();
             $yearSequenceSequence = $yearSequence ? $yearSequence->year_sequence : 1;
             $yearSequenceNumber = $yearSequence ? $yearSequence->year_sequence_number + 1 : 1;
 

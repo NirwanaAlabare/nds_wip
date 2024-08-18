@@ -588,64 +588,92 @@
         function validatePrintYearSequence() {
             if (methodYear == 'qty' && $('#print-qty-year').val() > 0) {
                 return true;
-            } else if (methodYear == 'range' && $('#print-range-awal-year').val() > 0 && $('#print-range-awal-year').val() <= $('#print-range-akhir-year').val()) {
+            } else if (methodYear == 'range' && Number($('#print-range-awal-year').val()) > 0 && Number($('#print-range-awal-year').val()) <= Number($('#print-range-akhir-year').val())) {
                 return true;
             }
 
             return false
         }
 
-        function printYearSequence() {
+        async function printYearSequence() {
             if (validatePrintYearSequence()) {
                 generating = true;
 
                 Swal.fire({
                     title: 'Please Wait...',
-                    html: 'Exporting Data...',
+                    html: 'Exporting Data... <br><br> Est. <b>0</b>s...',
                     didOpen: () => {
-                        Swal.showLoading()
+                        Swal.showLoading();
+
+                        let estimatedTime = 0;
+                        const estimatedTimeElement = Swal.getPopup().querySelector("b");
+                        estimatedTimeInterval = setInterval(() => {
+                            estimatedTime++;
+                            estimatedTimeElement.textContent = estimatedTime;
+                        }, 1000);
                     },
                     allowOutsideClick: false,
                 });
 
-                $.ajax({
-                    url: '{{ route('print-year-sequence') }}',
-                    type: 'post',
-                    data: {
-                        method: methodYear,
-                        qty: $("#print-qty-year").val(),
-                        year: $("#year-sequence-year").val(),
-                        yearSequence: $("#year-sequence-sequence").val(),
-                        rangeAwal: $("#print-range-awal-year").val(),
-                        rangeAkhir: $("#print-range-akhir-year").val(),
-                    },
-                    xhrFields:
-                    {
-                        responseType: 'blob'
-                    },
-                    success: function(res) {
-                        if (res) {
-                            console.log(res);
+                let totalPrint = methodYear == 'range' ? Number($("#print-range-akhir-year").val()) - Number($("#print-range-awal-year").val()) + 1 : Number($("#print-qty-year").val());
 
-                            var blob = new Blob([res], {type: 'application/pdf'});
-                            var link = document.createElement('a');
-                            link.href = window.URL.createObjectURL(blob);
-                            link.download = "Numbers.pdf";
-                            link.click();
-                        }
-
-                        window.location.reload();
-
-                        generating = false;
-                    },
-                    error: function(jqXHR) {
-                        console.error(jqXHR)
-
-                        swal.close();
-
-                        generating = false;
+                let i = 0;
+                let qtyI = 0;
+                let rangeI = Number($("#print-range-awal-year").val());
+                while (i < totalPrint) {
+                    if ((i + 1000) > totalPrint) {
+                        qtyI = totalPrint - i;
+                        i += qtyI;
+                    } else {
+                        qtyI = 1000;
+                        i += qtyI;
                     }
-                });
+
+                    console.log(i, qtyI, rangeI, totalPrint);
+
+                    await $.ajax({
+                        url: '{{ route('print-year-sequence') }}',
+                        type: 'post',
+                        data: {
+                            method: methodYear,
+                            qty: qtyI,
+                            year: $("#year-sequence-year").val(),
+                            yearSequence: $("#year-sequence-sequence").val(),
+                            rangeAwal: rangeI,
+                            rangeAkhir: rangeI + qtyI - 1,
+                        },
+                        xhrFields:
+                        {
+                            responseType: 'blob'
+                        },
+                        success: function(res) {
+                            if (res) {
+                                console.log(res);
+
+                                var blob = new Blob([res], {type: 'application/pdf'});
+                                var link = document.createElement('a');
+                                link.href = window.URL.createObjectURL(blob);
+                                link.download = methodYear == "range" ? "Numbers_"+rangeI+"-"+(rangeI+qtyI-1)+".pdf" : "Numbers.pdf";
+                                link.click();
+                            }
+
+                            generating = false;
+                        },
+                        error: function(jqXHR) {
+                            console.error(jqXHR)
+
+                            generating = false;
+
+                            clearInterval(estimatedTimeInterval);
+                        }
+                    });
+
+                    rangeI += qtyI;
+                }
+
+                // window.location.reload();
+
+                swal.close();
             } else {
                 Swal.fire({
                     icon: 'error',
@@ -654,6 +682,47 @@
                     allowOutsideClick: false,
                 });
             }
+        }
+
+        async function printYearSequenceAjax(method, qty, year, yearSequence, rangeAwal, rangeAkhir) {
+            return $.ajax({
+                        url: '{{ route('print-year-sequence') }}',
+                        type: 'post',
+                        data: {
+                            method: method ? method : methodYear,
+                            qty: qty ? qty : $("#print-qty-year").val(),
+                            year: year ? year : $("#year-sequence-year").val(),
+                            yearSequence: yearSequence ? yearSequence : ("#year-sequence-sequence").val(),
+                            rangeAwal: rangeAwal ? rangeAwal : $("#print-range-awal-year"),
+                            rangeAkhir: rangeAkhir ? rangeAkhir : $("#print-range-akhir-year"),
+                        },
+                        xhrFields:
+                        {
+                            responseType: 'blob'
+                        },
+                        success: function(res) {
+                            if (res) {
+                                console.log(res);
+
+                                var blob = new Blob([res], {type: 'application/pdf'});
+                                var link = document.createElement('a');
+                                link.href = window.URL.createObjectURL(blob);
+                                link.download = "Numbers.pdf";
+                                link.click();
+                            }
+
+                            window.location.reload();
+
+                            generating = false;
+                        },
+                        error: function(jqXHR) {
+                            console.error(jqXHR)
+
+                            swal.close();
+
+                            generating = false;
+                        }
+                    });
         }
     </script>
 @endsection
