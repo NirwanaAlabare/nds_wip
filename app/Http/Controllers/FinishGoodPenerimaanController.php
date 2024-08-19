@@ -19,59 +19,27 @@ class FinishGoodPenerimaanController extends Controller
         $user = Auth::user()->name;
         if ($request->ajax()) {
             $additionalQuery = '';
-            $data_input = DB::select("
-                SELECT
-                a.no_trans,
-                concat((DATE_FORMAT(tgl_trans,  '%d')), '-', left(DATE_FORMAT(tgl_trans,  '%M'),3),'-',DATE_FORMAT(tgl_trans,  '%Y')
-                ) tgl_trans_fix,
-                a.line,
-                a.po,
-                m.ws,
-                m.color,
-                m.size,
-                a.qty,
-                if(a.qty - c.qty_in = '0','Full','-') status,
-                a.id,
-                a.tujuan,
-                a.created_at,
-                a.created_by
-                from packing_trf_garment a
-                inner join ppic_master_so p on a.id_ppic_master_so = p.id
-                inner join master_sb_ws m on a.id_so_det = m.id_so_det
-                left join
-                    (
-                    select id_trf_garment, sum(qty) qty_in from packing_packing_in
-                    where sumber = 'Sewing'
-                    group by id_trf_garment
-                    ) c on a.id = c.id_trf_garment
-                where tgl_trans >= '$tgl_awal' and tgl_trans <= '$tgl_akhir'
-            union
-                SELECT
-                a.no_trans,
-                concat((DATE_FORMAT(tgl_trans,  '%d')), '-', left(DATE_FORMAT(tgl_trans,  '%M'),3),'-',DATE_FORMAT(tgl_trans,  '%Y')
-                ) tgl_trans_fix,
-                'Temporary' line,
-                a.po,
-                m.ws,
-                m.color,
-                m.size,
-                a.qty,
-                if(a.qty - c.qty_in = '0','Full','-') status,
-                a.id,
-                'Packing' tujuan,
-                a.created_at,
-                a.created_by
-                from packing_trf_garment_out_temporary a
-                inner join ppic_master_so p on a.id_ppic_master_so = p.id
-                inner join master_sb_ws m on a.id_so_det = m.id_so_det
-                left join
-                    (
-                    select id_trf_garment, sum(qty) qty_in from packing_packing_in
-                    where sumber = 'Temporary'
-                    group by id_trf_garment
-                    ) c on a.id = c.id_trf_garment
-                where tgl_trans >= '$tgl_awal' and tgl_trans <= '$tgl_akhir'
-								order by created_at desc
+            $data_input = DB::select("SELECT
+no_sb,
+tgl_penerimaan,
+concat((DATE_FORMAT(a.tgl_penerimaan,  '%d')), '-', left(DATE_FORMAT(a.tgl_penerimaan,  '%M'),3),'-',DATE_FORMAT(a.tgl_penerimaan,  '%Y')
+            ) tgl_penerimaan_fix,
+a.po,
+a.barcode,
+buyer,
+ws,
+color,
+size,
+a.qty,
+a.no_carton,
+a.notes,
+a.created_at,
+a.created_by
+from fg_fg_in a
+inner join ppic_master_so p on a.id_ppic_master_so = p.id
+inner join master_sb_ws m on p.id_so_det = m.id_so_det
+where tgl_penerimaan >= '$tgl_awal' and tgl_penerimaan <= '$tgl_akhir'
+order by a.created_at desc
             ");
 
             return DataTables::of($data_input)->toJson();
@@ -104,10 +72,10 @@ group by po, buyer
     public function fg_in_getno_carton(Request $request)
     {
         $data_no_carton = DB::select("SELECT
-        a.no_carton isi,
-        concat(a.no_carton, ' ( ', coalesce(b.total,0), ' )') tampil
+        concat(a.no_carton,'_',a.notes)  isi,
+        concat(a.no_carton, ' ( ', coalesce(b.total,0), ' ) ', a.notes) tampil
         from
-        (select id,po, no_carton from packing_master_carton where po = '" . $request->cbopo . "' and status = 'draft') a
+        (select id,po, no_carton, notes from packing_master_carton where po = '" . $request->cbopo . "' and status = 'draft') a
         left join (
         select count(barcode) total, po, barcode, dest, no_carton from packing_packing_out_scan
         where po = '" . $request->cbopo . "'
@@ -166,7 +134,10 @@ group by po, buyer
         $user = Auth::user()->name;
         $tgl_skrg = date('Y-m-d');
         $po                     = $_POST['cbopo'];
-        $no_carton              = $_POST['cbo_no_carton'];
+
+        $cekArray = explode('_', $_POST['cbo_no_carton']);
+        $no_carton = $cekArray[0];
+        $notes = $cekArray[1];
 
         $cek_sb = DB::connection('mysql_sb')->select("select count(id) tot from bpb where bpbdate = '$tgl_skrg'
         and po_fg = '$po' and status_input = 'nds' ");
@@ -198,6 +169,7 @@ group by po, buyer
         $priceArray             = $_POST['price'];
         $currArray              = $_POST['curr'];
         $id_ppic_master_soArray = $_POST['id_ppic_master_so'];
+        $barcodeArray           = $_POST['barcode'];
         $tgl_penerimaan         = date('Y-m-d');
 
         foreach ($JmlArray as $key => $value) {
@@ -205,7 +177,9 @@ group by po, buyer
                 $txtqty         = $JmlArray[$key];
                 $id_so_det      = $id_so_detArray[$key];
                 $price          = $priceArray[$key];
-                $curr          = $currArray[$key]; {
+                $curr           = $currArray[$key];
+                $id_ppic_master_so         = $id_ppic_master_soArray[$key];
+                $barcode          = $barcodeArray[$key]; {
                     $cek = DB::connection('mysql_sb')->select("select count(id_so_det) cek from masterstyle where id_so_det = '$id_so_det'");
                     $cek_data = $cek[0]->cek;
                     if ($cek_data == '0') {
@@ -237,8 +211,10 @@ group by po, buyer
                     $update_karton =  DB::update("
                     update packing_master_carton set status = 'transfer' where po = '$po' and no_carton = '$no_carton' ");
 
-                    // $insert_fg_in_nds =  DB::insert("
-                    // insert into fg_fg_in (no_sb,tgl_penerimaan,id_ppic_master_so,id_so_det,qty,po,no_carton,lokasi) ");
+                    $insert_fg_in_nds =  DB::insert("
+                    insert into fg_fg_in (no_sb,tgl_penerimaan,id_ppic_master_so,id_so_det,barcode,qty,po,no_carton,lokasi,notes,created_by,updated_at,created_at)
+                    values('$bpbno_int','$tgl_skrg','$id_ppic_master_so','$id_so_det','$barcode','$txtqty','$po','$no_carton','-','$notes','$user','$timestamp','$timestamp')
+                    ");
                 }
             }
         }
@@ -251,7 +227,7 @@ group by po, buyer
                  Sudah Terbuat',
                 "additional" => [],
                 'table' => 'datatable_preview',
-                "callback" => "getno_carton()"
+                "callback" => "getno_carton();dataTableReload();"
             );
         } else {
             return array(

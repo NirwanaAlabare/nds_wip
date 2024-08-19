@@ -95,15 +95,6 @@
         <div class="card-body">
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
-                    <a href="{{ route('create_penerimaan_finish_good') }}"
-                        class="btn btn-outline-primary position-relative">
-                        <i class="fas fa-hand"></i>
-                        Ambil Packing
-                    </a>
-                </div>
-            </div>
-            <div class="d-flex align-items-end gap-3 mb-3">
-                <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Awal</b></small></label>
                     <input type="date" class="form-control form-control-sm " id="tgl-awal" name="tgl_awal"
                         oninput="dataTableReload()" value="{{ date('Y-m-d') }}">
@@ -125,16 +116,16 @@
                 <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
                     <thead class="table-success">
                         <tr style='text-align:center; vertical-align:middle'>
-                            <th>No. Trans</th>
+                            <th>No. SB</th>
                             <th>Tgl. Trans</th>
-                            <th>Line</th>
                             <th>PO</th>
+                            <th>Buyer</th>
                             <th>WS</th>
                             <th>Color</th>
                             <th>Size</th>
                             <th>Qty</th>
-                            <th>Tujuan</th>
-                            <th>Status</th>
+                            <th>No. Carton</th>
+                            <th>Notes</th>
                             <th>User</th>
                             <th>Tgl. Input</th>
                         </tr>
@@ -263,23 +254,23 @@
             scrollX: '300px',
             scrollCollapse: true,
             ajax: {
-                url: '{{ route('transfer-garment') }}',
+                url: '{{ route('finish_good_penerimaan') }}',
                 data: function(d) {
                     d.dateFrom = $('#tgl-awal').val();
                     d.dateTo = $('#tgl-akhir').val();
                 },
             },
             columns: [{
-                    data: 'no_trans'
+                    data: 'no_sb'
 
                 }, {
-                    data: 'tgl_trans_fix'
-                },
-                {
-                    data: 'line'
+                    data: 'tgl_penerimaan_fix'
                 },
                 {
                     data: 'po'
+                },
+                {
+                    data: 'buyer'
                 },
                 {
                     data: 'ws'
@@ -294,10 +285,10 @@
                     data: 'qty'
                 },
                 {
-                    data: 'tujuan'
+                    data: 'no_carton'
                 },
                 {
-                    data: 'status'
+                    data: 'notes'
                 },
                 {
                     data: 'created_by'
@@ -439,6 +430,8 @@
                             name="curr[` + row.id_so_det + `]" value = "` + row.curr + `"/>
                             <input type="hidden" size="4" id="id_ppic_master_so[` + row.id_so_det + `]"
                             name="id_ppic_master_so[` + row.id_so_det + `]" value = "` + row.id_ppic_master_so + `"/>
+                            <input type="hidden" size="4" id="barcode[` + row.id_so_det + `]"
+                            name="barcode[` + row.id_so_det + `]" value = "` + row.barcode + `"/>
                         </div>
                         `;
                     }
