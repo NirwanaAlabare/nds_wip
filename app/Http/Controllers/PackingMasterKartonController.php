@@ -442,6 +442,6 @@ inner join master_sb_ws m on p.id_so_det = m.id_so_det
         ) pack_out on p.id = pack_out.id
         where p.barcode = '$request->barcode' and p.po = '$request->po' and dest = '$request->dest'
         ");
-        return json_encode($cek_stok[0]);
+        return json_encode($cek_stok ? $cek_stok[0] : null);
     }
 }
