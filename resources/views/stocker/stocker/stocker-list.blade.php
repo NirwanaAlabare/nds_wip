@@ -31,7 +31,10 @@
                         <button class="btn btn-primary btn-sm" onclick="dataTableReload()"><i class="fa fa-search"></i></button>
                     </div>
                 </div>
-                <button class="btn btn-sb btn-sm" data-bs-toggle="modal" data-bs-target="#printModal"><i class="fa-regular fa-file-lines fa-sm"></i> Print Month Count</button>
+                <div class="d-flex justify-content-end align-items-end gap-3">
+                    <button class="btn btn-sb btn-sm" data-bs-toggle="modal" data-bs-target="#printModal"><i class="fa-regular fa-file-lines fa-sm"></i> Print Month Count</button>
+                    <button class="btn btn-sb-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#printYearModal"><i class="fa-regular fa-file-lines fa-sm"></i> Print Year Sequence</button>
+                </div>
                 {{-- <div class="d-none">
                     <div class="d-flex gap-1">
                         <button class="btn btn-success btn-sm" onclick="fixRedundantStocker()"><i class="fa fa-cog"></i> Stocker Redundant</button>
@@ -106,6 +109,55 @@
             </div>
         </div>
     </div>
+
+    {{-- Print Year Numbers Modal --}}
+    <div class="modal fade" id="printYearModal" tabindex="-1" aria-labelledby="printYearModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-light">
+                    <h1 class="modal-title fs-5" id="printYearModalLabel">Print Year Sequence</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="col-md-12">
+                        <div class="d-flex justify-content-center mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="switch-method-year" onchange="switchMethodYear(this)">
+                                <label class="form-check-label" id="to-qty-year">Qty</label>
+                                <label class="form-check-label d-none" id="to-range-year">Range</label>
+                            </div>
+                        </div>
+                    </div>
+                    <label class="form-label">Tahun : </label>
+                    <div class="d-flex gap-3 mb-3">
+                        <select class="form-select select2bs4yearseq" name="year-sequence-year" id="year-sequence-year" onchange="getSequenceYearSequence();">
+                            @foreach ($years as $year)
+                                <option value="{{ $year }}">{{ $year }}</option>
+                            @endforeach
+                        </select>
+                        <select class="form-select select2bs4yearseq" name="year-sequence-sequence" id="year-sequence-sequence" onchange="getRangeYearSequence();">
+                        </select>
+                    </div>
+                    <div class="mb-3" id="qty-method-year">
+                        <label class="form-label">Print Qty : </label>
+                        <input class="form-control form-control-sm" type="number" name="number" id="print-qty-year" />
+                    </div>
+                    <div class="mb-3 d-none" id="range-method-year">
+                        <label class="form-label">Print Range : </label>
+                        <div class="d-flex gap-3 mb-3">
+                            <input class="form-control form-control-sm" type="number" name="number" id="print-range-awal-year" />
+                            <span> - </span>
+                            <input class="form-control form-control-sm" type="number" name="number" id="print-range-akhir-year" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa-solid fa-times fa-sm"></i> Batal</button>
+                    <button class="btn btn-success" onclick="printYearSequence()"><i class="fa-solid fa-file-export fa-sm"></i> Export</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('custom-script')
@@ -121,7 +173,10 @@
         $('.select2').select2()
         $('.select2bs4').select2({
             theme: 'bootstrap4',
-            dropdownParent: $("#editMejaModal")
+        })
+        $('.select2bs4yearseq').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $("#printYearModal")
         })
     </script>
 
@@ -136,11 +191,15 @@
             let oneWeeksBeforeFull = oneWeeksBeforeYear + '-' + oneWeeksBeforeMonth + '-' + oneWeeksBeforeDate;
 
             $("#switch-method").prop("checked", false);
+            $("#switch-method-year").prop("checked", false);
 
             $("#tgl-awal").val(oneWeeksBeforeFull).trigger("change");
+
+            $("#year-sequence-year").val(new Date().getFullYear()).trigger("change");
         });
 
         var method = 'qty';
+        var methodYear = 'qty';
 
         $("#printModal").on('hide.bs.modal', event => {
             toQtyMethod();
@@ -420,8 +479,250 @@
             }
         }
 
-        function stockerListDetail() {
+        function getSequenceYearSequence() {
+            $.ajax({
+                url: '{{ route('get-sequence-year-sequence') }}',
+                type: 'get',
+                data: {
+                    year: $("#year-sequence-year").val()
+                },
+                dataType: 'json',
+                success: async function(res)
+                {
+                    console.log("sequence", res);
 
+                    if (res) {
+                        if (res.status != "400") {
+                            let select = document.getElementById('year-sequence-sequence');
+                            select.innerHTML = "";
+
+                            let latestVal = null;
+                            for(let i = 0; i < res.length; i++) {
+                                let option = document.createElement("option");
+                                option.setAttribute("value", res[i].year_sequence);
+                                option.innerHTML = res[i].year_sequence;
+                                select.appendChild(option);
+
+                                latestVal = res[i].year_sequence;
+                            }
+
+                            $("#year-sequence-sequence").val(latestVal).trigger("change");
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                html: res.message,
+                            });
+                        }
+                    }
+                },
+                error: function(jqXHR)
+                {
+                    console.error(jqXHR)
+                }
+            })
+        }
+
+        function getRangeYearSequence() {
+            $.ajax({
+                url: '{{ route('get-range-year-sequence') }}',
+                type: 'get',
+                data: {
+                    year: $("#year-sequence-year").val(),
+                    sequence: $("#year-sequence-sequence").val()
+                },
+                dataType: 'json',
+                success: function(res)
+                {
+                    console.log("range", res);
+
+                    if (res) {
+                        if (res.status != "400") {
+                            $('#print-range-awal-year').val(res.year_sequence_number);
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                html: res.message,
+                            });
+                        }
+                    }
+                },
+                error: function(jqXHR)
+                {
+                    console.error(jqXHR)
+                }
+            })
+        }
+
+        function switchMethodYear(element) {
+            console.log(element.checked);
+
+            if (element.checked) {
+                toRangeMethodYear();
+            } else {
+                toQtyMethodYear();
+            }
+        }
+
+        function toQtyMethodYear() {
+            $('#to-qty-year').removeClass('d-none');
+            $('#to-range-year').addClass('d-none');
+
+            $('#qty-method-year').removeClass('d-none');
+            $('#range-method-year').addClass('d-none');
+
+            methodYear = 'qty';
+        }
+
+        function toRangeMethodYear() {
+            $('#to-range-year').removeClass('d-none');
+            $('#to-qty-year').addClass('d-none');
+
+            $('#range-method-year').removeClass('d-none');
+            $('#qty-method-year').addClass('d-none');
+
+            methodYear = 'range';
+        }
+
+        function validatePrintYearSequence() {
+            if (methodYear == 'qty' && $('#print-qty-year').val() > 0) {
+                return true;
+            } else if (methodYear == 'range' && Number($('#print-range-awal-year').val()) > 0 && Number($('#print-range-awal-year').val()) <= Number($('#print-range-akhir-year').val())) {
+                return true;
+            }
+
+            return false
+        }
+
+        async function printYearSequence() {
+            if (validatePrintYearSequence()) {
+                generating = true;
+
+                Swal.fire({
+                    title: 'Please Wait...',
+                    html: 'Exporting Data... <br><br> Est. <b>0</b>s...',
+                    didOpen: () => {
+                        Swal.showLoading();
+
+                        let estimatedTime = 0;
+                        const estimatedTimeElement = Swal.getPopup().querySelector("b");
+                        estimatedTimeInterval = setInterval(() => {
+                            estimatedTime++;
+                            estimatedTimeElement.textContent = estimatedTime;
+                        }, 1000);
+                    },
+                    allowOutsideClick: false,
+                });
+
+                let totalPrint = methodYear == 'range' ? Number($("#print-range-akhir-year").val()) - Number($("#print-range-awal-year").val()) + 1 : Number($("#print-qty-year").val());
+
+                let i = 0;
+                let qtyI = 0;
+                let rangeI = Number($("#print-range-awal-year").val());
+                while (i < totalPrint) {
+                    if ((i + 1000) > totalPrint) {
+                        qtyI = totalPrint - i;
+                        i += qtyI;
+                    } else {
+                        qtyI = 1000;
+                        i += qtyI;
+                    }
+
+                    console.log(i, qtyI, rangeI, totalPrint);
+
+                    await $.ajax({
+                        url: '{{ route('print-year-sequence') }}',
+                        type: 'post',
+                        data: {
+                            method: methodYear,
+                            qty: qtyI,
+                            year: $("#year-sequence-year").val(),
+                            yearSequence: $("#year-sequence-sequence").val(),
+                            rangeAwal: rangeI,
+                            rangeAkhir: rangeI + qtyI - 1,
+                        },
+                        xhrFields:
+                        {
+                            responseType: 'blob'
+                        },
+                        success: function(res) {
+                            if (res) {
+                                console.log(res);
+
+                                var blob = new Blob([res], {type: 'application/pdf'});
+                                var link = document.createElement('a');
+                                link.href = window.URL.createObjectURL(blob);
+                                link.download = methodYear == "range" ? "Numbers_"+rangeI+"-"+(rangeI+qtyI-1)+".pdf" : "Numbers.pdf";
+                                link.click();
+                            }
+
+                            generating = false;
+                        },
+                        error: function(jqXHR) {
+                            console.error(jqXHR)
+
+                            generating = false;
+
+                            clearInterval(estimatedTimeInterval);
+                        }
+                    });
+
+                    rangeI += qtyI;
+                }
+
+                // window.location.reload();
+
+                swal.close();
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal',
+                    html: 'Qty/Range tidak valid.',
+                    allowOutsideClick: false,
+                });
+            }
+        }
+
+        async function printYearSequenceAjax(method, qty, year, yearSequence, rangeAwal, rangeAkhir) {
+            return $.ajax({
+                        url: '{{ route('print-year-sequence') }}',
+                        type: 'post',
+                        data: {
+                            method: method ? method : methodYear,
+                            qty: qty ? qty : $("#print-qty-year").val(),
+                            year: year ? year : $("#year-sequence-year").val(),
+                            yearSequence: yearSequence ? yearSequence : ("#year-sequence-sequence").val(),
+                            rangeAwal: rangeAwal ? rangeAwal : $("#print-range-awal-year"),
+                            rangeAkhir: rangeAkhir ? rangeAkhir : $("#print-range-akhir-year"),
+                        },
+                        xhrFields:
+                        {
+                            responseType: 'blob'
+                        },
+                        success: function(res) {
+                            if (res) {
+                                console.log(res);
+
+                                var blob = new Blob([res], {type: 'application/pdf'});
+                                var link = document.createElement('a');
+                                link.href = window.URL.createObjectURL(blob);
+                                link.download = "Numbers.pdf";
+                                link.click();
+                            }
+
+                            window.location.reload();
+
+                            generating = false;
+                        },
+                        error: function(jqXHR) {
+                            console.error(jqXHR)
+
+                            swal.close();
+
+                            generating = false;
+                        }
+                    });
         }
     </script>
 @endsection

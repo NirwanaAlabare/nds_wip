@@ -13,6 +13,7 @@ use App\Models\MarkerDetail;
 use App\Models\PartDetail;
 use App\Models\ModifySizeQty;
 use App\Models\MonthCount;
+use App\Models\YearSequence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -1954,7 +1955,10 @@ class StockerController extends Controller
             return DataTables::of($stockerList)->toJson();
         }
 
-        return view("stocker.stocker.stocker-list", ["page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "stocker-list"]);
+        $months = [['angka' => '01','nama' => 'Januari'],['angka' => '02','nama' => 'Februari'],['angka' => '03','nama' => 'Maret'],['angka' => '04','nama' => 'April'],['angka' => '05','nama' => 'Mei'],['angka' => '06','nama' => 'Juni'],['angka' => '07','nama' => 'Juli'],['angka' => '08','nama' => 'Agustus'],['angka' => '09','nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
+        $years = array_reverse(range(1999, date('Y')));
+
+        return view("stocker.stocker.stocker-list", ["page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "stocker-list", "months" => $months, "years" => $years]);
     }
 
     public function stockerListDetail($form_cut_id, $so_det_id) {
@@ -2268,17 +2272,19 @@ class StockerController extends Controller
 
     public function printYearSequence(Request $request) {
         ini_set("maximum_execution_time", 360000);
+        ini_set("memory_limit", '2048M');
 
         $method = $request->method ? $request->method : 'qty';
+        $yearSequenceYear = $request->year ? $request->year : Carbon::now()->format('Y');
+        $yearSequenceSequence = $request->yearSequence ? $request->yearSequence : 0;
         $qty = $request->qty ? $request->qty : 0;
         $rangeAwal = $request->rangeAwal ? $request->rangeAwal : 0;
         $rangeAkhir = $request->rangeAkhir ? $request->rangeAkhir : 0;
-        $rangeYearSequence = $request->rangeYearSequence ? $request->rangeYearSequence : 0;
 
         if ($method == 'qty' && $qty > 0) {
             $insertData = [];
 
-            $yearSequence = YearSequence::select("year_sequence, year_sequence_number")->where("year", Carbon::now()->format('Y'))->orderBy("year_sequence", "desc")->orderBy("year_sequence_number", "desc")->first();
+            $yearSequence = YearSequence::selectRaw("year_sequence, year_sequence_number")->where("year", $yearSequenceYear)->where("year_sequence", $yearSequenceSequence)->orderBy("year_sequence", "desc")->orderBy("year_sequence_number", "desc")->first();
             $yearSequenceSequence = $yearSequence ? $yearSequence->year_sequence : 1;
             $yearSequenceNumber = $yearSequence ? $yearSequence->year_sequence_number + 1 : 1;
 
@@ -2289,7 +2295,7 @@ class StockerController extends Controller
                 }
 
                 array_push($insertData, [
-                    "id_year_sequence" => Carbon::now()->format('Y')."_".$yearSequenceSequence."_".$yearSequenceNumber,
+                    "id_year_sequence" => Carbon::now()->format('Y')."_".sprintf('%03d', $yearSequenceSequence)."_".$yearSequenceNumber,
                     "year" => Carbon::now()->format('Y'),
                     "year_sequence" => $yearSequenceSequence,
                     "year_sequence_number" => $yearSequenceNumber,
@@ -2318,10 +2324,10 @@ class StockerController extends Controller
                 "status" => 400,
                 "message" => "Something went wrong",
             );
-        } else if ($method == 'range' && $rangeAwal > 0 && $rangeAkhir > 0 && $rangeAwal <= $rangeAkhir && $rangeYearSequence > 0 && $rangeYearSequence <= 999999) {
+        } else if ($method == 'range' && $rangeAwal > 0 && $rangeAkhir > 0 && $rangeAwal <= $rangeAkhir && $rangeAkhir <= 999999) {
             $upsertData = [];
 
-            $yearSequence = YearSequence::select("year_sequence, year_sequence_number")->where("year", Carbon::now()->format('Y'))->where("year_sequence", $rangeYearSequence)->orderBy("year_sequence", "desc")->orderBy("year_sequence_number", "desc")->first();
+            $yearSequence = YearSequence::selectRaw("year_sequence, year_sequence_number")->where("year", Carbon::now()->format('Y'))->where("year_sequence", $yearSequenceSequence)->orderBy("year_sequence", "desc")->orderBy("year_sequence_number", "desc")->first();
             $yearSequenceSequence = $yearSequence ? $yearSequence->year_sequence : 1;
 
             for ($i = $rangeAwal; $i <= $rangeAkhir; $i++) {
@@ -2442,10 +2448,33 @@ class StockerController extends Controller
         );
     }
 
+    public function getSequenceYearSequence(Request $request) {
+        if ($request->year) {
+            $availableYearSequence = YearSequence::selectRaw("
+                    year_sequence
+                ")->
+                where("year_sequence.year",  $request->year)->
+                groupBy("year_sequence.year_sequence")->
+                orderBy("year_sequence.year_sequence", "asc")->
+                get();
+
+            if ($availableYearSequence->count() > 0) {
+                return json_encode($availableYearSequence);
+            } else {
+                return json_encode([["year" => $request->year, "year_sequence" => 1]]);
+            }
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Tahun tidak valid",
+        );
+    }
+
     public function getRangeYearSequence(Request $request) {
         if ($request->year && $request->sequence) {
 
-            $availableYearSequence = YearSeqeuence::selectRaw("
+            $availableYearSequence = YearSequence::selectRaw("
                     year,
                     year_sequence,
                     year_sequence_number
@@ -2455,19 +2484,19 @@ class StockerController extends Controller
                 whereRaw('number IS NOT NULL')->
                 whereRaw('form_cut_id IS NOT NULL')->
                 whereRaw('so_det_id IS NOT NULL')->
-                orderBy('year_sequence_number', 'asc')->
+                orderBy('year_sequence_number', 'desc')->
                 first();
 
             if ($availableYearSequence) {
                 return json_encode($availableYearSequence);
             } else {
-                return json_encode(["year" => $request->year, "year_sequence" => $request->year_sequence, "month_year_number" => 1]);
+                return json_encode(["year" => $request->year, "year_sequence" => $request->year_sequence, "year_sequence_number" => 1]);
             }
         }
 
         return array(
             "status" => 400,
-            "message" => "Bulan dan tahun tidak valid",
+            "message" => "Tahun tidak valid",
         );
     }
 

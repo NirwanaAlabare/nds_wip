@@ -44,13 +44,13 @@
         <div style="{{ $i == 0 ? '' : 'page-break-after: always;' }}">
             <hr style="margin-bottom: 25px;border-collapse: collapse;">
             <hr style="margin-top: 10px;border-style: dashed;border-collapse: collapse;">
-            <h5 style="font-size: 11px;text-align: center;margin-top: 30px;margin-bottom: 3px;">{{ date('y-m', strtotime($data[$i]['month_year'])) }}</h5>
+            <h5 style="font-size: 11px;text-align: center;margin-top: 30px;margin-bottom: 3px;">{{ date('y', strtotime($data[$i]['year']))."_".sprintf('%03d', $data[$i]['year_sequence']) }}</h5>
             <div style="margin-bottom: 0px;">
                 <center>
-                    <img style="margin-bottom: 0px;" src="data:image/png;base64, {!! base64_encode(QrCode::format('svg')->size(100)->generate($data[$i]['id_month_year'])) !!}">
+                    <img style="margin-bottom: 0px;" src="data:image/png;base64, {!! base64_encode(QrCode::format('svg')->size(100)->generate($data[$i]['id_year_sequence'])) !!}">
                 </center>
             </div>
-            <h5 style="font-size: 11px;text-align: center;margin-top: 3px;margin-bottom: 0px;">{{ $data[$i]['month_year_number'] }}</h5>
+            <h5 style="font-size: 11px;text-align: center;margin-top: 3px;margin-bottom: 0px;">{{ $data[$i]['year_sequence_number'] }}</h5>
         </div>
     @endfor
 </body>
