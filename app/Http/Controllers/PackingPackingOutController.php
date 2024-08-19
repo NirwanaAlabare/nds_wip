@@ -217,7 +217,10 @@ group by p.po, p.dest");
         $user       = Auth::user()->name;
         $barcode    = $request->barcode;
         $po    = $request->cbopo;
-        $no_carton    = $request->cbono_carton;
+        $no_carton_cek    = $request->cbono_carton;
+        $cekArray = explode('_', $no_carton_cek);
+        $no_carton = $cekArray[0];
+        $notes = $cekArray[1];
         $tgl_trans = date('Y-m-d');
 
         $cek_dest = DB::select("
@@ -260,7 +263,7 @@ group by p.po, p.dest");
             if ($cek_stok_fix >= '1') {
                 $insert = DB::insert("
                 insert into packing_packing_out_scan
-                (tgl_trans,barcode,po,dest,no_carton,created_by,created_at,updated_at)
+                (tgl_trans,barcode,po,dest,no_carton,notes,created_by,created_at,updated_at)
                 values
                 (
                     '$tgl_trans',
@@ -268,6 +271,7 @@ group by p.po, p.dest");
                     '$cek_dest_po',
                     '$cek_dest_dest',
                     '$no_carton',
+                    '$notes',
                     '$user',
                     '$timestamp',
                     '$timestamp'
