@@ -1169,7 +1169,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/hapus_master_karton_det', 'hapus_master_karton_det')->name('hapus_master_karton_det');
         Route::get('/getno_carton_tambah', 'getno_carton_tambah')->name('getno_carton_tambah');
         Route::get('/getbarcode_tambah', 'getbarcode_tambah')->name('getbarcode_tambah');
-        Route::get('/getdest_tambah', 'getdest_tambah')->name('getdest_tambah');
         Route::get('/list_data_no_carton_tambah', 'list_data_no_carton_tambah')->name('list_data_no_carton_tambah');
         Route::post('/store_tambah_data_karton_det', 'store_tambah_data_karton_det')->name('store_tambah_data_karton_det');
         Route::get('/get_data_stok_packing_in', 'get_data_stok_packing_in')->name('get_data_stok_packing_in');
@@ -1181,7 +1180,10 @@ Route::middleware('auth')->group(function () {
     // Penerimaan Finish Good
     Route::controller(FinishGoodPenerimaanController::class)->prefix("finish_good_penerimaan")->middleware('finishgood')->group(function () {
         Route::get('/', 'index')->name('finish_good_penerimaan');
+        Route::get('/fg_in_getno_carton', 'fg_in_getno_carton')->name('fg_in_getno_carton');
+        Route::get('/show_preview_fg_in', 'show_preview_fg_in')->name('show_preview_fg_in');
         Route::get('/create', 'create')->name('create_penerimaan_finish_good');
+        Route::post('/store', 'store')->name('store-fg-in');
     });
 
     // Report Doc

@@ -37,8 +37,7 @@
                                     <input type="hidden" class="form-control" id="cbopo_det" name="cbopo_det">
                                     <input type="hidden" class="form-control" id="txtdest" name="txtdest">
                                     <select class="form-control select2bs4 form-control-sm" id="cbopo" name="cbopo"
-                                        style="width: 100%;"
-                                        onchange="getpo();getno_carton();dataTableSummaryReload();dataTableHistoryReload();">
+                                        style="width: 100%;" onchange="getpo();getno_carton();dataTableHistoryReload();">
                                         <option selected="selected" value="" disabled="true">Pilih PO</option>
                                         @foreach ($data_po as $datapo)
                                             <option value="{{ $datapo->isi }}">
@@ -53,7 +52,7 @@
                                     <label><small><b>No. Carton # :</b></small></label>
                                     <select class='form-control select2bs4 form-control-sm' style='width: 100%;'
                                         name='cbono_carton' id='cbono_carton'
-                                        onchange = "dataTableSummaryReload();dataTableHistoryReload()"></select>
+                                        onchange = "dataTableSummaryReload();dataTableHistoryReload();"></select>
                                 </div>
                             </div>
                             <div class="mb-3">
@@ -167,7 +166,7 @@
     <script>
         $(document).ready(function() {
             $("#cbopo").val('').trigger('change');
-            $("#cbono_carton").val('').trigger('change');
+            // $("#cbono_carton").val('').trigger('change');
             $("#cbopo_det").val('');
             $("#txtdest").val('');
             gettotal_input();

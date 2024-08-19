@@ -51,6 +51,11 @@
                                 @endforeach
                             </select>
                         </div>
+                        <div class="form-group">
+                            <label><small><b>Notes :</b></small></label>
+                            <input type='text' id="txtnotes" name="txtnotes" class='form-control form-control-sm'
+                                value = '-'>
+                        </div>
                         <div class="row">
                             <div class="col-sm">
                                 <div class="form-group">
@@ -99,8 +104,8 @@
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label class="form-label"><small><b>PO</b></small></label>
-                                <input type="text" class="form-control form-control-sm" id = "modal_po" name = "modal_po"
-                                    readonly>
+                                <input type="text" class="form-control form-control-sm" id = "modal_po"
+                                    name = "modal_po" readonly>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -148,6 +153,7 @@
                                 <thead>
                                     <tr>
                                         <th>No.carton</th>
+                                        <th>Ket</th>
                                         <th>Barcode</th>
                                         <th>WS</th>
                                         <th>Color</th>
@@ -162,7 +168,7 @@
                                 </thead>
                                 <tfoot>
                                     <tr>
-                                        <th colspan="9"></th>
+                                        <th colspan="10"></th>
                                         <th> <input type = 'text' class="form-control form-control-sm"
                                                 style="width:75px" readonly id = 'total_qty_chk'> </th>
                                         <th></th>
@@ -276,19 +282,12 @@
                                                 style="width: 100%;">
                                         </div>
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-5">
                                         <div class="form-group">
-                                            <label><small><b>Barcode</b></small></label>
+                                            <label><small><b>Barcode / Item</b></small></label>
                                             <select class='form-control select2bs4 form-control-sm rounded'
-                                                style='width: 100%;' name='cbomodal_p_barcode' id='cbomodal_p_barcode'
-                                                onchange="getdest_modal_tambah();"></select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label><small><b>Dest</b></small></label>
-                                            <select class='form-control select2bs4 form-control-sm rounded'
-                                                style='width: 100%;' name='cbomodal_p_dest' id='cbomodal_p_dest'
+                                                style='width: 100%;' name='cbomodal_p_id_ppic_master_so'
+                                                id='cbomodal_p_id_ppic_master_so'
                                                 onchange="getstok_packing_in();"></select>
                                         </div>
                                     </div>
@@ -746,7 +745,7 @@
 
                 // computing column Total of the complete result
                 var sumTotal = api
-                    .column(9)
+                    .column(10)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
@@ -754,7 +753,7 @@
 
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
-                $(api.column(9).footer()).html(sumTotal);
+                $(api.column(10).footer()).html(sumTotal);
             },
 
             ordering: false,
@@ -777,6 +776,9 @@
             columns: [{
                     data: 'no_carton'
 
+                },
+                {
+                    data: 'notes'
                 },
                 {
                     data: 'barcode'
@@ -1000,34 +1002,15 @@
             }
         };
 
-        function getdest_modal_tambah() {
-            let txtmodal_p_po = document.form_p.txtmodal_p_po.value;
-            let cbomodal_p_barcode = document.form_p.cbomodal_p_barcode.value;
-            let html = $.ajax({
-                type: "GET",
-                url: '{{ route('getdest_tambah') }}',
-                data: {
-                    txtmodal_p_po: txtmodal_p_po,
-                    cbomodal_p_barcode: cbomodal_p_barcode
-                },
-                async: false
-            }).responseText;
-            if (html != "") {
-                $("#cbomodal_p_dest").html(html);
-            }
-        };
-
         function getstok_packing_in() {
             let txtmodal_p_po = document.form_p.txtmodal_p_po.value;
-            let cbomodal_p_barcode = document.form_p.cbomodal_p_barcode.value;
-            let cbomodal_p_dest = document.form_p.cbomodal_p_dest.value;
+            let cbomodal_p_id_ppic_master_so = document.form_p.cbomodal_p_id_ppic_master_so.value;
             jQuery.ajax({
                 url: '{{ route('get_data_stok_packing_in') }}',
                 method: 'GET',
                 data: {
                     po: txtmodal_p_po,
-                    barcode: cbomodal_p_barcode,
-                    dest: cbomodal_p_dest
+                    id_ppic_master_so: id_ppic_master_so
                 },
                 dataType: 'json',
                 success: async function(response) {
