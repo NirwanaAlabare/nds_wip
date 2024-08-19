@@ -63,10 +63,10 @@ order by o.created_at desc
         select * from ppic_master_so where id = '" . $request->cbopo . "'
         ");
 
-        $po = $cek_po[0]->po;
+        $po = $cek_po ? $cek_po[0]->po : null;
 
         $data_carton = DB::select("
-        select a.no_carton isi, a.no_carton tampil
+        select concat(a.no_carton,'_',a.notes) isi, concat(a.no_carton, ' ( ' , notes, ' )') tampil
         from packing_master_carton a where a.po = '$po'
         order by no_carton asc
         ");
@@ -86,7 +86,8 @@ order by o.created_at desc
         $cek_po = DB::select("
         select * from ppic_master_so where id = '" . $request->cbopo . "'
         ");
-        return json_encode($cek_po[0]);
+        // return json_encode($cek_po[0]);
+        return json_encode($cek_po ? $cek_po[0] : '-');
     }
 
 
@@ -94,6 +95,14 @@ order by o.created_at desc
     public function packing_out_show_summary(Request $request)
     {
         $user = Auth::user()->name;
+
+        $po = $request->cbopo ? $request->cbopo : null;
+        $cbono_carton = $request->cbono_carton ? $request->cbono_carton : null;
+
+        $cekArray = explode('_', $cbono_carton);
+        $no_carton = $cekArray[0];
+        $notes = $cekArray[1];
+
         if ($request->ajax()) {
 
 
@@ -106,10 +115,10 @@ order by o.created_at desc
             (
                 select count(barcode)tot_scan, barcode, po, no_carton
                 from packing_packing_out_scan
-                where no_carton = '" . $request->cbono_carton . "' and po = '" . $request->cbopo . "'
+                where no_carton = '$no_carton ' and po = '$po' and notes = '$notes'
                 group by barcode, no_carton
             ) s on s.barcode = p.barcode and s.po = p.po
-            where p.po = '" . $request->cbopo . "' and p.barcode is not null and p.barcode != '-' and coalesce(s.tot_scan,0) != '0'
+            where p.po = '$po' and p.barcode is not null and p.barcode != '-' and coalesce(s.tot_scan,0) != '0'
             group by p.barcode, po, m.color, m.size
             order by p.po asc, color asc, msn.urutan asc
             ");
@@ -122,6 +131,18 @@ order by o.created_at desc
     {
         $user = Auth::user()->name;
         $tgl_trans = date('Y-m-d');
+
+        $cbono_carton = $request->cbono_carton ? $request->cbono_carton : null;
+        if ($cbono_carton == null) {
+            $no_carton = '-';
+            $notes = '-';
+        } else {
+            $cekArray = explode('_', $cbono_carton);
+            $no_carton = $cekArray[0];
+            $notes = $cekArray[1];
+        }
+
+
         if ($request->ajax()) {
 
             $data_history = DB::select("
@@ -137,7 +158,7 @@ m.size
 from packing_packing_out_scan o
 inner join ppic_master_so p on o.barcode = p.barcode and o.po = p.po and o.po = p.po and o.dest = p.dest
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
-where o.no_carton = '" . $request->cbono_carton . "' and o.po = '" . $request->cbopo . "'
+where o.no_carton = '$no_carton' and o.po = '" . $request->cbopo . "' and o.notes = '$notes'
 order by o.created_at desc
             ");
             return DataTables::of($data_history)->toJson();
@@ -160,7 +181,7 @@ SELECT id, tgl_trans, barcode, po, no_carton,created_at, updated_at, created_by 
     {
         $user = Auth::user()->name;
 
-        $data_po = DB::select("SELECT p.id isi, concat(p.po, ' - ', p.dest,  ' - ( ', coalesce(max(m.no_carton),0) , ' ) ') tampil
+        $data_po = DB::select("SELECT p.id isi, concat(p.po, ' - ', p.dest,  ' - ( ', coalesce(count(m.no_carton),0) , ' ) ') tampil
 from
 (
 select id, po, dest from ppic_master_so
@@ -280,7 +301,7 @@ group by p.po, p.dest");
         where created_by = '$user' and tgl_trans = '$tgl_trans'
         ");
 
-        return json_encode($data_header ? $data_header[0] : null);
+        return json_encode($data_header ? $data_header[0] : '-');
     }
 
     public function packing_out_tot_barcode(Request $request)

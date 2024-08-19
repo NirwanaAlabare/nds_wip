@@ -469,6 +469,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/stocker-list', 'stockerList')->name('stocker-list');
         Route::get('/stocker-list/detail/{form_cut_id?}/{so_det_id?}', 'stockerListDetail')->name('stocker-list-detail');
         Route::post('/stocker-list/set-month-count', 'setMonthCountNumber')->name('set-month-count-number');
+        Route::post('/stocker-list/set-year-sequence', 'setYearSequenceNumber')->name('set-year-sequence-number');
 
         // month count
         Route::get('/month-count', 'customMonthCount')->name('month-count');
@@ -476,9 +477,17 @@ Route::middleware('auth')->group(function () {
         Route::post('/month-count/print', 'printMonthCount')->name('print-month-count');
         Route::post('/month-count/print-checked', 'printMonthCountChecked')->name('print-month-count-checked');
 
+        // year sequence
+        Route::get('/year-sequence', 'yearSequence')->name('year-sequence');
+        Route::get('/year-sequence/get-sequence', 'getSequenceYearSequence')->name('get-sequence-year-sequence');
+        Route::get('/year-sequence/get-range', 'getRangeYearSequence')->name('get-range-year-sequence');
+        Route::post('/year-sequence/print', 'printYearSequence')->name('print-year-sequence');
+        // Route::post('/year-sequence/print-checked', 'printYearSequenceChecked')->name('print-year-sequence-checked');
+
         // get stocker
         Route::get('/get-stocker', 'getStocker')->name('get-stocker');
         Route::get('/get-stocker-month-count', 'getStockerMonthCount')->name('get-stocker-month-count');
+        Route::get('/get-stocker-year-sequence', 'getStockerYearSequence')->name('get-stocker-year-sequence');
     });
 
     // DC :
@@ -1169,7 +1178,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/hapus_master_karton_det', 'hapus_master_karton_det')->name('hapus_master_karton_det');
         Route::get('/getno_carton_tambah', 'getno_carton_tambah')->name('getno_carton_tambah');
         Route::get('/getbarcode_tambah', 'getbarcode_tambah')->name('getbarcode_tambah');
-        Route::get('/getdest_tambah', 'getdest_tambah')->name('getdest_tambah');
         Route::get('/list_data_no_carton_tambah', 'list_data_no_carton_tambah')->name('list_data_no_carton_tambah');
         Route::post('/store_tambah_data_karton_det', 'store_tambah_data_karton_det')->name('store_tambah_data_karton_det');
         Route::get('/get_data_stok_packing_in', 'get_data_stok_packing_in')->name('get_data_stok_packing_in');
@@ -1181,7 +1189,10 @@ Route::middleware('auth')->group(function () {
     // Penerimaan Finish Good
     Route::controller(FinishGoodPenerimaanController::class)->prefix("finish_good_penerimaan")->middleware('finishgood')->group(function () {
         Route::get('/', 'index')->name('finish_good_penerimaan');
+        Route::get('/fg_in_getno_carton', 'fg_in_getno_carton')->name('fg_in_getno_carton');
+        Route::get('/show_preview_fg_in', 'show_preview_fg_in')->name('show_preview_fg_in');
         Route::get('/create', 'create')->name('create_penerimaan_finish_good');
+        Route::post('/store', 'store')->name('store-fg-in');
     });
 
     // Report Doc

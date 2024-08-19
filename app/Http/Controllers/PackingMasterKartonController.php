@@ -124,18 +124,19 @@ where tgl_shipment >= '$tgl_awal' and tgl_shipment <= '$tgl_akhir'
         $tot_skrg_hit = $tot_skrg + 1;
         $tot_input = $request->txtinput_carton;
         $total = $tot_skrg + $tot_input;
+        $notes = $request->txtnotes;
 
         for ($i = $tot_skrg_hit; $i <= $total; $i++) {
 
             $cek = DB::select(
-                "select count(id) id from packing_master_carton where po = '$po' and no_carton = '$i'"
+                "select count(id) id from packing_master_carton where po = '$po' and no_carton = '$i' and notes = '$notes'"
             );
             $cek_data = $cek[0]->id;
             if ($cek_data != '1') {
                 $insert = DB::insert(
                     "insert into packing_master_carton
-                        (po,no_carton,created_at,updated_at,created_by) values
-                        ('$po','$i','$timestamp','$timestamp','$user')
+                        (po,no_carton,status,notes,created_at,updated_at,created_by) values
+                        ('$po','$i','draft','$notes','$timestamp','$timestamp','$user')
                         "
                 );
             } else {
@@ -175,6 +176,7 @@ where tgl_shipment >= '$tgl_awal' and tgl_shipment <= '$tgl_akhir'
         $data_det_karton = DB::select("SELECT
 mc.no_carton,
 mc.po,
+mc.notes,
 m.buyer,
 dc.barcode,
 m.ws,
@@ -191,10 +193,10 @@ from
 (select * from packing_master_carton a where po = '$po')mc
 left join
 (
-select count(barcode) tot, po, barcode, no_carton  from packing_packing_out_scan
+select count(barcode) tot, po, barcode, no_carton, notes from packing_packing_out_scan
 where po = '$po'
-group by po, no_carton, barcode, po
-) dc on mc.po = dc.po and mc.no_carton = dc.no_carton
+group by po, no_carton, barcode, po, notes
+) dc on mc.po = dc.po and mc.no_carton = dc.no_carton and mc.notes = dc.notes
 left join ppic_master_so p on dc.po = p.po and dc.barcode = p.barcode
 left join master_sb_ws m on p.id_so_det = m.id_so_det
                     ");
@@ -205,15 +207,16 @@ left join master_sb_ws m on p.id_so_det = m.id_so_det
     {
         $tgl_skrg = date('Y-m-d');
         $user = Auth::user()->name;
-        $data_karton = DB::select("SELECT p.no_carton isi, concat (p.no_carton, ' ( ', coalesce(tot,0) , ' )') tampil
+        $data_karton = DB::select("SELECT concat(p.no_carton,'_',p.notes) isi, concat (p.no_carton, ' ( ', coalesce(tot,0) , ' ) - ', p.notes) tampil
 from
 (
 select * from packing_master_carton where po = '" . $request->txtmodal_h_po . "'
 ) p
 left join
 (
-SELECT count(barcode) tot,po, no_carton from packing_packing_out_scan where po = '" . $request->txtmodal_h_po . "' group by po, no_carton
-) o on p.po = o.po and p.no_carton = o.no_carton
+SELECT count(barcode) tot,po, no_carton, notes from packing_packing_out_scan where po = '" . $request->txtmodal_h_po . "'
+group by po, no_carton, notes
+) o on p.po = o.po and p.no_carton = o.no_carton and p.notes = o.notes
         ");
 
         $html = "<option value=''>Pilih No Karton</option>";
@@ -230,7 +233,18 @@ SELECT count(barcode) tot,po, no_carton from packing_packing_out_scan where po =
         $user = Auth::user()->name;
         $tgl_skrg = date('Y-m-d');
         $po = $request->po;
-        $no_carton = $request->no_carton;
+        $cbo_no_carton = $request->no_carton;
+
+        if ($cbo_no_carton != '') {
+            $cekArray = explode('_', $cbo_no_carton);
+            $no_carton = $cekArray[0];
+            $notes = $cekArray[1];
+        } else {
+            $no_carton = '-';
+            $notes = '-';
+        }
+
+
         $data_list = DB::select("SELECT
 a.id,
 a.barcode,
@@ -244,7 +258,7 @@ a.no_carton
 from packing_packing_out_scan a
 inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
-where a.po = '$po' and a.no_carton = '$no_carton'
+where a.po = '$po' and a.no_carton = '$no_carton' and a.notes = '$notes'
             ");
 
         return DataTables::of($data_list)->toJson();
@@ -293,15 +307,15 @@ where a.po = '$po' and a.no_carton = '$no_carton'
     {
         $tgl_skrg = date('Y-m-d');
         $user = Auth::user()->name;
-        $data_karton = DB::select("SELECT p.no_carton isi, concat (p.no_carton, ' ( ', coalesce(tot,0) , ' )') tampil
+        $data_karton = DB::select("SELECT concat(p.no_carton,'_',p.notes) isi, concat (p.no_carton, ' ( ', coalesce(tot,0) , ' )') tampil
 from
 (
 select * from packing_master_carton where po = '" . $request->txtmodal_p_po . "'
 ) p
 left join
 (
-SELECT count(barcode) tot,po, no_carton from packing_packing_out_scan where po = '" . $request->txtmodal_p_po . "' group by po, no_carton
-) o on p.po = o.po and p.no_carton = o.no_carton
+SELECT count(barcode) tot,po, no_carton, notes from packing_packing_out_scan where po = '" . $request->txtmodal_p_po . "' group by po, no_carton
+) o on p.po = o.po and p.no_carton = o.no_carton and p.notes = o.notes
         ");
 
         $html = "<option value=''>Pilih No Karton</option>";
@@ -317,31 +331,16 @@ SELECT count(barcode) tot,po, no_carton from packing_packing_out_scan where po =
     {
         $tgl_skrg = date('Y-m-d');
         $user = Auth::user()->name;
-        $data_barcode = DB::select("SELECT barcode isi, barcode tampil
-        from ppic_master_so where po = '" . $request->txtmodal_p_po . "'
+        $data_barcode = DB::select("SELECT p.id isi, concat(barcode,' - ', color, ' - ', size,' - ', m.dest) tampil
+        from ppic_master_so p
+        left join master_sb_ws m on p.id_so_det = m.id_so_det
+        where po = '" . $request->txtmodal_p_po . "'
         ");
 
-        $html = "<option value=''>Pilih Barcode</option>";
+        $html = "<option value=''>Pilih Barcode / Item </option>";
 
         foreach ($data_barcode as $databarcode) {
             $html .= " <option value='" . $databarcode->isi . "'>" . $databarcode->tampil . "</option> ";
-        }
-
-        return $html;
-    }
-
-    public function getdest_tambah(Request $request)
-    {
-        $tgl_skrg = date('Y-m-d');
-        $user = Auth::user()->name;
-        $data_dest = DB::select("SELECT dest isi, dest tampil
-        from ppic_master_so where po = '" . $request->txtmodal_p_po . "' and barcode  = '" . $request->cbomodal_p_barcode . "'
-        ");
-
-        $html = "<option value=''>Pilih Dest</option>";
-
-        foreach ($data_dest as $datadest) {
-            $html .= " <option value='" . $datadest->isi . "'>" . $datadest->tampil . "</option> ";
         }
 
         return $html;
@@ -352,7 +351,17 @@ SELECT count(barcode) tot,po, no_carton from packing_packing_out_scan where po =
         $user = Auth::user()->name;
         $tgl_skrg = date('Y-m-d');
         $po = $request->po;
-        $no_carton = $request->no_carton;
+        $cbo_no_carton = $request->no_carton;
+
+        if ($cbo_no_carton != '') {
+            $cekArray = explode('_', $cbo_no_carton);
+            $no_carton = $cekArray[0];
+            $notes = $cekArray[1];
+        } else {
+            $no_carton = '-';
+            $notes = '-';
+        }
+
         $data_list = DB::select("SELECT
 a.*,
 m.color,
@@ -361,7 +370,7 @@ m.ws
 from
 (
 SELECT barcode, po, dest, count(barcode)tot
-from packing_packing_out_scan where po = '$po' and no_carton = '$no_carton'
+from packing_packing_out_scan where po = '$po' and no_carton = '$no_carton' and notes = '$notes'
 group by barcode, po, dest
 ) a
 inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po
@@ -381,8 +390,14 @@ inner join master_sb_ws m on p.id_so_det = m.id_so_det
         $barcode = $request->cbomodal_p_barcode;
         $qty = $request->cbomodal_p_qty;
         $dest = $request->cbomodal_p_dest;
-        $no_carton = $request->cbomodal_p_no_karton;
+        $cbo_no_carton = $request->cbomodal_p_no_karton;
+        $cekArray = explode('_', $cbo_no_carton);
+        $no_carton = $cekArray[0];
+        $notes = $cekArray[1];
+
         $stok = $request->cbomodal_p_qty_stok;
+
+
 
         $validatedRequest = $request->validate([
             "cbomodal_p_barcode" => "required",
@@ -395,7 +410,7 @@ inner join master_sb_ws m on p.id_so_det = m.id_so_det
             for ($i = 1; $i <= $qty; $i++) {
                 $insert = DB::insert("
                 insert into packing_packing_out_scan
-                (tgl_trans,barcode,po,dest,no_carton,created_by,created_at,updated_at)
+                (tgl_trans,barcode,po,dest,no_carton,notes,created_by,created_at,updated_at)
                 values
                 (
                     '$tgl_skrg',
@@ -403,6 +418,7 @@ inner join master_sb_ws m on p.id_so_det = m.id_so_det
                     '$po',
                     '$dest',
                     '$no_carton',
+                    '$notes',
                     '$user',
                     '$timestamp',
                     '$timestamp'
