@@ -38,7 +38,8 @@
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'track-ws' ? 'active' : '' }}">Worksheet</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
-                                <a href="{{ route('track-ws') }}" class="dropdown-item {{ $subPage == 'ws' ? 'active' : '' }}">
+                                <a href="{{ route('track-ws') }}"
+                                    class="dropdown-item {{ $subPage == 'ws' ? 'active' : '' }}">
                                     Worksheet
                                 </a>
                             </li>
@@ -281,7 +282,8 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('cut-plan-output') }}" class="dropdown-item {{ $subPage == 'cut-plan-output' ? 'active' : '' }}">
+                                    <a href="{{ route('cut-plan-output') }}"
+                                        class="dropdown-item {{ $subPage == 'cut-plan-output' ? 'active' : '' }}">
                                         Cutting Plan Output <i class="fa-solid fa-map-location"></i>
                                     </a>
                                 </li>
@@ -354,16 +356,24 @@
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @stocker
                                 <li>
-                                    <a href="{{ route('stocker-part') }}" class="dropdown-item {{ $subPage == 'part' ? 'active' : '' }}"> Part <i class="fas fa-th fa-sm"></i></a>
+                                    <a href="{{ route('stocker-part') }}"
+                                        class="dropdown-item {{ $subPage == 'part' ? 'active' : '' }}"> Part <i
+                                            class="fas fa-th fa-sm"></i></a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('stocker') }}" class="dropdown-item {{ $subPage == 'stocker' ? 'active' : '' }}"> Stocker <i class="fas fa-ticket-alt"></i></a>
+                                    <a href="{{ route('stocker') }}"
+                                        class="dropdown-item {{ $subPage == 'stocker' ? 'active' : '' }}"> Stocker <i
+                                            class="fas fa-ticket-alt"></i></a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('stocker-list') }}" class="dropdown-item {{ $subPage == 'stocker-list' ? 'active' : '' }}"> Stocker List <i class="fa-solid fa-note-sticky"></i></a>
+                                    <a href="{{ route('stocker-list') }}"
+                                        class="dropdown-item {{ $subPage == 'stocker-list' ? 'active' : '' }}"> Stocker
+                                        List <i class="fa-solid fa-note-sticky"></i></a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('month-count') }}" class="dropdown-item {{ $subPage == 'month-count' ? 'active' : '' }}"> Month Number <i class="fa-solid fa-hashtag"></i></a>
+                                    <a href="{{ route('month-count') }}"
+                                        class="dropdown-item {{ $subPage == 'month-count' ? 'active' : '' }}"> Month
+                                        Number <i class="fa-solid fa-hashtag"></i></a>
                                 </li>
                             @endstocker
                         </ul>
@@ -527,7 +537,8 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('master-defect') }}" class="dropdown-item {{ $subPage == 'master-defect' ? 'active' : '' }}">
+                                    <a href="{{ route('master-defect') }}"
+                                        class="dropdown-item {{ $subPage == 'master-defect' ? 'active' : '' }}">
                                         Master Defect <i class="fa-solid fa-circle-exclamation"></i>
                                     </a>
                                 </li>
@@ -767,8 +778,22 @@
                             <li>
                                 <a href="{{ route('finish_good_penerimaan') }}"
                                     class="dropdown-item {{ $subPage == 'finish_good_penerimaan' ? 'active' : '' }}">
-                                    Penerimaan Finish Good <i class="fas fa-arrow-circle-right fa-sm"
+                                    Penerimaan Finish Good <i class="fas fa-arrow-circle-left fa-sm"
                                         style="color: green;"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'finish_good_pengeluaran' ? 'active' : '' }}">Pengeluaran</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('finish_good_pengeluaran') }}"
+                                    class="dropdown-item {{ $subPage == 'finish_good_pengeluaran' ? 'active' : '' }}">
+                                    Pengeluaran Finish Good <i class="fas fa-arrow-circle-right fa-sm"
+                                        style="color: red;"></i>
                                 </a>
                             </li>
                         </ul>

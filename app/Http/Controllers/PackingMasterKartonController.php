@@ -460,4 +460,61 @@ inner join master_sb_ws m on p.id_so_det = m.id_so_det
         ");
         return json_encode($cek_stok ? $cek_stok[0] : null);
     }
+
+    public function simpan_short_karton(Request $request)
+    {
+
+        $timestamp = Carbon::now();
+        $user = Auth::user()->name;
+        $no_carton                           = $_POST['txtmodal_s_no_carton'];
+        $po                                  = $_POST['txtmodal_s_po'];
+        $hsl_short                           = $_POST['txtmodal_s_hsl_short'];
+
+        $update_sb = DB::connection('mysql_sb')->update("
+        update bpb set qty = '0' where po_fg = '$po' and status_input = 'nds' ");
+
+        $del_nds = DB::delete("
+        delete from fg_fg_in where po = '$po'");
+
+        $del_nds_output_scan = DB::delete("
+        delete from packing_packing_out_scan where po = '$po'");
+
+        $del_nds_master_carton = DB::delete("
+        delete from packing_master_carton where po = '$po'");
+
+        for ($i = 1; $i <= $hsl_short; $i++) {
+            $insert = DB::insert("
+            insert into packing_master_carton
+            (po,no_carton,notes,status,created_by,created_at,updated_at)
+            values
+            (
+                '$po',
+                '$i',
+                '-',
+                'draft',
+                '$user',
+                '$timestamp',
+                '$timestamp'
+            )
+            ");
+        }
+
+        return array(
+            "status" => 201,
+            "message" => 'Data Sudah di Update',
+            "additional" => [],
+            "redirect" => '',
+            "table" => 'datatable',
+            "callback" => "show_data_edit_h(`$po`,`$no_carton`)"
+        );
+
+        // return array(
+        //     "status" => 202,
+        //     "message" => 'No Form Berhasil Di Update',
+        //     "additional" => [],
+        //     "redirect" => '',
+        //     "callback" => "getdetail(`$no_form_modal`,`$txtket_modal_input`)"
+
+        // );
+    }
 }

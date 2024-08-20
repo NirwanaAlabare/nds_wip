@@ -112,6 +112,7 @@ use App\Http\Controllers\PackingPackingOutController;
 use App\Http\Controllers\PackingMasterKartonController;
 
 use App\Http\Controllers\FinishGoodPenerimaanController;
+use App\Http\Controllers\FinishGoodPengeluaranController;
 
 use App\Http\Controllers\ReportDocController;
 
@@ -1181,6 +1182,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/list_data_no_carton_tambah', 'list_data_no_carton_tambah')->name('list_data_no_carton_tambah');
         Route::post('/store_tambah_data_karton_det', 'store_tambah_data_karton_det')->name('store_tambah_data_karton_det');
         Route::get('/get_data_stok_packing_in', 'get_data_stok_packing_in')->name('get_data_stok_packing_in');
+        Route::post('/simpan_short_karton', 'simpan_short_karton')->name('simpan_short_karton');
         // Route::get('/show_preview_packing_in', 'show_preview_packing_in')->name('show_preview_packing_in');
         // Route::post('/store', 'store')->name('store-packing-packing-in');
     });
@@ -1194,6 +1196,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/create', 'create')->name('create_penerimaan_finish_good');
         Route::post('/store', 'store')->name('store-fg-in');
     });
+
+    // Pengeluaran Finish Good
+    Route::controller(FinishGoodPengeluaranController::class)->prefix("finish_good_pengeluaran")->middleware('finishgood')->group(function () {
+        Route::get('/', 'index')->name('finish_good_pengeluaran');
+        // Route::get('/fg_in_getno_carton', 'fg_in_getno_carton')->name('fg_in_getno_carton');
+        // Route::get('/show_preview_fg_in', 'show_preview_fg_in')->name('show_preview_fg_in');
+        // Route::get('/create', 'create')->name('create_penerimaan_finish_good');
+        // Route::post('/store', 'store')->name('store-fg-in');
+    });
+
 
     // Report Doc
     // Laporan BC
