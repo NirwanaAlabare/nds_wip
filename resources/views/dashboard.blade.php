@@ -2628,14 +2628,15 @@
                 let todayFullDate = todayYear + '-' + todayMonth + '-' + todayDate;
 
                 // Cutting Form Cut
-                $('#cutting-form-date-filter').val((todayFullDate)).trigger("change");
+                $('#cutting-form-date-filter').val(todayFullDate).trigger("change");
 
                 // Cutting Form Chart
                 await loadCuttingFormChart();
 
                 // Cutting Datatable
-                $('#cutting-month-filter').val((today.getMonth() + 1)).trigger("change");
-                $('#cutting-year-filter').val(todayYear).trigger("change");
+                // $('#cutting-month-filter').val((today.getMonth() + 1)).trigger("change");
+                // $('#cutting-year-filter').val(todayYear).trigger("change");
+                $('#cutting-date-filter').val(todayFullDate).trigger("change");
 
                 $('#datatable-cutting thead tr').clone(true).appendTo('#datatable-cutting thead');
                 $('#datatable-cutting thead tr:eq(1) th').each(function(i) {
@@ -2663,8 +2664,9 @@
                         url: '{{ route('dashboard-cutting') }}',
                         dataType: 'json',
                         data: function (d) {
-                            d.month = $('#cutting-month-filter').val();
-                            d.year = $('#cutting-year-filter').val();
+                            d.date = $('#cutting-date-filter').val();
+                            // d.month = $('#cutting-month-filter').val();
+                            // d.year = $('#cutting-year-filter').val();
                         }
                     },
                     columns: [
@@ -2777,8 +2779,9 @@
                 });
 
                 // Cutting Qty
-                $('#cuttingqty-month-filter').val((today.getMonth() + 1)).trigger("change");
-                $('#cuttingqty-year-filter').val(todayYear).trigger("change");
+                // $('#cuttingqty-month-filter').val((today.getMonth() + 1)).trigger("change");
+                // $('#cuttingqty-year-filter').val(todayYear).trigger("change");
+                $('#cuttingqty-date-filter').val(todayFullDate).trigger("change");
                 await getCuttingQty();
 
                 $('#cuttingqty-month-filter').on('change', () => {
@@ -2797,8 +2800,9 @@
                     url: '{{ route('cutting-qty') }}',
                     type: 'get',
                     data: {
-                        month : $('#cuttingqty-month-filter').val(),
-                        year : $('#cuttingqty-year-filter').val()
+                        date : $('#cuttingqty-date-filter').val(),
+                        // month : $('#cuttingqty-month-filter').val(),
+                        // year : $('#cuttingqty-year-filter').val()
                     },
                     dataType: 'json',
                     success: function(res) {

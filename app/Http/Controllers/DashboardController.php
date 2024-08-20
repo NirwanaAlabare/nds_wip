@@ -155,15 +155,17 @@ class DashboardController extends Controller
         $years = array_reverse(range(1999, date('Y')));
 
         if ($request->ajax()) {
-            $month = date("m");
-            $year = date("Y");
+            // $month = date("m");
+            // $year = date("Y");
 
-            if ($request->month) {
-                $month = $request->month;
-            }
-            if ($request->year) {
-                $year = $request->year;
-            }
+            // if ($request->month) {
+            //     $month = $request->month;
+            // }
+            // if ($request->year) {
+            //     $year = $request->year;
+            // }
+
+            $date = $request->date ? $request->date : date("Y-m-d");
 
             $form = FormCutInput::selectRaw("
                     marker_input.id marker_id,
@@ -196,8 +198,7 @@ class DashboardController extends Controller
                 leftJoin("form_cut_input_detail", "form_cut_input_detail.no_form_cut_input", "=", "form_cut_input.no_form")->
                 whereRaw("(marker_input.cancel IS NULL OR marker_input.cancel != 'Y')")->
                 whereRaw("(form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y')")->
-                whereRaw("(MONTH(form_cut_input.waktu_mulai) = '".$month."')")->
-                whereRaw("(YEAR(form_cut_input.waktu_mulai) = '".$year."')")->
+                whereRaw("(DATE(form_cut_input.waktu_mulai) = '".$date."')")->
                 groupBy("marker_input.id", "form_cut_input.id", "form_cut_input_detail.unit")->
                 orderBy("form_cut_input.waktu_mulai", "desc")->
                 orderBy("marker_input.buyer", "asc")->
@@ -217,15 +218,17 @@ class DashboardController extends Controller
 
     // Cutting Qty
     public function cuttingQty(Request $request) {
-        $month = date("m");
-        $year = date("Y");
+        // $month = date("m");
+        // $year = date("Y");
 
-        if ($request->month) {
-            $month = $request->month;
-        }
-        if ($request->year) {
-            $year = $request->year;
-        }
+        // if ($request->month) {
+        //     $month = $request->month;
+        // }
+        // if ($request->year) {
+        //     $year = $request->year;
+        // }
+
+        $date = $request->date ? $request->date : date('Y-m-d');
 
         $dataQty = DB::select("
             SELECT
@@ -251,7 +254,7 @@ class DashboardController extends Controller
                     WHERE
                         ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' ) AND
                         ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' ) AND
-                        ( MONTH ( form_cut_input.waktu_mulai ) = '".$month."' ) AND ( YEAR ( form_cut_input.waktu_mulai ) = '".$year."' )
+                        ( DATE ( form_cut_input.waktu_mulai ) = '".$date."' )
                     GROUP BY
                         form_cut_input.id
                 ) frm
