@@ -916,14 +916,11 @@
             let totalLembarVar = totalLembar ? Number(totalLembar) : 0;
             let totalTotalPemakaianVar = totalTotalPemakaian ? Number(totalTotalPemakaian) : 0;
 
-
-            let consActualGelaran = (totalLembar * totalRatio) > 0 ? (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar - totalTotalPemakaianVar)/(totalLembarVar * totalRatio) : 0;
-            let consActualGelaranShortRolless = (totalLembar * totalRatio) > 0 ? (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar - totalTotalPemakaianVar + totalShortRollVar)/(totalLembarVar * totalRatio) : 0;
-
-            console.log("totalQtyFabric "+totalQtyFabricVar, "totalKepalaKain "+totalKepalaKainVar, "totalSisaTidakBisa "+totalSisaTidakBisaVar, "totalReject "+totalRejectVar, "totalSisaKain "+totalSisaKainVar, "totalPiping "+totalPipingVar, (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar), "total_lembar "+totalLembarVar, "total_ratio "+totalRatio, "lembar*ratio "+(totalLembarVar*totalRatio), "cons "+consActualGelaran);
+            let consActualGelaran = (totalLembar * totalRatio) > 0 ? (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar)/(totalLembarVar * totalRatio) : 0;
+            let consActualGelaranShortRolless = (totalLembar * totalRatio) > 0 ? (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar + totalShortRollVar)/(totalLembarVar * totalRatio) : 0;
 
             document.getElementById('cons_actual_gelaran').value = Number(consActualGelaran).round(3);
-            document.getElementById('cons_actual_gelaran_short_rolless').value = Number(consActualGelaranShortRolless).round(3);
+            document.getElementById('cons_actual_gelaran_short_rolless').value = Number(consActualGelaranShortRolless.toString().replace(/[e,-]/ig,"")).round(3);
 
             document.getElementById("unit_cons_actual_gelaran").value = unitVar.toLowerCase();
             document.getElementById("unit_cons_actual_gelaran_short_rolless").value = unitVar.toLowerCase();

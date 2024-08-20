@@ -2150,8 +2150,8 @@
                 let totalLembarVar = totalLembar ? Number(totalLembar) : 0;
                 let totalTotalPemakaianVar = totalTotalPemakaian ? Number(totalTotalPemakaian) : 0;
 
-                let consActualGelaran = (totalLembarVar * totalRatio) ? (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar - totalTotalPemakaian)/(totalLembarVar * totalRatio) : 0;
-                let consActualGelaranShortRolless = (totalLembarVar * totalRatio) ? (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar - totalTotalPemakaian + totalShortRollVar)/(totalLembarVar * totalRatio) : 0;
+                let consActualGelaran = (totalLembarVar * totalRatio) ? (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar)/(totalLembarVar * totalRatio) : 0;
+                let consActualGelaranShortRolless = (totalLembarVar * totalRatio) ? (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar + totalShortRollVar)/(totalLembarVar * totalRatio) : 0;
 
                 document.getElementById('cons_actual_gelaran').value = Number(consActualGelaran).round(3);
                 document.getElementById('cons_actual_gelaran_short_rolless').value = Number(consActualGelaranShortRolless).round(3);
