@@ -2109,7 +2109,7 @@
             //     }
             // }
 
-            function calculateConsActualGelaran(unit, totalQtyFabric, totalKepalaKain, totalSisaTidakBisa, totalReject, totalSisaKain, totalPiping, totalShortRoll) {
+            function calculateConsActualGelaran(unit, totalQtyFabric, totalKepalaKain, totalSisaTidakBisa, totalReject, totalSisaKain, totalPiping, totalShortRoll, totalLembar, totalTotalPemakaian) {
                 let unitVar = unit;
                 let totalQtyFabricVar = totalQtyFabric ? Number(totalQtyFabric) : 0;
                 let totalKepalaKainVar = totalKepalaKain ? Number(totalKepalaKain) : 0;
@@ -2118,9 +2118,11 @@
                 let totalSisaKainVar = totalSisaKain ? Number(totalSisaKain) : 0;
                 let totalPipingVar = totalPiping ? Number(totalPiping) : 0;
                 let totalShortRollVar = totalShortRoll ? Number(totalShortRoll) : 0;
+                let totalLembarVar = totalLembar ? Number(totalLembar) : 0;
+                let totalTotalPemakaianVar = totalTotalPemakaian ? Number(totalTotalPemakaian) : 0;
 
-                let consActualGelaran = (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar)/totalQtyCut;
-                let consActualGelaranShortRolless = (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar + totalShortRollVar)/totalQtyCut;
+                let consActualGelaran = (totalLembar * totalRatio) > 0 ? (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar)/(totalLembarVar * totalRatio) : 0;
+                let consActualGelaranShortRolless = (totalLembar * totalRatio) > 0 ? (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar + totalShortRollVar)/(totalLembarVar * totalRatio) : 0;
 
                 document.getElementById('cons_actual_gelaran').value = Number(consActualGelaran).round(3);
                 document.getElementById('cons_actual_gelaran_short_rolless').value = Number(consActualGelaranShortRolless).round(3);
@@ -3096,7 +3098,7 @@
                 document.getElementById("total-piping").innerText = Number(totalPiping).round(2);
                 document.getElementById("total-remark").innerText = Number(totalRemark).round(2);
 
-                calculateConsActualGelaran(latestUnit, totalQtyFabric, totalKepalaKain, totalSisaTidakBisa, totalReject, totalSisaKain, totalPiping, totalShortRoll);
+                calculateConsActualGelaran(latestUnit, totalQtyFabric, totalKepalaKain, totalSisaTidakBisa, totalReject, totalSisaKain, totalPiping, totalShortRoll, totalLembar, totalTotalPemakaian);
 
                 latestStatus = data.status;
             }

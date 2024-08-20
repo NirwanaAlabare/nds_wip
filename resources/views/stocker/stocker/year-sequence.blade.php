@@ -14,7 +14,7 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold"><i class="fa-solid fa-hashtag"></i> Set Year Sequence</h5>
+            <h5 class="card-title fw-bold"><i class="fa-solid fa-list-ol"></i> Set Year Sequence</h5>
         </div>
         <div class="card-body">
             <div class="mb-3">
@@ -31,13 +31,13 @@
                 <div class="col-md-6 d-none">
                     <div class="mb-3">
                         <label class="form-label">Form Cut ID</label>
-                        <input type="text" class="form-control" name="form_cut_id" id="form_cut_id" value="" onchange="monthCountTableReload()" readonly>
+                        <input type="text" class="form-control" name="form_cut_id" id="form_cut_id" value="" onchange="yearSequenceTableReload()" readonly>
                     </div>
                 </div>
                 <div class="col-md-6 d-none">
                     <div class="mb-3">
                         <label class="form-label">SO Detail ID</label>
-                        <input type="text" class="form-control" name="so_det_id" id="so_det_id" value="" onchange="monthCountTableReload()" readonly>
+                        <input type="text" class="form-control" name="so_det_id" id="so_det_id" value="" onchange="yearSequenceTableReload()" readonly>
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -102,7 +102,7 @@
                         <div class="row align-items-end">
                             <div class="col-sm-6 col-md-6">
                                 <label class="form-label">Tahun</label>
-                                <select class="form-select select2bs4" name="year" id="year" onchange="getRangeYearSequence()">
+                                <select class="form-select select2bs4" name="year" id="year" onchange="getSequenceYearSequence()">
                                     @foreach ($years as $year)
                                         <option value="{{ $year }}">{{ $year }}</option>
                                     @endforeach
@@ -111,9 +111,6 @@
                             <div class="col-sm-6 col-md-6">
                                 <label class="form-label">Sequence</label>
                                 <select class="form-select select2bs4" name="sequence" id="sequence" onchange="getRangeYearSequence()">
-                                    @foreach ($years as $year)
-                                        <option value="{{ $year }}">{{ $year }}</option>
-                                    @endforeach
                                 </select>
                             </div>
                         </div>
@@ -142,7 +139,7 @@
                 </div>
                 <div class="col-md-6">
                     <div class="mb-3">
-                        <button class="btn btn-success btn-block mt-3" onclick="setYearSequenceNumber()"><i class="fa fa-print"></i> Set Month Number</button>
+                        <button class="btn btn-success btn-block mt-3" onclick="setYearSequenceNumber()"><i class="fa fa-print"></i> Set Year Sequence</button>
                     </div>
                 </div>
             </div>
@@ -152,8 +149,8 @@
                         <table class="table table-bordered table-sm w-100" id="year-sequence-table">
                             <thead>
                                 <th>Number</th>
-                                <th>Year Month</th>
-                                <th>Year Month Number</th>
+                                <th>Year Sequence</th>
+                                <th>Year Sequence Number</th>
                                 <th>Size</th>
                                 <th>Dest</th>
                             </thead>
@@ -162,7 +159,7 @@
                         </table>
                     </form>
                 </div>
-                <button class="btn btn-success d-none my-3" id="generate-checked-month-count" onclick="generateCheckedMonthCount()"><i class="fa fa-print"></i> Generate Checked Month</button>
+                <button class="btn btn-success d-none my-3" id="generate-checked-year-sequence" onclick="generateCheckedYearSequence()"><i class="fa fa-print"></i> Generate Checked Year Sequence</button>
             </div>
         </div>
     </div>
@@ -196,6 +193,8 @@
             $('#month_year_month').val(todayMonth).trigger("change");
             $('#month_year_year').val(todayYear).trigger("change");
 
+            $('#year').val(todayYear).trigger("change");
+
             clearScanItemForm();
 
             await initScan();
@@ -218,7 +217,6 @@
             // -Initialize Scanner-
             async function initScan() {
                 if (document.getElementById("reader")) {
-                    console.log(html5QrcodeScanner, html5QrcodeScanner.getState());
                     if (html5QrcodeScanner == null || (html5QrcodeScanner && (html5QrcodeScanner.isScanning == false))) {
                         const qrCodeSuccessCallback = (decodedText, decodedResult) => {
                             // handle the scanned code as you like, for example:
@@ -369,6 +367,48 @@
             })
         }
 
+        function getSequenceYearSequence() {
+            $.ajax({
+                url: '{{ route('get-sequence-year-sequence') }}',
+                type: 'get',
+                data: {
+                    year: $("#year").val()
+                },
+                dataType: 'json',
+                success: async function(res)
+                {
+                    if (res) {
+                        if (res.status != "400") {
+                            let select = document.getElementById('sequence');
+                            select.innerHTML = "";
+
+                            let latestVal = null;
+                            for(let i = 0; i < res.length; i++) {
+                                let option = document.createElement("option");
+                                option.setAttribute("value", res[i].year_sequence);
+                                option.innerHTML = res[i].year_sequence;
+                                select.appendChild(option);
+
+                                latestVal = res[i].year_sequence;
+                            }
+
+                            $("#sequence").val(latestVal).trigger("change");
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                html: res.message,
+                            });
+                        }
+                    }
+                },
+                error: function(jqXHR)
+                {
+                    console.error(jqXHR)
+                }
+            })
+        }
+
         function getRangeYearSequence() {
             $.ajax({
                 url: '{{ route('get-range-year-sequence') }}',
@@ -380,11 +420,11 @@
                 dataType: 'json',
                 success: function(res)
                 {
-                    console.log(res);
+                    console.log("range",res);
 
                     if (res) {
                         if (res.status != "400") {
-                            $("#range_awal").val(res.year_sequence_number).trigger("change");
+                            $("#range_awal").val(res.year_sequence_number+1).trigger("change");
                         } else {
                             Swal.fire({
                                 icon: 'error',
@@ -457,7 +497,7 @@
 
         function setYearSequenceNumberAct() {
             /* Read more about isConfirmed, isDenied below */
-            if (validatePrintMonthCount()) {
+            if (validatePrintYearSequence()) {
                 generating = true;
 
                 Swal.fire({
@@ -474,7 +514,7 @@
                     type: 'post',
                     data: {
                         "year": $('#year').val(),
-                        "sequence": $('#sequence').val(),
+                        "year_sequence": $('#sequence').val(),
                         "form_cut_id": $('#form_cut_id').val(),
                         "so_det_id": $('#so_det_id').val(),
                         "size": $('#size').val(),
@@ -542,10 +582,10 @@
                     data: 'number',
                 },
                 {
-                    data: 'month_year'
+                    data: 'id_year_sequence'
                 },
                 {
-                    data: 'month_year_number'
+                    data: 'year_sequence_number'
                 },
                 {
                     data: 'size'

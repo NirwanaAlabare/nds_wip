@@ -904,7 +904,7 @@
         }
 
         // -Calculate Cons. Actual 1 Gelaran-
-        async function calculateConsActualGelaran(unit, totalQtyFabric, totalKepalaKain, totalSisaTidakBisa, totalReject, totalSisaKain, totalPiping, totalShortRoll) {
+        function calculateConsActualGelaran(unit, totalQtyFabric, totalKepalaKain, totalSisaTidakBisa, totalReject, totalSisaKain, totalPiping, totalShortRoll, totalLembar, totalTotalPemakaian) {
             let unitVar = unit;
             let totalQtyFabricVar = totalQtyFabric ? Number(totalQtyFabric) : 0;
             let totalKepalaKainVar = totalKepalaKain ? Number(totalKepalaKain) : 0;
@@ -913,12 +913,14 @@
             let totalSisaKainVar = totalSisaKain ? Number(totalSisaKain) : 0;
             let totalPipingVar = totalPiping ? Number(totalPiping) : 0;
             let totalShortRollVar = totalShortRoll ? Number(totalShortRoll) : 0;
+            let totalLembarVar = totalLembar ? Number(totalLembar) : 0;
+            let totalTotalPemakaianVar = totalTotalPemakaian ? Number(totalTotalPemakaian) : 0;
 
-            let consActualGelaran = (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar)/totalQtyCut;
-            let consActualGelaranShortRolless = (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar + totalShortRollVar)/totalQtyCut;
+            let consActualGelaran = (totalLembar * totalRatio) > 0 ? (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar)/(totalLembarVar * totalRatio) : 0;
+            let consActualGelaranShortRolless = (totalLembar * totalRatio) > 0 ? (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar + totalShortRollVar)/(totalLembarVar * totalRatio) : 0;
 
             document.getElementById('cons_actual_gelaran').value = Number(consActualGelaran).round(3);
-            document.getElementById('cons_actual_gelaran_short_rolless').value = Number(consActualGelaranShortRolless).round(3);
+            document.getElementById('cons_actual_gelaran_short_rolless').value = Number(consActualGelaranShortRolless.toString().replace(/[e,-]/ig,"")).round(3);
 
             document.getElementById("unit_cons_actual_gelaran").value = unitVar.toLowerCase();
             document.getElementById("unit_cons_actual_gelaran_short_rolless").value = unitVar.toLowerCase();
@@ -952,12 +954,16 @@
 
                 consWsUpRateNoSr = ((consActualGelaranShortRollessConverted - consWs)/consWs) * 100;
                 consMarkerUpRateNoSr = ((consActualGelaranShortRollessConverted - consMarker)/consMarker) * 100;
+
+                console.log("cons actual gelaran converted "+consActualGelaranConverted, consWs, consMarker);
             } else {
                 consWsUpRate = ((consActualGelaran - consWs)/consWs) * 100;
                 consMarkerUpRate = ((consActualGelaran - consMarker)/consMarker) * 100;
 
                 consWsUpRateNoSr = ((consActualGelaranShortRolless - consWs)/consWs) * 100;
                 consMarkerUpRateNoSr = ((consActualGelaranShortRolless - consMarker)/consMarker) * 100;
+
+                console.log("cons actual gelaran "+consActualGelaran, consWs, consMarker);
             }
 
             document.getElementById('cons_ws_uprate').value = Number(consWsUpRate).round(2);
@@ -1021,7 +1027,6 @@
         function appendSummaryItem(data) {
             totalLembar += Number(data.lembar_gelaran);
             totalPiping += Number(data.piping);
-            totalQtyFabric += Number(data.qty);
             latestStatus != 'extension complete' ? totalQtyFabric += Number(data.qty) : '';
             latestUnit = data.unit;
 
@@ -1145,7 +1150,7 @@
             document.getElementById("total-remark").innerText = Number(totalRemark).round(2);
 
 
-            calculateConsActualGelaran(latestUnit, totalQtyFabric, totalKepalaKain, totalSisaTidakBisa, totalReject, totalSisaKain, totalPiping, totalShortRoll);
+            calculateConsActualGelaran(latestUnit, totalQtyFabric, totalKepalaKain, totalSisaTidakBisa, totalReject, totalSisaKain, totalPiping, totalShortRoll, totalLembar, totalTotalPemakaian);
 
             latestStatus = data.status;
         }

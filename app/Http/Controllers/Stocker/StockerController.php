@@ -2136,19 +2136,27 @@ class StockerController extends Controller
                 orderBy('number')->
                 get();
 
-            if ($validatedRequest['range_awal_year_sequence'] > 0 && $validatedRequest['range_awal_year_sequence'] <= $validatedRequest['range_akhir_year_sequence'] && $validatedRequest['year_sequence'] > 0 && $validatedRequest['year_request_number'] <= 999999) {
+            if ($validatedRequest['range_awal_year_sequence'] > 0 && $validatedRequest['range_awal_year_sequence'] <= $validatedRequest['range_akhir_year_sequence'] && $validatedRequest['range_akhir_year_sequence'] <= 999999 && $validatedRequest['year_sequence'] > 0) {
+                $yearSequence = YearSequence::selectRaw("year_sequence, year_sequence_number")->where("year", $validatedRequest['year'])->where("year_sequence", $validatedRequest['year_sequence'])->orderBy("year_sequence", "desc")->orderBy("year_sequence_number", "desc")->first();
+                $yearSequenceSequence = $yearSequence ? $yearSequence->year_sequence : $validatedRequest['year_sequence'];
+                $yearSequenceNumber = $yearSequence ? $yearSequence->year_sequence_number + 1 : 1;
+
                 $upsertData = [];
 
                 $n = 0;
                 $n1 = 0;
                 for ($i = $validatedRequest['range_awal_year_sequence']; $i <= $validatedRequest['range_akhir_year_sequence']; $i++) {
+                    if ($i > 999999) {
+                        $yearSequenceSequence = $yearSequenceSequence + 1;
+                        $yearSequenceNumber = 1;
+                    }
 
                     if ($currentData->where('number', $validatedRequest['range_awal_stocker']+$n)->count() < 1) {
                         array_push($upsertData, [
-                            "id_year_sequence" => $validatedRequest['year']."_".($validatedRequest['year_sequence'])."_".($validatedRequest['year_sequence_number'] + $n1),
+                            "id_year_sequence" => $validatedRequest['year']."_".($yearSequenceSequence)."_".($yearSequenceNumber + $n1),
                             "year" => $validatedRequest['year'],
-                            "year_sequence" => $validatedRequest['year_sequence'],
-                            "year_sequence_number" => ($validatedRequest['year_sequence_number'] + $n1),
+                            "year_sequence" => $yearSequenceSequence,
+                            "year_sequence_number" => ($yearSequenceNumber + $n1),
                             "form_cut_id" => $validatedRequest['form_cut_id'],
                             "so_det_id" => $validatedRequest['so_det_id'],
                             "size" => $validatedRequest['size'],
@@ -2192,8 +2200,14 @@ class StockerController extends Controller
         return view("stocker.stocker.month-count", ["page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "month-count", "months" => $months,  "years" => $years]);
     }
 
+    public function yearSequence() {
+        $years = array_reverse(range(1999, date('Y')));
+
+        return view("stocker.stocker.year-sequence", ["page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "month-count", "years" => $years]);
+    }
+
     public function printMonthCount(Request $request) {
-        ini_set("maximum_execution_time", 360000);
+        ini_set("max_execution_time", 360000);
 
         $method = $request->method ? $request->method : 'qty';
         $qty = $request->qty ? $request->qty : 0;
@@ -2271,7 +2285,7 @@ class StockerController extends Controller
     }
 
     public function printYearSequence(Request $request) {
-        ini_set("maximum_execution_time", 360000);
+        ini_set("max_execution_time", 360000);
         ini_set("memory_limit", '2048M');
 
         $method = $request->method ? $request->method : 'qty';
@@ -2419,6 +2433,26 @@ class StockerController extends Controller
         return Datatables::of($stockerListNumber)->toJson();
     }
 
+    public function getStockerYearSequence(Request $request) {
+        $stockerListNumber = YearSequence::selectRaw("
+                year_sequence.id_year_sequence,
+                year_sequence.number,
+                year_sequence.year,
+                year_sequence.year_sequence,
+                year_sequence.year_sequence_number,
+                master_sb_ws.size,
+                master_sb_ws.dest
+            ")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "year_sequence.so_det_id")->
+            whereRaw("
+                year_sequence.form_cut_id = '".$request->form_cut_id."' and
+                year_sequence.so_det_id = '".$request->so_det_id."'
+            ")->
+            get();
+
+        return Datatables::of($stockerListNumber)->toJson();
+    }
+
     public function getRangeMonthCount(Request $request) {
         if ($request->month && $request->year) {
 
@@ -2480,7 +2514,7 @@ class StockerController extends Controller
                     year_sequence_number
                 ")->
                 where("year_sequence.year",  $request->year)->
-                where("year_sequence.year_sequence",  $request->year_sequence)->
+                where("year_sequence.year_sequence",  $request->sequence)->
                 whereRaw('number IS NOT NULL')->
                 whereRaw('form_cut_id IS NOT NULL')->
                 whereRaw('so_det_id IS NOT NULL')->
