@@ -347,6 +347,58 @@
                             </form>
                         </div>
                     </div>
+                    <div class="card card-info collapsed-card" id = "modal_short">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-box"></i> Short Carton
+                            </h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i
+                                        class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <form id="form_short" name='form_short' method='post'
+                                action="{{ route('simpan_short_karton') }}" onsubmit="submitForm(this, event)">
+                                <div class='row'>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label><small><b>Jumlah Carton</b></small></label>
+                                            <input type="text" class="form-control form-control-sm" id="txtmodal_s_po"
+                                                name="txtmodal_s_po" style="width: 100%;" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label><small><b>Jumlah Carton</b></small></label>
+                                            <input type="text" class="form-control form-control-sm"
+                                                id="txtmodal_s_no_carton" name="txtmodal_s_no_carton"
+                                                style="width: 100%;" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label><small><b>Hasil Short Carton</b></small></label>
+                                            <input type="text" class="form-control form-control-sm"
+                                                id="txtmodal_s_hsl_short" name="txtmodal_s_hsl_short"
+                                                style="width: 100%;">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                                            <div class="input-group">
+                                                <button type="submit" class="btn btn-outline-primary btn-sm"><i
+                                                        class="fas fa-check"></i>
+                                                    Update
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -686,7 +738,7 @@
                             .tot_karton + `','` + row.tot_karton_isi + `','` + row.tot_karton_kosong + `' );dataTableDetKartonReload();"><i class='fas fa-search'></i></a>
                 <a class='btn btn-warning btn-sm'  data-bs-toggle="modal"
                         data-bs-target="#exampleModalEdit"
-                onclick="show_data_edit_h('` + row.po + `');"><i class='fas fa-edit'></i></a>
+                onclick="show_data_edit_h('` + row.po + `','` + row.tot_karton + `');"><i class='fas fa-edit'></i></a>
                             </div>
                     `;
                     }
@@ -945,7 +997,7 @@
         });
 
 
-        function show_data_edit_h(po_h) {
+        function show_data_edit_h(po_h, tot_k_h) {
             dataTableHapusReload();
             $('#txtmodal_h_po').val(po_h).trigger("change");
             $('#cbomodal_h_no_karton').val('').trigger("change");
@@ -954,6 +1006,8 @@
             // $('#cbomodal_p_dest').val('').trigger("change");
             $('#cbomodal_p_qty_stok').val('0');
             $('#cbomodal_p_qty').val('');
+            $('#txtmodal_s_no_carton').val(tot_k_h);
+            $('#txtmodal_s_po').val(po_h);
             dataTableTambahReload();
         }
 

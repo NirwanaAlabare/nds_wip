@@ -12,87 +12,19 @@
 @endsection
 
 @section('content')
-    <form id="form" name='form' method='post' action="{{ route('store-fg-in') }}"
-        onsubmit="submitForm(this, event)">
-        <div class="card card-primary ">
-            <div class="card-header">
-                <h5 class="card-title fw-bold mb-0"><i class="fas fa-user-check"></i> Input Penerimaan Finish Good</h5>
-                <div class="card-tools">
-                    <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-5">
-                        <div class="form-group">
-                            <label class="form-label"><small><b>No. PO</b></small></label>
-                            <select class="form-control select2bs4 form-control-sm" id="cbopo" name="cbopo"
-                                style="width: 100%;" onchange="getno_carton()">
-                                <option selected="selected" value="" disabled="true">Pilih No. PO</option>
-                                @foreach ($data_po as $datapo)
-                                    <option value="{{ $datapo->isi }}">
-                                        {{ $datapo->tampil }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label class="form-label"><small><b>No. Carton</b></small></label>
-                            <select class='form-control select2bs4 form-control-sm rounded' style='width: 100%;'
-                                name='cbo_no_carton' id='cbo_no_carton' onchange="dataTablePreviewReload()"></select>
-                        </div>
-                    </div>
-                </div>
-                <label>Preview</label>
-                <div class="table-responsive">
-                    <table id="datatable_preview" class="table table-bordered table-striped table-sm w-100 text-nowrap">
-                        <thead>
-                            <tr>
-                                <th>No. Carton</th>
-                                <th>PO</th>
-                                <th>Barcode</th>
-                                <th>WS</th>
-                                <th>Color</th>
-                                <th>Size</th>
-                                <th>Qty</th>
-                                <th>Input</th>
-                                <th>Unit</th>
-                            </tr>
-                        </thead>
-                        <tfoot>
-                            <tr>
-                                <th colspan="6"></th>
-                                <th></th>
-                                <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
-                                        id = 'total_qty_chk'> </th>
-                                <th>PCS</th>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-                <div class="d-flex justify-content-between">
-                    <div class="p-2 bd-highlight">
-                        <a class="btn btn-outline-warning" onclick="undo()">
-                            <i class="fas fa-sync-alt
-                fa-spin"></i>
-                            Undo
-                        </a>
-                    </div>
-                    <div class="p-2 bd-highlight">
-                        <button type="submit" class="btn btn-outline-success"><i class="fas fa-check"></i> Simpan </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </form>
-    <div class="card card-primary">
+    <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-people-carry"></i> Penerimaan Finish Good</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-people-carry"></i> Pengeluaran Finish Good</h5>
         </div>
         <div class="card-body">
+            <div class="d-flex align-items-end gap-3 mb-3">
+                <div class="mb-3">
+                    <a href="{{ route('create-packing-out') }}" class="btn btn-outline-primary position-relative">
+                        <i class="fas fa-plus"></i>
+                        Baru
+                    </a>
+                </div>
+            </div>
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Awal</b></small></label>
