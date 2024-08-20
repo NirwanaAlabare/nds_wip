@@ -71,6 +71,19 @@
 <div class="card">
     <div class="card-body">
         <div class="d-flex justify-content-between">
+            <h5 class="text-sb fw-bold">Cutting Form Chart</h5>
+            <div class="d-flex justify-content-start align-items-center gap-1 mb-3">
+                <div class="mb-1">
+                    <input type="date" class='form-control' id='cutting-form-date-filter' value="{{ date('Y-m-d') }}">
+                </div>
+            </div>
+        </div>
+        <div id="cutting-form-chart" style="height: 350px;"></div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between">
             <h5 class="text-sb fw-bold">Cutting Summary</h5>
             <div class="d-flex justify-content-start align-items-center gap-1 mb-3">
                 <div class="mb-1">

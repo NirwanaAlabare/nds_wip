@@ -260,6 +260,28 @@ class DashboardController extends Controller
         return $dataQty;
     }
 
+    public function cuttingFormChart(Request $request) {
+        $tanggal = $request->tanggal ? $request->tanggal : date('Y-m-d');
+
+        $cuttingForm = DB::table('form_cut_input')->
+            selectRaw("
+                meja.username no_meja,
+                cutting_plan.tgl_plan,
+                COUNT(form_cut_input.id) total_form,
+                SUM(CASE WHEN form_cut_input.status != 'SELESAI PENGERJAAN' THEN 1 ELSE 0 END) incomplete_form,
+                SUM(CASE WHEN form_cut_input.status = 'SELESAI PENGERJAAN' THEN 1 ELSE 0 END) completed_form
+            ")->
+            leftJoin("cutting_plan", "cutting_plan.no_form_cut_input", "form_cut_input.no_form")->
+            join("users as meja", "meja.id", "form_cut_input.no_meja")->
+            whereRaw("(
+                cutting_plan.tgl_plan = '".$tanggal."'
+            )")->
+            groupBy("cutting_plan.tgl_plan", "meja.id")->
+            get();
+
+        return json_encode($cuttingForm);
+    }
+
     // Stocker
     public function stocker(Request $request) {
         ini_set("max_execution_time", 0);

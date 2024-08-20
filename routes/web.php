@@ -1299,6 +1299,7 @@ Route::get('/dashboard-marker', [DashboardController::class, 'marker'])->middlew
 Route::get('/marker-qty', [DashboardController::class, 'markerQty'])->middleware('auth')->name('marker-qty');
 Route::get('/dashboard-cutting', [DashboardController::class, 'cutting'])->middleware('auth')->name('dashboard-cutting');
 Route::get('/cutting-qty', [DashboardController::class, 'cuttingQty'])->middleware('auth')->name('cutting-qty');
+Route::get('/cutting-form-chart', [DashboardController::class, 'cuttingFormChart'])->middleware('auth')->name('cutting-form-chart');
 Route::get('/dashboard-dc', [DashboardController::class, 'dc'])->middleware('auth')->name('dashboard-dc');
 Route::get('/dc-qty', [DashboardController::class, 'dcQty'])->middleware('auth')->name('dc-qty');
 Route::get('/dashboard-sewing-eff', [DashboardController::class, 'sewingEff'])->middleware('auth')->name('dashboard-sewing-eff');
