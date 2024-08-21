@@ -188,7 +188,7 @@ class CuttingFormManualController extends Controller
                 master_sb_ws.id_so_det so_det_id,
                 master_sb_ws.ws no_ws,
                 master_sb_ws.color,
-                master_sb_ws.size,
+                concat(master_sb_ws.size, CASE WHEN (master_sb_ws.dest != '-' AND master_sb_ws.dest is not null) THEN ' - ' ELSE '' END, CASE WHEN (master_sb_ws.dest != '-' AND master_sb_ws.dest is not null) THEN master_sb_ws.dest ELSE '' END) size,
                 master_sb_ws.qty order_qty,
                 COALESCE(marker_input_detail.ratio, 0) ratio,
                 COALESCE(marker_input_detail.cut_qty, 0) cut_qty
@@ -211,7 +211,7 @@ class CuttingFormManualController extends Controller
             leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size");
         }
 
-        $sizes = $sizeQuery->groupBy("id_act_cost", "color", "size")->orderBy("master_size_new.urutan")->get();
+        $sizes = $sizeQuery->groupBy("master_sb_ws.id_so_det")->orderBy("master_size_new.urutan")->get();
 
         return json_encode([
             "draw" => intval($request->input('draw')),
@@ -351,14 +351,16 @@ class CuttingFormManualController extends Controller
 
         $markerDetailData = MarkerDetail::selectRaw("
                 marker_input.kode kode_marker,
-                marker_input_detail.size,
+                concat(master_sb_ws.size, CASE WHEN (master_sb_ws.dest != '-' AND master_sb_ws.dest is not null) THEN ' - ' ELSE '' END, CASE WHEN (master_sb_ws.dest != '-' AND master_sb_ws.dest is not null) THEN master_sb_ws.dest ELSE '' END) size,
                 marker_input_detail.so_det_id,
                 marker_input_detail.ratio,
                 marker_input_detail.cut_qty
             ")->
             leftJoin("marker_input", "marker_input.id", "=", "marker_input_detail.marker_id")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
             where("marker_input.kode", $formCutInputData->kode)->
             where("marker_input.cancel", "N")->
+            groupBy("marker_input_detail.so_det_id")->
             get();
 
         if (Auth::user()->type == "meja" && Auth::user()->id != $formCutInputData->no_meja) {

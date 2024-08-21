@@ -429,7 +429,7 @@ class ReportOutput extends Component
         }
 
         if ($this->group == 'line') {
-            $lines = UserLine::selectRaw("
+            $linesQuery = UserLine::selectRaw("
                     MAX(act_costing.kpno) kpno,
                     MAX(act_costing.styleno) styleno,
                     SUM((IFNULL(rfts.rft, 0))) rft,
@@ -445,31 +445,41 @@ class ReportOutput extends Component
                     FLOOR(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.man_power ) ELSE 0 END )*(IF(cast(CURRENT_TIMESTAMP as time) <= '13:00:00', (FLOOR(TIME_TO_SEC(TIMEDIFF(cast(CURRENT_TIMESTAMP as time), '07:00:00'))/60))/AVG(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN master_plan.smv ELSE 0 END), ((FLOOR(TIME_TO_SEC(TIMEDIFF(cast(CURRENT_TIMESTAMP as time), '07:00:00'))/60))-60)/AVG(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN master_plan.smv ELSE 0 END) ))) cumulative_target,
                     SUM(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.plan_target ) ELSE 0 END) total_target,
                     userpassword.FullName,
-                    userpassword.username,
+                    ".($this->qcType == 'packing' ? 'rfts.created_by username' : 'userpassword.username').",
                     SUM(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.jam_kerja ) ELSE 0 END) jam_kerja,
                     MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( DATE(master_plan.tgl_plan) ) ELSE 0 END) tgl_plan,
                     GREATEST(IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( rfts.last_rft ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)), IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( defects.last_defect ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)), IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( reworks.last_rework ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)), IFNULL(MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( rejects.last_reject ) ELSE 0 END), MAX(CASE WHEN master_plan.tgl_plan ".$selectFilter." THEN ( master_plan.tgl_plan ) ELSE 0 END)) ) latest_output")->
                 leftJoin("master_plan", "userpassword.username", "=", "master_plan.sewing_line")->
                 leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
-                leftJoin(DB::raw("(SELECT max(rfts.updated_at) last_rft, count(rfts.id) rft, master_plan.id master_plan_id from output_rfts".$this->qcType." rfts inner join master_plan on master_plan.id = rfts.master_plan_id where DATE(rfts.updated_at) ".$masterPlanDateFilter." and master_plan.tgl_plan ".$masterPlanDateFilter1." and status = 'NORMAL' GROUP BY master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at) ) as rfts"), "master_plan.id", "=", "rfts.master_plan_id")->
-                leftJoin(DB::raw("(SELECT max(defects.updated_at) last_defect, count(defects.id) defect, master_plan.id master_plan_id from output_defects".$this->qcType." defects inner join master_plan on master_plan.id = defects.master_plan_id where defects.defect_status = 'defect' and DATE(defects.updated_at) ".$masterPlanDateFilter." and master_plan.tgl_plan ".$masterPlanDateFilter1." GROUP BY master_plan.id, master_plan.tgl_plan, DATE(defects.updated_at) ) as defects"), "master_plan.id", "=", "defects.master_plan_id")->
-                leftJoin(DB::raw("(SELECT max(defrew.updated_at) last_rework, count(defrew.id) rework, master_plan.id master_plan_id from output_defects".$this->qcType." defrew inner join master_plan on master_plan.id = defrew.master_plan_id where defrew.defect_status = 'reworked' and DATE(defrew.updated_at) ".$masterPlanDateFilter." and master_plan.tgl_plan ".$masterPlanDateFilter1." GROUP BY master_plan.id, master_plan.tgl_plan, DATE(defrew.updated_at) ) as reworks"), "master_plan.id", "=", "reworks.master_plan_id")->
-                leftJoin(DB::raw("(SELECT max(rejects.updated_at) last_reject, count(rejects.id) reject, master_plan.id master_plan_id from output_rejects".$this->qcType." rejects inner join master_plan on master_plan.id = rejects.master_plan_id where DATE(rejects.updated_at) ".$masterPlanDateFilter." and master_plan.tgl_plan ".$masterPlanDateFilter1." GROUP BY master_plan.id, master_plan.tgl_plan, DATE(rejects.updated_at) ) as rejects"), "master_plan.id", "=", "rejects.master_plan_id")->
+                leftJoin(DB::raw("(SELECT max(rfts.updated_at) last_rft, count(rfts.id) rft, master_plan.id master_plan_id, rfts.created_by from output_rfts".$this->qcType." rfts inner join master_plan on master_plan.id = rfts.master_plan_id where DATE(rfts.updated_at) ".$masterPlanDateFilter." and master_plan.tgl_plan ".$masterPlanDateFilter1." and status = 'NORMAL' GROUP BY master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at) ) as rfts"), "master_plan.id", "=", "rfts.master_plan_id")->
+                leftJoin(DB::raw("(SELECT max(defects.updated_at) last_defect, count(defects.id) defect, master_plan.id master_plan_id, defects.created_by from output_defects".$this->qcType." defects inner join master_plan on master_plan.id = defects.master_plan_id where defects.defect_status = 'defect' and DATE(defects.updated_at) ".$masterPlanDateFilter." and master_plan.tgl_plan ".$masterPlanDateFilter1." GROUP BY master_plan.id, master_plan.tgl_plan, DATE(defects.updated_at) ) as defects"), "master_plan.id", "=", "defects.master_plan_id")->
+                leftJoin(DB::raw("(SELECT max(defrew.updated_at) last_rework, count(defrew.id) rework, master_plan.id master_plan_id, defrew.created_by from output_defects".$this->qcType." defrew inner join master_plan on master_plan.id = defrew.master_plan_id where defrew.defect_status = 'reworked' and DATE(defrew.updated_at) ".$masterPlanDateFilter." and master_plan.tgl_plan ".$masterPlanDateFilter1." GROUP BY master_plan.id, master_plan.tgl_plan, DATE(defrew.updated_at) ) as reworks"), "master_plan.id", "=", "reworks.master_plan_id")->
+                leftJoin(DB::raw("(SELECT max(rejects.updated_at) last_reject, count(rejects.id) reject, master_plan.id master_plan_id, rejects.created_by from output_rejects".$this->qcType." rejects inner join master_plan on master_plan.id = rejects.master_plan_id where DATE(rejects.updated_at) ".$masterPlanDateFilter." and master_plan.tgl_plan ".$masterPlanDateFilter1." GROUP BY master_plan.id, master_plan.tgl_plan, DATE(rejects.updated_at) ) as rejects"), "master_plan.id", "=", "rejects.master_plan_id")->
                 where("userpassword.Groupp", 'SEWING')->
                 where("master_plan.cancel", 'N')->
                 whereRaw("(master_plan.tgl_plan ".$masterPlanDateFilter1.")")->
                 whereRaw("(userpassword.Locked != 1 OR userpassword.Locked IS NULL)")->
                 whereRaw("(
+                    rfts.created_by LIKE '%".$this->search."%' OR
                     userpassword.username LIKE '%".$this->search."%' OR
                     userpassword.FullName LIKE '%".$this->search."%' OR
                     act_costing.kpno LIKE '%".$this->search."%' OR
                     act_costing.styleno LIKE '%".$this->search."%'
-                )")->
-                groupBy("userpassword.FullName","userpassword.username","master_plan.sewing_line","master_plan.id_ws")->
-                havingRaw("tgl_plan ".$masterPlanDateFilter." OR (tgl_plan ".$masterPlanDateFilter1." AND SUM((IFNULL(rfts.rft, 0)+IFNULL(reworks.rework, 0))) > 0)")->
-                orderBy("master_plan.sewing_line", "asc")->
-                orderBy("master_plan.id_ws", "asc")->
-                get();
+                )");
+
+            if ($this->qcType == "_packing") {
+                $lines = $linesQuery->groupBy("rfts.created_by","master_plan.id_ws")->
+                    havingRaw("tgl_plan ".$masterPlanDateFilter." OR (tgl_plan ".$masterPlanDateFilter1." AND SUM((IFNULL(rfts.rft, 0)+IFNULL(reworks.rework, 0))) > 0)")->
+                    orderBy("rfts.created_by", "asc")->
+                    orderBy("master_plan.id_ws", "asc")->
+                    get();
+            } else {
+                $lines = $linesQuery->groupBy("userpassword.FullName","userpassword.username","master_plan.sewing_line","master_plan.id_ws")->
+                    havingRaw("tgl_plan ".$masterPlanDateFilter." OR (tgl_plan ".$masterPlanDateFilter1." AND SUM((IFNULL(rfts.rft, 0)+IFNULL(reworks.rework, 0))) > 0)")->
+                    orderBy("master_plan.sewing_line", "asc")->
+                    orderBy("master_plan.id_ws", "asc")->
+                    get();
+            }
         } else {
             $lines = collect([]);
         }

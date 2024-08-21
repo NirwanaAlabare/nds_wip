@@ -213,13 +213,34 @@ class CuttingFormPilotController extends Controller
 
     public function getSizeList(Request $request)
     {
-        $sizes = DB::table("master_sb_ws")->selectRaw("
+        $sizeQuery = DB::table("master_sb_ws")->selectRaw("
                 master_sb_ws.id_so_det so_det_id,
                 master_sb_ws.ws no_ws,
                 master_sb_ws.color,
-                master_sb_ws.size,
-                sum(master_sb_ws.qty) order_qty
-            ")->where("id_act_cost", $request->act_costing_id)->where("color", $request->color)->join("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->groupBy("id_act_cost", "color", "size")->orderBy("master_size_new.urutan")->get();
+                concat(master_sb_ws.size, CASE WHEN (master_sb_ws.dest != '-' AND master_sb_ws.dest is not null) THEN ' - ' ELSE '' END, CASE WHEN (master_sb_ws.dest != '-' AND master_sb_ws.dest is not null) THEN master_sb_ws.dest ELSE '' END) size,
+                master_sb_ws.qty order_qty,
+                COALESCE(marker_input_detail.ratio, 0) ratio,
+                COALESCE(marker_input_detail.cut_qty, 0) cut_qty
+            ")->
+            where("master_sb_ws.id_act_cost", $request->act_costing_id)->
+            where("master_sb_ws.color", $request->color);
+
+        if ($request->marker_id) {
+            $sizeQuery->
+            leftJoin('marker_input_detail', function($join) use ($request) {
+                $join->on('marker_input_detail.so_det_id', '=', 'master_sb_ws.id_so_det');
+                $join->on('marker_input_detail.marker_id', '=', DB::raw($request->marker_id));
+            })->
+            leftJoin('master_size_new', 'master_size_new.size', '=', 'master_sb_ws.size')->
+            leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id');
+        } else {
+            $sizeQuery->
+            leftJoin('marker_input_detail', 'marker_input_detail.so_det_id', '=', 'master_sb_ws.id_so_det')->
+            leftJoin('marker_input', 'marker_input.id', '=', 'marker_input_detail.marker_id')->
+            leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size");
+        }
+
+        $sizes = $sizeQuery->groupBy("master_sb_ws.id_so_det")->orderBy("master_size_new.urutan")->get();
 
         return json_encode([
             "draw" => intval($request->input('draw')),
@@ -357,14 +378,16 @@ class CuttingFormPilotController extends Controller
 
         $markerDetailData = MarkerDetail::selectRaw("
                 marker_input.kode kode_marker,
-                marker_input_detail.size,
+                concat(master_sb_ws.size, CASE WHEN (master_sb_ws.dest != '-' AND master_sb_ws.dest is not null) THEN ' - ' ELSE '' END, CASE WHEN (master_sb_ws.dest != '-' AND master_sb_ws.dest is not null) THEN master_sb_ws.dest ELSE '' END) size,
                 marker_input_detail.so_det_id,
                 marker_input_detail.ratio,
                 marker_input_detail.cut_qty
             ")->
             leftJoin("marker_input", "marker_input.id", "=", "marker_input_detail.marker_id")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
             where("marker_input.kode", $formCutInputData->kode)->
             where("marker_input.cancel", "N")->
+            groupBy("marker_input_detail.so_det_id")->
             get();
 
         if (Auth::user()->type == "meja" && Auth::user()->id != $formCutInputData->no_meja) {

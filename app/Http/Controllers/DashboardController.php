@@ -155,15 +155,17 @@ class DashboardController extends Controller
         $years = array_reverse(range(1999, date('Y')));
 
         if ($request->ajax()) {
-            $month = date("m");
-            $year = date("Y");
+            // $month = date("m");
+            // $year = date("Y");
 
-            if ($request->month) {
-                $month = $request->month;
-            }
-            if ($request->year) {
-                $year = $request->year;
-            }
+            // if ($request->month) {
+            //     $month = $request->month;
+            // }
+            // if ($request->year) {
+            //     $year = $request->year;
+            // }
+
+            $date = $request->date ? $request->date : date("Y-m-d");
 
             $form = FormCutInput::selectRaw("
                     marker_input.id marker_id,
@@ -196,8 +198,7 @@ class DashboardController extends Controller
                 leftJoin("form_cut_input_detail", "form_cut_input_detail.no_form_cut_input", "=", "form_cut_input.no_form")->
                 whereRaw("(marker_input.cancel IS NULL OR marker_input.cancel != 'Y')")->
                 whereRaw("(form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y')")->
-                whereRaw("(MONTH(form_cut_input.waktu_mulai) = '".$month."')")->
-                whereRaw("(YEAR(form_cut_input.waktu_mulai) = '".$year."')")->
+                whereRaw("(DATE(form_cut_input.waktu_mulai) = '".$date."')")->
                 groupBy("marker_input.id", "form_cut_input.id", "form_cut_input_detail.unit")->
                 orderBy("form_cut_input.waktu_mulai", "desc")->
                 orderBy("marker_input.buyer", "asc")->
@@ -217,15 +218,17 @@ class DashboardController extends Controller
 
     // Cutting Qty
     public function cuttingQty(Request $request) {
-        $month = date("m");
-        $year = date("Y");
+        // $month = date("m");
+        // $year = date("Y");
 
-        if ($request->month) {
-            $month = $request->month;
-        }
-        if ($request->year) {
-            $year = $request->year;
-        }
+        // if ($request->month) {
+        //     $month = $request->month;
+        // }
+        // if ($request->year) {
+        //     $year = $request->year;
+        // }
+
+        $date = $request->date ? $request->date : date('Y-m-d');
 
         $dataQty = DB::select("
             SELECT
@@ -251,13 +254,38 @@ class DashboardController extends Controller
                     WHERE
                         ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' ) AND
                         ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' ) AND
-                        ( MONTH ( form_cut_input.waktu_mulai ) = '".$month."' ) AND ( YEAR ( form_cut_input.waktu_mulai ) = '".$year."' )
+                        ( cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND DATE(form_cut_input.waktu_mulai) = '".$date."') )
                     GROUP BY
                         form_cut_input.id
                 ) frm
         ");
 
         return $dataQty;
+    }
+
+    public function cuttingFormChart(Request $request) {
+        $date = $request->date ? $request->date : date('Y-m-d');
+
+        $cuttingForm = DB::table('form_cut_input')->
+            selectRaw("
+                meja.username no_meja,
+                cutting_plan.tgl_plan,
+                COUNT(form_cut_input.id) total_form,
+                SUM(CASE WHEN form_cut_input.status != 'SELESAI PENGERJAAN' THEN 1 ELSE 0 END) incomplete_form,
+                SUM(CASE WHEN form_cut_input.status = 'SELESAI PENGERJAAN' THEN 1 ELSE 0 END) completed_form
+            ")->
+            leftJoin("marker_input", "marker_input.kode", "form_cut_input.id_marker")->
+            leftJoin("cutting_plan", "cutting_plan.no_form_cut_input", "form_cut_input.no_form")->
+            join("users as meja", "meja.id", "form_cut_input.no_meja")->
+            whereRaw("
+                ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' ) AND
+                ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' ) AND
+                ( cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND DATE(form_cut_input.waktu_mulai) = '".$date."') )
+            ")->
+            groupByRaw("(CASE WHEN cutting_plan.tgl_plan != '".$date."' THEN DATE(form_cut_input.waktu_mulai) ELSE cutting_plan.tgl_plan END), meja.id")->
+            get();
+
+        return json_encode($cuttingForm);
     }
 
     // Stocker

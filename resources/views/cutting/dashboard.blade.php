@@ -5,7 +5,7 @@
         <div class="d-flex justify-content-between">
             <h5 class="text-sb fw-bold">Form Count</h5>
             <div class="d-flex justify-content-end gap-1 mb-3">
-                <select class="form-select form-select-sm select2bs4 w-auto" id="cuttingqty-month-filter" readonly value="{{ date('m') }}">
+                {{-- <select class="form-select form-select-sm select2bs4 w-auto" id="cuttingqty-month-filter" readonly value="{{ date('m') }}">
                     <option value="" selected disabled>Bulan</option>
                     @foreach ($months as $month)
                         <option value="{{ $month['angka'] }}">{{ $month['nama'] }}</option>
@@ -16,7 +16,12 @@
                     @foreach ($years as $year)
                         <option value="{{ $year }}">{{ $year }}</option>
                     @endforeach
-                </select>
+                </select> --}}
+                <div class="d-flex justify-content-end gap-1 mb-3">
+                    <div class="mb-1">
+                        <input type="date" class='form-control' id='cuttingqty-date-filter' value="{{ date('Y-m-d') }}">
+                    </div>
+                </div>
             </div>
         </div>
         <div class="d-none mb-3" id="loading-cutting-qty">
@@ -71,9 +76,29 @@
 <div class="card">
     <div class="card-body">
         <div class="d-flex justify-content-between">
-            <h5 class="text-sb fw-bold">Cutting Summary</h5>
+            <h5 class="text-sb fw-bold">Cutting Form Chart</h5>
             <div class="d-flex justify-content-start align-items-center gap-1 mb-3">
                 <div class="mb-1">
+                    <input type="date" class='form-control' id='cutting-form-date-filter' value="{{ date('Y-m-d') }}">
+                </div>
+            </div>
+        </div>
+        <div class="d-none mb-3" id="loading-cutting-form">
+            <div class="loading-container">
+                <div class="loading"></div>
+            </div>
+        </div>
+        <div class="row d-none" id="cutting-form-data">
+            <div id="cutting-form-chart" style="height: 350px;"></div>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between">
+            <h5 class="text-sb fw-bold">Cutting Summary</h5>
+            <div class="d-flex justify-content-start align-items-center gap-1 mb-3">
+                {{-- <div class="mb-1">
                     <select class="form-select form-select-sm select2bs4" id="cutting-month-filter" readonly value="{{ date('m') }}">
                         <option value="" selected disabled>Bulan</option>
                         @foreach ($months as $month)
@@ -88,6 +113,11 @@
                             <option value="{{ $year }}">{{ $year }}</option>
                         @endforeach
                     </select>
+                </div> --}}
+                <div class="d-flex justify-content-end gap-1 mb-3">
+                    <div class="mb-1">
+                        <input type="date" class='form-control' id='cutting-date-filter' value="{{ date('Y-m-d') }}">
+                    </div>
                 </div>
             </div>
         </div>
