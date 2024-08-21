@@ -79,7 +79,6 @@
             let oneWeeksBeforeFull = oneWeeksBeforeYear + '-' + oneWeeksBeforeMonth + '-' + oneWeeksBeforeDate;
 
             $("#from").val(oneWeeksBeforeFull).trigger("change");
-            $("#to").val().trigger("change");
 
             window.addEventListener("focus", () => {
                 $('#datatable').DataTable().ajax.reload(null, false);
