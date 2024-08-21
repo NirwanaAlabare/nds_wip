@@ -97,9 +97,9 @@
 
             $("#from").val(oneWeeksBeforeFull).trigger("change");
 
-            window.addEventListener("focus", () => {
-                $('#datatable').DataTable().ajax.reload(null, false);
-            });
+            // window.addEventListener("focus", () => {
+            //     datatableReload();
+            // });
         });
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
