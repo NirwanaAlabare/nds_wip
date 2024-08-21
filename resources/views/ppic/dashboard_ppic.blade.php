@@ -16,11 +16,24 @@
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <div class="p-2 bd-highlight">
+                    <h5 class="card-title fw-bold mb-0 text-center">Summary Order</h5>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="chart" style="height: 100px; width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="p-2 bd-highlight">
                     <h5 class="card-title fw-bold mb-0 text-center">Summary</h5>
                 </div>
                 <div class="p-2 bd-highlight">
                     <select class="form-control select2bs4 form-control-sm" id="cbobln" name="cbobln"
-                        style="width: 100%;" onchange="gettot()">
+                        style="width: 100%;" onchange="gettot();dataTableReload();">
                         <option selected="selected" value="" disabled="true"></option>
                         @foreach ($data_bulan as $databulan)
                             <option value="{{ $databulan->isi }}">
@@ -85,7 +98,7 @@
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <div class="p-2 bd-highlight">
-                    <h5 class="card-title fw-bold mb-0 text-center">Shipment Hari Ini</h5>
+                    <h5 class="card-title fw-bold mb-0 text-center">Summary Shipment :</h5>
                 </div>
             </div>
             <div class="card-body">
@@ -116,19 +129,6 @@
             </div>
         </div>
     </div>
-
-    <div class="card">
-        <div class="card-header">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="p-2 bd-highlight">
-                    <h5 class="card-title fw-bold mb-0 text-center">Summary Order</h5>
-                </div>
-            </div>
-            <div class="card-body">
-                <div id="chart" style="height: 370px; width: 100%;"></div>
-            </div>
-        </div>
-    </div>
 @endsection
 
 @section('custom-script')
@@ -149,7 +149,7 @@
             const today = new Date();
             let month = today.getMonth() + 1;
             $("#cbobln").val(month).trigger('change');
-            // dataTableReload();
+            dataTableReload();
             // gettot();
             // canvas();
         });
@@ -263,6 +263,12 @@
             });
         };
 
+        function dataTableReload() {
+            datatable.ajax.reload();
+        }
+
+
+
         let datatable = $("#datatable").DataTable({
             "footerCallback": function(row, data, start, end, display) {
                 var api = this.api(),
@@ -308,6 +314,9 @@
             scrollCollapse: true,
             ajax: {
                 url: '{{ route('show_data_dash_ship_hr_ini') }}',
+                data: function(d) {
+                    d.blnFilter = $('#cbobln').val();
+                },
             },
             columns: [{
                     data: 'buyer'
