@@ -7,6 +7,8 @@ use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 use DB;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ExportLaporanPackingMasterkarton;
 
 class PackingMasterKartonController extends Controller
 {
@@ -516,5 +518,10 @@ inner join master_sb_ws m on p.id_so_det = m.id_so_det
         //     "callback" => "getdetail(`$no_form_modal`,`$txtket_modal_input`)"
 
         // );
+    }
+
+    public function export_excel_packing_master_carton(Request $request)
+    {
+        return Excel::download(new ExportLaporanPackingMasterkarton($request->from, $request->to), 'Laporan_Hasil_Scan.xlsx');
     }
 }

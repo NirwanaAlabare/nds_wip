@@ -107,6 +107,7 @@ group by month(tgl_shipment)
     {
         $user = Auth::user()->name;
         $tgl_skrg = date('Y-m-d');
+        $bln_filter = $request->blnFilter;
         if ($request->ajax()) {
 
             $data_shp = DB::select("
@@ -145,7 +146,7 @@ group by month(tgl_shipment)
             inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po and a.dest = p.dest
             group by p.id
             ) pck_out on pck_out.id = a.id
-            where tgl_shipment = '$tgl_skrg'
+            where month(tgl_shipment) = '$bln_filter'
             group by po, color
             ");
             // dd($data_shp);

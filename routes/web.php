@@ -1183,6 +1183,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/store_tambah_data_karton_det', 'store_tambah_data_karton_det')->name('store_tambah_data_karton_det');
         Route::get('/get_data_stok_packing_in', 'get_data_stok_packing_in')->name('get_data_stok_packing_in');
         Route::post('/simpan_short_karton', 'simpan_short_karton')->name('simpan_short_karton');
+        Route::get('/export_excel_packing_master_carton', 'export_excel_packing_master_carton')->name('export_excel_packing_master_carton');
         // Route::get('/show_preview_packing_in', 'show_preview_packing_in')->name('show_preview_packing_in');
         // Route::post('/store', 'store')->name('store-packing-packing-in');
     });

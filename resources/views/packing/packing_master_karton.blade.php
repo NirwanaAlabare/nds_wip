@@ -425,7 +425,8 @@
                         oninput="dataTableReload()" value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
-                    <a onclick="notif()" class="btn btn-outline-success position-relative btn-sm">
+                    <a onclick="export_excel_packing_master_karton()"
+                        class="btn btn-outline-success position-relative btn-sm">
                         <i class="fas fa-file-excel fa-sm"></i>
                         Export Excel
                     </a>
@@ -1159,6 +1160,51 @@
         function ceklis(checkeds) {
             //get id..and check if checked
             console.log($(checkeds).attr("value"), checkeds.checked)
+        }
+
+
+        function export_excel_packing_master_karton() {
+            let from = document.getElementById("tgl-awal").value;
+            let to = document.getElementById("tgl-akhir").value;
+
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                type: "get",
+                url: '{{ route('export_excel_packing_master_carton') }}',
+                data: {
+                    from: from,
+                    to: to
+                },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(response) {
+                    {
+                        swal.close();
+                        Swal.fire({
+                            title: 'Data Sudah Di Export!',
+                            icon: "success",
+                            showConfirmButton: true,
+                            allowOutsideClick: false
+                        });
+                        var blob = new Blob([response]);
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = "Laporan Master Karton " + from + " sampai " +
+                            to + ".xlsx";
+                        link.click();
+
+                    }
+                },
+            });
         }
     </script>
 @endsection
