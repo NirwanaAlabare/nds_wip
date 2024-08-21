@@ -19,7 +19,7 @@
                 </select> --}}
                 <div class="d-flex justify-content-end gap-1 mb-3">
                     <div class="mb-1">
-                        <input type="date" class='form-control' id='cutting-date-filter' value="{{ date('Y-m-d') }}">
+                        <input type="date" class='form-control' id='cuttingqty-date-filter' value="{{ date('Y-m-d') }}">
                     </div>
                 </div>
             </div>
@@ -83,7 +83,14 @@
                 </div>
             </div>
         </div>
-        <div id="cutting-form-chart" style="height: 350px;"></div>
+        <div class="d-none mb-3" id="loading-cutting-form">
+            <div class="loading-container">
+                <div class="loading"></div>
+            </div>
+        </div>
+        <div class="row d-none" id="cutting-form-data">
+            <div id="cutting-form-chart" style="height: 350px;"></div>
+        </div>
     </div>
 </div>
 <div class="card">
@@ -109,7 +116,7 @@
                 </div> --}}
                 <div class="d-flex justify-content-end gap-1 mb-3">
                     <div class="mb-1">
-                        <input type="date" class='form-control' id='cuttingqty-date-filter' value="{{ date('Y-m-d') }}">
+                        <input type="date" class='form-control' id='cutting-date-filter' value="{{ date('Y-m-d') }}">
                     </div>
                 </div>
             </div>

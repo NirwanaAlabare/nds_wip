@@ -2771,10 +2771,14 @@
                     // }
                 });
 
-                $('#cutting-month-filter').on('change', () => {
-                    $('#datatable-cutting').DataTable().ajax.reload();
-                });
-                $('#cutting-year-filter').on('change', () => {
+
+                // $('#cutting-month-filter').on('change', () => {
+                //     $('#datatable-cutting').DataTable().ajax.reload();
+                // });
+                // $('#cutting-year-filter').on('change', () => {
+                //     $('#datatable-cutting').DataTable().ajax.reload();
+                // });
+                $('#cutting-date-filter').on('change', () => {
                     $('#datatable-cutting').DataTable().ajax.reload();
                 });
 
@@ -2782,16 +2786,18 @@
                 // $('#cuttingqty-month-filter').val((today.getMonth() + 1)).trigger("change");
                 // $('#cuttingqty-year-filter').val(todayYear).trigger("change");
                 $('#cuttingqty-date-filter').val(todayFullDate).trigger("change");
+
                 await getCuttingQty();
 
-                $('#cuttingqty-month-filter').on('change', () => {
-                    getCuttingQty();
-                });
-                $('#cuttingqty-year-filter').on('change', () => {
-                    getCuttingQty();
-                });
+                // $('#cuttingqty-month-filter').on('change', () => {
+                //     getCuttingQty();
+                // });
+                // $('#cuttingqty-year-filter').on('change', () => {
+                //     getCuttingQty();
+                // });
             });
 
+            // Cutting Qty
             function getCuttingQty() {
                 document.getElementById("cutting-qty-data").classList.add("d-none");
                 document.getElementById("loading-cutting-qty").classList.remove("d-none");
@@ -2840,6 +2846,11 @@
                 });
             }
 
+            $('#cuttingqty-date-filter').on('change', async () => {
+                await getCuttingQty();
+            });
+
+            // Cutting Form Chart
             var cuttingFormChartOptions = {
                 series: [],
                 chart: {
@@ -2856,6 +2867,13 @@
                         colors: ['#ebebeb', 'transparent'], // takes an array which will be repeated on columns
                         opacity: 0.5
                     },
+                },
+                xaxis: {
+                    labels: {
+                        formatter: function (value) {
+                            return value.toString().replace(/_/ig, " ").toUpperCase();
+                        }
+                    }
                 },
                 yaxis: {
                     tickAmount: 10,
@@ -2889,12 +2907,14 @@
             cuttingFormChart.render();
 
             function loadCuttingFormChart() {
+                document.getElementById("cutting-form-data").classList.add("d-none");
+                document.getElementById("loading-cutting-form").classList.remove("d-none");
+
                 return $.ajax({
                     url: '{{ route('cutting-form-chart') }}',
                     type: 'get',
                     data: {
-                        month: $("#cutting-form-month-filter").val(),
-                        year: $("#cutting-form-year-filter").val(),
+                        date: $("#cutting-form-date-filter").val(),
                     },
                     dataType: 'json',
                     success: async function(res) {
@@ -2931,6 +2951,9 @@
                                 }
                             });
                         }
+
+                        document.getElementById("cutting-form-data").classList.remove("d-none");
+                        document.getElementById("loading-cutting-form").classList.add("d-none");
                     }, error: function (jqXHR) {
                         let res = jqXHR.responseJSON;
                         console.error(res.message);
@@ -2939,12 +2962,15 @@
                             message: res.message,
                             position: 'topCenter'
                         });
+
+                        document.getElementById("cutting-form-data").classList.remove("d-none");
+                        document.getElementById("loading-cutting-form").classList.add("d-none");
                     }
                 });
             }
 
-            $('#cutting-form-date-filter').on("change", function () {
-                loadCuttingFormChart()
+            $('#cutting-form-date-filter').on("change", async function () {
+                await loadCuttingFormChart()
             });
         </script>
     @endif
