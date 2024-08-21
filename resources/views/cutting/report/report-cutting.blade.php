@@ -41,12 +41,12 @@
                     <thead>
                         <tr>
                             <th>Tanggal</th>
-                            <th>Meja</th>
                             <th>Buyer</th>
                             <th>No. WS</th>
                             <th>Style</th>
                             <th>Color</th>
                             <th>Panel</th>
+                            <th>Size</th>
                             <th>Notes</th>
                             <th>Marker Ply</th>
                             <th>Cutting Ply</th>
@@ -79,7 +79,7 @@
             let oneWeeksBeforeFull = oneWeeksBeforeYear + '-' + oneWeeksBeforeMonth + '-' + oneWeeksBeforeDate;
 
             $("#from").val(oneWeeksBeforeFull).trigger("change");
-            $("#to").val("").trigger("change");
+            $("#to").val().trigger("change");
 
             window.addEventListener("focus", () => {
                 $('#datatable').DataTable().ajax.reload(null, false);
@@ -124,9 +124,6 @@
                     data: 'tgl_form_cut'
                 },
                 {
-                    data: 'meja'
-                },
-                {
                     data: 'buyer'
                 },
                 {
@@ -140,6 +137,9 @@
                 },
                 {
                     data: 'panel'
+                },
+                {
+                    data: 'size'
                 },
                 {
                     data: 'notes'

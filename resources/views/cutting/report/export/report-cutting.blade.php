@@ -43,11 +43,11 @@
                 <td colspan="9" style="font-weight: 800;background: #ccccff;text-align: center;">MATERIAL</td>
             </tr>
             <tr>
-                <th style="font-weight: 800;background: #ffd966;">Meja</th>
                 <th style="font-weight: 800;background: #ffd966;">Buyer</th>
                 <th style="font-weight: 800;background: #ffd966;">No. WS</th>
                 <th style="font-weight: 800;background: #ffd966;">Style</th>
                 <th style="font-weight: 800;background: #ffd966;">Color</th>
+                <th style="font-weight: 800;background: #ffd966;">Size</th>
                 <th style="font-weight: 800;background: #ffd966;">Ket.</th>
                 <th style="font-weight: 800;background: #ffd966;">Target Shift 1</th>
                 <th style="font-weight: 800;background: #ffd966;">Pending Shift 1</th>
@@ -101,11 +101,11 @@
             @endphp
         @endif
         <tr>
-            <td data-format="@" style="vertical-align: top;">{{ $cutting->meja ? str_replace('meja ', '', $cutting->meja) : '-'  }}</td>
             <td style="vertical-align: top;">{{ $cutting->buyer ? $cutting->buyer : '-'  }}</td>
             <td style="vertical-align: top;">{{ $cutting->act_costing_ws ? $cutting->act_costing_ws : '-'  }}</td>
             <td data-format="@" style="vertical-align: top;">{{ $cutting->style ? $cutting->style : '-'  }}</td>
             <td style="vertical-align: top;">{{ $cutting->color ? $cutting->color : '-'  }}</td>
+            <td data-format="@" style="vertical-align: top;">{{ $cutting->size ? $cutting->size : '-'  }}</td>
             <td style="vertical-align: top;">{{ $cutting->notes ? $cutting->notes : '-'  }}</td>
             <td style="vertical-align: top;"></td>
             <td style="vertical-align: top;"></td>
