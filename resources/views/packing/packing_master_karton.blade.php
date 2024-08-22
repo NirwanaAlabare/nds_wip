@@ -424,13 +424,13 @@
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
                         oninput="dataTableReload()" value="{{ date('Y-m-d') }}">
                 </div>
-                <div class="mb-3">
+                {{-- <div class="mb-3">
                     <a onclick="export_excel_packing_master_karton()"
                         class="btn btn-outline-success position-relative btn-sm">
                         <i class="fas fa-file-excel fa-sm"></i>
                         Export Excel
                     </a>
-                </div>
+                </div> --}}
             </div>
 
             <div class="table-responsive">
