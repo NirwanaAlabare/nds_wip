@@ -55,10 +55,12 @@ class ReportCuttingController extends Controller
                     marker_cutting.panel,
                     marker_cutting.cons_ws,
                     marker_cutting.unit,
+                    marker_cutting.so_det_id,
+                    marker_cutting.size,
                     COALESCE(marker_cutting.notes, '-') notes,
-                    SUM(marker_cutting.marker_gelar) marker_gelar,
-                    SUM(marker_cutting.spreading_gelar) spreading_gelar,
-                    SUM(marker_cutting.form_gelar) form_gelar
+                    SUM(marker_cutting.marker_gelar * marker_cutting.ratio) marker_gelar,
+                    SUM(marker_cutting.spreading_gelar  * marker_cutting.ratio) spreading_gelar,
+                    SUM(marker_cutting.form_gelar * marker_cutting.ratio) form_gelar
                 FROM
                     (
                         SELECT
@@ -73,12 +75,19 @@ class ReportCuttingController extends Controller
                             marker_input.panel,
                             marker_input.cons_ws,
                             marker_input.unit_panjang_marker unit,
+                            marker_input_detail.so_det_id,
+                            CONCAT(master_sb_ws.size, CASE WHEN master_sb_ws.dest != '-' AND master_sb_ws.dest IS NOT NULL THEN CONCAT(' - ', master_sb_ws.dest) ELSE '' END) size,
+                            marker_input_detail.ratio,
                             COALESCE(marker_input.notes, form_cut.notes) notes,
                             marker_input.gelar_qty marker_gelar,
                             SUM(form_cut.qty_ply) spreading_gelar,
                             SUM(COALESCE(form_cut.total_lembar, form_cut.detail)) form_gelar
                         FROM
                             marker_input
+                            INNER JOIN
+                                marker_input_detail on marker_input_detail.marker_id = marker_input.id
+                            INNER JOIN
+                                master_sb_ws on master_sb_ws.id_so_det = marker_input_detail.so_det_id
                             INNER JOIN
                                 (
                                     SELECT
@@ -103,21 +112,23 @@ class ReportCuttingController extends Controller
                                 ) form_cut on form_cut.id_marker = marker_input.kode
                             where
                                 (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
+                                AND marker_input_detail.ratio > 0
                             group by
                                 marker_input.id,
+                                marker_input_detail.so_det_id,
                                 form_cut.tgl_form_cut
                     ) marker_cutting
                 GROUP BY
-                    marker_cutting.meja,
                     marker_cutting.act_costing_id,
                     marker_cutting.color,
                     marker_cutting.panel,
+                    marker_cutting.so_det_id,
                     marker_cutting.tgl_form_cut
                 ORDER BY
                     marker_cutting.panel,
-                    marker_cutting.meja,
                     marker_cutting.act_costing_id,
                     marker_cutting.color,
+                    marker_cutting.so_det_id,
                     marker_cutting.tgl_form_cut
                 ");
 
