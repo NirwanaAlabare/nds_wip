@@ -970,7 +970,7 @@
                             <div class="row align-items-end">
                                 <div class="col-md-3">
                                     <div class="mb-3">
-                                        <label class="form-labe label-calc"><small><b>Cons. Actual 1 Gelaran</b></small></label>
+                                        <label class="form-labe label-calc"><small><b>Cons. Actual</b></small></label>
                                         <input type="text" class="form-control form-control-sm border-calc" name="cons_actual_gelaran" id="cons_actual_gelaran" readonly>
                                     </div>
                                 </div>
@@ -1004,7 +1004,7 @@
                                 </div>
                                 <div class="col-md-3">
                                     <div class="mb-3">
-                                        <label class="form-labe label-calc"><small><b>Cons. Actual 1 Gelaran Tanpa Short Roll</b></small></label>
+                                        <label class="form-labe label-calc"><small><b>Cons. Actual Tanpa Short Roll</b></small></label>
                                         <input type="text" class="form-control form-control-sm border-calc" name="cons_actual_gelaran_short_rolless" id="cons_actual_gelaran_short_rolless" readonly>
                                     </div>
                                 </div>

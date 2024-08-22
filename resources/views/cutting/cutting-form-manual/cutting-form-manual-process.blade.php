@@ -982,7 +982,7 @@
                             <div class="row align-items-end">
                                 <div class="col-md-3">
                                     <div class="mb-3">
-                                        <label class="form-labe label-calc"><small><b>Cons. Actual 1 Gelaran</b></small></label>
+                                        <label class="form-labe label-calc"><small><b>Cons. Actual</b></small></label>
                                         <input type="text" class="form-control form-control-sm border-calc" name="cons_actual_gelaran" id="cons_actual_gelaran" readonly>
                                     </div>
                                 </div>
@@ -1017,7 +1017,7 @@
                                 </div>
                                 <div class="col-md-3">
                                     <div class="mb-3">
-                                        <label class="form-labe label-calc"><small><b>Cons. Actual 1 Gelaran Tanpa Short Roll</b></small></label>
+                                        <label class="form-labe label-calc"><small><b>Cons. Actual Tanpa Short Roll</b></small></label>
                                         <input type="text" class="form-control form-control-sm border-calc" name="cons_actual_gelaran_short_rolless" id="cons_actual_gelaran_short_rolless" readonly>
                                     </div>
                                 </div>
@@ -2034,7 +2034,7 @@
                     return Swal.fire({
                         icon: 'error',
                         title: 'Tidak Dapat Menyelesaikan Proses',
-                        text: 'Harap pastikan data "Operator" dan "Cons. Actual 1 Gelaran" telah terisi',
+                        text: 'Harap pastikan data "Operator" dan "Cons. Actual" telah terisi',
                         showConfirmButton: true,
                         confirmButtonText: 'Oke',
                         confirmButtonColor: "#6531a0",
@@ -2543,7 +2543,7 @@
                 return estSambungan.round(2);
             }
 
-            // -Calculate Cons. Actual 1 Gelaran-
+            // -Calculate Cons. Actual-
             // function calculateConsActualGelaran(unit = 0, piping = 0, lembar = 0, totalQtyFabric = 0, totalQtyCut = 0, totalPemakaian) {
             //     let unitVar = unit;
             //     let pipingVar = Number(piping);
