@@ -112,6 +112,7 @@ class ReportCuttingController extends Controller
                                 ) form_cut on form_cut.id_marker = marker_input.kode
                             where
                                 (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
+                                AND marker_input_detail.ratio > 0
                             group by
                                 marker_input.id,
                                 marker_input_detail.so_det_id,
@@ -121,6 +122,7 @@ class ReportCuttingController extends Controller
                     marker_cutting.act_costing_id,
                     marker_cutting.color,
                     marker_cutting.panel,
+                    marker_cutting.so_det_id,
                     marker_cutting.tgl_form_cut
                 ORDER BY
                     marker_cutting.panel,
