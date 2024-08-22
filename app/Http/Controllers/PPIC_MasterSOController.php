@@ -269,29 +269,34 @@ m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is 
 
 
         $data_tracking = DB::select("
-            select
-            a.so_det_id,
-            concat((DATE_FORMAT(a.created_at,  '%d')), '-', left(DATE_FORMAT(a.created_at,  '%M'),3),'-',DATE_FORMAT(a.created_at,  '%Y')
+select
+a.so_det_id,
+concat((DATE_FORMAT(a.created_at,  '%d')), '-', left(DATE_FORMAT(a.created_at,  '%M'),3),'-',DATE_FORMAT(a.created_at,  '%Y')
 ) tgl_trans,
-            sewing_line,count(so_det_id)tot,
-            'PCS' unit,
-            m.ws,
-            p.list_po,
-            m.color,
-            m.size,
-            m.styleno,
-            m.dest,
-            m.buyer
-            from output_rfts_packing a
-            left join master_sb_ws m on a.so_det_id = m.id_so_det
-            left join
-            (
-            select group_concat(DISTINCT(po)) list_po, id_so_det from ppic_master_so
-            group by id_so_det
-            ) p on a.so_det_id = p.id_so_det
-             where created_at >= '$tgl_skrg'
-            group by so_det_id, sewing_line,date_format(a.created_at,'%d-%m-%Y')
-            order by date_format(a.created_at,'%Y-%m-%d') desc,a.sewing_line asc
+created_by sewing_line,
+tot_p_line tot,
+'PCS' unit,
+m.ws,
+p.list_po,
+m.color,
+m.size,
+m.styleno,
+m.dest,
+m.buyer
+from
+(
+select
+so_det_id,count(so_det_id) tot_p_line , created_by, created_at
+from output_rfts_packing a
+where created_at >= '$tgl_skrg'
+group by so_det_id, created_by ) a
+left join master_sb_ws m on a.so_det_id = m.id_so_det
+left join
+	(
+	select group_concat(DISTINCT(po)) list_po, id_so_det from ppic_master_so
+	group by id_so_det
+	) p on a.so_det_id = p.id_so_det
+order by created_by asc
             ");
 
         return DataTables::of($data_tracking)->toJson();
