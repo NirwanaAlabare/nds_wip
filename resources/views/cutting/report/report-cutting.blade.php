@@ -196,7 +196,7 @@
                     elm.removeChild(loading);
                     elm.removeAttribute('disabled');
                     let icon = document.createElement('i');
-                    icon.classList.add('fa-solid');
+                    icon.classList.add('fas');
                     icon.classList.add('fa-file-excel');
                     elm.appendChild(icon);
                     elm.innerText += " Export";
