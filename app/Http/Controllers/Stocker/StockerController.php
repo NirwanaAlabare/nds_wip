@@ -2426,7 +2426,8 @@ class StockerController extends Controller
             leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "month_count.so_det_id")->
             whereRaw("
                 month_count.form_cut_id = '".$request->form_cut_id."' and
-                month_count.so_det_id = '".$request->so_det_id."'
+                month_count.so_det_id = '".$request->so_det_id."' and
+                (month_count.number >= '".$request->range_awal."' and month_count.number <= '".$request->range_akhir."')
             ")->
             get();
 
@@ -2446,7 +2447,8 @@ class StockerController extends Controller
             leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "year_sequence.so_det_id")->
             whereRaw("
                 year_sequence.form_cut_id = '".$request->form_cut_id."' and
-                year_sequence.so_det_id = '".$request->so_det_id."'
+                year_sequence.so_det_id = '".$request->so_det_id."' and
+                (year_sequence.number >= '".$request->range_awal."' and year_sequence.number <= '".$request->range_akhir."')
             ")->
             get();
 
