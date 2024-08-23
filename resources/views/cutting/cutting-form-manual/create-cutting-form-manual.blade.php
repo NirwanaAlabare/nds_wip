@@ -917,13 +917,13 @@
                         </div>
                         <div class="col-md-12">
                             <div class="row align-items-end">
-                                <div class="col-md-3">
+                                <div class="col-sm-6 col-md-3">
                                     <div class="mb-3">
                                         <label class="form-labe label-calc"><small><b>Cons. Actual</b></small></label>
                                         <input type="text" class="form-control form-control-sm border-calc" name="cons_actual_gelaran" id="cons_actual_gelaran" readonly>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-sm-6 col-md-3">
                                     <div class="mb-3">
                                         <label class="form-label label-calc"><small><b>Unit</b></small></label>
                                         <select class="form-select form-select-sm border-calc"
@@ -934,7 +934,7 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-sm-6 col-md-3">
                                     <div class="mb-3">
                                         <label class="form-labe label-calc"><small><b>Kenaikan Cons. WS</b></small></label>
                                         <div class="input-group input-group-sm mb-3">
@@ -943,7 +943,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-sm-6 col-md-3">
                                     <div class="mb-3">
                                         <label class="form-labe label-calc"><small><b>Kenaikan Cons. Marker</b></small></label>
                                         <div class="input-group input-group-sm mb-3">
@@ -952,13 +952,13 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-sm-6 col-md-3">
                                     <div class="mb-3">
                                         <label class="form-labe label-calc"><small><b>Cons. Actual Tanpa Short Roll</b></small></label>
                                         <input type="text" class="form-control form-control-sm border-calc" name="cons_actual_gelaran_short_rolless" id="cons_actual_gelaran_short_rolless" readonly>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-sm-6 col-md-3">
                                     <div class="mb-3">
                                         <label class="form-label label-calc"><small><b>Unit</b></small></label>
                                         <select class="form-select form-select-sm border-calc"
@@ -969,7 +969,7 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-sm-6 col-md-3">
                                     <div class="mb-3">
                                         <label class="form-labe label-calc"><small><b>Kenaikan Cons. WS</b></small></label>
                                         <div class="input-group input-group-sm mb-3">
@@ -978,7 +978,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-sm-6 col-md-3">
                                     <div class="mb-3">
                                         <label class="form-labe label-calc"><small><b>Kenaikan Cons. Marker</b></small></label>
                                         <div class="input-group input-group-sm mb-3">
@@ -3306,15 +3306,16 @@
                     getScannedItem(kodeBarang);
                 }
 
-                // -Get Scanned Item Data-
                 function getScannedItem(id) {
+                    document.getElementById("loading").classList.remove("d-none");
+
                     document.getElementById("id_item").value = "";
                     document.getElementById("detail_item").value = "";
                     document.getElementById("color_act").value = "";
 
                     if (isNotNull(id)) {
                         return $.ajax({
-                            url: '{{ route('get-scanned-manual-form-cut') }}/' + id,
+                            url: '{{ route('get-scanned-form-cut-input') }}/' + id,
                             type: 'get',
                             dataType: 'json',
                             success: function(res) {
@@ -3356,6 +3357,20 @@
                                         confirmButtonText: 'Oke',
                                     });
                                 }
+
+                                document.getElementById("loading").classList.add("d-none");
+                            },
+                            error: function(jqXHR) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: 'Roll tidak tersedia atau sudah habis.',
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                });
+
+                                document.getElementById("loading").classList.add("d-none");
                             }
                         });
                     }
