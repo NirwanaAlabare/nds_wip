@@ -24,6 +24,7 @@
             <th>Id Item</th>
             <th>Id Jo</th>
             <th>No WS</th>
+            <th>No WS Aktual</th>
             <th>No Style</th>
             <th>Kode Barang</th>
             <th>Nama Barang</th>
@@ -53,6 +54,7 @@
                 <td>{{ $item->id_item }}</td>
                 <td>{{ $item->id_jo }}</td>
                 <td>{{ $item->ws }}</td>
+                <td>{{ $item->idws_act }}</td>
                 <td>{{ $item->styleno }}</td>
                 <td>{{ $item->goods_code }}</td>
                 <td>{{ $item->itemdesc }}</td>

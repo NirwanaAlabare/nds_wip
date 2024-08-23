@@ -976,7 +976,7 @@ class OutMaterialController extends Controller
        
        
             $dataHeader = DB::connection('mysql_sb')->select("select * from whs_bppb_h where id = '$id' limit 1");
-            $dataDetail = DB::connection('mysql_sb')->select("select a.no_bppb no_dok,b.no_ws,a.item_desc,ROUND(a.qty_out,2) qty ,a.satuan unit,b.catatan from whs_bppb_det a inner join whs_bppb_h b on b.no_bppb = a.no_bppb where b.id = '$id' and a.status = 'Y'");
+            $dataDetail = DB::connection('mysql_sb')->select("select a.no_bppb no_dok,b.no_ws,a.item_desc,ROUND(sum(a.qty_out),2) qty ,a.satuan unit,b.catatan from whs_bppb_det a inner join whs_bppb_h b on b.no_bppb = a.no_bppb where b.id = '$id' and a.status = 'Y' group by id_jo,id_item");
             $dataSum = DB::connection('mysql_sb')->select("select sum(qty) qty_all from (select a.no_bppb no_dok,b.no_ws,a.item_desc,ROUND(a.qty_out,2) qty ,a.satuan unit,b.catatan from whs_bppb_det a inner join whs_bppb_h b on b.no_bppb = a.no_bppb where b.id = '$id' and a.status = 'Y') a");
             $dataUser = DB::connection('mysql_sb')->select("select created_by,created_at,approved_by,approved_date from whs_inmaterial_fabric where id = '$id' limit 1");
             $dataHead = DB::connection('mysql_sb')->select("select CONCAT('Bandung, ',DATE_FORMAT(a.tgl_bppb,'%d %b %Y')) tgl_dok,a.tujuan,b.alamat, CURRENT_TIMESTAMP() tgl_cetak from whs_bppb_h a inner join mastersupplier b on b.supplier = a.tujuan where a.id = '$id' limit 1");
