@@ -537,6 +537,8 @@
                 data: function(d) {
                     d.form_cut_id = $('#form_cut_id').val();
                     d.so_det_id = $('#so_det_id').val();
+                    d.range_awal = $('#range_awal_stocker').val();
+                    d.range_akhir = $('#range_akhir_stocker').val();
                 },
             },
             columns: [
