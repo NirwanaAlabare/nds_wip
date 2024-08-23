@@ -554,6 +554,7 @@ class CuttingFormController extends Controller
                     "status" => $status,
                     "metode" => $request->metode ? $request->metode : "scan",
                     "group_stocker" => $groupStocker,
+                    "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
                 ]
             );
 
@@ -573,6 +574,7 @@ class CuttingFormController extends Controller
                         "roll" => $validatedRequest['current_roll'],
                         "qty" => $itemRemain > 0 ? 0 : $itemRemain,
                         "unit" => $itemUnit,
+                        "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
                     ]
                 );
 
@@ -606,6 +608,7 @@ class CuttingFormController extends Controller
                         "roll" => $validatedRequest['current_roll'],
                         "qty" => $itemRemain,
                         "unit" => $itemUnit,
+                        "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
                     ]
                 );
 
@@ -667,6 +670,7 @@ class CuttingFormController extends Controller
                     "remark" => $request->current_remark,
                     "status" => "not complete",
                     "metode" => $request->metode ? $request->metode : "scan",
+                    "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
                 ]
             );
 
@@ -771,6 +775,7 @@ class CuttingFormController extends Controller
                 "status" => "extension complete",
                 "metode" => $request->metode ? $request->metode : "scan",
                 "group_stocker" => $groupStocker,
+                "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
             ]
         );
 
@@ -790,6 +795,7 @@ class CuttingFormController extends Controller
                     "roll" => $validatedRequest['current_roll'],
                     "qty" => $itemRemain,
                     "unit" => $itemUnit,
+                    "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
                 ]
             );
 
@@ -818,6 +824,7 @@ class CuttingFormController extends Controller
                         "sambungan" => 0,
                         "status" => "not complete",
                         "metode" => $request->metode ? $request->metode : "scan",
+                        "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
                     ]);
 
                     \Log::info(array("process" => "Store Time Record Extension on After ", "object" => $storeTimeRecordSummaryNext, "user" => Auth::user()->username));

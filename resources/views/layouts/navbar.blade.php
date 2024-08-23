@@ -35,12 +35,18 @@
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
                             aria-expanded="false"
-                            class="nav-link dropdown-toggle {{ $subPageGroup == 'track-ws' ? 'active' : '' }}">Worksheet</a>
-                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'track' ? 'active' : '' }}">Track</a>
+                        <ul class="dropdown-menu border-0 shadow">
                             <li>
                                 <a href="{{ route('track-ws') }}"
                                     class="dropdown-item {{ $subPage == 'ws' ? 'active' : '' }}">
-                                    Worksheet
+                                    Worksheet <i class="fa fa-receipt"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('track-stocker') }}"
+                                    class="dropdown-item {{ $subPage == 'stocker' ? 'active' : '' }}">
+                                    Stocker <i class="fa fa-ticket"></i>
                                 </a>
                             </li>
                         </ul>
@@ -381,6 +387,18 @@
                             @endstocker
                         </ul>
                     </li>
+                    {{-- <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'track-stocker' ? 'active' : '' }}">Track Stocker</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @stocker
+                                <li>
+                                    <a href="{{ route('worksheet-stock') }}" class="dropdown-item {{ $subPage == 'worksheet-stock' ? 'active' : '' }}"> Worksheet Stock <i class="fas fa-receipt fa-sm"></i></a>
+                                </li>
+                            @endstocker
+                        </ul>
+                    </li> --}}
                 @endif
 
                 @if ($page == 'dashboard-dc')

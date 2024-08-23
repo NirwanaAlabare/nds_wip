@@ -786,6 +786,7 @@ Route::middleware('auth')->group(function () {
 
     // Track
     Route::controller(TrackController::class)->prefix("track")->middleware('admin')->group(function () {
+        // worksheet
         Route::get('/worksheet', 'worksheet')->name('track-ws');
         Route::post('/worksheet/export', 'worksheetExport')->name('track-ws-export');
         Route::get('/worksheet/show/{actCostingId?}', 'showWorksheet')->name('track-ws-detail');
@@ -800,6 +801,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/worksheet/show-stocker', 'wsStocker')->name('track-ws-stocker');
         Route::get('/worksheet/show-stocker-total', 'wsStockerTotal')->name('track-ws-stocker-total');
         Route::get('/worksheet/ws-sewing-output', 'wsSewingOutput')->name('track-ws-sewing-output');
+
+        // stocker
+        Route::get('/stocker', 'stocker')->name('track-stocker');
+        Route::get('/stocker/show/{actCostingId?}', 'showStocker')->name('track-stocker-detail');
     });
 
     //Mutasi Karywawan
