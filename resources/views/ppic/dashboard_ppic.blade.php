@@ -106,6 +106,7 @@
                     <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
                         <thead class="table-primary">
                             <tr style='text-align:center; vertical-align:middle'>
+                                <th>Tgl. Shipment</th>
                                 <th>Buyer</th>
                                 <th>PO</th>
                                 <th>WS</th>
@@ -117,7 +118,7 @@
                         </thead>
                         <tfoot>
                             <tr>
-                                <th colspan="5"></th>
+                                <th colspan="6"></th>
                                 <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
                                         id = 'total_qty_po'> </th>
                                 <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
@@ -284,14 +285,14 @@
 
                 // computing column Total of the complete result
                 var sumTotalPO = api
-                    .column(5)
+                    .column(6)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
                     }, 0);
 
                 var sumTotalTr = api
-                    .column(6)
+                    .column(7)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
@@ -300,8 +301,8 @@
 
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
-                $(api.column(5).footer()).html(sumTotalPO);
-                $(api.column(6).footer()).html(sumTotalTr);
+                $(api.column(6).footer()).html(sumTotalPO);
+                $(api.column(7).footer()).html(sumTotalTr);
             },
 
             ordering: true,
@@ -319,6 +320,9 @@
                 },
             },
             columns: [{
+                    data: 'tgl_shipment_fix'
+
+                }, {
                     data: 'buyer'
 
                 },
