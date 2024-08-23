@@ -273,10 +273,24 @@ where a.po = '$po' and a.no_carton = '$no_carton' and a.notes = '$notes'
         $user = Auth::user()->name;
         $JmlArray                                   = $_POST['cek_data'];
         $po                                  = $_POST['txtmodal_h_po'];
-
         foreach ($JmlArray as $key => $value) {
             if ($value != '') {
                 $txtid                          = $JmlArray[$key]; {
+
+                    $cek_id = DB::select("select b.id id_fg_in, no_sb, id_so_det from
+(select * from packing_packing_out_scan where id = '$txtid')a
+inner join fg_fg_in b on a.barcode = b.barcode and a.po = b.po and a.no_carton = b.no_carton
+                    ");
+                    $no_sb = $cek_id[0]->no_sb;
+                    $id_so_det = $cek_id[0]->id_so_det;
+                    $id_fg_in = $cek_id[0]->id_fg_in;
+
+                    $update_sb = DB::connection('mysql_sb')->update("
+                    update bpb set qty = qty - 1 where bpbno_int = '$no_sb'  and id_so_det = '$id_so_det' and status_input = 'nds' ");
+
+                    $update_nds = DB::update("
+                    update fg_fg_in set qty = qty  - 1 where id = '$id_fg_in ' ");
+
                     $ins_history =  DB::insert("
                     insert into packing_packing_out_scan_log (id_packing_Packing_out_scan, tgl_trans, barcode, po, no_carton, created_at, updated_at, created_by)
                     SELECT id, tgl_trans, barcode, po, no_carton,created_at, '$timestamp', '$user'  FROM `packing_packing_out_scan` where id = '$txtid'");
