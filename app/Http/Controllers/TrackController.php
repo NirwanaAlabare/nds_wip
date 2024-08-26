@@ -1040,8 +1040,23 @@ class TrackController extends Controller
             filterColumn('nama_part', function ($query, $keyword) {
                 $query->whereRaw("LOWER(master_part.nama_part) LIKE LOWER('%" . $keyword . "%')");
             })->
+            filterColumn('no_form', function ($query, $keyword) {
+                $query->whereRaw("LOWER(form_cut_input.no_form) LIKE LOWER('%" . $keyword . "%')");
+            })->
+            filterColumn('no_cut', function ($query, $keyword) {
+                $query->whereRaw("LOWER(form_cut_input.no_form) LIKE LOWER('%" . $keyword . "%')");
+            })->
+            filterColumn('shade', function ($query, $keyword) {
+                $query->whereRaw("LOWER(stocker_input.shade) LIKE LOWER('%" . $keyword . "%')");
+            })->
             filterColumn('kode', function ($query, $keyword) {
                 $query->whereRaw("LOWER(kode) LIKE LOWER('%" . $keyword . "%')");
+            })->
+            filterColumn('stocker_qty_ply', function ($query, $keyword) {
+                $query->whereRaw("COALESCE((COALESCE(dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0)), stocker_input.qty_ply) LIKE '%" . $keyword . "%'");
+            })->
+            filterColumn('stocker_range', function ($query, $keyword) {
+                $query->whereRaw("CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir, (CASE WHEN dc_in_input.qty_reject IS NOT NULL AND dc_in_input.qty_replace IS NOT NULL THEN CONCAT(' (', (COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0)), ') ') ELSE ' (0)' END)) LIKE '%" . $keyword . "%'");
             })->
             filterColumn('difference_qty', function ($query, $keyword) {
                 $query->whereRaw("(CASE WHEN dc_in_input.qty_reject IS NOT NULL AND dc_in_input.qty_replace IS NOT NULL THEN (COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0)) ELSE 0 END) LIKE LOWER('%" . $keyword . "%')");
@@ -1057,6 +1072,12 @@ class TrackController extends Controller
             })->
             filterColumn('line', function ($query, $keyword) {
                 $query->whereRaw("COALESCE(UPPER(loading_line.nama_line), '-') LIKE LOWER('%" . $keyword . "%')");
+            })->
+            filterColumn('updated_at', function ($query, $keyword) {
+                $query->whereRaw("COALESCE(stocker_input.updated_at, '-') LIKE LOWER('%" . $keyword . "%')");
+            })->
+            filterColumn('latest_update', function ($query, $keyword) {
+                $query->whereRaw("LOWER('%" . $keyword . "%')");
             })->
             toJson();
         }
@@ -1186,7 +1207,7 @@ class TrackController extends Controller
         }
 
         if ($stkSecondary) {
-            $stockerSql->whereRaw("(CASE WHEN dc_in_input.tujuan = 'SECONDARY DALAM' OR dc_in_input.tujuan = 'SECONDARY LUAR' THEN dc_in_input.lokasi ELSE '-' END) LIKE '%" . $stkSecondary . "%'");
+            $stoxckerSql->whereRaw("(CASE WHEN dc_in_input.tujuan = 'SECONDARY DALAM' OR dc_in_input.tujuan = 'SECONDARY LUAR' THEN dc_in_input.lokasi ELSE '-' END) LIKE '%" . $stkSecondary . "%'");
         }
 
         if ($stkRack) {

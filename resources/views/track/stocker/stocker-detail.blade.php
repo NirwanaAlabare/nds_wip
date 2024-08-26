@@ -333,10 +333,10 @@
                             api.column(7).footer().innerHTML = totalStocker.totalRange;
                             api.column(8).footer().innerHTML = totalStocker.totalDifference;
 
-                            document.getElementById("total-stocker").innerText = totalStocker.totalStocker;
-                            document.getElementById("total-stocker-qty").innerText = totalStocker.totalQtyPly;
-                            document.getElementById("total-stocker-range").innerText = totalStocker.totalRange;
-                            document.getElementById("total-stocker-difference").innerText = totalStocker.totalDifference;
+                                // document.getElementById("total-stocker").innerText = totalStocker.totalStocker;
+                                // document.getElementById("total-stocker-qty").innerText = totalStocker.totalQtyPly;
+                                // document.getElementById("total-stocker-range").innerText = totalStocker.totalRange;
+                                // document.getElementById("total-stocker-difference").innerText = totalStocker.totalDifference;
                         }
                     }
                 });
