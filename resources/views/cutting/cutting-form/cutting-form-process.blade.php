@@ -968,6 +968,7 @@
                                             <th class="label-calc">Short Roll +/-</th>
                                             <th>Piping</th>
                                             <th>Remark</th>
+                                            <th id="th-berat-amparan" class="d-none">Berat 1 Ampar</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -990,6 +991,7 @@
                                             <th id="total-short-roll"></th>
                                             <th id="total-piping"></th>
                                             <th id="total-remark"></th>
+                                            <th id="total-berat-amparan" class="d-none"></th>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -2595,7 +2597,7 @@
                     document.getElementById("berat_amparan").classList.remove("d-none");
                     document.getElementById("th-berat-amparan").classList.remove("d-none");
                     document.getElementById("total-berat-amparan").classList.remove("d-none");
-                } else {
+                } else if (data.unit == "METER" || data.unit == "YARD" || data.unit == "YRD") {
                     document.getElementById("berat_amparan").classList.add("d-none");
                     document.getElementById("th-berat-amparan").classList.add("d-none");
                     document.getElementById("total-berat-amparan").classList.add("d-none");
@@ -2609,6 +2611,9 @@
                 for (var i = 0; i < inputGroupUnit.length; i++) {
                     inputGroupUnit[i].innerText = unitSimplified;
                 }
+
+                $("#current_custom_unit").val(latestUnit);
+                setCustomUnit(latestUnit);
 
                 // updating est ampar & ply progress bar
                 calculateEstAmpar();
@@ -2699,6 +2704,7 @@
                 document.getElementById("current_short_roll").value = 0;
                 document.getElementById("current_piping").value = 0;
                 document.getElementById("current_remark").value = 0;
+                document.getElementById("current_berat_amparan").value = 0;
 
                 let inputGroupUnit = document.getElementsByClassName("input-group-unit");
 
@@ -2964,6 +2970,7 @@
             var totalLembar = 0;
             var totalPiping = 0;
             var totalQtyFabric = 0;
+            var totalBeratAmparan = 0;
             var latestStatus = "";
             var latestUnit = "";
 
@@ -3130,6 +3137,15 @@
                 tr.appendChild(td21);
                 tr.appendChild(td22);
 
+                if (latestUnit == "KGM" || latestUnit == "KG") {
+                    let td23 = document.createElement('td');
+                    td23.innerHTML = data.berat_amparan ? data.berat_amparan : '-';
+                    tr.appendChild(td23);
+
+                    document.getElementById("th-berat-amparan").classList.remove("d-none");
+                    document.getElementById("total-berat-amparan").classList.remove("d-none");
+                }
+
                 scannedItemTableTbody.appendChild(tr);
 
                 totalRow++;
@@ -3144,6 +3160,7 @@
                 totalReject += Number(data.reject);
                 totalSisaKain += Number(data.sisa_kain);
                 totalTotalPemakaian += Number(data.total_pemakaian_roll);
+                latestStatus != 'extension complete' ? totalBeratAmparan += Number(data.berat_amparan) : '';
                 Number(data.short_roll) < 0 ? totalShortRoll += Number(data.short_roll) : "";
                 totalRemark += Number(data.remark);
 
@@ -3166,6 +3183,7 @@
                 document.getElementById("total-short-roll").innerText = Number(totalShortRoll).round(2);
                 document.getElementById("total-piping").innerText = Number(totalPiping).round(2);
                 document.getElementById("total-remark").innerText = Number(totalRemark).round(2);
+                document.getElementById("total-berat-amparan").innerText = Number(totalBeratAmparan).round(3);
 
                 calculateConsActualGelaran(latestUnit, totalQtyFabric, totalKepalaKain, totalSisaTidakBisa, totalReject, totalSisaKain, totalPiping, totalShortRoll, totalLembar, totalTotalPemakaian);
 

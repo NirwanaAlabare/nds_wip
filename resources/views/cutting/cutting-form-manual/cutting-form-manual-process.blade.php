@@ -3054,9 +3054,6 @@
                     data.piping ? document.getElementById("current_piping").value = data.piping : '';
                     data.remark ? document.getElementById("current_remark").value = data.remark : '';
 
-                    $("#current_custom_unit").val(latestUnit);
-                    setCustomUnit(latestUnit);
-
                     if (data.unit == "KGM" || data.unit == "KG") {
                         document.getElementById("berat_amparan").classList.remove("d-none");
                         document.getElementById("th-berat-amparan").classList.remove("d-none");
@@ -3075,6 +3072,9 @@
                     for (var i = 0; i < inputGroupUnit.length; i++) {
                         inputGroupUnit[i].innerText = unitSimplified;
                     }
+
+                    $("#current_custom_unit").val(latestUnit);
+                    setCustomUnit(latestUnit);
 
                     // updating est ampar & ply progress bar
                     calculateEstAmpar();
@@ -3159,6 +3159,7 @@
                     document.getElementById("current_short_roll").value = 0;
                     document.getElementById("current_piping").value = 0;
                     document.getElementById("current_remark").value = 0;
+                    document.getElementById("current_berat_amparan").value = 0;
 
                     let inputGroupUnit = document.getElementsByClassName("input-group-unit");
 
@@ -3603,6 +3604,9 @@
                         let td23 = document.createElement('td');
                         td23.innerHTML = data.berat_amparan ? data.berat_amparan : '-';
                         tr.appendChild(td23);
+
+                        document.getElementById("th-berat-amparan").classList.remove("d-none");
+                        document.getElementById("total-berat-amparan").classList.remove("d-none");
                     }
 
                     scannedItemTableTbody.appendChild(tr);

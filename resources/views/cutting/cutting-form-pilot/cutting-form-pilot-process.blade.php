@@ -988,6 +988,7 @@
                                             <th class="label-calc">Short Roll +/-</th>
                                             <th>Piping</th>
                                             <th>Remark</th>
+                                            <th id="th-berat-amparan" class="d-none"></th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -1010,6 +1011,7 @@
                                             <th id="total-short-roll"></th>
                                             <th id="total-piping"></th>
                                             <th id="total-remark"></th>
+                                            <th id="total-berat-amparan" class="d-none"></th>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -2641,6 +2643,9 @@
                 for (var i = 0; i < inputGroupUnit.length; i++) {
                     inputGroupUnit[i].innerText = unitSimplified;
                 }
+
+                $("#current_custom_unit").val(latestUnit);
+                setCustomUnit(latestUnit);
 
                 // updating est ampar & ply progress bar
                 calculateEstAmpar();
