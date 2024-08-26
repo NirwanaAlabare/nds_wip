@@ -2612,8 +2612,10 @@
                     inputGroupUnit[i].innerText = unitSimplified;
                 }
 
-                $("#current_custom_unit").val(latestUnit);
-                setCustomUnit(latestUnit);
+                if (method == "item") {
+                    $("#current_custom_unit").val(latestUnit);
+                    setCustomUnit(latestUnit);
+                }
 
                 // updating est ampar & ply progress bar
                 calculateEstAmpar();
