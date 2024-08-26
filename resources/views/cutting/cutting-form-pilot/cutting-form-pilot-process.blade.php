@@ -2644,8 +2644,10 @@
                     inputGroupUnit[i].innerText = unitSimplified;
                 }
 
-                $("#current_custom_unit").val(latestUnit);
-                setCustomUnit(latestUnit);
+                if (method == "item") {
+                    $("#current_custom_unit").val(latestUnit);
+                    setCustomUnit(latestUnit);
+                }
 
                 // updating est ampar & ply progress bar
                 calculateEstAmpar();
@@ -3209,6 +3211,7 @@
                 document.getElementById("total-short-roll").innerText = Number(totalShortRoll).round(2);
                 document.getElementById("total-piping").innerText = Number(totalPiping).round(2);
                 document.getElementById("total-remark").innerText = Number(totalRemark).round(2);
+                document.getElementById("total-berat-amparan").innerText = Number(totalBeratAmparan).round(2);
 
                 calculateConsActualGelaran(latestUnit, totalQtyFabric, totalKepalaKain, totalSisaTidakBisa, totalReject, totalSisaKain, totalPiping, totalShortRoll, totalLembar, totalTotalPemakaian);
 
