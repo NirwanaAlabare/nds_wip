@@ -178,8 +178,7 @@
                 <div class="card-header">
                     <h3 class="card-title">Detail Data</h3>
                     <div class="card-tools">
-                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i
-                                class="fas fa-minus"></i></button>
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
                     </div>
                 </div>
                 <div class="card-body" style="display: block;">
@@ -1413,6 +1412,18 @@
 
                 spreadingForm.forEach((value, key) => dataObj[key] = value);
 
+                if ($("#current_unit").val() == "KGM" && $("#current_berat_amparan").val() <= 0) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    return Swal.fire({
+                        icon: 'error',
+                        title: 'Harap isi berat amparan',
+                        showConfirmButton: true,
+                        confirmButtonText: 'Oke',
+                        confirmButtonColor: "#6531a0",
+                    });
+                }
+
                 if ($("#status_sambungan").val() != "extension") {
                     // Not an Extension :
                     return $.ajax({
@@ -2592,6 +2603,7 @@
                 data.short_roll ? document.getElementById("current_short_roll").value = data.short_roll : '';
                 data.piping ? document.getElementById("current_piping").value = data.piping : '';
                 data.remark ? document.getElementById("current_remark").value = data.remark : '';
+                document.getElementById("current_berat_amparan").value = latestBerat;
 
                 if (data.unit == "KGM" || data.unit == "KG") {
                     document.getElementById("berat_amparan").classList.remove("d-none");
@@ -2706,7 +2718,7 @@
                 document.getElementById("current_short_roll").value = 0;
                 document.getElementById("current_piping").value = 0;
                 document.getElementById("current_remark").value = 0;
-                document.getElementById("current_berat_amparan").value = 0;
+                // document.getElementById("current_berat_amparan").value = 0;
 
                 let inputGroupUnit = document.getElementsByClassName("input-group-unit");
 
@@ -2975,6 +2987,7 @@
             var totalBeratAmparan = 0;
             var latestStatus = "";
             var latestUnit = "";
+            var latestBerat = "";
 
         // Function List :
             // -Fetch Scanned Item Data-
@@ -3070,6 +3083,7 @@
                 totalPiping += Number(data.piping);
                 latestStatus != 'extension complete' ? totalQtyFabric += Number(data.qty) : '';
                 latestUnit = data.unit;
+                latestBerat = data.berat_amparan;
 
                 let tr = document.createElement('tr');
                 let td1 = document.createElement('td');

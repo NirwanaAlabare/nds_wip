@@ -988,7 +988,7 @@
                                             <th class="label-calc">Short Roll +/-</th>
                                             <th>Piping</th>
                                             <th>Remark</th>
-                                            <th id="th-berat-amparan" class="d-none"></th>
+                                            <th id="th-berat-amparan" class="d-none">Berat 1 Amparan</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -1438,6 +1438,18 @@
                 }
 
                 spreadingForm.forEach((value, key) => dataObj[key] = value);
+
+                if ($("#current_unit").val() == "KGM" && $("#current_berat_amparan").val() <= 0) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    return Swal.fire({
+                        icon: 'error',
+                        title: 'Harap isi berat amparan',
+                        showConfirmButton: true,
+                        confirmButtonText: 'Oke',
+                        confirmButtonColor: "#6531a0",
+                    });
+                }
 
                 if ($("#status_sambungan").val() != "extension") {
                     // Not an Extension :
@@ -2624,6 +2636,7 @@
                 data.short_roll ? document.getElementById("current_short_roll").value = data.short_roll : '';
                 data.piping ? document.getElementById("current_piping").value = data.piping : '';
                 data.remark ? document.getElementById("current_remark").value = data.remark : '';
+                document.getElementById("current_berat_amparan").value = latestBerat;
 
                 if (data.unit == 'KGM') {
                     document.getElementById("berat_amparan").classList.remove("d-none");
@@ -3005,6 +3018,7 @@
             var totalQtyFabric = 0;
             var latestStatus = "";
             var latestUnit = "";
+            var latestBerat = "";
 
         // Function List :
             // -Fetch Scanned Item Data-
@@ -3173,6 +3187,9 @@
                     let td23 = document.createElement('td');
                     td23.innerHTML = data.berat_amparan ? data.berat_amparan : '-';
                     tr.appendChild(td23);
+
+                    document.getElementById("th-berat-amparan").classList.remove("d-none");
+                    document.getElementById("total-berat-amparan").classList.remove("d-none");
                 }
 
                 scannedItemTableTbody.appendChild(tr);
@@ -3217,6 +3234,7 @@
                 calculateConsActualGelaran(latestUnit, totalQtyFabric, totalKepalaKain, totalSisaTidakBisa, totalReject, totalSisaKain, totalPiping, totalShortRoll, totalLembar, totalTotalPemakaian);
 
                 latestStatus = data.status;
+                latestBerat = data.berat_amparan;
             }
 
         // Time Record Module :

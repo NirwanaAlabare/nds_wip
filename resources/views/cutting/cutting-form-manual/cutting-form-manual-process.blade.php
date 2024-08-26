@@ -1888,6 +1888,18 @@
 
                 spreadingForm.forEach((value, key) => dataObj[key] = value);
 
+                if ($("#current_unit").val() == "KGM" && $("#current_berat_amparan").val() <= 0) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    return Swal.fire({
+                        icon: 'error',
+                        title: 'Harap isi berat amparan',
+                        showConfirmButton: true,
+                        confirmButtonText: 'Oke',
+                        confirmButtonColor: "#6531a0",
+                    });
+                }
+
                 if ($("#status_sambungan").val() != "extension") {
                     // Not an Extension :
                     return $.ajax({
@@ -3053,6 +3065,7 @@
                     data.short_roll ? document.getElementById("current_short_roll").value = data.short_roll : '';
                     data.piping ? document.getElementById("current_piping").value = data.piping : '';
                     data.remark ? document.getElementById("current_remark").value = data.remark : '';
+                    document.getElementById("current_berat_amparan").value = latestBerat;
 
                     if (data.unit == "KGM" || data.unit == "KG") {
                         document.getElementById("berat_amparan").classList.remove("d-none");
@@ -3437,6 +3450,7 @@
                 var totalQtyFabric = 0;
                 var latestStatus = "";
                 var latestUnit = "";
+                var latestBerat = "";
 
             // Function List :
                 // -Fetch Scanned Item Data-
@@ -3653,9 +3667,7 @@
                     calculateConsActualGelaran(latestUnit, totalQtyFabric, totalKepalaKain, totalSisaTidakBisa, totalReject, totalSisaKain, totalPiping, totalShortRoll, totalLembar, totalTotalPemakaian);
 
                     latestStatus = data.status;
-
-                    $("#current_custom_unit").val(latestUnit);
-                    setCustomUnit(latestUnit);
+                    latestBerat = data.berat_amparan;
                 }
 
         // Time Record Module :
