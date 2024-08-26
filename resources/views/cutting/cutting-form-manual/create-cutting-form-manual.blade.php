@@ -595,36 +595,66 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-4">
-                                <div class="mb-3">
-                                    <label class="form-label label-calc"><small><b>Estimasi Amparan</b></small></label>
-                                    <input type="number" class="form-control form-control-sm border-calc" id="current_est_amparan" name="current_est_amparan" step=".01" readonly>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="mb-3">
-                                    <label class="form-label label-sb"><small><b>Lembar Gelaran</b></small></label>
-                                    <input type="number" class="form-control form-control-sm border-sb" id="current_lembar_gelaran" name="current_lembar_gelaran"
-                                        onkeyup="
-                                            calculateTotalPemakaian();
-                                            // calculateSisaKain();
-                                            calculateShortRoll();
-                                            calculateRemark();
-                                        "
+                            <div class="col-12">
+                                <div class="row">
+                                    <div class="col d-none" id="berat_amparan">
+                                        <div class="mb-3">
+                                            <label class="form-label"><small><b>Berat 1 Ampar</b></small></label>
+                                            <div class="input-group input-group-sm">
+                                                <input type="number" class="form-control form-control-sm" id="current_berat_amparan" name="current_berat_amparan" step=".01"
+                                                    onkeyup="
+                                                        calculateSambungan();
+                                                        calculateRemark();
+                                                        calculateShortRoll();
+                                                        calculateTotalPemakaian();
+                                                        calculateEstAmpar();
+                                                        // calculateSisaKain();
+                                                    "
 
-                                        onchange="
-                                            calculateTotalPemakaian();
-                                            // calculateSisaKain();
-                                            calculateShortRoll();
-                                            calculateRemark();
-                                        "
-                                    >
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="mb-3">
-                                    <label class="form-label label-sb"><small><b>Average Time</b></small></label>
-                                    <input type="text" class="form-control form-control-sm border-sb" id="current_average_time" name="current_average_time" readonly>
+                                                    onchange="
+                                                        calculateSambungan();
+                                                        calculateRemark();
+                                                        calculateShortRoll();
+                                                        calculateTotalPemakaian();
+                                                        calculateEstAmpar();
+                                                        // calculateSisaKain();
+                                                    "
+                                                >
+                                                <span class="input-group-text">KGM</span>
+                                              </div>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="mb-3">
+                                            <label class="form-label label-calc"><small><b>Estimasi Amparan</b></small></label>
+                                            <input type="number" class="form-control form-control-sm border-calc" id="current_est_amparan" name="current_est_amparan" step=".01" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="mb-3">
+                                            <label class="form-label label-sb"><small><b>Lembar Gelaran</b></small></label>
+                                            <input type="number" class="form-control form-control-sm border-sb" id="current_lembar_gelaran" name="current_lembar_gelaran" readonly
+                                                onkeyup="
+                                                    calculateTotalPemakaian();
+                                                    calculateShortRoll();
+                                                    calculateRemark();
+                                                    // calculateSisaKain();
+                                                "
+                                                onchange="
+                                                    calculateTotalPemakaian();
+                                                    calculateShortRoll();
+                                                    calculateRemark();
+                                                    // calculateSisaKain();
+                                                ">
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="mb-3">
+                                            <label class="form-label label-sb"><small><b>Average Time</b></small></label>
+                                            <input type="text" class="form-control form-control-sm border-sb"
+                                                id="current_average_time" name="current_average_time" readonly>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-12">
@@ -888,6 +918,7 @@
                                             <th class="label-calc">Short Roll +/-</th>
                                             <th>Piping</th>
                                             <th>Remark</th>
+                                            <th id="th-berat-amparan" class="d-none">Berat 1 Amparan</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -910,6 +941,7 @@
                                             <th id="total-short-roll"></th>
                                             <th id="total-piping"></th>
                                             <th id="total-remark"></th>
+                                            <th id="total-berat-amparan" class="d-none"></th>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -2279,7 +2311,8 @@
                 } else {
                     qtyVar = Number(document.getElementById("current_qty_real").value);
 
-                    pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                    // pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                    pActualConverted = Number(document.getElementById("current_berat_amparan").value);
                 }
 
                 let estAmpar = pActualConverted > 0 ? qtyVar / pActualConverted : 0;
@@ -2310,7 +2343,8 @@
                     } else {
                         qtyVar = Number(document.getElementById("current_qty_real").value);
 
-                        pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                        // pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                        pActualConverted = Number(document.getElementById("current_berat_amparan").value);
                     }
                 }
 
@@ -2348,7 +2382,8 @@
                     } else {
                         qtyVar = Number(document.getElementById("current_qty_real").value);
 
-                        pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                        // pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                        pActualConverted = Number(document.getElementById("current_berat_amparan").value);
                     }
                 }
 
@@ -2390,7 +2425,8 @@
                     } else {
                         qtyVar = Number(document.getElementById("current_qty_real").value);
 
-                        pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                        // pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                        pActualConverted = Number(document.getElementById("current_berat_amparan").value);
                     }
                 }
 
@@ -2426,7 +2462,8 @@
                     } else {
                         qtyVar = Number(document.getElementById("current_qty_real").value);
 
-                        pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                        // pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                        pActualConverted = Number(document.getElementById("current_berat_amparan").value);
                     }
                 }
 
@@ -2455,7 +2492,8 @@
                 if (unitQtyVar != "KGM") {
                     pActualConverted = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
                 } else {
-                    pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                    // pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                    pActualConverted = Number(document.getElementById("current_berat_amparan").value);
                 }
 
                 // Convert Sisa Gelaran
@@ -2820,6 +2858,10 @@
                     for (var i = 0; i < inputGroupUnit.length; i++) {
                         inputGroupUnit[i].innerText = unitSimplified;
                     }
+
+                    document.getElementById("berat_amparan").classList.remove("d-none");
+                    document.getElementById("th-berat-amparan").classList.remove("d-none");
+                    document.getElementById("total-berat-amparan").classList.remove("d-none");
                 } else {
                     document.getElementById("current_sisa_gelaran_unit").value = "METER";
                     document.getElementById("current_sambungan_unit").value = "METER";
@@ -2827,6 +2869,10 @@
                     for (var i = 0; i < inputGroupUnit.length; i++) {
                         inputGroupUnit[i].innerText = unitSimplified;
                     }
+
+                    document.getElementById("berat_amparan").classList.add("d-none");
+                    document.getElementById("th-berat-amparan").classList.add("d-none");
+                    document.getElementById("total-berat-amparan").classList.add("d-none");
                 }
 
                 if (sisaGelaran > 0) {
@@ -2934,6 +2980,16 @@
                     data.short_roll ? document.getElementById("current_short_roll").value = data.short_roll : '';
                     data.piping ? document.getElementById("current_piping").value = data.piping : '';
                     data.remark ? document.getElementById("current_remark").value = data.remark : '';
+
+                    if (data.unit == 'KGM') {
+                        document.getElementById("berat_amparan").classList.remove("d-none");
+                        document.getElementById("th-berat-amparan").classList.remove("d-none");
+                        document.getElementById("total-berat-amparan").classList.remove("d-none");
+                    } else {
+                        document.getElementById("berat_amparan").classList.add("d-none");
+                        document.getElementById("th-berat-amparan").classList.add("d-none");
+                        document.getElementById("total-berat-amparan").classList.add("d-none");
+                    }
 
                     // simplified unit name
                     let unitSimplified = data.unit != "KGM" ? "M" : "KG";
@@ -3294,6 +3350,7 @@
                 var totalRemark = 0;
                 var totalLembar = 0;
                 var totalPiping = 0;
+                var totalBeratAmparan = 0;
                 var totalQtyFabric = 0;
                 var latestStatus = "";
                 var latestUnit = "";
@@ -3460,6 +3517,12 @@
                     tr.appendChild(td21);
                     tr.appendChild(td22);
 
+                    if (latestUnit == "KGM" || latestUnit == "KG") {
+                        let td23 = document.createElement('td');
+                        td23.innerHTML = data.berat_amparan ? data.berat_amparan : '-';
+                        tr.appendChild(td23);
+                    }
+
                     scannedItemTableTbody.appendChild(tr);
 
                     latestStatus != 'extension complete' ? totalScannedItem++ : '';
@@ -3473,6 +3536,7 @@
                     totalReject += Number(data.reject);
                     totalSisaKain += Number(data.sisa_kain);
                     totalTotalPemakaian += Number(data.total_pemakaian_roll);
+                    latestStatus != 'extension complete' ? totalBeratAmparan += Number(data.berat_amparan) : '';
                     Number(data.short_roll) < 0 ? totalShortRoll += Number(data.short_roll) : "";
                     totalRemark += Number(data.remark);
 
