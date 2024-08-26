@@ -637,9 +637,9 @@
                                 <div class="row">
                                     <div class="col d-none" id="berat_amparan">
                                         <div class="mb-3">
-                                            <label class="form-label label-calc"><small><b>Berat 1 Ampar</b></small></label>
+                                            <label class="form-label"><small><b>Berat 1 Ampar</b></small></label>
                                             <div class="input-group input-group-sm">
-                                                <input type="number" class="form-control form-control-sm border-calc" id="current_berat_amparan" name="current_berat_amparan" step=".01"
+                                                <input type="number" class="form-control form-control-sm " id="current_berat_amparan" name="current_berat_amparan" step=".01"
                                                     onkeyup="
                                                         calculateSambungan();
                                                         calculateRemark();
