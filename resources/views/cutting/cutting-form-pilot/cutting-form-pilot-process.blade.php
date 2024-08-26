@@ -2738,6 +2738,7 @@
                 document.getElementById("current_short_roll").value = 0;
                 document.getElementById("current_piping").value = 0;
                 document.getElementById("current_remark").value = 0;
+                document.getElementById("current_berat_amparan").value = 0;
 
                 let inputGroupUnit = document.getElementsByClassName("input-group-unit");
 
