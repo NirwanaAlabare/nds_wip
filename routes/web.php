@@ -118,6 +118,8 @@ use App\Http\Controllers\ReportDocController;
 
 use App\Http\Controllers\GAPengajuanBahanBakarController;
 use App\Http\Controllers\GAApprovalBahanBakarController;
+
+use App\Http\Controllers\StockOpnameController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -861,6 +863,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-data-rak', 'getdatarak')->name('get-data-rak');
         Route::get('/get-data-rak2', 'getdatarak2')->name('get-data-rak2');
         Route::get('/get-data-rak3', 'getdatarak3')->name('get-data-rak3');
+    });
+
+    // stock_opname
+    Route::controller(StockOpnameController::class)->prefix("so")->group(function () {
+        // get worksheet
+        Route::get('stock_opname/', 'index')->name('stock_opname');
     });
 
     //Penerimaan

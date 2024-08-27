@@ -235,6 +235,7 @@ $('.select2type').select2({
                         return `<div class='d-flex gap-1 justify-content-center'>
                    <a href="{{ route('edit-mutlok') }}/`+data+`"><button type='button' class='btn btn-sm btn-danger'><i class="fa-solid fa-pen-to-square"></i></button></a>
                     <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='approve_mutlok("` + row.no_mut + `")'><i class="fa-solid fa-person-circle-check"></i></button>
+                    <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whs_mut.php?id=`+data+`&mode='barcode'" target="_blank"><button type='button' class='btn btn-sm btn-success'><i class="fa-solid fa-barcode"></i></button></a>
                     </div>`;
                     }else{
                         return `<div class='d-flex gap-1 justify-content-center'> -

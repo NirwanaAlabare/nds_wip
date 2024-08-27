@@ -86,5 +86,6 @@ class Kernel extends HttpKernel
         'finishgood' => \App\Http\Middleware\IsFinishGood::class,
         'bc' => \App\Http\Middleware\IsBC::class,
         'ga' => \App\Http\Middleware\IsGa::class,
+        'so' => \App\Http\Middleware\IsStockOpname::class,
     ];
 }
