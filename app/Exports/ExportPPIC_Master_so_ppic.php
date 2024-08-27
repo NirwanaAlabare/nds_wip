@@ -47,8 +47,7 @@ class ExportPPIC_Master_so_ppic implements FromView, WithEvents, ShouldAutoSize,
     public function view(): View
 
     {
-        $data = DB::select("
-            SELECT
+        $data = DB::select("SELECT
             a.id,
             a.id_so_det,
             m.buyer,
@@ -83,12 +82,16 @@ class ExportPPIC_Master_so_ppic implements FromView, WithEvents, ShouldAutoSize,
             ) pck on pck.id_ppic_master_so = a.id
             left join
             (
-select p.id, coalesce(count(a.barcode),0) qty_packing_out from packing_packing_out_scan a
-inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po
-group by a.barcode, a.po
+            select p.id, qty_packing_out from
+                (
+                select count(barcode) qty_packing_out,po, barcode, dest from packing_packing_out_scan
+                group by barcode, po, dest
+                ) a
+            inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po and a.dest = p.dest
+            group by p.id
             ) pck_out on pck_out.id = a.id
             where tgl_shipment >= '$this->from' and tgl_shipment <= '$this->to'
-            order by tgl_shipment desc, buyer asc, ws asc , msn.urutan asc
+            order by tgl_shipment desc, buyer asc, ws asc, dest asc, color asc, msn.urutan asc, dest asc
         ");
 
 

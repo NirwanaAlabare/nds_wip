@@ -193,7 +193,7 @@ class TrackController extends Controller
         $months = [['angka' => 1,'nama' => 'Januari'],['angka' => 2,'nama' => 'Februari'],['angka' => 3,'nama' => 'Maret'],['angka' => 4,'nama' => 'April'],['angka' => 5,'nama' => 'Mei'],['angka' => 6,'nama' => 'Juni'],['angka' => 7,'nama' => 'Juli'],['angka' => 8,'nama' => 'Agustus'],['angka' => 9,'nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
         $years = array_reverse(range(1999, date('Y')));
 
-        return view("track.worksheet.worksheet", ["page" => "dashboard-track", "subPageGroup" => "track-ws", "subPage" => "ws", "head" => "Track", "months" => $months, "years" => $years]);
+        return view("track.worksheet.worksheet", ["page" => "dashboard-track", "subPageGroup" => "track", "subPage" => "ws", "head" => "Track", "months" => $months, "years" => $years]);
     }
 
     public function worksheetExport(Request $request) {
@@ -1040,8 +1040,23 @@ class TrackController extends Controller
             filterColumn('nama_part', function ($query, $keyword) {
                 $query->whereRaw("LOWER(master_part.nama_part) LIKE LOWER('%" . $keyword . "%')");
             })->
+            filterColumn('no_form', function ($query, $keyword) {
+                $query->whereRaw("LOWER(form_cut_input.no_form) LIKE LOWER('%" . $keyword . "%')");
+            })->
+            filterColumn('no_cut', function ($query, $keyword) {
+                $query->whereRaw("LOWER(form_cut_input.no_form) LIKE LOWER('%" . $keyword . "%')");
+            })->
+            filterColumn('shade', function ($query, $keyword) {
+                $query->whereRaw("LOWER(stocker_input.shade) LIKE LOWER('%" . $keyword . "%')");
+            })->
             filterColumn('kode', function ($query, $keyword) {
                 $query->whereRaw("LOWER(kode) LIKE LOWER('%" . $keyword . "%')");
+            })->
+            filterColumn('stocker_qty_ply', function ($query, $keyword) {
+                $query->whereRaw("COALESCE((COALESCE(dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0)), stocker_input.qty_ply) LIKE '%" . $keyword . "%'");
+            })->
+            filterColumn('stocker_range', function ($query, $keyword) {
+                $query->whereRaw("CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir, (CASE WHEN dc_in_input.qty_reject IS NOT NULL AND dc_in_input.qty_replace IS NOT NULL THEN CONCAT(' (', (COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0)), ') ') ELSE ' (0)' END)) LIKE '%" . $keyword . "%'");
             })->
             filterColumn('difference_qty', function ($query, $keyword) {
                 $query->whereRaw("(CASE WHEN dc_in_input.qty_reject IS NOT NULL AND dc_in_input.qty_replace IS NOT NULL THEN (COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0)) ELSE 0 END) LIKE LOWER('%" . $keyword . "%')");
@@ -1057,6 +1072,12 @@ class TrackController extends Controller
             })->
             filterColumn('line', function ($query, $keyword) {
                 $query->whereRaw("COALESCE(UPPER(loading_line.nama_line), '-') LIKE LOWER('%" . $keyword . "%')");
+            })->
+            filterColumn('updated_at', function ($query, $keyword) {
+                $query->whereRaw("COALESCE(stocker_input.updated_at, '-') LIKE LOWER('%" . $keyword . "%')");
+            })->
+            filterColumn('latest_update', function ($query, $keyword) {
+                $query->whereRaw("LOWER('%" . $keyword . "%')");
             })->
             toJson();
         }
@@ -1186,7 +1207,7 @@ class TrackController extends Controller
         }
 
         if ($stkSecondary) {
-            $stockerSql->whereRaw("(CASE WHEN dc_in_input.tujuan = 'SECONDARY DALAM' OR dc_in_input.tujuan = 'SECONDARY LUAR' THEN dc_in_input.lokasi ELSE '-' END) LIKE '%" . $stkSecondary . "%'");
+            $stoxckerSql->whereRaw("(CASE WHEN dc_in_input.tujuan = 'SECONDARY DALAM' OR dc_in_input.tujuan = 'SECONDARY LUAR' THEN dc_in_input.lokasi ELSE '-' END) LIKE '%" . $stkSecondary . "%'");
         }
 
         if ($stkRack) {
@@ -1258,5 +1279,106 @@ class TrackController extends Controller
             get();
 
         return json_encode($sewingData);
+    }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function stocker(Request $request)
+    {
+        if ($request->ajax()) {
+            $month = $request->month ? $request->month : date('m');
+            $year = $request->year ? $request->year : date('Y');
+
+            $worksheetStock = DB::select("
+                SELECT
+                    stock.id_act_cost,
+                    stock.tgl_kirim,
+                    stock.act_costing_ws,
+                    stock.styleno,
+                    stock.color,
+                    SUM(stock.qty_ply) qty
+                FROM (
+                    SELECT
+                        master_sb_ws.id_act_cost,
+                        DATE(master_sb_ws.tgl_kirim) tgl_kirim,
+                        stocker_input.id,
+                        stocker_input.form_cut_id,
+                        stocker_input.act_costing_ws,
+                        master_sb_ws.styleno,
+                        stocker_input.color,
+                        stocker_input.size,
+                        COALESCE (
+                            (
+                                MAX( dc_in_input.qty_awal ) - (
+                                    MAX(
+                                        COALESCE ( dc_in_input.qty_reject, 0 )) + MAX(
+                                    COALESCE ( dc_in_input.qty_replace, 0 ))) - (
+                                    MAX(
+                                        COALESCE ( secondary_in_input.qty_reject, 0 )) + MAX(
+                                    COALESCE ( secondary_in_input.qty_replace, 0 ))) - (
+                                    MAX(
+                                        COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + MAX(
+                                    COALESCE ( secondary_inhouse_input.qty_replace, 0 )))
+                            ),
+                            COALESCE ( stocker_input.qty_ply_mod, stocker_input.qty_ply )
+                        ) qty_ply
+                    FROM
+                        stocker_input
+                        LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                        LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                        LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                        LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
+                    WHERE
+                        MONTH(master_sb_ws.tgl_kirim) = '".$month."' AND YEAR(master_sb_ws.tgl_kirim) = '".$year."'
+                    GROUP BY
+                        stocker_input.form_cut_id,
+                        stocker_input.so_det_id,
+                        stocker_input.group_stocker,
+                        stocker_input.ratio
+                ) stock
+                GROUP BY
+                    stock.act_costing_ws,
+                    stock.styleno,
+                    stock.color
+            ");
+
+            return DataTables::of($worksheetStock)->toJson();
+        }
+
+        $months = [['angka' => 1,'nama' => 'Januari'],['angka' => 2,'nama' => 'Februari'],['angka' => 3,'nama' => 'Maret'],['angka' => 4,'nama' => 'April'],['angka' => 5,'nama' => 'Mei'],['angka' => 6,'nama' => 'Juni'],['angka' => 7,'nama' => 'Juli'],['angka' => 8,'nama' => 'Agustus'],['angka' => 9,'nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
+        $years = array_reverse(range(1999, date('Y')));
+
+        return view("track.stocker.stocker", ["page" => "dashboard-track", "subPageGroup" => "track", "subPage" => "stocker", "head" => "Track", "months" => $months, "years" => $years]);
+    }
+
+    public function showStocker($actCostingId = null)
+    {
+        if ($actCostingId) {
+            $months = [['angka' => 1,'nama' => 'Januari'],['angka' => 2,'nama' => 'Februari'],['angka' => 3,'nama' => 'Maret'],['angka' => 4,'nama' => 'April'],['angka' => 5,'nama' => 'Mei'],['angka' => 6,'nama' => 'Juni'],['angka' => 7,'nama' => 'Juli'],['angka' => 8,'nama' => 'Agustus'],['angka' => 9,'nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
+            $years = array_reverse(range(1999, date('Y')));
+
+            $ws = DB::table("master_sb_ws")->
+                where("master_sb_ws.id_act_cost", $actCostingId)->
+                get();
+
+            $panels = DB::connection('mysql_sb')->select("
+                    select nama_panel panel from
+                        (select id_panel from bom_jo_item k
+                            inner join so_det sd on k.id_so_det = sd.id
+                            inner join so on sd.id_so = so.id
+                            inner join act_costing ac on so.id_cost = ac.id
+                            inner join masteritem mi on k.id_item = mi.id_gen
+                            where ac.id = '" . $actCostingId . "' and k.status = 'M'
+                            and k.cancel = 'N' and sd.cancel = 'N' and so.cancel_h = 'N' and ac.status = 'confirm' and mi.mattype = 'F'
+                            group by id_panel
+                        ) a
+                    inner join masterpanel mp on a.id_panel = mp.id
+                ");
+
+            return view("track.stocker.stocker-detail", ["page" => "dashboard-track", "subPageGroup" => "track", "subPage" => "stocker", "head" => "Track ".$ws->first()->ws, "ws" => $ws, "panels" => $panels, "months" => $months, "years" => $years]);
+        }
     }
 }
