@@ -2309,8 +2309,8 @@ class StockerController extends Controller
                 }
 
                 array_push($insertData, [
-                    "id_year_sequence" => Carbon::now()->format('Y')."_".sprintf('%03d', $yearSequenceSequence)."_".$yearSequenceNumber,
-                    "year" => Carbon::now()->format('Y'),
+                    "id_year_sequence" => $yearSequenceYear."_".sprintf('%03d', $yearSequenceSequence)."_".$yearSequenceNumber,
+                    "year" => $yearSequenceYear,
                     "year_sequence" => $yearSequenceSequence,
                     "year_sequence_number" => $yearSequenceNumber,
                     "created_at" => Carbon::now(),
@@ -2341,14 +2341,14 @@ class StockerController extends Controller
         } else if ($method == 'range' && $rangeAwal > 0 && $rangeAkhir > 0 && $rangeAwal <= $rangeAkhir && $rangeAkhir <= 999999) {
             $upsertData = [];
 
-            $yearSequence = YearSequence::selectRaw("year_sequence, year_sequence_number")->where("year", Carbon::now()->format('Y'))->where("year_sequence", $yearSequenceSequence)->orderBy("year_sequence", "desc")->orderBy("year_sequence_number", "desc")->first();
+            $yearSequence = YearSequence::selectRaw("year_sequence, year_sequence_number")->where("year", $yearSequenceYear)->where("year_sequence", $yearSequenceSequence)->orderBy("year_sequence", "desc")->orderBy("year_sequence_number", "desc")->first();
             $yearSequenceSequence = $yearSequence ? $yearSequence->year_sequence : 1;
 
             for ($i = $rangeAwal; $i <= $rangeAkhir; $i++) {
 
                 array_push($upsertData, [
-                    "id_year_sequence" => Carbon::now()->format('Y-m')."_".$yearSequenceSequence."_".$i,
-                    "year" => Carbon::now()->format('Y'),
+                    "id_year_sequence" => $yearSequenceYear."_".$yearSequenceSequence."_".$i,
+                    "year" => $yearSequenceYear,
                     "year_sequence" => $yearSequenceSequence,
                     "year_sequence_number" => $i,
                     "created_at" => Carbon::now(),

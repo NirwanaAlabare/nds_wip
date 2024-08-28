@@ -144,7 +144,7 @@ class ReportCuttingController extends Controller
             $dateTo = $request->dateTo ? $request->dateTo : date('Y-m-d');
 
             $pemakaianRoll = DB::connection("mysql_sb")->select("
-                select a.*,b.no_bppb no_out, COALESCE(total_roll,0) roll_out, ROUND(COALESCE(qty_out,0), 2) qty_out, c.no_dok no_retur, COALESCE(total_roll_ri,0) roll_retur, COALESCE(qty_out_ri,0) qty_retur from (select bppbno,bppbdate,s.supplier tujuan,ac.kpno no_ws,ac.styleno,ms.supplier buyer,a.id_item,
+                select a.*,b.no_bppb no_out, COALESCE(total_roll,0) roll_out, ROUND(COALESCE(qty_out,0), 2) qty_out, c.no_dok no_retur, COALESCE(total_roll_ri,0) roll_retur, ROUND(COALESCE(qty_out_ri,0), 2) qty_retur from (select bppbno,bppbdate,s.supplier tujuan,ac.kpno no_ws,ac.styleno,ms.supplier buyer,a.id_item,
                 mi.itemdesc,a.qty qty_req,a.unit
                 from bppb_req a inner join mastersupplier s on a.id_supplier=s.id_supplier
                 inner join jo_det jod on a.id_jo=jod.id_jo
@@ -164,7 +164,6 @@ class ReportCuttingController extends Controller
                     SELECT
                         a.no_bppb,
                         a.no_req,
-                        GROUP_CONCAT(cutting.id_roll) id_roll,
                         cutting.id_item,
                         sum( qty_out ) qty_out,
                         COUNT( cutting.id_roll ) total_roll,
@@ -185,11 +184,6 @@ class ReportCuttingController extends Controller
             );
 
             return DataTables::of($pemakaianRoll)->
-                addColumn('id_roll', function ($row) use ($cutting) {
-                    $data = $cutting->where("no_req", $row->bppbno)->where("id_item", $row->id_item)->first();
-
-                    return $data ? $data->id_roll : 0;
-                })->
                 addColumn('total_roll_cutting', function ($row) use ($cutting) {
                     $data = $cutting->where("no_req", $row->bppbno)->where("id_item", $row->id_item)->first();
 
