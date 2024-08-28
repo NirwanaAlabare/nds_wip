@@ -45,14 +45,14 @@
                             <th>Qty Req</th>
                             <th>Unit</th>
                             <th class="d-none">No. Out</th>
-                            <th>Roll Out</th>
-                            <th>Qty Out</th>
+                            <th>Roll In</th>
+                            <th>Qty In</th>
                             <th>Roll Cutting</th>
                             <th>Qty Cutting</th>
                             <th>Pemakaian Cutting</th>
-                            <th class="d-none">No. Retur</th>
-                            <th>Roll Retur</th>
-                            <th>Qty Retur</th>
+                            <th class="d-none">No. Return</th>
+                            <th>Roll Return</th>
+                            <th>Qty Return</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -143,7 +143,7 @@
                     data: 'buyer'
                 },
                 {
-                    data: 'id_roll'
+                    data: 'id_item'
                 },
                 {
                     data: 'itemdesc'
