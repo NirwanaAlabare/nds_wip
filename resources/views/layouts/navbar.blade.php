@@ -194,6 +194,25 @@
                     </li>
                 @endif
 
+                @if ($page == 'stock_opname')
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('in-material') }}" class="dropdown-item">
+                                    Copy Saldo
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('retur-inmaterial') }}" class="dropdown-item">
+                                    Stock Opname
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endif
+
 
                 @if ($page == 'dashboard-marker')
                     <li class="nav-item dropdown">

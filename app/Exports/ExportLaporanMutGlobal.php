@@ -52,12 +52,12 @@ class ExportLaporanMutGlobal implements FromView, WithEvents, ShouldAutoSize
             select id_item,unit from whs_inmaterial_fabric_det group by id_item,unit) a inner join masteritem b on b.id_item = a.id_item group by id_item,unit) a left join
             (select id_item,unit, sum(sal_awal) sal_awal from (select 'tr' id,id_item,unit, sum(qty_good) sal_awal from whs_inmaterial_fabric_det where tgl_dok < '" . $this->from . "' and status = 'Y' GROUP BY id_item,unit union select 'sa' id,id_item,unit, round(sum(qty),2) sal_awal from whs_sa_fabric GROUP BY id_item,unit) a  GROUP BY id_item,unit) b on b.id_item = a.id_item and b.unit = a.unit left join
             (select id_item,unit, sum(qty_in) qty_in from (select 'T' id,id_item,unit, sum(qty_good) qty_in from whs_inmaterial_fabric_det where tgl_dok BETWEEN '" . $this->from . "' and '" . $this->to . "' and status = 'Y' GROUP BY id_item,unit
-UNION						
-select 'M' id,b.id_item,satuan,sum(a.qty_mutasi) qty_in from whs_mut_lokasi a inner join whs_lokasi_inmaterial b on a.idbpb_det = b.id where a.status = 'Y' and tgl_mut BETWEEN '" . $this->from . "' and '" . $this->to . "' group by b.id_item,satuan) a group by id_item,unit) c on c.id_item = a.id_item and c.unit = a.unit left join
+UNION                       
+select 'M' id,a.id_item,unit satuan,sum(a.qty_mutasi) qty_in from whs_mut_lokasi a where a.status = 'Y' and tgl_mut BETWEEN '" . $this->from . "' and '" . $this->to . "' group by a.id_item,satuan) a group by id_item,unit) c on c.id_item = a.id_item and c.unit = a.unit left join
             (select id_item,satuan, sum(qty_out) qty_out_sbl from whs_bppb_det a inner join whs_bppb_h b on b.no_bppb = a.no_bppb where b.tgl_bppb < '" . $this->from . "' and a.status = 'Y' GROUP BY id_item,satuan) d on d.id_item = a.id_item and d.satuan = a.unit left join
             (select id_item,satuan, sum(qty_out) qty_out from (select 'T' id,id_item,satuan, sum(qty_out) qty_out from whs_bppb_det a inner join whs_bppb_h b on b.no_bppb = a.no_bppb where b.tgl_bppb BETWEEN '" . $this->from . "' and '" . $this->to . "' and a.status = 'Y' GROUP BY id_item,satuan
-UNION						
-select 'M' id,b.id_item,satuan,sum(a.qty_mutasi) qty_out from whs_mut_lokasi a inner join whs_lokasi_inmaterial b on a.idbpb_det = b.id where a.status = 'Y' and tgl_mut BETWEEN '" . $this->from . "' and '" . $this->to . "' group by b.id_item,satuan) a group by id_item,satuan
+UNION                       
+select 'M' id,a.id_item,unit satuan,sum(a.qty_mutasi) qty_out from whs_mut_lokasi a where a.status = 'Y' and tgl_mut BETWEEN '" . $this->from . "' and '" . $this->to . "' group by a.id_item,satuan) a group by id_item,satuan
 ) e on e.id_item = a.id_item and e.satuan = a.unit) a GROUP BY a.id_item,a.unit) a where fil != 0");
 
 
