@@ -138,6 +138,78 @@ class ReportCuttingController extends Controller
         return view('cutting.report.report-cutting', ['page' => 'dashboard-cutting', "subPageGroup" => "cutting-report", "subPage" => "cutting"]);
     }
 
+    public function pemakaianRoll(Request $request) {
+        if ($request->ajax()) {
+            $dateFrom = $request->dateFrom ? $request->dateFrom : date('Y-m-d');
+            $dateTo = $request->dateTo ? $request->dateTo : date('Y-m-d');
+
+            $pemakaianRoll = DB::connection("mysql_sb")->select("
+                select a.*,b.no_bppb no_out, COALESCE(total_roll,0) roll_out, ROUND(COALESCE(qty_out,0), 2) qty_out, c.no_dok no_retur, COALESCE(total_roll_ri,0) roll_retur, COALESCE(qty_out_ri,0) qty_retur from (select bppbno,bppbdate,s.supplier tujuan,ac.kpno no_ws,ac.styleno,ms.supplier buyer,a.id_item,
+                mi.itemdesc,a.qty qty_req,a.unit
+                from bppb_req a inner join mastersupplier s on a.id_supplier=s.id_supplier
+                inner join jo_det jod on a.id_jo=jod.id_jo
+                inner join so on jod.id_so=so.id
+                inner join act_costing ac on so.id_cost=ac.id
+                inner join mastersupplier ms on ac.id_buyer=ms.id_supplier
+                inner join masteritem mi on a.id_item=mi.id_item
+                where bppbno like '%RQ-F%' and a.id_supplier = '432' and bppbdate between '".$dateFrom."' and '".$dateTo."'
+                group by a.id_item,a.bppbno
+                order by bppbdate,bppbno desc) a left join
+                (select a.no_bppb,no_req,id_item,COUNT(id_roll) total_roll, sum(qty_out) qty_out,satuan from whs_bppb_h a INNER JOIN (select bppbno,bppbdate from bppb_req where bppbno like '%RQ-F%' and id_supplier = '432' and bppbdate between '2024-05-01' and '2024-08-31' GROUP BY bppbno) b on b.bppbno = a.no_req inner join whs_bppb_det c on c.no_bppb = a.no_bppb where a.status != 'Cancel' GROUP BY a.no_bppb,no_req,id_item) b on b.no_req = a.bppbno and b.id_item  =a.id_item left join
+                (select a.no_dok, no_invoice no_req,id_item,COUNT(no_barcode) total_roll_ri, sum(qty_sj) qty_out_ri,satuan from (select * from whs_inmaterial_fabric where no_dok like '%RI%' and supplier = 'Production - Cutting' ) a INNER JOIN (select bppbno,bppbdate from bppb_req where bppbno like '%RQ-F%' and id_supplier = '432' and bppbdate between '".$dateFrom."' and '".$dateTo."' GROUP BY bppbno) b on b.bppbno = a.no_invoice INNER JOIN whs_lokasi_inmaterial c on c.no_dok = a.no_dok GROUP BY a.no_dok,no_invoice,id_item) c on c.no_req = a.bppbno and c.id_item  =a.id_item
+            ");
+
+            $cutting = collect(
+                DB::select("
+                    SELECT
+                        a.no_bppb,
+                        a.no_req,
+                        GROUP_CONCAT(cutting.id_roll) id_roll,
+                        cutting.id_item,
+                        sum( qty_out ) qty_out,
+                        COUNT( cutting.id_roll ) total_roll,
+                        ROUND ( (CASE WHEN satuan = 'YRD' OR satuan = 'YARD' THEN sum( cutting.total_qty ) * 1.09361 ELSE sum( cutting.total_qty ) END ) , 2) total_qty_roll,
+                        ROUND ( (CASE WHEN satuan = 'YRD' OR satuan = 'YARD' THEN sum( cutting.total_pemakaian_roll ) * 1.09361 ELSE sum( cutting.total_pemakaian_roll ) END ) , 2) total_pakai_roll,
+                        cutting.satuan
+                    FROM
+                        whs_bppb_h a
+                        INNER JOIN ( SELECT bppbno, bppbdate FROM bppb_req WHERE bppbno LIKE '%RQ-F%' AND id_supplier = '432' AND bppbdate between '".$dateFrom."' and '".$dateTo."'  GROUP BY bppbno ) b ON b.bppbno = a.no_req
+                        INNER JOIN ( select whs_bppb_det.id_roll, whs_bppb_det.id_item, whs_bppb_det.no_bppb, whs_bppb_det.satuan, whs_bppb_det.qty_out, COUNT(form_cut_input_detail.id) total_roll, MAX(CAST(form_cut_input_detail.qty as decimal(11,3))) total_qty, SUM(form_cut_input_detail.total_pemakaian_roll) total_pemakaian_roll from whs_bppb_det inner join form_cut_input_detail on form_cut_input_detail.id_roll = whs_bppb_det.id_roll group by whs_bppb_det.id_roll ) as cutting on cutting.no_bppb = a.no_bppb
+                    WHERE
+                        a.STATUS != 'Cancel'
+                    GROUP BY
+                        a.no_bppb,
+                        no_req,
+                        id_item
+                ")
+            );
+
+            return DataTables::of($pemakaianRoll)->
+                addColumn('id_roll', function ($row) use ($cutting) {
+                    $data = $cutting->where("no_req", $row->bppbno)->where("id_item", $row->id_item)->first();
+
+                    return $data ? $data->id_roll : 0;
+                })->
+                addColumn('total_roll_cutting', function ($row) use ($cutting) {
+                    $data = $cutting->where("no_req", $row->bppbno)->where("id_item", $row->id_item)->first();
+
+                    return $data ? $data->total_roll : 0;
+                })->
+                addColumn('total_qty_cutting', function ($row) use ($cutting) {
+                    $data = $cutting->where("no_req", $row->bppbno)->where("id_item", $row->id_item)->first();
+
+                    return $data ? $data->total_qty_roll : 0;
+                })->
+                addColumn('total_pakai_cutting', function ($row) use ($cutting) {
+                    $data = $cutting->where("no_req", $row->bppbno)->where("id_item", $row->id_item)->first();
+
+                    return $data ? $data->total_pakai_roll : 0;
+                })->toJson();
+        }
+
+        return view('cutting.report.pemakaian-roll', ['page' => 'dashboard-cutting', "subPageGroup" => "cutting-report", "subPage" => "pemakaian-roll"]);
+    }
+
     /**
      * Show the form for creating a new resource.
      *

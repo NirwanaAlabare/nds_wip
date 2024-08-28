@@ -320,6 +320,12 @@
                                         Output Cutting <i class="fa fa-file"></i>
                                     </a>
                                 </li>
+                                <li>
+                                    <a href="{{ route('pemakaian-roll') }}"
+                                        class="dropdown-item {{ $subPage == 'pemakaian-roll' ? 'active' : '' }}">
+                                        Pemakaian Roll <i class="fa fa-file"></i>
+                                    </a>
+                                </li>
                             </ul>
                         </li>
                         <li class="nav-item dropdown">

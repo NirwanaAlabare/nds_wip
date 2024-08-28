@@ -421,6 +421,7 @@ Route::middleware('auth')->group(function () {
     // ReportCutting
     Route::controller(ReportCuttingController::class)->prefix("report-cutting")->middleware('admin')->group(function () {
         Route::get('/cutting', 'cutting')->name('report-cutting');
+        Route::get('/pemakaian-roll', 'pemakaianRoll')->name('pemakaian-roll');
         // export excel
         Route::post('/cutting/export', 'export')->name('report-cutting-export');
     });
