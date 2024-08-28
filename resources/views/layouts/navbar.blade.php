@@ -323,7 +323,7 @@
                                 <li>
                                     <a href="{{ route('pemakaian-roll') }}"
                                         class="dropdown-item {{ $subPage == 'pemakaian-roll' ? 'active' : '' }}">
-                                        Pemakaian Roll <i class="fa fa-file"></i>
+                                        Pemakaian Kain <i class="fa fa-file"></i>
                                     </a>
                                 </li>
                             </ul>

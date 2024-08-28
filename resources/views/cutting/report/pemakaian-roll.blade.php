@@ -14,7 +14,7 @@
 @section('content')
     <div class="card">
         <div class="card-header bg-sb text-light">
-            <h5 class="card-title fw-bold">Pemakaian Roll <i class="fa fa-file"></i></h5>
+            <h5 class="card-title fw-bold">Pemakaian Kain <i class="fa fa-file"></i></h5>
         </div>
         <div class="card-body">
             <label>Tanggal</label>
