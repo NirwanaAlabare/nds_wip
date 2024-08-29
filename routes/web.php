@@ -1201,10 +1201,21 @@ Route::middleware('auth')->group(function () {
     // Pengeluaran Finish Good
     Route::controller(FinishGoodPengeluaranController::class)->prefix("finish_good_pengeluaran")->middleware('finishgood')->group(function () {
         Route::get('/', 'index')->name('finish_good_pengeluaran');
-        // Route::get('/fg_in_getno_carton', 'fg_in_getno_carton')->name('fg_in_getno_carton');
-        // Route::get('/show_preview_fg_in', 'show_preview_fg_in')->name('show_preview_fg_in');
-        // Route::get('/create', 'create')->name('create_penerimaan_finish_good');
-        // Route::post('/store', 'store')->name('store-fg-in');
+        Route::post('/store', 'store')->name('store-fg-out');
+        Route::get('/create', 'create')->name('create_pengeluaran_finish_good');
+        Route::get('/getpo_fg_out', 'getpo_fg_out')->name('getpo_fg_out');
+        Route::get('/getcarton_notes_fg_out', 'getcarton_notes_fg_out')->name('getcarton_notes_fg_out');
+        Route::get('/show_number_carton_fg_out', 'show_number_carton_fg_out')->name('show_number_carton_fg_out');
+        Route::post('/insert_tmp_fg_out', 'insert_tmp_fg_out')->name('insert_tmp_fg_out');
+        Route::get('/show_det_karton_fg_out', 'show_det_karton_fg_out')->name('show_det_karton_fg_out');
+        Route::get('/show_summary_karton_fg_out', 'show_summary_karton_fg_out')->name('show_summary_karton_fg_out');
+        Route::get('/show_delete_karton_fg_out', 'show_delete_karton_fg_out')->name('show_delete_karton_fg_out');
+        Route::post('/delete_karton_fg_out', 'delete_karton_fg_out')->name('delete_karton_fg_out');
+        Route::post('/clear_tmp_fg_out', 'clear_tmp_fg_out')->name('clear_tmp_fg_out');
+        Route::get('/edit_fg_out/{id?}', 'edit_fg_out')->name('edit_fg_out');
+        Route::get('/show_det_karton_fg_out_terinput', 'show_det_karton_fg_out_terinput')->name('show_det_karton_fg_out_terinput');
+        Route::get('/show_summary_karton_fg_out_terinput', 'show_summary_karton_fg_out_terinput')->name('show_summary_karton_fg_out_terinput');
+        Route::post('/edit_store_fg_out', 'edit_store_fg_out')->name('edit-store-fg-out');
     });
 
 
@@ -1232,6 +1243,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('master-so');
         Route::post('/import-excel-so', 'import_excel_so')->name('import-excel-so');
         Route::get('/show_tmp_ppic_so', 'show_tmp_ppic_so')->name('show_tmp_ppic_so');
+        Route::get('/data_cek_double_tmp_ppic_so', 'data_cek_double_tmp_ppic_so')->name('data_cek_double_tmp_ppic_so');
         Route::get('/contoh_upload_ppic_so', 'contoh_upload_ppic_so')->name('contoh_upload_ppic_so');
         Route::post('/undo_tmp_ppic_so', 'undo_tmp_ppic_so')->name('undo_tmp_ppic_so');
         Route::get('/export_excel_master_sb_so', 'export_excel_master_sb_so')->name('export_excel_master_sb_so');
