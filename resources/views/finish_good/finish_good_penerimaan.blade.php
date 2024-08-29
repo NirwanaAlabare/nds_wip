@@ -249,6 +249,10 @@
             processing: true,
             serverSide: true,
             paging: true,
+            lengthMenu: [
+                [5, 50, 100, -1],
+                [5, 50, 100, 'All']
+            ],
             searching: true,
             scrollY: '300px',
             scrollX: '300px',

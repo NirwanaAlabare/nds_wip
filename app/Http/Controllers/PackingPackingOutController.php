@@ -83,8 +83,10 @@ order by o.created_at desc
 
     public function getpo(Request $request)
     {
+        $tgl_skrg = date('Y-m-d');
+        $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-30 days'));
         $cek_po = DB::select("
-        select * from ppic_master_so where id = '" . $request->cbopo . "'
+        select * from ppic_master_so where id = '" . $request->cbopo . "' and tgl_shipment >= '$tgl_skrg_min_sebulan'
         ");
         // return json_encode($cek_po[0]);
         return json_encode($cek_po ? $cek_po[0] : '-');
