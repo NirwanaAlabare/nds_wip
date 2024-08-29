@@ -25,6 +25,7 @@
     <tr>
         <th rowspan="2" style="vertical-align: middle; text-align: center; font-weight: 800;">Line</th>
         <th rowspan="2" style="vertical-align: middle; text-align: center; font-weight: 800;">WS Number</th>
+        <th rowspan="2" style="vertical-align: middle; text-align: center; font-weight: 800;">Style</th>
         <th colspan="5" style="vertical-align: middle; text-align: center; font-weight: 800;">Output</th>
         <th colspan="3" style="vertical-align: middle; text-align: center; font-weight: 800;">Rate</th>
         <th colspan="3" style="vertical-align: middle; text-align: center; font-weight: 800;">Total</th>
@@ -82,6 +83,7 @@
                     </td>
                 @endif
                 <td>{{ $line->kpno }}</td>
+                <td>{{ $line->styleno }}</td>
                 <td style="text-align: center; font-weight: 800;" data-format="0">
                     {{ $line->rft < 1 ? '0' : $line->rft }}
                 </td>
@@ -158,7 +160,7 @@
             $targetFromEfficiency = floor($summaryEfficiencyNumber > 0 ? $summaryActual / ($summaryEfficiencyNumber) : 0);
         @endphp
         <tr>
-            <th colspan="10" style="text-align: center; font-weight:800;">Summary</th>
+            <th colspan="11" style="text-align: center; font-weight:800;">Summary</th>
             <th data-format="0" style="text-align: center; font-weight:800;">{{ $summaryActual }}</th>
             <th data-format="0" style="text-align: center; font-weight:800;">{{ $targetFromEfficiency }}</th>
             <th data-format="0%" style="text-align: center; font-weight:800;">{{ $summaryEfficiency }} %</th>

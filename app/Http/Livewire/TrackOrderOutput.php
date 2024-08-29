@@ -100,10 +100,29 @@ class TrackOrderOutput extends Component
                     act_costing.kpno ws,
                     act_costing.styleno style,
                     master_plan.color,
-                    master_plan.sewing_line
+                    COALESCE(rfts.sewing_line, master_plan.sewing_line) as sewing_line
                     ".($this->groupBy == "size" ? ", so_det.id as so_det_id, so_det.size, (CASE WHEN so_det.dest is not null AND so_det.dest != '-' THEN CONCAT(so_det.size, ' - ', so_det.dest) ELSE so_det.size END) sizedest" : "")."
                 ")->
-                leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws");
+                leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
+                leftJoin(DB::raw("(
+                    SELECT
+                        master_plan.id_ws,
+                        output_rfts".($this->outputType).".master_plan_id,
+                        userpassword.username sewing_line
+                    FROM
+                        output_rfts".($this->outputType)."
+                        ".($this->outputType != "_packing" ?
+                        "LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rfts".($this->outputType).".created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id" :
+                        "LEFT JOIN userpassword ON userpassword.username = output_rfts".($this->outputType).".created_by")."
+                        LEFT JOIN master_plan on master_plan.id = output_rfts".($this->outputType).".master_plan_id
+                    WHERE
+                        output_rfts".($this->outputType).".created_by IS NOT NULL
+                    GROUP BY
+                        output_rfts".($this->outputType).".master_plan_id,
+                        output_rfts".($this->outputType).".created_by
+                ) as rfts"), function ($join) {
+                    $join->on("rfts.master_plan_id", "=", "master_plan.id");
+                });
                 if ($this->groupBy == "size") {
                     $dailyOrderGroupSql->leftJoin('so', 'so.id_cost', '=', 'act_costing.id')->leftJoin('so_det', function ($join) { $join->on('so_det.id_so', '=', 'so.id'); $join->on('so_det.color', '=', 'master_plan.color'); });
                 }
@@ -117,18 +136,18 @@ class TrackOrderOutput extends Component
                     $dailyOrderGroupSql->where('master_plan.color', $this->colorFilter);
                 }
                 if ($this->lineFilter) {
-                    $dailyOrderGroupSql->where('master_plan.sewing_line', $this->lineFilter);
+                    $dailyOrderGroupSql->where('rfts.sewing_line', $this->lineFilter);
                 }
                 if ($this->groupBy == "size" && $this->sizeFilter) {
                     $dailyOrderGroupSql->where('so_det.size', $this->sizeFilter);
                 }
                 $dailyOrderGroupSql->
                     where("act_costing.id", $this->selectedOrder)->
-                    groupByRaw("master_plan.id_ws, act_costing.styleno, master_plan.color, master_plan.sewing_line ".($this->groupBy == "size" ? ", so_det.size" : "")."")->
+                    groupByRaw("master_plan.id_ws, act_costing.styleno, master_plan.color, COALESCE(rfts.sewing_line, master_plan.sewing_line) ".($this->groupBy == "size" ? ", so_det.size" : "")."")->
                     orderBy("master_plan.id_ws", "asc")->
                     orderBy("act_costing.styleno", "asc")->
                     orderBy("master_plan.color", "asc")->
-                    orderByRaw("master_plan.sewing_line asc ".($this->groupBy == 'size' ? ', so_det.id asc' : ''));
+                    orderByRaw("COALESCE(rfts.sewing_line, master_plan.sewing_line) asc ".($this->groupBy == 'size' ? ', so_det.id asc' : ''));
 
                 $this->dailyOrderGroup = $dailyOrderGroupSql->get();
 
@@ -139,7 +158,7 @@ class TrackOrderOutput extends Component
                     act_costing.kpno ws,
                     act_costing.styleno style,
                     master_plan.color,
-                    master_plan.sewing_line,
+                    COALESCE(line.username, master_plan.sewing_line) as sewing_line,
                     master_plan.smv smv,
                     master_plan.jam_kerja jam_kerja,
                     master_plan.man_power man_power,
@@ -151,13 +170,21 @@ class TrackOrderOutput extends Component
                 if ($this->groupBy == "size") {
                     $dailyOrderOutputSql->leftJoin('so_det', 'so_det.id', '=', 'output_rfts'.($this->outputType).'.so_det_id');
                 }
+
+                if ($this->outputType == "_packing") {
+                    $dailyOrderOutputSql->leftJoin('userpassword as line', 'line.username', '=', 'output_rfts'.($this->outputType).'.created_by');
+                } else {
+                    $dailyOrderOutputSql->leftJoin('user_sb_wip', 'user_sb_wip.id', '=', 'output_rfts'.($this->outputType).'.created_by')->
+                        leftJoin('userpassword as line', 'line.username', '=', 'user_sb_wip.line_id');
+                }
+
                 $dailyOrderOutputSql->
                     where("act_costing.id", $this->selectedOrder)->
-                    groupByRaw("master_plan.id_ws, act_costing.styleno, master_plan.color, master_plan.sewing_line , master_plan.tgl_plan ".($this->groupBy == 'size' ? ', so_det.size' : '')."")->
+                    groupByRaw("master_plan.id_ws, act_costing.styleno, master_plan.color, COALESCE(line.username, master_plan.sewing_line) , master_plan.tgl_plan ".($this->groupBy == 'size' ? ', so_det.size' : '')."")->
                     orderBy("master_plan.id_ws", "asc")->
                     orderBy("act_costing.styleno", "asc")->
                     orderBy("master_plan.color", "asc")->
-                    orderByRaw("master_plan.sewing_line asc ".($this->groupBy == 'size' ? ', so_det.id asc' : ''));
+                    orderByRaw("COALESCE(line.username, master_plan.sewing_line) asc ".($this->groupBy == 'size' ? ', so_det.id asc' : ''));
                 if ($this->dateFromFilter) {
                     $dailyOrderOutputSql->where('master_plan.tgl_plan', '>=', $this->dateFromFilter);
                 }
@@ -168,7 +195,7 @@ class TrackOrderOutput extends Component
                     $dailyOrderOutputSql->where('master_plan.color', $this->colorFilter);
                 }
                 if ($this->lineFilter) {
-                    $dailyOrderOutputSql->where('master_plan.sewing_line', $this->lineFilter);
+                    $dailyOrderOutputSql->where('line.username', $this->lineFilter);
                 }
                 if ($this->groupBy == "size" && $this->sizeFilter) {
                     $dailyOrderOutputSql->where('so_det.size', $this->sizeFilter);

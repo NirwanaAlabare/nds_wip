@@ -870,6 +870,13 @@
                         link.download = date+" Output Report.xlsx";
                         link.click();
                     }, error: function (jqXHR) {
+                        elm.removeAttribute('disabled');
+                        elm.innerText = "Export ";
+                        let icon = document.createElement('i');
+                        icon.classList.add('fa-solid');
+                        icon.classList.add('fa-file-excel');
+                        elm.appendChild(icon);
+
                         let res = jqXHR.responseJSON;
                         let message = '';
                         console.log(res.message);
