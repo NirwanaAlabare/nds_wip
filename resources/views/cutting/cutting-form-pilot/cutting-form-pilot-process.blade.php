@@ -2228,7 +2228,7 @@
                 let consWsUpRateNoSr = 0;
                 let consMarkerUpRateNoSr = 0;
 
-                if (unitConsActualGelaran != "METER" && unitConsActualGelaranShortRolless != "METER") {
+                if ((unitConsActualGelaran == "YARD" || unitConsActualGelaran == "YRD") && (unitConsActualGelaranShortRolless == "YARD" || unitConsActualGelaranShortRolless == "YRD")) {
                     let consActualGelaranConverted = conversion(consActualGelaran, "METER", unitConsActualGelaran.toUpperCase());
                     let consActualGelaranShortRollessConverted = conversion(consActualGelaranShortRolless, "METER", unitConsActualGelaranShortRolless.toUpperCase());
 
@@ -2237,12 +2237,16 @@
 
                     consWsUpRateNoSr = ((consActualGelaranShortRollessConverted - consWs)/consWs) * 100;
                     consMarkerUpRateNoSr = ((consActualGelaranShortRollessConverted - consMarker)/consMarker) * 100;
+
+                    // console.log("cons actual gelaran converted "+consActualGelaranConverted, consWs, consMarker, consWsUpRate, consMarkerUpRate);
                 } else {
                     consWsUpRate = ((consActualGelaran - consWs)/consWs) * 100;
                     consMarkerUpRate = ((consActualGelaran - consMarker)/consMarker) * 100;
 
                     consWsUpRateNoSr = ((consActualGelaranShortRolless - consWs)/consWs) * 100;
                     consMarkerUpRateNoSr = ((consActualGelaranShortRolless - consMarker)/consMarker) * 100;
+
+                    // console.log("cons actual gelaran "+consActualGelaran, consWs, consMarker);
                 }
 
                 document.getElementById('cons_ws_uprate').value = Number(consWsUpRate).round(2);
