@@ -78,7 +78,7 @@ class PPIC_MasterSOController extends Controller
 
         $data_ws = DB::select("select ws isi, ws tampil from
 (select * from ppic_master_so p
-where created_by = '" . $user . "' and tgl_shipment >= '" . $tgl_skrg . "' ) p
+where created_by = '" . $user . "' and tgl_shipment >= '" . $tgl_skrg_min_sebulan . "' ) p
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
 group by ws
 order by ws asc");
@@ -461,11 +461,12 @@ order by created_by asc
     public function getpo_ppic_edit_tgl(Request $request)
     {
         $tgl_skrg = date('Y-m-d');
+        $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-30 days'));
         $user = Auth::user()->name;
         $data_po = DB::select("
 select p.po isi, p.po tampil from
 (select * from ppic_master_so p
-where created_by = '$user' and tgl_shipment >= '$tgl_skrg' ) p
+where created_by = '$user' and tgl_shipment >= '$tgl_skrg_min_sebulan' ) p
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
 where m.ws = '" . $request->cbows_edit_tgl . "'
 group by po
@@ -484,11 +485,12 @@ order by po asc
     public function getpo_ppic_hapus(Request $request)
     {
         $tgl_skrg = date('Y-m-d');
+        $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-30 days'));
         $user = Auth::user()->name;
         $data_po = DB::select("
 select p.po isi, p.po tampil from
 (select * from ppic_master_so p
-where created_by = '$user' and tgl_shipment >= '$tgl_skrg' ) p
+where created_by = '$user' and tgl_shipment >= '$tgl_skrg_min_sebulan' ) p
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
 where m.ws = '" . $request->cbows_hapus . "'
 group by po
@@ -509,55 +511,59 @@ order by po asc
     {
         $user = Auth::user()->name;
         $tgl_skrg = date('Y-m-d');
+        $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-30 days'));
         $ws = $request->ws;
         $po = $request->po;
-        $data_list = DB::select("
-            SELECT
-            a.id,
-            a.id_so_det,
-            m.buyer,
-            concat((DATE_FORMAT(a.tgl_shipment,  '%d')), '-', left(DATE_FORMAT(a.tgl_shipment,  '%M'),3),'-',DATE_FORMAT(a.tgl_shipment,  '%Y')
-            ) tgl_shipment_fix,
-            a.tgl_shipment,
-            a.barcode,
-            m.reff_no,
-            a.po,
-            a.dest,
-            a.desc,
-            m.ws,
-            m.styleno,
-            m.color,
-            m.size,
-            a.qty_po,
-            coalesce(trf.qty_trf,0) qty_trf,
-            coalesce(pck.qty_packing_in,0) qty_packing_in,
-            coalesce(pck_out.qty_packing_out,0) qty_packing_out,
-            m.ws,
-            a.created_by,
-            a.created_at
-            FROM ppic_master_so a
-            inner join master_sb_ws m on a.id_so_det = m.id_so_det
-            left join master_size_new msn on m.size = msn.size
-            left join
-            (
-                select id_ppic_master_so, coalesce(sum(qty),0) qty_trf from packing_trf_garment group by id_ppic_master_so
-            ) trf on trf.id_ppic_master_so = a.id
-            left join
-            (
-                select id_ppic_master_so, coalesce(sum(qty),0) qty_packing_in from packing_packing_in group by id_ppic_master_so
-            ) pck on pck.id_ppic_master_so = a.id
-            left join
-            (
-            select p.id, qty_packing_out from
-                (
-                select count(barcode) qty_packing_out,po, barcode, dest from packing_packing_out_scan
-                group by barcode, po, dest
-                ) a
-            inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po and a.dest = p.dest
-            group by p.id
-            ) pck_out on pck_out.id = a.id
-            where a.created_by = '$user' and ws = '$ws' and a.po like '$po' and tgl_shipment >= '$tgl_skrg'
-            order by tgl_shipment desc, buyer asc, ws asc , msn.urutan asc
+        $data_list = DB::select("SELECT
+a.id,
+a.id_so_det,
+m.buyer,
+tgl_shipment,
+concat((DATE_FORMAT(a.tgl_shipment,  '%d')), '-', left(DATE_FORMAT(a.tgl_shipment,  '%M'),3),'-',DATE_FORMAT(a.tgl_shipment,  '%Y')
+) tgl_shipment_fix,
+a.barcode,
+m.reff_no,
+a.qty_po,
+a.po,
+a.dest,
+a.desc,
+m.ws,
+m.styleno,
+m.color,
+m.size,
+sum(qty_trf) qty_trf,
+sum(qty_packing_in) qty_packing_in,
+sum(qty_packing_out) qty_packing_out,
+m.ws,
+a.created_by,
+a.created_at
+from (
+select id id_ppic_master_so, qty_po , '0' qty_trf, '0' qty_packing_in, '0' qty_packing_out from ppic_master_so a
+where po = '$po'
+group by id, po
+union
+select id_ppic_master_so, '0' qty_po , sum(qty) qty_trf, '0' qty_packing_in, '0' qty_packing_out from packing_trf_garment
+where po = '$po'
+group by id_ppic_master_so, po
+union
+select id_ppic_master_so, '0' qty_po , '0' qty_trf, sum(qty) qty_packing_in, '0' qty_packing_out from packing_packing_in
+where po = '$po'
+group by id_ppic_master_so, po
+union
+select p.id id_ppic_master_so, '0' qty_po , '0' qty_trf, '0' qty_packing_in, qty_packing_out from
+(
+select count(barcode) qty_packing_out,po, barcode, dest from packing_packing_out_scan
+where po = '$po'
+group by barcode, po, dest
+) a
+inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po and a.dest = p.dest
+group by p.id
+) mut
+inner join ppic_master_so a on mut.id_ppic_master_so = a.id
+inner join master_sb_ws m on a.id_so_det = m.id_so_det
+left join master_size_new msn on m.size = msn.size
+group by id_ppic_master_so
+order by tgl_shipment desc, buyer asc, ws asc, dest asc, color asc, msn.urutan asc, dest asc
             ");
 
         return DataTables::of($data_list)->toJson();

@@ -84,7 +84,7 @@ order by created_at desc
                 group by id_trf_garment
                 ) b on a.id = b.id_trf_garment
                  where a.tujuan = 'Packing'
-            having a.qty - coalesce(b.qty_in,0) >= '0'
+            having a.qty - coalesce(b.qty_in,0) > '0'
             union
             SELECT
             a.id,
@@ -97,7 +97,7 @@ order by created_at desc
                 select id_trf_garment,sum(qty) qty_in from packing_packing_in
                 group by id_trf_garment
                 ) b on a.id = b.id_trf_garment
-            having a.qty - coalesce(b.qty_in,0) >= '0'
+            having a.qty - coalesce(b.qty_in,0) > '0'
             ) data_cek
             group by data_cek.no_trans
             order by id desc, no_trans asc

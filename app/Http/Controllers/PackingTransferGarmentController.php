@@ -93,7 +93,8 @@ SELECT 'Temporary' isi, 'Temporary' tampil");
 order by isi asc");
 
         return view('packing.create_packing_transfer_garment', [
-            'page' => 'dashboard-packing', "subPageGroup" => "packing-transfer-garment",
+            'page' => 'dashboard-packing',
+            "subPageGroup" => "packing-transfer-garment",
             "subPage" => "transfer-garment",
             "data_tujuan" => $data_tujuan,
             "data_line" => $data_line,
@@ -103,53 +104,20 @@ order by isi asc");
 
     public function get_po(Request $request)
     {
-        // select p.po isi,CONCAT(p.po, ' ( ', m.styleno, ' ) ', '( ', m.styleno_prod , ' )') tampil from
-        // (
-        // select so_det_id from output_rfts_packing a
-        // where created_by = '" . $request->cbo_line . "'
-        // group by so_det_id
-        // ) a
-        // left join ppic_master_so p on a.so_det_id = p.id_so_det
-        // left join master_sb_ws m on a.so_det_id = m.id_so_det
-        // group by po
-        // having po is not null
-        // order by po asc
-
-        //backup 
-        // select
-        // p.po isi,
-        // CONCAT(p.po, ' ( ', m_po.styleno, ' ) ', '( ', m_po.styleno_prod , ' )') tampil
-        // from (
-        // select ws, color, size, styleno, styleno_prod from
-        // (
-        //     select so_det_id from output_rfts_packing a
-        //     where created_by = '" . $request->cbo_line . "'
-        //     group by so_det_id
-        // ) a
-        // left join master_sb_ws m on a.so_det_id = m.id_so_det
-        // )m_po
-        // inner join (
-        // select p.po,ws,color,size from ppic_master_so p
-        // inner join master_sb_ws m on p.id_so_det = m.id_so_det
-        // group by ws, color, size, po
-        // ) p on m_po.ws = p.ws and m_po.color = p.color and m_po.size = p.size
-        // group by p.po, styleno
-
-
-
-
+        $tgl_skrg = date('Y-m-d');
+        $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-30 days'));
         $data_po = DB::select("SELECT
         p.po isi,
-        CONCAT(p.po, ' ( ', p.styleno, ' ) ', '( ', p.styleno_prod , ' )') tampil 
-        from 
+        CONCAT(p.po, ' ( ', p.styleno, ' ) ', '( ', p.styleno_prod , ' )') tampil
+        from
         (
         select ws,color,size,so_det_id from output_rfts_packing a
         inner join master_sb_ws m on a.so_det_id = m.id_so_det
-        where a.created_by = '" . $request->cbo_line . "'
+        where a.created_by = '" . $request->cbo_line . "' and a.created_at >= '$tgl_skrg_min_sebulan'
         group by so_det_id
         ) a
         inner join (select p.*, m.styleno, m.styleno_prod, m.ws, m.color, m.size from ppic_master_so p
-        inner join master_sb_ws m on p.id_so_det = m.id_so_det)
+        inner join master_sb_ws m on p.id_so_det = m.id_so_det where tgl_shipment >= '$tgl_skrg_min_sebulan')
         p on a.ws = p.ws and a.color = p.color and a.size = p.size
         group by po, p.styleno
         ");
@@ -560,7 +528,8 @@ order by p.po asc");
 order by isi asc");
 
         return view('packing.create_packing_transfer_garment_temporary', [
-            'page' => 'dashboard-packing', "subPageGroup" => "packing-transfer-garment",
+            'page' => 'dashboard-packing',
+            "subPageGroup" => "packing-transfer-garment",
             "subPage" => "transfer-garment",
             "data_po" => $data_po,
             "data_line" => $data_line,

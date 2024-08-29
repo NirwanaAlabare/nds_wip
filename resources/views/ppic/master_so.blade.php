@@ -281,7 +281,7 @@
                                 <div class='row'>
                                     <div class="col-md-12 table-responsive">
                                         <table id="datatable_edit"
-                                            class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                                            class="table table-bordered table-hover table-sm w-100 text-nowrap">
                                             <thead class="table-primary">
                                                 <tr style='text-align:center; vertical-align:middle'>
                                                     <th>ID SO Det</th>
