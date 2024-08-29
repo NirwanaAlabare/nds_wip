@@ -523,22 +523,28 @@
                         "range_awal_year_sequence": Number($('#range_awal').val()),
                         "range_akhir_year_sequence": Number($('#range_akhir').val()),
                     },
-                    xhrFields:
-                    {
-                        responseType: 'blob'
-                    },
+                    // xhrFields:
+                    // {
+                    //     responseType: 'blob'
+                    // },
                     success: function(res) {
-                        if (res) {
-                            console.log("123",res);
-
-                            var blob = new Blob([res], {type: 'application/pdf'});
-                            var link = document.createElement('a');
-                            link.href = window.URL.createObjectURL(blob);
-                            link.download = "Numbers.pdf";
-                            link.click();
+                        if (res.status == 200) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                html: 'Data berhasil di setting',
+                                allowOutsideClick: false,
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                html: 'Data sudah mencapai '+$("#print_qty").val(),
+                                allowOutsideClick: false,
+                            });
                         }
 
-                        window.location.reload();
+                        // window.location.reload();
 
                         generating = false;
                     },
