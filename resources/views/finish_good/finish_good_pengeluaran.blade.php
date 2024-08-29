@@ -14,12 +14,13 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-people-carry"></i> Pengeluaran Finish Good</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-cart-arrow-down"></i> Pengeluaran Finish Good</h5>
         </div>
         <div class="card-body">
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
-                    <a href="{{ route('create-packing-out') }}" class="btn btn-outline-primary position-relative">
+                    <a href="{{ route('create_pengeluaran_finish_good') }}"
+                        class="btn btn-outline-primary position-relative">
                         <i class="fas fa-plus"></i>
                         Baru
                     </a>
@@ -45,24 +46,24 @@
             </div>
 
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                <table id="datatable" class="table table-bordered table-hover table-sm w-100 text-nowrap">
                     <thead class="table-success">
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>No. SB</th>
-                            <th>Tgl. Trans</th>
-                            <th>PO</th>
+                            <th>Tgl. Out</th>
                             <th>Buyer</th>
-                            <th>WS</th>
-                            <th>Color</th>
-                            <th>Size</th>
-                            <th>Qty</th>
-                            <th>No. Carton</th>
-                            <th>Notes</th>
+                            <th>Tot Ctn</th>
+                            <th>Tot Qty</th>
+                            <th>Jenis Dok</th>
+                            <th>Inv No</th>
+                            <th>List PO</th>
+                            <th>Ket</th>
                             <th>User</th>
                             <th>Tgl. Input</th>
+                            <th>Act</th>
                         </tr>
                     </thead>
-                    <tfoot>
+                    {{-- <tfoot>
                         <tr>
                             <th colspan="7"></th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
@@ -72,7 +73,7 @@
                             <th></th>
                             <th></th>
                         </tr>
-                    </tfoot>
+                    </tfoot> --}}
                 </table>
             </div>
         </div>
@@ -108,32 +109,11 @@
     <script>
         $(document).ready(() => {
             dataTableReload();
-            $("#cbopo").val('').trigger('change');
-            startCalc();
         });
-
-        function getno_carton() {
-            let cbopo = document.form.cbopo.value;
-            let html = $.ajax({
-                type: "GET",
-                url: '{{ route('fg_in_getno_carton') }}',
-                data: {
-                    cbopo: cbopo
-                },
-                async: false
-            }).responseText;
-            if (html != "") {
-                $("#cbo_no_carton").html(html);
-            }
-        };
 
 
         function dataTableReload() {
             datatable.ajax.reload();
-        }
-
-        function dataTablePreviewReload() {
-            datatable_preview.ajax.reload();
         }
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
@@ -151,30 +131,30 @@
         });
 
         let datatable = $("#datatable").DataTable({
-            "footerCallback": function(row, data, start, end, display) {
-                var api = this.api(),
-                    data;
+            // "footerCallback": function(row, data, start, end, display) {
+            //     var api = this.api(),
+            //         data;
 
-                // converting to interger to find total
-                var intVal = function(i) {
-                    return typeof i === 'string' ?
-                        i.replace(/[\$,]/g, '') * 1 :
-                        typeof i === 'number' ?
-                        i : 0;
-                };
+            //     // converting to interger to find total
+            //     var intVal = function(i) {
+            //         return typeof i === 'string' ?
+            //             i.replace(/[\$,]/g, '') * 1 :
+            //             typeof i === 'number' ?
+            //             i : 0;
+            //     };
 
-                // computing column Total of the complete result
-                var sumTotal = api
-                    .column(7)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
+            //     // computing column Total of the complete result
+            //     var sumTotal = api
+            //         .column(7)
+            //         .data()
+            //         .reduce(function(a, b) {
+            //             return intVal(a) + intVal(b);
+            //         }, 0);
 
-                // Update footer by showing the total with the reference of the column index
-                $(api.column(0).footer()).html('Total');
-                $(api.column(7).footer()).html(sumTotal);
-            },
+            //     // Update footer by showing the total with the reference of the column index
+            //     $(api.column(0).footer()).html('Total');
+            //     $(api.column(7).footer()).html(sumTotal);
+            // },
 
 
             ordering: false,
@@ -186,7 +166,7 @@
             scrollX: '300px',
             scrollCollapse: true,
             ajax: {
-                url: '{{ route('finish_good_penerimaan') }}',
+                url: '{{ route('finish_good_pengeluaran') }}',
                 data: function(d) {
                     d.dateFrom = $('#tgl-awal').val();
                     d.dateTo = $('#tgl-akhir').val();
@@ -196,31 +176,28 @@
                     data: 'no_sb'
 
                 }, {
-                    data: 'tgl_penerimaan_fix'
-                },
-                {
-                    data: 'po'
+                    data: 'tgl_pengeluaran_fix'
                 },
                 {
                     data: 'buyer'
                 },
                 {
-                    data: 'ws'
+                    data: 'tot_karton'
                 },
                 {
-                    data: 'color'
+                    data: 'tot_qty'
                 },
                 {
-                    data: 'size'
+                    data: 'jenis_dok'
                 },
                 {
-                    data: 'qty'
+                    data: 'invno'
                 },
                 {
-                    data: 'no_carton'
+                    data: 'list_po'
                 },
                 {
-                    data: 'notes'
+                    data: 'remark'
                 },
                 {
                     data: 'created_by'
@@ -228,112 +205,8 @@
                 {
                     data: 'created_at'
                 },
-            ],
-
-            columnDefs: [{
-                    "className": "align-left",
-                    "targets": "_all"
-                },
                 {
-                    targets: '_all',
-                    className: 'text-nowrap',
-                    render: (data, type, row, meta) => {
-                        if (row.tujuan == 'Temporary') {
-                            color = ' #d68910';
-                        } else if (row.status == 'Full' && row.tujuan != 'Temporary' && row.line !=
-                            'Temporary') {
-                            color = '#087521';
-                        } else if (row.status != 'Full' && row.tujuan != 'Temporary' && row.line !=
-                            'Temporary') {
-                            color = 'blue';
-                        } else if (row.status != 'Full' && row.tujuan != 'Temporary' && row.line !=
-                            'Temporary') {
-                            color = 'blue';
-                        } else if (row.status != 'Full' && row.tujuan != 'Temporary' && row.line !=
-                            'Temporary') {
-                            color = 'blue';
-                        } else if (row.status != 'Full' && row.line == 'Temporary') {
-                            color = 'purple';
-                        } else if (row.status == 'Full' && row.line == 'Temporary') {
-                            color = 'green';
-                        }
-                        return '<span style="font-weight: 600; color:' + color + '">' + data + '</span>';
-                    }
-                },
-
-            ]
-
-        });
-
-        let datatable_preview = $("#datatable_preview").DataTable({
-            "footerCallback": function(row, data, start, end, display) {
-                var api = this.api(),
-                    data;
-
-                // converting to interger to find total
-                var intVal = function(i) {
-                    return typeof i === 'string' ?
-                        i.replace(/[\$,]/g, '') * 1 :
-                        typeof i === 'number' ?
-                        i : 0;
-                };
-
-                // computing column Total of the complete result
-                var sumTotal = api
-                    .column(6)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                // Update footer by showing the total with the reference of the column index
-                $(api.column(0).footer()).html('Total');
-                $(api.column(6).footer()).html(sumTotal);
-            },
-            ordering: false,
-            processing: true,
-            serverSide: true,
-            paging: false,
-            destroy: true,
-            autoWidth: true,
-            ajax: {
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                url: '{{ route('show_preview_fg_in') }}',
-                dataType: 'json',
-                dataSrc: 'data',
-                data: function(d) {
-                    d.cbopo = $('#cbopo').val();
-                    d.cbo_no_carton = $('#cbo_no_carton').val();
-                },
-            },
-            columns: [{
-                    data: 'no_carton',
-                },
-                {
-                    data: 'po',
-                },
-                {
-                    data: 'barcode',
-                },
-                {
-                    data: 'ws',
-                },
-                {
-                    data: 'color',
-                },
-                {
-                    data: 'size',
-                },
-                {
-                    data: 'qty',
-                },
-                {
-                    data: 'id_so_det',
-                },
-                {
-                    data: 'unit',
+                    data: 'created_at'
                 },
             ],
 
@@ -342,97 +215,108 @@
                     "targets": "_all"
                 },
                 {
-                    targets: [7],
+                    targets: [11],
                     render: (data, type, row, meta) => {
                         return `
-                        <div>
-                            <input type="number" class="form-control form-control-sm input" style="width:75px" id="txtqty[` +
-                            row
-                            .id_so_det + `]"
-                            name="txtqty[` + row.id_so_det + `]" value = "` + row.qty +
-                            `" autocomplete="off"  max = "` + row
-                            .qty + `" min = "0" onFocus="startCalc();" onBlur="stopCalc();" />
-                        </div>
-                        <div>
-                            <input type="hidden" size="4" id="id_so_det[` + row.id_so_det + `]"
-                            name="id_so_det[` + row.id_so_det + `]" value = "` + row.id_so_det + `"/>
-                            <input type="hidden" size="4" id="price[` + row.id_so_det + `]"
-                            name="price[` + row.id_so_det + `]" value = "` + row.price + `"/>
-                            <input type="hidden" size="4" id="curr[` + row.id_so_det + `]"
-                            name="curr[` + row.id_so_det + `]" value = "` + row.curr + `"/>
-                            <input type="hidden" size="4" id="id_ppic_master_so[` + row.id_so_det + `]"
-                            name="id_ppic_master_so[` + row.id_so_det + `]" value = "` + row.id_ppic_master_so + `"/>
-                            <input type="hidden" size="4" id="barcode[` + row.id_so_det + `]"
-                            name="barcode[` + row.id_so_det + `]" value = "` + row.barcode + `"/>
-                        </div>
+                <div
+                class='d-flex gap-1 justify-content-center'>
+                <a class='btn btn-warning btn-sm'  target="_blank" href="{{ route('edit_fg_out') }}/` + row.id + `"><i class='fas fa-edit'></i></a>
+                </div>
                         `;
                     }
                 },
+
             ]
 
         });
 
-        function startCalc() {
-            interval = setInterval('findTotal()', 1);
-        }
 
-        function findTotal() {
-            var arr = document.getElementsByClassName('form-control form-control-sm input');
-            var tot = 0;
-            for (var i = 0; i < arr.length; i++) {
-                if (parseInt(arr[i].value))
-                    tot += parseInt(arr[i].value);
-            }
-            document.getElementById('total_qty_chk').value = tot;
-        }
-
-        function stopCalc() {
-            clearInterval(interval);
-        }
-
-
-        // function export_excel_trf_garment() {
-        //     let from = document.getElementById("tgl-awal").value;
-        //     let to = document.getElementById("tgl-akhir").value;
-
-        //     Swal.fire({
-        //         title: 'Please Wait...',
-        //         html: 'Exporting Data...',
-        //         didOpen: () => {
-        //             Swal.showLoading()
-        //         },
-        //         allowOutsideClick: false,
+        // $('#datatable thead tr').clone(true).appendTo('#datatable thead');
+        // $('#datatable thead tr:eq(1) th').each(function(i) {
+        //     var title = $(this).text();
+        //     $(this).html('<input type="text" class="form-control form-control-sm"/>');
+        //     $('input', this).on('keyup change', function() {
+        //         if (datatable.column(i).search() !== this.value) {
+        //             datatable
+        //                 .column(i)
+        //                 .search(this.value)
+        //                 .draw();
+        //         }
         //     });
+        // });
 
-        //     $.ajax({
-        //         type: "get",
-        //         url: '{{ route('export_excel_trf_garment') }}',
-        //         data: {
-        //             from: from,
-        //             to: to
-        //         },
-        //         xhrFields: {
-        //             responseType: 'blob'
-        //         },
-        //         success: function(response) {
-        //             {
-        //                 swal.close();
-        //                 Swal.fire({
-        //                     title: 'Data Sudah Di Export!',
-        //                     icon: "success",
-        //                     showConfirmButton: true,
-        //                     allowOutsideClick: false
-        //                 });
-        //                 var blob = new Blob([response]);
-        //                 var link = document.createElement('a');
-        //                 link.href = window.URL.createObjectURL(blob);
-        //                 link.download = "Laporan Trf Garment " + from + " sampai " +
-        //                     to + ".xlsx";
-        //                 link.click();
+        // let datatable = $("#datatable").DataTable({
+        //     // "footerCallback": function(row, data, start, end, display) {
+        //     //     var api = this.api(),
+        //     //         data;
 
-        //             }
+        //     //     // converting to interger to find total
+        //     //     var intVal = function(i) {
+        //     //         return typeof i === 'string' ?
+        //     //             i.replace(/[\$,]/g, '') * 1 :
+        //     //             typeof i === 'number' ?
+        //     //             i : 0;
+        //     //     };
+
+        //     //     // computing column Total of the complete result
+        //     //     var sumTotal = api
+        //     //         .column(7)
+        //     //         .data()
+        //     //         .reduce(function(a, b) {
+        //     //             return intVal(a) + intVal(b);
+        //     //         }, 0);
+
+        //     //     // Update footer by showing the total with the reference of the column index
+        //     //     $(api.column(0).footer()).html('Total');
+        //     //     $(api.column(7).footer()).html(sumTotal);
+        //     // },
+
+
+        //     ordering: false,
+        //     processing: true,
+        //     serverSide: true,
+        //     paging: false,
+        //     searching: true,
+        //     scrollY: '300px',
+        //     scrollX: '300px',
+        //     scrollCollapse: true,
+        //     ajax: {
+        //         url: '{{ route('finish_good_pengeluaran') }}',
+        //         data: function(d) {
+        //             d.dateFrom = $('#tgl-awal').val();
+        //             d.dateTo = $('#tgl-akhir').val();
         //         },
-        //     });
-        // }
+        //     },
+        //     columns: [{
+        //             data: 'no_sb'
+
+        //         }, {
+        //             data: 'tgl_pengeluaran_fix'
+        //         },
+        //         {
+        //             data: 'buyer'
+        //         },
+        //         {
+        //             data: 'tot_karton'
+        //         },
+        //         {
+        //             data: 'tot_qty'
+        //         },
+        //         {
+        //             data: 'jenis_dok'
+        //         },
+        //         {
+        //             data: 'invno'
+        //         },
+        //         {
+        //             data: 'remark'
+        //         },
+        //     ],
+        //     columnDefs: [{
+        //         "className": "align-left",
+        //         "targets": "_all"
+        //     }, ]
+
+        // });
     </script>
 @endsection

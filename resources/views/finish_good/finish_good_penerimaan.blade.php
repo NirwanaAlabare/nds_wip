@@ -302,32 +302,32 @@
                     "className": "align-left",
                     "targets": "_all"
                 },
-                {
-                    targets: '_all',
-                    className: 'text-nowrap',
-                    render: (data, type, row, meta) => {
-                        if (row.tujuan == 'Temporary') {
-                            color = ' #d68910';
-                        } else if (row.status == 'Full' && row.tujuan != 'Temporary' && row.line !=
-                            'Temporary') {
-                            color = '#087521';
-                        } else if (row.status != 'Full' && row.tujuan != 'Temporary' && row.line !=
-                            'Temporary') {
-                            color = 'blue';
-                        } else if (row.status != 'Full' && row.tujuan != 'Temporary' && row.line !=
-                            'Temporary') {
-                            color = 'blue';
-                        } else if (row.status != 'Full' && row.tujuan != 'Temporary' && row.line !=
-                            'Temporary') {
-                            color = 'blue';
-                        } else if (row.status != 'Full' && row.line == 'Temporary') {
-                            color = 'purple';
-                        } else if (row.status == 'Full' && row.line == 'Temporary') {
-                            color = 'green';
-                        }
-                        return '<span style="font-weight: 600; color:' + color + '">' + data + '</span>';
-                    }
-                },
+                // {
+                //     targets: '_all',
+                //     className: 'text-nowrap',
+                //     render: (data, type, row, meta) => {
+                //         if (row.tujuan == 'Temporary') {
+                //             color = ' #d68910';
+                //         } else if (row.status == 'Full' && row.tujuan != 'Temporary' && row.line !=
+                //             'Temporary') {
+                //             color = '#087521';
+                //         } else if (row.status != 'Full' && row.tujuan != 'Temporary' && row.line !=
+                //             'Temporary') {
+                //             color = 'blue';
+                //         } else if (row.status != 'Full' && row.tujuan != 'Temporary' && row.line !=
+                //             'Temporary') {
+                //             color = 'blue';
+                //         } else if (row.status != 'Full' && row.tujuan != 'Temporary' && row.line !=
+                //             'Temporary') {
+                //             color = 'blue';
+                //         } else if (row.status != 'Full' && row.line == 'Temporary') {
+                //             color = 'purple';
+                //         } else if (row.status == 'Full' && row.line == 'Temporary') {
+                //             color = 'green';
+                //         }
+                //         return '<span style="font-weight: 600; color:' + color + '">' + data + '</span>';
+                //     }
+                // },
 
             ]
 

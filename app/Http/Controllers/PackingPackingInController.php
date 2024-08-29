@@ -105,7 +105,8 @@ order by created_at desc
         return view(
             'packing.packing_in',
             [
-                'page' => 'dashboard-packing', "subPageGroup" => "packing-packing-in",
+                'page' => 'dashboard-packing',
+                "subPageGroup" => "packing-packing-in",
                 "subPage" => "packing-in",
                 "data_no_trans" => $data_no_trans
             ]
@@ -178,7 +179,8 @@ order by created_at desc
         $data_line = DB::connection('mysql_sb')->select("SELECT username isi, username tampil from userpassword where groupp = 'sewing' order by isi asc");
 
         return view('packing.create_packing_transfer_garment', [
-            'page' => 'dashboard-packing', "subPageGroup" => "packing-transfer-garment",
+            'page' => 'dashboard-packing',
+            "subPageGroup" => "packing-transfer-garment",
             "subPage" => "transfer-garment",
             "data_line" => $data_line,
             "user" => $user

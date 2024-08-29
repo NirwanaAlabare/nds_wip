@@ -446,6 +446,7 @@
                 </div>
             </div>
             <label>Preview</label>
+            <input type="hidden" class="form-control form-control-sm" id="data_cek_tmp" name= "data_cek_tmp">
             <div class="table-responsive">
                 <table id="datatable_preview" class="table table-bordered table-sm w-100 text-nowrap">
                     <thead class="table-info">
@@ -486,7 +487,7 @@
                             Undo
                         </a>
                     </div>
-                    <div class="p-2 bd-highlight">
+                    <div class="p-2 bd-highlight" id="simpan_tmp" name = "simpan_tmp">
                         <a class="btn btn-outline-success" onclick="simpan()">
                             <i class="fas fa-check"></i>
                             Simpan
@@ -506,12 +507,18 @@
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Shipment Awal</b></small></label>
                     <input type="date" class="form-control form-control-sm " id="tgl-awal" name="tgl_awal"
-                        oninput="dataTableReload()" value="{{ date('Y-m-d') }}">
+                        value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Shipment Akhir</b></small></label>
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                        oninput="dataTableReload()" value="{{ date('Y-m-d') }}">
+                        value="{{ date('Y-m-d') }}">
+                </div>
+                <div class="mb-3">
+                    <a class="btn btn-outline-primary position-relative btn-sm" onclick="dataTableReload()">
+                        <i class="fas fa-search"></i>
+                        Cari
+                    </a>
                 </div>
                 <div class="mb-3">
                     <a onclick="export_excel_master_so_ppic()" class="btn btn-outline-success position-relative btn-sm">
@@ -666,6 +673,7 @@
                         dataTablePreviewReload();
                         $('#importExcel').modal('hide');
                         dataTableReload();
+                        data_cek_double_tmp();
                     }
                 },
 
@@ -706,6 +714,7 @@
             $('#upload-master-card').on('expanded.lte.cardwidget', () => {
                 dataTablePreviewReload();
             });
+            data_cek_double_tmp();
         })
 
 
@@ -859,6 +868,7 @@
                         });
                     }
                     dataTablePreviewReload();
+                    data_cek_double_tmp();
                 },
             });
         };
@@ -918,6 +928,7 @@
                         });
                         dataTableReload();
                         dataTablePreviewReload();
+                        data_cek_double_tmp();
                     }
 
                 },
@@ -928,6 +939,7 @@
                     });
                     dataTableReload();
                     dataTablePreviewReload();
+                    data_cek_double_tmp();
                 },
             });
 
@@ -1175,6 +1187,7 @@
                     });
                     dataTablePreviewReload();
                     dataTableReload();
+                    data_cek_double_tmp();
                 }
             });
 
@@ -1645,6 +1658,28 @@
             //get id..and check if checked
             console.log($(checkeds).attr("value"), checkeds.checked)
 
+        }
+
+        function data_cek_double_tmp() {
+            jQuery.ajax({
+                url: '{{ route('data_cek_double_tmp_ppic_so') }}',
+                method: 'GET',
+                dataType: 'json',
+                success: async function(response) {
+                    console.log(response);
+                    document.getElementById('data_cek_tmp').value = response ? response.tot_cek : 0;
+
+                    if (document.getElementById('data_cek_tmp').value == '0') {
+                        document.getElementById('simpan_tmp').style.display = 'true';
+                    } else {
+                        document.getElementById('simpan_tmp').style.display = 'none';
+                    }
+
+                },
+                error: function(request, status, error) {
+                    alert(request.responseText);
+                },
+            });
         }
     </script>
 @endsection
