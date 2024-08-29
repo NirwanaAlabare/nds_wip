@@ -69,7 +69,8 @@ UNION
 select * , CONCAT_WS('',no_bppb,tgl_bppb,no_req,tujuan,no_barcode,no_roll,no_lot,qty_out,unit,id_item,id_jo,ws,goods_code,itemdesc,color,size,remark,username,confirm_by)cari_data from (select '' ws_aktual, ac.styleno,a.no_mut no_bppb,a.tgl_mut tgl_bppb,'' no_req,'Mutasi Lokasi' tujuan,c.no_barcode, b.no_roll,b.no_lot,ROUND(b.qty_mutasi,4) qty_out, b.unit,b.id_item,c.id_jo,ac.kpno ws,goods_code,concat(itemdesc,' ',add_info) itemdesc,s.color,s.size,a.deskripsi remark,CONCAT(a.created_by,' (',a.created_at, ') ') username,CONCAT(a.approved_by,' (',a.approved_date, ') ') confirm_by
 from whs_mut_lokasi_h a 
 inner join whs_mut_lokasi b on b.no_mut = a.no_mut
-inner join whs_lokasi_inmaterial c on c.id = b.idbpb_det
+inner join (select no_barcode,no_dok,id_jo,id_item,'-' curr, '0' price,satuan unit FROM whs_lokasi_inmaterial GROUP BY no_barcode UNION
+select no_barcode,no_bpb,id_jo,id_item,'-' curr, '0' price,unit FROM whs_sa_fabric GROUP BY no_barcode) c on c.no_barcode = b.idbpb_det
 inner join masteritem s on b.id_item=s.id_item 
 left join (select id_jo,id_so from jo_det group by id_jo ) tmpjod on tmpjod.id_jo=c.id_jo 
 left join so on tmpjod.id_so=so.id 

@@ -21,6 +21,7 @@ class PPIC_MasterSOController extends Controller
         $tgl_awal = $request->dateFrom;
         $tgl_akhir = $request->dateTo;
         $tgl_skrg = date('Y-m-d');
+        $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-30 days'));
         $user = Auth::user()->name;
 
         if ($request->ajax()) {
@@ -127,7 +128,6 @@ order by ws asc");
             and tmp.style = m.styleno
             and tmp.dest = m.dest
             left join ppic_master_so p on m.id_so_det = p.id_so_det
-                                and tmp.tgl_shipment = p.tgl_shipment
                                 and tmp.po = p.po
 								and tmp.barcode = p.barcode
             where tmp.created_by = '$user'
@@ -158,6 +158,15 @@ order by ws asc");
             "additional" => [],
             // "redirect" => url('in-material/upload-lokasi')
         );
+
+        // return array(
+        //     "status" => 201,
+        //     "message" => 'Data  Berhasil Di Upload',
+        //     "additional" => [],
+        //     "redirect" => '',
+        //     "table" => 'datatable_preview',
+        //     "callback" => "data_cek_tmp()"
+        // );
     }
 
     public function contoh_upload_ppic_so()
@@ -192,23 +201,23 @@ order by ws asc");
         $user = Auth::user()->name;
         $timestamp = Carbon::now();
 
-        $cek = DB::select("select * from ppic_master_so_tmp tmp
+        $cek = DB::select("select count(m.id_so_det)tot_avail from ppic_master_so_tmp tmp
         left join master_sb_ws m on tmp.ws = m.ws
         and tmp.color = m.color
         and tmp.size = m.size
         and tmp.style = m.styleno
         and tmp.dest = m.dest
         left join ppic_master_so p on m.id_so_det = p.id_so_det
-        and tmp.tgl_shipment = p.tgl_shipment and tmp.po = p.po
+        and tmp.po = p.po
 where tmp.created_by = '$user' and if(
-m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is null,'Ok','Check') = 'Ok'");
+m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is null,'Ok','Check') = 'Check'");
 
-        $cekinput = $cek[0]->id_tmp;
+        $cekinput = $cek[0]->tot_avail;
 
-        if ($cekinput == '') {
+        if ($cekinput >= '1') {
             return array(
                 'icon' => 'salah',
-                'msg' => 'Tidak ada yang disimpan',
+                'msg' => 'Tidak ada yang disimpan, Periksa Data Lagi',
             );
         } else {
             $insert = DB::insert(
@@ -684,6 +693,32 @@ order by po asc
             );
         }
     }
+
+    public function data_cek_double_tmp_ppic_so(Request $request)
+    {
+        $user = Auth::user()->name;
+        $data_cek = DB::select("select coalesce(count(m.id_so_det),0) tot_cek from ppic_master_so_tmp tmp
+        left join master_sb_ws m on tmp.ws = m.ws
+        and tmp.color = m.color
+        and tmp.size = m.size
+        and tmp.style = m.styleno
+        and tmp.dest = m.dest
+				left join ppic_master_so p on m.id_so_det = p.id_so_det
+       and tmp.po = p.po
+			 where tmp.created_by = '" . $user . "'
+			 group by tmp.po, m.id_so_det
+			 having count(m.id_so_det) > '1'");
+        $data_cek_fix = $data_cek ? $data_cek[0]->tot_cek : 0;
+        if ($data_cek_fix == null or $data_cek_fix == '') {
+            $data_cek_fix == '0';
+        } else {
+            $data_cek_fix = $data_cek_fix;
+        }
+        // dd($data_cek_fix);
+
+        return json_encode($data_cek ? $data_cek[0] : null);
+    }
+
 
     public function export_excel_master_so_ppic(Request $request)
     {
