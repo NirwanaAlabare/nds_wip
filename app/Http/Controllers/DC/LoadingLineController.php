@@ -312,6 +312,7 @@ class LoadingLineController extends Controller
 
     public function summary(Request $request) {
         if ($request->ajax()) {
+
             $dateFilter = "";
             if ($request->dateFrom || $request->dateTo) {
                 $dateFilter = "HAVING ";
@@ -463,6 +464,26 @@ class LoadingLineController extends Controller
             }
         }
 
+        $generalFilter = "";
+        if ($request->tanggal_loading) {
+            $generalFilter .= " AND loading_stock.tanggal_loading LIKE '%".$request->tanggal_loading."%'";
+        }
+        if ($request->nama_line) {
+            $generalFilter .= " AND loading_stock.nama_line LIKE '%".$request->nama_line."%'";
+        }
+        if ($request->act_costing_ws) {
+            $generalFilter .= " AND loading_line_plan.act_costing_ws LIKE '%".$request->act_costing_ws."%'";
+        }
+        if ($request->style) {
+            $generalFilter .= " AND loading_line_plan.style LIKE '%".$request->style."%'";
+        }
+        if ($request->color) {
+            $generalFilter .= " AND loading_line_plan.color LIKE '%".$request->color."%'";
+        }
+        if ($request->size) {
+            $generalFilter .= " AND loading_stock.size LIKE '%".$request->size."%'";
+        }
+
         $line = DB::select("
                 SELECT
                     loading_stock.tanggal_loading,
@@ -518,6 +539,7 @@ class LoadingLineController extends Controller
                     ) loading_stock ON loading_stock.loading_plan_id = loading_line_plan.id
                 WHERE
                     loading_stock.tanggal_loading IS NOT NULL
+                    ".$generalFilter."
                 GROUP BY
                     loading_stock.tanggal_loading,
                     loading_line_plan.id,
