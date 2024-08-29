@@ -2653,6 +2653,125 @@
                     });
                 });
 
+                // legacy
+                    // var datatableCutting = $("#datatable-cutting").DataTable({
+                    //     serverSide: false,
+                    //     processing: true,
+                    //     ordering: false,
+                    //     scrollX: '500px',
+                    //     scrollY: '500px',
+                    //     pageLength: 50,
+                    //     ajax: {
+                    //         url: '{{ route('dashboard-cutting') }}',
+                    //         dataType: 'json',
+                    //         data: function (d) {
+                    //             d.date = $('#cutting-date-filter').val();
+                    //             // d.month = $('#cutting-month-filter').val();
+                    //             // d.year = $('#cutting-year-filter').val();
+                    //         }
+                    //     },
+                    //     columns: [
+                    //         {
+                    //             data: 'tgl_form_cut',
+                    //         },
+                    //         {
+                    //             data: 'act_costing_ws',
+                    //         },
+                    //         {
+                    //             data: 'style',
+                    //         },
+                    //         {
+                    //             data: 'color',
+                    //         },
+                    //         {
+                    //             data: 'kode',
+                    //         },
+                    //         {
+                    //             data: 'urutan_marker',
+                    //         },
+                    //         {
+                    //             data: 'panel',
+                    //         },
+                    //         {
+                    //             data: 'no_form',
+                    //         },
+                    //         {
+                    //             data: 'no_cut',
+                    //         },
+                    //         {
+                    //             data: 'total_lembar',
+                    //         },
+                    //         {
+                    //             data: 'id_item',
+                    //         },
+                    //         {
+                    //             data: 'qty',
+                    //         },
+                    //         {
+                    //             data: 'total_pemakaian_roll',
+                    //         },
+                    //         {
+                    //             data: 'piping',
+                    //         },
+                    //         {
+                    //             data: 'short_roll',
+                    //         },
+                    //         {
+                    //             data: 'remark',
+                    //         },
+                    //         {
+                    //             data: 'unit',
+                    //         }
+                    //     ],
+                    //     columnDefs: [
+                    //         {
+                    //             targets: "_all",
+                    //             className: "text-nowrap align-middle"
+                    //         },
+                    //         {
+                    //             targets: [4],
+                    //             className: "text-nowrap align-middle",
+                    //             render: (data, type, row, meta) => {
+                    //                 return data ? `<a class='fw-bold' href='{{ route('edit-marker') }}/ `+row.marker_id+`' target='_blank'><u>`+data+`</u></a>` : "-";
+                    //             }
+                    //         },
+                    //         {
+                    //             targets: [7],
+                    //             className: "text-nowrap align-middle",
+                    //             render: (data, type, row, meta) => {
+                    //                 let formLink = "";
+
+                    //                 if (row.form_status == 'SELESAI PENGERJAAN') {
+                    //                     formLink = `<a class="fw-bold" href='{{ route('detail-cutting') }}/` + row.form_id + `' target='_blank'><u>`+ (data) +`</u></a>`;
+                    //                 } else {
+                    //                     if (row.tipe_form_cut == 'MANUAL') {
+                    //                         formLink = `<a class="fw-bold" href='{{ route('process-manual-form-cut') }}/` +row.form_id + `' target='_blank'><u>`+data+`</u></a>`;
+                    //                     } else if (row.tipe_form_cut == 'PILOT') {
+                    //                         formLink = `<a class="fw-bold" href='{{ route('process-pilot-form-cut') }}/` + row.form_id + `' target='_blank'><u>`+data+`</u></a>`;
+                    //                     } else {
+                    //                         formLink = `<a class="fw-bold" href='{{ route('process-form-cut-input') }}/` + row.form_id + `' target='_blank'><u>`+data+`</u></a>`;
+                    //                     }
+                    //                 }
+
+                    //                 return formLink;
+                    //             }
+                    //         },
+                    //         {
+                    //             targets: "_all",
+                    //             className: "text-nowrap colorize"
+                    //         }
+                    //     ],
+                    //     // rowCallback: function( row, data, index ) {
+                    //     //     if (data['line'] != '-') {
+                    //     //         $('td.colorize', row).css('color', '#2e8a57');
+                    //     //         $('td.colorize', row).css('font-weight', '600');
+                    //     //     } else if (!data['dc_in_id'] && data['troli'] == '-') {
+                    //     //         $('td.colorize', row).css('color', '#da4f4a');
+                    //     //         $('td.colorize', row).css('font-weight', '600');
+                    //     //     }
+                    //     // }
+                    // });
+
                 var datatableCutting = $("#datatable-cutting").DataTable({
                     serverSide: false,
                     processing: true,
@@ -2671,56 +2790,26 @@
                     },
                     columns: [
                         {
-                            data: 'tgl_form_cut',
+                            data: 'ws',
                         },
                         {
-                            data: 'act_costing_ws',
+                            data: 'styleno',
                         },
                         {
-                            data: 'style',
-                        },
-                        {
-                            data: 'color',
-                        },
-                        {
-                            data: 'kode',
-                        },
-                        {
-                            data: 'urutan_marker',
-                        },
-                        {
-                            data: 'panel',
-                        },
-                        {
-                            data: 'no_form',
-                        },
-                        {
-                            data: 'no_cut',
+                            data: 'total_order',
                         },
                         {
                             data: 'total_lembar',
                         },
                         {
-                            data: 'id_item',
+                            data: 'tanggal',
                         },
                         {
-                            data: 'qty',
+                            data: 'total_plan',
                         },
                         {
-                            data: 'total_pemakaian_roll',
+                            data: 'total_complete',
                         },
-                        {
-                            data: 'piping',
-                        },
-                        {
-                            data: 'short_roll',
-                        },
-                        {
-                            data: 'remark',
-                        },
-                        {
-                            data: 'unit',
-                        }
                     ],
                     columnDefs: [
                         {
@@ -2728,33 +2817,40 @@
                             className: "text-nowrap align-middle"
                         },
                         {
-                            targets: [4],
+                            targets: [2, 3, 5, 6],
                             className: "text-nowrap align-middle",
                             render: (data, type, row, meta) => {
-                                return data ? `<a class='fw-bold' href='{{ route('edit-marker') }}/ `+row.marker_id+`' target='_blank'><u>`+data+`</u></a>` : "-";
+                                return data ? Number(data).toLocaleString("ID-id") : 0;
                             }
                         },
-                        {
-                            targets: [7],
-                            className: "text-nowrap align-middle",
-                            render: (data, type, row, meta) => {
-                                let formLink = "";
+                        // {
+                        //     targets: [4],
+                        //     className: "text-nowrap align-middle",
+                        //     render: (data, type, row, meta) => {
+                        //         return data ? `<a class='fw-bold' href='{{ route('edit-marker') }}/ `+row.marker_id+`' target='_blank'><u>`+data+`</u></a>` : "-";
+                        //     }
+                        // },
+                        // {
+                        //     targets: [7],
+                        //     className: "text-nowrap align-middle",
+                        //     render: (data, type, row, meta) => {
+                        //         let formLink = "";
 
-                                if (row.form_status == 'SELESAI PENGERJAAN') {
-                                    formLink = `<a class="fw-bold" href='{{ route('detail-cutting') }}/` + row.form_id + `' target='_blank'><u>`+ (data) +`</u></a>`;
-                                } else {
-                                    if (row.tipe_form_cut == 'MANUAL') {
-                                        formLink = `<a class="fw-bold" href='{{ route('process-manual-form-cut') }}/` +row.form_id + `' target='_blank'><u>`+data+`</u></a>`;
-                                    } else if (row.tipe_form_cut == 'PILOT') {
-                                        formLink = `<a class="fw-bold" href='{{ route('process-pilot-form-cut') }}/` + row.form_id + `' target='_blank'><u>`+data+`</u></a>`;
-                                    } else {
-                                        formLink = `<a class="fw-bold" href='{{ route('process-form-cut-input') }}/` + row.form_id + `' target='_blank'><u>`+data+`</u></a>`;
-                                    }
-                                }
+                        //         if (row.form_status == 'SELESAI PENGERJAAN') {
+                        //             formLink = `<a class="fw-bold" href='{{ route('detail-cutting') }}/` + row.form_id + `' target='_blank'><u>`+ (data) +`</u></a>`;
+                        //         } else {
+                        //             if (row.tipe_form_cut == 'MANUAL') {
+                        //                 formLink = `<a class="fw-bold" href='{{ route('process-manual-form-cut') }}/` +row.form_id + `' target='_blank'><u>`+data+`</u></a>`;
+                        //             } else if (row.tipe_form_cut == 'PILOT') {
+                        //                 formLink = `<a class="fw-bold" href='{{ route('process-pilot-form-cut') }}/` + row.form_id + `' target='_blank'><u>`+data+`</u></a>`;
+                        //             } else {
+                        //                 formLink = `<a class="fw-bold" href='{{ route('process-form-cut-input') }}/` + row.form_id + `' target='_blank'><u>`+data+`</u></a>`;
+                        //             }
+                        //         }
 
-                                return formLink;
-                            }
-                        },
+                        //         return formLink;
+                        //     }
+                        // },
                         {
                             targets: "_all",
                             className: "text-nowrap colorize"
@@ -2770,7 +2866,6 @@
                     //     }
                     // }
                 });
-
 
                 // $('#cutting-month-filter').on('change', () => {
                 //     $('#datatable-cutting').DataTable().ajax.reload();
