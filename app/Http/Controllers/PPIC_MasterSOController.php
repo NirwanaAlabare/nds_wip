@@ -21,6 +21,7 @@ class PPIC_MasterSOController extends Controller
         $tgl_awal = $request->dateFrom;
         $tgl_akhir = $request->dateTo;
         $tgl_skrg = date('Y-m-d');
+        $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-30 days'));
         $user = Auth::user()->name;
 
         if ($request->ajax()) {
