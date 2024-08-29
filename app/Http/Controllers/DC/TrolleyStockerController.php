@@ -552,7 +552,7 @@ class TrolleyStockerController extends Controller
                 for ($i = 0; $i < count($stockerIds); $i++) {
                     $thisStockerData = Stocker::where('id', $stockerIds[$i])->first();
 
-                    $loadingLinePlan = LoadingLinePlan::where("act_costing_ws", $thisStockerData->act_costing_ws)->where("line_id", $lineData['line_id'])->first();
+                    $loadingLinePlan = LoadingLinePlan::where("act_costing_ws", $thisStockerData->act_costing_ws)->where("color", $thisStockerData->color)->where("line_id", $lineData['line_id'])->first();
 
                     $isExist = LoadingLine::where("stocker_id", $stockerIds[$i])->count();
 

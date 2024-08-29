@@ -96,6 +96,7 @@
             <table id="datatable" class="table table-bordered table-head-fixed table-striped table-sm w-100 text-nowrap" width="100%">
                 <thead>
                     <tr>
+                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">No Barcode</th>
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID Item</th>
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">Kode Barang</th>
                         <th class="text-center" style="font-size: 0.6rem;width: 300px;">Deskripsi</th>

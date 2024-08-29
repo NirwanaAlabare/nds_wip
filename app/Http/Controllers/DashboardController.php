@@ -198,7 +198,7 @@ class DashboardController extends Controller
                 leftJoin("form_cut_input_detail", "form_cut_input_detail.no_form_cut_input", "=", "form_cut_input.no_form")->
                 whereRaw("(marker_input.cancel IS NULL OR marker_input.cancel != 'Y')")->
                 whereRaw("(form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y')")->
-                whereRaw("(DATE(form_cut_input.waktu_mulai) = '".$date."')")->
+                whereRaw("(COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."')")->
                 groupBy("marker_input.id", "form_cut_input.id", "form_cut_input_detail.unit")->
                 orderBy("form_cut_input.waktu_mulai", "desc")->
                 orderBy("marker_input.buyer", "asc")->
@@ -254,7 +254,7 @@ class DashboardController extends Controller
                     WHERE
                         ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' ) AND
                         ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' ) AND
-                        ( cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND DATE(form_cut_input.waktu_mulai) = '".$date."') )
+                        ( cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."') )
                     GROUP BY
                         form_cut_input.id
                 ) frm
@@ -280,9 +280,9 @@ class DashboardController extends Controller
             whereRaw("
                 ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' ) AND
                 ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' ) AND
-                ( cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND DATE(form_cut_input.waktu_mulai) = '".$date."') )
+                ( cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."') )
             ")->
-            groupByRaw("(CASE WHEN cutting_plan.tgl_plan != '".$date."' THEN DATE(form_cut_input.waktu_mulai) ELSE cutting_plan.tgl_plan END), meja.id")->
+            groupByRaw("(CASE WHEN cutting_plan.tgl_plan != '".$date."' THEN COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) ELSE cutting_plan.tgl_plan END), meja.id")->
             get();
 
         return json_encode($cuttingForm);

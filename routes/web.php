@@ -118,6 +118,8 @@ use App\Http\Controllers\ReportDocController;
 
 use App\Http\Controllers\GAPengajuanBahanBakarController;
 use App\Http\Controllers\GAApprovalBahanBakarController;
+
+use App\Http\Controllers\StockOpnameController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -421,6 +423,7 @@ Route::middleware('auth')->group(function () {
     // ReportCutting
     Route::controller(ReportCuttingController::class)->prefix("report-cutting")->middleware('admin')->group(function () {
         Route::get('/cutting', 'cutting')->name('report-cutting');
+        Route::get('/pemakaian-roll', 'pemakaianRoll')->name('pemakaian-roll');
         // export excel
         Route::post('/cutting/export', 'export')->name('report-cutting-export');
     });
@@ -786,6 +789,7 @@ Route::middleware('auth')->group(function () {
 
     // Track
     Route::controller(TrackController::class)->prefix("track")->middleware('admin')->group(function () {
+        // worksheet
         Route::get('/worksheet', 'worksheet')->name('track-ws');
         Route::post('/worksheet/export', 'worksheetExport')->name('track-ws-export');
         Route::get('/worksheet/show/{actCostingId?}', 'showWorksheet')->name('track-ws-detail');
@@ -800,6 +804,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/worksheet/show-stocker', 'wsStocker')->name('track-ws-stocker');
         Route::get('/worksheet/show-stocker-total', 'wsStockerTotal')->name('track-ws-stocker-total');
         Route::get('/worksheet/ws-sewing-output', 'wsSewingOutput')->name('track-ws-sewing-output');
+
+        // stocker
+        Route::get('/stocker', 'stocker')->name('track-stocker');
+        Route::get('/stocker/show/{actCostingId?}', 'showStocker')->name('track-stocker-detail');
     });
 
     //Mutasi Karywawan
@@ -861,6 +869,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-data-rak', 'getdatarak')->name('get-data-rak');
         Route::get('/get-data-rak2', 'getdatarak2')->name('get-data-rak2');
         Route::get('/get-data-rak3', 'getdatarak3')->name('get-data-rak3');
+    });
+
+    // stock_opname
+    Route::controller(StockOpnameController::class)->prefix("so")->group(function () {
+        // get worksheet
+        Route::get('stock_opname/', 'index')->name('stock_opname');
     });
 
     //Penerimaan

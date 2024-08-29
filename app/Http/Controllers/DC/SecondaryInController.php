@@ -146,7 +146,7 @@ class SecondaryInController extends Controller
         dc.tujuan,
         dc.lokasi,
         mp.nama_part,
-        if(dc.tujuan = 'SECONDARY LUAR',dc.qty_awal, si.qty_awal) qty_awal,
+        if(dc.tujuan = 'SECONDARY LUAR', (dc.qty_awal - dc.qty_reject + dc.qty_replace), (si.qty_awal - si.qty_reject + si.qty_replace)) qty_awal,
         s.lokasi lokasi_tujuan,
         s.tempat tempat_tujuan
         from
