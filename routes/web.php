@@ -401,6 +401,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/cut-plan-output', 'cuttingPlanOutput')->name('cut-plan-output');
         Route::get('/cut-plan-output/show/{id?}', 'showCuttingPlanOutput')->name('detail-cut-plan-output');
+        Route::get('/cut-plan-output/show-form', 'showCutPlanOutputForm')->name('cut-plan-output-form');
         Route::get('/cut-plan-output/show-available-form', 'showCutPlanOutputAvailableForm')->name('available-cut-plan-output-form');
         Route::get('/cut-plan-output/create', 'createCuttingPlanOutput')->name('create-cut-plan-output');
         Route::post('/cut-plan-output/store', 'storeCuttingPlanOutput')->name('store-cut-plan-output');

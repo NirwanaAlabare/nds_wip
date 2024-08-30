@@ -690,6 +690,107 @@ class CuttingPlanController extends Controller
         return redirect(route("cut-plan-output"));
     }
 
+    public function showCutPlanOutputForm(Request $request) {
+        $thisStoredCutPlan = CutPlanOutput::selectRaw("
+                form_cut_input.no_form
+            ")->
+            leftJoin("cutting_plan_output_form", "cutting_plan_output_form.cutting_plan_id", "=", "cutting_plan_output.id")->
+            leftJoin("form_cut_Input", "form_cut_input.no_form", "=", "cutting_plan_output_form.no_form")->
+            where("cutting_plan_output.id", $request->id)->
+            groupBy("form_cut_input.no_form")->
+            get();
+
+        if ($thisStoredCutPlan->count() > 0) {
+            $i = 0;
+            $additionalQuery .= " AND a.no_form NOT IN (";
+            foreach ($thisStoredCutPlan as $cutPlan) {
+                if ($i+1 == count($thisStoredCutPlan)) {
+                    $additionalQuery .= "'".$cutPlan->no_form . "' ";
+                } else {
+                    $additionalQuery .= "'".$cutPlan->no_form . "' , ";
+                }
+
+                $i++;
+            }
+            $additionalQuery .= ") ";
+        }
+
+        if ($request->act_costing_id) {
+            $additionalQuery = " AND b.act_costing_id = '".$request->act_costing_id."'";
+        }
+        if ($request->act_costing_ws) {
+            $additionalQuery = " AND b.act_costing_ws = '".$request->act_costing_ws."'";
+        }
+        if ($request->color) {
+            $additionalQuery = " AND b.color = '".$request->color."'";
+        }
+        if ($request->no_meja) {
+            $additionalQuery = " AND a.no_meja = '".$request->no_meja."'";
+        }
+
+        $keywordQuery = "";
+        if ($request->search["value"]) {
+            $keywordQuery = "
+                and (
+                    a.id_marker like '%" . $request->search["value"] . "%' OR
+                    a.no_meja like '%" . $request->search["value"] . "%' OR
+                    a.no_form like '%" . $request->search["value"] . "%' OR
+                    a.tgl_form_cut like '%" . $request->search["value"] . "%' OR
+                    b.act_costing_ws like '%" . $request->search["value"] . "%' OR
+                    panel like '%" . $request->search["value"] . "%' OR
+                    b.color like '%" . $request->search["value"] . "%' OR
+                    a.status like '%" . $request->search["value"] . "%' OR
+                    users.name like '%" . $request->search["value"] . "%'
+                )
+            ";
+        }
+
+        $data_spreading = DB::select("
+            SELECT
+                a.id,
+                a.no_meja,
+                a.id_marker,
+                a.no_form,
+                a.tgl_form_cut,
+                b.id marker_id,
+                b.act_costing_ws ws,
+                b.style,
+                b.panel,
+                b.color,
+                a.status,
+                UPPER(users.name) nama_meja,
+                b.panjang_marker,
+                UPPER(b.unit_panjang_marker) unit_panjang_marker,
+                b.comma_marker,
+                UPPER(b.unit_comma_marker) unit_comma_marker,
+                b.lebar_marker,
+                UPPER(b.unit_lebar_marker) unit_lebar_marker,
+                a.qty_ply,
+                b.gelar_qty,
+                b.po_marker,
+                b.urutan_marker,
+                b.cons_marker,
+                a.tipe_form_cut,
+                CONCAT(b.panel, ' - ', b.urutan_marker) panel,
+                GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' / ') marker_details
+            FROM `form_cut_input` a
+            left join marker_input b on a.id_marker = b.kode
+            left join marker_input_detail on b.id = marker_input_detail.marker_id
+            left join master_size_new on marker_input_detail.size = master_size_new.size
+            left join users on users.id = a.no_meja
+            where
+                a.status = 'SPREADING' and
+                b.cancel = 'N' and
+                marker_input_detail.ratio > 0
+                " . $additionalQuery . "
+                " . $keywordQuery . "
+            GROUP BY a.id
+            ORDER BY b.cancel asc, a.tgl_form_cut desc, a.no_form desc
+        ");
+
+        return DataTables::of($data_spreading)->toJson();
+    }
+
     public function showCutPlanOutputAvailableForm(Request $request) {
         $thisStoredCutPlan = CutPlanOutput::selectRaw("
                 form_cut_input.no_form
