@@ -2115,6 +2115,8 @@ class StockerController extends Controller
     }
 
     public function setYearSequenceNumber(Request $request) {
+        ini_set("max_execution_time", 36000);
+
         $validatedRequest = $request->validate([
             "year" => 'required',
             "year_sequence" => 'required',
@@ -2145,6 +2147,8 @@ class StockerController extends Controller
 
                 $n = 0;
                 $n1 = 0;
+                $largeCount = 0;
+
                 for ($i = $validatedRequest['range_awal_year_sequence']; $i <= $validatedRequest['range_akhir_year_sequence']; $i++) {
                     if ($i > 999999) {
                         $yearSequenceSequence = $yearSequenceSequence + 1;
@@ -2153,10 +2157,10 @@ class StockerController extends Controller
 
                     if ($currentData->where('number', $validatedRequest['range_awal_stocker']+$n)->count() < 1) {
                         array_push($upsertData, [
-                            "id_year_sequence" => $validatedRequest['year']."_".($yearSequenceSequence)."_".($yearSequenceNumber + $n1),
+                            "id_year_sequence" => $validatedRequest['year']."_".($yearSequenceSequence)."_".($i),
                             "year" => $validatedRequest['year'],
                             "year_sequence" => $yearSequenceSequence,
-                            "year_sequence_number" => ($yearSequenceNumber + $n1),
+                            "year_sequence_number" => ($i),
                             "form_cut_id" => $validatedRequest['form_cut_id'],
                             "so_det_id" => $validatedRequest['so_det_id'],
                             "size" => $validatedRequest['size'],
@@ -2165,24 +2169,42 @@ class StockerController extends Controller
                             "updated_at" => Carbon::now(),
                         ]);
 
+                        if (count($upsertData) % 5000 == 0) {
+                            YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], ['form_cut_id', 'so_det_id', 'size', 'number', 'created_at', 'updated_at']);
+
+                            $upsertData = [];
+
+                            $largeCount++;
+                        }
+
                         $n1++;
                     }
 
                     $n++;
                 }
 
-                if (count($upsertData) > 0) {
-                    YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence'], ['form_cut_id', 'so_det_id', 'size', 'number', 'created_at', 'updated_at']);
+                if (count($upsertData) > 0 || $largeCount > 0) {
+                    if (count($upsertData) > 0) {
+                        YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], ['form_cut_id', 'so_det_id', 'size', 'number', 'created_at', 'updated_at']);
+                    }
 
-                    $customPaper = array(0, 0, 35.35, 110.90);
-                    $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearsequence', ["data" => $upsertData])->setPaper($customPaper);
+                    // $customPaper = array(0, 0, 35.35, 110.90);
+                    // $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearsequence', ["data" => $upsertData])->setPaper($customPaper);
 
-                    $path = public_path('pdf/');
-                    $fileName = str_replace("/", "-", ('Year Sequence.pdf'));
-                    $pdf->save($path . '/' . str_replace("/", "_", $fileName));
-                    $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
+                    // $path = public_path('pdf/');
+                    // $fileName = str_replace("/", "-", ('Year Sequence.pdf'));
+                    // $pdf->save($path . '/' . str_replace("/", "_", $fileName));
+                    // $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
 
-                    return response()->download($generatedFilePath);
+                    return array(
+                        "status" => 200,
+                        "message" => "Berhasil"
+                    );
+                } else {
+                    return array(
+                        "status" => 400,
+                        "message" => "Fkin Hell"
+                    );
                 }
             }
         }
