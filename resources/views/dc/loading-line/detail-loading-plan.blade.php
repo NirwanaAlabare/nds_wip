@@ -15,7 +15,7 @@
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="card-title fw-bold">
-                    <i class="fa fa-circle-info"></i> zLoading Line
+                    <i class="fa fa-circle-info"></i> Loading Line
                 </h5>
                 <a href="{{ route('loading-line') }}" class="btn btn-sm btn-primary">
                     <i class="fa fa-reply"></i> Kembali ke Loading Line
