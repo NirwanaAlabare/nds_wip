@@ -424,7 +424,7 @@ class StockerController extends Controller
 
         $dataStockers = Stocker::selectRaw("
                 (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) != 0 THEN (CONCAT(stocker_input.qty_ply, (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) > 0 THEN CONCAT('+', (stocker_input.qty_ply_mod - stocker_input.qty_ply)) ELSE (stocker_input.qty_ply_mod - stocker_input.qty_ply) END))) ELSE stocker_input.qty_ply END) bundle_qty,
-                COALESCE(master_sb_ws.size, marker_input_detail.size) size,
+                COALESCE(master_sb_ws.size, stocker_input.size) size,
                 stocker_input.range_awal,
                 stocker_input.range_akhir,
                 stocker_input.id_qr_stocker,
@@ -557,7 +557,7 @@ class StockerController extends Controller
 
         $dataStockers = Stocker::selectRaw("
                 (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) != 0 THEN (CONCAT(stocker_input.qty_ply, (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) > 0 THEN CONCAT('+', (stocker_input.qty_ply_mod - stocker_input.qty_ply)) ELSE (stocker_input.qty_ply_mod - stocker_input.qty_ply) END))) ELSE stocker_input.qty_ply END) bundle_qty,
-                COALESCE(master_sb_ws.size, marker_input_detail.size) size,
+                COALESCE(master_sb_ws.size, stocker_input.size) size,
                 stocker_input.range_awal,
                 stocker_input.range_akhir,
                 stocker_input.id_qr_stocker,
@@ -692,7 +692,7 @@ class StockerController extends Controller
 
         $dataStockers = Stocker::selectRaw("
                 (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) != 0 THEN (CONCAT(stocker_input.qty_ply, (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) > 0 THEN CONCAT('+', (stocker_input.qty_ply_mod - stocker_input.qty_ply)) ELSE (stocker_input.qty_ply_mod - stocker_input.qty_ply) END))) ELSE stocker_input.qty_ply END) bundle_qty,
-                COALESCE(master_sb_ws.size, marker_input_detail.size) size,
+                COALESCE(master_sb_ws.size, stocker_input.size) size,
                 stocker_input.range_awal,
                 stocker_input.range_akhir,
                 MAX(stocker_input.id_qr_stocker) id_qr_stocker,
