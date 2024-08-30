@@ -310,6 +310,7 @@ class DashboardController extends Controller
                                     form_cut_input
                                     left join cutting_plan on cutting_plan.no_form_cut_input = form_cut_input.no_form
                                 where
+                                    form_cut_input.status = 'SELESAI PENGERJAAN' AND
                                     ( form_cut_input.cancel is null or form_cut_input.cancel != 'Y' )
                                 group by
                                     form_cut_input.id_marker
