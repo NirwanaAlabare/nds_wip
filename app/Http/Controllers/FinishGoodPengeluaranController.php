@@ -336,7 +336,7 @@ group by no_sb
         }
 
         $insert_fg_out_nds = DB::insert("INSERT into fg_fg_out
-        (no_sb,tgl_pengeluaran,buyer,id_ppic_master_so,id_so_det,barcode,qty,po,no_carton,lokasi,notes,id_fg_in,jenis_dok,invno,remarkcreated_at,updated_at,created_by)
+        (no_sb,tgl_pengeluaran,buyer,id_ppic_master_so,id_so_det,barcode,qty,po,no_carton,lokasi,notes,id_fg_in,jenis_dok,invno,remark,created_at,updated_at,created_by)
 select '$bppbno_int','$tgl_skrg',buyer,id_ppic_master_so,id_so_det,barcode,qty,a.po,a.no_carton,lokasi,a.notes,a.id_fg_in,'$jns_dok','$inv','-','$timestamp','$timestamp','$user'
 from fg_fg_out_tmp	a
 inner join fg_fg_in b on a.id_fg_in = b.id
