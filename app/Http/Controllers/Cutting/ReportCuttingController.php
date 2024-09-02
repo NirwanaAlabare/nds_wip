@@ -194,6 +194,13 @@ class ReportCuttingController extends Controller
 
                     return $data ? $data->total_roll : 0;
                 })->
+                addColumn('total_roll_balance', function ($row) use ($cutting) {
+                    $data = $cutting->where("no_req", $row->bppbno)->where("id_item", $row->id_item)->first();
+
+                    $balance = $data ? $row->roll_out - $data->total_roll : $row->roll_out;
+
+                    return ($balance > 0 ? "-".($balance) : ($balance < 0 ? ( str_replace("-", "+", $balance) ) : ($balance)));
+                })->
                 addColumn('total_qty_cutting', function ($row) use ($cutting) {
                     $data = $cutting->where("no_req", $row->bppbno)->where("id_item", $row->id_item)->first();
 
@@ -203,6 +210,13 @@ class ReportCuttingController extends Controller
                     $data = $cutting->where("no_req", $row->bppbno)->where("id_item", $row->id_item)->first();
 
                     return $data ? $data->total_pakai_roll : 0;
+                })->
+                addColumn('total_pakai_balance', function ($row) use ($cutting) {
+                    $data = $cutting->where("no_req", $row->bppbno)->where("id_item", $row->id_item)->first();
+
+                    $balance = $data ? $row->qty_out - $data->total_pakai_roll : $row->qty_out;
+
+                    return ($balance > 0 ? "-".($balance) : ($balance < 0 ? ( str_replace("-", "+", $balance) ) : ($balance)));
                 })->toJson();
         }
 

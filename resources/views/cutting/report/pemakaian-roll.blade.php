@@ -48,8 +48,9 @@
                             <th>Roll In</th>
                             <th>Qty In</th>
                             <th>Roll Cutting</th>
+                            <th>Roll Balance</th>
                             <th>Qty Cutting</th>
-                            <th>Pemakaian Cutting</th>
+                            <th>Qty Balance</th>
                             <th class="d-none">No. Return</th>
                             <th>Roll Return</th>
                             <th>Qty Return</th>
@@ -167,10 +168,13 @@
                     data: 'total_roll_cutting'
                 },
                 {
-                    data: 'total_qty_cutting'
+                    data: 'total_roll_balance'
                 },
                 {
                     data: 'total_pakai_cutting'
+                },
+                {
+                    data: 'total_pakai_balance'
                 },
                 {
                     data: 'no_retur'
@@ -184,8 +188,29 @@
             ],
             columnDefs: [
                 {
-                    targets: [10, 16],
+                    targets: [10, 17],
                     className: "d-none",
+                },
+                {
+                    targets: [8, 9, 11, 12, 13, 15, 18, 19],
+                    className: "fw-bold",
+                },
+                {
+                    targets: [14, 16],
+                    className: "fw-bold",
+                    render: (data, type, row, meta) => {
+                        let color = "";
+
+                        if (data > 0) {
+                            color = '#05b01f;';
+                        } else if (data < 0) {
+                            color = '#d60d0d;';
+                        } else {
+                            color = '#000;';
+                        }
+
+                        return "<span style='color: "+color+"'>"+data+"</span>";
+                    }
                 },
                 {
                     targets: "_all",
