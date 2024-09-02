@@ -3432,7 +3432,7 @@
                                     Swal.fire({
                                         icon: 'error',
                                         title: 'Gagal',
-                                        text: 'Roll tidak tersedia atau sudah habis.',
+                                        text: res ? res : 'Roll tidak tersedia.',
                                         showCancelButton: false,
                                         showConfirmButton: true,
                                         confirmButtonText: 'Oke',
@@ -3445,7 +3445,7 @@
                                 Swal.fire({
                                     icon: 'error',
                                     title: 'Gagal',
-                                    text: 'Roll tidak tersedia atau sudah habis.',
+                                    text: jqXHR.responseText ? jqXHR.responseText : 'Roll tidak tersedia.',
                                     showCancelButton: false,
                                     showConfirmButton: true,
                                     confirmButtonText: 'Oke',

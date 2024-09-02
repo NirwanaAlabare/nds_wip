@@ -451,7 +451,9 @@ class CuttingFormManualController extends Controller
                     return json_encode($scannedItem);
                 }
 
-                return json_encode(null);
+                $formCutInputDetail = FormCutInputDetail::where("id_roll", $id)->orderBy("updated_at", "desc")->first();
+
+                return "Roll sudah terpakai di form '".$formCutInputDetail->no_form_cut_input."'";
             }
 
             return json_encode($newItem ? $newItem[0] : null);
@@ -499,7 +501,9 @@ class CuttingFormManualController extends Controller
                     return json_encode($scannedItem);
                 }
 
-                return json_encode(null);
+                $formCutInputDetail = FormCutInputDetail::where("id_roll", $id)->orderBy("updated_at", "desc")->first();
+
+                return "Roll sudah terpakai di form '".$formCutInputDetail->no_form_cut_input."'";
             }
 
             return json_encode($item ? $item[0] : null);
