@@ -22,7 +22,7 @@
                     <div class="d-flex align-items-end gap-3 mb-3">
                         <div class="mb-3">
                             <label class="form-label"><small>Tanggal Awal</small></label>
-                            <input type="date" class="form-control form-control-sm" id="from" name="from" onchange="datatableReload()">
+                            <input type="date" class="form-control form-control-sm" id="from" name="from" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
                         </div>
                         <div class="mb-3">
                             <label class="form-label"><small>Tanggal Akhir</small></label>
@@ -95,7 +95,7 @@
             let oneWeeksBeforeYear = oneWeeksBefore.getFullYear();
             let oneWeeksBeforeFull = oneWeeksBeforeYear + '-' + oneWeeksBeforeMonth + '-' + oneWeeksBeforeDate;
 
-            $("#from").val(oneWeeksBeforeFull).trigger("change");
+            // $("#from").val(oneWeeksBeforeFull).trigger("change");
 
             // window.addEventListener("focus", () => {
             //     datatableReload();

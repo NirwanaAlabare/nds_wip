@@ -18,15 +18,17 @@ class RollController extends Controller
      */
     public function index(Request $request)
     {
+        ini_set("max_execution_time", 36000);
+
         if ($request->ajax()) {
             $additionalQuery = "";
 
             if ($request->dateFrom) {
-                $additionalQuery .= " and b.created_at >= '" . $request->dateFrom . " 00:00:00'";
+                $additionalQuery .= " and DATE(b.created_at) >= '" . $request->dateFrom . "'";
             }
 
             if ($request->dateTo) {
-                $additionalQuery .= " and b.created_at <= '" . $request->dateTo . " 23:59:59'";
+                $additionalQuery .= " and DATE(b.created_at) <= '" . $request->dateTo . "'";
             }
 
             $keywordQuery = "";
@@ -82,7 +84,7 @@ class RollController extends Controller
                     b.id_roll desc,
                     b.id_item desc,
                     b.no_form_cut_input desc
-                ");
+            ");
 
             return DataTables::of($data_pemakaian)->toJson();
         }
