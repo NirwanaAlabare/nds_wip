@@ -3015,7 +3015,9 @@
                         type: 'get',
                         dataType: 'json',
                         success: function(res) {
-                            if (res) {
+                            console.log(res);
+
+                            if (typeof res === 'object' && res !== null) {
                                 if (totalScannedItem > 0) {
                                     // if (res.unit.toLowerCase() != ($("#unit_cons_actual_gelaran").val()).toLowerCase()) {
                                     //     Swal.fire({
@@ -3047,7 +3049,7 @@
                                 Swal.fire({
                                     icon: 'error',
                                     title: 'Gagal',
-                                    text: 'Roll tidak tersedia atau sudah habis.',
+                                    text: res ? res : 'Roll tidak tersedia.',
                                     showCancelButton: false,
                                     showConfirmButton: true,
                                     confirmButtonText: 'Oke',
@@ -3057,10 +3059,12 @@
                             document.getElementById("loading").classList.add("d-none");
                         },
                         error: function(jqXHR) {
+                            console.log(jqXHR);
+
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Gagal',
-                                text: 'Roll tidak tersedia atau sudah habis.',
+                                text: jqXHR.responseText ? jqXHR.responseText : 'Roll tidak tersedia.',
                                 showCancelButton: false,
                                 showConfirmButton: true,
                                 confirmButtonText: 'Oke',

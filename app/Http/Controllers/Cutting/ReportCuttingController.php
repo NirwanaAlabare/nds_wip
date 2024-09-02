@@ -60,11 +60,13 @@ class ReportCuttingController extends Controller
                     COALESCE(marker_cutting.notes, '-') notes,
                     SUM(marker_cutting.marker_gelar * marker_cutting.ratio) marker_gelar,
                     SUM(marker_cutting.spreading_gelar  * marker_cutting.ratio) spreading_gelar,
-                    SUM(marker_cutting.form_gelar * marker_cutting.ratio) form_gelar
+                    SUM((marker_cutting.form_gelar * marker_cutting.ratio) + COALESCE(marker_cutting.diff, 0)) form_gelar,
+                    SUM(COALESCE(marker_cutting.diff, 0)) form_diff
                 FROM
                     (
                         SELECT
                             marker_input.kode,
+                            form_cut.no_form,
                             form_cut.meja,
                             form_cut.tgl_form_cut,
                             marker_input.buyer,
@@ -81,7 +83,8 @@ class ReportCuttingController extends Controller
                             COALESCE(marker_input.notes, form_cut.notes) notes,
                             marker_input.gelar_qty marker_gelar,
                             SUM(form_cut.qty_ply) spreading_gelar,
-                            SUM(COALESCE(form_cut.total_lembar, form_cut.detail)) form_gelar
+                            SUM(COALESCE(form_cut.total_lembar, form_cut.detail)) form_gelar,
+                            SUM(modify_size_qty.difference_qty) diff
                         FROM
                             marker_input
                             INNER JOIN
@@ -110,6 +113,8 @@ class ReportCuttingController extends Controller
                                     GROUP BY
                                         form_cut_input.no_form
                                 ) form_cut on form_cut.id_marker = marker_input.kode
+                            LEFT JOIN
+                                modify_size_qty ON modify_size_qty.no_form = form_cut.no_form AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
                             where
                                 (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
                                 AND marker_input_detail.ratio > 0

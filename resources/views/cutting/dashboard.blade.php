@@ -129,9 +129,9 @@
                         <th>Style</th>
                         <th>Total Order</th>
                         <th>Total Lembar</th>
-                        <th>Tanggal</th>
-                        <th>Total Plan</th>
-                        <th>Total Complete</th>
+                        <th>Tanggal Plan</th>
+                        <th>Output Plan</th>
+                        <th>Output Plan Complete</th>
                     </tr>
                 </thead>
                 <tbody>

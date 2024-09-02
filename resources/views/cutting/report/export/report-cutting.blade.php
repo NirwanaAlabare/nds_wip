@@ -38,7 +38,7 @@
                 <td colspan="2" style="font-weight: 800;background: #ffd966;">PLANNING</td>
                 <td colspan="2" style="font-weight: 800;background: #ffd966;">{{ $cutting->panel }}</td>
                 <td colspan="7" style="font-weight: 800;background: #ffd966;">{{ localeDateFormat($date) }}</td>
-                <td colspan="4" style="font-weight: 800;background: #f8cbad;text-align: center;">CUTTING</td>
+                <td colspan="5" style="font-weight: 800;background: #f8cbad;text-align: center;">CUTTING</td>
                 {{-- <td colspan="4" style="font-weight: 800;background: #bdd7ee;text-align: center;">SPREADING</td> --}}
                 <td colspan="9" style="font-weight: 800;background: #ccccff;text-align: center;">MATERIAL</td>
             </tr>
@@ -61,6 +61,7 @@
                 <th style="font-weight: 800;background: #f8cbad;">Balance To Spreading</th>
                 <th style="font-weight: 800;background: #f8cbad;">Total Target</th>
                 <th style="font-weight: 800;background: #f8cbad;">Output Cutting</th>
+                <th style="font-weight: 800;background: #f8cbad;">Output Diff</th>
                 <th style="font-weight: 800;background: #f8cbad;">Balance</th>
                 <th style="font-weight: 800;background: #ccccff;">Cons</th>
                 <th style="font-weight: 800;background: #ccccff;">Need</th>
@@ -88,6 +89,7 @@
                 $totalBalanceToSpr = 0;
                 $totalTotalTargetCut = 0;
                 $totalOutputCut = 0;
+                $totalOutputCutDiff = 0;
                 $totalBalanceCut = 0;
                 $totalConsWs = 0;
                 $totalNeed = 0;
@@ -119,6 +121,7 @@
             <td style="vertical-align: top;"></td> --}}
             <td style="vertical-align: top;">{{ $cutting->marker_gelar ? $cutting->marker_gelar : '-'  }}</td>
             <td style="vertical-align: top;">{{ $cutting->form_gelar ? $cutting->form_gelar : '-'  }}</td>
+            <td style="vertical-align: top;">{{ $cutting->form_diff ? $cutting->form_diff : '-'  }}</td>
             <td style="vertical-align: top;">{{ ($cutting->form_gelar ? $cutting->form_gelar : 0) - ($cutting->marker_gelar ? $cutting->marker_gelar : 0) }}</td>
             <td style="vertical-align: top;">{{ ($cutting->cons_ws ? $cutting->cons_ws : 0) }}</td>
             <td style="vertical-align: top;"></td>
@@ -143,6 +146,7 @@
             $totalBalanceToSpr += 0;
             $totalTotalTargetCut += $cutting->spreading_gelar ? $cutting->spreading_gelar : 0;
             $totalOutputCut += $cutting->form_gelar ? $cutting->form_gelar : 0;
+            $totalOutputCutDiff += $cutting->form_diff ? $cutting->form_diff : 0;
             $totalBalanceCut += ($cutting->form_gelar ? $cutting->form_gelar : 0) - ($cutting->spreading_gelar ? $cutting->spreading_gelar : 0);
             $totalConsWs += $cutting->cons_ws ? $cutting->cons_ws : 0;
             $totalNeed += 0;
@@ -174,6 +178,7 @@
                 <td>{{ $totalBalanceToSpr }}</td> --}}
                 <td>{{ $totalTotalTargetCut }}</td>
                 <td>{{ $totalOutputCut }}</td>
+                <td>{{ $totalOutputCutDiff }}</td>
                 <td style="{{ $totalBalanceCut > 0 ? 'background: #c4edc2; color: #199e08;' : ($totalBalanceCut == 0 ? 'background: #dde7f7;color: #2683ed;' : 'background: #f7dedd;color: #ed2626;') }}">{{ $totalBalanceCut }}</td>
                 <td>{{ $totalConsWs }}</td>
                 <td>{{ $totalNeed }}</td>
