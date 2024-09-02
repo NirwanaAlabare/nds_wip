@@ -136,9 +136,10 @@
             </div>
             <div class="modal-body">
                 <div class="table-responsive">
-                    <table id="datatable-add-form" class="table table-bordered">
+                    <table id="datatable-add-form" class="table table-bordered table-sm w-100">
                         <thead>
                             <tr>
+                                <th><input class="me-1" type="checkbox" id="checkAllForm" onchange="checkAllForm(this)"></th>
                                 <th>Tanggal Form</th>
                                 <th>No. Form</th>
                                 <th>No. Meja</th>
@@ -160,8 +161,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                <button type="button" class="btn btn-primary">Simpan</button>
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Tutup</button>
+                <button type="button" class="btn btn-primary"><i class="fa fa-save"></i> Simpan</button>
             </div>
         </div>
         </div>
@@ -190,6 +191,22 @@
             document.querySelector('.select2-search__field').focus();
         });
 
+        // Calculate Total
+        function calculateTarget() {
+            let target1 = $("#target_1").val() ? Number($("#target_1").val()) : 0;
+            let pending1 = $("#pending_1").val() ? Number($("#pending_1").val()) : 0;
+            let target2 = $("#target_2").val() ? Number($("#target_2").val()) : 0;
+            let pending2 = $("#pending_2").val() ? Number($("#pending_2").val()) : 0;
+
+            let totalTarget = target1 + pending1 + target2 + pending2;
+
+            let cons = $("#cons").val() ? $("#cons").val() : 0;
+
+            document.getElementById('total_target').value = Number(totalTarget);
+
+            document.getElementById('need').value = Number(totalTarget * cons).round(3);
+        }
+
         let datatable = $("#datatable-form").DataTable({
             ordering: false,
             processing: true,
@@ -200,6 +217,7 @@
                     d.act_costing_id = $('#id_ws').val();
                     d.act_costing_ws = $('#ws').val();
                     d.color = $('#color').val();
+                    d.no_meja = $('#no_meja').val();
                 },
             },
             columns: [
@@ -361,9 +379,9 @@
                 },
             },
             columns: [
-                // {
-                //     data: 'id'
-                // },
+                {
+                    data: 'id'
+                },
                 {
                     data: 'tgl_form_cut'
                 },
@@ -430,6 +448,14 @@
                 //         return `<div class='d-flex gap-1 justify-content-center'>` + btnEditMeja + btnEditStatus + btnProcess + btnDelete + `</div>`;
                 //     }
                 // },
+                {
+                    targets: [0],
+                    render: (data, type, row, meta) => {
+                        return `
+                            <input class="check_add_form me-1" type="checkbox" value="`+data+`" id="check_add_`+meta.row+`" name="check_add[`+meta.row+`]" `+(checkedForms.includes(Number(data)) ? 'checked' : '')+` onchange='checkForm(this)'>
+                        `;
+                    }
+                },
                 {
                     targets: [4],
                     render: (data, type, row, meta) => {
@@ -503,7 +529,67 @@
                     $('td', row).css('background-color', '#c5e0fa');
                     $('td', row).css('border', '0.15px solid #d0d0d0');
                 }
+
+                checkAllFormElement();
             }
         });
+
+        var checkedForms = [];
+
+        async function checkAllForm(element) {
+            document.getElementById('loading').classList.remove('d-none');
+
+            if (element.checked) {
+                $.ajax({
+                    url: '{{ route('cut-plan-output-check-all-form') }}',
+                    method: 'get',
+                    data: {
+                        act_costing_id: $('#id_ws').val(),
+                        act_costing_ws: $('#ws').val(),
+                        color: $('#color').val(),
+                    },
+                    success: async function (res) {
+                        if (res.length > 0) {
+                            checkedForms = res;
+
+                            checkAllFormElement();
+                        }
+
+                        document.getElementById('loading').classList.add('d-none');
+                    },
+                    error: function (jqXHR) {
+                        console.log(jqXHR);
+
+                        document.getElementById('loading').classList.add('d-none');
+                    }
+                });
+            } else {
+                checkedForms = [];
+
+                checkAllFormElement();
+
+                document.getElementById('loading').classList.add('d-none');
+            }
+        }
+
+        function checkAllFormElement() {
+            let checkAllForm = document.getElementsByClassName("check_add_form");
+
+            for (let i = 0; i < checkAllForm.length; i++) {
+                if (checkedForms.includes(Number(checkAllForm[i].value))) {
+                    checkAllForm[i].checked = true;
+                } else {
+                    checkAllForm[i].checked = false;
+                }
+            }
+        }
+
+        function checkForm(element) {
+            if (element.checked) {
+                checkedForms.push(Number(element.value));
+            } else {
+                checkedForms.splice(Number(element.value));
+            }
+        }
     </script>
 @endsection

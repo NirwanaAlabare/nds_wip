@@ -700,9 +700,10 @@ class CuttingPlanController extends Controller
             groupBy("form_cut_input.no_form")->
             get();
 
+        $additionalQuery = "";
         if ($thisStoredCutPlan->count() > 0) {
             $i = 0;
-            $additionalQuery .= " AND a.no_form NOT IN (";
+            $additionalQuery .= " AND a.no_form IN (";
             foreach ($thisStoredCutPlan as $cutPlan) {
                 if ($i+1 == count($thisStoredCutPlan)) {
                     $additionalQuery .= "'".$cutPlan->no_form . "' ";
@@ -713,19 +714,18 @@ class CuttingPlanController extends Controller
                 $i++;
             }
             $additionalQuery .= ") ";
+        } else {
+            $additionalQuery .= " AND a.no_form IN (null)";
         }
 
         if ($request->act_costing_id) {
-            $additionalQuery = " AND b.act_costing_id = '".$request->act_costing_id."'";
+            $additionalQuery .= " AND b.act_costing_id = '".$request->act_costing_id."'";
         }
         if ($request->act_costing_ws) {
-            $additionalQuery = " AND b.act_costing_ws = '".$request->act_costing_ws."'";
+            $additionalQuery .= " AND b.act_costing_ws = '".$request->act_costing_ws."'";
         }
         if ($request->color) {
-            $additionalQuery = " AND b.color = '".$request->color."'";
-        }
-        if ($request->no_meja) {
-            $additionalQuery = " AND a.no_meja = '".$request->no_meja."'";
+            $additionalQuery .= " AND b.color = '".$request->color."'";
         }
 
         $keywordQuery = "";
@@ -765,6 +765,7 @@ class CuttingPlanController extends Controller
                 UPPER(b.unit_comma_marker) unit_comma_marker,
                 b.lebar_marker,
                 UPPER(b.unit_lebar_marker) unit_lebar_marker,
+                COALESCE(a.total_lembar, 0) total_lembar,
                 a.qty_ply,
                 b.gelar_qty,
                 b.po_marker,
@@ -779,7 +780,6 @@ class CuttingPlanController extends Controller
             left join master_size_new on marker_input_detail.size = master_size_new.size
             left join users on users.id = a.no_meja
             where
-                a.status = 'SPREADING' and
                 b.cancel = 'N' and
                 marker_input_detail.ratio > 0
                 " . $additionalQuery . "
@@ -825,9 +825,6 @@ class CuttingPlanController extends Controller
         if ($request->color) {
             $additionalQuery = " AND b.color = '".$request->color."'";
         }
-        if ($request->no_meja) {
-            $additionalQuery = " AND a.no_meja = '".$request->no_meja."'";
-        }
 
         $keywordQuery = "";
         if ($request->search["value"]) {
@@ -866,6 +863,7 @@ class CuttingPlanController extends Controller
                 UPPER(b.unit_comma_marker) unit_comma_marker,
                 b.lebar_marker,
                 UPPER(b.unit_lebar_marker) unit_lebar_marker,
+                COALESCE(a.total_lembar, 0) total_lembar,
                 a.qty_ply,
                 b.gelar_qty,
                 b.po_marker,
@@ -880,7 +878,6 @@ class CuttingPlanController extends Controller
             left join master_size_new on marker_input_detail.size = master_size_new.size
             left join users on users.id = a.no_meja
             where
-                a.status = 'SPREADING' and
                 b.cancel = 'N' and
                 marker_input_detail.ratio > 0
                 " . $additionalQuery . "
@@ -890,6 +887,78 @@ class CuttingPlanController extends Controller
         ");
 
         return DataTables::of($data_spreading)->toJson();
+    }
+
+    public function checkAllForms(Request $request) {
+        $thisStoredCutPlan = CutPlanOutput::selectRaw("
+                form_cut_input.no_form
+            ")->
+            leftJoin("cutting_plan_output_form", "cutting_plan_output_form.cutting_plan_id", "=", "cutting_plan_output.id")->
+            leftJoin("form_cut_Input", "form_cut_input.no_form", "=", "cutting_plan_output_form.no_form")->
+            where("cutting_plan_output.id", $request->id)->
+            groupBy("form_cut_input.no_form")->
+            get();
+
+        if ($thisStoredCutPlan->count() > 0) {
+            $i = 0;
+            $additionalQuery .= " AND a.no_form NOT IN (";
+            foreach ($thisStoredCutPlan as $cutPlan) {
+                if ($i+1 == count($thisStoredCutPlan)) {
+                    $additionalQuery .= "'".$cutPlan->no_form . "' ";
+                } else {
+                    $additionalQuery .= "'".$cutPlan->no_form . "' , ";
+                }
+
+                $i++;
+            }
+            $additionalQuery .= ") ";
+        }
+
+        if ($request->act_costing_id) {
+            $additionalQuery = " AND b.act_costing_id = '".$request->act_costing_id."'";
+        }
+        if ($request->act_costing_ws) {
+            $additionalQuery = " AND b.act_costing_ws = '".$request->act_costing_ws."'";
+        }
+        if ($request->color) {
+            $additionalQuery = " AND b.color = '".$request->color."'";
+        }
+
+        $keywordQuery = "";
+        if ($request->search) {
+            $keywordQuery = "
+                and (
+                    a.id_marker like '%" . $request->search . "%' OR
+                    a.no_meja like '%" . $request->search . "%' OR
+                    a.no_form like '%" . $request->search . "%' OR
+                    a.tgl_form_cut like '%" . $request->search . "%' OR
+                    b.act_costing_ws like '%" . $request->search . "%' OR
+                    panel like '%" . $request->search . "%' OR
+                    b.color like '%" . $request->search . "%' OR
+                    a.status like '%" . $request->search . "%' OR
+                    users.name like '%" . $request->search . "%'
+                )
+            ";
+        }
+
+        $data_spreading = DB::select("
+            SELECT
+                a.id
+            FROM `form_cut_input` a
+            left join marker_input b on a.id_marker = b.kode
+            left join marker_input_detail on b.id = marker_input_detail.marker_id
+            left join master_size_new on marker_input_detail.size = master_size_new.size
+            left join users on users.id = a.no_meja
+            where
+                b.cancel = 'N' and
+                marker_input_detail.ratio > 0
+                " . $additionalQuery . "
+                " . $keywordQuery . "
+            GROUP BY a.id
+            ORDER BY b.cancel asc, a.tgl_form_cut desc, a.no_form desc
+        ");
+
+        return array_column($data_spreading, 'id');
     }
 
     public function createCuttingPlanOutput(Request $request) {
