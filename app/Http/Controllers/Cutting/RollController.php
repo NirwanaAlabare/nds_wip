@@ -18,6 +18,7 @@ class RollController extends Controller
      */
     public function index(Request $request)
     {
+        ini_set("memory_limit", "1024M");
         ini_set("max_execution_time", 36000);
 
         if ($request->ajax()) {
