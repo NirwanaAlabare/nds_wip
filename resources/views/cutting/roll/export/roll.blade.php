@@ -57,6 +57,7 @@
             <td>Reject</td>
             <td>Piping</td>
             <td>Short Roll</td>
+            <td>Short Roll (%)</td>
             <td>Remark</td>
             <td>Operator</td>
         </tr>
@@ -110,6 +111,7 @@
                 <td>{{ $item->reject }}</td>
                 <td>{{ $item->piping }}</td>
                 <td>{{ $item->short_roll }}</td>
+                <td>{{ $item->short_roll_percentage }}</td>
                 <td>{{ $item->remark }}</td>
                 <td>{{ $item->operator }}</td>
 

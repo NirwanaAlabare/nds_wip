@@ -58,6 +58,7 @@
                                 <th>Lembar Gelaran</th>
                                 <th>Total Pemakaian</th>
                                 <th>Short Roll</th>
+                                <th>Short Roll (%)</th>
                                 <th>Remark</th>
                                 <th>Sisa Gelaran</th>
                                 <th>Sambungan</th>
@@ -183,6 +184,9 @@
                 },
                 {
                     data: 'short_roll'
+                },
+                {
+                    data: 'short_roll_percentage'
                 },
                 {
                     data: 'remark'
