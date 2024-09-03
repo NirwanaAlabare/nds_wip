@@ -394,7 +394,7 @@
                                             <th class="label-scan">ID Roll</th>
                                             <th class="label-scan">ID Item</th>
                                             <th class="label-scan">Lot</th>
-                                            <th class="label-scan">Roll</th>
+                                            <th class="label-scan">Roll Buyer</th>
                                             <th class="label-scan">Qty</th>
                                             <th class="label-scan">Unit</th>
                                             <th>Sisa Gelaran</th>
@@ -552,10 +552,16 @@
                                     <input type="text" class="form-control form-control-sm" id="current_lot" name="current_lot">
                                 </div>
                             </div>
-                            <div class="col-3">
+                            <div class="col-3 d-none">
                                 <div class="mb-3">
                                     <label class="form-label" id="current_roll_label"><small><b>Roll</b></small></label>
                                     <input type="text" class="form-control form-control-sm" id="current_roll" name="current_roll">
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="mb-3">
+                                    <label class="form-label" id="current_roll_buyer_label"><small><b>Roll Buyer</b></small></label>
+                                    <input type="text" class="form-control form-control-sm" id="current_roll_buyer" name="current_roll_buyer">
                                 </div>
                             </div>
                             <div class="col-6">
@@ -1059,7 +1065,7 @@
             td4.innerHTML = data.id_roll ? data.id_roll : '-';
             td5.innerHTML = data.id_item ? data.id_item : '-';
             td6.innerHTML = data.lot ? data.lot : '-';
-            td7.innerHTML = data.roll ? data.roll : '-';
+            td7.innerHTML = data.roll_buyer ? data.roll_buyer : '-';
             td8.innerHTML = data.qty ? data.qty : '-';
             td9.innerHTML = data.unit ? data.unit : '-';
             td10.innerHTML = data.sisa_gelaran ? data.sisa_gelaran : '-';
@@ -1188,6 +1194,7 @@
             data.id_item ? document.getElementById("current_id_item").value = data.id_item : '';
             data.lot ? document.getElementById("current_lot").value = data.lot : '';
             data.roll ? document.getElementById("current_roll").value = data.roll : '';
+            data.roll_buyer ? document.getElementById("current_roll_buyer").value = data.roll_buyer : '';
             data.qty ? document.getElementById("current_qty").value = convertedQty : '';
             data.qty ? document.getElementById("current_qty_real").value = data.qty : '';
             data.unit ? document.getElementById("current_unit").value = data.unit : '';
@@ -1234,6 +1241,7 @@
             document.getElementById("current_id_item").value = "";
             document.getElementById("current_lot").value = "";
             document.getElementById("current_roll").value = "";
+            document.getElementById("current_roll_buyer").value = "";
             document.getElementById("current_qty").value = "";
             document.getElementById("current_qty_real").value = "";
             document.getElementById("current_unit").value = "";

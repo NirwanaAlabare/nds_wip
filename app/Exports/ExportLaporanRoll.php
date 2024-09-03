@@ -78,6 +78,7 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                 reject,
                 piping,
                 short_roll,
+                CONCAT(ROUND(((b.short_roll / b.qty) * 100), 2), ' %') short_roll_percentage,
                 remark,
                 operator
             FROM
@@ -110,7 +111,7 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A3:AS' . $event->getConcernable()->rowCount,
+            'A3:AT' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [
