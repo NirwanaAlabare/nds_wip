@@ -276,7 +276,7 @@ class CuttingFormController extends Controller
                 whs_lokasi_inmaterial.no_roll_buyer roll_buyer,
                 whs_bppb_det.satuan unit,
                 whs_bppb_det.qty_stok,
-                SUM(whs_bppb_det.qty_out) qty_out
+                SUM(whs_bppb_det.qty_out) qty
             FROM
                 whs_bppb_det
                 LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
@@ -293,9 +293,9 @@ class CuttingFormController extends Controller
             $scannedItem = ScannedItem::where('id_roll', $id)->where('id_item', $newItem[0]->id_item)->first();
 
             if ($scannedItem) {
-                if (floatval($newItem[0]->qty_out - ($scannedItem->qty_in + $scannedItem->qty)) > 0 ) {
+                if (floatval($newItem[0]->qty - ($scannedItem->qty_in + $scannedItem->qty)) > 0 ) {
                     $scannedItem->qty_stok = $newItem[0]->qty_stok;
-                    $scannedItem->qty_in = $newItem[0]->qty_out;
+                    $scannedItem->qty_in = $newItem[0]->qty;
                     $scannedItem->save();
 
                     return json_encode($scannedItem);
