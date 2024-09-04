@@ -41,7 +41,7 @@ class TrackOrderOutput extends Component
         $this->dailyOrderOutputs = null;
         $this->loadingOrderOutput = false;
 
-        $this->dateFromFilter = date('Y-m-d', strtotime('-14 days'));
+        $this->dateFromFilter = date('Y-m-d', strtotime('-7 days'));
         $this->dateToFilter = date("Y-m-d");
 
         $this->outputType = null;
