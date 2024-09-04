@@ -35,7 +35,7 @@ class ReportOutput extends Component
         $this->qcType = '';
         $this->group = 'line';
         $this->period = 'daily';
-        $this->range = 'custom';
+        $this->range = 'single';
     }
 
     public function filter($group, $period, $range)

@@ -53,7 +53,7 @@ class RollController extends Controller
                     COALESCE(b.color_act, '-') color_act,
                     COALESCE(b.group_roll, '-') group_roll,
                     COALESCE(b.lot, '-') lot,
-                    COALESCE(b.roll, '-') roll,
+                    COALESCE(b.roll_buyer, b.roll) roll,
                     b.no_form_cut_input,
                     b.qty qty_item,
                     b.unit unit_item,
@@ -77,7 +77,9 @@ class RollController extends Controller
                     left join marker_input mrk on a.id_marker = mrk.kode
                     left join users meja on meja.id = a.no_meja
                 where
-                    a.cancel = 'N' and mrk.cancel = 'N' and id_item is not null
+                    (a.cancel = 'N'  OR a.cancel IS NULL)
+	                AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
+                    and id_item is not null
                     " . $additionalQuery . "
                     " . $keywordQuery . "
                 order by

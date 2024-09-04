@@ -2520,7 +2520,7 @@
                 let inputGroupUnit = document.getElementsByClassName("input-group-unit");
                 let unitSimplified = unit != "KGM" ? "M" : "KG";
 
-                if (unit == "KGM") {
+                if (unit == "KGM" || unit ==  "KG") {
                     document.getElementById("current_sisa_gelaran_unit").value = unit;
                     document.getElementById("current_sambungan_unit").value = unit;
 
@@ -2652,7 +2652,7 @@
                 data.remark ? document.getElementById("current_remark").value = data.remark : '';
                 document.getElementById("current_berat_amparan").value = latestBerat;
 
-                if (data.unit == 'KGM') {
+                if (data.unit == 'KGM' || data.unit == 'KG') {
                     document.getElementById("berat_amparan").classList.remove("d-none");
                     document.getElementById("th-berat-amparan").classList.remove("d-none");
                     document.getElementById("total-berat-amparan").classList.remove("d-none");
@@ -3162,7 +3162,7 @@
                 td4.innerHTML = data.id_roll ? data.id_roll : '-';
                 td5.innerHTML = data.id_item ? data.id_item : '-';
                 td6.innerHTML = data.lot ? data.lot : '-';
-                td7.innerHTML = data.roll ? data.roll : '-';
+                td7.innerHTML = data.roll_buyer ? data.roll_buyer : '-';
                 td8.innerHTML = data.qty ? data.qty : '-';
                 td9.innerHTML = data.unit ? data.unit : '-';
                 td10.innerHTML = data.sisa_gelaran ? data.sisa_gelaran : '-';
@@ -3208,6 +3208,10 @@
 
                     document.getElementById("th-berat-amparan").classList.remove("d-none");
                     document.getElementById("total-berat-amparan").classList.remove("d-none");
+                } else {
+
+                    document.getElementById("th-berat-amparan").classList.add("d-none");
+                    document.getElementById("total-berat-amparan").classList.add("d-none");
                 }
 
                 scannedItemTableTbody.appendChild(tr);

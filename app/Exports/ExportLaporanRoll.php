@@ -48,7 +48,7 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                 t.qty_order,
                 b.id_roll,
                 b.detail_item,
-                roll roll_number,
+                COALESCE(roll_buyer, roll) roll_number,
                 lot,
                 cons_ws,
                 cons_marker,

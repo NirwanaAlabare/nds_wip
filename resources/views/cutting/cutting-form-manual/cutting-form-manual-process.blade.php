@@ -975,7 +975,7 @@
                                             <th class="label-scan">ID Roll</th>
                                             <th class="label-scan">ID Item</th>
                                             <th class="label-scan">Lot</th>
-                                            <th class="label-scan">Roll</th>
+                                            <th class="label-scan">Roll Buyer</th>
                                             <th class="label-scan">Qty</th>
                                             <th class="label-scan">Unit</th>
                                             <th>Sisa Gelaran</th>
@@ -2950,7 +2950,7 @@
                 let inputGroupUnit = document.getElementsByClassName("input-group-unit");
                 let unitSimplified = unit != "KGM" ? "M" : "KG";
 
-                if (unit == "KGM") {
+                if (unit == "KGM" || unit == "KG") {
                     document.getElementById("current_sisa_gelaran_unit").value = unit;
                     document.getElementById("current_sambungan_unit").value = unit;
 
@@ -3642,6 +3642,10 @@
 
                         document.getElementById("th-berat-amparan").classList.remove("d-none");
                         document.getElementById("total-berat-amparan").classList.remove("d-none");
+                    } else {
+
+                        document.getElementById("th-berat-amparan").classList.add("d-none");
+                        document.getElementById("total-berat-amparan").classList.add("d-none");
                     }
 
                     scannedItemTableTbody.appendChild(tr);

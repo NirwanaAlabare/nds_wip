@@ -3564,6 +3564,10 @@
 
                         document.getElementById("th-berat-amparan").classList.remove("d-none");
                         document.getElementById("total-berat-amparan").classList.remove("d-none");
+                    } else {
+
+                        document.getElementById("th-berat-amparan").classList.add("d-none");
+                        document.getElementById("total-berat-amparan").classList.add("d-none");
                     }
 
                     scannedItemTableTbody.appendChild(tr);

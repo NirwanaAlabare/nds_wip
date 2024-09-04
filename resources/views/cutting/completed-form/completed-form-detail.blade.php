@@ -410,6 +410,7 @@
                                             <th class="label-calc">Short Roll +/-</th>
                                             <th>Piping</th>
                                             <th>Remark</th>
+                                            <th id="th-berat-amparan" class="d-none">Berat 1 Ampar</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -432,6 +433,7 @@
                                             <th id="total-short-roll"></th>
                                             <th id="total-piping"></th>
                                             <th id="total-remark"></th>
+                                            <th id="total-berat-amparan" class="d-none"></th>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -634,44 +636,75 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-4">
-                                <div class="mb-3">
-                                    <label class="form-label label-input"><small><b>Group</b></small></label>
-                                    <input type="text" class="form-control form-control-sm border-input" id="current_group" name="current_group">
-                                </div>
-                            </div>
-                            <div class="col-3 d-none">
-                                <div class="mb-3">
-                                    <label class="form-label label-input"><small><b>Group Number</b></small></label>
-                                    <input type="text" class="form-control form-control-sm border-input" id="current_group_stocker" name="current_group_stocker">
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="mb-3">
-                                    <label class="form-label label-calc"><small><b>Estimasi Amparan</b></small></label>
-                                    <input type="number" class="form-control form-control-sm border-calc"
-                                        id="current_est_amparan" name="current_est_amparan" step=".01" readonly>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="mb-3">
-                                    <label class="form-label label-sb"><small><b>Lembar Gelaran</b></small></label>
-                                    <input type="hidden" id="lembar_gelaran" name="lembar_gelaran">
-                                    <input type="number" class="form-control form-control-sm border-sb" id="current_lembar_gelaran" name="current_lembar_gelaran"
-                                        onkeyup="
-                                            calculateTotalPemakaian();
-                                            calculateShortRoll();
-                                            calculateRemark();
-                                            updatePlyProgress();
-                                            calculateSisaKain();
-                                        "
-                                        onchange="
-                                            calculateTotalPemakaian();
-                                            calculateShortRoll();
-                                            calculateRemark();
-                                            updatePlyProgress();
-                                            calculateSisaKain();
-                                        ">
+                            <div class="col-12">
+                                <div class="row">
+                                    <div class="col d-none" id="berat_amparan">
+                                        <div class="mb-3">
+                                            <label class="form-label label-input"><small><b>Berat Amparan</b></small></label>
+                                            <div class="input-group input-group-sm mb-3">
+                                                <input type="number" class="form-control form-control-sm " id="current_berat_amparan" name="current_berat_amparan" step=".01"
+                                                    onkeyup="
+                                                        calculateSambungan();
+                                                        calculateRemark();
+                                                        calculateShortRoll();
+                                                        calculateTotalPemakaian();
+                                                        calculateEstAmpar();
+                                                        // calculateSisaKain();
+                                                    "
+
+                                                    onchange="
+                                                        calculateSambungan();
+                                                        calculateRemark();
+                                                        calculateShortRoll();
+                                                        calculateTotalPemakaian();
+                                                        calculateEstAmpar();
+                                                        // calculateSisaKain();
+                                                    "
+                                                >
+                                                <span class="input-group-text">KG</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="mb-3">
+                                            <label class="form-label label-input"><small><b>Group</b></small></label>
+                                            <input type="text" class="form-control form-control-sm border-input" id="current_group" name="current_group">
+                                        </div>
+                                    </div>
+                                    <div class="col d-none">
+                                        <div class="mb-3">
+                                            <label class="form-label label-input"><small><b>Group Number</b></small></label>
+                                            <input type="text" class="form-control form-control-sm border-input" id="current_group_stocker" name="current_group_stocker">
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="mb-3">
+                                            <label class="form-label label-calc"><small><b>Estimasi Amparan</b></small></label>
+                                            <input type="number" class="form-control form-control-sm border-calc"
+                                                id="current_est_amparan" name="current_est_amparan" step=".01" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="mb-3">
+                                            <label class="form-label label-sb"><small><b>Lembar Gelaran</b></small></label>
+                                            <input type="hidden" id="lembar_gelaran" name="lembar_gelaran">
+                                            <input type="number" class="form-control form-control-sm border-sb" id="current_lembar_gelaran" name="current_lembar_gelaran"
+                                                onkeyup="
+                                                    calculateTotalPemakaian();
+                                                    calculateShortRoll();
+                                                    calculateRemark();
+                                                    updatePlyProgress();
+                                                    calculateSisaKain();
+                                                "
+                                                onchange="
+                                                    calculateTotalPemakaian();
+                                                    calculateShortRoll();
+                                                    calculateRemark();
+                                                    updatePlyProgress();
+                                                    calculateSisaKain();
+                                                ">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-12">
@@ -1027,14 +1060,17 @@
         var totalLembar = 0;
         var totalPiping = 0;
         var totalQtyFabric = 0;
+        var totalBeratAmparan = 0;
         var latestStatus = "";
         var latestUnit = "";
+        var latestBerat = "";
 
         function appendSummaryItem(data) {
             totalLembar += Number(data.lembar_gelaran);
             totalPiping += Number(data.piping);
             latestStatus != 'extension complete' ? totalQtyFabric += Number(data.qty) : '';
             latestUnit = data.unit;
+            latestBerat = data.berat_amparan;
 
             let tr = document.createElement('tr');
             let td1 = document.createElement('td');
@@ -1104,6 +1140,19 @@
             tr.appendChild(td21);
             tr.appendChild(td22);
 
+            if (latestUnit == "KGM" || latestUnit == "KG") {
+                let td23 = document.createElement('td');
+                td23.innerHTML = data.berat_amparan ? data.berat_amparan : '-';
+                tr.appendChild(td23);
+
+                document.getElementById("th-berat-amparan").classList.remove("d-none");
+                document.getElementById("total-berat-amparan").classList.remove("d-none");
+            } else {
+
+                document.getElementById("th-berat-amparan").classList.add("d-none");
+                document.getElementById("total-berat-amparan").classList.add("d-none");
+            }
+
             tr.onclick = async function() {
                 clearSpreadingForm();
 
@@ -1133,6 +1182,7 @@
             totalSisaKain += Number(data.sisa_kain);
             totalTotalPemakaian += Number(data.total_pemakaian_roll);
             Number(data.short_roll) < 0 ? totalShortRoll += Number(data.short_roll) : "";
+            latestStatus != 'extension complete' ? totalBeratAmparan += Number(data.berat_amparan) : '';
             totalRemark += Number(data.remark);
 
             let averageTotalAverageTime = totalAverageTime / totalRow;
@@ -1154,7 +1204,7 @@
             document.getElementById("total-short-roll").innerText = Number(totalShortRoll).round(2);
             document.getElementById("total-piping").innerText = Number(totalPiping).round(2);
             document.getElementById("total-remark").innerText = Number(totalRemark).round(2);
-
+            document.getElementById("total-berat-amparan").innerText = Number(totalBeratAmparan).round(3);
 
             calculateConsActualGelaran(latestUnit, totalQtyFabric, totalKepalaKain, totalSisaTidakBisa, totalReject, totalSisaKain, totalPiping, totalShortRoll, totalLembar, totalTotalPemakaian);
 
@@ -1213,6 +1263,17 @@
             data.short_roll ? document.getElementById("current_short_roll").value = data.short_roll : '';
             data.piping ? document.getElementById("current_piping").value = data.piping : '';
             data.remark ? document.getElementById("current_remark").value = data.remark : '';
+            data.berat_amparan ? document.getElementById("current_berat_amparan").value = data.berat_amparan : '';
+
+            if (data.unit == "KGM" || data.unit == "KG") {
+                document.getElementById("berat_amparan").classList.remove("d-none");
+                document.getElementById("th-berat-amparan").classList.remove("d-none");
+                document.getElementById("total-berat-amparan").classList.remove("d-none");
+            } else if (data.unit == "METER" || data.unit == "YARD" || data.unit == "YRD") {
+                document.getElementById("berat_amparan").classList.add("d-none");
+                document.getElementById("th-berat-amparan").classList.add("d-none");
+                document.getElementById("total-berat-amparan").classList.add("d-none");
+            }
 
             // simplified unit name
             let unitSimplified = data.unit != "KGM" ? "M" : "KG";
