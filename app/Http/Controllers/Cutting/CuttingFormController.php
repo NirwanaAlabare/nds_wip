@@ -276,7 +276,7 @@ class CuttingFormController extends Controller
                 whs_lokasi_inmaterial.no_roll_buyer roll_buyer,
                 whs_bppb_det.satuan unit,
                 whs_bppb_det.qty_stok,
-                SUM(whs_bppb_det.qty_out) qty
+                SUM(whs_bppb_det.qty_out) qty_out
             FROM
                 whs_bppb_det
                 LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
