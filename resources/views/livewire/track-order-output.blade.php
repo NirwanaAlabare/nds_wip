@@ -13,11 +13,11 @@
         <div class="col-12 col-lg-6 col-xl-4">
             <div class="d-flex align-items-center justify-content-start gap-3 mb-3">
                 <div wire:ignore>
-                    <input type="date" class="form-control form-control-sm" id="dateFrom">
+                    <input type="date" class="form-control form-control-sm" id="dateFrom" value="{{ $dateFromFilter }}">
                 </div>
                 <div> - </div>
                 <div wire:ignore>
-                    <input type="date" class="form-control form-control-sm" id="dateTo">
+                    <input type="date" class="form-control form-control-sm" id="dateTo" value="{{ $dateToFilter }}">
                 </div>
                 <span class="badge bg-sb text-light">{{ strtoupper(str_replace("_", "", ($outputType ? $outputType : "SEWING"))) }}</span>
             </div>
