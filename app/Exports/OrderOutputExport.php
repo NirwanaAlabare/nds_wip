@@ -48,11 +48,17 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
             leftJoin("act_costing", "act_costing.id", "=", "master_plan.id_ws")->
             leftJoin(DB::raw("(
                 SELECT
+                    master_plan.id_ws,
                     output_rfts".($this->outputType).".master_plan_id,
-                    ".($this->outputType != "_packing" ? "line.username sewing_line" : "output_rfts".($this->outputType).".created_by sewing_line")."
+                    userpassword.username sewing_line
                 FROM
                     output_rfts".($this->outputType)."
-                    ".($this->outputType != "_packing" ? "left join userpassword as line on line.line_id = output_rfts".($this->outputType).".created_by" : "")."
+                    ".($this->outputType != "_packing" ?
+                    "LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rfts".($this->outputType).".created_by LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id" :
+                    "LEFT JOIN userpassword ON userpassword.username = output_rfts".($this->outputType).".created_by")."
+                    LEFT JOIN master_plan on master_plan.id = output_rfts".($this->outputType).".master_plan_id
+                WHERE
+                    output_rfts".($this->outputType).".created_by IS NOT NULL
                 GROUP BY
                     output_rfts".($this->outputType).".master_plan_id,
                     output_rfts".($this->outputType).".created_by
@@ -68,7 +74,6 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
             if ($this->dateTo) {
                 $orderGroupSql->where('master_plan.tgl_plan', '<=', $this->dateTo);
             }
-
             $orderGroupSql->
                 where("act_costing.id", $this->order)->
                 groupByRaw("master_plan.id_ws, act_costing.styleno, master_plan.color, COALESCE(rfts.sewing_line, master_plan.sewing_line) ".($this->groupBy == "size" ? ", so_det.size" : "")."")->
@@ -102,7 +107,8 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
             if ($this->outputType == "_packing") {
                 $orderOutputSql->leftJoin('userpassword as line', 'line.username', '=', 'output_rfts'.($this->outputType).'.created_by');
             } else {
-                $orderOutputSql->leftJoin('userpassword as line', 'line.line_id', '=', 'output_rfts'.($this->outputType).'.created_by');
+                $orderOutputSql->leftJoin('user_sb_wip', 'user_sb_wip.id', '=', 'output_rfts'.($this->outputType).'.created_by')->
+                    leftJoin('userpassword as line', 'line.username', '=', 'user_sb_wip.line_id');
             }
 
             $orderOutputSql->
@@ -118,6 +124,7 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
             if ($this->dateTo) {
                 $orderOutputSql->where('master_plan.tgl_plan', '<=', $this->dateTo);
             }
+
             $orderOutputs = $orderOutputSql->get();
 
         $this->rowCount = $orderGroup->count() + 4;
