@@ -85,9 +85,13 @@ order by o.created_at desc
     {
         $tgl_skrg = date('Y-m-d');
         $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-30 days'));
+        // $cek_po = DB::select("
+        // select * from ppic_master_so where id = '" . $request->cbopo . "' and tgl_shipment >= '$tgl_skrg_min_sebulan'
+        // ");
         $cek_po = DB::select("
-        select * from ppic_master_so where id = '" . $request->cbopo . "' and tgl_shipment >= '$tgl_skrg_min_sebulan'
+        select * from ppic_master_so where id = '" . $request->cbopo . "'
         ");
+
         // return json_encode($cek_po[0]);
         return json_encode($cek_po ? $cek_po[0] : '-');
     }
@@ -183,11 +187,13 @@ SELECT id, tgl_trans, barcode, po, no_carton,created_at, updated_at, created_by 
     {
         $user = Auth::user()->name;
 
+        $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-30 days'));
+
         $data_po = DB::select("SELECT p.id isi, concat(p.po, ' - ', p.dest,  ' - ( ', coalesce(count(m.no_carton),0) , ' ) ') tampil
 from
 (
 select id, po, dest from ppic_master_so
-where barcode is not null and barcode != '' and barcode != '-'
+where barcode is not null and barcode != '' and barcode != '-' and tgl_shipment >= '".$tgl_skrg_min_sebulan."'
 group by po	, dest
 ) p
 left join
