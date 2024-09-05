@@ -228,6 +228,7 @@
                 },
                 dataType: 'json',
                 success: function(response) {
+                    console.log(response);
                     document.getElementById('cbopo_det').value = response.po;
                     document.getElementById('txtdest').value = response.dest;
                 },
