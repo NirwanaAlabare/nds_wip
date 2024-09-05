@@ -48,8 +48,8 @@
                             <th>Roll In</th>
                             <th>Qty In</th>
                             <th>Roll Cutting</th>
-                            <th>Roll Balance</th>
                             <th>Qty Cutting</th>
+                            <th>Roll Balance</th>
                             <th>Qty Balance</th>
                             <th class="d-none">No. Return</th>
                             <th>Roll Return</th>
@@ -168,10 +168,10 @@
                     data: 'total_roll_cutting'
                 },
                 {
-                    data: 'total_roll_balance'
+                    data: 'total_pakai_cutting'
                 },
                 {
-                    data: 'total_pakai_cutting'
+                    data: 'total_roll_balance'
                 },
                 {
                     data: 'total_pakai_balance'
@@ -201,13 +201,15 @@
                     render: (data, type, row, meta) => {
                         let color = "";
 
-                        if (data > 0) {
-                            color = '#05b01f;';
-                        } else if (data < 0) {
-                            color = '#d60d0d;';
-                        } else {
-                            color = '#000;';
-                        }
+                        // if (data > 0) {
+                        //     color = '#05b01f;';
+                        // } else if (data < 0) {
+                        //     color = '#d60d0d;';
+                        // } else {
+                        //     color = '#000;';
+                        // }
+
+                        color = '#212529;';
 
                         return "<span style='color: "+color+"'>"+data+"</span>";
                     }
