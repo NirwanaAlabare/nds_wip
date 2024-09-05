@@ -32,7 +32,9 @@
                     </div>
                 </div>
                 <div class="d-flex align-items-end gap-3 mb-3">
-                    <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-sb"><i class="fas fa-clipboard-list"></i> Manual</a>
+                    @if (Auth::user()->type != 'meja')
+                        <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-sb"><i class="fas fa-clipboard-list"></i> Manual</a>
+                    @endif
                 </div>
             </div>
             <div class="table-responsive">
