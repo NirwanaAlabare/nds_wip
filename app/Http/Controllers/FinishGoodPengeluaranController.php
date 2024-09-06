@@ -138,15 +138,13 @@ group by no_sb
         $notes = $request->cbonotes;
         $ctn_awal = $request->txtctn_awal;
         $ctn_akhir = $request->txtctn_akhir;
-
-
         $ins_tmp_fg =  DB::insert("INSERT into fg_fg_out_tmp (id_fg_in,buyer,po,notes,no_carton,created_at,updated_at,created_by)
         select a.id, m.buyer, a.po, a.notes, a.no_carton, '$timestamp','$timestamp','$user' from fg_fg_in a
         inner join ppic_master_so p on a.id_ppic_master_so = p.id
         inner join master_sb_ws m on p.id_so_det = m.id_so_det
         inner join packing_master_carton pc on a.po = pc.po and a.no_carton = pc.no_carton and a.notes = pc.notes
         left join fg_fg_out_tmp b on a.id = b.id_fg_in
-        where m.buyer = '$buyer' and a.po = '$po' and a.notes = '$notes' and a.no_carton >= '$ctn_awal' and a.no_carton <= '$ctn_akhir'
+        where m.buyer = '$buyer' and a.po = '$po' and a.notes = '$notes' and cast(a.no_carton as int) >= '$ctn_awal' and cast(a.no_carton as int) <= '$ctn_akhir'
         and b.id_fg_in is null and pc.status != 'terkirim'
         order by a.po asc, a.no_carton asc ");
     }
@@ -174,7 +172,7 @@ group by no_sb
         inner join master_sb_ws m on p.id_so_det = m.id_so_det
         left join master_size_new msn on m.size = msn.size
         where tmp.created_by = '$user'
-        order by po asc, no_carton asc, color asc, urutan asc
+        order by po asc, cast(tmp.no_carton as int) asc, color asc, urutan asc
             ");
 
 
@@ -234,7 +232,9 @@ group by no_sb
         inner join fg_fg_in a on tmp.id_fg_in = a.id
         inner join ppic_master_so p on a.id_ppic_master_so = p.id
         inner join master_sb_ws m on p.id_so_det = m.id_so_det
+        left join master_size_new msn on m.size = msn.size
         where tmp.created_by = '$user'
+        order by po asc, cast(tmp.no_carton as int) asc, color asc, urutan asc
             ");
 
 
