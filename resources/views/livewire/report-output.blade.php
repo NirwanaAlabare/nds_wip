@@ -783,7 +783,7 @@
         });
 
     // Range
-        $("#custom-range").prop("checked", true);
+        $("#single-range").prop("checked", true);
 
         $('#single-range').on('change', () => {
             console.log(document.querySelector('input[name="date-range"]:checked').value);
