@@ -281,9 +281,9 @@ where a.po = '$po' and a.no_carton = '$no_carton' and a.notes = '$notes'
 (select * from packing_packing_out_scan where id = '$txtid')a
 inner join fg_fg_in b on a.barcode = b.barcode and a.po = b.po and a.no_carton = b.no_carton
                     ");
-                    $no_sb = $cek_id[0] ? $cek_id[0]->no_sb : 0;
-                    $id_so_det = $cek_id[0] ? $cek_id[0]->id_so_det : 0;
-                    $id_fg_in = $cek_id[0] ? $cek_id[0]->id_fg_in : 0;
+                    $no_sb = $cek_id ? $cek_id[0]->no_sb : 0;
+                    $id_so_det = $cek_id ? $cek_id[0]->id_so_det : 0;
+                    $id_fg_in = $cek_id ? $cek_id[0]->id_fg_in : 0;
 
                     if ($no_sb != '0') {
                         $update_sb = DB::connection('mysql_sb')->update("

@@ -153,7 +153,7 @@ class ReturInMaterialController extends Controller
     public function store(Request $request)
     {
 
-    if (intval($request['jumlah_qty']) > 0) {
+    // if (intval($request['jumlah_qty']) > 0) {
 
         $tglbpb = $request['txt_tgl_ri'];
         $Mattype1 = DB::connection('mysql_sb')->select("select CONCAT('GK-IN-', DATE_FORMAT('" . $tglbpb . "', '%Y')) Mattype,IF(MAX(bpbno_int) IS NULL,'00001',LPAD(MAX(SUBSTR(bpbno_int,12,5))+1,5,0)) nomor,CONCAT('GK/RI/',DATE_FORMAT('" . $tglbpb . "', '%m'),DATE_FORMAT('" . $tglbpb . "', '%y'),'/',IF(MAX(bpbno_int) IS NULL,'00001',LPAD(MAX(SUBSTR(bpbno_int,12,5))+1,5,0))) bpbno_int FROM bpb WHERE MONTH(bpbdate) = MONTH('" . $tglbpb . "') AND YEAR(bpbdate) = YEAR('" . $tglbpb . "') AND LEFT(bpbno_int,2) = 'GK'");
@@ -345,10 +345,10 @@ class ReturInMaterialController extends Controller
 
             $massage = $bpbno_int . ' Saved Succesfully';
             $stat = 200;
-    }else{
-        $massage = ' Please Input Data';
-        $stat = 400;
-    }
+    // }else{
+    //     $massage = ' Please Input Data';
+    //     $stat = 400;
+    // }
 
 
             return array(
