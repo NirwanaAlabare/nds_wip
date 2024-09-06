@@ -228,7 +228,7 @@ class TrackOrderOutput extends Component
                                 COALESCE ( userpassword.username, master_plan.sewing_line ) created_by
                                 ".($this->groupBy == 'size' ? ', rfts.so_det_id ' : '')."
                             FROM
-                                output_rfts ".$this->outputType." rfts
+                                output_rfts".$this->outputType." rfts
                                 INNER JOIN master_plan ON master_plan.id = rfts.master_plan_id ".
                                 (
                                     $this->outputType != " _packing " ? "
