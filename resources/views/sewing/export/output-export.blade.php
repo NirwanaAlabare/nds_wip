@@ -101,19 +101,19 @@
                     <td>{{ $line->kpno }}</td>
                     <td>{{ $line->styleno }}</td>
                     <td style="text-align: center;">
-                        {{ $line->rft < 1 ? '0' : num($line->rft) }}
+                        {{ $line->rft < 1 ? '0' : $line->rft }}
                     </td>
                     <td style="text-align: center;">
-                        {{ $line->defect < 1 ? '0' : num($line->defect) }}
+                        {{ $line->defect < 1 ? '0' : $line->defect }}
                     </td>
                     <td style="text-align: center;">
-                        {{ $line->rework < 1 ? '0' : num($line->rework) }}
+                        {{ $line->rework < 1 ? '0' : $line->rework }}
                     </td>
                     <td style="text-align: center;">
-                        {{ $line->reject < 1 ? '0' : num($line->reject) }}
+                        {{ $line->reject < 1 ? '0' : $line->reject }}
                     </td>
                     <td style="text-align: center; font-weight: bold;">
-                        {{ $line->total_actual < 1 ? '0' : num($line->total_actual) }}
+                        {{ $line->total_actual < 1 ? '0' : $line->total_actual }}
                     </td>
                     <td style="text-align: center; font-weight: bold; {{ $rateRft < 97 ? 'color: #f51818;' : 'color: #018003;' }}">
                         {{ $rateRft }} %
@@ -149,10 +149,10 @@
                             $lastInput < $currentLastInput && $lastInput = $currentLastInput;
                         @endphp
                         <td rowspan="{{ $currentRowSpan }}" style="text-align: center; font-weight: bold; vertical-align: middle;">
-                            {{ num($currentActual) }}
+                            {{ $currentActual }}
                         </td>
                         <td rowspan="{{ $currentRowSpan }}" style="text-align: center; font-weight: bold; vertical-align: middle;">
-                            {{ num($currentTarget) }}
+                            {{ $currentTarget }}
                         </td>
                         <td rowspan="{{ $currentRowSpan }}" style="text-align: center; font-weight: bold; vertical-align: middle; {{ $currentEfficiency < 85 ? 'color: #f51818;' : 'color: #018003;' }}">
                             {{ $currentEfficiency }} %
@@ -175,8 +175,8 @@
         @endphp
         <tr>
             <th colspan="11" style="font-weight: bold;text-align: center;">Summary</th>
-            <th style="font-weight: bold;text-align: center;">{{ num($summaryActual) }}</th>
-            <th style="font-weight: bold;text-align: center;">{{ num($targetFromEfficiency) }}</th>
+            <th style="font-weight: bold;text-align: center;">{{ $summaryActual }}</th>
+            <th style="font-weight: bold;text-align: center;">{{ $targetFromEfficiency }}</th>
             <th style="font-weight: bold;text-align: center; {{ $summaryEfficiency < 85 ? 'color: #f51818;' : 'color: #018003;' }}">{{ $summaryEfficiency }} %</th>
             <td style="font-weight: bold;text-align: center;">{{ $lastInput }}</td>
         </tr>
