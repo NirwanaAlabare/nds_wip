@@ -327,7 +327,7 @@ group by no_sb
 
                 $insert_fg_out_sb =  DB::connection('mysql_sb')->insert("INSERT into
                 bppb(bppbno,bppbno_int,bppbdate,id_item,id_so_det,qty,curr,price,username,unit,invno,id_supplier,print,status_retur,jenis_dok,confirm,dateinput,cancel,grade,stat_inv,status_input,id_buyer)
-        values('SJ-FG$bppbno','$bppbno_int','$tgl_pengeluaran','$id_item','$id_so_det','$qty','$curr','$price','$user','PCS','$inv','$id_buyer','N','N','$jns_dok','N','$timestamp','N','GRADE A','1','NDS','$id_buyer') ");
+        values('SJ-FG$bppbno','$bppbno_int','$tgl_pengeluaran','$id_item','$id_so_det','$qty','$curr','$price','$user','PCS','$inv','$id_buyer','N','N','$jns_dok','N','$timestamp','N','GRADE A','0','NDS','$id_buyer') ");
 
                 // $update_karton =  DB::update("
                 //     update packing_master_carton set status = 'transfer' where po = '$po' and no_carton = '$no_carton' ");
