@@ -13,8 +13,10 @@ use App\Models\ScannedItem;
 use App\Models\CutPlan;
 use App\Models\Part;
 use App\Models\PartForm;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
@@ -1086,5 +1088,48 @@ class CuttingFormController extends Controller
         }
 
         return $updatedForm;
+    }
+
+    public function formCutLock(Request $request) {
+        $validatedRequest = $request->validate([
+            "id" => "required",
+        ]);
+
+        $formCut = FormCutInput::where("id", $validatedRequest['id'])->first();
+
+        if ($formCut) {
+            $formCut->locked = 1;
+            $formCut->unlocked_by = null;
+            $formCut->save();
+        }
+
+        return $formCut;
+    }
+
+    public function formCutUnlock(Request $request) {
+        $validatedRequest = $request->validate([
+            "id" => "required",
+            "username" => "required",
+            "password" => "required",
+        ]);
+
+        $formCut = FormCutInput::where("id", $validatedRequest['id'])->first();
+
+        if ($formCut) {
+            if (Auth::validate(['username' => $validatedRequest['username'], 'password' => $validatedRequest['password']])) {
+                $unlocker = User::where("username", $validatedRequest['username'])->where('type', 'admin')->first();
+
+                if ($unlocker) {
+                    $formCut->locked = 0;
+                    $formCut->unlocked_by = $unlocker->id;
+                    $formCut->save();
+
+                    // $unlocker->unlock_token = ($unlocker->unlock_token ? $unlocker->id."".Carbon::now()->format('ymd')."".substr($unlocker->unlock_token, -1)+1 : $unlocker->id."".Carbon::now()->format('Ymd')."1");
+                    // $unlocker->save();
+                }
+            }
+        }
+
+        return $formCut;
     }
 }

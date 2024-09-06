@@ -422,3 +422,18 @@ function deleteData(e) {
         })
     }
 }
+
+function generateToken(id, route) {
+    $.ajax({
+        url: route,
+        method: 'post',
+        data: {
+            id: id
+        },
+        success: function (res) {
+            if (res) {
+                document.getElementById("unlock_token").value = res;
+            }
+        }
+    });
+}

@@ -30,6 +30,8 @@
                         <input type="hidden" name="id" id="id" value="{{ $id }}" readonly>
                         <input type="hidden" name="act_costing_id" id="act_costing_id" value="{{ $formCutInputData->act_costing_id }}" readonly>
                         <input type="hidden" name="status" id="status" value="{{ $formCutInputData->status }}" readonly>
+                        <input type="hidden" name="locked" id="locked" value="{{ $formCutInputData->locked }}" readonly>
+                        <input type="hidden" name="unlocked_by" id="unlocked_by" value="{{ $formCutInputData->unlocked_by }}" readonly>
                         <input type="hidden" name="no_meja" id="no_meja" value="{{ $formCutInputData->no_meja }}" readonly>
                         <div class="col-6 col-md-4">
                             <div class="mb-3">
@@ -794,33 +796,39 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-3">
+                            <div class="col-6 col-md-3">
                                 <div class="mb-3">
                                     <label class="form-label label-calc"><small><b>Tot. Pakai /Roll</b></small></label>
                                     <div class="input-group input-group-sm mb-3">
-                                        <input type="number" class="form-control form-control-sm border-calc"
-                                            id="current_total_pemakaian_roll" name="current_total_pemakaian_roll"
-                                            step=".01" readonly>
+                                        <input type="number" class="form-control form-control-sm border-calc" id="current_total_pemakaian_roll" name="current_total_pemakaian_roll" step=".01" readonly>
                                         <span class="input-group-text input-group-unit"></span>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-3">
-                                <div class="mb-3">
-                                    <label class="form-label label-calc"><small><b>Short Roll +/-</b></small></label>
-                                    <div class="input-group input-group-sm mb-3">
-                                        <input type="number" class="form-control form-control-sm border-calc"
-                                            id="current_short_roll" name="current_short_roll" step=".01" readonly>
-                                        <span class="input-group-text input-group-unit"></span>
+                            <div class="col-6 col-md-3">
+                                <div class="row align-items-end">
+                                    <div class="col-8">
+                                        <div class="mb-3">
+                                            <label class="form-label label-calc"><small><b>Short Roll +/-</b></small></label>
+                                            <div class="input-group input-group-sm mb-3">
+                                                <input type="number" class="form-control form-control-sm border-calc" id="current_short_roll" name="current_short_roll" step=".01" readonly>
+                                                <span class="input-group-text input-group-unit"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="mb-3">
+                                            <label class="form-label label-calc"><small><b>(%)</b></small></label>
+                                            <input type="number" class="form-control form-control-sm border-calc" id="current_short_roll_percentage" name="current_short_roll_percentage" step=".01" readonly>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-3">
+                            <div class="col-6 col-md-3">
                                 <div class="mb-3">
                                     <label class="form-label label-input"><small><b>Sisa Kain</b></small></label>
                                     <div class="input-group input-group-sm mb-3">
-                                        <input type="number" class="form-control form-control-sm border-input"
-                                            id="current_sisa_kain" name="current_sisa_kain" step=".01"
+                                        <input type="number" class="form-control form-control-sm border-input" id="current_sisa_kain" name="current_sisa_kain" step=".01"
                                             onkeyup="
                                                 calculateShortRoll();
                                                 calculateRemark();
@@ -828,12 +836,13 @@
                                             onchange="
                                                 calculateShortRoll();
                                                 calculateRemark();
-                                            ">
+                                            "
+                                        >
                                         <span class="input-group-text input-group-unit"></span>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-3">
+                            <div class="col-6 col-md-3">
                                 <div class="mb-3">
                                     <label class="form-label label-input"><small><b>Remark</b></small></label>
                                     <div class="input-group input-group-sm mb-3">
@@ -970,6 +979,7 @@
                                             <th>Sisa Kain</th>
                                             <th class="label-calc">Total Pemakaian Per Roll</th>
                                             <th class="label-calc">Short Roll +/-</th>
+                                            <th class="label-calc">Short Roll (%)</th>
                                             <th>Piping</th>
                                             <th>Remark</th>
                                             <th id="th-berat-amparan" class="d-none">Berat 1 Ampar</th>
@@ -993,6 +1003,7 @@
                                             <th id="total-sisa-kain"></th>
                                             <th id="total-total-pemakaian"></th>
                                             <th id="total-short-roll"></th>
+                                            <th id="total-short-roll-percentage"></th>
                                             <th id="total-piping"></th>
                                             <th id="total-remark"></th>
                                             <th id="total-berat-amparan" class="d-none"></th>
@@ -1397,7 +1408,7 @@
             }
 
             // -Store Time Record Transaction-
-            function storeTimeRecord() {
+            async function storeTimeRecord(isContinue = 0) {
                 document.getElementById("loading").classList.remove("d-none");
 
                 clearModified();
@@ -1427,6 +1438,30 @@
                         confirmButtonText: 'Oke',
                         confirmButtonColor: "#6531a0",
                     });
+                }
+
+                if (isContinue < 1) {
+                    if (!($('#unlocked_by').val() && $('#unlocked_by').val() > 0)) {
+                        if (!isNaN($("#current_short_roll_percentage").val()) && Number($("#current_short_roll_percentage").val()) < -2) {
+                            document.getElementById("loading").classList.add("d-none");
+
+                            lockForm();
+
+                            return Swal.fire({
+                                icon: 'error',
+                                title: 'Short Roll Kurang dari -2%',
+                                html: `
+                                    Harap laporkan kepada atasan untuk dapat melanjutkan
+                                    <input type='text' class='my-3 form-control form-control-sm' id='unlock_form_username' placeholder='Masukkan username...' onkeyup='unlockEnter(event, 1)'>
+                                    <input type='password' class='my-3 form-control form-control-sm' id='unlock_form_password' placeholder='Masukkan password...' onkeyup='unlockEnter(event, 1)'>
+                                    <button type='button' class='mb-3 btn btn-primary' id='submit_form_unlock_token' onclick='unlockForm(1)'>Lanjutkan Form</button>
+                                `,
+                                showCancelButton: false,
+                                showConfirmButton: false,
+                                allowOutsideClick: false,
+                            });
+                        }
+                    }
                 }
 
                 if ($("#status_sambungan").val() != "extension") {
@@ -1549,6 +1584,97 @@
                                 }
                             };
                         }
+                    });
+                }
+            }
+
+            async function unlockEnter(evt, isStoring = 0) {
+                if (evt.keyCode == 13) {
+                    unlockForm($isStoring);
+                }
+            }
+
+            async function lockForm() {
+                document.getElementById("loading").classList.remove('d-none');
+
+                $.ajax({
+                    url: '{{ route('form-cut-lock') }}',
+                    method: 'POST',
+                    data: {
+                        id: $("#id").val()
+                    },
+                    success: function (res) {
+                        document.getElementById("loading").classList.add('d-none');
+
+                        if (res) {
+                            iziToast.warning({
+                                title: 'Form di Kunci',
+                                message: 'Harap hubungi atasan untuk melanjutkan',
+                                position: 'topCenter'
+                            });
+                        }
+                    },
+                    error: function (jqXHR) {
+                        document.getElementById("loading").classList.add('d-none');
+
+                        console.error(jqXHR);
+                    }
+                });
+            }
+
+            async function unlockForm(isStoring = 0) {
+                document.getElementById("loading").classList.remove('d-none');
+
+                if ($("#unlock_form_username").val() && $("#unlock_form_password").val()) {
+                    $.ajax({
+                        url: '{{ route('form-cut-unlock') }}',
+                        method: 'POST',
+                        data: {
+                            id: $("#id").val(),
+                            username: $("#unlock_form_username").val(),
+                            password: $("#unlock_form_password").val()
+                        },
+                        success: function (res) {
+                            document.getElementById("loading").classList.add('d-none');
+
+                            if (res) {
+                                if (res.locked < 1) {
+                                    Swal.close();
+
+                                    iziToast.success({
+                                        title: 'Berhasil',
+                                        message: 'Form berhasil dibuka',
+                                        position: 'topCenter'
+                                    });
+
+                                    $("#locked").val(res.locked);
+                                    $("#unlocked_by").val(res.unlocked_by);
+
+                                    if (isStoring > 0) {
+                                        storeTimeRecord(1);
+                                    }
+                                } else {
+                                    iziToast.error({
+                                        title: 'Form gagal dibuka',
+                                        message: 'Password salah',
+                                        position: 'topCenter'
+                                    });
+                                }
+                            }
+                        },
+                        error: function (jqXHR) {
+                            document.getElementById("loading").classList.add('d-none');
+
+                            console.error(jqXHR);
+                        }
+                    });
+                } else {
+                    document.getElementById("loading").classList.add('d-none');
+
+                    iziToast.error({
+                        title: 'Form gagal dibuka',
+                        message: 'Harap isi kolom password',
+                        position: 'topCenter'
                     });
                 }
             }
@@ -1962,6 +2088,12 @@
 
             // -Calculate Short Roll-
             function calculateShortRoll() {
+                var toast = document.querySelector('.iziToast'); // Selector of your toast
+
+                if (toast) {
+                    iziToast.hide({}, toast);
+                }
+
                 let lembarGelaranVar = Number(document.getElementById("current_lembar_gelaran").value);
                 let pActualVar = Number(document.getElementById("p_act").value);
                 let kepalaKainVar = Number(document.getElementById("current_kepala_kain").value);
@@ -2000,7 +2132,26 @@
                     shortRoll = 0;
                 }
 
+                let shortRollPercentage = qtyVar > 0 ? (shortRoll / qtyVar) * 100 : 0;
+
+                if (!($('#unlocked_by').val() && $('#unlocked_by').val() > 0)) {
+                    if (!isNaN(shortRollPercentage) && shortRollPercentage < -2) {
+                        iziToast.warning({
+                            title: 'Warning',
+                            message: 'Short Roll kurang dari -2 %',
+                            position: 'topCenter'
+                        });
+                    } else {
+                        iziToast.success({
+                            title: 'Aman',
+                            message: 'Short Roll tidak kurang dari -2 %',
+                            position: 'topCenter'
+                        });
+                    }
+                }
+
                 document.getElementById("current_short_roll").value = isNaN(shortRoll.round(2)) ? 0 : shortRoll.round(2);
+                document.getElementById("current_short_roll_percentage").value = isNaN(shortRollPercentage.round(2)) ? 0 : shortRollPercentage.round(2);
             }
 
             // -Calculate Remark-
@@ -2333,6 +2484,28 @@
                     }
 
                     lockFormCutInput();
+                }
+
+                if ($("#locked").val() > 0) {
+                    Swal.close();
+
+                    lockForm();
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Form terkunci',
+                        html: `
+                            Harap laporkan kepada atasan untuk dapat melanjutkan
+                            <input type='text' class='my-3 form-control form-control-sm' id='unlock_form_username' placeholder='Masukkan username...' onkeyup='unlockEnter(event)'>
+                            <input type='password' class='my-3 form-control form-control-sm' id='unlock_form_password' placeholder='Masukkan password...' onkeyup='unlockEnter(event)'>
+                            <button type='button' class='mb-3 btn btn-primary' id='submit_form_unlock_token' onclick='unlockForm()'>Lanjutkan Form</button>
+                        `,
+                        showCancelButton: false,
+                        showConfirmButton: false,
+                        allowOutsideClick: false,
+                    });
+                } else {
+                    Swal.close();
                 }
             }
 
@@ -2999,6 +3172,7 @@
             var totalSisaKain = 0;
             var totalTotalPemakaian = 0;
             var totalShortRoll = 0;
+            var totalShortRollPercentage = 0;
             var totalRemark = 0;
             var totalLembar = 0;
             var totalPiping = 0;
@@ -3006,7 +3180,7 @@
             var totalBeratAmparan = 0;
             var latestStatus = "";
             var latestUnit = "";
-            var latestBerat = "";
+            var latestBerat = 0;
 
         // Function List :
             // -Fetch Scanned Item Data-
@@ -3131,6 +3305,7 @@
                 let td20 = document.createElement('td');
                 let td21 = document.createElement('td');
                 let td22 = document.createElement('td');
+                let td23 = document.createElement('td');
                 td1.innerHTML = (latestStatus != 'extension complete' ? totalScannedItem + 1 : "");
                 td2.innerHTML = data.group_roll ? data.group_roll : '-';
                 td3.innerHTML = data.group_stocker ? data.group_stocker : '-';
@@ -3151,8 +3326,9 @@
                 td18.innerHTML = data.sisa_kain ? data.sisa_kain : '-';
                 td19.innerHTML = data.total_pemakaian_roll ? data.total_pemakaian_roll : '-';
                 td20.innerHTML = data.short_roll ? data.short_roll : '-';
-                td21.innerHTML = data.piping ? data.piping : '-';
-                td22.innerHTML = data.remark ? data.remark : '-';
+                td21.innerHTML = data.short_roll ? data.qty > 0 ? Number(data.short_roll/data.qty*100).round(2) : '-' : '-';
+                td22.innerHTML = data.piping ? data.piping : '-';
+                td23.innerHTML = data.remark ? data.remark : '-';
                 tr.appendChild(td1);
                 tr.appendChild(td2);
                 tr.appendChild(td3);
@@ -3175,6 +3351,7 @@
                 tr.appendChild(td20);
                 tr.appendChild(td21);
                 tr.appendChild(td22);
+                tr.appendChild(td23);
 
                 if (latestUnit == "KGM" || latestUnit == "KG") {
                     let td23 = document.createElement('td');
@@ -3205,6 +3382,7 @@
                 totalTotalPemakaian += Number(data.total_pemakaian_roll);
                 latestStatus != 'extension complete' ? totalBeratAmparan += Number(data.berat_amparan) : '';
                 Number(data.short_roll) < 0 ? totalShortRoll += Number(data.short_roll) : "";
+                Number(data.short_roll) < 0 ? totalShortRollPercentage += Number(data.short_roll ? data.qty > 0 ? (data.short_roll/data.qty*100) : 0 : 0) : "";
                 totalRemark += Number(data.remark);
 
                 let averageTotalAverageTime = totalAverageTime / totalRow;
@@ -3224,6 +3402,7 @@
                 document.getElementById("total-sisa-kain").innerText = Number(totalSisaKain).round(2);
                 document.getElementById("total-total-pemakaian").innerText = Number(totalTotalPemakaian).round(2);
                 document.getElementById("total-short-roll").innerText = Number(totalShortRoll).round(2);
+                document.getElementById("total-short-roll-percentage").innerText = Number(totalShortRollPercentage).round(2);
                 document.getElementById("total-piping").innerText = Number(totalPiping).round(2);
                 document.getElementById("total-remark").innerText = Number(totalRemark).round(2);
                 document.getElementById("total-berat-amparan").innerText = Number(totalBeratAmparan).round(3);

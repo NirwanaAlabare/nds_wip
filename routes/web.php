@@ -145,6 +145,8 @@ Route::middleware('auth')->group(function () {
 
     // General
     Route::controller(GeneralController::class)->prefix("general")->group(function () {
+        // generate unlock token
+        Route::post('/generate-unlock-token', 'generateUnlockToken')->name('generate-unlock-token');
         // get order
         Route::get('/get-order', 'getOrderInfo')->name('get-general-order');
         // get colors
@@ -308,6 +310,11 @@ Route::middleware('auth')->group(function () {
 
         // no cut update
         Route::put('/update-no-cut', 'updateNoCut')->name('form-cut-update-no-cut');
+
+        // lock form
+        Route::post('/form-cut-lock', 'formCutLock')->name('form-cut-lock');
+        // unlock form
+        Route::post('/form-cut-unlock', 'formCutUnlock')->name('form-cut-unlock');
     });
 
     // Manual Form Cut Input
