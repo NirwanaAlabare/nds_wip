@@ -571,6 +571,19 @@
             datatable_delete.ajax.reload();
         }
 
+        $('#datatable_delete thead tr').clone(true).appendTo('#datatable_delete thead');
+        $('#datatable_delete thead tr:eq(1) th').each(function(i) {
+            var title = $(this).text();
+            $(this).html('<input type="text" class="form-control form-control-sm"/>');
+            $('input', this).on('keyup change', function() {
+                if (datatable_delete.column(i).search() !== this.value) {
+                    datatable_delete
+                        .column(i)
+                        .search(this.value)
+                        .draw();
+                }
+            });
+        });
         let datatable_delete = $("#datatable_delete").DataTable({
             "footerCallback": function(row, data, start, end, display) {
                 var api = this.api(),
