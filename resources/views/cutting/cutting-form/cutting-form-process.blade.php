@@ -1590,7 +1590,7 @@
 
             async function unlockEnter(evt, isStoring = 0) {
                 if (evt.keyCode == 13) {
-                    unlockForm($isStoring);
+                    unlockForm(isStoring);
                 }
             }
 

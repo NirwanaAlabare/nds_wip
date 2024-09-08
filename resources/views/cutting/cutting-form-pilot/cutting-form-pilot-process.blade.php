@@ -1655,7 +1655,7 @@
             async function unlockForm(isStoring = 0) {
                 document.getElementById("loading").classList.remove('d-none');
 
-                if ($("#form_unlock_token").val()) {
+                if ($("#unlock_form_username").val() && $("#unlock_form_password").val()) {
                     $.ajax({
                         url: '{{ route('form-cut-unlock') }}',
                         method: 'POST',
