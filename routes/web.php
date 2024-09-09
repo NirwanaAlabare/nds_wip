@@ -854,6 +854,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store-master-mut-mesin');
         Route::get('/export_excel_master_mesin', 'export_excel_master_mesin')->name('export_excel_master_mesin');
         Route::post('/hapus_data_mesin', 'hapus_data_mesin')->name('hapus-data-mesin');
+        Route::get('/getdata_mesin', 'getdata_mesin')->name('getdata_mesin');
+        Route::post('/edit_master_mut_mesin', 'edit_master_mut_mesin')->name('edit-master-mut-mesin');
     });
 
     //warehouse

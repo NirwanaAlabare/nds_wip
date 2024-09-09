@@ -72,6 +72,41 @@ class MutasiMesinMasterController extends Controller
     }
 
 
+    public function getdata_mesin(Request $request)
+    {
+        $cek_data = DB::select("
+        SELECT * FROM master_mesin	where id_qr = '$request->id_qr_edit'
+        ");
+        return json_encode($cek_data ? $cek_data[0] : null);
+    }
+
+    public function edit_master_mut_mesin(Request $request)
+    {
+        $user = Auth::user()->name;
+        $tglpindah = date('Y-m-d');
+        $timestamp = Carbon::now();
+        $txtedit_qr = $request->txtedit_qr;
+        $txtedit_jenis = $request->txtedit_jenis;
+        $txtedit_brand = $request->txtedit_brand;
+        $txtedit_tipe = $request->txtedit_tipe;
+        $txtedit_serial = $request->txtedit_serial;
+
+        DB::update(
+            "update master_mesin
+            set jenis_mesin = '$txtedit_jenis', brand = '$txtedit_brand', tipe_mesin = '$txtedit_tipe',
+            serial_no = '$txtedit_serial', updated_at = '$timestamp'
+            where id_qr = '$txtedit_qr'
+            "
+        );
+        return array(
+            'status' => 300,
+            'message' => 'Data ' . $txtedit_qr . ' Sudah Berhasil Dirubah',
+            'redirect' => '',
+            'table' => 'datatable',
+            'additional' => [],
+        );
+    }
+
     public function export_excel_master_mesin(Request $request)
     {
         return Excel::download(new ExportLaporanMutasiMesinMaster(), 'Laporan_Mutasi_Master_Mesin.xlsx');
