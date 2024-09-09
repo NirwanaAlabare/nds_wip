@@ -200,12 +200,13 @@
                                             <th>WS #</th>
                                             <th>Color</th>
                                             <th>Size</th>
+                                            <th>Dest</th>
                                             <th>Qty</th>
                                         </tr>
                                     </thead>
                                     <tfoot>
                                         <tr>
-                                            <th colspan="5">Total</th>
+                                            <th colspan="6">Total</th>
                                             <th></th>
                                         </tr>
                                     </tfoot>
@@ -229,7 +230,8 @@
                                             <th>Color</th>
                                             <th>Size</th>
                                             <th>Qty</th>
-                                            <th style="display:none">Data</th>
+                                            <th>Dest</th>
+                                            <th>ID SO Det</th>
                                         </tr>
                                     </thead>
                                     <tfoot>
@@ -238,7 +240,8 @@
                                             <th></th>
                                             <th></th>
                                             <th></th>
-                                            <th style="display:none"></th>
+                                            <th></th>
+                                            <th></th>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -422,7 +425,7 @@
 
                 // computing column Total of the complete result
                 var sumTotal = api
-                    .column(5)
+                    .column(6)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
@@ -430,7 +433,7 @@
 
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
-                $(api.column(5).footer()).html(sumTotal);
+                $(api.column(6).footer()).html(sumTotal);
             },
             ordering: false,
             processing: true,
@@ -468,6 +471,9 @@
                 },
                 {
                     data: 'size',
+                },
+                {
+                    data: 'dest',
                 },
                 {
                     data: 'qty',
@@ -539,6 +545,9 @@
                     data: 'qty',
                 },
                 {
+                    data: 'dest',
+                },
+                {
                     data: 'id_so_det',
                 },
             ],
@@ -548,10 +557,10 @@
                     "targets": "_all"
                 },
                 {
-                    targets: [4],
+                    targets: [5],
                     render: (data, type, row, meta) => {
                         return `
-                        <input type="hidden" size="4" id="id_so_det[` + row.id_so_det + `]"
+                        <input type="text" readonly size="4" id="id_so_det[` + row.id_so_det + `]"
                         name="id_so_det[` + row.id_so_det + `]" value = "` + row.id_so_det + `"/>
                         <input type="hidden" size="4" id="qty[` + row.id_so_det + `]"
                         name="qty[` + row.id_so_det + `]" value = "` + row.qty + `"/>

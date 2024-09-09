@@ -165,6 +165,7 @@ group by no_sb
         m.color,
         m.size,
         a.qty,
+        m.dest,
         tmp.id
         from fg_fg_out_tmp tmp
         inner join fg_fg_in a on tmp.id_fg_in = a.id
@@ -193,6 +194,7 @@ group by no_sb
         m.color,
         m.size,
         m.price,
+        m.dest,
         sum(a.qty) qty,
         m.curr,
         m.price
