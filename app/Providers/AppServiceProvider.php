@@ -33,55 +33,55 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Blade::if('marker', function () {
-            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "marker");
+            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "marker");
         });
 
         Blade::if('spreading', function () {
-            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "spreading");
+            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "spreading");
         });
 
         Blade::if('meja', function () {
-            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "meja");
+            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "meja");
         });
 
         Blade::if('stocker', function () {
-            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "stocker");
+            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "stocker");
         });
 
         Blade::if('manager', function () {
-            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "manager");
+            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "manager");
         });
 
         Blade::if('dc', function () {
-            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "dc");
+            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "dc");
         });
 
         Blade::if('sewing', function () {
-            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "sewing");
+            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "sewing");
         });
 
         Blade::if('hr', function () {
-            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "hr");
+            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "hr");
         });
 
         Blade::if('warehouse', function () {
-            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "warehouse");
+            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "warehouse");
         });
 
         Blade::if('ppic', function () {
-            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "ppic" || auth()->user()->type == "packing");
+            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "ppic" || auth()->user()->type == "packing");
         });
 
         Blade::if('finishgood', function () {
-            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "ppic" || auth()->user()->type == "packing" || auth()->user()->type == "finishgood");
+            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "ppic" || auth()->user()->type == "packing" || auth()->user()->type == "finishgood");
         });
 
         Blade::if('packing', function () {
-            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "packing" || auth()->user()->type == "ppic");
+            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "packing" || auth()->user()->type == "ppic");
         });
 
         Blade::if('ga', function () {
-            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "ga");
+            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin" || auth()->user()->type == "ga");
         });
     }
 }

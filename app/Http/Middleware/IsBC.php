@@ -17,7 +17,7 @@ class IsBC
      */
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::user() &&  (Auth::user()->type == 'admin' || Auth::user()->type == 'ppic' || Auth::user()->type == 'packing' || Auth::user()->type == 'finishgood' || Auth::user()->type == 'bc')) {
+        if (Auth::user() &&  (Auth::user()->type == 'admin' || Auth::user()->type == 'superadmin' || Auth::user()->type == 'ppic' || Auth::user()->type == 'packing' || Auth::user()->type == 'finishgood' || Auth::user()->type == 'bc')) {
             return $next($request);
         }
 

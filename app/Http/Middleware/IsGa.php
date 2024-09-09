@@ -17,7 +17,7 @@ class IsGa
      */
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::user()  &&  (Auth::user()->type == 'admin' || Auth::user()->type == 'ga')) {
+        if (Auth::user()  &&  (Auth::user()->type == 'admin' || Auth::user()->type == 'superadmin' || Auth::user()->type == 'ga')) {
             return $next($request);
         }
 
