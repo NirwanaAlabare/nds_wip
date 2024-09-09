@@ -2494,7 +2494,7 @@ class StockerController extends Controller
             whereRaw("
                 year_sequence.form_cut_id = '".$request->form_cut_id."' and
                 year_sequence.so_det_id = '".$request->so_det_id."' and
-                (year_sequence.number >= '".$request->range_awal."' and year_sequence.number <= '".$request->range_akhir."')
+                (year_sequence.number >= '".$request->range_awal."')
             ")->
             get();
 
