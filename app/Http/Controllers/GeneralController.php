@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Marker;
 use App\Models\MarkerDetail;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -204,5 +205,29 @@ class GeneralController extends Controller
     public function destroy(Marker $marker)
     {
         //
+    }
+
+    public function generateUnlockToken(Request $request) {
+        if ($request->id) {
+            $user = User::where("type", "admin")->where("id", $request->id)->first();
+
+            if ($user) {
+                $user->unlock_token = ($user->unlock_token ? $user->id."".Carbon::now()->format('ymd')."".(intval(substr($user->unlock_token, -1))+1) : $user->id."".Carbon::now()->format('ymd')."1");
+                $user->save();
+            }
+
+            return $user->unlock_token;
+        } else {
+            $users = User::where("type", "admin")->get();
+
+            if ($users->count() > 0) {
+                foreach ($users as $user) {
+                    $user->unlock_token = ($user->unlock_token ? $user->id."".Carbon::now()->format('ymd')."".(intval(substr($user->unlock_token, -1))+1) : $user->id."".Carbon::now()->format('ymd')."1");
+                    $user->save();
+                }
+            }
+
+            return $users;
+        }
     }
 }
