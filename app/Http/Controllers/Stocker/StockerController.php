@@ -1990,16 +1990,6 @@ class StockerController extends Controller
             $months = [['angka' => '01','nama' => 'Januari'],['angka' => '02','nama' => 'Februari'],['angka' => '03','nama' => 'Maret'],['angka' => '04','nama' => 'April'],['angka' => '05','nama' => 'Mei'],['angka' => '06','nama' => 'Juni'],['angka' => '07','nama' => 'Juli'],['angka' => '08','nama' => 'Agustus'],['angka' => '09','nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
             $years = array_reverse(range(1999, date('Y')));
 
-            $availableMonthCount = MonthCount::selectRaw("
-                    month_year,
-                    month_year_number
-                ")->
-                whereRaw('number IS NULL')->
-                whereRaw('form_cut_id IS NULL')->
-                whereRaw('so_det_id IS NULL')->
-                groupBy('month_year')->
-                get();
-
             $stockerList = DB::select("
                     SELECT
                         GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker) id_qr_stocker,
@@ -2045,22 +2035,23 @@ class StockerController extends Controller
                 ");
 
             if ($stockerList[0]) {
-                $stockerListNumber = MonthCount::selectRaw("
-                    month_count.id_month_year,
-                    month_count.number,
-                    month_count.month_year,
-                    month_count.month_year_number,
+                $stockerListNumber = YearSequence::selectRaw("
+                    year_sequence.id_year_sequence,
+                    year_sequence.number,
+                    year_sequence.year,
+                    year_sequence.year_sequence,
+                    year_sequence.year_sequence_number,
                     master_sb_ws.size,
                     master_sb_ws.dest
                 ")->
-                leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "month_count.so_det_id")->
+                leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "year_sequence.so_det_id")->
                 whereRaw("
-                    month_count.form_cut_id = '".$form_cut_id."' and
-                    month_count.so_det_id = '".$so_det_id."'
+                    year_sequence.form_cut_id = '".$form_cut_id."' and
+                    year_sequence.so_det_id = '".$so_det_id."'
                 ")->
                 get();
 
-                return view("stocker.stocker.stocker-list-detail", ["page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "stocker-list", "availableMonthCount" => $availableMonthCount, "stockerList" => $stockerList[0], "stockerListNumber" => $stockerListNumber, "months" => $months, "years" => $years]);
+                return view("stocker.stocker.stocker-list-detail", ["page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "stocker-list", "stockerList" => $stockerList[0], "stockerListNumber" => $stockerListNumber, "months" => $months, "years" => $years]);
             }
         }
 
@@ -2154,6 +2145,15 @@ class StockerController extends Controller
         ]);
 
         if ($validatedRequest) {
+            if ($request->replace) {
+                $deleteYearSequence = YearSequence::where("year", $validatedRequest['year'])->
+                    where("year_sequence", $validatedRequest['year_sequence'])->
+                    where("form_cut_id", $validatedRequest['form_cut_id'])->
+                    where("so_det_id", $validatedRequest['so_det_id'])->
+                    where("number", ">=", $validatedRequest['range_awal_stocker'])->
+                    delete();
+            }
+
             $currentData = YearSequence::selectRaw("
                     number
                 ")->
@@ -2238,6 +2238,30 @@ class StockerController extends Controller
             "message" => "Data kosong",
         );
     }
+
+    public function deleteYearSequence(Request $request) {
+        ini_set("max_execution_time", 36000);
+
+        $validatedRequest = $request->validate([
+            "year" => 'required',
+            "year_sequence" => 'required',
+            "form_cut_id" => 'required',
+            "so_det_id" => 'required',
+            "size" => 'required',
+            "range_awal_stocker" => 'required',
+            "range_akhir_stocker" => 'required',
+            "range_awal_year_sequence" => 'required',
+            "range_akhir_year_sequence" => 'required',
+        ]);
+
+        $deleteYearSequence = YearSequence::where("year", $validatedRequest['year'])->
+            where("year_sequence", $validatedRequest['year_sequence'])->
+            where("fomr_cut_id", $validatedRequest['fomr_cut_id'])->
+            where("so_det_id", $validatedRequest['so_det_id'])->
+            where("number", ">=", $validatedRequest['range_awal_stocker'])->
+            delete();
+    }
+
 
     public function customMonthCount() {
         $months = [['angka' => '01','nama' => 'Januari'],['angka' => '02','nama' => 'Februari'],['angka' => '03','nama' => 'Maret'],['angka' => '04','nama' => 'April'],['angka' => '05','nama' => 'Mei'],['angka' => '06','nama' => 'Juni'],['angka' => '07','nama' => 'Juli'],['angka' => '08','nama' => 'Agustus'],['angka' => '09','nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
