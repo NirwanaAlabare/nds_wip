@@ -2249,7 +2249,7 @@ class StockerController extends Controller
     public function yearSequence() {
         $years = array_reverse(range(1999, date('Y')));
 
-        return view("stocker.stocker.year-sequence", ["page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "month-count", "years" => $years]);
+        return view("stocker.stocker.year-sequence", ["page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "year-sequence", "years" => $years]);
     }
 
     public function printMonthCount(Request $request) {
