@@ -87,12 +87,12 @@
                         <div class="d-flex align-items-end gap-3">
                             <div class="w-100">
                                 <label class="form-label">Range Awal</label>
-                                <input class="form-control" type="number" name="range_awal_stocker" id="range_awal_stocker" readonly     />
+                                <input class="form-control" type="number" name="range_awal_stocker" id="range_awal_stocker" onchange="yearSequenceTableReload()" readonly     />
                             </div>
                             <span class="mb-1"> - </span>
                             <div class="w-100">
                                 <label for="form-label">Range Akhir</label>
-                                <input class="form-control" type="number" name="range_akhir_stocker" id="range_akhir_stocker" readonly   />
+                                <input class="form-control" type="number" name="range_akhir_stocker" id="range_akhir_stocker" onchange="yearSequenceTableReload()" readonly   />
                             </div>
                         </div>
                     </div>
@@ -348,8 +348,8 @@
                             document.getElementById("no_form").value = res.no_form ? res.no_form : null;
                             document.getElementById("part").value = res.part ? res.part : null;
                             document.getElementById("qty").value = res.qty ? res.qty : null;
-                            document.getElementById("range_awal_stocker").value = res.range_awal ? res.range_awal : null;
-                            document.getElementById("range_akhir_stocker").value = res.range_akhir ? res.range_akhir : null;
+                            $("#range_awal_stocker").val(res.range_awal ? res.range_awal : null).trigger("change");
+                            $("#range_akhir_stocker").val(res.range_akhir ? res.range_akhir : null).trigger("change");
                             $("#print_qty").val(res.qty).trigger("change");
                         } else {
                             Swal.fire({
@@ -532,8 +532,10 @@
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Berhasil',
-                                html: 'Data berhasil di setting',
+                                html: 'Data berhasil di setting <br> <b>'+$("#stocker").val()+'</b> <br> <b>'+$("#year").val()+'_'+$("#sequence").val()+'</b> <br> <b>'+$("#range_awal").val()+' - '+$("#range_akhir").val()+'</b>',
                                 allowOutsideClick: false,
+                            }).then(() => {
+                                window.location.reload();
                             });
                         } else {
                             Swal.fire({
@@ -581,6 +583,8 @@
                 data: function(d) {
                     d.form_cut_id = $('#form_cut_id').val();
                     d.so_det_id = $('#so_det_id').val();
+                    d.range_awal = $('#range_awal_stocker').val();
+                    d.range_akhir = $('#range_akhir_stocker').val();
                 },
             },
             columns: [

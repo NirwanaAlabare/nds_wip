@@ -17,7 +17,7 @@ class IsStockOpname
      */
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::user() &&  (Auth::user()->type == 'admin' || Auth::user()->type == 'stock_opname')) {
+        if (Auth::user() &&  (Auth::user()->type == 'admin' || Auth::user()->type == 'superadmin' || Auth::user()->type == 'stock_opname')) {
             return $next($request);
         }
 

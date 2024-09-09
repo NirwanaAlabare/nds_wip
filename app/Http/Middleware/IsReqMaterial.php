@@ -17,7 +17,7 @@ class IsReqMaterial
      */
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::user() &&  (Auth::user()->type == 'admin' || Auth::user()->type == 'warehouse')) {
+        if (Auth::user() &&  (Auth::user()->type == 'admin' || Auth::user()->type == 'superadmin' || Auth::user()->type == 'warehouse')) {
             return $next($request);
         }
 
