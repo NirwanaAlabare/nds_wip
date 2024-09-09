@@ -1911,8 +1911,8 @@ class StockerController extends Controller
 
             $stockerList = DB::select("
                 SELECT
-                    GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker) id_qr_stocker,
-                    GROUP_CONCAT(DISTINCT master_part.nama_part) part,
+                    GROUP_CONCAT( DISTINCT stocker_input.id_qr_stocker ) id_qr_stocker,
+                    GROUP_CONCAT( DISTINCT master_part.nama_part ) part,
                     stocker_input.form_cut_id,
                     stocker_input.act_costing_ws,
                     stocker_input.so_det_id,
@@ -1925,31 +1925,55 @@ class StockerController extends Controller
                     stocker_input.group_stocker,
                     stocker_input.shade,
                     stocker_input.ratio,
-                    CONCAT(MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir)) stocker_range,
-                    '-' numbering_month,
-                    '-' numbering_range
+                    CONCAT( MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir)) stocker_range,
+                    year_sequence_num.year_sequence,
+                    CONCAT( MIN(year_sequence_num.range_awal), ' - ', MAX(year_sequence_num.range_akhir)) numbering_range
                 FROM
                     stocker_input
-                LEFT JOIN
-                    part_detail on part_detail.id = stocker_input.part_detail_id
-                LEFT JOIN
-                    master_part on master_part.id = part_detail.master_part_id
-                LEFT JOIN
-                    master_sb_ws on master_sb_ws.id_so_det = stocker_input.so_det_id
-                LEFT JOIN
-                    form_cut_input on form_cut_input.id = stocker_input.form_cut_id
+                    LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
+                    LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
+                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                    LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
+                    INNER JOIN (
+                        SELECT
+                            form_cut_id,
+                            so_det_id,
+                            CONCAT(`year`, '_', year_sequence) year_sequence,
+                            MIN( number ) range_numbering_awal,
+                            MAX( number ) range_numbering_akhir,
+                            MIN( year_sequence_number ) range_awal,
+                            MAX( year_sequence_number ) range_akhir,
+                            COALESCE(DATE(updated_at), DATE(created_at)) updated_at
+                        FROM
+                            year_sequence
+                        GROUP BY
+                            form_cut_id,
+                            so_det_id
+                    ) year_sequence_num on year_sequence_num.form_cut_id = stocker_input.form_cut_id and year_sequence_num.so_det_id = stocker_input.so_det_id and year_sequence_num.range_numbering_awal >= stocker_input.range_awal
                 WHERE
-                    (form_cut_input.cancel is not null or form_cut_input.cancel != 'Y') AND
-                    (DATE(form_cut_input.waktu_mulai) >= '".$dateFrom."' OR DATE(form_cut_input.waktu_selesai) >= '".$dateFrom."' OR DATE(stocker_input.updated_at) >= '".$dateFrom."' OR DATE(stocker_input.created_at) >= '".$dateFrom."') AND
-                    (DATE(form_cut_input.waktu_mulai) <= '".$dateTo."' OR DATE(form_cut_input.waktu_selesai) <= '".$dateTo."' OR DATE(stocker_input.updated_at) <= '".$dateTo."' OR DATE(stocker_input.created_at) <= '".$dateTo."')
+                    ( form_cut_input.cancel IS NOT NULL OR form_cut_input.cancel != 'Y' )
+                    AND (
+                        DATE ( form_cut_input.waktu_mulai ) >= '".$dateFrom."'
+                        OR DATE ( form_cut_input.waktu_selesai ) >= '".$dateFrom."'
+                        OR DATE ( stocker_input.updated_at ) >= '".$dateFrom."'
+                        OR DATE ( stocker_input.created_at ) >= '".$dateFrom."'
+                        OR year_sequence_num.updated_at >= '".$dateFrom."'
+                    )
+                    AND (
+                        DATE ( form_cut_input.waktu_mulai ) <= '".$dateTo."'
+                        OR DATE ( form_cut_input.waktu_selesai ) <= '".$dateTo."'
+                        OR DATE ( stocker_input.updated_at ) <= '".$dateTo."'
+                        OR DATE ( stocker_input.created_at ) <= '".$dateTo."'
+                        OR year_sequence_num.updated_at <= '".$dateTo."'
+                    )
                 GROUP BY
                     stocker_input.form_cut_id,
                     stocker_input.so_det_id
                 ORDER BY
-                    stocker_input.updated_at desc,
-                    stocker_input.created_at desc,
-                    form_cut_input.waktu_selesai desc,
-                    form_cut_input.waktu_mulai desc
+                    stocker_input.updated_at DESC,
+                    stocker_input.created_at DESC,
+                    form_cut_input.waktu_selesai DESC,
+                    form_cut_input.waktu_mulai DESC
             ");
 
             return DataTables::of($stockerList)->toJson();

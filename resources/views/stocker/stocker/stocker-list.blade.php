@@ -41,6 +41,7 @@
                         <button class="btn btn-primary btn-sm" onclick="fixRedundantNumbering()"><i class="fa fa-cog"></i> Numbering Redundant</button>
                     </div>
                 </div> --}}
+
             </div>
             <div class="table-responsive">
                 <table id="datatable" class="table table-bordered table-sm w-100">
@@ -60,8 +61,8 @@
                             <th>Shade</th>
                             <th>Ratio</th>
                             <th>Stocker Range</th>
-                            <th>Numbering Month</th>
-                            <th>Numbering Range</th>
+                            <th>Year Sequence</th>
+                            <th>Year Sequence Range</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -269,7 +270,7 @@
                     data: 'stocker_range',
                 },
                 {
-                    data: 'numbering_month'
+                    data: 'year_sequence'
                 },
                 {
                     data: 'numbering_range'
@@ -280,7 +281,8 @@
                 {
                     targets: [0],
                     render: (data, type, row, meta) => {
-                        return "<div class='d-flex gap-1 justify-content-center'><a class='btn btn-primary btn-sm' href='{{ route('stocker-list-detail') }}/"+row.form_cut_id+"/"+row.so_det_id+"' target='_blank'><i class='fa fa-search-plus'></i></a></div>";
+                        // return "<div class='d-flex gap-1 justify-content-center'><a class='btn btn-primary btn-sm' href='{{ route('stocker-list-detail') }}/"+row.form_cut_id+"/"+row.so_det_id+"' target='_blank'><i class='fa fa-search-plus'></i></a></div>";
+                        return "<div class='d-flex gap-1 justify-content-center'><a class='btn btn-primary btn-sm' href='#'><i class='fa fa-search-plus'></i></a></div>";
                     }
                 },
                 // Stocker List
