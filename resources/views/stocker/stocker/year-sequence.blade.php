@@ -532,7 +532,7 @@
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Berhasil',
-                                html: 'Data berhasil di setting',
+                                html: 'Data berhasil di setting <br> <b>'+$("#stocker").val()+'</b> <br> <b>'+$("#year").val()+'_'+$("#sequence").val()+'</b> <br> <b>'+$("#range_awal").val()+' - '+$("#range_akhir").val()+'</b>',
                                 allowOutsideClick: false,
                             }).then(() => {
                                 window.location.reload();
