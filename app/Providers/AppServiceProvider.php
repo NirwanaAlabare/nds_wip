@@ -29,7 +29,7 @@ class AppServiceProvider extends ServiceProvider
         Schema::defaultStringLength(191);
 
         Blade::if('admin', function () {
-            return auth()->check() && auth()->user()->type == "admin";
+            return auth()->check() && (auth()->user()->type == "admin" || auth()->user()->type == "superadmin");
         });
 
         Blade::if('marker', function () {
