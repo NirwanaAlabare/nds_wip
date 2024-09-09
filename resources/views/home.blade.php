@@ -37,7 +37,7 @@
                         </div>
                     @endadmin
 
-                    @if (auth()->user()->type == 'admin' || auth()->user()->type == 'marker' || auth()->user()->type == 'spreading')
+                    @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'marker' || auth()->user()->type == 'spreading')
                         <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('dashboard-marker') }}" class="home-item">
                                 <div class="card h-100">
@@ -180,7 +180,7 @@
                         </div>
                     @endwarehouse
 
-                    @if (auth()->user()->type == 'admin' || auth()->user()->type == 'stock_opname')
+                    @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'stock_opname')
                         <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('stock_opname') }}" class="home-item">
                                 <div class="card h-100">
