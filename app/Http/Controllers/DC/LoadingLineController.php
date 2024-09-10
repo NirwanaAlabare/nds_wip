@@ -57,17 +57,26 @@ class LoadingLineController extends Controller
                 FROM
                     loading_line_plan
                     LEFT JOIN (
-                        SELECT
-                            loading_line.loading_plan_id,
-                            loading_line.qty,
+                                ( COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply ) -
+                                ( COALESCE ( dc_in_input.qty_reject, 0 )) + ( COALESCE ( dc_in_input.qty_replace, 0 )) -
+                                ( COALESCE ( secondary_in_input.qty_reject, 0 )) + ( COALESCE ( secondary_in_input.qty_replace, 0 )) -
+                                ( COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + (COALESCE ( secondary_inhouse_input.qty_replace, 0 ))
+                            ) qty,
                             trolley.id trolley_id,
-                            trolley.nama_trolley
+                            trolley.nama_trolley,
+                            stocker_input.so_det_id,
+                            stocker_input.size
                         FROM
                             loading_line
                             LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
+                            LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                            LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                            LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
                             LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
                             LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
+                            LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
                         GROUP BY
+                            loading_line.tanggal_loading,
                             stocker_input.form_cut_id,
                             stocker_input.so_det_id,
                             stocker_input.group_stocker,
