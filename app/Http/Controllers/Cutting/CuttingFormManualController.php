@@ -1175,7 +1175,7 @@ class CuttingFormManualController extends Controller
                     "lot" => $request['current_lot'],
                     "roll" => $validatedRequest['current_roll'],
                     "roll_buyer" => $validatedRequest['current_roll_buyer'],
-                    "qty" => $itemRemain > 0 ? 0 : $itemRemain,
+                    "qty" => $itemRemain,
                     "qty_pakai" => $validatedRequest['current_total_pemakaian_roll'],
                     "unit" => $itemUnit,
                     "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
