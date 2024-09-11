@@ -57,6 +57,8 @@ class RollController extends Controller
                     b.no_form_cut_input,
                     b.qty qty_item,
                     b.unit unit_item,
+                    a.cons_pipping,
+                    b.berat_amparan,
                     b.sisa_gelaran,
                     b.sambungan,
                     b.est_amparan,
