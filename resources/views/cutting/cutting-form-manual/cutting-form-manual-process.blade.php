@@ -3338,6 +3338,9 @@
                     if (latestStatus == 'extension complete') {
                         $('#current_kepala_kain').val(0);
                         $('#current_kepala_kain').prop('readonly', true);
+                    } else {
+                        $('#current_kepala_kain').val(0);
+                        $('#current_kepala_kain').prop('readonly', false);
                     }
                 }
 
