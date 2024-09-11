@@ -10,6 +10,7 @@ use App\Models\Part;
 use App\Models\PartDetail;
 use App\Models\PartForm;
 use App\Models\FormCutInput;
+use App\Models\ModifySizeQty;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
