@@ -931,11 +931,11 @@
                                             <th>Kepala Kain</th>
                                             <th>Sisa Tidak Bisa</th>
                                             <th>Reject</th>
+                                            <th>Piping</th>
                                             <th>Sisa Kain</th>
                                             <th class="label-calc">Total Pemakaian Per Roll</th>
                                             <th class="label-calc">Short Roll +/-</th>
                                             <th class="label-calc">Short Roll (%)</th>
-                                            <th>Piping</th>
                                             <th>Remark</th>
                                             <th id="th-berat-amparan" class="d-none">Berat 1 Amparan</th>
                                         </tr>
@@ -955,11 +955,11 @@
                                             <th id="total-kepala-kain"></th>
                                             <th id="total-sisa-tidak-bisa"></th>
                                             <th id="total-reject"></th>
+                                            <th id="total-piping"></th>
                                             <th id="total-sisa-kain"></th>
                                             <th id="total-total-pemakaian"></th>
                                             <th id="total-short-roll"></th>
                                             <th id="total-short-roll-percentage"></th>
-                                            <th id="total-piping"></th>
                                             <th id="total-remark"></th>
                                             <th id="total-berat-amparan" class="d-none"></th>
                                         </tr>
@@ -3723,11 +3723,11 @@
                     td15.innerHTML = data.kepala_kain ? data.kepala_kain : '-';
                     td16.innerHTML = data.sisa_tidak_bisa ? data.sisa_tidak_bisa : '-';
                     td17.innerHTML = data.reject ? data.reject : '-';
-                    td18.innerHTML = data.sisa_kain ? data.sisa_kain : '-';
-                    td19.innerHTML = data.total_pemakaian_roll ? data.total_pemakaian_roll : '-';
-                    td20.innerHTML = data.short_roll ? data.short_roll : '-';
-                    td21.innerHTML = data.short_roll ? data.qty > 0 ? Number(data.short_roll/data.qty*100).round(2) : '-' : '-';
-                    td22.innerHTML = data.piping ? data.piping : '-';
+                    td18.innerHTML = data.piping ? data.piping : '-';
+                    td19.innerHTML = data.sisa_kain ? data.sisa_kain : '-';
+                    td20.innerHTML = data.total_pemakaian_roll ? data.total_pemakaian_roll : '-';
+                    td21.innerHTML = data.short_roll ? data.short_roll : '-';
+                    td22.innerHTML = data.short_roll ? data.qty > 0 ? Number(data.short_roll/data.qty*100).round(2) : '-' : '-';
                     td23.innerHTML = data.remark ? data.remark : '-';
                     tr.appendChild(td1);
                     tr.appendChild(td2);
