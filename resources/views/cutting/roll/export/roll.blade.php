@@ -46,7 +46,7 @@
             <td>Lbr Marker</td>
             <td>Lbr Act</td>
             <td>Unit Lbr Act</td>
-            <td>Berat Amparan</td>
+            <td>Berat Amparan (KGM)</td>
             <td>Total Pemakaian</td>
             <td>Sisa Kain</td>
             <td>Sisa Gelar</td>

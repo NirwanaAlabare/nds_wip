@@ -56,7 +56,7 @@
                                 <th>Qty</th>
                                 <th>Unit</th>
                                 <th>Cons. Piping</th>
-                                <th>Berat Amparan</th>
+                                <th>Berat Amparan (KGM)</th>
                                 <th>Lembar Gelaran</th>
                                 <th>Total Pemakaian</th>
                                 <th>Short Roll</th>
