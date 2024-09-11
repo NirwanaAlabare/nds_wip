@@ -57,7 +57,9 @@ class LoadingLineController extends Controller
                 FROM
                     loading_line_plan
                     LEFT JOIN (
-                                ( COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply ) -
+                        SELECT
+                            (
+                                ( COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply )) -
                                 ( COALESCE ( dc_in_input.qty_reject, 0 )) + ( COALESCE ( dc_in_input.qty_replace, 0 )) -
                                 ( COALESCE ( secondary_in_input.qty_reject, 0 )) + ( COALESCE ( secondary_in_input.qty_replace, 0 )) -
                                 ( COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + (COALESCE ( secondary_inhouse_input.qty_replace, 0 ))
@@ -65,7 +67,8 @@ class LoadingLineController extends Controller
                             trolley.id trolley_id,
                             trolley.nama_trolley,
                             stocker_input.so_det_id,
-                            stocker_input.size
+                            stocker_input.size,
+                            loading_line.loading_plan_id
                         FROM
                             loading_line
                             LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
