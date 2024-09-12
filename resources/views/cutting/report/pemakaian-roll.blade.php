@@ -34,6 +34,7 @@
                 <table class="table table-bordered table-sm" id="datatable">
                     <thead>
                         <tr>
+                            <th>Action</th>
                             <th>No. Request</th>
                             <th>Tanggal Request</th>
                             <th>Tujuan</th>
@@ -59,6 +60,46 @@
                     <tbody>
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" tabindex="-1" id="detailPemakaianKainModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-light fw-bold">
+                    <h5 class="modal-title"><i class="fa-solid fa-circle-info"></i> Detail Pemakaian Kain</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">No. Request</label>
+                            <input type="text" class="form-control form-control-sm" id="detail_no_req" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">ID Item</label>
+                            <input type="text" class="form-control form-control-sm" id="detail_id_item" readonly>
+                        </div>
+                    </div>
+                    <table class="table table-sm table-bordered w-100" id="datatable-detail">
+                        <thead>
+                            <th>ID Roll</th>
+                            <th>ID Item</th>
+                            <th>Detail Item</th>
+                            <th>Lot</th>
+                            <th>Roll</th>
+                            <th>Qty</th>
+                            <th>Total Pemakaian Kain</th>
+                            <th>Total Short Roll</th>
+                            <th>Unit</th>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Tutup</button>
+                </div>
             </div>
         </div>
     </div>
@@ -129,6 +170,9 @@
                     data: 'bppbno'
                 },
                 {
+                    data: 'bppbno'
+                },
+                {
                     data: 'bppbdate'
                 },
                 {
@@ -188,15 +232,27 @@
             ],
             columnDefs: [
                 {
-                    targets: [10, 17],
+                    targets: [0],
+                    render: (data, type, row, meta) => {
+                        let button = `
+                            <div class='d-flex justify-content-center align-item-middle'>
+                                <button class="btn btn-sm btn-primary" onclick="showDetail('`+row.bppbno+`', '`+row.id_item+`')"> <i class="fa-solid fa-circle-info"></i> </button>
+                            </div>
+                        `;
+
+                        return button;
+                    }
+                },
+                {
+                    targets: [11, 18],
                     className: "d-none",
                 },
                 {
-                    targets: [8, 9, 11, 12, 13, 15, 18, 19],
+                    targets: [9, 10, 12, 13, 14, 16, 19, 20],
                     className: "fw-bold",
                 },
                 {
-                    targets: [14, 16],
+                    targets: [15, 17],
                     className: "fw-bold",
                     render: (data, type, row, meta) => {
                         let color = "";
@@ -223,6 +279,83 @@
 
         function datatableReload() {
             datatable.ajax.reload();
+        }
+
+        $('#datatable-detail thead tr').clone(true).appendTo('#datatable-detail thead');
+        $('#datatable-detail thead tr:eq(1) th').each(function(i) {
+            // if (i <= 7) {
+                var title = $(this).text();
+                $(this).html('<input type="text" class="form-control form-control-sm" />');
+
+                $('input', this).on('keyup change', function() {
+                    if (datatableDetail.column(i).search() !== this.value) {
+                        datatableDetail
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            // } else {
+            //     $(this).empty();
+            // }
+        });
+
+        let datatableDetail = $("#datatable-detail").DataTable({
+            processing: true,
+            serverSide: false,
+            ordering: false,
+            scrollX: "500px",
+            scrollY: "500px",
+            pageLength: 50,
+            ajax: {
+                url: '{{ route('detail-pemakaian-roll') }}',
+                data: function(d) {
+                    d.no_req = $("#detail_no_req").val();
+                    d.id_item = $("#detail_id_item").val();
+                },
+            },
+            columns: [
+                {
+                    data: 'id_roll'
+                },
+                {
+                    data: 'id_item'
+                },
+                {
+                    data: 'detail_item'
+                },
+                {
+                    data: 'lot'
+                },
+                {
+                    data: 'roll'
+                },
+                {
+                    data: 'qty'
+                },
+                {
+                    data: 'total_pemakaian_roll'
+                },
+                {
+                    data: 'total_short_roll'
+                },
+                {
+                    data: 'unit'
+                },
+            ]
+        });
+
+        function datatableDetailReload() {
+            $("#datatable-detail").DataTable().ajax.reload();
+        }
+
+        function showDetail(no_req, id_item) {
+            $("#detail_no_req").val(no_req).trigger("change");
+            $("#detail_id_item").val(id_item).trigger("change");
+
+            datatableDetailReload();
+
+            $("#detailPemakaianKainModal").modal('show');
         }
     </script>
 @endsection

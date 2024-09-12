@@ -433,6 +433,7 @@ Route::middleware('auth')->group(function () {
     Route::controller(ReportCuttingController::class)->prefix("report-cutting")->middleware('admin')->group(function () {
         Route::get('/cutting', 'cutting')->name('report-cutting');
         Route::get('/pemakaian-roll', 'pemakaianRoll')->name('pemakaian-roll');
+        Route::get('/detail-pemakaian-roll', 'detailPemakaianRoll')->name('detail-pemakaian-roll');
         // export excel
         Route::post('/cutting/export', 'export')->name('report-cutting-export');
     });
@@ -689,6 +690,11 @@ Route::middleware('auth')->group(function () {
     // Transfer Output
     Route::controller(TransferOutputController::class)->prefix('transfer-output')->middleware('sewing')->group(function () {
         Route::get('/', 'index')->name('sewing-transfer-output');
+    });
+
+    // Sewing Input Output
+    Route::controller(SewingInputOutput::class)->prefix('input-output')->middleware('sewing')->group(function () {
+        Route::get('/', 'index')->name('sewing-input-output');
     });
 
     // Dashboard List

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Cutting;
 
 use App\Http\Controllers\Controller;
+use App\Models\FormCutInputDetail;
 use App\Exports\ExportReportCutting;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
@@ -221,6 +222,31 @@ class ReportCuttingController extends Controller
         }
 
         return view('cutting.report.pemakaian-roll', ['page' => 'dashboard-cutting', "subPageGroup" => "cutting-report", "subPage" => "pemakaian-roll"]);
+    }
+
+    public function detailPemakaianRoll (Request $request)
+    {
+        $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb WHERE a.no_req = '".$request->no_req."' and b.id_item = '".$request->id_item."' and b.status = 'Y'"));
+
+        $rollIds = $rollIdsArr->pluck('id_roll');
+
+        $rolls = FormCutInputDetail::selectRaw("
+                id_roll,
+                id_item,
+                detail_item,
+                lot,
+                COALESCE(roll_buyer, roll) roll,
+                MAX(qty) qty,
+                unit,
+                ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
+                ROUND(SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END), 2) total_short_roll
+            ")->
+            whereNotNull("id_roll")->
+            whereIn("id_roll", $rollIds)->
+            groupBy("id_item", "id_roll")->
+            get();
+
+        return DataTables::of($rolls)->toJson();
     }
 
     /**

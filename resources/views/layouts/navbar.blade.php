@@ -633,6 +633,12 @@
                                         Transfer Output <i class="fa-solid fa-arrow-right-arrow-left"></i>
                                     </a>
                                 </li>
+                                {{-- <li>
+                                    <a href="{{ route('sewing-input-output') }}"
+                                        class="dropdown-item {{ $subPage == 'sewing-transfer' ? 'active' : '' }}">
+                                        Input Output <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                                    </a>
+                                </li> --}}
                             @endsewing
                         </ul>
                     </li>
