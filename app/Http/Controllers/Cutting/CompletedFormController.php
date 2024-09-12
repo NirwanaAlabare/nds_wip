@@ -303,6 +303,8 @@ class CompletedFormController extends Controller
                 "message" => "alright",
             );
         }
+
+        return $updateTimeRecordSummary;
     }
 
     public function updateFinish(Request $request, $id) {

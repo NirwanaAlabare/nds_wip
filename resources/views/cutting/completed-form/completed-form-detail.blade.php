@@ -1549,7 +1549,8 @@
             } else {
                 qtyVar = Number(document.getElementById("current_qty_real").value);
 
-                pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                // pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                pActualConverted = Number(document.getElementById("current_berat_amparan").value);
             }
 
             let estAmpar = pActualConverted > 0 ? qtyVar / pActualConverted : 0;
@@ -1577,7 +1578,8 @@
             } else {
                 qtyVar = Number(document.getElementById("current_qty_real").value);
 
-                pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                // pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                pActualConverted = Number(document.getElementById("current_berat_amparan").value);
             }
 
             // let totalPemakaian = lembarGelaranVar * pActualConverted + kepalaKainVar + sisaTidakBisaVar + rejectVar;
@@ -1614,7 +1616,8 @@
                 } else {
                     qtyVar = Number(document.getElementById("current_qty_real").value);
 
-                    pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                    // pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                    pActualConverted = Number(document.getElementById("current_berat_amparan").value);
                 }
             }
 
@@ -1656,7 +1659,8 @@
             } else {
                 qtyVar = Number(document.getElementById("current_qty_real").value);
 
-                pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                // pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                pActualConverted = Number(document.getElementById("current_berat_amparan").value);
             }
 
             let remark = ((pActualConverted * lembarGelaranVar) + sisaGelaranVar + sambunganVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar);
@@ -1688,7 +1692,8 @@
             } else {
                 qtyVar = Number(document.getElementById("current_qty_real").value);
 
-                pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                // pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                pActualConverted = Number(document.getElementById("current_berat_amparan").value);
             }
 
             let sisaKain = qtyVar - ((pActualConverted * lembarGelaranVar) + kepalaKainVar + sisaTidakBisaVar + rejectVar + rejectVar + pipingVar);
@@ -1715,7 +1720,10 @@
             if (unitQtyVar != "KGM") {
                 pActualConverted = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
             } else {
-                pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                qtyVar = Number(document.getElementById("current_qty_real").value);
+
+                // pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                pActualConverted = Number(document.getElementById("current_berat_amparan").value);
             }
 
             // Convert Sisa Gelaran
@@ -1806,22 +1814,24 @@
                 error: function(jqXHR) {
                     document.getElementById("loading").classList.add("d-none");
 
-                    let res = jqXHR.responseJSON;
-                    let message = '';
-                    let i = 0;
+                    console.log(jqXHR);
 
-                    for (let key in res.errors) {
-                        message = res.errors[key];
-                        document.getElementById(key).classList.add('is-invalid');
-                        modified.push(
-                            [key, '.classList', '.remove(', "'is-invalid')"],
-                        )
+                    // let res = jqXHR.responseJSON;
+                    // let message = '';
+                    // let i = 0;
 
-                        if (i == 0) {
-                            document.getElementById(key).focus();
-                            i++;
-                        }
-                    };
+                    // for (let key in res.errors) {
+                    //     message = res.errors[key];
+                    //     document.getElementById(key).classList.add('is-invalid');
+                    //     modified.push(
+                    //         [key, '.classList', '.remove(', "'is-invalid')"],
+                    //     )
+
+                    //     if (i == 0) {
+                    //         document.getElementById(key).focus();
+                    //         i++;
+                    //     }
+                    // };
                 }
             });
         }
