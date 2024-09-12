@@ -1378,18 +1378,29 @@
                 }
 
                 if (validation && currentScannedItem) {
-                    nextProcessThreeButton.classList.add("d-none");
+                    if (method == "scan" && currentScannedItem.qty && currentScannedItem.qty == 0) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: 'Pastikan item yang di scan tersedia dan color actual sudah diisi',
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                        })
+                    } else {
+                        nextProcessThreeButton.classList.add("d-none");
 
-                    $('#scan-qr-card').CardWidget('collapse');
+                        $('#scan-qr-card').CardWidget('collapse');
 
-                    setSpreadingForm(currentScannedItem, sisaGelaran, unitSisaGelaran);
-                    getSummary();
+                        setSpreadingForm(currentScannedItem, sisaGelaran, unitSisaGelaran);
+                        getSummary();
 
-                    $('#spreading-form-card').removeClass('d-none');
-                    $('#spreading-form-card').CardWidget('expand');
-                    $('#summary-card').removeClass('d-none');
+                        $('#spreading-form-card').removeClass('d-none');
+                        $('#spreading-form-card').CardWidget('expand');
+                        $('#summary-card').removeClass('d-none');
 
-                    location.href = "#spreading-form-card";
+                        location.href = "#spreading-form-card";
+                    }
                 } else {
                     Swal.fire({
                         icon: 'error',
