@@ -715,7 +715,7 @@ class InMaterialController extends Controller
                 }else{
                     $data_aktual = $request["qty_ak"][$i]; 
                 }
-            $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F',(if(kode is null,'19999',kode)  + 1)) kode from (select max(SUBSTR(no_barcode,2,10)) kode from whs_lokasi_inmaterial where no_barcode like '%F%') a");
+            $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F',(if(kode is null,'19999',kode)  + 1)) kode from (select max(cast(SUBSTR(no_barcode,2,10) as SIGNED)) kode from whs_lokasi_inmaterial where no_barcode like '%F%') a");
             $barcode = $sql_barcode[0]->kode;
 
                 $save_lokasi = InMaterialLokasi::create([
@@ -790,7 +790,7 @@ class InMaterialController extends Controller
                 }else{
                     $data_aktual = $request["qty_aktual"][$i]; 
                 }
-                $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F',(if(kode is null,'19999',kode)  + 1)) kode from (select max(SUBSTR(no_barcode,2,10)) kode from whs_lokasi_inmaterial where no_barcode like '%F%') a");
+                $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F',(if(kode is null,'19999',kode)  + 1)) kode from (select max(cast(SUBSTR(no_barcode,2,10) as SIGNED)) kode from whs_lokasi_inmaterial where no_barcode like '%F%') a");
             $barcode = $sql_barcode[0]->kode;
 
                 $save_lokasi = InMaterialLokasi::create([

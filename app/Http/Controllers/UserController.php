@@ -116,6 +116,23 @@ class UserController extends Controller
         //
     }
 
+    public function getApi()
+    {
+        try {
+            $users = User::get();
+        } catch (Exception $e) {
+            return response()->json([
+                'data' => [],
+                'message'=>$e->getMessage()
+            ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        return response()->json([
+            'data' => $users,
+            'message' => 'Succeed'
+        ], JsonResponse::HTTP_OK);
+    }
+
     public function storeApi(StoreUserRequest $request)
     {
         try {
