@@ -14,6 +14,7 @@ use App\Models\InMaterialFabric;
 use App\Models\InMaterialFabricDet;
 use App\Models\Bpb;
 use App\Models\Tempbpb;
+use App\Models\InMaterialLokTemp;
 use Illuminate\Support\Facades\Auth;
 use App\Models\MarkerDetail;
 use App\Models\InMaterialLokasi;
@@ -404,7 +405,7 @@ class ReturInMaterialController extends Controller
                 }else{
                     $data_aktual = $request["qty_ak"][$i]; 
                 }
-                $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F',(if(kode is null,'19999',kode)  + 1)) kode from (select max(SUBSTR(no_barcode,2,10)) kode from whs_lokasi_inmaterial where no_barcode like '%F%') a");
+                $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F',(if(kode is null,'19999',kode)  + 1)) kode from (select max(cast(SUBSTR(no_barcode,2,10) as SIGNED)) kode from whs_lokasi_inmaterial where no_barcode like '%F%') a");
             $barcode = $sql_barcode[0]->kode;
 
                 $save_lokasi = InMaterialLokasi::create([
@@ -477,7 +478,7 @@ class ReturInMaterialController extends Controller
     public function saveuploadlokasirtr(Request $request)
     {
             $iddok = $request['txt_idgr'];
-        if (intval($request['qty_upload']) > 0 && intval($request['qty_upload']) <= intval($request['qty_bal'])) {
+        // if (intval($request['qty_upload']) > 0 && intval($request['qty_upload']) <= intval($request['qty_bal'])) {
             $timestamp = Carbon::now();
             $nodok = $request['txt_gr_dok'];
             $nows = $request['m_no_ws'];
@@ -496,10 +497,11 @@ class ReturInMaterialController extends Controller
                 }else{
                     $data_aktual = $request["qty_aktual"][$i]; 
                 }
-                $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F',(if(kode is null,'19999',kode)  + 1)) kode from (select max(SUBSTR(no_barcode,2,10)) kode from whs_lokasi_inmaterial where no_barcode like '%F%') a");
+                $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F',(if(kode is null,'19999',kode)  + 1)) kode from (select max(cast(SUBSTR(no_barcode,2,10) as SIGNED)) kode from whs_lokasi_inmaterial where no_barcode like '%F%') a");
             $barcode = $sql_barcode[0]->kode;
 
                 $save_lokasi = InMaterialLokasi::create([
+                    "no_barcode" => $barcode,
                     "no_dok" => $nodok,
                     "no_ws" => $nows,
                     "id_jo" => $idjo,
@@ -529,16 +531,16 @@ class ReturInMaterialController extends Controller
 
             $massage = $request['txt_gr_dok'] . ' Saved Location Succesfully';
             $stat = 200;
-        }elseif(intval($request['qty_upload']) <= 0){
-            $massage = ' Please Input Data';
-            $stat = 400;
-        }elseif(intval($request['qty_upload']) > intval($request['qty_bal'])){
-            $massage = ' Qty BPB Melebihi Qty Balance';
-            $stat = 400;
-        }else{
-            $massage = ' Data Error';
-            $stat = 400;
-        }
+        // }elseif(intval($request['qty_upload']) <= 0){
+        //     $massage = ' Please Input Data';
+        //     $stat = 400;
+        // }elseif(intval($request['qty_upload']) > intval($request['qty_bal'])){
+        //     $massage = ' Qty BPB Melebihi Qty Balance';
+        //     $stat = 400;
+        // }else{
+        //     $massage = ' Data Error';
+        //     $stat = 400;
+        // }
         // dd($iddok);
 
             return array(
