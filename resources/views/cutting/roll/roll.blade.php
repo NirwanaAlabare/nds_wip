@@ -55,6 +55,8 @@
                                 <th>Roll</th>
                                 <th>Qty</th>
                                 <th>Unit</th>
+                                <th>Cons. Piping</th>
+                                <th>Berat Amparan (KGM)</th>
                                 <th>Lembar Gelaran</th>
                                 <th>Total Pemakaian</th>
                                 <th>Short Roll</th>
@@ -175,6 +177,12 @@
                 },
                 {
                     data: 'unit_item'
+                },
+                {
+                    data: 'cons_pipping'
+                },
+                {
+                    data: 'berat_amparan'
                 },
                 {
                     data: 'lembar_gelaran'

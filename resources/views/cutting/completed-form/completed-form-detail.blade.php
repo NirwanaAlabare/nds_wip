@@ -408,6 +408,7 @@
                                             <th>Sisa Kain</th>
                                             <th class="label-calc">Total Pemakaian Per Roll</th>
                                             <th class="label-calc">Short Roll +/-</th>
+                                            <th class="label-calc">Short Roll (%)</th>
                                             <th>Piping</th>
                                             <th>Remark</th>
                                             <th id="th-berat-amparan" class="d-none">Berat 1 Ampar</th>
@@ -431,6 +432,7 @@
                                             <th id="total-sisa-kain"></th>
                                             <th id="total-total-pemakaian"></th>
                                             <th id="total-short-roll"></th>
+                                            <th id="total-short-roll-percentage"></th>
                                             <th id="total-piping"></th>
                                             <th id="total-remark"></th>
                                             <th id="total-berat-amparan" class="d-none"></th>
@@ -808,12 +810,22 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-3">
-                                <div class="mb-3">
-                                    <label class="form-label label-calc"><small><b>Short Roll +/-</b></small></label>
-                                    <div class="input-group input-group-sm mb-3">
-                                        <input type="number" class="form-control form-control-sm border-calc" id="current_short_roll" name="current_short_roll" step=".01" readonly>
-                                        <span class="input-group-text input-group-unit"></span>
+                            <div class="col-6 col-md-3">
+                                <div class="row align-items-end">
+                                    <div class="col-8">
+                                        <div class="mb-3">
+                                            <label class="form-label label-calc"><small><b>Short Roll +/-</b></small></label>
+                                            <div class="input-group input-group-sm mb-3">
+                                                <input type="number" class="form-control form-control-sm border-calc" id="current_short_roll" name="current_short_roll" step=".01" readonly>
+                                                <span class="input-group-text input-group-unit"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="mb-3">
+                                            <label class="form-label label-calc"><small><b>(%)</b></small></label>
+                                            <input type="number" class="form-control form-control-sm border-calc" id="current_short_roll_percentage" name="current_short_roll_percentage" step=".01" readonly>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1056,6 +1068,7 @@
         var totalSisaKain = 0;
         var totalTotalPemakaian = 0;
         var totalShortRoll = 0;
+        var totalShortRollPercentage = 0;
         var totalRemark = 0;
         var totalLembar = 0;
         var totalPiping = 0;
@@ -1095,6 +1108,7 @@
             let td20 = document.createElement('td');
             let td21 = document.createElement('td');
             let td22 = document.createElement('td');
+            let td23 = document.createElement('td');
             td1.innerHTML = (latestStatus != 'extension complete' ? totalSummaryData + 1 : "");
             td2.innerHTML = data.group_roll ? data.group_roll : '-';
             td3.innerHTML = data.group_stocker ? data.group_stocker : '-';
@@ -1115,8 +1129,9 @@
             td18.innerHTML = data.sisa_kain ? data.sisa_kain : '-';
             td19.innerHTML = data.total_pemakaian_roll ? data.total_pemakaian_roll : '-';
             td20.innerHTML = data.short_roll ? data.short_roll : '-';
-            td21.innerHTML = data.piping ? data.piping : '-';
-            td22.innerHTML = data.remark ? data.remark : '-';
+            td21.innerHTML = data.short_roll ? data.qty > 0 ? Number(data.short_roll/data.qty*100).round(2) : '-' : '-';
+            td22.innerHTML = data.piping ? data.piping : '-';
+            td23.innerHTML = data.remark ? data.remark : '-';
             tr.appendChild(td1);
             tr.appendChild(td2);
             tr.appendChild(td3);
@@ -1139,6 +1154,7 @@
             tr.appendChild(td20);
             tr.appendChild(td21);
             tr.appendChild(td22);
+            tr.appendChild(td23);
 
             if (latestUnit == "KGM" || latestUnit == "KG") {
                 let td23 = document.createElement('td');
@@ -1182,6 +1198,7 @@
             totalSisaKain += Number(data.sisa_kain);
             totalTotalPemakaian += Number(data.total_pemakaian_roll);
             Number(data.short_roll) < 0 ? totalShortRoll += Number(data.short_roll) : "";
+            Number(data.short_roll) < 0 ? totalShortRollPercentage += Number(data.short_roll ? data.qty > 0 ? Number(data.short_roll/data.qty*100).round(2) : 0 : 0) : "";
             latestStatus != 'extension complete' ? totalBeratAmparan += Number(data.berat_amparan) : '';
             totalRemark += Number(data.remark);
 
@@ -1202,6 +1219,7 @@
             document.getElementById("total-sisa-kain").innerText = Number(totalSisaKain).round(2);
             document.getElementById("total-total-pemakaian").innerText = Number(totalTotalPemakaian).round(2);
             document.getElementById("total-short-roll").innerText = Number(totalShortRoll).round(2);
+            document.getElementById("total-short-roll-percentage").innerText = Number(totalShortRollPercentage).round(2);
             document.getElementById("total-piping").innerText = Number(totalPiping).round(2);
             document.getElementById("total-remark").innerText = Number(totalRemark).round(2);
             document.getElementById("total-berat-amparan").innerText = Number(totalBeratAmparan).round(3);
@@ -1531,7 +1549,8 @@
             } else {
                 qtyVar = Number(document.getElementById("current_qty_real").value);
 
-                pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                // pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                pActualConverted = Number(document.getElementById("current_berat_amparan").value);
             }
 
             let estAmpar = pActualConverted > 0 ? qtyVar / pActualConverted : 0;
@@ -1559,7 +1578,8 @@
             } else {
                 qtyVar = Number(document.getElementById("current_qty_real").value);
 
-                pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                // pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                pActualConverted = Number(document.getElementById("current_berat_amparan").value);
             }
 
             // let totalPemakaian = lembarGelaranVar * pActualConverted + kepalaKainVar + sisaTidakBisaVar + rejectVar;
@@ -1596,7 +1616,8 @@
                 } else {
                     qtyVar = Number(document.getElementById("current_qty_real").value);
 
-                    pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                    // pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                    pActualConverted = Number(document.getElementById("current_berat_amparan").value);
                 }
             }
 
@@ -1607,7 +1628,10 @@
                 shortRoll = 0;
             }
 
+            let shortRollPercentage = qtyVar > 0 ? (shortRoll / qtyVar) * 100 : 0;
+
             document.getElementById("current_short_roll").value = isNaN(shortRoll.round(2)) ? 0 : shortRoll.round(2);
+            document.getElementById("current_short_roll_percentage").value = isNaN(shortRollPercentage.round(2)) ? 0 : shortRollPercentage.round(2);
         }
 
         // -Calculate Remark-
@@ -1635,7 +1659,8 @@
             } else {
                 qtyVar = Number(document.getElementById("current_qty_real").value);
 
-                pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                // pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                pActualConverted = Number(document.getElementById("current_berat_amparan").value);
             }
 
             let remark = ((pActualConverted * lembarGelaranVar) + sisaGelaranVar + sambunganVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar);
@@ -1667,7 +1692,8 @@
             } else {
                 qtyVar = Number(document.getElementById("current_qty_real").value);
 
-                pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                // pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                pActualConverted = Number(document.getElementById("current_berat_amparan").value);
             }
 
             let sisaKain = qtyVar - ((pActualConverted * lembarGelaranVar) + kepalaKainVar + sisaTidakBisaVar + rejectVar + rejectVar + pipingVar);
@@ -1694,7 +1720,10 @@
             if (unitQtyVar != "KGM") {
                 pActualConverted = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
             } else {
-                pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                qtyVar = Number(document.getElementById("current_qty_real").value);
+
+                // pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                pActualConverted = Number(document.getElementById("current_berat_amparan").value);
             }
 
             // Convert Sisa Gelaran
@@ -1785,22 +1814,24 @@
                 error: function(jqXHR) {
                     document.getElementById("loading").classList.add("d-none");
 
-                    let res = jqXHR.responseJSON;
-                    let message = '';
-                    let i = 0;
+                    console.log(jqXHR);
 
-                    for (let key in res.errors) {
-                        message = res.errors[key];
-                        document.getElementById(key).classList.add('is-invalid');
-                        modified.push(
-                            [key, '.classList', '.remove(', "'is-invalid')"],
-                        )
+                    // let res = jqXHR.responseJSON;
+                    // let message = '';
+                    // let i = 0;
 
-                        if (i == 0) {
-                            document.getElementById(key).focus();
-                            i++;
-                        }
-                    };
+                    // for (let key in res.errors) {
+                    //     message = res.errors[key];
+                    //     document.getElementById(key).classList.add('is-invalid');
+                    //     modified.push(
+                    //         [key, '.classList', '.remove(', "'is-invalid')"],
+                    //     )
+
+                    //     if (i == 0) {
+                    //         document.getElementById(key).focus();
+                    //         i++;
+                    //     }
+                    // };
                 }
             });
         }

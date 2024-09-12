@@ -15,7 +15,7 @@
     <div class="card">
         <div class="card-header bg-sb text-light">
             <div class="d-flex justify-content-between align-items-center">
-                <h5 class="card-title">
+                <h5 class="card-title fw-bold">
                     <i class="fa-solid fa-note-sticky"></i>
                     Stocker List Detail
                 </h5>
@@ -80,7 +80,8 @@
                 </div>
                 <div class="col-md-3">
                     <div class="mb-3">
-                        <button type="button" class="btn btn-success btn-block" data-bs-toggle="modal" data-bs-target="#setMonthCountModal"><i class="fa fa-print"></i> Set Month Count Number</button>
+                        {{-- <button type="button" class="btn btn-success btn-block" data-bs-toggle="modal" data-bs-target="#setYearSequenceModal"><i class="fa fa-print"></i> Set Month Count Number</button> --}}
+                        <button class="btn btn-sb w-100" data-bs-toggle="modal" data-bs-target="#setYearSequenceModal"><i class="fa-regular fa-file-lines fa-sm"></i> Set Year Sequence</button>
                     </div>
                 </div>
             </div>
@@ -91,7 +92,7 @@
             <div class="accordion mt-3" id="accordionExample">
                 <div class="accordion-item">
                     <h2 class="accordion-header">
-                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                        <button class="accordion-button bg-sb-secondary text-light fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
                             Stockers
                         </button>
                     </h2>
@@ -110,8 +111,8 @@
     </div>
     <div class="card">
         <div class="card-header bg-sb text-light">
-            <h5 class="card-title">
-                Number List
+            <h5 class="card-title fw-bold">
+                <i class="fa-solid fa-hashtag"></i> Number List
             </h5>
         </div>
         <div class="card-body">
@@ -120,8 +121,8 @@
                     <table class="table table-bordered table-sm">
                         <thead>
                             <th>Number</th>
-                            <th>Year Month</th>
-                            <th>Year Month Number</th>
+                            <th>Year Sequence</th>
+                            <th>Year Sequence Number</th>
                             <th>Size</th>
                             <th>Dest</th>
                             <th>
@@ -133,13 +134,13 @@
                                 @foreach ($stockerListNumber as $number)
                                     <tr>
                                         <td>{{ $number->number }}</td>
-                                        <td>{{ $number->month_year }}</td>
-                                        <td>{{ $number->month_year_number }}</td>
+                                        <td>{{ $number->year."_".$number->year_sequence }}</td>
+                                        <td>{{ $number->year_sequence_number }}</td>
                                         <td>{{ $number->size }}</td>
                                         <td>{{ $number->dest }}</td>
                                         <td>
                                             <div class="d-flex gap-3">
-                                                <button type="button" class="btn btn-sm btn-danger" onclick="printMonthCount({{ $loop->index }});">
+                                                <button type="button" class="btn btn-sm btn-danger" onclick="printYearSequence({{ $loop->index }});">
                                                     <i class="fa fa-print fa-s"></i>
                                                 </button>
                                                 <div class="form-check mt-1 mb-0">
@@ -159,24 +160,24 @@
                             @endif
                         </tbody>
                     </table>
-                    <button class="btn btn-success" id="generate-checked-month-count" onclick="generateCheckedMonthCount()"><i class="fa fa-print"></i> Generate Checked Month</button>
+                    {{-- <button class="btn btn-success" id="generate-checked-month-count" onclick="generateCheckedMonthCount()"><i class="fa fa-print"></i> Generate Checked Month</button> --}}
                 </form>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="setMonthCountModal" tabindex="-1" aria-labelledby="setMonthCountModalLabel" aria-hidden="true">
+    {{-- <div class="modal fade" id="setYearSequenceModal" tabindex="-1" aria-labelledby="setYearSequenceModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-light">
-                    <h1 class="modal-title fs-5" id="setMonthCountModalLabel">Set Month Count</h1>
+                    <h1 class="modal-title fs-5" id="setYearSequenceModalLabel">Set Month Count</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row align-items-center">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Bulan</label>
-                            <select class="form-select select2bs4" name="month_year_month" id="month_year_month">
+                            <select class="form-select select2bs4" name="year" id="year">
                                 @foreach ($months as $month)
                                     <option value="{{ $month['angka'] }}">{{ $month['nama'] }}</option>
                                 @endforeach
@@ -184,7 +185,7 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Tahun</label>
-                            <select class="form-select select2bs4" name="month_year_year" id="month_year_year">
+                            <select class="form-select select2bs4" name="year_sequence" id="year_sequence">
                                 @foreach ($years as $year)
                                     <option value="{{ $year }}">{{ $year }}</option>
                                 @endforeach
@@ -194,15 +195,58 @@
                     <div class="mb-3">
                         <label class="form-label">Range</label>
                         <div class="d-flex align-items-center">
-                            <input type="number" class="form-control" id="range_awal_month" name="range_awal_month" value="{{ ($availableMonthCount->min('month_year_number')) }}">
+                            <input type="number" class="form-control" id="range_awal_year_sequence" name="range_awal_year_sequence" value="">
                             <span class="mx-3">-</span>
-                            <input type="number" class="form-control" id="range_akhir_month" name="range_akhir_month" value="{{ ($availableMonthCount->min('month_year_number')) - 1 + ($stockerList->range_akhir - $stockerList->range_awal + 1) }}">
+                            <input type="number" class="form-control" id="range_akhir_year_sequence" name="range_akhir_year_sequence" value="">
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times fa-sm"></i> Tutup</button>
-                    <button type="button" class="btn btn-success" onclick="setMonthCountNumber()"><i class="fa fa-print fa-sm"></i> Generate</button>
+                    <button type="button" class="btn btn-success" onclick="setYearSequenceNumber()"><i class="fa fa-print fa-sm"></i> Generate</button>
+                </div>
+            </div>
+        </div>
+    </div> --}}
+    <div class="modal fade" id="setYearSequenceModal" tabindex="-1" aria-labelledby="setYearSequenceModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-light">
+                    <h1 class="modal-title fs-5 fw-bold" id="setYearSequenceModalLabel"><i class="fa-regular fa-file-lines fa-sm"></i> Set Year Sequence</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row align-items-end mb-3">
+                        <div class="col-sm-6 col-md-6">
+                            <label class="form-label">Tahun</label>
+                            <select class="form-select select2bs4" name="year" id="year" onchange="getSequenceYearSequence()">
+                                @foreach ($years as $year)
+                                    <option value="{{ $year }}">{{ $year }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-sm-6 col-md-6">
+                            <label class="form-label">Sequence</label>
+                            <select class="form-select select2bs4" name="sequence" id="sequence" onchange="getRangeYearSequence()">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Qty</label>
+                        <input type="number" class="form-control" id="set_qty" name="set_qty" onkeyup="calculateRange()" onchange="calculateRange()">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Range</label>
+                        <div class="d-flex align-items-center">
+                            <input type="number" class="form-control" id="range_awal" name="range_awal" value="" onkeyup="calculateRange()" onchange="calculateRange()">
+                            <span class="mx-3">-</span>
+                            <input type="number" class="form-control" id="range_akhir" name="range_akhir" value="" onkeyup="calculateQty()" onchange="calculateQty()">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times fa-sm"></i> Tutup</button>
+                    <button type="button" class="btn btn-success" onclick="setYearSequenceNumber()"><i class="fa fa-check fa-sm"></i> Selesai</button>
                 </div>
             </div>
         </div>
@@ -224,14 +268,14 @@
             theme: 'bootstrap4',
         })
 
-        $('#month_year_month').select2({
+        $('#year').select2({
             theme: 'bootstrap4',
-            dropdownParent: $("#setMonthCountModal")
+            dropdownParent: $("#setYearSequenceModal")
         })
 
-        $('#month_year_year').select2({
+        $('#year_sequence').select2({
             theme: 'bootstrap4',
-            dropdownParent: $("#setMonthCountModal")
+            dropdownParent: $("#setYearSequenceModal")
         })
     </script>
 
@@ -255,15 +299,17 @@
             let todayYear = today.getFullYear();
             let todayFull = todayYear + '-' + todayMonth + '-' + todayDate;
 
-            $("#tgl-akhir").val(oneWeeksBeforeFull).trigger("change");
+            $("#tgl-akhir").val(todayFull).trigger("change");
 
-            $('#month_year_month').val(todayMonth).trigger("change");
-            $('#month_year_year').val(todayYear).trigger("change");
+            $('#year').val(todayYear).trigger("change");
+            // $('#year_sequence').val("").trigger("change");
+
+            $('#set_qty').val($('#qty').val()).trigger("change");
         });
 
         var generating = false;
 
-        function checkAllMonthCount(element) {
+        function checkAllYearSequence(element) {
             let generateNumberingCheck = document.getElementsByClassName('generate-num-check');
 
             for (let i = 0; i < generateNumberingCheck.length; i++) {
@@ -271,62 +317,60 @@
             }
         }
 
-        function validatePrintMonthCount() {
-            if (Number($('#range_awal_month').val()) > 0 && Number($('#range_awal_month').val()) <= Number($('#range_akhir_month').val())) {
+        function validateYearSequence() {
+            if (Number($('#range_awal').val()) > 0 && Number($('#range_awal').val()) <= Number($('#range_akhir').val())) {
                 return true;
             }
 
             return false
         }
 
-        function setMonthCountNumber() {
-            if (validatePrintMonthCount()) {
-                generating = true;
-
-                Swal.fire({
-                    title: 'Please Wait...',
-                    html: 'Exporting Data...',
-                    didOpen: () => {
-                        Swal.showLoading()
-                    },
-                    allowOutsideClick: false,
-                });
-
+        function setYearSequenceNumber() {
+            if (validateYearSequence()) {
                 $.ajax({
-                    url: '{{ route('set-month-count-number') }}',
+                    url: '{{ route('set-year-sequence-number') }}',
                     type: 'post',
                     data: {
-                        "month": $('#month_year_month').val(),
-                        "year": $('#month_year_year').val(),
+                        "year": $('#year').val(),
+                        "year_sequence": $('#sequence').val(),
                         "form_cut_id": $('#form_cut_id').val(),
                         "so_det_id": $('#so_det_id').val(),
                         "size": $('#size').val(),
                         "range_awal_stocker": Number($('#range_awal_stocker').val()),
                         "range_akhir_stocker": Number($('#range_akhir_stocker').val()),
-                        "range_awal_month_count": Number($('#range_awal_month').val()),
-                        "range_akhir_month_count": Number($('#range_akhir_month').val()),
+                        "range_awal_year_sequence": Number($('#range_awal').val()),
+                        "range_akhir_year_sequence": Number($('#range_akhir').val()),
+                        "replace": true,
                     },
-                    xhrFields:
-                    {
-                        responseType: 'blob'
-                    },
+                    // xhrFields:
+                    // {
+                    //     responseType: 'blob'
+                    // },
                     success: function(res) {
-                        if (res) {
-                            console.log(res);
-
-                            var blob = new Blob([res], {type: 'application/pdf'});
-                            var link = document.createElement('a');
-                            link.href = window.URL.createObjectURL(blob);
-                            link.download = "Numbers.pdf";
-                            link.click();
+                        if (res.status == 200) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                html: 'Data berhasil di setting <br> <b>'+$("#no_form").val()+'</b> <br> <b>'+$("#year").val()+'_'+$("#sequence").val()+'</b> <br> <b>'+$("#range_awal").val()+' - '+$("#range_akhir").val()+'</b>',
+                                allowOutsideClick: false,
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                html: 'Data sudah mencapai '+$("#set_qty").val(),
+                                allowOutsideClick: false,
+                            });
                         }
 
-                        window.location.reload();
+                        // window.location.reload();
 
                         generating = false;
                     },
                     error: function(jqXHR) {
-                        swal.close();
+                        Swal.fire("Nomor stocker sudah mencapai "+$("#set_qty").val()+".", "", "info");
 
                         generating = false;
                     }
@@ -404,6 +448,116 @@
                     title: 'Warning',
                     html: 'Harap ceklis number yang akan di print',
                 });
+            }
+        }
+
+        function getSequenceYearSequence() {
+            $.ajax({
+                url: '{{ route('get-sequence-year-sequence') }}',
+                type: 'get',
+                data: {
+                    year: $("#year").val()
+                },
+                dataType: 'json',
+                success: async function(res)
+                {
+                    if (res) {
+                        if (res.status != "400") {
+                            let select = document.getElementById('sequence');
+                            select.innerHTML = "";
+
+                            let latestVal = null;
+                            for(let i = 0; i < res.length; i++) {
+                                let option = document.createElement("option");
+                                option.setAttribute("value", res[i].year_sequence);
+                                option.innerHTML = res[i].year_sequence;
+                                select.appendChild(option);
+
+                                latestVal = res[i].year_sequence;
+                            }
+
+                            $("#sequence").val(latestVal).trigger("change");
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                html: res.message,
+                            });
+                        }
+                    }
+                },
+                error: function(jqXHR)
+                {
+                    console.error(jqXHR)
+                }
+            })
+        }
+
+        function getRangeYearSequence() {
+            $.ajax({
+                url: '{{ route('get-range-year-sequence') }}',
+                type: 'get',
+                data: {
+                    year: $("#year").val(),
+                    sequence: $("#sequence").val()
+                },
+                dataType: 'json',
+                success: function(res)
+                {
+                    console.log("range",res);
+
+                    if (res) {
+                        if (res.status != "400") {
+                            $("#range_awal").val(res.year_sequence_number+1).trigger("change");
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                html: res.message,
+                            });
+                        }
+                    }
+                },
+                error: function(jqXHR)
+                {
+                    console.error(jqXHR)
+                }
+            })
+        }
+
+        function calculateRange() {
+            let setQty = Number($("#set_qty").val());
+            let rangeAwalStocker = Number($("#range_awal_stocker").val());
+            let rangeAkhirStocker = Number($("#range_akhir_stocker").val());
+            let rangeAwal = Number($("#range_awal").val());
+            let rangeAkhir = Number($("#range_akhir").val());
+
+            if (setQty > 0 && rangeAwal > 0) {
+                $("#range_akhir").val(rangeAwal + setQty - 1);
+            }
+        }
+
+        function calculateQty() {
+            let setQty = Number($("#set_qty").val());
+            let rangeAwalStocker = Number($("#range_awal_stocker").val());
+            let rangeAkhirStocker = Number($("#range_akhir_stocker").val());
+            let rangeAwal = Number($("#range_awal").val());
+            let rangeAkhir = Number($("#range_akhir").val());
+
+            if (rangeAwal > 0 && rangeAkhir > rangeAwal) {
+                $("#set_qty").val(rangeAkhir - rangeAwal + 1);
+            }
+        }
+
+        function printYearSequence() {
+            let setQty = Number($("#set_qty").val());
+            let rangeAwalStocker = Number($("#range_awal_stocker").val());
+            let rangeAkhirStocker = Number($("#range_akhir_stocker").val());
+            let rangeAwal = Number($("#range_awal").val());
+            let rangeAkhir = Number($("#range_akhir").val());
+
+            if (rangeAwal > 0 && rangeAkhir > rangeAwal) {
+                $("#set_qty").val(rangeAkhir - rangeAwal + 1);
             }
         }
     </script>

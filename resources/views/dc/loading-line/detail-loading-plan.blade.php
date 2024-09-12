@@ -64,8 +64,10 @@
                         <th>No. WS</th>
                         <th>Color</th>
                         <th>No. Cut</th>
+                        <th>No. Form</th>
                         <th>Size</th>
                         <th>Group</th>
+                        <th>Range</th>
                         <th>Range</th>
                         <th>No. Stocker</th>
                         <th>Qty</th>
@@ -78,43 +80,54 @@
                         $currentSize = null;
                         $currentGroup = null;
                         $currentRange = null;
+                        $currentQty = null;
 
                         $latestUpdate = null;
 
                         $totalQty = 0;
                     @endphp
-                    @foreach ($loadingLinePlan->loadingLines as $loadingLine)
+                    @foreach ($loadingLines as $loadingLine)
                         @php
-                            if ($currentForm != $loadingLine->stocker->formCut->no_form || $currentSize != $loadingLine->stocker->size || $currentGroup != $loadingLine->stocker->shade || $currentRange != ($loadingLine->stocker->range_awal)." - ".($loadingLine->stocker->range_akhir)) {
-                                $currentForm = $loadingLine->stocker->formCut->no_form;
-                                $currentSize = $loadingLine->stocker->size;
-                                $currentGroup = $loadingLine->stocker->shade;
-                                $currentRange = ($loadingLine->stocker->range_awal)." - ".($loadingLine->stocker->range_akhir);
+                            $qty = $loadingLine->qty;
 
-                                $currentUpdate = $loadingLine->updated_at ? $loadingLine->updated_at : $loadingLine->tanggal_loading;
+                            if ($currentSize != $loadingLine->size || $currentGroup != $loadingLine->shade || $currentRange != $loadingLine->range_awal) {
+                                $currentForm = $loadingLine->no_form;
+                                $currentSize = $loadingLine->size;
+                                $currentGroup = $loadingLine->shade;
+                                $currentRange = $loadingLine->range_awal;
+
+                                $currentUpdate = $loadingLine->tanggal_loading;
                                 $currentUpdate > $latestUpdate && $latestUpdate = $currentUpdate;
 
-                                $totalQty += $loadingLine->qty;
+                                $totalQty += $qty;
+
+                                $currentQty = $qty;
+                            } else {
+                                $currentQty > $qty ? $totalQty = $totalQty - $currentQty + $qty : $totalQty = $totalQty;
+
+                                $currentQty = $qty;
                             }
                         @endphp
                         <tr>
-                            <td class="align-middle">{{ $loadingLine->stocker->act_costing_ws }}</td>
-                            <td class="align-middle">{{ $loadingLine->stocker->color }}</td>
-                            <td class="align-middle">{{ $loadingLine->stocker->formCut->no_form." / ".$loadingLine->stocker->formCut->no_cut }}</td>
-                            <td class="align-middle">{{ $loadingLine->stocker->size }}</td>
-                            <td class="align-middle">{{ $loadingLine->stocker->shade }}</td>
-                            <td class="align-middle">{{ ($loadingLine->stocker->range_awal)." - ".($loadingLine->stocker->range_akhir)." (".($loadingLine->qty - $loadingLine->stocker->qty_ply).")" }}</td>
-                            <td class="align-middle">{{ $loadingLine->stocker->id_qr_stocker }}</td>
-                            <td class="align-middle">{{ num($loadingLine->qty) }}</td>
-                            <td class="align-middle">{{ $loadingLine->updated_at ? $loadingLine->updated_at : $loadingLine->tanggal_loading }}</td>
+                            <td class="align-middle">{{ $loadingLine->act_costing_ws }}</td>
+                            <td class="align-middle">{{ $loadingLine->color }}</td>
+                            <td class="align-middle">{{ $loadingLine->no_form." / ".$loadingLine->no_cut }}</td>
+                            <td class="align-middle">{{ $loadingLine->no_form }}</td>
+                            <td class="align-middle">{{ $loadingLine->size }}</td>
+                            <td class="align-middle">{{ $loadingLine->shade }}</td>
+                            <td class="align-middle">{{ $loadingLine->range_awal }}</td>
+                            <td class="align-middle">{{ ($loadingLine->range_awal)." - ".($loadingLine->range_akhir) }}</td>
+                            <td class="align-middle">{{ $loadingLine->id_qr_stocker }}</td>
+                            <td class="align-middle">{{ num($qty) }}</td>
+                            <td class="align-middle">{{ $loadingLine->tanggal_loading }}</td>
                         </tr>
                     @endforeach
                 </tbody>
                 <tfoot>
                     <tr>
-                        <th class="text-end" colspan="7">TOTAL</th>
-                        <th>{{ num($totalQty) }}</th>
-                        <th>{{ $latestUpdate }}</th>
+                        <th class="text-end" colspan="9">TOTAL</th>
+                        <th id="total-qty">{{ num($totalQty) }}</th>
+                        <th id="latest-update">{{ $latestUpdate }}</th>
                     </tr>
                 </tfoot>
             </table>
@@ -141,11 +154,58 @@
                     0,
                     1,
                     2,
-                    3,
                     4,
                     5,
-                    7
+                    7,
+                    8,
                 ],
+                columnDefs: [
+                    {
+                        targets: [3, 6],
+                        visible: false
+                    },
+                ]
+            });
+
+            stockerDatatable.on('search.dt', async function () {
+                var total = 0;
+
+                var currentForm = "";
+                var currentSize = "";
+                var currentGroup = "";
+                var currentRange = "";
+                var currentUpdate = "";
+                var currentQty = 0;
+
+                var latestUpdate = "";
+                var totalQty = 0;
+
+                await stockerDatatable.rows({"search":"applied" }).every( function () {
+                    var data = this.data();
+
+                    if (currentSize != data[4] || currentGroup != data[5] || currentRange != data[6]) {
+                        currentForm = data[3];
+                        currentSize = data[4];
+                        currentGroup = data[5];
+                        currentRange = data[6];
+
+                        currentUpdate = data[10];
+                        currentUpdate > latestUpdate ? latestUpdate = currentUpdate : latestUpdate = latestUpdate;
+
+                        totalQty += Number(data[9]);
+
+                        currentQty = Number(data[9]);
+                    } else {
+                        currentQty > Number(data[9]) ? totalQty = totalQty - currentQty + Number(data[9]) : totalQty = totalQty;
+
+                        currentQty = Number(data[9]);
+                    }
+                });
+
+                console.log()
+
+                document.getElementById('total-qty').innerHTML = Number(totalQty).toLocaleString('ID-id');
+                document.getElementById('latest-update').innerHTML = latestUpdate;
             });
         });
     </script>

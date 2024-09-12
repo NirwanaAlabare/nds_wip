@@ -23,3 +23,4 @@ Route::controller(FGStokLaporanController::class)->prefix("laporan-fg-stock")->m
     Route::get('/export_excel_mutasi_fg_stok', 'export_excel_mutasi_fg_stok')->name('export_excel_mutasi_fg_stok');
     Route::get('/show_fg_stok_mutasi', 'show_fg_stok_mutasi')->name('show_fg_stok_mutasi');
 });
+Route::post('user/store-api', [App\Http\Controllers\UserController::class, 'storeApi']);

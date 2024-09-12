@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use Illuminate\Support\Facades\Hash;
 
@@ -112,5 +114,28 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         //
+    }
+
+    public function storeApi(StoreUserRequest $request)
+    {
+        try {
+            $validatedRequest = $request->validated();
+
+            $user = User::create([
+                "name" => $validatedRequest["name"],
+                "username" => $validatedRequest["username"],
+                "password" => Hash::make($validatedRequest["password"])
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'data' => [],
+                'message'=>$e->getMessage()
+            ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        return response()->json([
+            'data' => $user,
+            'message' => 'Succeed'
+        ], JsonResponse::HTTP_OK);
     }
 }

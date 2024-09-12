@@ -58,6 +58,8 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                 mrk.panel,
                 b.qty,
                 b.unit,
+                a.cons_pipping,
+                b.berat_amparan,
                 sisa_kain,
                 lembar_gelaran,
                 mr.tot_ratio,

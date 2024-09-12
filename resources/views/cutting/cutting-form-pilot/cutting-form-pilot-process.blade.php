@@ -999,11 +999,11 @@
                                             <th>Kepala Kain</th>
                                             <th>Sisa Tidak Bisa</th>
                                             <th>Reject</th>
+                                            <th>Piping</th>
                                             <th>Sisa Kain</th>
                                             <th class="label-calc">Total Pemakaian Per Roll</th>
                                             <th class="label-calc">Short Roll +/-</th>
                                             <th class="label-calc">Short Roll (%)</th>
-                                            <th>Piping</th>
                                             <th>Remark</th>
                                             <th id="th-berat-amparan" class="d-none">Berat 1 Amparan</th>
                                         </tr>
@@ -1023,11 +1023,11 @@
                                             <th id="total-kepala-kain"></th>
                                             <th id="total-sisa-tidak-bisa"></th>
                                             <th id="total-reject"></th>
+                                            <th id="total-piping"></th>
                                             <th id="total-sisa-kain"></th>
                                             <th id="total-total-pemakaian"></th>
                                             <th id="total-short-roll"></th>
                                             <th id="total-short-roll-percentage"></th>
-                                            <th id="total-piping"></th>
                                             <th id="total-remark"></th>
                                             <th id="total-berat-amparan" class="d-none"></th>
                                         </tr>
@@ -1405,20 +1405,31 @@
                 }
 
                 if (validation && currentScannedItem) {
-                    nextProcessThreeButton.classList.add("d-none");
+                    if (method == "scan" && currentScannedItem.qty && currentScannedItem.qty == 0) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: 'Pastikan item yang di scan tersedia dan color actual sudah diisi',
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                        })
+                    } else {
+                        nextProcessThreeButton.classList.add("d-none");
 
-                    $('#scan-qr-card').CardWidget('collapse');
+                        $('#scan-qr-card').CardWidget('collapse');
 
-                    setSpreadingForm(currentScannedItem, sisaGelaran, unitSisaGelaran);
-                    getSummary();
+                        setSpreadingForm(currentScannedItem, sisaGelaran, unitSisaGelaran);
+                        getSummary();
 
-                    $('#spreading-form-card').removeClass('d-none');
-                    $('#spreading-form-card').CardWidget('expand');
-                    $('#summary-card').removeClass('d-none');
+                        $('#spreading-form-card').removeClass('d-none');
+                        $('#spreading-form-card').CardWidget('expand');
+                        $('#summary-card').removeClass('d-none');
 
-                    location.href = "#spreading-form-card";
+                        location.href = "#spreading-form-card";
 
-                    status = "PENGERJAAN FORM CUTTING SPREAD";
+                        status = "PENGERJAAN FORM CUTTING SPREAD";
+                    }
                 } else {
                     Swal.fire({
                         icon: 'error',
@@ -1482,9 +1493,9 @@
                                 title: 'Short Roll Kurang dari -2%',
                                 html: `
                                     Harap laporkan kepada atasan untuk dapat melanjutkan
-                            <input type='text' class='my-3 form-control form-control-sm' id='unlock_form_username' placeholder='Masukkan username...' onkeyup='unlockEnter(event, 1)'>
-                            <input type='password' class='my-3 form-control form-control-sm' id='unlock_form_password' placeholder='Masukkan password...' onkeyup='unlockEnter(event, 1)'>
-                            <button type='button' class='mb-3 btn btn-primary' id='submit_form_unlock_token' onclick='unlockForm(1)'>Lanjutkan Form</button>
+                                    <input type='text' class='my-3 form-control form-control-sm' id='unlock_form_username' placeholder='Masukkan username...' onkeyup='unlockEnter(event, 1)'>
+                                    <input type='password' class='my-3 form-control form-control-sm' id='unlock_form_password' placeholder='Masukkan password...' onkeyup='unlockEnter(event, 1)'>
+                                    <button type='button' class='mb-3 btn btn-primary' id='submit_form_unlock_token' onclick='unlockForm()'>Lanjutkan Form</button>
                                 `,
                                 showCancelButton: false,
                                 showConfirmButton: false,
@@ -2130,12 +2141,12 @@
 
                 let lembarGelaranVar = Number(document.getElementById("current_lembar_gelaran").value);
                 let pActualVar = Number(document.getElementById("p_act").value);
-                let kepalaKainVar = Number(document.getElementById("current_kepala_kain").value);
-                let pipingVar = Number(document.getElementById("current_piping").value);
+                let kepalaKainVar = latestStatus == "extension complete" ? Number(latestKepalaKain) + Number(document.getElementById("current_kepala_kain").value) : Number(document.getElementById("current_kepala_kain").value);
+                let pipingVar = latestStatus == "extension complete" ? Number(latestPiping) + Number(document.getElementById("current_piping").value) : Number(document.getElementById("current_piping").value);
                 let sisaKainVar = Number(document.getElementById("current_sisa_kain").value);
-                let rejectVar = Number(document.getElementById("current_reject").value);
-                let sambunganVar = Number(document.getElementById("current_sambungan").value);
-                let qtyVar = Number(document.getElementById("current_qty").value);
+                let rejectVar = latestStatus == "extension complete" ? Number(latestReject) + Number(document.getElementById("current_reject").value) : Number(document.getElementById("current_reject").value);
+                let sambunganVar = latestStatus == "extension complete" ? Number(latestSambungan) : Number(document.getElementById("current_sambungan").value);
+                let qtyVar =  latestStatus == "extension complete" ? Number(latestQty) : Number(document.getElementById("current_qty").value);
                 let unitQtyVar = document.getElementById("current_unit").value;
                 let gramasiVar = Number(document.getElementById("gramasi").value);
                 let unitPActualVar = document.getElementById("unit_p_act").value;
@@ -2152,7 +2163,7 @@
                     if (unitQtyVar != "KGM") {
                         pActualConverted = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
                     } else {
-                        qtyVar = Number(document.getElementById("current_qty_real").value);
+                        qtyVar = latestStatus == "extension complete" ? Number(latestQty) : Number(document.getElementById("current_qty_real").value);
 
                         // pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
                         pActualConverted = Number(document.getElementById("current_berat_amparan").value);
@@ -2162,7 +2173,7 @@
                 // let shortRoll = pActualConverted * lembarGelaranVar + kepalaKainVar + pipingVar + sisaKainVar + rejectVar + sambunganVar - qtyVar;
                 let shortRoll = ((pActualConverted * lembarGelaranVar) + sisaGelaranVar + sambunganVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar) - qtyVar;
 
-                if (sambunganVar != 0) {
+                if (document.getElementById("status_sambungan").value == "extension" && sambunganVar != 0) {
                     shortRoll = 0;
                 }
 
@@ -2906,6 +2917,14 @@
                     // time record
                     openTimeRecordCondition();
                 }
+
+                if (latestStatus == 'extension complete') {
+                    $('#current_kepala_kain').val(0);
+                    $('#current_kepala_kain').prop('readonly', true);
+                } else {
+                    $('#current_kepala_kain').val(0);
+                    $('#current_kepala_kain').prop('readonly', false);
+                }
             }
 
             // -Clear Spreading Form-
@@ -3214,7 +3233,14 @@
             var totalPiping = 0;
             var totalBeratAmparan = 0;
             var totalQtyFabric = 0;
+
+            var latestKepalaKain = 0;
+            var latestSisaTidakBisa = 0;
+            var latestReject = 0;
+            var latestSisaKain = 0;
+            var latestSambungan = 0;
             var latestStatus = "";
+            var latestQty = 0;
             var latestUnit = "";
             var latestBerat = 0;
 
@@ -3355,11 +3381,11 @@
                 td15.innerHTML = data.kepala_kain ? data.kepala_kain : '-';
                 td16.innerHTML = data.sisa_tidak_bisa ? data.sisa_tidak_bisa : '-';
                 td17.innerHTML = data.reject ? data.reject : '-';
-                td18.innerHTML = data.sisa_kain ? data.sisa_kain : '-';
-                td19.innerHTML = data.total_pemakaian_roll ? data.total_pemakaian_roll : '-';
-                td20.innerHTML = data.short_roll ? data.short_roll : '-';
-                td21.innerHTML = data.short_roll ? data.qty > 0 ? Number(data.short_roll/data.qty*100).round(2) : '-' : '-';
-                td22.innerHTML = data.piping ? data.piping : '-';
+                td18.innerHTML = data.piping ? data.piping : '-';
+                td19.innerHTML = data.sisa_kain ? data.sisa_kain : '-';
+                td20.innerHTML = data.total_pemakaian_roll ? data.total_pemakaian_roll : '-';
+                td21.innerHTML = data.short_roll ? data.short_roll : '-';
+                td22.innerHTML = data.short_roll ? data.qty > 0 ? Number(data.short_roll/data.qty*100).round(2) : '-' : '-';
                 td23.innerHTML = data.remark ? data.remark : '-';
                 tr.appendChild(td1);
                 tr.appendChild(td2);
@@ -3441,7 +3467,14 @@
 
                 calculateConsActualGelaran(latestUnit, totalQtyFabric, totalKepalaKain, totalSisaTidakBisa, totalReject, totalSisaKain, totalPiping, totalShortRoll, totalLembar, totalTotalPemakaian);
 
+                latestKepalaKain = Number(data.kepala_kain);
+                latestSisaTidakBisa = Number(data.sisa_tidak_bisa);
+                latestReject = Number(data.reject);
+                latestPiping = Number(data.piping);
+                latestSambungan = Number(data.sambungan);
                 latestStatus = data.status;
+                latestQty = Number(data.qty);
+                latestUnit = data.unit;
             }
 
         // Time Record Module :

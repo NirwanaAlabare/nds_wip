@@ -32,7 +32,7 @@
                     </div>
                 </div>
                 <div class="d-flex justify-content-end align-items-end gap-3">
-                    <button class="btn btn-sb btn-sm" data-bs-toggle="modal" data-bs-target="#printModal"><i class="fa-regular fa-file-lines fa-sm"></i> Print Month Count</button>
+                    {{-- <button class="btn btn-sb btn-sm" data-bs-toggle="modal" data-bs-target="#printModal"><i class="fa-regular fa-file-lines fa-sm"></i> Print Month Count</button> --}}
                     <button class="btn btn-sb-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#printYearModal"><i class="fa-regular fa-file-lines fa-sm"></i> Print Year Sequence</button>
                 </div>
                 {{-- <div class="d-none">
@@ -208,11 +208,32 @@
             $("#switch-method").prop("checked", false);
         });
 
+        $('#datatable thead tr').clone(true).appendTo('#datatable thead');
+        $('#datatable thead tr:eq(1) th').each(function(i) {
+            if (i != 0) {
+                var title = $(this).text();
+                $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%"/>');
+
+                $('input', this).on('keyup change', function() {
+                    if (datatable.column(i).search() !== this.value) {
+                        datatable
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            } else {
+                $(this).empty();
+            }
+        });
+
         // Stocker Datatable
         let datatable = $("#datatable").DataTable({
             ordering: false,
             processing: true,
             serverSide: true,
+            scrollX: "500px",
+            scrollY: "500px",
             ajax: {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -281,8 +302,7 @@
                 {
                     targets: [0],
                     render: (data, type, row, meta) => {
-                        // return "<div class='d-flex gap-1 justify-content-center'><a class='btn btn-primary btn-sm' href='{{ route('stocker-list-detail') }}/"+row.form_cut_id+"/"+row.so_det_id+"' target='_blank'><i class='fa fa-search-plus'></i></a></div>";
-                        return "<div class='d-flex gap-1 justify-content-center'><a class='btn btn-primary btn-sm' href='#'><i class='fa fa-search-plus'></i></a></div>";
+                        return "<div class='d-flex gap-1 justify-content-center'><a class='btn btn-primary btn-sm' href='{{ route('stocker-list-detail') }}/"+row.form_cut_id+"/"+row.so_det_id+"' target='_blank'><i class='fa fa-search-plus'></i></a></div>";
                     }
                 },
                 // Stocker List
@@ -312,25 +332,6 @@
                 if (numberingMonth && numberingMonth != "-") {
                     $node.addClass('red');
                 }
-            }
-        });
-
-        $('#datatable thead tr').clone(true).appendTo('#datatable thead');
-        $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i != 0) {
-                var title = $(this).text();
-                $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%"/>');
-
-                $('input', this).on('keyup change', function() {
-                    if (datatable.column(i).search() !== this.value) {
-                        datatable
-                            .column(i)
-                            .search(this.value)
-                            .draw();
-                    }
-                });
-            } else {
-                $(this).empty();
             }
         });
 
