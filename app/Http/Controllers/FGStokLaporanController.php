@@ -10,6 +10,7 @@ use DB;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ExportLaporanPenerimaanFGStokBPB;
+use Illuminate\Http\JsonResponse;
 
 class FGStokLaporanController extends Controller
 {
@@ -62,65 +63,128 @@ class FGStokLaporanController extends Controller
         return Excel::download(new ExportLaporanFGStokMutasi($request->from, $request->to), 'Laporan_Mutasi FG_Stok.xlsx');
     }
 
-    public function show_fg_stok_mutasi(Request $request)
-    {
-        $user = Auth::user()->name;
-        $tgl_awal = $request->tgl_f;
-        $tgl_akhir = $request->tgl_t;
-        if ($request->ajax()) {
+    // public function show_fg_stok_mutasi(Request $request)
+    // {
+    //     $user = Auth::user()->name;
+    //     $tgl_awal = $request->tgl_f;
+    //     $tgl_akhir = $request->tgl_t;
+    //     if ($request->ajax()) {
 
-            $data_preview = DB::select("select mt.id_so_det,
-        sum(qty_awal) qty_awal,
-        sum(qty_in) qty_in,
-        sum(qty_out) qty_out,
-        sum(qty_awal) + sum(qty_in) - sum(qty_out) saldo_akhir,
-        grade,
-        lokasi,
-        no_carton,
-        buyer,
-        color,
-        m.size,
-        ws,
-        brand,
-        styleno,
-        m.product_group,
-        m.product_item
-        from
-        (
-            select id_so_det,sum(qty_in) - sum(qty_out) qty_awal,'0' qty_in,'0' qty_out, grade, lokasi, no_carton
+    //         $data_preview = DB::select("select mt.id_so_det,
+    //     sum(qty_awal) qty_awal,
+    //     sum(qty_in) qty_in,
+    //     sum(qty_out) qty_out,
+    //     sum(qty_awal) + sum(qty_in) - sum(qty_out) saldo_akhir,
+    //     grade,
+    //     lokasi,
+    //     no_carton,
+    //     buyer,
+    //     color,
+    //     m.size,
+    //     ws,
+    //     brand,
+    //     styleno,
+    //     m.product_group,
+    //     m.product_item
+    //     from
+    //     (
+    //         select id_so_det,sum(qty_in) - sum(qty_out) qty_awal,'0' qty_in,'0' qty_out, grade, lokasi, no_carton
+    //         from
+    //         (
+    //         select id_so_det,sum(qty) qty_in,'0' qty_out,grade, lokasi, no_carton
+    //         from fg_stok_bpb
+    //         where tgl_terima < '$tgl_awal'
+    //         group by id_so_det, grade, lokasi, no_carton
+    //         UNION
+    //         select id_so_det,'0' qty_in,sum(qty_out) qty_out,grade, lokasi, no_carton
+    //         from fg_stok_bppb
+    //         where tgl_pengeluaran < '$tgl_awal'
+    //         group by id_so_det, grade, lokasi, no_carton
+    //         ) sa
+    //         group by id_so_det, grade, lokasi, no_carton
+    //     union
+    //     select id_so_det,'0' qty_awal,sum(qty) qty_in,'0' qty_out,grade, lokasi, no_carton
+    //     from fg_stok_bpb
+    //     where tgl_terima >= '$tgl_awal' and tgl_terima <= '$tgl_akhir'
+    //     group by id_so_det, grade, lokasi, no_carton
+    //     union
+    //     select id_so_det,'0' qty_awal,'0' qty_in,sum(qty_out) qty_out,grade, lokasi, no_carton
+    //     from fg_stok_bppb
+    //     where tgl_pengeluaran >= '$tgl_awal' and tgl_pengeluaran <= '$tgl_akhir'
+    //     group by id_so_det, grade, lokasi, no_carton
+    //     )
+    //     mt
+    //     left join master_sb_ws m on mt.id_so_det = m.id_so_det
+    //     left join master_size_new ms on m.size = ms.size
+    //     group by mt.id_so_det, grade, lokasi, no_carton
+    //     order by buyer asc, color asc, ms.urutan asc
+    //         ");
+
+
+    //         return DataTables::of($data_preview)->toJson();
+    //     }
+
+        // api
+        public function show_fg_stok_mutasi(Request $request)
+        {
+            // $user = Auth::user()->name;
+            $tgl_awal = $request->tgl_f ? $request->tgl_f : date('Y-m-d');
+            $tgl_akhir = $request->tgl_t ? $request->tgl_t : date('Y-m-d');
+
+                $data_preview = DB::select("select mt.id_so_det,
+            sum(qty_awal) qty_awal,
+            sum(qty_in) qty_in,
+            sum(qty_out) qty_out,
+            sum(qty_awal) + sum(qty_in) - sum(qty_out) saldo_akhir,
+            grade,
+            lokasi,
+            no_carton,
+            buyer,
+            color,
+            m.size,
+            ws,
+            brand,
+            styleno,
+            m.product_group,
+            m.product_item
             from
             (
-            select id_so_det,sum(qty) qty_in,'0' qty_out,grade, lokasi, no_carton
+                select id_so_det,sum(qty_in) - sum(qty_out) qty_awal,'0' qty_in,'0' qty_out, grade, lokasi, no_carton
+                from
+                (
+                select id_so_det,sum(qty) qty_in,'0' qty_out,grade, lokasi, no_carton
+                from fg_stok_bpb
+                where tgl_terima < '$tgl_awal'
+                group by id_so_det, grade, lokasi, no_carton
+                UNION
+                select id_so_det,'0' qty_in,sum(qty_out) qty_out,grade, lokasi, no_carton
+                from fg_stok_bppb
+                where tgl_pengeluaran < '$tgl_awal'
+                group by id_so_det, grade, lokasi, no_carton
+                ) sa
+                group by id_so_det, grade, lokasi, no_carton
+            union
+            select id_so_det,'0' qty_awal,sum(qty) qty_in,'0' qty_out,grade, lokasi, no_carton
             from fg_stok_bpb
-            where tgl_terima < '$tgl_awal'
+            where tgl_terima >= '$tgl_awal' and tgl_terima <= '$tgl_akhir'
             group by id_so_det, grade, lokasi, no_carton
-            UNION
-            select id_so_det,'0' qty_in,sum(qty_out) qty_out,grade, lokasi, no_carton
+            union
+            select id_so_det,'0' qty_awal,'0' qty_in,sum(qty_out) qty_out,grade, lokasi, no_carton
             from fg_stok_bppb
-            where tgl_pengeluaran < '$tgl_awal'
+            where tgl_pengeluaran >= '$tgl_awal' and tgl_pengeluaran <= '$tgl_akhir'
             group by id_so_det, grade, lokasi, no_carton
-            ) sa
-            group by id_so_det, grade, lokasi, no_carton
-        union
-        select id_so_det,'0' qty_awal,sum(qty) qty_in,'0' qty_out,grade, lokasi, no_carton
-        from fg_stok_bpb
-        where tgl_terima >= '$tgl_awal' and tgl_terima <= '$tgl_akhir'
-        group by id_so_det, grade, lokasi, no_carton
-        union
-        select id_so_det,'0' qty_awal,'0' qty_in,sum(qty_out) qty_out,grade, lokasi, no_carton
-        from fg_stok_bppb
-        where tgl_pengeluaran >= '$tgl_awal' and tgl_pengeluaran <= '$tgl_akhir'
-        group by id_so_det, grade, lokasi, no_carton
-        )
-        mt
-        left join master_sb_ws m on mt.id_so_det = m.id_so_det
-        left join master_size_new ms on m.size = ms.size
-        group by mt.id_so_det, grade, lokasi, no_carton
-        order by buyer asc, color asc, ms.urutan asc
-            ");
+            )
+            mt
+            left join master_sb_ws m on mt.id_so_det = m.id_so_det
+            left join master_size_new ms on m.size = ms.size
+            group by mt.id_so_det, grade, lokasi, no_carton
+            order by buyer asc, color asc, ms.urutan asc
+                ");
 
 
-            return DataTables::of($data_preview)->toJson();
-        }
+        return response()->json([
+            'data' => $data_preview,
+            'message' => 'Succeed'
+        ], JsonResponse::HTTP_OK);
     }
 }
