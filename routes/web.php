@@ -436,6 +436,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/detail-pemakaian-roll', 'detailPemakaianRoll')->name('detail-pemakaian-roll');
         // export excel
         Route::post('/cutting/export', 'export')->name('report-cutting-export');
+        Route::post('/pemakaian-roll/export', 'pemakaianRollExport')->name('pemakaian-roll-export');
+        Route::post('/detail-pemakaian-roll/export', 'detailPemakaianRollExport')->name('detail-pemakaian-roll-export');
     });
 
     // Roll

@@ -199,11 +199,7 @@
                 success: function(res) {
                     elm.removeChild(loading);
                     elm.removeAttribute('disabled');
-                    let icon = document.createElement('i');
-                    icon.classList.add('fa-solid');
-                    icon.classList.add('fa-file-excel');
-                    elm.appendChild(icon);
-                    elm.innerText += " Export";
+                    elm.innerHTML += "<i class='fa fa-file-excel'></i> Export";
 
                     iziToast.success({
                         title: 'Success',
@@ -219,11 +215,7 @@
                 }, error: function (jqXHR) {
                     elm.removeChild(loading);
                     elm.removeAttribute('disabled');
-                    let icon = document.createElement('i');
-                    icon.classList.add('fa-solid');
-                    icon.classList.add('fa-file-excel');
-                    elm.appendChild(icon);
-                    elm.innerText += " Export";
+                    elm.innerHTML += "<i class='fa fa-file-excel'></i> Export";
 
                     let res = jqXHR.responseJSON;
                     let message = '';
