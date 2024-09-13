@@ -113,7 +113,7 @@ class ExportPemakaianKain implements FromView, WithEvents, ShouldAutoSize /*With
         $currentRow = 1;
 
         $event->sheet->styleCells(
-            'A3:K' . ($event->getConcernable()->rowCount+2+1),
+            'A3:L' . ($event->getConcernable()->rowCount+2+1),
             [
                 'borders' => [
                     'allBorders' => [

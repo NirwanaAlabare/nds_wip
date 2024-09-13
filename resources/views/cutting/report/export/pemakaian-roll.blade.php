@@ -19,6 +19,7 @@
         <th>Qty</th>
         <th>Total Pemakaian Kain</th>
         <th>Total Short Roll</th>
+        <th>Short Roll Percentage</th>
         <th>Unit</th>
     </tr>
     @foreach ($data->sortBy("no_req") as $roll)
@@ -33,6 +34,7 @@
             <td>{{ $roll->qty }}</td>
             <td>{{ $roll->total_pemakaian_roll }}</td>
             <td>{{ $roll->total_short_roll }}</td>
+            <td>{{ $roll->qty > 0 ? round(($roll->total_short_roll/$roll->qty) * 100, 2) : 0 }} %</td>
             <td>{{ $roll->unit }}</td>
         </tr>
     @endforeach
