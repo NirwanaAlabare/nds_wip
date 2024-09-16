@@ -240,7 +240,7 @@ class ReportCuttingController extends Controller
 
                     $balance = $rolls ? $row->roll_out - $rolls->count() : $row->roll_out;
 
-                    return ($balance > 0 ? $balance : $balance < 0 ? ( str_replace("-", "+", round($balance, 2)) ) : (round($balance, 2)));
+                    return $balance > 0 ? $balance : ($balance < 0 ? str_replace("-", "+", round($balance, 2)) : round($balance, 2));
                 })->
                 addColumn('total_qty_cutting', function ($row) {
                     $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb WHERE a.no_req = '".$row->bppbno."' and b.id_item = '".$row->id_item."' and b.status = 'Y' GROUP BY id_roll"));
@@ -334,7 +334,7 @@ class ReportCuttingController extends Controller
 
                     $balance = $rolls ? $row->qty_out - (($row->unit == 'YARD' || $row->unit == 'YRD') ? $rolls->sum("total_pemakaian_roll") * 1.0361 : $rolls->sum("total_pemakaian_roll") ) : $row->qty_out;
 
-                    return ($balance > 0 ? $balance : $balance < 0 ? ( str_replace("-", "+", round($balance, 2)) ) : round($balance, 2));
+                    return $balance > 0 ? $balance : ($balance < 0 ? ( str_replace("-", "+", round($balance, 2)) ) : round($balance, 2));
                 })->
                 toJson();
         }
