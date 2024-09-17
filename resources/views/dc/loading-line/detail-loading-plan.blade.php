@@ -67,6 +67,7 @@
                         <th>No. Form</th>
                         <th>Size</th>
                         <th>Group</th>
+                        <th>Group</th>
                         <th>Range</th>
                         <th>Range</th>
                         <th>No. Stocker</th>
@@ -90,10 +91,10 @@
                         @php
                             $qty = $loadingLine->qty;
 
-                            if ($currentSize != $loadingLine->size || $currentGroup != $loadingLine->shade || $currentRange != $loadingLine->range_awal) {
+                            if ($currentSize != $loadingLine->size || $currentRange != $loadingLine->range_awal) {
                                 $currentForm = $loadingLine->no_form;
                                 $currentSize = $loadingLine->size;
-                                $currentGroup = $loadingLine->shade;
+                                $currentGroup = $loadingLine->group_stocker;
                                 $currentRange = $loadingLine->range_awal;
 
                                 $currentUpdate = $loadingLine->tanggal_loading;
@@ -102,11 +103,12 @@
                                 $totalQty += $qty;
 
                                 $currentQty = $qty;
-                            } else {
-                                $currentQty > $qty ? $totalQty = $totalQty - $currentQty + $qty : $totalQty = $totalQty;
-
-                                $currentQty = $qty;
                             }
+                            // else {
+                            //     $currentQty > $qty ? $totalQty = $totalQty - $currentQty + $qty : $totalQty = $totalQty;
+
+                            //     $currentQty = $qty;
+                            // }
                         @endphp
                         <tr>
                             <td class="align-middle">{{ $loadingLine->act_costing_ws }}</td>
@@ -114,6 +116,7 @@
                             <td class="align-middle">{{ $loadingLine->no_form." / ".$loadingLine->no_cut }}</td>
                             <td class="align-middle">{{ $loadingLine->no_form }}</td>
                             <td class="align-middle">{{ $loadingLine->size }}</td>
+                            <td class="align-middle">{{ $loadingLine->group_stocker }}</td>
                             <td class="align-middle">{{ $loadingLine->shade }}</td>
                             <td class="align-middle">{{ $loadingLine->range_awal }}</td>
                             <td class="align-middle">{{ ($loadingLine->range_awal)." - ".($loadingLine->range_akhir) }}</td>
@@ -125,7 +128,7 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <th class="text-end" colspan="9">TOTAL</th>
+                        <th class="text-end" colspan="10">TOTAL</th>
                         <th id="total-qty">{{ num($totalQty) }}</th>
                         <th id="latest-update">{{ $latestUpdate }}</th>
                     </tr>
@@ -155,13 +158,13 @@
                     1,
                     2,
                     4,
-                    5,
+                    6,
                     7,
                     8,
                 ],
                 columnDefs: [
                     {
-                        targets: [3, 6],
+                        targets: [3, 5, 7],
                         visible: false
                     },
                 ]
@@ -183,26 +186,25 @@
                 await stockerDatatable.rows({"search":"applied" }).every( function () {
                     var data = this.data();
 
-                    if (currentSize != data[4] || currentGroup != data[5] || currentRange != data[6]) {
+                    if (currentSize != data[4] || currentRange != data[7]) {
                         currentForm = data[3];
                         currentSize = data[4];
                         currentGroup = data[5];
-                        currentRange = data[6];
+                        currentRange = data[7];
 
-                        currentUpdate = data[10];
+                        currentUpdate = data[11];
                         currentUpdate > latestUpdate ? latestUpdate = currentUpdate : latestUpdate = latestUpdate;
 
-                        totalQty += Number(data[9]);
+                        totalQty += Number(data[10]);
 
-                        currentQty = Number(data[9]);
-                    } else {
-                        currentQty > Number(data[9]) ? totalQty = totalQty - currentQty + Number(data[9]) : totalQty = totalQty;
-
-                        currentQty = Number(data[9]);
+                        currentQty = Number(data[10]);
                     }
-                });
+                    // else {
+                    //     currentQty > Number(data[10]) ? totalQty = totalQty - currentQty + Number(data[10]) : totalQty = totalQty;
 
-                console.log()
+                    //     currentQty = Number(data[10]);
+                    // }
+                });
 
                 document.getElementById('total-qty').innerHTML = Number(totalQty).toLocaleString('ID-id');
                 document.getElementById('latest-update').innerHTML = latestUpdate;

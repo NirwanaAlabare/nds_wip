@@ -261,6 +261,7 @@ class LoadingLineController extends Controller
                 stocker_input.so_det_id,
                 stocker_input.size,
                 stocker_input.shade,
+                stocker_input.group_stocker,
                 stocker_input.range_awal,
                 stocker_input.range_akhir,
                 loading_line_plan.act_costing_id,
@@ -290,7 +291,6 @@ class LoadingLineController extends Controller
                 loading_line.tanggal_loading,
                 stocker_input.form_cut_id,
                 stocker_input.so_det_id,
-                stocker_input.group_stocker,
                 stocker_input.range_awal
         ");
 
@@ -468,12 +468,6 @@ class LoadingLineController extends Controller
                     loading_line_plan.id,
                     loading_stock.size
                     ".$dateFilter."
-                ORDER BY
-                    loading_stock.tanggal_loading,
-                    loading_line_plan.line_id,
-                    loading_line_plan.act_costing_ws,
-                    loading_line_plan.color,
-                    loading_stock.so_det_id
             ");
 
             return DataTables::of($line)->toJson();
