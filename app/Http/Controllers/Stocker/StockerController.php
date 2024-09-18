@@ -2182,10 +2182,10 @@ class StockerController extends Controller
 
                     if ($currentData->where('number', $validatedRequest['range_awal_stocker']+$n)->count() < 1) {
                         array_push($upsertData, [
-                            "id_year_sequence" => $validatedRequest['year']."_".($yearSequenceSequence)."_".($i),
+                            "id_year_sequence" => $validatedRequest['year']."_".($yearSequenceSequence)."_".($validatedRequest['range_awal_year_sequence']+$n1),
                             "year" => $validatedRequest['year'],
                             "year_sequence" => $yearSequenceSequence,
-                            "year_sequence_number" => ($i),
+                            "year_sequence_number" => ($validatedRequest['range_awal_year_sequence']+$n1),
                             "form_cut_id" => $validatedRequest['form_cut_id'],
                             "so_det_id" => $validatedRequest['so_det_id'],
                             "size" => $validatedRequest['size'],
