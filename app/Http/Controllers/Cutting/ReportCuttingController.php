@@ -390,8 +390,6 @@ class ReportCuttingController extends Controller
 
         $pemakaianRollIds = $pemakaianRoll->pluck("req_item");
 
-        dd($pemakaianRollIds);
-
         $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb WHERE CONCAT(b.no_bppb, '_', a.id_item) IN () and b.status = 'Y' GROUP BY id_roll"));
 
         $rollIds = $rollIdsArr->pluck('id_roll');
