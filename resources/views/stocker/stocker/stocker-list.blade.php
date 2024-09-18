@@ -61,6 +61,7 @@
                             <th>Shade</th>
                             <th>Ratio</th>
                             <th>Stocker Range</th>
+                            <th>Qty</th>
                             <th>Year Sequence</th>
                             <th>Year Sequence Range</th>
                         </tr>
@@ -289,6 +290,9 @@
                 },
                 {
                     data: 'stocker_range',
+                },
+                {
+                    data: 'qty'
                 },
                 {
                     data: 'year_sequence'

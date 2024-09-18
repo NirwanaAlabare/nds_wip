@@ -84,6 +84,9 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
 
             $orderGroup = $orderGroupSql->get();
 
+        $masterPlanDateFilter = " between '".$this->dateFrom."' and '".$this->dateTo."'";
+        $masterPlanDateFilter1 = " between '".date('Y-m-d', strtotime('-1 days', strtotime($this->dateFrom)))."' and '".$this->dateTo."'";
+
         $orderOutputSql = MasterPlan::selectRaw("
                 master_plan.tgl_plan tanggal,
                 ".($this->groupBy == 'size' ? ' output_rfts'.($this->outputType).'.so_det_id, so_det.size, ' : '')."
