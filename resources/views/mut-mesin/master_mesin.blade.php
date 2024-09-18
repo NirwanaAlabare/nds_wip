@@ -187,6 +187,10 @@
             processing: true,
             serverSide: true,
             paging: true,
+            lengthMenu: [
+                [10, 25, 50, -1],
+                [10, 25, 50, 'All']
+            ],
             searching: true,
             ajax: {
                 url: '{{ route('master-mut-mesin') }}',

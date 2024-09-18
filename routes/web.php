@@ -80,6 +80,7 @@ use App\Http\Controllers\QcPassController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\MutasiMesinController;
 use App\Http\Controllers\MutasiMesinMasterController;
+use App\Http\Controllers\MutasiMesinLaporanController;
 use App\Http\Controllers\ReqMaterialController;
 use App\Http\Controllers\ReturMaterialController;
 use App\Http\Controllers\ReturInMaterialController;
@@ -843,7 +844,7 @@ Route::middleware('auth')->group(function () {
     // });
 
     // Mutasi Mesin
-    Route::controller(MutasiMesinController::class)->prefix("mut-mesin")->middleware('hr')->group(function () {
+    Route::controller(MutasiMesinController::class)->prefix("mut-mesin")->group(function () {
         Route::get('/', 'index')->name('mut-mesin');
         Route::get('/create', 'create')->name('create-mut-mesin');
         Route::post('/store', 'store')->name('store-mut-mesin');
@@ -857,13 +858,20 @@ Route::middleware('auth')->group(function () {
         Route::get('/line-chart-data', 'lineChartData')->name('line-chart-data');
     });
     // Mutasi Mesin Master
-    Route::controller(MutasiMesinMasterController::class)->prefix("master-mut-mesin")->middleware('hr')->group(function () {
+    Route::controller(MutasiMesinMasterController::class)->prefix("master-mut-mesin")->group(function () {
         Route::get('/', 'index')->name('master-mut-mesin');
         Route::post('/store', 'store')->name('store-master-mut-mesin');
         Route::get('/export_excel_master_mesin', 'export_excel_master_mesin')->name('export_excel_master_mesin');
         Route::post('/hapus_data_mesin', 'hapus_data_mesin')->name('hapus-data-mesin');
         Route::get('/getdata_mesin', 'getdata_mesin')->name('getdata_mesin');
         Route::post('/edit_master_mut_mesin', 'edit_master_mut_mesin')->name('edit-master-mut-mesin');
+    });
+    // Laporan Mesin
+    Route::controller(MutasiMesinLaporanController::class)->prefix("master-mut-mesin")->group(function () {
+        Route::get('/lap_stok_mesin', 'lap_stok_mesin')->name('lap_stok_mesin');
+        Route::get('/export_excel_stok_mesin', 'export_excel_stok_mesin')->name('export_excel_stok_mesin');
+        Route::get('/lap_stok_detail_mesin', 'lap_stok_detail_mesin')->name('lap_stok_detail_mesin');
+        Route::get('/export_excel_stok_detail_mesin', 'export_excel_stok_detail_mesin')->name('export_excel_stok_detail_mesin');
     });
 
     //warehouse

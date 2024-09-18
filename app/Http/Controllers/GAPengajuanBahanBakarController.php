@@ -72,7 +72,8 @@ class GAPengajuanBahanBakarController extends Controller
         return view(
             'ga.pengajuan_bahan_bakar',
             [
-                'page' => 'dashboard-ga', "subPageGroup" => "ga-pengajuan",
+                'page' => 'dashboard-ga',
+                "subPageGroup" => "ga-pengajuan",
                 "subPage" => "ga-pengajuan-bahan-bakar",
                 "data_jns_bhn_bakar" => $data_jns_bhn_bakar,
                 "data_bahan_bakar" => $data_bahan_bakar,
@@ -200,10 +201,10 @@ class GAPengajuanBahanBakarController extends Controller
         );
 
         return array(
-            'status' => 200,
+            'status' => 201,
             'message' => 'Data  Berhasil Diupdate',
             'redirect' => '',
-            'table' => '',
+            'table' => 'datatable-trans',
             'additional' => [],
         );
     }
