@@ -407,7 +407,9 @@
                                         Number <i class="fa-solid fa-hashtag"></i></a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('year-sequence') }}" class="dropdown-item {{ $subPage == 'year-sequence' ? 'active' : '' }}"> Year Sequence <i class="fa-solid fa-list-ol"></i></a>
+                                    <a href="{{ route('year-sequence') }}"
+                                        class="dropdown-item {{ $subPage == 'year-sequence' ? 'active' : '' }}"> Year
+                                        Sequence <i class="fa-solid fa-list-ol"></i></a>
                                 </li>
                             @endstocker
                         </ul>
@@ -954,14 +956,12 @@
                             aria-haspopup="true"aria-expanded="false"
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-mut-mesin' ? 'active' : '' }}">Process</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-                            @hr
-                                <li>
-                                    <a href="{{ route('mut-mesin') }}"
-                                        class="dropdown-item {{ $subPage == 'mut-mesin' ? 'active' : '' }}">
-                                        Mutasi Mesin <i class="fas fa-tools fa-sm"></i>
-                                    </a>
-                                </li>
-                            @endhr
+                            <li>
+                                <a href="{{ route('mut-mesin') }}"
+                                    class="dropdown-item {{ $subPage == 'mut-mesin' ? 'active' : '' }}">
+                                    <i class="fas fa-tools fa-sm"></i> Mutasi Mesin
+                                </a>
+                            </li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
@@ -972,7 +972,26 @@
                             <li>
                                 <a href="{{ route('master-mut-mesin') }}"
                                     class="dropdown-item {{ $subPage == 'master-mut-mesin' ? 'active' : '' }}">
-                                    Master Mesin <i class="fas fa-cogs fa-sm"></i>
+                                    <i class="fas fa-cogs fa-sm"></i> Master Mesin
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'lap-mut-mesin' ? 'active' : '' }}">Laporan</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('lap_stok_mesin') }}"
+                                    class="dropdown-item {{ $subPage == 'lap_stok_mesin' ? 'active' : '' }}">
+                                    <i class="fas fa-list fa-sm"></i> List Stok Mesin
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('lap_stok_detail_mesin') }}"
+                                    class="dropdown-item {{ $subPage == 'lap_stok_detail_mesin' ? 'active' : '' }}">
+                                    <i class="fas fa-list fa-sm"></i> List Detail Stok Mesin
                                 </a>
                             </li>
                         </ul>

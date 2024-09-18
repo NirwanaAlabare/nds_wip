@@ -107,6 +107,31 @@ class MutasiMesinMasterController extends Controller
         );
     }
 
+    public function lap_stok_mesin(Request $request)
+    {
+        $tgl_skrg = Carbon::now()->isoFormat('D MMMM Y hh:mm:ss');
+        $tglskrg = date('Y-m-d');
+
+        if ($request->ajax()) {
+
+            $data_stok = DB::select("SELECT
+        m.jenis_mesin, m.brand, count(m.id_qr) total, 'UNIT' satuan
+        from master_mesin m
+        left join
+        (
+        select * from mut_mesin_input group by id_qr
+        ) mut on m.id_qr = mut.id_qr
+        where mut.id_qr is not null
+        group by  jenis_mesin, brand
+        order by jenis_mesin asc, brand asc
+            ");
+
+
+            return DataTables::of($data_stok)->toJson();
+        }
+        return view('mut-mesin.lap_stok_mesin', ['page' => 'dashboard-mut-mesin', 'subPageGroup' => 'lap-mut-mesin', 'subPage' => 'lap_stok_mesin'], ['tgl_skrg' => $tgl_skrg]);
+    }
+
     public function export_excel_master_mesin(Request $request)
     {
         return Excel::download(new ExportLaporanMutasiMesinMaster(), 'Laporan_Mutasi_Master_Mesin.xlsx');
