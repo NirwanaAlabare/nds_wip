@@ -23,7 +23,7 @@
                             <input type="text" class="form-control form-control-sm" name="username" value="{{ auth()->user()->username }}" readonly>
                         </div>
                         @if (auth()->user()->type == 'admin')
-                            <div class="mb-3">
+                            <div class="mb-3 d-none">
                                 <label><small>Unlock Token</small></label>
                                 <div class="input-group input-group-sm">
                                     <input type="text" class="form-control" name="unlock_token" id="unlock_token" value="{{ auth()->user()->unlock_token }}" readonly>
@@ -31,7 +31,7 @@
                                 </div>
                             </div>
                         @endif
-                        <div class="d-none">
+                        <div>
                             <label><small>New Password</small></label>
                             <input type="password" class="form-control form-control-sm" name="password">
                         </div>
