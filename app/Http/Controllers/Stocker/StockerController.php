@@ -1927,6 +1927,7 @@ class StockerController extends Controller
                     stocker_input.ratio,
                     CONCAT( MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir)) stocker_range,
                     year_sequence_num.year_sequence,
+                    (MAX(year_sequence_num.range_akhir) - MIN(year_sequence_num.range_awal) + 1) qty,
                     CONCAT( MIN(year_sequence_num.range_awal), ' - ', MAX(year_sequence_num.range_akhir)) numbering_range
                 FROM
                     stocker_input

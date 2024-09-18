@@ -9,8 +9,10 @@
         <th>{{ $dateFrom." - ".$dateTo }}</th>
     </tr>
     <tr>
-        <th>No. Req</th>
         <th>Tanggal Req</th>
+        <th>No. Req</th>
+        <th>No. WS</th>
+        <th>No. WS Aktual</th>
         <th>ID Roll</th>
         <th>ID Item</th>
         <th>Detail Item</th>
@@ -24,8 +26,10 @@
     </tr>
     @foreach ($data->sortBy("no_req") as $roll)
         <tr>
-            <td>{{ $roll->no_req }}</td>
             <td>{{ $roll->tanggal_req }}</td>
+            <td>{{ $roll->no_req }}</td>
+            <td>{{ $roll->no_ws }}</td>
+            <td>{{ $roll->no_ws_aktual }}</td>
             <td>{{ $roll->id_roll }}</td>
             <td>{{ $roll->id_item }}</td>
             <td>{{ $roll->detail_item }}</td>

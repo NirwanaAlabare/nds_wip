@@ -165,6 +165,9 @@
                         </thead>
                         <tbody>
                         </tbody>
+                        <tfoot>
+
+                        </tfoot>
                     </table>
                 </div>
                 <div class="modal-footer">
@@ -345,6 +348,25 @@
 
         function datatableReload() {
             datatable.ajax.reload();
+
+            totalPemakaianRoll();
+        }
+
+        function totalPemakaianRoll() {
+            $.ajax({
+                url: "{{ route("total-pemakaian-roll") }}",
+                type: 'get',
+                data: {
+                    dateFrom : $("#dateFrom").val(),
+                    dateTo : $("#dateTo").val()
+                },
+                success: function(res) {
+                    console.log(res);
+                },
+                error: function(jqXHR) {
+                    console.log(jqXHR);
+                }
+            });
         }
 
         function exportExcel (elm) {
