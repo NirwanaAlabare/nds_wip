@@ -2465,7 +2465,15 @@ class StockerController extends Controller
                     stocker_input.size,
                     master_part.nama_part part,
                     form_cut_input.no_form,
-                    COALESCE(stocker_input.qty_ply, stocker_input.qty_ply_mod) qty,
+                    (
+                        (COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply )) -
+                        (COALESCE ( MAX(dc_in_input.qty_reject), 0 )) +
+                        (COALESCE ( MAX(dc_in_input.qty_replace), 0 )) -
+                        (COALESCE ( MAX(secondary_in_input.qty_reject), 0 )) +
+                        (COALESCE ( MAX(secondary_in_input.qty_replace), 0 )) -
+                        (COALESCE ( MAX(secondary_inhouse_input.qty_reject), 0 )) +
+                        (COALESCE ( MAX(secondary_inhouse_input.qty_replace), 0 ))
+                    ) qty,
                     stocker_input.range_awal,
                     stocker_input.range_akhir
                 ")->
