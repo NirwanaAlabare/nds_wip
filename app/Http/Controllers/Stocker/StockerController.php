@@ -2184,6 +2184,8 @@ class StockerController extends Controller
                     }
 
                     if ($currentData->where('number', $validatedRequest['range_awal_stocker']+$n)->count() < 1 || $request->method == "add" ) {
+                        $now = Carbon::now();
+
                         array_push($upsertData, [
                             "id_year_sequence" => $validatedRequest['year']."_".($yearSequenceSequence)."_".($validatedRequest['range_awal_year_sequence']+$n1),
                             "year" => $validatedRequest['year'],
@@ -2192,9 +2194,9 @@ class StockerController extends Controller
                             "form_cut_id" => $validatedRequest['form_cut_id'],
                             "so_det_id" => $validatedRequest['so_det_id'],
                             "size" => $validatedRequest['size'],
-                            "number" => $validatedRequest['range_awal_stocker']+$n,
-                            "created_at" => Carbon::now(),
-                            "updated_at" => Carbon::now(),
+                            "number" => ($currentData->count() > 0 ? $currentData->max("number")+1+$n : $validatedRequest['range_awal_stocker']+$n),
+                            "created_at" => $now,
+                            "updated_at" => $now,
                         ]);
 
                         if (count($upsertData) % 5000 == 0) {
