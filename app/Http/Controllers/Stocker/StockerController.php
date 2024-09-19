@@ -2532,6 +2532,7 @@ class StockerController extends Controller
                 (year_sequence.number >= '".$request->range_awal."') and
                 (year_sequence.number <= '".$request->range_akhir."')
             ")->
+            orderBy("year_sequence.number", "asc")->
             get();
 
         return Datatables::of($stockerListNumber)->toJson();
