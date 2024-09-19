@@ -10,6 +10,7 @@ use App\Exports\ExportLaporanMutasiMesinMaster;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Auth;
 use DB;
+use Storage;
 
 class MutasiMesinMasterController extends Controller
 {
@@ -90,11 +91,38 @@ class MutasiMesinMasterController extends Controller
         $txtedit_brand = $request->txtedit_brand;
         $txtedit_tipe = $request->txtedit_tipe;
         $txtedit_serial = $request->txtedit_serial;
+        $img = $request->uploadphoto;
+
+        // $folderPath = "public/";
+        // $image_parts = explode(";base64,", $img);
+        // $image_type_aux = explode("image/", $image_parts[0]);
+        // $image_type = $image_type_aux[1];
+        // $image_base64 = base64_decode($image_parts[1]);
+        // $fileName = $txtedit_qr . '.png';
+        // $file = $folderPath . $fileName;
+        // Storage::put($file, $image_base64);
+
+        if ($request->hasFile('uploadphoto')) {
+            $folderPath = "public/";
+            $img_ext = $request->file('uploadphoto')->getClientOriginalExtension();
+            $filename = $txtedit_qr .  '.' . $img_ext;
+            $path = $request->file('uploadphoto')->move(public_path() . '/storage/gambar_mesin', $filename);
+        } else {
+            $filename = $request->nm_gambar;
+        }
+
+
+
+
+        // $filename = $txtedit_qr . '.' . $img_ext;
+        // $file = $folderPath . $filename;
+        // Storage::put($file, $filename);
+        // $path = $request->file('uploadphoto')->move(public_path() / storage, $filename);
 
         DB::update(
             "update master_mesin
             set jenis_mesin = '$txtedit_jenis', brand = '$txtedit_brand', tipe_mesin = '$txtedit_tipe',
-            serial_no = '$txtedit_serial', updated_at = '$timestamp'
+            serial_no = '$txtedit_serial', updated_at = '$timestamp', gambar = '$filename'
             where id_qr = '$txtedit_qr'
             "
         );

@@ -9,15 +9,28 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+
+    <!-- Webcam -->
+    {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> --}}
+    {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/webcamjs/1.0.25/webcam.min.js"></script> --}}
+
+    {{-- <style type="text/css">
+        #results {
+            width: 240;
+            height: 320;
+            border: 1px solid;
+            background: #ccc;
+        }
+    </style> --}}
 @endsection
 
 @section('content')
     <div class="modal fade" id="exampleModalEdit" tabindex="-1" role="dialog" aria-labelledby="exampleModalEditLabel"
         aria-hidden="true">
         <form action="{{ route('edit-master-mut-mesin') }}" method="post" onsubmit="submitForm(this, event)" name='form'
-            id='form'>
+            id='form' enctype="multipart/form-data">
             @method('POST')
-            <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-dialog modal-dialog-scrollable modal-lg">
                 <div class="modal-content">
                     <div class="modal-header bg-warning">
                         <h3 class="modal-title fs-5">Edit Master Mesin</h3>
@@ -48,6 +61,16 @@
                             <label for="recipient-name" class="col-form-label">Serial No :</label>
                             <input type='text' class='form-control form-control-sm' id='txtedit_serial'
                                 name='txtedit_serial' style="text-transform: uppercase" value = '' autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="recipient-name" class="col-form-label">Gambar :</label>
+                            <input type="file" id="uploadphoto" name="uploadphoto" />
+                            <input type="hidden" id="nm_gambar" name="nm_gambar" />
+                        </div>
+                        <div class="form-group">
+                            <center>
+                                <img id="preview" src="" width="300" height="350">
+                            </center>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -127,6 +150,26 @@
                     </a>
                 </div>
             </div>
+            {{-- <form method="POST" name="form_1" id="form_1" action="{{ route('webcam_capture') }}">
+                @csrf
+                <div class="row justify-content-center align-items-end">
+                    <div class="col-md-12">
+                        <div id="my_camera"></div>
+                        <input type=button value="Take Snapshot" onClick="take_snapshot()">
+                        <input type="text" name="image" id="image" class="image-tag">
+                    </div>
+                    <div class="col-md-12">
+                        <center>
+                            <div id="results">
+                            </div>
+                        </center>
+                    </div>
+                    <div class="col-2">
+                        <button class="btn btn-success">Submit</button>
+                    </div>
+                </div>
+            </form> --}}
+
             <div class="table-responsive">
                 <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
                     <thead>
@@ -152,6 +195,29 @@
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+
+    {{-- <script language="JavaScript">
+        Webcam.set({
+            width: 240,
+            height: 320,
+            image_format: 'png',
+            jpeg_quality: 100
+
+        });
+        Webcam.set('constraints', {
+            facingMode: "environment"
+        });
+        Webcam.attach('#my_camera');
+
+        function take_snapshot() {
+            Webcam.snap(function(data_uri) {
+                $(".image-tag").val(data_uri);
+                document.getElementById('results').innerHTML = '<img src="' + data_uri + '"/>';
+            });
+
+        }
+    </script> --}}
+
     <script>
         function notif() {
             alert("Maaf, Fitur belum tersedia!");
@@ -311,6 +377,7 @@
         }
 
         function show_data_edit_h(id_qr) {
+            $("#uploadphoto").val('');
             let id_qr_edit = id_qr;
             jQuery.ajax({
                 url: '{{ route('getdata_mesin') }}',
@@ -325,11 +392,38 @@
                     document.getElementById('txtedit_brand').value = response.brand;
                     document.getElementById('txtedit_tipe').value = response.tipe_mesin;
                     document.getElementById('txtedit_serial').value = response.serial_no;
+                    document.getElementById('nm_gambar').value = response.gambar;
+                    $("#preview").attr("src",
+                        "https://nag.ddns.net/nds_wip/public/storage/gambar_mesin/" + response
+                        .gambar);
                 },
                 error: function(request, status, error) {
                     alert(request.responseText);
                 },
             });
         }
+
+        function readURL(input) {
+
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+
+                reader.onload = function(e) {
+                    $('#preview').attr('src', e.target.result).show();
+                }
+
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        $("#uploadphoto").change(function() {
+            readURL(this);
+            $('#preview').show();
+        });
+
+        // $('#preview').on("click", function() {
+        //     $('#uploadphoto').replaceWith(selected_photo = $('#uploadphoto').clone(true));
+        //     $('#preview').removeProp('src').hide();;
+        // });
     </script>
 @endsection

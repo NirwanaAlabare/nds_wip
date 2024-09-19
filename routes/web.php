@@ -858,6 +858,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/getdatalinemesin', 'getdatalinemesin')->name('getdatalinemesin');
         Route::get('/export_excel_mut_mesin', 'export_excel_mut_mesin')->name('export_excel_mut_mesin');
         Route::get('/line-chart-data', 'lineChartData')->name('line-chart-data');
+        Route::post('/webcam_capture', 'webcam_capture')->name('webcam_capture');
     });
     // Mutasi Mesin Master
     Route::controller(MutasiMesinMasterController::class)->prefix("master-mut-mesin")->group(function () {
