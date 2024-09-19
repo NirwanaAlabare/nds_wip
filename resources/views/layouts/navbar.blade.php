@@ -566,7 +566,9 @@
                                 {{-- <li>
                                     <a href="{{ route('month-count') }}" class="dropdown-item {{ $subPage == 'month-count' ? 'active' : '' }}"> Month Number <i class="fa-solid fa-hashtag"></i></a>
                                 </li> --}}
-                                
+                                {{-- <li>
+                                    <a href="{{ route('stocker-balance') }}" class="dropdown-item {{ $subPage == 'stocker-balance' ? 'active' : '' }}"> Month Number <i class="fa-solid fa-hashtag"></i></a>
+                                </li> --}}
                                 <li>
                                     <a href="{{ route('year-sequence') }}" class="dropdown-item {{ $subPage == 'year-sequence' ? 'active' : '' }}"> Year Sequence <i class="fa-solid fa-list-ol"></i></a>
                                 </li>
