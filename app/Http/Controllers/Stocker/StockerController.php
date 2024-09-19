@@ -1911,6 +1911,7 @@ class StockerController extends Controller
 
             $stockerList = DB::select("
                 SELECT
+                    year_sequence_num.updated_at,
                     GROUP_CONCAT( DISTINCT stocker_input.id_qr_stocker ) id_qr_stocker,
                     GROUP_CONCAT( DISTINCT master_part.nama_part ) part,
                     stocker_input.form_cut_id,
@@ -1944,12 +1945,13 @@ class StockerController extends Controller
                             MAX( number ) range_numbering_akhir,
                             MIN( year_sequence_number ) range_awal,
                             MAX( year_sequence_number ) range_akhir,
-                            COALESCE(DATE(updated_at), DATE(created_at)) updated_at
+                            COALESCE(updated_at, created_at) updated_at
                         FROM
                             year_sequence
                         GROUP BY
                             form_cut_id,
-                            so_det_id
+                            so_det_id,
+                            COALESCE(updated_at, created_at)
                     ) year_sequence_num on year_sequence_num.form_cut_id = stocker_input.form_cut_id and year_sequence_num.so_det_id = stocker_input.so_det_id and year_sequence_num.range_numbering_awal >= stocker_input.range_awal
                 WHERE
                     ( form_cut_input.cancel IS NOT NULL OR form_cut_input.cancel != 'Y' )
@@ -1969,7 +1971,8 @@ class StockerController extends Controller
                     )
                 GROUP BY
                     stocker_input.form_cut_id,
-                    stocker_input.so_det_id
+                    stocker_input.so_det_id,
+                    year_sequence_num.updated_at
                 ORDER BY
                     stocker_input.updated_at DESC,
                     stocker_input.created_at DESC,
@@ -1983,7 +1986,7 @@ class StockerController extends Controller
         $months = [['angka' => '01','nama' => 'Januari'],['angka' => '02','nama' => 'Februari'],['angka' => '03','nama' => 'Maret'],['angka' => '04','nama' => 'April'],['angka' => '05','nama' => 'Mei'],['angka' => '06','nama' => 'Juni'],['angka' => '07','nama' => 'Juli'],['angka' => '08','nama' => 'Agustus'],['angka' => '09','nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
         $years = array_reverse(range(1999, date('Y')));
 
-        return view("stocker.stocker.stocker-list", ["page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "stocker-list", "months" => $months, "years" => $years]);
+        return view("stocker.stocker.stocker-list", ["page" => "dashboard-dc",  "subPageGroup" => "stocker-number", "subPage" => "stocker-list", "months" => $months, "years" => $years]);
     }
 
     public function stockerListDetail($form_cut_id, $so_det_id) {
@@ -2052,7 +2055,7 @@ class StockerController extends Controller
                 ")->
                 get();
 
-                return view("stocker.stocker.stocker-list-detail", ["page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "stocker-list", "stockerList" => $stockerList[0], "stockerListNumber" => $stockerListNumber, "months" => $months, "years" => $years]);
+                return view("stocker.stocker.stocker-list-detail", ["page" => "dashboard-dc",  "subPageGroup" => "stocker-number", "subPage" => "stocker-list", "stockerList" => $stockerList[0], "stockerListNumber" => $stockerListNumber, "months" => $months, "years" => $years]);
             }
         }
 
@@ -2180,18 +2183,20 @@ class StockerController extends Controller
                         $yearSequenceNumber = 1;
                     }
 
-                    if ($currentData->where('number', $validatedRequest['range_awal_stocker']+$n)->count() < 1) {
+                    if ($currentData->where('number', $validatedRequest['range_awal_stocker']+$n)->count() < 1 || $request->method == "add" ) {
+                        $now = Carbon::now();
+
                         array_push($upsertData, [
-                            "id_year_sequence" => $validatedRequest['year']."_".($yearSequenceSequence)."_".($i),
+                            "id_year_sequence" => $validatedRequest['year']."_".($yearSequenceSequence)."_".($validatedRequest['range_awal_year_sequence']+$n1),
                             "year" => $validatedRequest['year'],
                             "year_sequence" => $yearSequenceSequence,
-                            "year_sequence_number" => ($i),
+                            "year_sequence_number" => ($validatedRequest['range_awal_year_sequence']+$n1),
                             "form_cut_id" => $validatedRequest['form_cut_id'],
                             "so_det_id" => $validatedRequest['so_det_id'],
                             "size" => $validatedRequest['size'],
-                            "number" => $validatedRequest['range_awal_stocker']+$n,
-                            "created_at" => Carbon::now(),
-                            "updated_at" => Carbon::now(),
+                            "number" => ($currentData->count() > 0 ? $currentData->max("number")+1+$n : $validatedRequest['range_awal_stocker']+$n),
+                            "created_at" => $now,
+                            "updated_at" => $now,
                         ]);
 
                         if (count($upsertData) % 5000 == 0) {
@@ -2268,13 +2273,13 @@ class StockerController extends Controller
         $months = [['angka' => '01','nama' => 'Januari'],['angka' => '02','nama' => 'Februari'],['angka' => '03','nama' => 'Maret'],['angka' => '04','nama' => 'April'],['angka' => '05','nama' => 'Mei'],['angka' => '06','nama' => 'Juni'],['angka' => '07','nama' => 'Juli'],['angka' => '08','nama' => 'Agustus'],['angka' => '09','nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
         $years = array_reverse(range(1999, date('Y')));
 
-        return view("stocker.stocker.month-count", ["page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "month-count", "months" => $months,  "years" => $years]);
+        return view("stocker.stocker.month-count", ["page" => "dashboard-dc",  "subPageGroup" => "stocker-number", "subPage" => "month-count", "months" => $months,  "years" => $years]);
     }
 
     public function yearSequence() {
         $years = array_reverse(range(1999, date('Y')));
 
-        return view("stocker.stocker.year-sequence", ["page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "year-sequence", "years" => $years]);
+        return view("stocker.stocker.year-sequence", ["page" => "dashboard-dc",  "subPageGroup" => "stocker-number", "subPage" => "year-sequence", "years" => $years]);
     }
 
     public function printMonthCount(Request $request) {
@@ -2455,17 +2460,30 @@ class StockerController extends Controller
                     stocker_input.form_cut_id,
                     stocker_input.so_det_id,
                     stocker_input.act_costing_ws,
+                    part.style,
                     stocker_input.color,
                     stocker_input.size,
                     master_part.nama_part part,
                     form_cut_input.no_form,
-                    COALESCE(stocker_input.qty_ply, stocker_input.qty_ply_mod) qty,
+                    (
+                        (COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply )) -
+                        (COALESCE ( MAX(dc_in_input.qty_reject), 0 )) +
+                        (COALESCE ( MAX(dc_in_input.qty_replace), 0 )) -
+                        (COALESCE ( MAX(secondary_in_input.qty_reject), 0 )) +
+                        (COALESCE ( MAX(secondary_in_input.qty_replace), 0 )) -
+                        (COALESCE ( MAX(secondary_inhouse_input.qty_reject), 0 )) +
+                        (COALESCE ( MAX(secondary_inhouse_input.qty_replace), 0 ))
+                    ) qty,
                     stocker_input.range_awal,
                     stocker_input.range_akhir
                 ")->
                 leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+                leftJoin("part", "part.id", "=", "part_detail.part_id")->
                 leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
                 leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+                leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
                 where("stocker_input.id_qr_stocker", $request->stocker)->
                 first();
 
@@ -2519,8 +2537,10 @@ class StockerController extends Controller
             whereRaw("
                 year_sequence.form_cut_id = '".$request->form_cut_id."' and
                 year_sequence.so_det_id = '".$request->so_det_id."' and
-                (year_sequence.number >= '".$request->range_awal."')
+                (year_sequence.number >= '".$request->range_awal."') and
+                (year_sequence.number <= '".$request->range_akhir."')
             ")->
+            orderBy("year_sequence.number", "asc")->
             get();
 
         return Datatables::of($stockerListNumber)->toJson();

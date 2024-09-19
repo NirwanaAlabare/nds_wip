@@ -48,6 +48,7 @@
                     <thead>
                         <tr>
                             <th>Act</th>
+                            <th>Tanggal</th>
                             <th>Stocker</th>
                             <th>Part</th>
                             <th>No. WS</th>
@@ -211,7 +212,7 @@
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i != 0) {
+            if (i != 0 && i != 17) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%"/>');
 
@@ -251,6 +252,9 @@
                 {
                     data: null,
                     searchable: false
+                },
+                {
+                    data: 'updated_at'
                 },
                 {
                     data: 'id_qr_stocker'
@@ -311,14 +315,14 @@
                 },
                 // Stocker List
                 {
-                    targets: [1],
+                    targets: [2],
                     render: (data, type, row, meta) => {
                         return `<div style='width: 300px; overflow-x: auto;'>`+data+`</div>`;
                     }
                 },
                 // Form Hyperlink
                 {
-                    targets: [5],
+                    targets: [6],
                     render: (data, type, row, meta) => {
                         return data ? `<a class='fw-bold' href='{{ route("show-stocker") }}/`+row.form_cut_id+`' target='_blank'><u>`+data+`</u></a>` : "-";
                     }

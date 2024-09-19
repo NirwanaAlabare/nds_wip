@@ -118,7 +118,7 @@
         <div class="card-body">
             <div class="table-responsive">
                 <form action="#" method="post" id="month-count-form">
-                    <table class="table table-bordered table-sm">
+                    <table class="table table-bordered table-sm" id="datatable">
                         <thead>
                             <th>Number</th>
                             <th>Year Sequence</th>
@@ -308,6 +308,8 @@
         });
 
         var generating = false;
+
+        $("#datatable").DataTable();
 
         function checkAllYearSequence(element) {
             let generateNumberingCheck = document.getElementsByClassName('generate-num-check');

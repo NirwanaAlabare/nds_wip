@@ -464,6 +464,7 @@ class CuttingFormPilotController extends Controller
                 if (floatval($newItem[0]->qty - $scannedItem->qty_in + $scannedItem->qty) > 0 ) {
                     $scannedItem->qty_stok = $newItem[0]->qty_stok;
                     $scannedItem->qty_in = $newItem[0]->qty;
+                    $scannedItem->qty = floatval($newItem[0]->qty - $scannedItem->qty_in + $scannedItem->qty);
                     $scannedItem->save();
 
                     return json_encode($scannedItem);
