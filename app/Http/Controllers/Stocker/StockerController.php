@@ -2473,6 +2473,9 @@ class StockerController extends Controller
                 leftJoin("part", "part.id", "=", "part_detail.part_id")->
                 leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
                 leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+                leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
                 where("stocker_input.id_qr_stocker", $request->stocker)->
                 first();
 
@@ -2526,7 +2529,8 @@ class StockerController extends Controller
             whereRaw("
                 year_sequence.form_cut_id = '".$request->form_cut_id."' and
                 year_sequence.so_det_id = '".$request->so_det_id."' and
-                (year_sequence.number >= '".$request->range_awal."')
+                (year_sequence.number >= '".$request->range_awal."') and
+                (year_sequence.number <= '".$request->range_akhir."')
             ")->
             get();
 
