@@ -1986,7 +1986,7 @@ class StockerController extends Controller
         $months = [['angka' => '01','nama' => 'Januari'],['angka' => '02','nama' => 'Februari'],['angka' => '03','nama' => 'Maret'],['angka' => '04','nama' => 'April'],['angka' => '05','nama' => 'Mei'],['angka' => '06','nama' => 'Juni'],['angka' => '07','nama' => 'Juli'],['angka' => '08','nama' => 'Agustus'],['angka' => '09','nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
         $years = array_reverse(range(1999, date('Y')));
 
-        return view("stocker.stocker.stocker-list", ["page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "stocker-list", "months" => $months, "years" => $years]);
+        return view("stocker.stocker.stocker-list", ["page" => "dashboard-dc",  "subPageGroup" => "stocker-number", "subPage" => "stocker-list", "months" => $months, "years" => $years]);
     }
 
     public function stockerListDetail($form_cut_id, $so_det_id) {
@@ -2055,7 +2055,7 @@ class StockerController extends Controller
                 ")->
                 get();
 
-                return view("stocker.stocker.stocker-list-detail", ["page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "stocker-list", "stockerList" => $stockerList[0], "stockerListNumber" => $stockerListNumber, "months" => $months, "years" => $years]);
+                return view("stocker.stocker.stocker-list-detail", ["page" => "dashboard-dc",  "subPageGroup" => "stocker-number", "subPage" => "stocker-list", "stockerList" => $stockerList[0], "stockerListNumber" => $stockerListNumber, "months" => $months, "years" => $years]);
             }
         }
 
@@ -2273,13 +2273,13 @@ class StockerController extends Controller
         $months = [['angka' => '01','nama' => 'Januari'],['angka' => '02','nama' => 'Februari'],['angka' => '03','nama' => 'Maret'],['angka' => '04','nama' => 'April'],['angka' => '05','nama' => 'Mei'],['angka' => '06','nama' => 'Juni'],['angka' => '07','nama' => 'Juli'],['angka' => '08','nama' => 'Agustus'],['angka' => '09','nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
         $years = array_reverse(range(1999, date('Y')));
 
-        return view("stocker.stocker.month-count", ["page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "month-count", "months" => $months,  "years" => $years]);
+        return view("stocker.stocker.month-count", ["page" => "dashboard-dc",  "subPageGroup" => "stocker-number", "subPage" => "month-count", "months" => $months,  "years" => $years]);
     }
 
     public function yearSequence() {
         $years = array_reverse(range(1999, date('Y')));
 
-        return view("stocker.stocker.year-sequence", ["page" => "dashboard-stocker",  "subPageGroup" => "proses-stocker", "subPage" => "year-sequence", "years" => $years]);
+        return view("stocker.stocker.year-sequence", ["page" => "dashboard-dc",  "subPageGroup" => "stocker-number", "subPage" => "year-sequence", "years" => $years]);
     }
 
     public function printMonthCount(Request $request) {
