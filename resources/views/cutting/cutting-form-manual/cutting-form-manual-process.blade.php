@@ -998,8 +998,8 @@
                                             <th>Kepala Kain</th>
                                             <th>Sisa Tidak Bisa</th>
                                             <th>Reject</th>
-                                            <th>Sisa Kain</th>
                                             <th>Piping</th>
+                                            <th>Sisa Kain</th>
                                             <th class="label-calc">Total Pemakaian Per Roll</th>
                                             <th class="label-calc">Short Roll +/-</th>
                                             <th class="label-calc">Short Roll (%)</th>
