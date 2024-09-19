@@ -2455,6 +2455,7 @@ class StockerController extends Controller
                     stocker_input.form_cut_id,
                     stocker_input.so_det_id,
                     stocker_input.act_costing_ws,
+                    part.style,
                     stocker_input.color,
                     stocker_input.size,
                     master_part.nama_part part,
@@ -2464,6 +2465,7 @@ class StockerController extends Controller
                     stocker_input.range_akhir
                 ")->
                 leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+                leftJoin("part", "part.id", "=", "part_detail.part_id")->
                 leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
                 leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
                 where("stocker_input.id_qr_stocker", $request->stocker)->

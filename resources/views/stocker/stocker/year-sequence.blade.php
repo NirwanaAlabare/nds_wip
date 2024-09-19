@@ -40,7 +40,7 @@
                         <input type="text" class="form-control" name="so_det_id" id="so_det_id" value="" onchange="yearSequenceTableReload()" readonly>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-3">
                     <div class="mb-3">
                         <label class="form-label">Stocker</label>
                         <input type="text" class="form-control" name="stocker" id="stocker" value="" readonly>
@@ -50,6 +50,12 @@
                     <div class="mb-3">
                         <label class="form-label">No. WS</label>
                         <input type="text" class="form-control" name="act_costing_ws" id="act_costing_ws" value="" readonly>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">Style</label>
+                        <input type="text" class="form-control" name="style" id="style" value="" readonly>
                     </div>
                 </div>
                 <div class="col-sm-6 col-md-3">
@@ -343,6 +349,7 @@
                             $("#form_cut_id").val(res.form_cut_id ? res.form_cut_id : null).trigger("change");
                             $("#so_det_id").val(res.so_det_id ? res.so_det_id : null).trigger("change");
                             document.getElementById("act_costing_ws").value = res.act_costing_ws ? res.act_costing_ws : null;
+                            document.getElementById("style").value = res.style ? res.style : null;
                             document.getElementById("color").value = res.color ? res.color : null;
                             document.getElementById("size").value = res.size ? res.size : null;
                             document.getElementById("no_form").value = res.no_form ? res.no_form : null;
