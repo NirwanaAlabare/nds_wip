@@ -14,7 +14,10 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold"><i class="fa-solid fa-list-ol"></i> Set Year Sequence</h5>
+            <div class="d-flex justify-content-between align-items-middle">
+                <h5 class="card-title fw-bold"><i class="fa-solid fa-list-ol"></i> Set Year Sequence</h5>
+                <button class="btn btn-primary btn-sm" onclick="getRangeYearSequence()"><i class="fa-solid fa-rotate-right"></i></button>
+            </div>
         </div>
         <div class="card-body">
             <div class="mb-3">
@@ -353,8 +356,6 @@
                 dataType: 'json',
                 success: function(res)
                 {
-                    console.log(res);
-
                     if (res) {
                         if (res.status != "400") {
                             document.getElementById("stocker").value = res.id_qr_stocker ? res.id_qr_stocker : null;
@@ -370,6 +371,8 @@
                             $("#range_awal_stocker").val(res.range_awal ? res.range_awal : null).trigger("change");
                             $("#range_akhir_stocker").val(res.range_akhir ? res.range_akhir : null).trigger("change");
                             $("#print_qty").val(res.qty).trigger("change");
+
+                            getRangeYearSequence();
                         } else {
                             Swal.fire({
                                 icon: 'error',
