@@ -40,7 +40,7 @@
                         <input type="text" class="form-control" name="so_det_id" id="so_det_id" value="" onchange="yearSequenceTableReload()" readonly>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-3">
                     <div class="mb-3">
                         <label class="form-label">Stocker</label>
                         <input type="text" class="form-control" name="stocker" id="stocker" value="" readonly>
@@ -50,6 +50,12 @@
                     <div class="mb-3">
                         <label class="form-label">No. WS</label>
                         <input type="text" class="form-control" name="act_costing_ws" id="act_costing_ws" value="" readonly>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">Style</label>
+                        <input type="text" class="form-control" name="style" id="style" value="" readonly>
                     </div>
                 </div>
                 <div class="col-sm-6 col-md-3">
@@ -117,9 +123,18 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="mb-3">
-                        <label class="form-label">Print Qty</label>
-                        <input class="form-control" type="number" name="print_qty" id="print_qty" onkeyup="calculateRange()" onchange="calculateRange()" />
+                    <div class="row align-items-end">
+                        <div class="col mb-3">
+                            <label class="form-label" id="label_qty">Print Qty</label>
+                            <input class="form-control" type="number" name="print_qty" id="print_qty" onkeyup="calculateRange()" onchange="calculateRange()" />
+                            <input class="form-control d-none" type="number" name="add_qty" id="add_qty" onkeyup="calculateRange()" onchange="calculateRange()" />
+                        </div>
+                        <div class="col mb-3">
+                            <div class="form-check form-check-inline mb-1">
+                                <input class="form-check-input" type="checkbox" id="qty_method" value="add" onchange="changeQtyMethod(this)">
+                                <label class="form-check-label" for="qty_method">Add Qty</label>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -179,7 +194,7 @@
         $('.select2').select2()
         $('.select2bs4').select2({
             theme: 'bootstrap4',
-        })
+        });
     </script>
 
     <script>
@@ -199,6 +214,9 @@
 
             await initScan();
         });
+
+        // Qty Method
+        var method = 'print';
 
         // Scan QR Module :
 
@@ -343,6 +361,7 @@
                             $("#form_cut_id").val(res.form_cut_id ? res.form_cut_id : null).trigger("change");
                             $("#so_det_id").val(res.so_det_id ? res.so_det_id : null).trigger("change");
                             document.getElementById("act_costing_ws").value = res.act_costing_ws ? res.act_costing_ws : null;
+                            document.getElementById("style").value = res.style ? res.style : null;
                             document.getElementById("color").value = res.color ? res.color : null;
                             document.getElementById("size").value = res.size ? res.size : null;
                             document.getElementById("no_form").value = res.no_form ? res.no_form : null;
@@ -441,8 +460,23 @@
             })
         }
 
+        function changeQtyMethod(element) {
+            if (element.checked) {
+                document.getElementById("label_qty").innerText = 'Add Qty';
+                document.getElementById("add_qty").classList.remove('d-none');
+                document.getElementById("print_qty").classList.add('d-none');
+                method = 'add'
+            } else {
+                document.getElementById("label_qty").innerText = 'Print Qty';
+                document.getElementById("print_qty").classList.remove('d-none');
+                document.getElementById("add_qty").classList.add('d-none');
+                method = 'print'
+            }
+        }
+
         function calculateRange() {
-            let printQty = Number($("#print_qty").val());
+
+            let printQty = Number($("#"+method+"_qty").val());
             let rangeAwalStocker = Number($("#range_awal_stocker").val());
             let rangeAkhirStocker = Number($("#range_akhir_stocker").val());
             let rangeAwal = Number($("#range_awal").val());
@@ -454,14 +488,15 @@
         }
 
         function calculateQty() {
-            let printQty = Number($("#print_qty").val());
+
+            let printQty = Number($("#"+method+"_qty").val());
             let rangeAwalStocker = Number($("#range_awal_stocker").val());
             let rangeAkhirStocker = Number($("#range_akhir_stocker").val());
             let rangeAwal = Number($("#range_awal").val());
             let rangeAkhir = Number($("#range_akhir").val());
 
             if (rangeAwal > 0 && rangeAkhir > rangeAwal) {
-                $("#print_qty").val(rangeAkhir - rangeAwal + 1);
+                $("#"+method+"_qty").val(rangeAkhir - rangeAwal + 1);
             }
         }
 
@@ -474,7 +509,7 @@
         }
 
         function setYearSequenceNumber() {
-            if (Number($('#print_qty').val()) > Number($('#qty').val())) {
+            if (Number($('#'+method+'_qty').val()) > Number($('#qty').val())) {
                 Swal.fire({
                     icon: "info",
                     title: "Konfirmasi",
@@ -513,6 +548,7 @@
                     url: '{{ route('set-year-sequence-number') }}',
                     type: 'post',
                     data: {
+                        "method": method,
                         "year": $('#year').val(),
                         "year_sequence": $('#sequence').val(),
                         "form_cut_id": $('#form_cut_id').val(),

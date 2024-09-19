@@ -1911,6 +1911,7 @@ class StockerController extends Controller
 
             $stockerList = DB::select("
                 SELECT
+                    year_sequence_num.updated_at,
                     GROUP_CONCAT( DISTINCT stocker_input.id_qr_stocker ) id_qr_stocker,
                     GROUP_CONCAT( DISTINCT master_part.nama_part ) part,
                     stocker_input.form_cut_id,
@@ -1944,12 +1945,13 @@ class StockerController extends Controller
                             MAX( number ) range_numbering_akhir,
                             MIN( year_sequence_number ) range_awal,
                             MAX( year_sequence_number ) range_akhir,
-                            COALESCE(DATE(updated_at), DATE(created_at)) updated_at
+                            COALESCE(updated_at, created_at) updated_at
                         FROM
                             year_sequence
                         GROUP BY
                             form_cut_id,
-                            so_det_id
+                            so_det_id,
+                            COALESCE(updated_at, created_at)
                     ) year_sequence_num on year_sequence_num.form_cut_id = stocker_input.form_cut_id and year_sequence_num.so_det_id = stocker_input.so_det_id and year_sequence_num.range_numbering_awal >= stocker_input.range_awal
                 WHERE
                     ( form_cut_input.cancel IS NOT NULL OR form_cut_input.cancel != 'Y' )
@@ -1969,7 +1971,8 @@ class StockerController extends Controller
                     )
                 GROUP BY
                     stocker_input.form_cut_id,
-                    stocker_input.so_det_id
+                    stocker_input.so_det_id,
+                    year_sequence_num.updated_at
                 ORDER BY
                     stocker_input.updated_at DESC,
                     stocker_input.created_at DESC,
@@ -2180,7 +2183,7 @@ class StockerController extends Controller
                         $yearSequenceNumber = 1;
                     }
 
-                    if ($currentData->where('number', $validatedRequest['range_awal_stocker']+$n)->count() < 1) {
+                    if ($currentData->where('number', $validatedRequest['range_awal_stocker']+$n)->count() < 1 || $request->method == "add" ) {
                         array_push($upsertData, [
                             "id_year_sequence" => $validatedRequest['year']."_".($yearSequenceSequence)."_".($validatedRequest['range_awal_year_sequence']+$n1),
                             "year" => $validatedRequest['year'],
@@ -2455,6 +2458,7 @@ class StockerController extends Controller
                     stocker_input.form_cut_id,
                     stocker_input.so_det_id,
                     stocker_input.act_costing_ws,
+                    part.style,
                     stocker_input.color,
                     stocker_input.size,
                     master_part.nama_part part,
@@ -2464,6 +2468,7 @@ class StockerController extends Controller
                     stocker_input.range_akhir
                 ")->
                 leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+                leftJoin("part", "part.id", "=", "part_detail.part_id")->
                 leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
                 leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
                 where("stocker_input.id_qr_stocker", $request->stocker)->
