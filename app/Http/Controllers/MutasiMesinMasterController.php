@@ -108,7 +108,11 @@ class MutasiMesinMasterController extends Controller
             $filename = $txtedit_qr .  '.' . $img_ext;
             $path = $request->file('uploadphoto')->move(public_path() . '/storage/gambar_mesin', $filename);
         } else {
-            $filename = $request->nm_gambar;
+            if ($request->nm_gambar == '-') {
+                $filename = '-';
+            } else {
+                $filename = $request->nm_gambar;
+            }
         }
 
 

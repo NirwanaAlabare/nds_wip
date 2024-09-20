@@ -65,11 +65,17 @@
                         <div class="form-group">
                             <label for="recipient-name" class="col-form-label">Gambar :</label>
                             <input type="file" id="uploadphoto" name="uploadphoto" />
-                            <input type="hidden" id="nm_gambar" name="nm_gambar" />
+                            <input type="text" id="nm_gambar" name="nm_gambar" />
                         </div>
                         <div class="form-group">
                             <center>
                                 <img id="preview" src="" width="300" height="350">
+                            </center>
+                        </div>
+                        <div class="form-group">
+                            <center>
+                                <input type="button" class="btn btn-outline-danger" onclick="hapus_gambar()"
+                                    value = "Hapus Gambar">
                             </center>
                         </div>
                     </div>
@@ -396,8 +402,8 @@
                     // $("#preview").attr("src",
                     //     "https://10.10.5.62:8000/nds_wip/public/storage/gambar_mesin/" + response
                     //     .gambar);
-                    
-                    // console.log("{{ env("LIVEWIRE_URL") }}");
+
+                    // console.log("{{ env('LIVEWIRE_URL') }}");
 
                     $("#preview").attr("src", "/nds_wip/public/storage/gambar_mesin/" + response.gambar);
                 },
@@ -428,6 +434,14 @@
         // $('#preview').on("click", function() {
         //     $('#uploadphoto').replaceWith(selected_photo = $('#uploadphoto').clone(true));
         //     $('#preview').removeProp('src').hide();;
+        //     document.getElementById("preview").remove();
         // });
+
+        function hapus_gambar() {
+            let id_qr_edit = $('#txtedit_qr').val();
+            document.getElementById('nm_gambar').value = '-';
+            $('#preview').removeAttr('src');
+            console.log(id_qr_edit);
+        }
     </script>
 @endsection
