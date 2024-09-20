@@ -393,9 +393,13 @@
                     document.getElementById('txtedit_tipe').value = response.tipe_mesin;
                     document.getElementById('txtedit_serial').value = response.serial_no;
                     document.getElementById('nm_gambar').value = response.gambar;
-                    $("#preview").attr("src",
-                        "https://nag.ddns.net/nds_wip/public/storage/gambar_mesin/" + response
-                        .gambar);
+                    // $("#preview").attr("src",
+                    //     "https://10.10.5.62:8000/nds_wip/public/storage/gambar_mesin/" + response
+                    //     .gambar);
+                    
+                    // console.log("{{ env("LIVEWIRE_URL") }}");
+
+                    $("#preview").attr("src", "/nds_wip/public/storage/gambar_mesin/" + response.gambar);
                 },
                 error: function(request, status, error) {
                     alert(request.responseText);
