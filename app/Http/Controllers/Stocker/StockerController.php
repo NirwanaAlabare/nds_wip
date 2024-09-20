@@ -2155,6 +2155,7 @@ class StockerController extends Controller
                     where("form_cut_id", $validatedRequest['form_cut_id'])->
                     where("so_det_id", $validatedRequest['so_det_id'])->
                     where("number", ">=", $validatedRequest['range_awal_stocker'])->
+                    where("number", "<=", $validatedRequest['range_akhir_stocker'])->
                     delete();
             }
 
@@ -2163,6 +2164,8 @@ class StockerController extends Controller
                 ")->
                 where('form_cut_id', $validatedRequest['form_cut_id'])->
                 where('so_det_id', $validatedRequest['so_det_id'])->
+                where("number", ">=", $validatedRequest['range_awal_stocker'])->
+                where("number", "<=", $validatedRequest['range_akhir_stocker'])->
                 orderBy('number')->
                 get();
 
