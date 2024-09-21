@@ -20,13 +20,15 @@
         </div>
         <div class="card-body">
             <div class="row mb-3">
+                <input type="hidden" class="form-control" id="id" value="{{ $cutPlanData->id }}">
                 <div class="col-md-3 mb-3">
                     <label class="form-label"><small>Tanggal</small></label>
                     <input type="text" class="form-control" id="tanggal" value="{{ strtoupper($cutPlanData->tgl_plan) }}" readonly>
                 </div>
                 <div class="col-md-3 mb-3">
                     <label class="form-label"><small>No. Meja</small></label>
-                    <input type="text" class="form-control" id="no_meja" value="{{ strtoupper($cutPlanData->meja->name) }}" readonly>
+                    <input type="hidden" class="form-control" id="no_meja" value="{{ strtoupper($cutPlanData->meja->id) }}" readonly>
+                    <input type="text" class="form-control" id="nama_meja" value="{{ strtoupper($cutPlanData->meja->name) }}" readonly>
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label"><small>No. WS</small></label>
@@ -114,11 +116,11 @@
                 </table>
             </div>
             <div class="d-flex justify-content-between gap-3 mt-3">
-                <button class="w-50 btn btn-primary fw-bold">
+                <a href="{{ route('cut-plan-output') }}" class="btn btn-primary fw-bold">
                     <i class="fa fa-reply"></i>
                     KEMBALI
-                </button>
-                <button class="w-50 btn btn-success fw-bold">
+                </a>
+                <button class="btn btn-success fw-bold">
                     <i class="fa fa-save"></i>
                     SIMPAN
                 </button>
@@ -162,7 +164,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Tutup</button>
-                <button type="button" class="btn btn-primary"><i class="fa fa-save"></i> Simpan</button>
+                <button type="button" class="btn btn-primary" onclick="addForm()"><i class="fa fa-save"></i> Simpan</button>
             </div>
         </div>
         </div>
@@ -214,6 +216,7 @@
             ajax: {
                 url: '{{ route('cut-plan-output-form') }}',
                 data: function(d) {
+                    d.id = $('#id').val();
                     d.act_costing_id = $('#id_ws').val();
                     d.act_costing_ws = $('#ws').val();
                     d.color = $('#color').val();
@@ -366,6 +369,10 @@
             }
         });
 
+        function datatableReload() {
+            $("#datatable-form").DataTable().ajax.reload()
+        }
+
         let datatableAddForm = $("#datatable-add-form").DataTable({
             ordering: false,
             processing: true,
@@ -373,9 +380,11 @@
             ajax: {
                 url: '{{ route('available-cut-plan-output-form') }}',
                 data: function(d) {
+                    d.id = $('#id').val();
                     d.act_costing_id = $('#id_ws').val();
                     d.act_costing_ws = $('#ws').val();
                     d.color = $('#color').val();
+                    d.no_meja = $('#no_meja').val();
                 },
             },
             columns: [
@@ -534,6 +543,10 @@
             }
         });
 
+        function datatableAddFormReload() {
+            $("#datatable-add-form").DataTable().ajax.reload()
+        }
+
         var checkedForms = [];
 
         async function checkAllForm(element) {
@@ -547,6 +560,7 @@
                         act_costing_id: $('#id_ws').val(),
                         act_costing_ws: $('#ws').val(),
                         color: $('#color').val(),
+                        no_meja: $('#no_meja').val(),
                     },
                     success: async function (res) {
                         if (res.length > 0) {
@@ -590,6 +604,56 @@
             } else {
                 checkedForms.splice(Number(element.value));
             }
+        }
+
+        function addForm() {
+            $.ajax({
+                url: '{{ route('add-cut-plan-output-form') }}',
+                method: 'post',
+                data: {
+                    id: $('#id').val(),
+                    tanggal: $('#tanggal').val(),
+                    no_meja: $('#no_meja').val(),
+                    forms: checkedForms,
+                },
+                success: async function (res) {
+                    console.log(res);
+
+                    if (res.status == 200) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            html: res.message,
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                        });
+
+                        datatableReload();
+
+                        datatableAddFormReload();
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Terjadi Kesalahan',
+                            html: res.message,
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                        });
+                    }
+
+                    checkedForms = [];
+                    $("#checkAllForm").prop("checked", false);
+
+                    document.getElementById('loading').classList.add('d-none');
+                },
+                error: function (jqXHR) {
+                    console.log(jqXHR);
+
+                    document.getElementById('loading').classList.add('d-none');
+                }
+            });
         }
     </script>
 @endsection

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\CutPlan;
 use App\Models\CutPlanOutput;
+use App\Models\CutPlanOutputForm;
 use App\Models\FormCutInput;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
@@ -695,7 +696,7 @@ class CuttingPlanController extends Controller
                 form_cut_input.no_form
             ")->
             leftJoin("cutting_plan_output_form", "cutting_plan_output_form.cutting_plan_id", "=", "cutting_plan_output.id")->
-            leftJoin("form_cut_Input", "form_cut_input.no_form", "=", "cutting_plan_output_form.no_form")->
+            leftJoin("form_cut_input", "form_cut_input.id", "=", "cutting_plan_output_form.form_cut_id")->
             where("cutting_plan_output.id", $request->id)->
             groupBy("form_cut_input.no_form")->
             get();
@@ -726,6 +727,9 @@ class CuttingPlanController extends Controller
         }
         if ($request->color) {
             $additionalQuery .= " AND b.color = '".$request->color."'";
+        }
+        if ($request->no_meja) {
+            $additionalQuery .= " AND a.no_meja = '".$request->no_meja."'";
         }
 
         $keywordQuery = "";
@@ -795,12 +799,13 @@ class CuttingPlanController extends Controller
         $thisStoredCutPlan = CutPlanOutput::selectRaw("
                 form_cut_input.no_form
             ")->
-            leftJoin("cutting_plan_output_form", "cutting_plan_output_form.cutting_plan_id", "=", "cutting_plan_output.id")->
-            leftJoin("form_cut_Input", "form_cut_input.no_form", "=", "cutting_plan_output_form.no_form")->
+            join("cutting_plan_output_form", "cutting_plan_output_form.cutting_plan_id", "=", "cutting_plan_output.id")->
+            join("form_cut_input", "form_cut_input.id", "=", "cutting_plan_output_form.form_cut_id")->
             where("cutting_plan_output.id", $request->id)->
             groupBy("form_cut_input.no_form")->
             get();
 
+        $additionalQuery = "";
         if ($thisStoredCutPlan->count() > 0) {
             $i = 0;
             $additionalQuery .= " AND a.no_form NOT IN (";
@@ -817,13 +822,16 @@ class CuttingPlanController extends Controller
         }
 
         if ($request->act_costing_id) {
-            $additionalQuery = " AND b.act_costing_id = '".$request->act_costing_id."'";
+            $additionalQuery .= " AND b.act_costing_id = '".$request->act_costing_id."'";
         }
         if ($request->act_costing_ws) {
-            $additionalQuery = " AND b.act_costing_ws = '".$request->act_costing_ws."'";
+            $additionalQuery .= " AND b.act_costing_ws = '".$request->act_costing_ws."'";
         }
         if ($request->color) {
-            $additionalQuery = " AND b.color = '".$request->color."'";
+            $additionalQuery .= " AND b.color = '".$request->color."'";
+        }
+        if ($request->no_meja) {
+            $additionalQuery .= " AND (CASE WHEN a.status = 'SPREADING' THEN a.no_meja IS NULL OR a.no_meja = '".$request->no_meja."' ELSE a.no_meja = '".$request->no_meja."' END)";
         }
 
         $keywordQuery = "";
@@ -893,12 +901,13 @@ class CuttingPlanController extends Controller
         $thisStoredCutPlan = CutPlanOutput::selectRaw("
                 form_cut_input.no_form
             ")->
-            leftJoin("cutting_plan_output_form", "cutting_plan_output_form.cutting_plan_id", "=", "cutting_plan_output.id")->
-            leftJoin("form_cut_Input", "form_cut_input.no_form", "=", "cutting_plan_output_form.no_form")->
+            join("cutting_plan_output_form", "cutting_plan_output_form.cutting_plan_id", "=", "cutting_plan_output.id")->
+            join("form_cut_input", "form_cut_input.id", "=", "cutting_plan_output_form.form_cut_id")->
             where("cutting_plan_output.id", $request->id)->
             groupBy("form_cut_input.no_form")->
             get();
 
+        $additionalQuery = "";
         if ($thisStoredCutPlan->count() > 0) {
             $i = 0;
             $additionalQuery .= " AND a.no_form NOT IN (";
@@ -915,28 +924,31 @@ class CuttingPlanController extends Controller
         }
 
         if ($request->act_costing_id) {
-            $additionalQuery = " AND b.act_costing_id = '".$request->act_costing_id."'";
+            $additionalQuery .= " AND b.act_costing_id = '".$request->act_costing_id."'";
         }
         if ($request->act_costing_ws) {
-            $additionalQuery = " AND b.act_costing_ws = '".$request->act_costing_ws."'";
+            $additionalQuery .= " AND b.act_costing_ws = '".$request->act_costing_ws."'";
         }
         if ($request->color) {
-            $additionalQuery = " AND b.color = '".$request->color."'";
+            $additionalQuery .= " AND b.color = '".$request->color."'";
+        }
+        if ($request->no_meja) {
+            $additionalQuery .= " AND (CASE WHEN a.status = 'SPREADING' THEN a.no_meja IS NULL OR a.no_meja = '".$request->no_meja."' ELSE a.no_meja = '".$request->no_meja."' END)";
         }
 
         $keywordQuery = "";
         if ($request->search) {
             $keywordQuery = "
                 and (
-                    a.id_marker like '%" . $request->search . "%' OR
-                    a.no_meja like '%" . $request->search . "%' OR
-                    a.no_form like '%" . $request->search . "%' OR
-                    a.tgl_form_cut like '%" . $request->search . "%' OR
-                    b.act_costing_ws like '%" . $request->search . "%' OR
-                    panel like '%" . $request->search . "%' OR
-                    b.color like '%" . $request->search . "%' OR
-                    a.status like '%" . $request->search . "%' OR
-                    users.name like '%" . $request->search . "%'
+                    a.id_marker like '%" . $request->search["value"] . "%' OR
+                    a.no_meja like '%" . $request->search["value"] . "%' OR
+                    a.no_form like '%" . $request->search["value"] . "%' OR
+                    a.tgl_form_cut like '%" . $request->search["value"] . "%' OR
+                    b.act_costing_ws like '%" . $request->search["value"] . "%' OR
+                    panel like '%" . $request->search["value"] . "%' OR
+                    b.color like '%" . $request->search["value"] . "%' OR
+                    a.status like '%" . $request->search["value"] . "%' OR
+                    users.name like '%" . $request->search["value"] . "%'
                 )
             ";
         }
@@ -1135,21 +1147,64 @@ class CuttingPlanController extends Controller
     }
 
     public function addCuttingPlanOutputForm(Request $request) {
-        $validatedRequest = $request->validate([
-            "cutting_plan_id" => $request->cutting_plan_id,
-            "no_form" => $request->no_form,
-        ]);
+        $id = $request->id;
+        $tglPlan = $request->tgl_plan;
+        $noMeja = $request->no_meja;
+        $forms = $request->forms;
 
-        $addForm = CutPlanOutput::create([
-            "cutting_plan_id" => $validatedRequest['cutting_plan_id'],
-            "no_form" => $validatedRequest['no_form'],
-            "created_by" => Auth::user()->id
-        ]);
+        $dateFormat = date("dmY", strtotime($tglPlan));
+        $noCutPlan = "CP-" . $dateFormat;
 
-        if ($addForm) {
+        if ($id) {
+            if ($forms && count($forms) > 0) {
+                $addFormsArray = [];
+
+                for ($i = 0; $i < count($forms); $i++) {
+                    $form = FormCutInput::find($forms[$i]);
+
+                    CutPlan::updateOrCreate(
+                        ["tgl_plan" => $tglPlan, "no_cut_plan" => $noCutPlan,"no_form_cut_input" => $form->no_form],
+                        ["app" => "Y", "app_by" => Auth::user()->id, "app_at" => Carbon::now()]
+                    );
+
+                    array_push($addFormsArray, [
+                        "cutting_plan_id" => $id,
+                        "form_cut_id" => $form->id,
+                        "no_form" => $form->no_form,
+                        "created_by" => Auth::user()->id
+                    ]);
+                }
+
+                if (count($addFormsArray) > 0) {
+                    $addForms = CutPlanOutputForm::upsert($addFormsArray, ['cutting_plan_id', "form_cut_id", "no_form"], ['created_by']);
+
+                    if ($addForms) {
+                        FormCutInput::whereIn("id", $forms)->where("status", "SPREADING")->update([
+                            'no_meja' => $noMeja,
+                            'app' => 'Y',
+                            'app_by' => Auth::user()->id,
+                        ]);
+
+                        return array(
+                            'status' => 200,
+                            'message' => 'Form berhasil ditambahkan',
+                            'redirect' => '',
+                            'table' => 'datatable-cut-plan-output-form',
+                        );
+                    }
+                }
+
+                return array(
+                    'status' => 400,
+                    'message' => 'Form Output gagal ditambahkan',
+                    'redirect' => '',
+                    'table' => 'datatable-cut-plan-output-form',
+                );
+            }
+
             return array(
-                'status' => 200,
-                'message' => 'Form berhasil ditambahkan',
+                'status' => 400,
+                'message' => 'Tidak ada form yang dipilih',
                 'redirect' => '',
                 'table' => 'datatable-cut-plan-output-form',
             );
@@ -1157,7 +1212,7 @@ class CuttingPlanController extends Controller
 
         return array(
             'status' => 400,
-            'message' => 'Form Output gagal ditambahkan',
+            'message' => 'Plan tidak diketahui',
             'redirect' => '',
             'table' => 'datatable-cut-plan-output-form',
         );
