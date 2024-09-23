@@ -73,7 +73,7 @@ group by po, buyer
     {
         $data_no_carton = DB::select("SELECT
 concat(a.no_carton,'_',a.notes)  isi,
-concat(a.no_carton, ' ( ', coalesce(b.total,0) - coalesce(c.qty_fg,0), ' ) ', a.notes) tampil
+concat(a.no_carton, ' ( ', coalesce(sum(b.total),0) - coalesce(sum(c.qty_fg),0), ' ) ', a.notes) tampil
 from
 (select id,po, no_carton, notes from packing_master_carton where po = '" . $request->cbopo . "') a
 left join (
@@ -85,6 +85,7 @@ left join (
 select sum(qty) qty_fg,po, barcode, no_carton, notes from fg_fg_in where po = '" . $request->cbopo . "' group by barcode, po, no_carton, notes ) c
 on a.po = c.po and a.no_carton = c.no_carton and a.notes = c.notes and b.barcode = c.barcode
 where coalesce(b.total,0) - coalesce(c.qty_fg,0) >= '1'
+group by a.no_carton
 order by a.no_carton asc
         ");
 
