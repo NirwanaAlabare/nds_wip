@@ -201,7 +201,9 @@
     </script>
 
     <script>
-        $(document).ready(async () => {
+        document.getElementById('loading').classList.remove('d-none');
+
+        $( document ).ready(async function() {
             let today = new Date();
             let todayDate = ("0" + today.getDate()).slice(-2);
             let todayMonth = ("0" + (today.getMonth() + 1)).slice(-2);
@@ -215,8 +217,14 @@
 
             clearScanItemForm();
 
+            changeQtyMethod(document.getElementById('qty_method'));
+
+            document.getElementById('loading').classList.add('d-none');
+
             await initScan();
         });
+
+        // changeQtyMethod(document.getElementById('qty_method'));
 
         // Qty Method
         var method = 'print';
