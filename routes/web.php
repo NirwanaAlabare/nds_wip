@@ -411,12 +411,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/cut-plan-output/show/{id?}', 'showCuttingPlanOutput')->name('detail-cut-plan-output');
         Route::get('/cut-plan-output/show-form', 'showCutPlanOutputForm')->name('cut-plan-output-form');
         Route::get('/cut-plan-output/show-available-form', 'showCutPlanOutputAvailableForm')->name('available-cut-plan-output-form');
+
         Route::get('/cut-plan-output/create', 'createCuttingPlanOutput')->name('create-cut-plan-output');
         Route::post('/cut-plan-output/store', 'storeCuttingPlanOutput')->name('store-cut-plan-output');
         Route::put('/cut-plan-output/update', 'updateCuttingPlanOutput')->name('edit-cut-plan-output');
         Route::delete('/cut-plan-output/destroy', 'destroyCuttinPlanOutputForm')->name('destroy-cut-plan-output');
         Route::get('/cut-plan-output/check-form', 'checkAllForms')->name('cut-plan-output-check-all-form');
-        Route::post('/cut-plan-output/add-form', 'addCuttinPlanOutputForm')->name('add-cut-plan-output-form');
+        Route::post('/cut-plan-output/add-form', 'addCuttingPlanOutputForm')->name('add-cut-plan-output-form');
         Route::delete('/cut-plan-output/remove-form', 'removeCuttinPlanOutputForm')->name('remove-cut-plan-output-form');
     });
 
@@ -858,6 +859,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/getdatalinemesin', 'getdatalinemesin')->name('getdatalinemesin');
         Route::get('/export_excel_mut_mesin', 'export_excel_mut_mesin')->name('export_excel_mut_mesin');
         Route::get('/line-chart-data', 'lineChartData')->name('line-chart-data');
+        Route::post('/webcam_capture', 'webcam_capture')->name('webcam_capture');
     });
     // Mutasi Mesin Master
     Route::controller(MutasiMesinMasterController::class)->prefix("master-mut-mesin")->group(function () {
@@ -900,10 +902,38 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-data-rak3', 'getdatarak3')->name('get-data-rak3');
     });
 
-    // stock_opname
+    // stock opname
     Route::controller(StockOpnameController::class)->prefix("so")->group(function () {
         // get worksheet
         Route::get('stock_opname/', 'index')->name('stock_opname');
+        Route::get('/datarak', 'datarak')->name('data-rak');
+        Route::get('/copysaldostok', 'copysaldostok')->name('copy-saldo-stokopname');
+        Route::get('/copysaldostokpartial', 'copysaldostokpartial')->name('copy-saldo-stokopname-partial');
+        Route::get('/replacesaldostok', 'replacesaldostok')->name('replace-saldo-stokopname');
+        Route::get('/list-stok-opname', 'stokopname')->name('list-stok-opname');
+        Route::get('/proses-scan-so/{lok?}/{nodok?}', 'prosesscanso')->name('proses-scan-so');
+        Route::get('/get-barcode', 'getbarcodeso')->name('get-data-barcodeso');
+        Route::get('/save-barcode', 'simpanbarcodeso')->name('simpan-scan-barcode-so');
+        Route::get('/list-scan-barcode', 'listscanbarcode')->name('list-scan-barcode-so');
+        Route::get('/get-sum-barcode', 'getsumbarcodeso')->name('get-sum-barcodeso');
+        Route::get('/get-nomor-so', 'getNolapSO')->name('get-nomor-so');
+        Route::get('/laporan-stok-opname', 'laporanstokopname')->name('laporan-stok-opname');
+        Route::get('/export_excel_laporan_so', 'export_excel_laporanso')->name('export_excel_laporan_so');
+        Route::get('/delete-so-temp', 'deletesotemp')->name('delete-so-temp');
+        Route::get('/edit-barcode', 'editbarcodeso')->name('simpan-edit-barcode-so');
+        Route::post('/store', 'store')->name('save-stockopname-fabric');
+        Route::get('/detail-stock-opname', 'detailstokopname')->name('detail-stok-opname');
+        Route::get('/export_excel_detail_so', 'export_excel_detailso')->name('export_excel_detail_so');
+        Route::get('/get-list-partial-so', 'getListpartialso')->name('get-list-partial-so');
+        Route::get('/get-list-partial-so-replace', 'getListpartialsoreplace')->name('get-list-partial-so-replace');
+        Route::get('/show-detail-so/{id?}', 'showdetailso')->name('show-detail-so');
+        Route::get('/list-so-detail-show', 'listsodetailshow')->name('list-so-detail-show');
+        Route::get('/export_excel_laporan_so_detail', 'export_excel_laporanso_detail')->name('export_excel_laporan_so_detail');
+        Route::get('/cancel-report-so', 'cancelreportso')->name('cancel-report-so');
+        Route::get('/draft-report-so', 'draftreportso')->name('draft-report-so');
+        Route::get('/final-report-so', 'finalreportso')->name('final-report-so');
+        Route::get('/list-scan-barcode2', 'listscanbarcode2')->name('list-scan-barcode-so2');
+        Route::get('/list-scan-barcode3', 'listscanbarcode3')->name('list-scan-barcode-so3');
     });
 
     //Penerimaan

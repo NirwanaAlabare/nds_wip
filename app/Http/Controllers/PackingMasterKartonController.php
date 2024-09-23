@@ -201,6 +201,7 @@ group by po, no_carton, barcode, po, notes
 ) dc on mc.po = dc.po and mc.no_carton = dc.no_carton and mc.notes = dc.notes
 left join ppic_master_so p on dc.po = p.po and dc.barcode = p.barcode
 left join master_sb_ws m on p.id_so_det = m.id_so_det
+order by no_carton asc
                     ");
         return DataTables::of($data_det_karton)->toJson();
     }
@@ -219,6 +220,7 @@ left join
 SELECT count(barcode) tot,po, no_carton, notes from packing_packing_out_scan where po = '" . $request->txtmodal_h_po . "'
 group by po, no_carton, notes
 ) o on p.po = o.po and p.no_carton = o.no_carton and p.notes = o.notes
+ order by p.no_carton asc
         ");
 
         $html = "<option value=''>Pilih No Karton</option>";

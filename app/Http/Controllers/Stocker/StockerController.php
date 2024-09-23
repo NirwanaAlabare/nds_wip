@@ -2155,6 +2155,7 @@ class StockerController extends Controller
                     where("form_cut_id", $validatedRequest['form_cut_id'])->
                     where("so_det_id", $validatedRequest['so_det_id'])->
                     where("number", ">=", $validatedRequest['range_awal_stocker'])->
+                    where("number", "<=", $validatedRequest['range_akhir_stocker'])->
                     delete();
             }
 
@@ -2163,6 +2164,8 @@ class StockerController extends Controller
                 ")->
                 where('form_cut_id', $validatedRequest['form_cut_id'])->
                 where('so_det_id', $validatedRequest['so_det_id'])->
+                where("number", ">=", $validatedRequest['range_awal_stocker'])->
+                where("number", "<=", $validatedRequest['range_akhir_stocker'])->
                 orderBy('number')->
                 get();
 
@@ -2186,6 +2189,8 @@ class StockerController extends Controller
                     if ($currentData->where('number', $validatedRequest['range_awal_stocker']+$n)->count() < 1 || $request->method == "add" ) {
                         $now = Carbon::now();
 
+                        $currentNumber = ($currentData->count() > 0 ? $currentData->max("number")+1+$n : $validatedRequest['range_awal_stocker']+$n);
+
                         array_push($upsertData, [
                             "id_year_sequence" => $validatedRequest['year']."_".($yearSequenceSequence)."_".($validatedRequest['range_awal_year_sequence']+$n1),
                             "year" => $validatedRequest['year'],
@@ -2194,7 +2199,7 @@ class StockerController extends Controller
                             "form_cut_id" => $validatedRequest['form_cut_id'],
                             "so_det_id" => $validatedRequest['so_det_id'],
                             "size" => $validatedRequest['size'],
-                            "number" => ($currentData->count() > 0 ? $currentData->max("number")+1+$n : $validatedRequest['range_awal_stocker']+$n),
+                            "number" => ($currentNumber > $validatedRequest['range_akhir_year_sequence'] ? $validatedRequest['range_akhir_year_sequence'] : ($currentNumber)),
                             "created_at" => $now,
                             "updated_at" => $now,
                         ]);

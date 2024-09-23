@@ -200,13 +200,25 @@
                             aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
-                                <a href="{{ route('in-material') }}" class="dropdown-item">
-                                    Copy Saldo
+                                <a href="{{ route('data-rak') }}" class="dropdown-item">
+                                    Data Item
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('retur-inmaterial') }}" class="dropdown-item">
+                                <a href="{{ route('list-stok-opname') }}" class="dropdown-item">
                                     Stock Opname
+                                </a>
+                            </li>
+
+                            <li>
+                                <a href="{{ route('detail-stok-opname') }}" class="dropdown-item">
+                                    List Stock Opname
+                                </a>
+                            </li>
+
+                            <li>
+                                <a href="{{ route('laporan-stok-opname') }}" class="dropdown-item">
+                                    Report Stock Opname
                                 </a>
                             </li>
                         </ul>
