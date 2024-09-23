@@ -22,7 +22,7 @@ class MutasiMesinMasterController extends Controller
         if ($request->ajax()) {
 
             $data_mesin = DB::select("
-            select m.*, coalesce(jml,0) jml from master_mesin m
+            select m.*, coalesce(jml,0) jml, if(m.gambar is null or m.gambar = '','N','Y')stat_foto from master_mesin m
             left join
             (
             select id_qr, count(id_qr) jml from mut_mesin_input group by id_qr

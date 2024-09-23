@@ -186,6 +186,7 @@
                             <th>Tipe</th>
                             <th>Serial No</th>
                             <th>Juml. Transaksi</th>
+                            <th>Foto</th>
                             <th>Act</th>
                         </tr>
                     </thead>
@@ -237,7 +238,7 @@
     <script>
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i != 6) {
+            if (i != 7) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm"/>');
 
@@ -289,11 +290,13 @@
                 {
                     data: 'jml'
                 },
+                {
+                    data: 'stat_foto'
+                },
             ],
             columnDefs: [{
-                    targets: [6],
+                    targets: [7],
                     render: (data, type, row, meta) => {
-
                         if (row.jml == '0') {
                             return `
                     <div
@@ -313,7 +316,6 @@
                 onclick="show_data_edit_h('` + row.id_qr + `');"><i class='fas fa-edit'></i></a>                    </div>
                         `;
                         }
-
 
                     }
                 },
