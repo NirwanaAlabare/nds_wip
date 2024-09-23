@@ -72,15 +72,20 @@ group by po, buyer
     public function fg_in_getno_carton(Request $request)
     {
         $data_no_carton = DB::select("SELECT
-        concat(a.no_carton,'_',a.notes)  isi,
-        concat(a.no_carton, ' ( ', coalesce(b.total,0), ' ) ', a.notes) tampil
-        from
-        (select id,po, no_carton, notes from packing_master_carton where po = '" . $request->cbopo . "' and status = 'draft') a
-        left join (
-        select count(barcode) total, po, barcode, dest, no_carton from packing_packing_out_scan
-        where po = '" . $request->cbopo . "'
-        group by no_carton, po, barcode, dest
-        ) b on a.po = b.po and a.no_carton = b.no_carton
+concat(a.no_carton,'_',a.notes)  isi,
+concat(a.no_carton, ' ( ', coalesce(b.total,0) - coalesce(c.qty_fg,0), ' ) ', a.notes) tampil
+from
+(select id,po, no_carton, notes from packing_master_carton where po = '" . $request->cbopo . "') a
+left join (
+select count(barcode) total, po, barcode, dest, no_carton, notes from packing_packing_out_scan
+where po = '" . $request->cbopo . "'
+group by no_carton, po, barcode, dest
+) b on a.po = b.po and a.no_carton = b.no_carton and a.notes = b.notes
+left join (
+select sum(qty) qty_fg,po, barcode, no_carton, notes from fg_fg_in where po = '" . $request->cbopo . "' group by barcode, po, no_carton, notes ) c
+on a.po = c.po and a.no_carton = c.no_carton and a.notes = c.notes and b.barcode = c.barcode
+where coalesce(b.total,0) - coalesce(c.qty_fg,0) >= '1'
+order by a.no_carton asc
         ");
 
         $html = "<option value=''>Pilih No. Carton</option>";
@@ -96,7 +101,19 @@ group by po, buyer
     {
         $user = Auth::user()->name;
         $po = $request->cbopo;
-        $cbo_no_carton = $request->cbo_no_carton;
+
+        $no_carton_cek = $request->cbo_no_carton;
+
+        if ($no_carton_cek == '') {
+            $cbo_no_carton = '-';
+            $notes = '-';
+        } else {
+            $cekArray = explode('_', $no_carton_cek);
+            $cbo_no_carton = $cekArray[0];
+            $notes = $cekArray[1];
+        }
+
+
         if ($request->ajax()) {
 
             $data_preview = DB::select("SELECT
@@ -108,21 +125,23 @@ group by po, buyer
         m.color,
         m.size,
         m.ws,
-        a.qty,
+        coalesce(a.qty,0) - coalesce(c.qty_fg,0) qty,
         'PCS' unit,
         price,
         m.curr,
         p.id id_ppic_master_so
         from
         (
-        select count(barcode)qty, barcode, po, dest, no_carton from packing_packing_out_scan
-        where po = '$po' and no_carton = '$cbo_no_carton'
-        group by po, barcode, dest
+        select count(barcode)qty, barcode, po, dest, no_carton, notes from packing_packing_out_scan
+        where po = '$po' and no_carton = '$cbo_no_carton' and notes = '$notes'
+        group by po, barcode, dest, notes
         ) a
         inner join ppic_master_so p on a.po = p.po and  a.barcode = p.barcode and a.po = p.po and a.dest = p.dest
         inner join master_sb_ws m on p.id_so_det = m.id_so_det
+        left join (
+				select sum(qty) qty_fg,po, barcode, no_carton, notes from fg_fg_in where po = '$po' and no_carton = '$cbo_no_carton' and notes = '$notes' group by barcode, po, no_carton, notes ) c on
+				a.po = c.po and a.no_carton = c.no_carton and a.notes = c.notes and a.barcode = c.barcode
             ");
-
 
             return DataTables::of($data_preview)->toJson();
         }
