@@ -932,6 +932,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/cancel-report-so', 'cancelreportso')->name('cancel-report-so');
         Route::get('/draft-report-so', 'draftreportso')->name('draft-report-so');
         Route::get('/final-report-so', 'finalreportso')->name('final-report-so');
+        Route::get('/list-scan-barcode2', 'listscanbarcode2')->name('list-scan-barcode-so2');
+        Route::get('/list-scan-barcode3', 'listscanbarcode3')->name('list-scan-barcode-so3');
     });
 
     //Penerimaan

@@ -707,6 +707,32 @@ public function listscanbarcode(Request $request)
 
 }
 
+public function listscanbarcode2(Request $request)
+{
+    if ($request->ajax()) {
+        $additionalQuery = "";
+        $keywordQuery = "";
+
+        $data_scan = DB::connection('mysql_sb')->select("select no_barcode,a.id_item,c.itemdesc,a.qty from whs_so_detail a INNER JOIN whs_so_h b on b.no_dokumen = a.no_dokumen INNER JOIN masteritem c on c.id_item = a.id_item where a.lokasi_scan = '".$request->kode_lok."'");
+
+        return DataTables::of($data_scan)->toJson();
+    }
+
+}
+
+public function listscanbarcode3(Request $request)
+{
+    if ($request->ajax()) {
+        $additionalQuery = "";
+        $keywordQuery = "";
+
+        $data_scan = DB::connection('mysql_sb')->select("select no_barcode,a.id_item,b.itemdesc,qty from whs_saldo_stockopname a INNER JOIN masteritem b on b.id_item = a.id_item where kode_lok = '".$request->kode_lok."'");
+
+        return DataTables::of($data_scan)->toJson();
+    }
+
+}
+
 public function getsumbarcodeso(Request $request)
 {
         // $barcode = DB::connection('mysql_sb')->select("select no_barcode,kode_lok,id_item,id_jo,no_lot,no_roll,qty,unit from whs_saldo_stockopname where no_barcode = '".$request->no_barcode."'");

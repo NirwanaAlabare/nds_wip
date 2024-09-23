@@ -150,6 +150,7 @@
     </div>
 </div>
 
+<div class="row">
 
 <div class="card card-sb">
     <div class="card-header">
@@ -192,6 +193,70 @@
             </div>
         </div>
     </div>
+
+    <div class="card card-sb col-md-6">
+    <div class="card-header">
+        <h5 class="card-title fw-bold">
+            Data Hasil Scan
+        </h5>
+        <div class="card-tools">
+              <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
+          </div>
+    </div>
+    <div class="card-body">
+        <div class="form-group row">
+
+            <div class="table-responsive" >
+                <table id="datatable2" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                    <thead>
+                        <tr>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">No Barcode</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID Item</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Item Desc</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty</th>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <div class="card card-sb col-md-6">
+    <div class="card-header">
+        <h5 class="card-title fw-bold">
+            Data Barcode
+        </h5>
+        <div class="card-tools">
+              <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
+          </div>
+    </div>
+    <div class="card-body">
+        <div class="form-group row">
+
+            <div class="table-responsive" >
+                <table id="datatable3" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                    <thead>
+                        <tr>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">No Barcode</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID Item</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Item Desc</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        </div>
+    </div>
+
+</div>
+
 </div>
 </form>
 
@@ -716,8 +781,82 @@
         ]
     });
 
+            let datatable2 = $("#datatable2").DataTable({
+                serverSide: true,
+                processing: true,
+                ordering: false,
+                scrollX: '400px',
+                scrollY: true,
+                pageLength: 10,
+                ajax: {
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    url: '{{ route('list-scan-barcode-so2') }}',
+                    dataType: 'json',
+                    dataSrc: 'data',
+                    data: function(d) {
+                        d.kode_lok = $('#txt_lokasi_h').val();
+                    },
+                },
+                columns: [{
+                    data: 'no_barcode'
+                },
+                {
+                    data: 'id_item'
+                },
+                {
+                    data: 'itemdesc'
+                },
+                {
+                    data: 'qty'
+                }
+
+                ],
+                columnDefs: [
+        ]
+    });
+
+            let datatable3 = $("#datatable3").DataTable({
+                serverSide: true,
+                processing: true,
+                ordering: false,
+                scrollX: '400px',
+                scrollY: true,
+                pageLength: 10,
+                ajax: {
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    url: '{{ route('list-scan-barcode-so3') }}',
+                    dataType: 'json',
+                    dataSrc: 'data',
+                    data: function(d) {
+                        d.kode_lok = $('#txt_lokasi_h').val();
+                    },
+                },
+                columns: [{
+                    data: 'no_barcode'
+                },
+                {
+                    data: 'id_item'
+                },
+                {
+                    data: 'itemdesc'
+                },
+                {
+                    data: 'qty'
+                }
+
+                ],
+                columnDefs: [
+        ]
+    });
+
             function dataTableReload() {
                 datatable.ajax.reload();
+                datatable2.ajax.reload();
+                datatable3.ajax.reload();
                 return $.ajax({
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
