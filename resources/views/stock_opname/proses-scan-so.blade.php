@@ -11,8 +11,8 @@
 @endsection
 
 @section('content')
-<form action="{{ route('save-stockopname-fabric') }}" method="post" id="store-opname" onsubmit="submitForm(this, event)">
-    @method('POST')
+<form method="post" id="store-opname" onsubmit="submitForm(this, event)" >
+    @method('GET')
     @csrf
     <div class="card card-sb">
         <div class="card-header">
@@ -85,7 +85,7 @@
                         <div class="mb-1">
                             <div class="form-group">
                                 <label><small>Scan</small></label>
-                                <input type="text" class="form-control " id="txt_barcode" name="txt_barcode" value="" autofocus onkeyup="getdatabarcode()">
+                                <input type="text" class="form-control " id="txt_barcode" name="txt_barcode" value="" autofocus onchange="getdatabarcode()">
                                 <input type="hidden" class="form-control " id="txt_qty_barcode" name="txt_qty_barcode" value="">
                                 <input type="hidden" class="form-control " id="txt_item_barcode" name="txt_item_barcode" value="" readonly>
                                 <input type="hidden" class="form-control " id="txt_iditem_barcode" name="txt_iditem_barcode" value="" readonly>
@@ -150,6 +150,7 @@
     </div>
 </div>
 
+<div class="row">
 
 <div class="card card-sb">
     <div class="card-header">
@@ -184,13 +185,78 @@
         </div>
         <div class="mb-1">
             <div class="form-group">
-                <button class="btn btn-sb float-end mt-2 ml-2"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+                <!-- <button class="btn btn-sb float-end mt-2 ml-2" onclick="savedataopname()"><i class="fa-solid fa-floppy-disk"></i> Save</button> -->
+                <input type="button"   class="btn btn-sb float-end mt-2 ml-2" value="Save" onclick="savedataopname()" />
                 <a href="{{ route('list-stok-opname') }}" class="btn btn-danger float-end mt-2">
                     <i class="fas fa-arrow-circle-left"></i> Back</a>
                 </div>
             </div>
         </div>
     </div>
+
+    <div class="card card-sb col-md-6">
+    <div class="card-header">
+        <h5 class="card-title fw-bold">
+            Data Hasil Scan
+        </h5>
+        <div class="card-tools">
+              <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
+          </div>
+    </div>
+    <div class="card-body">
+        <div class="form-group row">
+
+            <div class="table-responsive" >
+                <table id="datatable2" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                    <thead>
+                        <tr>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">No Barcode</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID Item</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Item Desc</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty</th>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <div class="card card-sb col-md-6">
+    <div class="card-header">
+        <h5 class="card-title fw-bold">
+            Data Barcode
+        </h5>
+        <div class="card-tools">
+              <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
+          </div>
+    </div>
+    <div class="card-body">
+        <div class="form-group row">
+
+            <div class="table-responsive" >
+                <table id="datatable3" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                    <thead>
+                        <tr>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">No Barcode</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID Item</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Item Desc</th>
+                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        </div>
+    </div>
+
+</div>
+
 </div>
 </form>
 
@@ -527,6 +593,7 @@
                     confirmButtonText: 'Oke',
                 }).then(async (result) => {
                     document.getElementById('txt_qty_barcode').value = '';
+                    document.getElementById('txt_barcode').value = '';
                     document.getElementById('txt_item_barcode').value = '';
                     document.getElementById('txt_iditem_barcode').value = '';
                     document.getElementById('txt_jo_barcode').value = '';
@@ -534,6 +601,7 @@
                     document.getElementById('txt_lot_barcode').value = '';
                     document.getElementById('txt_roll_barcode').value = '';
                     document.getElementById('txt_unit_barcode').value = '';
+                    document.getElementById('txt_barcode').focus();
                 });
 
             }
@@ -594,6 +662,49 @@
                                     document.getElementById('txt_roll_barcode').value = '';
                                     document.getElementById('txt_unit_barcode').value = '';
                                 // });
+
+                            }
+                        }
+                    }
+                });
+            }
+
+
+        function savedataopname() {
+        var txt_qty_scan = document.getElementById('txt_qty_scan').value;
+        var txt_no_dokumen = document.getElementById('txt_no_dokumen').value;
+        var txt_tgl_so = document.getElementById('txt_tgl_so').value;
+        var txt_lokasi_h = document.getElementById('txt_lokasi_h').value;
+
+                // clearModified();
+
+                return $.ajax({
+                    url: '{{ route('save-stockopname-fabric') }}',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        txt_qty_scan: txt_qty_scan,
+                        txt_no_dokumen: txt_no_dokumen,
+                        txt_tgl_so: txt_tgl_so,
+                        txt_lokasi_h: txt_lokasi_h,
+                    },
+                    success: function(res) {
+                        if (res) {
+                            if (res.status == 200) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil',
+                                    text: 'Data Berhasil Disimpan ' + res.message,
+                                    showCancelButton: false,
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke',
+                                    timer: 1500,
+                                    timerProgressBar: true
+                                }).then(async (result) => {
+                                    dataTableReload();
+                                    window.location.href = res.redirect;
+                                   
+                                });
 
                             }
                         }
@@ -670,8 +781,82 @@
         ]
     });
 
+            let datatable2 = $("#datatable2").DataTable({
+                serverSide: true,
+                processing: true,
+                ordering: false,
+                scrollX: '400px',
+                scrollY: true,
+                pageLength: 10,
+                ajax: {
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    url: '{{ route('list-scan-barcode-so2') }}',
+                    dataType: 'json',
+                    dataSrc: 'data',
+                    data: function(d) {
+                        d.kode_lok = $('#txt_lokasi_h').val();
+                    },
+                },
+                columns: [{
+                    data: 'no_barcode'
+                },
+                {
+                    data: 'id_item'
+                },
+                {
+                    data: 'itemdesc'
+                },
+                {
+                    data: 'qty'
+                }
+
+                ],
+                columnDefs: [
+        ]
+    });
+
+            let datatable3 = $("#datatable3").DataTable({
+                serverSide: true,
+                processing: true,
+                ordering: false,
+                scrollX: '400px',
+                scrollY: true,
+                pageLength: 10,
+                ajax: {
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    url: '{{ route('list-scan-barcode-so3') }}',
+                    dataType: 'json',
+                    dataSrc: 'data',
+                    data: function(d) {
+                        d.kode_lok = $('#txt_lokasi_h').val();
+                    },
+                },
+                columns: [{
+                    data: 'no_barcode'
+                },
+                {
+                    data: 'id_item'
+                },
+                {
+                    data: 'itemdesc'
+                },
+                {
+                    data: 'qty'
+                }
+
+                ],
+                columnDefs: [
+        ]
+    });
+
             function dataTableReload() {
                 datatable.ajax.reload();
+                datatable2.ajax.reload();
+                datatable3.ajax.reload();
                 return $.ajax({
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
