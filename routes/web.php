@@ -871,10 +871,36 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-data-rak3', 'getdatarak3')->name('get-data-rak3');
     });
 
-    // stock_opname
+    // stock opname
     Route::controller(StockOpnameController::class)->prefix("so")->group(function () {
         // get worksheet
         Route::get('stock_opname/', 'index')->name('stock_opname');
+        Route::get('/datarak', 'datarak')->name('data-rak');
+        Route::get('/copysaldostok', 'copysaldostok')->name('copy-saldo-stokopname');
+        Route::get('/copysaldostokpartial', 'copysaldostokpartial')->name('copy-saldo-stokopname-partial');
+        Route::get('/replacesaldostok', 'replacesaldostok')->name('replace-saldo-stokopname');
+        Route::get('/list-stok-opname', 'stokopname')->name('list-stok-opname');
+        Route::get('/proses-scan-so/{lok?}/{nodok?}', 'prosesscanso')->name('proses-scan-so');
+        Route::get('/get-barcode', 'getbarcodeso')->name('get-data-barcodeso');
+        Route::get('/save-barcode', 'simpanbarcodeso')->name('simpan-scan-barcode-so');
+        Route::get('/list-scan-barcode', 'listscanbarcode')->name('list-scan-barcode-so');
+        Route::get('/get-sum-barcode', 'getsumbarcodeso')->name('get-sum-barcodeso');
+        Route::get('/get-nomor-so', 'getNolapSO')->name('get-nomor-so');
+        Route::get('/laporan-stok-opname', 'laporanstokopname')->name('laporan-stok-opname');
+        Route::get('/export_excel_laporan_so', 'export_excel_laporanso')->name('export_excel_laporan_so');
+        Route::get('/delete-so-temp', 'deletesotemp')->name('delete-so-temp');
+        Route::get('/edit-barcode', 'editbarcodeso')->name('simpan-edit-barcode-so');
+        Route::post('/store', 'store')->name('save-stockopname-fabric');
+        Route::get('/detail-stock-opname', 'detailstokopname')->name('detail-stok-opname');
+        Route::get('/export_excel_detail_so', 'export_excel_detailso')->name('export_excel_detail_so');
+        Route::get('/get-list-partial-so', 'getListpartialso')->name('get-list-partial-so');
+        Route::get('/get-list-partial-so-replace', 'getListpartialsoreplace')->name('get-list-partial-so-replace');
+        Route::get('/show-detail-so/{id?}', 'showdetailso')->name('show-detail-so');
+        Route::get('/list-so-detail-show', 'listsodetailshow')->name('list-so-detail-show');
+        Route::get('/export_excel_laporan_so_detail', 'export_excel_laporanso_detail')->name('export_excel_laporan_so_detail');
+        Route::get('/cancel-report-so', 'cancelreportso')->name('cancel-report-so');
+        Route::get('/draft-report-so', 'draftreportso')->name('draft-report-so');
+        Route::get('/final-report-so', 'finalreportso')->name('final-report-so');
     });
 
     //Penerimaan
