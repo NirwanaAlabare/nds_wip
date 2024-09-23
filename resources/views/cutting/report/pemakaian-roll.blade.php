@@ -60,6 +60,31 @@
                     </thead>
                     <tbody>
                     </tbody>
+                    <tfoot>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -166,7 +191,9 @@
                         <tbody>
                         </tbody>
                         <tfoot>
-
+                            <tr>
+                                <th></th>
+                            </tr>
                         </tfoot>
                     </table>
                 </div>
@@ -205,11 +232,13 @@
             datatableReload();
         });
 
+        var pemakaianKainFilter = ['bppbno', 'bppbdate', 'tujuan', 'no_ws', 'styleno', 'buyer', 'id_item', 'itemdesc'];
+
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i != 0) {
+            if (i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8) {
                 var title = $(this).text();
-                $(this).html('<input type="text" class="form-control form-control-sm" />');
+                $(this).html('<input type="text" class="form-control form-control-sm" id="'+pemakaianKainFilter[(i-1)]+'" />');
 
                 $('input', this).on('keyup change', function() {
                     if (datatable.column(i).search() !== this.value) {
@@ -217,6 +246,8 @@
                             .column(i)
                             .search(this.value)
                             .draw();
+
+                        // datatableReload();
                     }
                 });
             } else {
@@ -229,8 +260,8 @@
             serverSide: false,
             ordering: false,
             scrollX: "500px",
-            scrollY: "500px",
-            pageLength: 50,
+            scrollY: "350px",
+            pageLength: 25,
             ajax: {
                 url: '{{ route('pemakaian-roll') }}',
                 data: function(d) {
@@ -343,7 +374,94 @@
                     targets: "_all",
                     className: "text-nowrap",
                 }
-            ]
+            ],
+            footerCallback : function(row, data, start, end, display) {
+                var api = this.api(), data;
+
+                // converting to interger to find total
+                var intVal = function(i) {
+                    return typeof i === 'string' ?
+                        i.replace(/[\$,]/g, '') * 1 :
+                        typeof i === 'number' ?
+                        i : 0;
+                };
+
+                // computing column Total of the complete result
+                var sumTotalQty = api
+                    .column(9, { search:'applied' })
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumRollIn = api
+                    .column(12, { search:'applied' })
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumQtyIn = api
+                    .column(13, { search:'applied' })
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumRollCutting = api
+                    .column(14, { search:'applied' })
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumQtyCutting = api
+                    .column(15, { search:'applied' })
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumRollBalance = api
+                    .column(16, { search:'applied' })
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumQtyBalance = api
+                    .column(17, { search:'applied' })
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumRollReturn = api
+                    .column(19, { search:'applied' })
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumQtyReturn = api
+                    .column(20, { search:'applied' })
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                // Update footer by showing the total with the reference of the column index
+                // $(api.column(0).footer()).html('Total');
+                $(api.column(9).footer()).html(sumTotalQty.round(2));
+                $(api.column(12).footer()).html(sumRollIn.round(2));
+                $(api.column(13).footer()).html(sumQtyIn.round(2));
+                $(api.column(14).footer()).html(sumRollCutting.round(2));
+                $(api.column(15).footer()).html(sumQtyCutting.round(2));
+                $(api.column(16).footer()).html(sumRollBalance.round(2));
+                $(api.column(17).footer()).html(sumQtyBalance.round(2));
+                $(api.column(19).footer()).html(sumRollReturn ? sumRollReturn.round(2) : 0);
+                $(api.column(20).footer()).html(sumQtyReturn ? sumQtyReturn.round(2) : 0);
+            }
         });
 
         function datatableReload() {
@@ -358,7 +476,15 @@
                 type: 'get',
                 data: {
                     dateFrom : $("#dateFrom").val(),
-                    dateTo : $("#dateTo").val()
+                    dateTo : $("#dateTo").val(),
+                    bppbno : $("#bppbno").val(),
+                    bppbdate : $("#bppbdate").val(),
+                    tujuan : $("#tujuan").val(),
+                    no_ws : $("#no_ws").val(),
+                    styleno : $("#styleno").val(),
+                    buyer : $("#buyer").val(),
+                    id_item : $("#id_item").val(),
+                    itemdesc : $("#itemdesc").val(),
                 },
                 success: function(res) {
                     console.log(res);
