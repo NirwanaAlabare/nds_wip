@@ -22,7 +22,16 @@
                             <label><small>Username</small></label>
                             <input type="text" class="form-control form-control-sm" name="username" value="{{ auth()->user()->username }}" readonly>
                         </div>
-                        <div class="d-none">
+                        @if (auth()->user()->type == 'admin')
+                            <div class="mb-3 d-none">
+                                <label><small>Unlock Token</small></label>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control" name="unlock_token" id="unlock_token" value="{{ auth()->user()->unlock_token }}" readonly>
+                                    <button type="button" class="btn btn-sb" onclick="generateToken('{{ auth()->user()->id }}', '{{ route('generate-unlock-token') }}')">Generate</button>
+                                </div>
+                            </div>
+                        @endif
+                        <div>
                             <label><small>New Password</small></label>
                             <input type="password" class="form-control form-control-sm" name="password">
                         </div>

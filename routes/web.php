@@ -80,6 +80,7 @@ use App\Http\Controllers\QcPassController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\MutasiMesinController;
 use App\Http\Controllers\MutasiMesinMasterController;
+use App\Http\Controllers\MutasiMesinLaporanController;
 use App\Http\Controllers\ReqMaterialController;
 use App\Http\Controllers\ReturMaterialController;
 use App\Http\Controllers\ReturInMaterialController;
@@ -145,6 +146,8 @@ Route::middleware('auth')->group(function () {
 
     // General
     Route::controller(GeneralController::class)->prefix("general")->group(function () {
+        // generate unlock token
+        Route::post('/generate-unlock-token', 'generateUnlockToken')->name('generate-unlock-token');
         // get order
         Route::get('/get-order', 'getOrderInfo')->name('get-general-order');
         // get colors
@@ -308,6 +311,11 @@ Route::middleware('auth')->group(function () {
 
         // no cut update
         Route::put('/update-no-cut', 'updateNoCut')->name('form-cut-update-no-cut');
+
+        // lock form
+        Route::post('/form-cut-lock', 'formCutLock')->name('form-cut-lock');
+        // unlock form
+        Route::post('/form-cut-unlock', 'formCutUnlock')->name('form-cut-unlock');
     });
 
     // Manual Form Cut Input
@@ -401,12 +409,15 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/cut-plan-output', 'cuttingPlanOutput')->name('cut-plan-output');
         Route::get('/cut-plan-output/show/{id?}', 'showCuttingPlanOutput')->name('detail-cut-plan-output');
+        Route::get('/cut-plan-output/show-form', 'showCutPlanOutputForm')->name('cut-plan-output-form');
         Route::get('/cut-plan-output/show-available-form', 'showCutPlanOutputAvailableForm')->name('available-cut-plan-output-form');
+
         Route::get('/cut-plan-output/create', 'createCuttingPlanOutput')->name('create-cut-plan-output');
         Route::post('/cut-plan-output/store', 'storeCuttingPlanOutput')->name('store-cut-plan-output');
         Route::put('/cut-plan-output/update', 'updateCuttingPlanOutput')->name('edit-cut-plan-output');
         Route::delete('/cut-plan-output/destroy', 'destroyCuttinPlanOutputForm')->name('destroy-cut-plan-output');
-        Route::post('/cut-plan-output/add-form', 'addCuttinPlanOutputForm')->name('add-cut-plan-output-form');
+        Route::get('/cut-plan-output/check-form', 'checkAllForms')->name('cut-plan-output-check-all-form');
+        Route::post('/cut-plan-output/add-form', 'addCuttingPlanOutputForm')->name('add-cut-plan-output-form');
         Route::delete('/cut-plan-output/remove-form', 'removeCuttinPlanOutputForm')->name('remove-cut-plan-output-form');
     });
 
@@ -424,8 +435,13 @@ Route::middleware('auth')->group(function () {
     Route::controller(ReportCuttingController::class)->prefix("report-cutting")->middleware('admin')->group(function () {
         Route::get('/cutting', 'cutting')->name('report-cutting');
         Route::get('/pemakaian-roll', 'pemakaianRoll')->name('pemakaian-roll');
+        Route::get('/detail-pemakaian-roll', 'detailPemakaianRoll')->name('detail-pemakaian-roll');
+        Route::get('/total-pemakaian-roll', 'totalPemakaianRoll')->name('total-pemakaian-roll');
+
         // export excel
         Route::post('/cutting/export', 'export')->name('report-cutting-export');
+        Route::post('/pemakaian-roll/export', 'pemakaianRollExport')->name('pemakaian-roll-export');
+        Route::post('/detail-pemakaian-roll/export', 'detailPemakaianRollExport')->name('detail-pemakaian-roll-export');
     });
 
     // Roll
@@ -682,6 +698,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('sewing-transfer-output');
     });
 
+    // Sewing Input Output
+    Route::controller(SewingInputOutput::class)->prefix('input-output')->middleware('sewing')->group(function () {
+        Route::get('/', 'index')->name('sewing-input-output');
+    });
+
     // Dashboard List
     Route::controller(LineDashboardController::class)->prefix('line-dashboards')->middleware('sewing')->group(function () {
         Route::get('/', 'index')->name('sewing-dashboard');
@@ -826,7 +847,7 @@ Route::middleware('auth')->group(function () {
     // });
 
     // Mutasi Mesin
-    Route::controller(MutasiMesinController::class)->prefix("mut-mesin")->middleware('hr')->group(function () {
+    Route::controller(MutasiMesinController::class)->prefix("mut-mesin")->group(function () {
         Route::get('/', 'index')->name('mut-mesin');
         Route::get('/create', 'create')->name('create-mut-mesin');
         Route::post('/store', 'store')->name('store-mut-mesin');
@@ -838,13 +859,23 @@ Route::middleware('auth')->group(function () {
         Route::get('/getdatalinemesin', 'getdatalinemesin')->name('getdatalinemesin');
         Route::get('/export_excel_mut_mesin', 'export_excel_mut_mesin')->name('export_excel_mut_mesin');
         Route::get('/line-chart-data', 'lineChartData')->name('line-chart-data');
+        Route::post('/webcam_capture', 'webcam_capture')->name('webcam_capture');
     });
     // Mutasi Mesin Master
-    Route::controller(MutasiMesinMasterController::class)->prefix("master-mut-mesin")->middleware('hr')->group(function () {
+    Route::controller(MutasiMesinMasterController::class)->prefix("master-mut-mesin")->group(function () {
         Route::get('/', 'index')->name('master-mut-mesin');
         Route::post('/store', 'store')->name('store-master-mut-mesin');
         Route::get('/export_excel_master_mesin', 'export_excel_master_mesin')->name('export_excel_master_mesin');
         Route::post('/hapus_data_mesin', 'hapus_data_mesin')->name('hapus-data-mesin');
+        Route::get('/getdata_mesin', 'getdata_mesin')->name('getdata_mesin');
+        Route::post('/edit_master_mut_mesin', 'edit_master_mut_mesin')->name('edit-master-mut-mesin');
+    });
+    // Laporan Mesin
+    Route::controller(MutasiMesinLaporanController::class)->prefix("master-mut-mesin")->group(function () {
+        Route::get('/lap_stok_mesin', 'lap_stok_mesin')->name('lap_stok_mesin');
+        Route::get('/export_excel_stok_mesin', 'export_excel_stok_mesin')->name('export_excel_stok_mesin');
+        Route::get('/lap_stok_detail_mesin', 'lap_stok_detail_mesin')->name('lap_stok_detail_mesin');
+        Route::get('/export_excel_stok_detail_mesin', 'export_excel_stok_detail_mesin')->name('export_excel_stok_detail_mesin');
     });
 
     //warehouse
@@ -1241,10 +1272,21 @@ Route::middleware('auth')->group(function () {
     // Pengeluaran Finish Good
     Route::controller(FinishGoodPengeluaranController::class)->prefix("finish_good_pengeluaran")->middleware('finishgood')->group(function () {
         Route::get('/', 'index')->name('finish_good_pengeluaran');
-        // Route::get('/fg_in_getno_carton', 'fg_in_getno_carton')->name('fg_in_getno_carton');
-        // Route::get('/show_preview_fg_in', 'show_preview_fg_in')->name('show_preview_fg_in');
-        // Route::get('/create', 'create')->name('create_penerimaan_finish_good');
-        // Route::post('/store', 'store')->name('store-fg-in');
+        Route::post('/store', 'store')->name('store-fg-out');
+        Route::get('/create', 'create')->name('create_pengeluaran_finish_good');
+        Route::get('/getpo_fg_out', 'getpo_fg_out')->name('getpo_fg_out');
+        Route::get('/getcarton_notes_fg_out', 'getcarton_notes_fg_out')->name('getcarton_notes_fg_out');
+        Route::get('/show_number_carton_fg_out', 'show_number_carton_fg_out')->name('show_number_carton_fg_out');
+        Route::post('/insert_tmp_fg_out', 'insert_tmp_fg_out')->name('insert_tmp_fg_out');
+        Route::get('/show_det_karton_fg_out', 'show_det_karton_fg_out')->name('show_det_karton_fg_out');
+        Route::get('/show_summary_karton_fg_out', 'show_summary_karton_fg_out')->name('show_summary_karton_fg_out');
+        Route::get('/show_delete_karton_fg_out', 'show_delete_karton_fg_out')->name('show_delete_karton_fg_out');
+        Route::post('/delete_karton_fg_out', 'delete_karton_fg_out')->name('delete_karton_fg_out');
+        Route::post('/clear_tmp_fg_out', 'clear_tmp_fg_out')->name('clear_tmp_fg_out');
+        Route::get('/edit_fg_out/{id?}', 'edit_fg_out')->name('edit_fg_out');
+        Route::get('/show_det_karton_fg_out_terinput', 'show_det_karton_fg_out_terinput')->name('show_det_karton_fg_out_terinput');
+        Route::get('/show_summary_karton_fg_out_terinput', 'show_summary_karton_fg_out_terinput')->name('show_summary_karton_fg_out_terinput');
+        Route::post('/edit_store_fg_out', 'edit_store_fg_out')->name('edit-store-fg-out');
     });
 
 
@@ -1272,6 +1314,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('master-so');
         Route::post('/import-excel-so', 'import_excel_so')->name('import-excel-so');
         Route::get('/show_tmp_ppic_so', 'show_tmp_ppic_so')->name('show_tmp_ppic_so');
+        Route::get('/data_cek_double_tmp_ppic_so', 'data_cek_double_tmp_ppic_so')->name('data_cek_double_tmp_ppic_so');
         Route::get('/contoh_upload_ppic_so', 'contoh_upload_ppic_so')->name('contoh_upload_ppic_so');
         Route::post('/undo_tmp_ppic_so', 'undo_tmp_ppic_so')->name('undo_tmp_ppic_so');
         Route::get('/export_excel_master_sb_so', 'export_excel_master_sb_so')->name('export_excel_master_sb_so');

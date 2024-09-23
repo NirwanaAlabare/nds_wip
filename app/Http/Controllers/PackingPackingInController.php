@@ -84,7 +84,7 @@ order by created_at desc
                 group by id_trf_garment
                 ) b on a.id = b.id_trf_garment
                  where a.tujuan = 'Packing'
-            having a.qty - coalesce(b.qty_in,0) != '0'
+            having a.qty - coalesce(b.qty_in,0) > '0'
             union
             SELECT
             a.id,
@@ -97,7 +97,7 @@ order by created_at desc
                 select id_trf_garment,sum(qty) qty_in from packing_packing_in
                 group by id_trf_garment
                 ) b on a.id = b.id_trf_garment
-            having a.qty - coalesce(b.qty_in,0) != '0'
+            having a.qty - coalesce(b.qty_in,0) > '0'
             ) data_cek
             group by data_cek.no_trans
             order by id desc, no_trans asc
@@ -105,7 +105,8 @@ order by created_at desc
         return view(
             'packing.packing_in',
             [
-                'page' => 'dashboard-packing', "subPageGroup" => "packing-packing-in",
+                'page' => 'dashboard-packing',
+                "subPageGroup" => "packing-packing-in",
                 "subPage" => "packing-in",
                 "data_no_trans" => $data_no_trans
             ]
@@ -178,7 +179,8 @@ order by created_at desc
         $data_line = DB::connection('mysql_sb')->select("SELECT username isi, username tampil from userpassword where groupp = 'sewing' order by isi asc");
 
         return view('packing.create_packing_transfer_garment', [
-            'page' => 'dashboard-packing', "subPageGroup" => "packing-transfer-garment",
+            'page' => 'dashboard-packing',
+            "subPageGroup" => "packing-transfer-garment",
             "subPage" => "transfer-garment",
             "data_line" => $data_line,
             "user" => $user

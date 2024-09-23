@@ -436,46 +436,43 @@ class CuttingFormPilotController extends Controller
     {
         $newItem = DB::connection("mysql_sb")->select("
             SELECT
-                br.id_roll id_roll,
-                br.item_desc detail_item,
-                br.id_item,
-                goods_code,
-                supplier,
-                bpbno_int,
-                pono,
-                invno,
-                ac.kpno,
-                no_roll roll,
-                qty_out qty,
-                no_lot lot,
-                bpb.unit,
-                kode_lok kode_rak
+                whs_bppb_det.id_roll,
+                whs_bppb_det.item_desc detail_item,
+                whs_bppb_det.id_item,
+                whs_bppb_det.no_lot lot,
+                whs_bppb_det.no_roll roll,
+                whs_lokasi_inmaterial.no_roll_buyer roll_buyer,
+                whs_bppb_det.satuan unit,
+                whs_bppb_det.qty_stok,
+                SUM(whs_bppb_det.qty_out) qty
             FROM
-                whs_bppb_det br
-                LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = br.no_bppb
-                LEFT JOIN masteritem mi ON br.id_item = mi.id_item
-                LEFT JOIN bpb ON br.id_jo = bpb.id_jo AND br.id_item = bpb.id_item
-                LEFT JOIN mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
-                LEFT JOIN jo_det jd ON br.id_jo = jd.id_jo
-                LEFT JOIN so ON jd.id_so = so.id
-                LEFT JOIN act_costing ac ON so.id_cost = ac.id
-                LEFT JOIN whs_master_lokasi mr ON br.no_rak = mr.kode_lok
+                whs_bppb_det
+                LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
+                LEFT JOIN whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
             WHERE
-                br.id_roll = '".$id."'
+                whs_bppb_det.id_roll = '".$id."'
                 AND whs_bppb_h.tujuan = 'Production - Cutting'
-                AND cast(
-                qty_out AS DECIMAL ( 11, 3 )) > 0.000
-                LIMIT 1
+                AND cast(whs_bppb_det.qty_out AS DECIMAL ( 11, 3 )) > 0.000
+            GROUP BY
+                whs_bppb_det.id_roll
+            LIMIT 1
         ");
         if ($newItem) {
             $scannedItem = ScannedItem::where('id_roll', $id)->where('id_item', $newItem[0]->id_item)->first();
 
             if ($scannedItem) {
-                if (floatval($scannedItem->qty) > 0) {
+                if (floatval($newItem[0]->qty - $scannedItem->qty_in + $scannedItem->qty) > 0 ) {
+                    $scannedItem->qty_stok = $newItem[0]->qty_stok;
+                    $scannedItem->qty_in = $newItem[0]->qty;
+                    $scannedItem->qty = floatval($newItem[0]->qty - $scannedItem->qty_in + $scannedItem->qty);
+                    $scannedItem->save();
+
                     return json_encode($scannedItem);
                 }
 
-                return json_encode(null);
+                $formCutInputDetail = FormCutInputDetail::where("id_roll", $id)->orderBy("updated_at", "desc")->first();
+
+                return "Roll sudah terpakai di form '".$formCutInputDetail->no_form_cut_input."'";
             }
 
             return json_encode($newItem ? $newItem[0] : null);
@@ -523,7 +520,9 @@ class CuttingFormPilotController extends Controller
                     return json_encode($scannedItem);
                 }
 
-                return json_encode(null);
+                $formCutInputDetail = FormCutInputDetail::where("id_roll", $id)->orderBy("updated_at", "desc")->first();
+
+                return "Roll sudah terpakai di form '".$formCutInputDetail->no_form_cut_input."'";
             }
 
             return json_encode($item ? $item[0] : null);
@@ -796,6 +795,7 @@ class CuttingFormPilotController extends Controller
             "detail_item" => "nullable",
             "current_group" => "required",
             "current_roll" => "nullable",
+            "current_roll_buyer" => "nullable",
             "current_qty" => "required",
             "current_qty_real" => "required",
             "current_unit" => "required",
@@ -836,6 +836,7 @@ class CuttingFormPilotController extends Controller
                 "group_roll" => $validatedRequest['current_group'],
                 "lot" => $request["current_lot"],
                 "roll" => $validatedRequest['current_roll'],
+                "roll_buyer" => $validatedRequest['current_roll_buyer'],
                 "qty" => $itemQty,
                 "unit" => $itemUnit,
                 "sisa_gelaran" => $validatedRequest['current_sisa_gelaran'],
@@ -871,7 +872,9 @@ class CuttingFormPilotController extends Controller
                         "detail_item" => $validatedRequest['detail_item'],
                         "lot" => $request['current_lot'],
                         "roll" => $validatedRequest['current_roll'],
+                        "roll_buyer" => $validatedRequest['current_roll_buyer'],
                         "qty" => $itemRemain > 0 ? 0 : $itemRemain,
+                        "qty_pakai" => $validatedRequest['current_total_pemakaian_roll'],
                         "unit" => $itemUnit,
                         "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
                     ]
@@ -904,7 +907,9 @@ class CuttingFormPilotController extends Controller
                         "detail_item" => $validatedRequest['detail_item'],
                         "lot" => $request['current_lot'],
                         "roll" => $validatedRequest['current_roll'],
+                        "roll_buyer" => $validatedRequest['current_roll_buyer'],
                         "qty" => $itemRemain,
+                        "qty_pakai" => $validatedRequest['current_total_pemakaian_roll'],
                         "unit" => $itemUnit,
                         "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
                     ]
@@ -949,6 +954,7 @@ class CuttingFormPilotController extends Controller
                     "group_roll" => $request->current_group,
                     "lot" => $request->current_lot,
                     "roll" => $request->current_roll,
+                    "roll_buyer" => $request->current_roll_buyer,
                     "qty" => $itemQty,
                     "unit" => $itemUnit,
                     "sisa_gelaran" => $request->current_sisa_gelaran,
@@ -1020,6 +1026,7 @@ class CuttingFormPilotController extends Controller
             "detail_item" => "nullable",
             "current_group" => "required",
             "current_roll" => "nullable",
+            "current_roll_buyer" => "nullable",
             "current_qty" => "required",
             "current_qty_real" => "required",
             "current_unit" => "required",
@@ -1053,6 +1060,7 @@ class CuttingFormPilotController extends Controller
                 "group_roll" => $validatedRequest['current_group'],
                 "lot" => $request['current_lot'],
                 "roll" => $validatedRequest['current_roll'],
+                "roll_buyer" => $validatedRequest['current_roll_buyer'],
                 "qty" => $itemQty,
                 "unit" => $itemUnit,
                 "sisa_gelaran" => $validatedRequest['current_sisa_gelaran'],
@@ -1086,9 +1094,11 @@ class CuttingFormPilotController extends Controller
                     "detail_item" => $validatedRequest['detail_item'],
                     "lot" => $request['current_lot'],
                     "roll" => $validatedRequest['current_roll'],
+                    "roll_buyer" => $validatedRequest['current_roll_buyer'],
                     "qty" => $itemRemain,
+                    "qty_pakai" => $validatedRequest['current_total_pemakaian_roll'],
                     "unit" => $itemUnit,
-                    "berat_amparan" => $itemUnit == 'KGM' ? ($request->current_berat_amparan ? $request->current_berat_amparan : 0) : 0,
+                    "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
                 ]
             );
 
@@ -1112,6 +1122,7 @@ class CuttingFormPilotController extends Controller
                         "group_roll" => $validatedRequest['current_group'],
                         "lot" => $request['current_lot'],
                         "roll" => $validatedRequest['current_roll'],
+                        "roll_buyer" => $validatedRequest['current_roll_buyer'],
                         "qty" => $itemRemain,
                         "unit" => $itemUnit,
                         "sambungan" => 0,
@@ -1259,6 +1270,7 @@ class CuttingFormPilotController extends Controller
                     "group_roll" => $notCompletedDetail['group_roll'],
                     "lot" => $notCompletedDetail['lot'],
                     "roll" => $notCompletedDetail['roll'],
+                    "roll_buyer" => $notCompletedDetail['roll_buyer'],
                     "qty" => $notCompletedDetail['qty'],
                     "unit" => $notCompletedDetail['unit'],
                     "sisa_gelaran" => $notCompletedDetail['sisa_gelaran'],

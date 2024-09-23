@@ -18,7 +18,7 @@
         </div>
         <div class="card-body">
             <label>Tanggal</label>
-            <div class="d-flex">
+            <div class="d-flex justify-content-between align-items-end">
                 <div class="d-flex align-items-center gap-3 mb-3">
                     <div>
                         <input type="date" class="form-control form-control-sm" id="dateFrom" onchange="datatableReload()">
@@ -29,11 +29,13 @@
                     </div>
                     <button class="btn btn-primary btn-sm"><i class="fa fa-search"></i></button>
                 </div>
+                <button class="btn btn-success btn-sm mb-3" onclick="exportExcel(this)"><i class="fa fa-file-excel"></i> Export</button>
             </div>
             <div class="table-responsive">
                 <table class="table table-bordered table-sm" id="datatable">
                     <thead>
                         <tr>
+                            <th>Action</th>
                             <th>No. Request</th>
                             <th>Tanggal Request</th>
                             <th>Tujuan</th>
@@ -45,19 +47,132 @@
                             <th>Qty Req</th>
                             <th>Unit</th>
                             <th class="d-none">No. Out</th>
-                            <th>Roll Out</th>
-                            <th>Qty Out</th>
+                            <th>Roll In</th>
+                            <th>Qty In</th>
                             <th>Roll Cutting</th>
                             <th>Qty Cutting</th>
-                            <th>Pemakaian Cutting</th>
-                            <th class="d-none">No. Retur</th>
-                            <th>Roll Retur</th>
-                            <th>Qty Retur</th>
+                            <th>Roll Balance</th>
+                            <th>Qty Balance</th>
+                            <th class="d-none">No. Return</th>
+                            <th>Roll Return</th>
+                            <th>Qty Return</th>
                         </tr>
                     </thead>
                     <tbody>
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" tabindex="-1" id="detailPemakaianKainModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-light fw-bold">
+                    <h5 class="modal-title"><i class="fa-solid fa-circle-info"></i> Detail Pemakaian Kain</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row justify-content-center align-items-end mb-3 g-1">
+                        <div class="col-md-3">
+                            <label class="form-label">Tanggal</label>
+                            <input type="text" class="form-control form-control-sm" id="detail_tanggal" readonly>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">No. Request</label>
+                            <input type="text" class="form-control form-control-sm" id="detail_no_req" readonly>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">ID Item</label>
+                            <input type="text" class="form-control form-control-sm" id="detail_id_item" readonly>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Tujuan</label>
+                            <input type="text" class="form-control form-control-sm" id="detail_tujuan" readonly>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">No. WS</label>
+                            <input type="text" class="form-control form-control-sm" id="detail_no_ws" readonly>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Style</label>
+                            <input type="text" class="form-control form-control-sm" id="detail_style" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Buyer</label>
+                            <input type="text" class="form-control form-control-sm" id="detail_buyer" readonly>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Qty Req</label>
+                            <input type="text" class="form-control form-control-sm" id="detail_qty_req" readonly>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Unit</label>
+                            <input type="text" class="form-control form-control-sm" id="detail_unit" readonly>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Roll In</label>
+                            <input type="text" class="form-control form-control-sm" id="detail_roll_in" readonly>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Qty In</label>
+                            <input type="text" class="form-control form-control-sm" id="detail_qty_in" readonly>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Roll Cutting</label>
+                            <input type="text" class="form-control form-control-sm" id="detail_roll_cutting" readonly>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Qty Cutting</label>
+                            <input type="text" class="form-control form-control-sm" id="detail_qty_cutting" readonly>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Short Cutting</label>
+                            <input type="text" class="form-control form-control-sm" id="detail_short_cutting" readonly>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Roll Balance</label>
+                            <input type="text" class="form-control form-control-sm" id="detail_roll_balance" readonly>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Qty Balance</label>
+                            <input type="text" class="form-control form-control-sm" id="detail_qty_balance" readonly>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Roll Return</label>
+                            <input type="text" class="form-control form-control-sm" id="detail_roll_return" readonly>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Qty</label>
+                            <input type="text" class="form-control form-control-sm" id="detail_qty_return" readonly>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-success btn-sm btn-block" onclick="exportExcelDetail(this)"><i class="fa fa-file-excel"></i> Export</button>
+                        </div>
+                    </div>
+                    <table class="table table-sm table-bordered w-100" id="datatable-detail">
+                        <thead>
+                            <tr>
+                                <th>ID Roll</th>
+                                <th>ID Item</th>
+                                <th>Detail Item</th>
+                                <th>Lot</th>
+                                <th>Roll</th>
+                                <th>Qty</th>
+                                <th>Total Pemakaian Kain</th>
+                                <th>Total Short Roll</th>
+                                <th>Unit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                        <tfoot>
+
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Tutup</button>
+                </div>
             </div>
         </div>
     </div>
@@ -92,7 +207,7 @@
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            // if (i <= 7) {
+            if (i != 0) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" />');
 
@@ -104,9 +219,9 @@
                             .draw();
                     }
                 });
-            // } else {
-            //     $(this).empty();
-            // }
+            } else {
+                $(this).empty();
+            }
         });
 
         let datatable = $("#datatable").DataTable({
@@ -128,6 +243,9 @@
                     data: 'bppbno'
                 },
                 {
+                    data: 'bppbno'
+                },
+                {
                     data: 'bppbdate'
                 },
                 {
@@ -143,7 +261,7 @@
                     data: 'buyer'
                 },
                 {
-                    data: 'id_roll'
+                    data: 'id_item'
                 },
                 {
                     data: 'itemdesc'
@@ -167,10 +285,13 @@
                     data: 'total_roll_cutting'
                 },
                 {
-                    data: 'total_qty_cutting'
+                    data: 'total_pakai_cutting'
                 },
                 {
-                    data: 'total_pakai_cutting'
+                    data: 'total_roll_balance'
+                },
+                {
+                    data: 'total_pakai_balance'
                 },
                 {
                     data: 'no_retur'
@@ -184,8 +305,39 @@
             ],
             columnDefs: [
                 {
-                    targets: [10, 16],
+                    targets: [0],
+                    render: (data, type, row, meta) => {
+                        let button = "<div class='d-flex justify-content-center align-item-middle'><button class='btn btn-sm btn-primary' onclick='showDetail(`"+JSON.stringify(row)+"`)'> <i class='fa-solid fa-circle-info'></i> </button></div>";
+
+                        return button;
+                    }
+                },
+                {
+                    targets: [11, 18],
                     className: "d-none",
+                },
+                {
+                    targets: [9, 10, 12, 13, 14, 16, 19, 20],
+                    className: "fw-bold",
+                },
+                {
+                    targets: [15, 17],
+                    className: "fw-bold",
+                    render: (data, type, row, meta) => {
+                        let color = "";
+
+                        // if (data > 0) {
+                        //     color = '#05b01f;';
+                        // } else if (data < 0) {
+                        //     color = '#d60d0d;';
+                        // } else {
+                        //     color = '#000;';
+                        // }
+
+                        color = '#212529;';
+
+                        return "<span style='color: "+color+"'>"+data+"</span>";
+                    }
                 },
                 {
                     targets: "_all",
@@ -196,6 +348,275 @@
 
         function datatableReload() {
             datatable.ajax.reload();
+
+            totalPemakaianRoll();
+        }
+
+        function totalPemakaianRoll() {
+            $.ajax({
+                url: "{{ route("total-pemakaian-roll") }}",
+                type: 'get',
+                data: {
+                    dateFrom : $("#dateFrom").val(),
+                    dateTo : $("#dateTo").val()
+                },
+                success: function(res) {
+                    console.log(res);
+                },
+                error: function(jqXHR) {
+                    console.log(jqXHR);
+                }
+            });
+        }
+
+        function exportExcel (elm) {
+            elm.setAttribute('disabled', 'true');
+            elm.innerText = "";
+            let loading = document.createElement('div');
+            loading.classList.add('loading-small');
+            elm.appendChild(loading);
+
+            iziToast.info({
+                title: 'Exporting...',
+                message: 'Data sedang di export. Mohon tunggu...',
+                position: 'topCenter'
+            });
+
+            let date = new Date();
+
+            let day = date.getDate();
+            let month = date.getMonth() + 1;
+            let year = date.getFullYear();
+
+            // This arrangement can be altered based on how we want the date's format to appear.
+            let currentDate = `${day}-${month}-${year}`;
+
+            $.ajax({
+                url: "{{ route("pemakaian-roll-export") }}",
+                type: 'post',
+                data: {
+                    dateFrom : $("#dateFrom").val(),
+                    dateTo : $("#dateTo").val()
+                },
+                xhrFields: { responseType : 'blob' },
+                success: function(res) {
+                    elm.removeChild(loading);
+                    elm.removeAttribute('disabled');
+                    let icon = document.createElement('i');
+                    icon.classList.add('fa-solid');
+                    icon.classList.add('fa-file-excel');
+                    elm.appendChild(icon);
+                    elm.innerText += " Export";
+
+                    iziToast.success({
+                        title: 'Success',
+                        message: 'Success',
+                        position: 'topCenter'
+                    });
+
+                    var blob = new Blob([res]);
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = "Request Pemakaian Kain "+$("#dateFrom").val()+" - "+$("#dateTo").val()+".xlsx";
+                    link.click();
+                }, error: function (jqXHR) {
+                    elm.removeChild(loading);
+                    elm.removeAttribute('disabled');
+                    let icon = document.createElement('i');
+                    icon.classList.add('fa-solid');
+                    icon.classList.add('fa-file-excel');
+                    elm.appendChild(icon);
+                    elm.innerText += " Export";
+
+                    let res = jqXHR.responseJSON;
+                    let message = '';
+                    console.log(res.message);
+                    for (let key in res.errors) {
+                        message += res.errors[key]+' ';
+                        document.getElementById(key).classList.add('is-invalid');
+                    };
+                    iziToast.error({
+                        title: 'Error',
+                        message: message,
+                        position: 'topCenter'
+                    });
+                }
+            });
+        }
+
+        $('#datatable-detail thead tr').clone(true).appendTo('#datatable-detail thead');
+        $('#datatable-detail thead tr:eq(1) th').each(function(i) {
+            // if (i <= 7) {
+                var title = $(this).text();
+                $(this).html('<input type="text" class="form-control form-control-sm" />');
+
+                $('input', this).on('keyup change', function() {
+                    if (datatableDetail.column(i).search() !== this.value) {
+                        datatableDetail
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            // } else {
+            //     $(this).empty();
+            // }
+        });
+
+        let datatableDetail = $("#datatable-detail").DataTable({
+            processing: true,
+            serverSide: false,
+            ordering: false,
+            scrollX: "500px",
+            scrollY: "500px",
+            pageLength: 50,
+            ajax: {
+                url: '{{ route('detail-pemakaian-roll') }}',
+                data: function(d) {
+                    d.no_req = $("#detail_no_req").val();
+                    d.id_item = $("#detail_id_item").val();
+                },
+            },
+            columns: [
+                {
+                    data: 'id_roll'
+                },
+                {
+                    data: 'id_item'
+                },
+                {
+                    data: 'detail_item'
+                },
+                {
+                    data: 'lot'
+                },
+                {
+                    data: 'roll'
+                },
+                {
+                    data: 'qty'
+                },
+                {
+                    data: 'total_pemakaian_roll'
+                },
+                {
+                    data: 'total_short_roll'
+                },
+                {
+                    data: 'unit'
+                },
+            ]
+        });
+
+        function datatableDetailReload() {
+            $("#datatable-detail").DataTable().ajax.reload();
+        }
+
+        function showDetail(jsonData) {
+            console.log(jsonData);
+
+            let data = JSON.parse(jsonData);
+
+            $("#detail_tanggal").val(data.bppbdate ? data.bppbdate : '-').trigger("change");
+            $("#detail_no_req").val(data.bppbno ? data.bppbno : '-').trigger("change");
+            $("#detail_id_item").val(data.id_item ? data.id_item : '-').trigger("change");
+            $("#detail_tujuan").val(data.tujuan ? data.tujuan : '-').trigger("change");
+            $("#detail_no_ws").val(data.no_ws ? data.no_ws : '-').trigger("change");
+            $("#detail_style").val(data.styleno ? data.styleno : '-').trigger("change");
+            $("#detail_buyer").val(data.buyer ? data.buyer : '-').trigger("change");
+            $("#detail_qty_req").val(data.qty_req ? data.qty_req : 0).trigger("change");
+            $("#detail_unit").val(data.unit ? data.unit : '-').trigger("change");
+            $("#detail_roll_in").val(data.roll_out ? data.roll_out : 0).trigger("change");
+            $("#detail_qty_in").val(data.qty_out ? data.qty_out : 0).trigger("change");
+            $("#detail_roll_cutting").val(data.total_roll_cutting ? data.total_roll_cutting : 0).trigger("change");
+            $("#detail_qty_cutting").val(data.total_pakai_cutting ? data.total_pakai_cutting : 0).trigger("change");
+            $("#detail_short_cutting").val(data.total_short_cutting ? data.total_short_cutting : 0).trigger("change");
+            $("#detail_roll_balance").val(data.total_roll_balance ? data.total_roll_balance : 0).trigger("change");
+            $("#detail_qty_balance").val(data.total_pakai_balance ? data.total_pakai_balance : 0).trigger("change");
+            $("#detail_roll_return").val(data.roll_retur ? data.roll_retur : 0).trigger("change");
+            $("#detail_qty_return").val(data.qty_retur ? data.qty_retur : 0).trigger("change");
+
+            datatableDetailReload();
+
+            $("#detailPemakaianKainModal").modal('show');
+        }
+
+        function exportExcelDetail (elm) {
+            let no_req = $("#detail_no_req").val();
+            let id_item = $("#detail_id_item").val();
+
+            elm.setAttribute('disabled', 'true');
+            elm.innerText = "";
+            let loading = document.createElement('div');
+            loading.classList.add('loading-small');
+            elm.appendChild(loading);
+
+            iziToast.info({
+                title: 'Exporting...',
+                message: 'Data sedang di export. Mohon tunggu...',
+                position: 'topCenter'
+            });
+
+            let date = new Date();
+
+            let day = date.getDate();
+            let month = date.getMonth() + 1;
+            let year = date.getFullYear();
+
+            // This arrangement can be altered based on how we want the date's format to appear.
+            let currentDate = `${day}-${month}-${year}`;
+
+            $.ajax({
+                url: "{{ route("detail-pemakaian-roll-export") }}",
+                type: 'post',
+                data: {
+                    no_req : $("#detail_no_req").val(),
+                    id_item : $("#detail_id_item").val()
+                },
+                xhrFields: { responseType : 'blob' },
+                success: function(res) {
+                    elm.removeChild(loading);
+                    elm.removeAttribute('disabled');
+                    let icon = document.createElement('i');
+                    icon.classList.add('fa-solid');
+                    icon.classList.add('fa-file-excel');
+                    elm.appendChild(icon);
+                    elm.innerText += " Export";
+
+                    iziToast.success({
+                        title: 'Success',
+                        message: 'Success',
+                        position: 'topCenter'
+                    });
+
+                    var blob = new Blob([res]);
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = "Pemakaian Kain '"+$("#detail_no_req").val()+"' '"+$("#detail_id_item").val()+"'.xlsx";
+                    link.click();
+                }, error: function (jqXHR) {
+                    elm.removeChild(loading);
+                    elm.removeAttribute('disabled');
+                    let icon = document.createElement('i');
+                    icon.classList.add('fa-solid');
+                    icon.classList.add('fa-file-excel');
+                    elm.appendChild(icon);
+                    elm.innerText += " Export";
+
+                    let res = jqXHR.responseJSON;
+                    let message = '';
+                    console.log(res.message);
+                    for (let key in res.errors) {
+                        message += res.errors[key]+' ';
+                        document.getElementById(key).classList.add('is-invalid');
+                    };
+                    iziToast.error({
+                        title: 'Error',
+                        message: message,
+                        position: 'topCenter'
+                    });
+                }
+            });
         }
     </script>
 @endsection

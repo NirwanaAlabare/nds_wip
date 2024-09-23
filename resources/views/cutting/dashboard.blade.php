@@ -122,26 +122,16 @@
             </div>
         </div>
         <div class="table-responsive">
-            <table class="table table-bordered table-hover table-sm" id="datatable-cutting">
+            <table class="table table-bordered table-hover table-sm w-100" id="datatable-cutting">
                 <thead>
                     <tr>
-                        <th>Tanggal Form</th>
                         <th>No. WS</th>
                         <th>Style</th>
-                        <th>Color</th>
-                        <th>No. Marker</th>
-                        <th>Urutan Marker</th>
-                        <th>Panel Marker</th>
-                        <th>No. Form</th>
-                        <th>No. Cut Form</th>
+                        <th>Total Order</th>
                         <th>Total Lembar</th>
-                        <th>ID Item</th>
-                        <th>Qty Roll</th>
-                        <th>Total Pemakaian Roll</th>
-                        <th>Piping Roll</th>
-                        <th>Short Roll</th>
-                        <th>Remark Roll</th>
-                        <th>Unit</th>
+                        <th>Tanggal Plan</th>
+                        <th>Output Plan</th>
+                        <th>Output Plan Complete</th>
                     </tr>
                 </thead>
                 <tbody>

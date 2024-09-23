@@ -46,6 +46,7 @@
             <td>Lbr Marker</td>
             <td>Lbr Act</td>
             <td>Unit Lbr Act</td>
+            <td>Berat Amparan (KGM)</td>
             <td>Total Pemakaian</td>
             <td>Sisa Kain</td>
             <td>Sisa Gelar</td>
@@ -57,6 +58,7 @@
             <td>Reject</td>
             <td>Piping</td>
             <td>Short Roll</td>
+            <td>Short Roll (%)</td>
             <td>Remark</td>
             <td>Operator</td>
         </tr>
@@ -99,6 +101,7 @@
                 <td>{{ $item->lebar_marker }}</td>
                 <td>{{ $item->l_act }}</td>
                 <td>{{ $item->unit_l_act }}</td>
+                <td>{{ $item->berat_amparan }}</td>
                 <td>{{ $item->total_pemakaian_roll }}</td>
                 <td>{{ $item->sisa_kain }}</td>
                 <td>{{ $item->sisa_gelaran }}</td>
@@ -110,6 +113,7 @@
                 <td>{{ $item->reject }}</td>
                 <td>{{ $item->piping }}</td>
                 <td>{{ $item->short_roll }}</td>
+                <td>{{ $item->short_roll_percentage }}</td>
                 <td>{{ $item->remark }}</td>
                 <td>{{ $item->operator }}</td>
 

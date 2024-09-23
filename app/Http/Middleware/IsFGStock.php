@@ -17,7 +17,7 @@ class IsFGStock
      */
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::user()  &&  (Auth::user()->type == 'admin' || Auth::user()->type == 'Fgstock')) {
+        if (Auth::user()  &&  (Auth::user()->type == 'admin' || Auth::user()->type == 'superadmin' || Auth::user()->type == 'Fgstock')) {
             return $next($request);
         }
 

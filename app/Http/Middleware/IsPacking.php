@@ -17,7 +17,7 @@ class IsPacking
      */
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::user() &&  (Auth::user()->type == 'admin' || Auth::user()->type == 'ppic' || Auth::user()->type == 'packing')) {
+        if (Auth::user() &&  (Auth::user()->type == 'admin' || Auth::user()->type == 'superadmin' || Auth::user()->type == 'ppic' || Auth::user()->type == 'packing')) {
             return $next($request);
         }
 

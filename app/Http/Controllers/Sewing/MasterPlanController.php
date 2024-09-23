@@ -158,6 +158,7 @@ class MasterPlanController extends Controller
             where("sewing_line", $line)->
             where("tgl_plan", $date)->
             where("cancel", "N")->
+            orderBy("smv", "desc")->
             get();
 
             return view("sewing.master-plan.master-plan-detail", [

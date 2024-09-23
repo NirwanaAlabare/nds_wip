@@ -58,16 +58,28 @@ class LoadingLineController extends Controller
                     loading_line_plan
                     LEFT JOIN (
                         SELECT
-                            loading_line.loading_plan_id,
-                            loading_line.qty,
+                            (
+                                ( COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply )) -
+                                ( COALESCE ( dc_in_input.qty_reject, 0 )) + ( COALESCE ( dc_in_input.qty_replace, 0 )) -
+                                ( COALESCE ( secondary_in_input.qty_reject, 0 )) + ( COALESCE ( secondary_in_input.qty_replace, 0 )) -
+                                ( COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + (COALESCE ( secondary_inhouse_input.qty_replace, 0 ))
+                            ) qty,
                             trolley.id trolley_id,
-                            trolley.nama_trolley
+                            trolley.nama_trolley,
+                            stocker_input.so_det_id,
+                            stocker_input.size,
+                            loading_line.loading_plan_id
                         FROM
                             loading_line
                             LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
+                            LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                            LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                            LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
                             LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
                             LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
+                            LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
                         GROUP BY
+                            loading_line.tanggal_loading,
                             stocker_input.form_cut_id,
                             stocker_input.so_det_id,
                             stocker_input.group_stocker,
@@ -227,9 +239,62 @@ class LoadingLineController extends Controller
                 ->toJson();
         }
 
-        $loadingLinePlan = LoadingLinePlan::where("id", $id)->first();
+        $loadingLinePlan = LoadingLinePlan::where("id", $id)->with(['loadingLines', 'loadingLines.stocker', 'loadingLines.stocker.dcIn', 'loadingLines.stocker.dcIn.secondaryIn', 'loadingLines.stocker.dcIn.secondaryInHouse'])->first();
 
-        return view("dc.loading-line.detail-loading-plan", ['page' => 'dashboard-dc', 'subPageGroup' => 'loading-dc', 'subPage' => 'loading-line', "loadingLinePlan" => $loadingLinePlan]);
+        $loadingLines = DB::select("
+            SELECT
+                COALESCE( DATE ( loading_line.updated_at ), loading_line.tanggal_loading ) tanggal_loading,
+                loading_line.loading_plan_id,
+                loading_line.nama_line,
+                (
+                    (COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply )) -
+                    (COALESCE ( MAX(dc_in_input.qty_reject), 0 )) +
+                    (COALESCE ( MAX(dc_in_input.qty_replace), 0 )) -
+                    (COALESCE ( MAX(secondary_in_input.qty_reject), 0 )) +
+                    (COALESCE ( MAX(secondary_in_input.qty_replace), 0 )) -
+                    (COALESCE ( MAX(secondary_inhouse_input.qty_reject), 0 )) +
+                    (COALESCE ( MAX(secondary_inhouse_input.qty_replace), 0 ))
+                ) qty,
+                trolley.id trolley_id,
+                trolley.nama_trolley,
+                stocker_input.id_qr_stocker,
+                stocker_input.so_det_id,
+                stocker_input.size,
+                stocker_input.shade,
+                stocker_input.group_stocker,
+                stocker_input.range_awal,
+                stocker_input.range_akhir,
+                loading_line_plan.act_costing_id,
+                loading_line_plan.act_costing_ws,
+                loading_line_plan.buyer,
+                loading_line_plan.style,
+                loading_line_plan.color,
+                loading_line_plan.line_id,
+                form_cut_input.no_form,
+                form_cut_input.no_cut
+            FROM
+                loading_line
+                LEFT JOIN loading_line_plan ON loading_line_plan.id = loading_line.loading_plan_id
+                LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
+                LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
+                LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
+                LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
+                LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
+                LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
+            WHERE
+                loading_line_plan.id = '".$id."'
+            GROUP BY
+                stocker_input.id_qr_stocker
+            ORDER BY
+                loading_line.tanggal_loading,
+                stocker_input.form_cut_id,
+                stocker_input.so_det_id,
+                stocker_input.range_awal
+        ");
+
+        return view("dc.loading-line.detail-loading-plan", ['page' => 'dashboard-dc', 'subPageGroup' => 'loading-dc', 'subPage' => 'loading-line', "loadingLinePlan" => $loadingLinePlan, "loadingLines" => $loadingLines]);
     }
 
     /**
@@ -312,6 +377,7 @@ class LoadingLineController extends Controller
 
     public function summary(Request $request) {
         if ($request->ajax()) {
+
             $dateFilter = "";
             if ($request->dateFrom || $request->dateTo) {
                 $dateFilter = "HAVING ";
@@ -364,44 +430,36 @@ class LoadingLineController extends Controller
                 FROM
                     loading_line_plan
                     LEFT JOIN (
-                    SELECT COALESCE
-                        (
-                        loading_line.tanggal_loading,
-                        DATE ( loading_line.updated_at )) tanggal_loading,
-                        loading_line.loading_plan_id,
-                        loading_line.nama_line,
-                        COALESCE ((
-                                MAX( dc_in_input.qty_awal ) - (
-                                    MAX(
-                                        COALESCE ( dc_in_input.qty_reject, 0 )) + MAX(
-                                    COALESCE ( dc_in_input.qty_replace, 0 ))) - (
-                                    MAX(
-                                        COALESCE ( secondary_in_input.qty_reject, 0 )) + MAX(
-                                    COALESCE ( secondary_in_input.qty_replace, 0 ))) - (
-                                    MAX(
-                                        COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + MAX(
-                                    COALESCE ( secondary_inhouse_input.qty_replace, 0 )))),
-                        COALESCE ( stocker_input.qty_ply_mod, stocker_input.qty_ply )) qty,
-                        trolley.id trolley_id,
-                        trolley.nama_trolley,
-                        stocker_input.so_det_id,
-                        stocker_input.size
-                    FROM
-                        loading_line
-                        LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
-                        LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
-                        LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = stocker_input.id_qr_stocker
-                        LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
-                        LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
-                        LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
-                        LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
-                        ".$innerDateFilter."
-                    GROUP BY
-                        loading_line.tanggal_loading,
-                        stocker_input.form_cut_id,
-                        stocker_input.so_det_id,
-                        stocker_input.group_stocker,
-                        stocker_input.range_awal
+                        SELECT
+                            COALESCE ( DATE ( loading_line.updated_at ), loading_line.tanggal_loading ) tanggal_loading,
+                            loading_line.loading_plan_id,
+                            loading_line.nama_line,
+                            (
+                                COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply ) -
+                                ( COALESCE ( dc_in_input.qty_reject, 0 )) + ( COALESCE ( dc_in_input.qty_replace, 0 )) -
+                                ( COALESCE ( secondary_in_input.qty_reject, 0 )) + ( COALESCE ( secondary_in_input.qty_replace, 0 )) -
+                                ( COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + (COALESCE ( secondary_inhouse_input.qty_replace, 0 ))
+                            ) qty,
+                            trolley.id trolley_id,
+                            trolley.nama_trolley,
+                            stocker_input.so_det_id,
+                            stocker_input.size
+                        FROM
+                            loading_line
+                            LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
+                            LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                            LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                            LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
+                            LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
+                            LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
+                            LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
+                            ".$innerDateFilter."
+                        GROUP BY
+                            loading_line.tanggal_loading,
+                            stocker_input.form_cut_id,
+                            stocker_input.so_det_id,
+                            stocker_input.group_stocker,
+                            stocker_input.range_awal
                     ) loading_stock ON loading_stock.loading_plan_id = loading_line_plan.id
                 WHERE
                     loading_stock.tanggal_loading IS NOT NULL
@@ -410,12 +468,6 @@ class LoadingLineController extends Controller
                     loading_line_plan.id,
                     loading_stock.size
                     ".$dateFilter."
-                ORDER BY
-                    loading_stock.tanggal_loading,
-                    loading_line_plan.line_id,
-                    loading_line_plan.act_costing_ws,
-                    loading_line_plan.color,
-                    loading_stock.so_det_id
             ");
 
             return DataTables::of($line)->toJson();
@@ -463,6 +515,26 @@ class LoadingLineController extends Controller
             }
         }
 
+        $generalFilter = "";
+        if ($request->tanggal_loading) {
+            $generalFilter .= " AND loading_stock.tanggal_loading LIKE '%".$request->tanggal_loading."%'";
+        }
+        if ($request->nama_line) {
+            $generalFilter .= " AND loading_stock.nama_line LIKE '%".$request->nama_line."%'";
+        }
+        if ($request->act_costing_ws) {
+            $generalFilter .= " AND loading_line_plan.act_costing_ws LIKE '%".$request->act_costing_ws."%'";
+        }
+        if ($request->style) {
+            $generalFilter .= " AND loading_line_plan.style LIKE '%".$request->style."%'";
+        }
+        if ($request->color) {
+            $generalFilter .= " AND loading_line_plan.color LIKE '%".$request->color."%'";
+        }
+        if ($request->size) {
+            $generalFilter .= " AND loading_stock.size LIKE '%".$request->size."%'";
+        }
+
         $line = DB::select("
                 SELECT
                     loading_stock.tanggal_loading,
@@ -477,47 +549,40 @@ class LoadingLineController extends Controller
                 FROM
                     loading_line_plan
                     LEFT JOIN (
-                    SELECT COALESCE
-                        (
-                        loading_line.tanggal_loading,
-                        DATE ( loading_line.updated_at )) tanggal_loading,
-                        loading_line.loading_plan_id,
-                        loading_line.nama_line,
-                        COALESCE ((
-                                MAX( dc_in_input.qty_awal ) - (
-                                    MAX(
-                                        COALESCE ( dc_in_input.qty_reject, 0 )) + MAX(
-                                    COALESCE ( dc_in_input.qty_replace, 0 ))) - (
-                                    MAX(
-                                        COALESCE ( secondary_in_input.qty_reject, 0 )) + MAX(
-                                    COALESCE ( secondary_in_input.qty_replace, 0 ))) - (
-                                    MAX(
-                                        COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + MAX(
-                                    COALESCE ( secondary_inhouse_input.qty_replace, 0 )))),
-                        COALESCE ( stocker_input.qty_ply_mod, stocker_input.qty_ply )) qty,
-                        trolley.id trolley_id,
-                        trolley.nama_trolley,
-                        stocker_input.so_det_id,
-                        stocker_input.size
-                    FROM
-                        loading_line
-                        LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
-                        LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
-                        LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = stocker_input.id_qr_stocker
-                        LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
-                        LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
-                        LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
-                        LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
-                        ".$innerDateFilter."
-                    GROUP BY
-                        loading_line.tanggal_loading,
-                        stocker_input.form_cut_id,
-                        stocker_input.so_det_id,
-                        stocker_input.group_stocker,
-                        stocker_input.range_awal
+                        SELECT
+                            COALESCE ( DATE ( loading_line.updated_at ), loading_line.tanggal_loading ) tanggal_loading,
+                            loading_line.loading_plan_id,
+                            loading_line.nama_line,
+                            (
+                                COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply ) -
+                                ( COALESCE ( dc_in_input.qty_reject, 0 )) + ( COALESCE ( dc_in_input.qty_replace, 0 )) -
+                                ( COALESCE ( secondary_in_input.qty_reject, 0 )) + ( COALESCE ( secondary_in_input.qty_replace, 0 )) -
+                                ( COALESCE ( secondary_inhouse_input.qty_reject, 0 )) + (COALESCE ( secondary_inhouse_input.qty_replace, 0 ))
+                            ) qty,
+                            trolley.id trolley_id,
+                            trolley.nama_trolley,
+                            stocker_input.so_det_id,
+                            stocker_input.size
+                        FROM
+                            loading_line
+                            LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
+                            LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                            LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                            LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
+                            LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
+                            LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
+                            LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
+                            ".$innerDateFilter."
+                        GROUP BY
+                            loading_line.tanggal_loading,
+                            stocker_input.form_cut_id,
+                            stocker_input.so_det_id,
+                            stocker_input.group_stocker,
+                            stocker_input.range_awal
                     ) loading_stock ON loading_stock.loading_plan_id = loading_line_plan.id
                 WHERE
                     loading_stock.tanggal_loading IS NOT NULL
+                    ".$generalFilter."
                 GROUP BY
                     loading_stock.tanggal_loading,
                     loading_line_plan.id,

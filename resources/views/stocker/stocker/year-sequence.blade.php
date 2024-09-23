@@ -14,7 +14,10 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold"><i class="fa-solid fa-list-ol"></i> Set Year Sequence</h5>
+            <div class="d-flex justify-content-between align-items-middle">
+                <h5 class="card-title fw-bold"><i class="fa-solid fa-list-ol"></i> Set Year Sequence</h5>
+                <button class="btn btn-primary btn-sm" onclick="getRangeYearSequence()"><i class="fa-solid fa-rotate-right"></i></button>
+            </div>
         </div>
         <div class="card-body">
             <div class="mb-3">
@@ -40,7 +43,7 @@
                         <input type="text" class="form-control" name="so_det_id" id="so_det_id" value="" onchange="yearSequenceTableReload()" readonly>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-3">
                     <div class="mb-3">
                         <label class="form-label">Stocker</label>
                         <input type="text" class="form-control" name="stocker" id="stocker" value="" readonly>
@@ -50,6 +53,12 @@
                     <div class="mb-3">
                         <label class="form-label">No. WS</label>
                         <input type="text" class="form-control" name="act_costing_ws" id="act_costing_ws" value="" readonly>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">Style</label>
+                        <input type="text" class="form-control" name="style" id="style" value="" readonly>
                     </div>
                 </div>
                 <div class="col-sm-6 col-md-3">
@@ -87,12 +96,12 @@
                         <div class="d-flex align-items-end gap-3">
                             <div class="w-100">
                                 <label class="form-label">Range Awal</label>
-                                <input class="form-control" type="number" name="range_awal_stocker" id="range_awal_stocker" readonly     />
+                                <input class="form-control" type="number" name="range_awal_stocker" id="range_awal_stocker" onchange="yearSequenceTableReload()" readonly     />
                             </div>
                             <span class="mb-1"> - </span>
                             <div class="w-100">
                                 <label for="form-label">Range Akhir</label>
-                                <input class="form-control" type="number" name="range_akhir_stocker" id="range_akhir_stocker" readonly   />
+                                <input class="form-control" type="number" name="range_akhir_stocker" id="range_akhir_stocker" onchange="yearSequenceTableReload()" readonly   />
                             </div>
                         </div>
                     </div>
@@ -117,9 +126,18 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="mb-3">
-                        <label class="form-label">Print Qty</label>
-                        <input class="form-control" type="number" name="print_qty" id="print_qty" onkeyup="calculateRange()" onchange="calculateRange()" />
+                    <div class="row align-items-end">
+                        <div class="col mb-3">
+                            <label class="form-label" id="label_qty">Print Qty</label>
+                            <input class="form-control" type="number" name="print_qty" id="print_qty" onkeyup="calculateRange()" onchange="calculateRange()" />
+                            <input class="form-control d-none" type="number" name="add_qty" id="add_qty" onkeyup="calculateRange()" onchange="calculateRange()" />
+                        </div>
+                        <div class="col mb-3">
+                            <div class="form-check form-check-inline mb-1">
+                                <input class="form-check-input" type="checkbox" id="qty_method" value="add" onchange="changeQtyMethod(this)">
+                                <label class="form-check-label" for="qty_method">Add Qty</label>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -179,7 +197,7 @@
         $('.select2').select2()
         $('.select2bs4').select2({
             theme: 'bootstrap4',
-        })
+        });
     </script>
 
     <script>
@@ -199,6 +217,9 @@
 
             await initScan();
         });
+
+        // Qty Method
+        var method = 'print';
 
         // Scan QR Module :
 
@@ -335,22 +356,23 @@
                 dataType: 'json',
                 success: function(res)
                 {
-                    console.log(res);
-
                     if (res) {
                         if (res.status != "400") {
                             document.getElementById("stocker").value = res.id_qr_stocker ? res.id_qr_stocker : null;
                             $("#form_cut_id").val(res.form_cut_id ? res.form_cut_id : null).trigger("change");
                             $("#so_det_id").val(res.so_det_id ? res.so_det_id : null).trigger("change");
                             document.getElementById("act_costing_ws").value = res.act_costing_ws ? res.act_costing_ws : null;
+                            document.getElementById("style").value = res.style ? res.style : null;
                             document.getElementById("color").value = res.color ? res.color : null;
                             document.getElementById("size").value = res.size ? res.size : null;
                             document.getElementById("no_form").value = res.no_form ? res.no_form : null;
                             document.getElementById("part").value = res.part ? res.part : null;
                             document.getElementById("qty").value = res.qty ? res.qty : null;
-                            document.getElementById("range_awal_stocker").value = res.range_awal ? res.range_awal : null;
-                            document.getElementById("range_akhir_stocker").value = res.range_akhir ? res.range_akhir : null;
+                            $("#range_awal_stocker").val(res.range_awal ? res.range_awal : null).trigger("change");
+                            $("#range_akhir_stocker").val(res.range_akhir ? res.range_akhir : null).trigger("change");
                             $("#print_qty").val(res.qty).trigger("change");
+
+                            getRangeYearSequence();
                         } else {
                             Swal.fire({
                                 icon: 'error',
@@ -441,8 +463,23 @@
             })
         }
 
+        function changeQtyMethod(element) {
+            if (element.checked) {
+                document.getElementById("label_qty").innerText = 'Add Qty';
+                document.getElementById("add_qty").classList.remove('d-none');
+                document.getElementById("print_qty").classList.add('d-none');
+                method = 'add'
+            } else {
+                document.getElementById("label_qty").innerText = 'Print Qty';
+                document.getElementById("print_qty").classList.remove('d-none');
+                document.getElementById("add_qty").classList.add('d-none');
+                method = 'print'
+            }
+        }
+
         function calculateRange() {
-            let printQty = Number($("#print_qty").val());
+
+            let printQty = Number($("#"+method+"_qty").val());
             let rangeAwalStocker = Number($("#range_awal_stocker").val());
             let rangeAkhirStocker = Number($("#range_akhir_stocker").val());
             let rangeAwal = Number($("#range_awal").val());
@@ -454,14 +491,15 @@
         }
 
         function calculateQty() {
-            let printQty = Number($("#print_qty").val());
+
+            let printQty = Number($("#"+method+"_qty").val());
             let rangeAwalStocker = Number($("#range_awal_stocker").val());
             let rangeAkhirStocker = Number($("#range_akhir_stocker").val());
             let rangeAwal = Number($("#range_awal").val());
             let rangeAkhir = Number($("#range_akhir").val());
 
             if (rangeAwal > 0 && rangeAkhir > rangeAwal) {
-                $("#print_qty").val(rangeAkhir - rangeAwal + 1);
+                $("#"+method+"_qty").val(rangeAkhir - rangeAwal + 1);
             }
         }
 
@@ -474,7 +512,7 @@
         }
 
         function setYearSequenceNumber() {
-            if (Number($('#print_qty').val()) > Number($('#qty').val())) {
+            if (Number($('#'+method+'_qty').val()) > Number($('#qty').val())) {
                 Swal.fire({
                     icon: "info",
                     title: "Konfirmasi",
@@ -513,6 +551,7 @@
                     url: '{{ route('set-year-sequence-number') }}',
                     type: 'post',
                     data: {
+                        "method": method,
                         "year": $('#year').val(),
                         "year_sequence": $('#sequence').val(),
                         "form_cut_id": $('#form_cut_id').val(),
@@ -523,22 +562,29 @@
                         "range_awal_year_sequence": Number($('#range_awal').val()),
                         "range_akhir_year_sequence": Number($('#range_akhir').val()),
                     },
-                    xhrFields:
-                    {
-                        responseType: 'blob'
-                    },
+                    // xhrFields:
+                    // {
+                    //     responseType: 'blob'
+                    // },
                     success: function(res) {
-                        if (res) {
-                            console.log("123",res);
-
-                            var blob = new Blob([res], {type: 'application/pdf'});
-                            var link = document.createElement('a');
-                            link.href = window.URL.createObjectURL(blob);
-                            link.download = "Numbers.pdf";
-                            link.click();
+                        if (res.status == 200) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                html: 'Data berhasil di setting <br> <b>'+$("#stocker").val()+'</b> <br> <b>'+$("#year").val()+'_'+$("#sequence").val()+'</b>',
+                                allowOutsideClick: false,
+                            }).then(() => {
+                                yearSequenceTableReload();
+                                getRangeYearSequence();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                html: 'Data sudah mencapai '+$("#print_qty").val(),
+                                allowOutsideClick: false,
+                            });
                         }
-
-                        window.location.reload();
 
                         generating = false;
                     },
@@ -575,6 +621,8 @@
                 data: function(d) {
                     d.form_cut_id = $('#form_cut_id').val();
                     d.so_det_id = $('#so_det_id').val();
+                    d.range_awal = $('#range_awal_stocker').val();
+                    d.range_akhir = $('#range_akhir_stocker').val();
                 },
             },
             columns: [

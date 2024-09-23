@@ -22,7 +22,7 @@
                     <div class="d-flex align-items-end gap-3 mb-3">
                         <div class="mb-3">
                             <label class="form-label"><small>Tanggal Awal</small></label>
-                            <input type="date" class="form-control form-control-sm" id="from" name="from" onchange="datatableReload()">
+                            <input type="date" class="form-control form-control-sm" id="from" name="from" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
                         </div>
                         <div class="mb-3">
                             <label class="form-label"><small>Tanggal Akhir</small></label>
@@ -55,9 +55,12 @@
                                 <th>Roll</th>
                                 <th>Qty</th>
                                 <th>Unit</th>
+                                <th>Cons. Piping</th>
+                                <th>Berat Amparan (KGM)</th>
                                 <th>Lembar Gelaran</th>
                                 <th>Total Pemakaian</th>
                                 <th>Short Roll</th>
+                                <th>Short Roll (%)</th>
                                 <th>Remark</th>
                                 <th>Sisa Gelaran</th>
                                 <th>Sambungan</th>
@@ -95,7 +98,7 @@
             let oneWeeksBeforeYear = oneWeeksBefore.getFullYear();
             let oneWeeksBeforeFull = oneWeeksBeforeYear + '-' + oneWeeksBeforeMonth + '-' + oneWeeksBeforeDate;
 
-            $("#from").val(oneWeeksBeforeFull).trigger("change");
+            // $("#from").val(oneWeeksBeforeFull).trigger("change");
 
             // window.addEventListener("focus", () => {
             //     datatableReload();
@@ -176,6 +179,12 @@
                     data: 'unit_item'
                 },
                 {
+                    data: 'cons_pipping'
+                },
+                {
+                    data: 'berat_amparan'
+                },
+                {
                     data: 'lembar_gelaran'
                 },
                 {
@@ -183,6 +192,9 @@
                 },
                 {
                     data: 'short_roll'
+                },
+                {
+                    data: 'short_roll_percentage'
                 },
                 {
                     data: 'remark'

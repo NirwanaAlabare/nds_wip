@@ -9,6 +9,7 @@ use Yajra\DataTables\Facades\DataTables;
 use App\Exports\ExportLaporanMutasiMesin;
 use Maatwebsite\Excel\Facades\Excel;
 use DB;
+use Storage;
 
 class MutasiMesinController extends Controller
 {
@@ -232,4 +233,43 @@ class MutasiMesinController extends Controller
     {
         return Excel::download(new ExportLaporanMutasiMesin($request->from, $request->to), 'Laporan_Mutasi_Mesin.xlsx');
     }
+
+
+    // public function webcam_capture(Request $request)
+
+    // {
+
+    //     $img = $request->image;
+
+    //     $folderPath = "public/";
+
+    //     $image_parts = explode(";base64,", $img);
+
+    //     $image_type_aux = explode("image/", $image_parts[0]);
+
+    //     $image_type = $image_type_aux[1];
+
+
+
+    //     $image_base64 = base64_decode($image_parts[1]);
+
+    //     $fileName = uniqid() . '.png';
+
+
+
+    //     $file = $folderPath . $fileName;
+
+    //     Storage::put($file, $image_base64);
+
+
+
+    //     dd('Image uploaded successfully: ' . $fileName);
+
+    //     return [
+    //         'icon' => 'success',
+    //         'msg' => 'Data Sudah Tersimpan',
+    //         'timer' => 1500,
+    //         'prog' => false,
+    //     ];
+    // }
 }

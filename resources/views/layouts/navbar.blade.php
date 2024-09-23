@@ -408,19 +408,6 @@
                                         class="dropdown-item {{ $subPage == 'stocker' ? 'active' : '' }}"> Stocker <i
                                             class="fas fa-ticket-alt"></i></a>
                                 </li>
-                                <li>
-                                    <a href="{{ route('stocker-list') }}"
-                                        class="dropdown-item {{ $subPage == 'stocker-list' ? 'active' : '' }}"> Stocker
-                                        List <i class="fa-solid fa-note-sticky"></i></a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('month-count') }}"
-                                        class="dropdown-item {{ $subPage == 'month-count' ? 'active' : '' }}"> Month
-                                        Number <i class="fa-solid fa-hashtag"></i></a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('year-sequence') }}" class="dropdown-item {{ $subPage == 'year-sequence' ? 'active' : '' }}"> Year Sequence <i class="fa-solid fa-list-ol"></i></a>
-                                </li>
                             @endstocker
                         </ul>
                     </li>
@@ -579,6 +566,27 @@
                             @enddc
                         </ul>
                     </li>
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'stocker-number' ? 'active' : '' }}">Number</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @dc
+                                <li>
+                                    <a href="{{ route('stocker-list') }}" class="dropdown-item {{ $subPage == 'stocker-list' ? 'active' : '' }}"> Stocker List <i class="fa-solid fa-note-sticky"></i></a>
+                                </li>
+                                {{-- <li>
+                                    <a href="{{ route('month-count') }}" class="dropdown-item {{ $subPage == 'month-count' ? 'active' : '' }}"> Month Number <i class="fa-solid fa-hashtag"></i></a>
+                                </li> --}}
+                                {{-- <li>
+                                    <a href="{{ route('stocker-balance') }}" class="dropdown-item {{ $subPage == 'stocker-balance' ? 'active' : '' }}"> Month Number <i class="fa-solid fa-hashtag"></i></a>
+                                </li> --}}
+                                <li>
+                                    <a href="{{ route('year-sequence') }}" class="dropdown-item {{ $subPage == 'year-sequence' ? 'active' : '' }}"> Year Sequence <i class="fa-solid fa-list-ol"></i></a>
+                                </li>
+                            @enddc
+                        </ul>
+                    <li>
                 @endif
 
                 @if ($page == 'dashboard-sewing-eff')
@@ -645,6 +653,12 @@
                                         Transfer Output <i class="fa-solid fa-arrow-right-arrow-left"></i>
                                     </a>
                                 </li>
+                                {{-- <li>
+                                    <a href="{{ route('sewing-input-output') }}"
+                                        class="dropdown-item {{ $subPage == 'sewing-transfer' ? 'active' : '' }}">
+                                        Input Output <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                                    </a>
+                                </li> --}}
                             @endsewing
                         </ul>
                     </li>
@@ -960,14 +974,12 @@
                             aria-haspopup="true"aria-expanded="false"
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'proses-mut-mesin' ? 'active' : '' }}">Process</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-                            @hr
-                                <li>
-                                    <a href="{{ route('mut-mesin') }}"
-                                        class="dropdown-item {{ $subPage == 'mut-mesin' ? 'active' : '' }}">
-                                        Mutasi Mesin <i class="fas fa-tools fa-sm"></i>
-                                    </a>
-                                </li>
-                            @endhr
+                            <li>
+                                <a href="{{ route('mut-mesin') }}"
+                                    class="dropdown-item {{ $subPage == 'mut-mesin' ? 'active' : '' }}">
+                                    <i class="fas fa-tools fa-sm"></i> Mutasi Mesin
+                                </a>
+                            </li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
@@ -978,7 +990,26 @@
                             <li>
                                 <a href="{{ route('master-mut-mesin') }}"
                                     class="dropdown-item {{ $subPage == 'master-mut-mesin' ? 'active' : '' }}">
-                                    Master Mesin <i class="fas fa-cogs fa-sm"></i>
+                                    <i class="fas fa-cogs fa-sm"></i> Master Mesin
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
+                            aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'lap-mut-mesin' ? 'active' : '' }}">Laporan</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('lap_stok_mesin') }}"
+                                    class="dropdown-item {{ $subPage == 'lap_stok_mesin' ? 'active' : '' }}">
+                                    <i class="fas fa-list fa-sm"></i> List Stok Mesin
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('lap_stok_detail_mesin') }}"
+                                    class="dropdown-item {{ $subPage == 'lap_stok_detail_mesin' ? 'active' : '' }}">
+                                    <i class="fas fa-list fa-sm"></i> List Detail Stok Mesin
                                 </a>
                             </li>
                         </ul>

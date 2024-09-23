@@ -13,11 +13,11 @@
         <div class="col-12 col-lg-6 col-xl-4">
             <div class="d-flex align-items-center justify-content-start gap-3 mb-3">
                 <div wire:ignore>
-                    <input type="date" class="form-control form-control-sm" id="dateFrom">
+                    <input type="date" class="form-control form-control-sm" id="dateFrom" value="{{ $dateFromFilter }}">
                 </div>
                 <div> - </div>
                 <div wire:ignore>
-                    <input type="date" class="form-control form-control-sm" id="dateTo">
+                    <input type="date" class="form-control form-control-sm" id="dateTo" value="{{ $dateToFilter }}">
                 </div>
                 <span class="badge bg-sb text-light">{{ strtoupper(str_replace("_", "", ($outputType ? $outputType : "SEWING"))) }}</span>
             </div>
@@ -218,8 +218,8 @@
                                 <label>Color</label>
                                 <select class="form-select form-select-sm" name="color" id="color" wire:model="colorFilter">
                                     <option value="">Pilih Color</option>
-                                    @if ($dailyOrderGroup)
-                                        @foreach ($dailyOrderGroup->groupBy('color') as $color)
+                                    @if ($orderFilter)
+                                        @foreach ($orderFilter->groupBy('color') as $color)
                                             <option value="{{ $color->first()->color }}">{{ $color->first()->color }}</option>
                                         @endforeach
                                     @endif
@@ -229,8 +229,8 @@
                                 <label>Line</label>
                                 <select class="form-select form-select-sm" name="line" id="line" wire:model="lineFilter">
                                     <option value="">Pilih Line</option>
-                                    @if ($dailyOrderGroup)
-                                        @foreach ($dailyOrderGroup->groupBy('sewing_line') as $color)
+                                    @if ($orderFilter)
+                                        @foreach ($orderFilter->groupBy('sewing_line') as $color)
                                             <option value="{{ $color->first()->sewing_line }}">{{ $color->first()->sewing_line }}</option>
                                         @endforeach
                                     @endif
@@ -241,8 +241,8 @@
                                     <label>Size</label>
                                     <select class="form-select form-select-sm" name="size" id="size" wire:model="sizeFilter">
                                         <option value="">Pilih Size</option>
-                                        @if ($dailyOrderGroup)
-                                            @foreach ($dailyOrderGroup->groupBy('size') as $size)
+                                        @if ($orderFilter)
+                                            @foreach ($orderFilter->groupBy('size') as $size)
                                                 <option value="{{ $size->first()->size }}">{{ $size->first()->size }}</option>
                                             @endforeach
                                         @endif
@@ -305,6 +305,24 @@
                 @this.set('loadingOrderOutput', true);
 
                 @this.set('selectedOrder', this.value);
+
+                Livewire.emit('loadingStart');
+            });
+
+            $('#color').on('change', async function (e) {
+                @this.set('loadingOrderOutput', true);
+
+                Livewire.emit('loadingStart');
+            });
+
+            $('#line').on('change', async function (e) {
+                @this.set('loadingOrderOutput', true);
+
+                Livewire.emit('loadingStart');
+            });
+
+            $('#size').on('change', async function (e) {
+                @this.set('loadingOrderOutput', true);
 
                 Livewire.emit('loadingStart');
             });

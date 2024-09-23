@@ -25,6 +25,7 @@
     <tr>
         <th rowspan="2" style="vertical-align: middle; text-align: center; font-weight: 800;">Line</th>
         <th rowspan="2" style="vertical-align: middle; text-align: center; font-weight: 800;">WS Number</th>
+        <th rowspan="2" style="vertical-align: middle; text-align: center; font-weight: 800;">Style</th>
         <th colspan="5" style="vertical-align: middle; text-align: center; font-weight: 800;">Output</th>
         <th colspan="3" style="vertical-align: middle; text-align: center; font-weight: 800;">Rate</th>
         <th colspan="3" style="vertical-align: middle; text-align: center; font-weight: 800;">Total</th>
@@ -58,144 +59,128 @@
         </tr>
     @else
         {{-- Total Line Loop --}}
-        @foreach ($lines as $line)
-            @php
-                $lastInput < $line->latest_output && $lastInput = $line->latest_output;
+        @php
+            $currentLine = '';
+            $currentRowSpan = 0;
 
-                if (date('Y-m-d H:i:s') >= $line->tgl_plan.' 16:00:00') {
-                    $cumulativeTarget = $line->total_target;
-                    $cumulativeMinsAvail = $line->mins_avail;
-                } else {
-                    $cumulativeTarget = $line->cumulative_target;
-                    $cumulativeMinsAvail = $line->cumulative_mins_avail;
-                }
+            $currentActual = 0;
+            $currentMinsProd = 0;
+            $currentTarget = 0;
+            $currentMinsAvail = 0;
+            $currentLastInput = 0;
 
-                $cumulativeEfficiency = $cumulativeMinsAvail > 0 ? round(($line->mins_prod/$cumulativeMinsAvail)*100, 2) : 0;
-
-                $summaryActual += $line->total_actual;
-                $summaryMinsProd += $line->mins_prod;
-                $summaryTarget += $cumulativeTarget;
-                $summaryMinsAvail += $cumulativeMinsAvail;
-
-                $totalWS = $line->total_ws;
-                $lineMasterPlans = $line->masterPlans->where('tgl_plan', $line->tgl_plan)->where('cancel', 'N')->groupBy('id_ws');
-            @endphp
+            $summaryActual = 0;
+            $summaryMinsProd = 0;
+            $summaryTarget = 0;
+            $summaryMinsAvail = 0;
+            $lastInput = 0;
+        @endphp
+        @if ($lines->count() < 1)
             <tr>
-                <td rowspan="{{ $totalWS }}" style="text-align: center; vertical-align: middle;">{{ ucfirst(str_replace("_", " ", $line->username)) }}</td>
-                {{-- Line Per Master Plan Loop --}}
-                @foreach ($lineMasterPlans as $masterPlan)
-                    @php
-                        $rft = 0;
-                        $defect = 0;
-                        $rework = 0;
-                        $reject = 0;
-                        $actual = 0;
-                        $output = 0;
-                        $rateRft = 0;
-                        $rateDefect = 0;
-                        $rateReject = 0;
+                <td style="text-align: center;" colspan="14">
+                    Data not found
+                </td>
+            </tr>
+        @else
+            @foreach ($lines as $line)
+                @php
+                    $currentRowSpan = $lines->where("username", $line->username)->count();
 
-                        foreach ($masterPlan as $subMasterPlan) {
-                            switch ($subtype) {
-                                case "" :
-                                    $rft += $subMasterPlan->rfts->where('status', 'NORMAL')->count() < 1 ? '0' : $subMasterPlan->rfts->where('status', 'NORMAL')->count();
-                                    $defect += $subMasterPlan->defects->where('defect_status', 'defect')->count() < 1 ? '0' : $subMasterPlan->defects->where('defect_status', 'defect')->count();
-                                    $rework += $subMasterPlan->defects->where('defect_status', 'reworked')->count() < 1 ? '0' : $subMasterPlan->defects->where('defect_status', 'reworked')->count();
-                                    $reject += $subMasterPlan->rejects->count() < 1 ? '0' : $subMasterPlan->rejects->count();
-                                    break;
-                                case "_finish" :
-                                    $rft += $subMasterPlan->rftsFinish->where('status', 'NORMAL')->count() < 1 ? '0' : $subMasterPlan->rftsFinish->where('status', 'NORMAL')->count();
-                                    $defect += $subMasterPlan->defectsFinish->where('defect_status', 'defect')->count() < 1 ? '0' : $subMasterPlan->defectsFinish->where('defect_status', 'defect')->count();
-                                    $rework += $subMasterPlan->defectsFinish->where('defect_status', 'reworked')->count() < 1 ? '0' : $subMasterPlan->defectsFinish->where('defect_status', 'reworked')->count();
-                                    $reject += $subMasterPlan->rejectsFinish->count() < 1 ? '0' : $subMasterPlan->rejectsFinish->count();
-                                    break;
-                                case "_packing" :
-                                    $rft += $subMasterPlan->rftsPacking->where('status', 'NORMAL')->count() < 1 ? '0' : $subMasterPlan->rftsPacking->where('status', 'NORMAL')->count();
-                                    $defect += $subMasterPlan->defectsPacking->where('defect_status', 'defect')->count() < 1 ? '0' : $subMasterPlan->defectsPacking->where('defect_status', 'defect')->count();
-                                    $rework += $subMasterPlan->defectsPacking->where('defect_status', 'reworked')->count() < 1 ? '0' : $subMasterPlan->defectsPacking->where('defect_status', 'reworked')->count();
-                                    $reject += $subMasterPlan->rejectsPacking->count() < 1 ? '0' : $subMasterPlan->rejectsPacking->count();
-                                    break;
-                                default :
-                                    $rft += $subMasterPlan->rfts->where('status', 'NORMAL')->count() < 1 ? '0' : $subMasterPlan->rfts->where('status', 'NORMAL')->count();
-                                    $defect += $subMasterPlan->defects->where('defect_status', 'defect')->count() < 1 ? '0' : $subMasterPlan->defects->where('defect_status', 'defect')->count();
-                                    $rework += $subMasterPlan->defects->where('defect_status', 'reworked')->count() < 1 ? '0' : $subMasterPlan->defects->where('defect_status', 'reworked')->count();
-                                    $reject += $subMasterPlan->rejects->count() < 1 ? '0' : $subMasterPlan->rejects->count();
-                                    break;
+                    $rateRft = $line->total_output > 0 ? round(($line->rft/$line->total_output * 100), 2) : '0';
+                    $rateDefect = $line->total_output > 0 ? round((($line->defect+$line->rework)/$line->total_output * 100), 2) : '0';
+                    $rateReject = $line->total_output > 0 ? round((($line->reject)/$line->total_output * 100), 2) : '0';
+                @endphp
+                <tr wire:key="{{ $loop->index }}">
+                    @if ($currentLine != $line->username)
+                        <td rowspan="{{ $currentRowSpan }}" style="text-align: center; vertical-align: middle;">
+                            <a style="font-weight: bold;" href="http://10.10.5.62:8000/dashboard-wip/line/dashboard1/{{ $line->username }}" target="_blank">
+                                {{ ucfirst(str_replace("_", " ", $line->username)) }}
+                            </a>
+                        </td>
+                    @endif
+                    <td>{{ $line->kpno }}</td>
+                    <td>{{ $line->styleno }}</td>
+                    <td style="text-align: center;">
+                        {{ $line->rft < 1 ? '0' : $line->rft }}
+                    </td>
+                    <td style="text-align: center;">
+                        {{ $line->defect < 1 ? '0' : $line->defect }}
+                    </td>
+                    <td style="text-align: center;">
+                        {{ $line->rework < 1 ? '0' : $line->rework }}
+                    </td>
+                    <td style="text-align: center;">
+                        {{ $line->reject < 1 ? '0' : $line->reject }}
+                    </td>
+                    <td style="text-align: center; font-weight: bold;">
+                        {{ $line->total_actual < 1 ? '0' : $line->total_actual }}
+                    </td>
+                    <td style="text-align: center; font-weight: bold; {{ $rateRft < 97 ? 'color: #f51818;' : 'color: #018003;' }}">
+                        {{ $rateRft }} %
+                    </td>
+                    <td style="text-align: center; font-weight: bold; {{ $rateDefect > 3 ? 'color: #f51818;' : 'color: #018003;' }}">
+                        {{ $rateDefect }} %
+                    </td>
+                    <td style="text-align: center; font-weight: bold; {{ $rateReject > 0 ? 'color: #f51818;' : 'color: #018003;' }}">
+                        {{ $rateReject }} %
+                    </td>
+                    @if ($currentLine != $line->username)
+                        @php
+                            if (date('Y-m-d H:i:s') >= $line->tgl_plan.' 16:00:00') {
+                                $cumulativeTarget = $lines->where("username", $line->username)->sum("total_target") ?? 0;
+                                $cumulativeMinsAvail = $lines->where("username", $line->username)->sum("mins_avail") ?? 0;
+                            } else {
+                                $cumulativeTarget = $line->cumulative_target ?? 0;
+                                $cumulativeMinsAvail = $line->cumulative_mins_avail ?? 0;
                             }
-                        }
-                        $actual = $rft + $rework;
-                        $output = $rft + $defect + $rework + $reject;
 
-                        $rateRft = $output > 0 ? round(($rft/$output * 100), 2) : '0';
-                        $rateDefect = $output > 0 ? round((($defect+$rework)/$output * 100), 2) : '0';
-                        $rateReject = $output > 0 ? round((($reject)/$output * 100), 2) : '0';
-                    @endphp
-                        {{-- Per Master Plan Data --}}
-                        @if (!$loop->first)
-                            <tr>
-                        @endif
+                            $currentActual = $lines->where("username", $line->username)->sum("total_actual") ?? 0;
+                            $currentMinsProd = $lines->where("username", $line->username)->sum("mins_prod") ?? 0;
+                            $currentTarget = $cumulativeTarget;
+                            $currentMinsAvail = $cumulativeMinsAvail;
+                            $currentLastInput = $lines->where("username", $line->username)->max("latest_output") ?? date("Y-m-d")." 00:00:00";
 
-                        <td>{{ $masterPlan->first()->actCosting->kpno }}</td>
-                        <td style="text-align: center; font-weight: 800;" data-format="0">
-                            {{ $rft < 1 ? '0' : $rft }}
-                        </td>
-                        <td style="text-align: center; font-weight: 800;" data-format="0">
-                            {{ $defect < 1 ? '0' : $defect }}
-                        </td>
-                        <td style="text-align: center; font-weight: 800;" data-format="0">
-                            {{ $rework < 1 ? '0' : $rework }}
-                        </td>
-                        <td style="text-align: center; font-weight: 800;" data-format="0">
-                            {{ $reject < 1 ? '0' : $reject }}
-                        </td>
-                        <td style="text-align: center; font-weight: 800;" data-format="0">
-                            {{ $actual }}
-                        </td>
-                        <td style="text-align: center; font-weight: 800;" data-format="0%">
-                            {{ $rateRft }} %
-                        </td>
-                        <td style="text-align: center; font-weight: 800;" data-format="0%">
-                            {{ $rateDefect }} %
-                        </td>
-                        <td style="text-align: center; font-weight: 800;" data-format="0%">
-                            {{ $rateReject }} %
-                        </td>
+                            $currentEfficiency = ($currentMinsAvail  > 0 ? round(($currentMinsProd/$currentMinsAvail)*100, 2) : 0);
 
-                        @if (!$loop->first)
-                            </tr>
-                        @endif
-
-                        {{-- Total Line Data --}}
-                        @if ($loop->first)
-                                <td rowspan="{{ $totalWS }}" style="text-align: center; font-weight: 800; vertical-align: middle;" data-format="0">
-                                    {{ $line->total_actual }}
-                                </td>
-                                <td rowspan="{{ $totalWS }}" style="text-align: center; font-weight: 800; vertical-align: middle;" data-format="0">
-                                    {{ $cumulativeTarget }}
-                                </td>
-                                <td rowspan="{{ $totalWS }}" style="text-align: center; font-weight: 800; vertical-align: middle;" data-format="0%">
-                                    {{ $cumulativeEfficiency }} %
-                                </td>
-                                <td rowspan="{{ $totalWS }}" style="text-align: center; vertical-align: middle;">{{ $line->latest_output }}</td>
-                            </tr>
-                        @endif
-                @endforeach
-        @endforeach
-    @endif
-    <tfoot>
+                            $summaryActual += $currentActual;
+                            $summaryMinsProd += $currentMinsProd;
+                            $summaryTarget += $currentTarget;
+                            $summaryMinsAvail += $currentMinsAvail;
+                            $lastInput < $currentLastInput && $lastInput = $currentLastInput;
+                        @endphp
+                        <td rowspan="{{ $currentRowSpan }}" style="text-align: center; font-weight: bold; vertical-align: middle;">
+                            {{ $currentActual }}
+                        </td>
+                        <td rowspan="{{ $currentRowSpan }}" style="text-align: center; font-weight: bold; vertical-align: middle;">
+                            {{ $currentTarget }}
+                        </td>
+                        <td rowspan="{{ $currentRowSpan }}" style="text-align: center; font-weight: bold; vertical-align: middle; {{ $currentEfficiency < 85 ? 'color: #f51818;' : 'color: #018003;' }}">
+                            {{ $currentEfficiency }} %
+                        </td>
+                        <td rowspan="{{ $currentRowSpan }}" style="text-align: center; vertical-align: middle;">
+                            {{ $currentLastInput }}
+                        </td>
+                    @endif
+                </tr>
+                @php
+                    if ($currentLine != $line->username) {
+                        $currentLine = $line->username;
+                    }
+                @endphp
+            @endforeach
+        @endif
         @php
             $summaryEfficiency = $summaryMinsAvail > 0 ? round($summaryMinsProd/$summaryMinsAvail*100, 2) : 0;
-            $summaryEfficiencyNumber = $summaryMinsAvail > 0 ? ($summaryMinsProd/$summaryMinsAvail) : 0;
-            $targetFromEfficiency = floor($summaryEfficiencyNumber > 0 ? $summaryActual / ($summaryEfficiencyNumber) : 0);
+            $targetFromEfficiency = $summaryMinsAvail > 0 ? (($summaryMinsProd/$summaryMinsAvail) > 0 ? floor($summaryActual / ($summaryMinsProd/$summaryMinsAvail)) : 0) : 0;
         @endphp
         <tr>
-            <th colspan="10" style="text-align: center; font-weight:800;">Summary</th>
-            <th data-format="0" style="text-align: center; font-weight:800;">{{ $summaryActual }}</th>
-            <th data-format="0" style="text-align: center; font-weight:800;">{{ $targetFromEfficiency }}</th>
-            <th data-format="0%" style="text-align: center; font-weight:800;">{{ $summaryEfficiency }} %</th>
-            <td style="text-align: center;">{{ $lastInput }}</td>
+            <th colspan="11" style="font-weight: bold;text-align: center;">Summary</th>
+            <th style="font-weight: bold;text-align: center;">{{ $summaryActual }}</th>
+            <th style="font-weight: bold;text-align: center;">{{ $targetFromEfficiency }}</th>
+            <th style="font-weight: bold;text-align: center; {{ $summaryEfficiency < 85 ? 'color: #f51818;' : 'color: #018003;' }}">{{ $summaryEfficiency }} %</th>
+            <td style="font-weight: bold;text-align: center;">{{ $lastInput }}</td>
         </tr>
-    </tfoot>
+    @endif
 </table>
 
 <table>

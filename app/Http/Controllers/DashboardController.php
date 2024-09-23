@@ -147,6 +147,55 @@ class DashboardController extends Controller
     }
 
     // Cutting
+    // public function cutting(Request $request) {
+    //     ini_set("max_execution_time", 0);
+    //     ini_set("memory_limit", '2048M');
+
+    //     $months = [['angka' => 1,'nama' => 'Januari'],['angka' => 2,'nama' => 'Februari'],['angka' => 3,'nama' => 'Maret'],['angka' => 4,'nama' => 'April'],['angka' => 5,'nama' => 'Mei'],['angka' => 6,'nama' => 'Juni'],['angka' => 7,'nama' => 'Juli'],['angka' => 8,'nama' => 'Agustus'],['angka' => 9,'nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
+    //     $years = array_reverse(range(1999, date('Y')));
+
+    //     if ($request->ajax()) {
+    //         // $month = date("m");
+    //         // $year = date("Y");
+
+    //         // if ($request->month) {
+    //         //     $month = $request->month;
+    //         // }
+    //         // if ($request->year) {
+    //         //     $year = $request->year;
+    //         // }
+
+    //         $date = $request->date ? $request->date : date("Y-m-d");
+
+    //         $form = MarkerInput::selectRaw("
+    //                 marker_input.buyer,
+    //                 marker_input.act_costing_ws,
+    //                 marker_input.style,
+    //                 sum(marker_input_detail.ratio) * sum(form_cut_input.total_gelar)
+    //             ")->
+    //             leftJoin("marker_input_detail", "marker_input.kode", "=", "form_cut_input.id_marker")->
+    //             leftJoin("marker_input_detail", "marker_input_detail.kode", "=", "form_cut_input.id_marker")->
+    //             whereRaw("(marker_input.cancel IS NULL OR marker_input.cancel != 'Y')")->
+    //             whereRaw("(form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y')")->
+    //             whereRaw("(COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."')")->
+    //             groupBy("marker_input.act_costing_ws", "marker_input.style")->
+    //             orderBy("form_cut_input.waktu_mulai", "desc")->
+    //             orderBy("marker_input.buyer", "asc")->
+    //             orderBy("marker_input.act_costing_ws", "asc")->
+    //             orderBy("marker_input.style", "asc")->
+    //             orderBy("marker_input.color", "asc")->
+    //             orderBy("marker_input.panel", "asc")->
+    //             orderBy("marker_input.urutan_marker", "asc")->
+    //             orderBy("form_cut_input.no_cut", "asc")->
+    //             orderBy("form_cut_input_detail.id", "asc");
+
+    //         return DataTables::eloquent($form)->toJson();
+    //     }
+
+    //     return view('dashboard', ['page' => 'dashboard-cutting', 'months' => $months, 'years' => $years]);
+    // }
+
+
     public function cutting(Request $request) {
         ini_set("max_execution_time", 0);
         ini_set("memory_limit", '2048M');
@@ -167,50 +216,121 @@ class DashboardController extends Controller
 
             $date = $request->date ? $request->date : date("Y-m-d");
 
-            $form = FormCutInput::selectRaw("
-                    marker_input.id marker_id,
-                    marker_input.buyer,
-                    marker_input.act_costing_ws,
-                    marker_input.style,
-                    marker_input.color,
-                    marker_input.kode,
-                    marker_input.urutan_marker,
-                    marker_input.panel,
-                    form_cut_input.id form_id,
-                    form_cut_input.status form_status,
-                    form_cut_input.tipe_form_cut,
-                    COALESCE(DATE(form_cut_input.waktu_mulai), '-') tgl_form_cut,
-                    COALESCE(form_cut_input.no_form, '-') no_form,
-                    COALESCE(form_cut_input.no_cut, '-') no_cut,
-                    COALESCE(form_cut_input.total_lembar, '-') total_lembar,
-                    COALESCE(GROUP_CONCAT(DISTINCT form_cut_input_detail.id_roll), '-') id_roll,
-                    COALESCE(GROUP_CONCAT(DISTINCT form_cut_input_detail.id_item), '-') id_item,
-                    COALESCE(form_cut_input_detail.lot, '-') lot,
-                    COALESCE(form_cut_input_detail.roll, '-') roll,
-                    COALESCE(ROUND(SUM(COALESCE(form_cut_input_detail.qty, 0)), 2), '-') qty,
-                    COALESCE(form_cut_input_detail.unit, '-') unit,
-                    COALESCE(ROUND(SUM(COALESCE(form_cut_input_detail.total_pemakaian_roll, 0)), 2), '-') total_pemakaian_roll,
-                    COALESCE(ROUND(SUM(COALESCE(form_cut_input_detail.piping, 0)), 2), '-') piping,
-                    COALESCE(ROUND(SUM(COALESCE(form_cut_input_detail.short_roll, 0)), 2), '-') short_roll,
-                    COALESCE(ROUND(SUM(COALESCE(form_cut_input_detail.remark, 0)), 2), '-') remark
-                ")->
-                leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
-                leftJoin("form_cut_input_detail", "form_cut_input_detail.no_form_cut_input", "=", "form_cut_input.no_form")->
-                whereRaw("(marker_input.cancel IS NULL OR marker_input.cancel != 'Y')")->
-                whereRaw("(form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y')")->
-                whereRaw("(DATE(form_cut_input.waktu_mulai) = '".$date."')")->
-                groupBy("marker_input.id", "form_cut_input.id", "form_cut_input_detail.unit")->
-                orderBy("form_cut_input.waktu_mulai", "desc")->
-                orderBy("marker_input.buyer", "asc")->
-                orderBy("marker_input.act_costing_ws", "asc")->
-                orderBy("marker_input.style", "asc")->
-                orderBy("marker_input.color", "asc")->
-                orderBy("marker_input.panel", "asc")->
-                orderBy("marker_input.urutan_marker", "asc")->
-                orderBy("form_cut_input.no_cut", "asc")->
-                orderBy("form_cut_input_detail.id", "asc");
+            $form = DB::select("
+                SELECT
+                    master_sb.ws,
+                    master_sb.styleno,
+                    master_sb.total_order,
+                    form_cut_all.total_lembar,
+                    COALESCE(form_marker.tanggal, 0) tanggal,
+                    COALESCE(form_marker.total_plan, 0) total_plan,
+                    COALESCE(form_marker.total_complete, 0) total_complete
+                FROM
+                (
+                    SELECT
+                        master_sb_ws.ws,
+                        master_sb_ws.styleno,
+                        sum( qty ) total_order
+                    FROM
+                        master_sb_ws
+                    GROUP BY
+                        master_sb_ws.ws,
+                        master_sb_ws.styleno
+                ) master_sb
+                INNER JOIN
+                (
+                    SELECT
+                        marker_input.act_costing_ws,
+                        marker_input.style,
+                        form_cut_plan.tanggal,
+                        SUM(marker_detail.total_ratio * form_cut_plan.total_lembar) total_plan,
+                        SUM(marker_detail.total_ratio * form_cut_complete.total_lembar) total_complete
+                    FROM
+                        marker_input
+                    INNER JOIN
+                        (
+                            select
+                                marker_input_detail.marker_id,
+                                SUM(marker_input_detail.ratio) total_ratio
+                            from
+                                marker_input_detail
+                            group by
+                                marker_input_detail.marker_id
+                        ) marker_detail on marker_detail.marker_id = marker_input.id
+                    INNER JOIN
+                        (
+                            select
+                                form_cut_input.id_marker,
+                                (CASE WHEN	cutting_plan.tgl_plan = '".$date."' THEN cutting_plan.tgl_plan ELSE COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) END) tanggal,
+                                SUM(COALESCE(form_cut_input.total_lembar, form_cut_input.qty_ply)) total_lembar
+                            from
+                                form_cut_input
+                                left join cutting_plan on cutting_plan.no_form_cut_input = form_cut_input.no_form
+                            where
+                                ( form_cut_input.cancel is null or form_cut_input.cancel != 'Y' )
+                                and ( cutting_plan.tgl_plan = '".$date."' OR ( cutting_plan.tgl_plan != '".$date."' AND COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."' ) )
+                            group by
+                                form_cut_input.id_marker
+                        ) form_cut_plan on form_cut_plan.id_marker = marker_input.kode
+                    LEFT JOIN
+                        (
+                            select
+                                form_cut_input.id_marker,
+                                (CASE WHEN	cutting_plan.tgl_plan = '".$date."' THEN cutting_plan.tgl_plan ELSE COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) END) tanggal,
+                                SUM(COALESCE(form_cut_input.total_lembar, form_cut_input.qty_ply)) total_lembar
+                            from
+                                form_cut_input
+                                left join cutting_plan on cutting_plan.no_form_cut_input = form_cut_input.no_form
+                            where
+                                ( form_cut_input.cancel is null or form_cut_input.cancel != 'Y' )
+                                and ( cutting_plan.tgl_plan = '".$date."' OR ( cutting_plan.tgl_plan != '".$date."' AND COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."' ) )
+                                and form_cut_input.`status` = 'SELESAI PENGERJAAN'
+                            group by
+                                form_cut_input.id_marker
+                        ) form_cut_complete on form_cut_complete.id_marker = marker_input.kode
+                    WHERE
+                        (marker_input.cancel IS NULL or marker_input.cancel != 'Y')
+                    GROUP BY
+                        marker_input.act_costing_ws,
+                        marker_input.style
+                ) form_marker on form_marker.act_costing_ws = master_sb.ws and form_marker.style = master_sb.styleno
+                LEFT JOIN
+                        (
+                            select
+                                marker_input.act_costing_ws,
+                                marker_input.style,
+                                ROUND(SUM(marker_detail.total_ratio * form.total_lembar)) total_lembar
+                            from
+                                marker_input
+                            left join (
+                                select
+                                    form_cut_input.id_marker,
+                                    SUM(COALESCE(form_cut_input.total_lembar, form_cut_input.qty_ply,0)) total_lembar
+                                from
+                                    form_cut_input
+                                    left join cutting_plan on cutting_plan.no_form_cut_input = form_cut_input.no_form
+                                where
+                                    form_cut_input.status = 'SELESAI PENGERJAAN' AND
+                                    ( form_cut_input.cancel is null or form_cut_input.cancel != 'Y' )
+                                group by
+                                    form_cut_input.id_marker
+                            ) form on form.id_marker = marker_input.kode
+                            left join (
+                                select
+                                    marker_input_detail.marker_id,
+                                    sum(marker_input_detail.ratio) total_ratio
+                                from
+                                    marker_input_detail
+                                group by
+                                    marker_input_detail.marker_id
+                            ) marker_detail on marker_detail.marker_id = marker_input.id
+                            group by
+                                marker_input.act_costing_ws,
+                                marker_input.style
+                        ) form_cut_all on form_cut_all.act_costing_ws = master_sb.ws and form_cut_all.style = master_sb.styleno
+            ");
 
-            return DataTables::eloquent($form)->toJson();
+            return DataTables::of($form)->toJson();
         }
 
         return view('dashboard', ['page' => 'dashboard-cutting', 'months' => $months, 'years' => $years]);
@@ -254,7 +374,7 @@ class DashboardController extends Controller
                     WHERE
                         ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' ) AND
                         ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' ) AND
-                        ( cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND DATE(form_cut_input.waktu_mulai) = '".$date."') )
+                        ( cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."') )
                     GROUP BY
                         form_cut_input.id
                 ) frm
@@ -280,9 +400,9 @@ class DashboardController extends Controller
             whereRaw("
                 ( marker_input.cancel IS NULL OR marker_input.cancel != 'Y' ) AND
                 ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' ) AND
-                ( cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND DATE(form_cut_input.waktu_mulai) = '".$date."') )
+                ( cutting_plan.tgl_plan = '".$date."' OR (cutting_plan.tgl_plan != '".$date."' AND COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) = '".$date."') )
             ")->
-            groupByRaw("(CASE WHEN cutting_plan.tgl_plan != '".$date."' THEN DATE(form_cut_input.waktu_mulai) ELSE cutting_plan.tgl_plan END), meja.id")->
+            groupByRaw("(CASE WHEN cutting_plan.tgl_plan != '".$date."' THEN COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai)) ELSE cutting_plan.tgl_plan END), meja.id")->
             get();
 
         return json_encode($cuttingForm);

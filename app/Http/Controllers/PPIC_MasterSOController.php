@@ -21,6 +21,7 @@ class PPIC_MasterSOController extends Controller
         $tgl_awal = $request->dateFrom;
         $tgl_akhir = $request->dateTo;
         $tgl_skrg = date('Y-m-d');
+        $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-30 days'));
         $user = Auth::user()->name;
 
         if ($request->ajax()) {
@@ -77,7 +78,7 @@ class PPIC_MasterSOController extends Controller
 
         $data_ws = DB::select("select ws isi, ws tampil from
 (select * from ppic_master_so p
-where created_by = '" . $user . "' and tgl_shipment >= '" . $tgl_skrg . "' ) p
+where created_by = '" . $user . "' and tgl_shipment >= '" . $tgl_skrg_min_sebulan . "' ) p
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
 group by ws
 order by ws asc");
@@ -127,7 +128,6 @@ order by ws asc");
             and tmp.style = m.styleno
             and tmp.dest = m.dest
             left join ppic_master_so p on m.id_so_det = p.id_so_det
-                                and tmp.tgl_shipment = p.tgl_shipment
                                 and tmp.po = p.po
 								and tmp.barcode = p.barcode
             where tmp.created_by = '$user'
@@ -158,6 +158,15 @@ order by ws asc");
             "additional" => [],
             // "redirect" => url('in-material/upload-lokasi')
         );
+
+        // return array(
+        //     "status" => 201,
+        //     "message" => 'Data  Berhasil Di Upload',
+        //     "additional" => [],
+        //     "redirect" => '',
+        //     "table" => 'datatable_preview',
+        //     "callback" => "data_cek_tmp()"
+        // );
     }
 
     public function contoh_upload_ppic_so()
@@ -192,23 +201,23 @@ order by ws asc");
         $user = Auth::user()->name;
         $timestamp = Carbon::now();
 
-        $cek = DB::select("select * from ppic_master_so_tmp tmp
+        $cek = DB::select("select count(m.id_so_det)tot_avail from ppic_master_so_tmp tmp
         left join master_sb_ws m on tmp.ws = m.ws
         and tmp.color = m.color
         and tmp.size = m.size
         and tmp.style = m.styleno
         and tmp.dest = m.dest
         left join ppic_master_so p on m.id_so_det = p.id_so_det
-        and tmp.tgl_shipment = p.tgl_shipment and tmp.po = p.po
+        and tmp.po = p.po
 where tmp.created_by = '$user' and if(
-m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is null,'Ok','Check') = 'Ok'");
+m.id_so_det is not null and tmp.tgl_shipment != '0000-00-00' and p.id_so_det is null,'Ok','Check') = 'Check'");
 
-        $cekinput = $cek[0]->id_tmp;
+        $cekinput = $cek[0]->tot_avail;
 
-        if ($cekinput == '') {
+        if ($cekinput >= '1') {
             return array(
                 'icon' => 'salah',
-                'msg' => 'Tidak ada yang disimpan',
+                'msg' => 'Tidak ada yang disimpan, Periksa Data Lagi',
             );
         } else {
             $insert = DB::insert(
@@ -452,11 +461,12 @@ order by created_by asc
     public function getpo_ppic_edit_tgl(Request $request)
     {
         $tgl_skrg = date('Y-m-d');
+        $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-30 days'));
         $user = Auth::user()->name;
         $data_po = DB::select("
 select p.po isi, p.po tampil from
 (select * from ppic_master_so p
-where created_by = '$user' and tgl_shipment >= '$tgl_skrg' ) p
+where created_by = '$user' and tgl_shipment >= '$tgl_skrg_min_sebulan' ) p
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
 where m.ws = '" . $request->cbows_edit_tgl . "'
 group by po
@@ -475,11 +485,12 @@ order by po asc
     public function getpo_ppic_hapus(Request $request)
     {
         $tgl_skrg = date('Y-m-d');
+        $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-30 days'));
         $user = Auth::user()->name;
         $data_po = DB::select("
 select p.po isi, p.po tampil from
 (select * from ppic_master_so p
-where created_by = '$user' and tgl_shipment >= '$tgl_skrg' ) p
+where created_by = '$user' and tgl_shipment >= '$tgl_skrg_min_sebulan' ) p
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
 where m.ws = '" . $request->cbows_hapus . "'
 group by po
@@ -500,55 +511,59 @@ order by po asc
     {
         $user = Auth::user()->name;
         $tgl_skrg = date('Y-m-d');
+        $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-30 days'));
         $ws = $request->ws;
         $po = $request->po;
-        $data_list = DB::select("
-            SELECT
-            a.id,
-            a.id_so_det,
-            m.buyer,
-            concat((DATE_FORMAT(a.tgl_shipment,  '%d')), '-', left(DATE_FORMAT(a.tgl_shipment,  '%M'),3),'-',DATE_FORMAT(a.tgl_shipment,  '%Y')
-            ) tgl_shipment_fix,
-            a.tgl_shipment,
-            a.barcode,
-            m.reff_no,
-            a.po,
-            a.dest,
-            a.desc,
-            m.ws,
-            m.styleno,
-            m.color,
-            m.size,
-            a.qty_po,
-            coalesce(trf.qty_trf,0) qty_trf,
-            coalesce(pck.qty_packing_in,0) qty_packing_in,
-            coalesce(pck_out.qty_packing_out,0) qty_packing_out,
-            m.ws,
-            a.created_by,
-            a.created_at
-            FROM ppic_master_so a
-            inner join master_sb_ws m on a.id_so_det = m.id_so_det
-            left join master_size_new msn on m.size = msn.size
-            left join
-            (
-                select id_ppic_master_so, coalesce(sum(qty),0) qty_trf from packing_trf_garment group by id_ppic_master_so
-            ) trf on trf.id_ppic_master_so = a.id
-            left join
-            (
-                select id_ppic_master_so, coalesce(sum(qty),0) qty_packing_in from packing_packing_in group by id_ppic_master_so
-            ) pck on pck.id_ppic_master_so = a.id
-            left join
-            (
-            select p.id, qty_packing_out from
-                (
-                select count(barcode) qty_packing_out,po, barcode, dest from packing_packing_out_scan
-                group by barcode, po, dest
-                ) a
-            inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po and a.dest = p.dest
-            group by p.id
-            ) pck_out on pck_out.id = a.id
-            where a.created_by = '$user' and ws = '$ws' and a.po like '$po' and tgl_shipment >= '$tgl_skrg'
-            order by tgl_shipment desc, buyer asc, ws asc , msn.urutan asc
+        $data_list = DB::select("SELECT
+a.id,
+a.id_so_det,
+m.buyer,
+tgl_shipment,
+concat((DATE_FORMAT(a.tgl_shipment,  '%d')), '-', left(DATE_FORMAT(a.tgl_shipment,  '%M'),3),'-',DATE_FORMAT(a.tgl_shipment,  '%Y')
+) tgl_shipment_fix,
+a.barcode,
+m.reff_no,
+a.qty_po,
+a.po,
+a.dest,
+a.desc,
+m.ws,
+m.styleno,
+m.color,
+m.size,
+sum(qty_trf) qty_trf,
+sum(qty_packing_in) qty_packing_in,
+sum(qty_packing_out) qty_packing_out,
+m.ws,
+a.created_by,
+a.created_at
+from (
+select id id_ppic_master_so, qty_po , '0' qty_trf, '0' qty_packing_in, '0' qty_packing_out from ppic_master_so a
+where po = '$po'
+group by id, po
+union
+select id_ppic_master_so, '0' qty_po , sum(qty) qty_trf, '0' qty_packing_in, '0' qty_packing_out from packing_trf_garment
+where po = '$po'
+group by id_ppic_master_so, po
+union
+select id_ppic_master_so, '0' qty_po , '0' qty_trf, sum(qty) qty_packing_in, '0' qty_packing_out from packing_packing_in
+where po = '$po'
+group by id_ppic_master_so, po
+union
+select p.id id_ppic_master_so, '0' qty_po , '0' qty_trf, '0' qty_packing_in, qty_packing_out from
+(
+select count(barcode) qty_packing_out,po, barcode, dest from packing_packing_out_scan
+where po = '$po'
+group by barcode, po, dest
+) a
+inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po and a.dest = p.dest
+group by p.id
+) mut
+inner join ppic_master_so a on mut.id_ppic_master_so = a.id
+inner join master_sb_ws m on a.id_so_det = m.id_so_det
+left join master_size_new msn on m.size = msn.size
+group by id_ppic_master_so
+order by tgl_shipment desc, buyer asc, ws asc, dest asc, color asc, msn.urutan asc, dest asc
             ");
 
         return DataTables::of($data_list)->toJson();
@@ -684,6 +699,32 @@ order by po asc
             );
         }
     }
+
+    public function data_cek_double_tmp_ppic_so(Request $request)
+    {
+        $user = Auth::user()->name;
+        $data_cek = DB::select("select coalesce(count(m.id_so_det),0) tot_cek from ppic_master_so_tmp tmp
+        left join master_sb_ws m on tmp.ws = m.ws
+        and tmp.color = m.color
+        and tmp.size = m.size
+        and tmp.style = m.styleno
+        and tmp.dest = m.dest
+				left join ppic_master_so p on m.id_so_det = p.id_so_det
+       and tmp.po = p.po
+			 where tmp.created_by = '" . $user . "'
+			 group by tmp.po, m.id_so_det
+			 having count(m.id_so_det) > '1'");
+        $data_cek_fix = $data_cek ? $data_cek[0]->tot_cek : 0;
+        if ($data_cek_fix == null or $data_cek_fix == '') {
+            $data_cek_fix == '0';
+        } else {
+            $data_cek_fix = $data_cek_fix;
+        }
+        // dd($data_cek_fix);
+
+        return json_encode($data_cek ? $data_cek[0] : null);
+    }
+
 
     public function export_excel_master_so_ppic(Request $request)
     {

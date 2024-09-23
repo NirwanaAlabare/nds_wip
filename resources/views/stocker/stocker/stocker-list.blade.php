@@ -32,7 +32,7 @@
                     </div>
                 </div>
                 <div class="d-flex justify-content-end align-items-end gap-3">
-                    <button class="btn btn-sb btn-sm" data-bs-toggle="modal" data-bs-target="#printModal"><i class="fa-regular fa-file-lines fa-sm"></i> Print Month Count</button>
+                    {{-- <button class="btn btn-sb btn-sm" data-bs-toggle="modal" data-bs-target="#printModal"><i class="fa-regular fa-file-lines fa-sm"></i> Print Month Count</button> --}}
                     <button class="btn btn-sb-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#printYearModal"><i class="fa-regular fa-file-lines fa-sm"></i> Print Year Sequence</button>
                 </div>
                 {{-- <div class="d-none">
@@ -41,12 +41,14 @@
                         <button class="btn btn-primary btn-sm" onclick="fixRedundantNumbering()"><i class="fa fa-cog"></i> Numbering Redundant</button>
                     </div>
                 </div> --}}
+
             </div>
             <div class="table-responsive">
                 <table id="datatable" class="table table-bordered table-sm w-100">
                     <thead>
                         <tr>
                             <th>Act</th>
+                            <th>Tanggal</th>
                             <th>Stocker</th>
                             <th>Part</th>
                             <th>No. WS</th>
@@ -60,8 +62,9 @@
                             <th>Shade</th>
                             <th>Ratio</th>
                             <th>Stocker Range</th>
-                            <th>Numbering Month</th>
-                            <th>Numbering Range</th>
+                            <th>Qty</th>
+                            <th>Year Sequence</th>
+                            <th>Year Sequence Range</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -207,11 +210,32 @@
             $("#switch-method").prop("checked", false);
         });
 
+        $('#datatable thead tr').clone(true).appendTo('#datatable thead');
+        $('#datatable thead tr:eq(1) th').each(function(i) {
+            if (i != 0 && i != 17) {
+                var title = $(this).text();
+                $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%"/>');
+
+                $('input', this).on('keyup change', function() {
+                    if (datatable.column(i).search() !== this.value) {
+                        datatable
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            } else {
+                $(this).empty();
+            }
+        });
+
         // Stocker Datatable
         let datatable = $("#datatable").DataTable({
             ordering: false,
             processing: true,
             serverSide: true,
+            scrollX: "500px",
+            scrollY: "500px",
             ajax: {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -228,6 +252,9 @@
                 {
                     data: null,
                     searchable: false
+                },
+                {
+                    data: 'updated_at'
                 },
                 {
                     data: 'id_qr_stocker'
@@ -269,7 +296,10 @@
                     data: 'stocker_range',
                 },
                 {
-                    data: 'numbering_month'
+                    data: 'qty'
+                },
+                {
+                    data: 'year_sequence'
                 },
                 {
                     data: 'numbering_range'
@@ -285,14 +315,14 @@
                 },
                 // Stocker List
                 {
-                    targets: [1],
+                    targets: [2],
                     render: (data, type, row, meta) => {
                         return `<div style='width: 300px; overflow-x: auto;'>`+data+`</div>`;
                     }
                 },
                 // Form Hyperlink
                 {
-                    targets: [5],
+                    targets: [6],
                     render: (data, type, row, meta) => {
                         return data ? `<a class='fw-bold' href='{{ route("show-stocker") }}/`+row.form_cut_id+`' target='_blank'><u>`+data+`</u></a>` : "-";
                     }
@@ -310,25 +340,6 @@
                 if (numberingMonth && numberingMonth != "-") {
                     $node.addClass('red');
                 }
-            }
-        });
-
-        $('#datatable thead tr').clone(true).appendTo('#datatable thead');
-        $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i != 0) {
-                var title = $(this).text();
-                $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%"/>');
-
-                $('input', this).on('keyup change', function() {
-                    if (datatable.column(i).search() !== this.value) {
-                        datatable
-                            .column(i)
-                            .search(this.value)
-                            .draw();
-                    }
-                });
-            } else {
-                $(this).empty();
             }
         });
 
