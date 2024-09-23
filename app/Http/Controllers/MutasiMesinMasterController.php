@@ -104,8 +104,8 @@ class MutasiMesinMasterController extends Controller
 
         if ($request->hasFile('uploadphoto')) {
             $folderPath = "public/";
-            $img_ext = $request->file('uploadphoto')->getClientOriginalExtension();
-            $filename = $txtedit_qr .  '.' . $img_ext;
+            // $img_ext = $request->file('uploadphoto')->getClientOriginalExtension();
+            $filename = $txtedit_qr .  '.' . 'jpeg';
             $path = $request->file('uploadphoto')->move(public_path() . '/storage/gambar_mesin', $filename);
         } else {
             if ($request->nm_gambar == '-') {
