@@ -65,7 +65,7 @@
                         <div class="form-group">
                             <label for="recipient-name" class="col-form-label">Gambar :</label>
                             <input type="file" id="uploadphoto" name="uploadphoto" />
-                            <input type="text" id="nm_gambar" name="nm_gambar" />
+                            <input type="hidden" id="nm_gambar" name="nm_gambar" />
                         </div>
                         <div class="form-group">
                             <center>
