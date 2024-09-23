@@ -28,7 +28,7 @@
                         <div class="form-group">
                             <label class="form-label"><small><b>No. PO</b></small></label>
                             <select class="form-control select2bs4 form-control-sm" id="cbopo" name="cbopo"
-                                style="width: 100%;" onchange="getno_carton()">
+                                style="width: 100%;" onchange="getno_carton();dataTablePreviewReload();">
                                 <option selected="selected" value="" disabled="true">Pilih No. PO</option>
                                 @foreach ($data_po as $datapo)
                                     <option value="{{ $datapo->isi }}">
