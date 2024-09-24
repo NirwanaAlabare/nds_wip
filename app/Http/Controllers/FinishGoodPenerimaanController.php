@@ -84,10 +84,11 @@ group by no_carton, po, barcode, dest
 left join (
 select sum(qty) qty_fg,po, barcode, no_carton, notes from fg_fg_in where po = '" . $request->cbopo . "' group by barcode, po, no_carton, notes ) c
 on a.po = c.po and a.no_carton = c.no_carton and a.notes = c.notes and b.barcode = c.barcode
-where coalesce(b.total,0) - coalesce(c.qty_fg,0) >= '1'
 group by a.no_carton
 order by a.no_carton asc
         ");
+
+        // where coalesce(b.total,0) - coalesce(c.qty_fg,0) >= '1'
 
         $html = "<option value=''>Pilih No. Carton</option>";
 
