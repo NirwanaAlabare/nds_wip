@@ -42,7 +42,7 @@
                     </select>
                 </div>
                 <div>
-                    <button class="btn btn-success" onclick="exportExcel(this, {{ $selectedOrder }})">
+                    <button class="btn btn-success" onclick="exportExcel(this, '{{ $selectedOrder }}', '{{ $selectedSupplier }}')">
                         <i class="fa fa-file-excel fa-sm"></i>
                         Export
                     </button>
@@ -457,7 +457,7 @@
             });
         }
 
-        function exportExcel(elm, order) {
+        function exportExcel(elm, order, buyer) {
             elm.setAttribute('disabled', 'true');
             elm.innerText = "";
             let loading = document.createElement('div');
@@ -488,6 +488,7 @@
                     outputType:$("#output-type").val(),
                     groupBy:$("#group-by").val(),
                     order:order,
+                    buyer:buyer,
                 },
                 xhrFields: { responseType : 'blob' },
                 success: function(res) {
