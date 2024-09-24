@@ -55,12 +55,15 @@ class ReportController extends Controller
     }
 
     public function exportOrderOutput(Request $request) {
+        ini_set("max_execution_time", 36000);
+        
         $dateFrom = $request->dateFrom;
         $dateTo = $request->dateTo;
         $outputType = $request->outputType;
         $groupBy = $request->groupBy;
         $order = $request->order;
+        $buyer = $request->buyer;
 
-        return Excel::download(new OrderOutputExport($dateFrom, $dateTo, $outputType, $groupBy, $order), 'order_output.xlsx');
+        return Excel::download(new OrderOutputExport($dateFrom, $dateTo, $outputType, $groupBy, $order, $buyer), 'order_output.xlsx');
     }
 }

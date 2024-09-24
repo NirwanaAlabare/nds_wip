@@ -22,21 +22,26 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
     protected $outputType;
     protected $groupBy;
     protected $order;
+    protected $buyer;
     protected $colAlphabet;
     protected $rowCount;
 
-    function __construct($dateFrom, $dateTo, $outputType, $groupBy, $order) {
+    function __construct($dateFrom, $dateTo, $outputType, $groupBy, $order, $buyer) {
         $this->dateFrom = $dateFrom;
         $this->dateTo = $dateTo;
         $this->outputType = $outputType;
         $this->groupBy = $groupBy;
         $this->order = $order;
+        $this->buyer = $buyer;
         $this->colAlphabet = '';
         $this->rowCount = 0;
     }
 
     public function view(): View
     {
+        $masterPlanDateFilter = " between '".$this->dateFrom."' and '".$this->dateTo."'";
+        $masterPlanDateFilter1 = " between '".date('Y-m-d', strtotime('-1 days', strtotime($this->dateFrom)))."' and '".$this->dateTo."'";
+
         $orderGroupSql = MasterPlan::selectRaw("
                 master_plan.tgl_plan tanggal,
                 act_costing.kpno ws,
@@ -74,8 +79,18 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
             if ($this->dateTo) {
                 $orderGroupSql->where('master_plan.tgl_plan', '<=', $this->dateTo);
             }
+
+            if ($this->order) {
+                $orderGroupSql->
+                    where("act_costing.id", $this->order);
+            }
+
+            if ($this->buyer) {
+                $orderGroupSql->
+                    where("act_costing.id_buyer", $this->buyer);
+            }
+
             $orderGroupSql->
-                where("act_costing.id", $this->order)->
                 groupByRaw("master_plan.id_ws, act_costing.styleno, master_plan.color, COALESCE(rfts.sewing_line, master_plan.sewing_line) ".($this->groupBy == "size" ? ", so_det.size" : "")."")->
                 orderBy("master_plan.id_ws", "asc")->
                 orderBy("act_costing.styleno", "asc")->
@@ -83,9 +98,6 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                 orderByRaw("COALESCE(rfts.sewing_line, master_plan.sewing_line) asc ".($this->groupBy == 'size' ? ', so_det.id asc' : ''));
 
             $orderGroup = $orderGroupSql->get();
-
-        $masterPlanDateFilter = " between '".$this->dateFrom."' and '".$this->dateTo."'";
-        $masterPlanDateFilter1 = " between '".date('Y-m-d', strtotime('-1 days', strtotime($this->dateFrom)))."' and '".$this->dateTo."'";
 
         $orderOutputsSql = MasterPlan::selectRaw("
                 rfts.tanggal,
@@ -120,10 +132,12 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                             LEFT JOIN userpassword ON userpassword.line_id = user_sb_wip.line_id " : "
                             LEFT JOIN userpassword ON userpassword.username = rfts.created_by "
                         )."
+                        INNER JOIN act_costing on act_costing.id = master_plan.id_ws
                     WHERE
-                        DATE ( rfts.updated_at ) ".$masterPlanDateFilter."
+                        DATE( rfts.updated_at ) ".$masterPlanDateFilter."
                         AND master_plan.tgl_plan ".$masterPlanDateFilter1."
-                        AND master_plan.id_ws = ".$this->order."
+                        ".($this->order ? " AND master_plan.id_ws = '".$this->order."'" : "")."
+                        ".($this->order ? " AND act_costing.id_buyer = '".$this->buyer."'" : "")."
                     GROUP BY
                         master_plan.id_ws,
                         DATE ( rfts.updated_at ),
@@ -137,18 +151,27 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                 $orderOutputsSql->leftJoin('so_det', 'so_det.id', '=', 'rfts.so_det_id');
             }
 
+            if ($this->order) {
+                $orderOutputsSql->
+                    where("act_costing.id", $this->order);
+            }
+
+            if ($this->buyer) {
+                $orderOutputsSql->
+                    where("act_costing.id_buyer", $this->buyer);
+            }
+
             $orderOutputsSql->
-                where("act_costing.id", $this->order)->
                 groupByRaw("master_plan.id_ws, act_costing.styleno, master_plan.color, COALESCE(rfts.created_by, master_plan.sewing_line) , master_plan.tgl_plan ".($this->groupBy == 'size' ? ', so_det.size' : '')."")->
                 orderBy("master_plan.id_ws", "asc")->
                 orderBy("act_costing.styleno", "asc")->
                 orderBy("master_plan.color", "asc")->
                 orderByRaw("COALESCE(rfts.created_by, master_plan.sewing_line) asc ".($this->groupBy == 'size' ? ', so_det.id asc' : ''));
             if ($this->dateFrom) {
-                $orderOutputsSql->whereRaw('rfts.tanggal', $this->dateFrom);
+                $orderOutputsSql->where('rfts.tanggal', '>=', $this->dateFrom);
             }
             if ($this->dateTo) {
-                $orderOutputsSql->whereRaw('rfts.tanggal', $this->dateTo);
+                $orderOutputsSql->where('rfts.tanggal', '<=', $this->dateTo);
             }
             $orderOutputs = $orderOutputsSql->get();
 
@@ -165,6 +188,7 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
 
         return view('sewing.export.order-output-export', [
             'order' => $this->order,
+            'buyer' => $this->buyer,
             'groupBy' => $this->groupBy,
             'dateFrom' => $this->dateFrom,
             'dateTo' => $this->dateTo,

@@ -15,7 +15,7 @@
                 <th style="font-weight: 800;">Size</th>
             @endif
             <?php
-                if ( $order && $orderOutputs && $orderOutputs->count() > 0 ) {
+                if ( ($order || $buyer) && $orderOutputs && $orderOutputs->count() > 0 ) {
                     foreach ($orderOutputs->sortBy("tanggal")->groupBy("tanggal") as $dailyDate) {
                         ?>
                             <th style="font-weight: 800;">{{ date_format(date_create($dailyDate->first()->tanggal), "d-m-Y") }}</th>
@@ -131,7 +131,7 @@
         <th colspan="{{ $groupBy == "size" ? '5' : '4' }}" style="font-weight: 800;">
             TOTAL
         </th>
-        @if ($order && $orderOutputs && $orderOutputs->count() > 0)
+        @if (($order || $buyer) && $orderOutputs && $orderOutputs->count() > 0)
             @foreach ($dateOutputs as $dateOutput)
                 <td style="font-weight: 800;">
                     {{ $dateOutput }}
