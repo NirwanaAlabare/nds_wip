@@ -57,7 +57,7 @@
                                 <th>WS</th>
                                 <th>Color</th>
                                 <th>Size</th>
-                                <th>Qty</th>
+                                <th>Qty Sisa</th>
                                 <th>Input</th>
                                 <th>Unit</th>
                             </tr>
