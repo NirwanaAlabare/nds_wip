@@ -344,11 +344,11 @@ class ReportCuttingController extends Controller
 
     public function detailPemakaianRoll (Request $request)
     {
-        $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb WHERE a.no_req = '".$request->no_req."' and b.id_item = '".$request->id_item."' and b.status = 'Y' GROUP BY id_roll"));
+        $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll, id_item, item_desc, no_lot, no_roll, satuan, COALESCE(retur.tgl_dok, '-') tgl_dok from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb LEFT JOIN (select * from whs_inmaterial_fabric where no_dok like '%RI%' and supplier = 'Production - Cutting') retur on a.no_bppb = retur.no_invoice WHERE a.no_req = '".$request->no_req."' and b.id_item = '".$request->id_item."' and b.status = 'Y' GROUP BY id_roll"));
 
-        $rollIds = $rollIdsArr->pluck('id_roll');
-
-        $rolls = FormCutInputDetail::selectRaw("
+        $rollData = collect();
+        foreach ($rollIdsArr as $rollId) {
+            $rolls = FormCutInputDetail::selectRaw("
                 id_roll,
                 id_item,
                 detail_item,
@@ -357,14 +357,37 @@ class ReportCuttingController extends Controller
                 MAX(qty) qty,
                 unit,
                 ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
-                ROUND(SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END), 2) total_short_roll
+                ROUND(MAX(qty) - SUM(total_pemakaian_roll), 2) total_sisa_kain,
+                ROUND(SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END), 2) total_short_roll,
+                CONCAT(ROUND((SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END) / SUM(total_pemakaian_roll) * 100), 2), ' %') total_short_roll_percentage,
+                '".$rollId->tgl_dok."' tanggal_return
             ")->
             whereNotNull("id_roll")->
-            whereIn("id_roll", $rollIds)->
+            where("id_roll", $rollId->id_roll)->
             groupBy("id_item", "id_roll")->
-            get();
+            first();
 
-        return DataTables::of($rolls)->toJson();
+            if ($rolls) {
+                $rollData->push($rolls);
+            } else {
+                $rollData->push(collect([
+                    "id_roll" => $rollId->id_roll,
+                    "id_item" => $rollId->id_item,
+                    "detail_item" => $rollId->item_desc,
+                    "lot" => $rollId->no_lot,
+                    "roll" => $rollId->no_roll,
+                    "qty" => 0,
+                    "unit" => $rollId->satuan,
+                    "total_pemakaian_roll" => 0,
+                    "total_sisa_kain" => 0,
+                    "total_short_roll" => 0,
+                    "total_short_roll_percentage" => '0.00 %',
+                    "tanggal_return" => $rollId->tgl_dok
+                ]));
+            }
+        }
+
+        return DataTables::of($rollData)->toJson();
     }
 
     public function totalPemakaianRoll(Request $request)
