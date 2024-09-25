@@ -88,7 +88,7 @@ class ExportLaporanBahanBakar implements FromView, WithEvents, ShouldAutoSize
     {
 
         $event->sheet->styleCells(
-            'A4:M' . $event->getConcernable()->rowCount,
+            'A4:N' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [
