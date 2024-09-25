@@ -45,6 +45,16 @@ class Stocker extends Model
         return $this->hasOne(DCIn::class, 'id_qr_stocker', 'id_qr_stocker');
     }
 
+    public function secondaryInhouse()
+    {
+        return $this->hasOne(SecondaryInHouse::class, 'id_qr_stocker', 'id_qr_stocker');
+    }
+
+    public function secondaryIn()
+    {
+        return $this->hasOne(SecondaryIn::class, 'id_qr_stocker', 'id_qr_stocker');
+    }
+
     /**
      * Get the stocker rack.
      */
