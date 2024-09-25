@@ -6,7 +6,7 @@
         <th style="text-align: center;" colspan="7">Laporan Loading</th>
     </tr>
     <tr>
-        <th style="text-align: center;" colspan="7">Tanggal : {{ $tanggal ? $tanggal : "Tanpa Filter" }}</th>
+        <th style="text-align: center;" colspan="7">Tanggal : {{ $dateFrom." - ".$dateTo }}</th>
     </tr>
     <tr>
         <th style="text-align: center;font-weight: 800;">Tanggal Loading</th>
@@ -20,6 +20,7 @@
         @php
             $currentDate = "";
             $currentLine = "";
+            $totalQty = 0;
         @endphp
         @foreach ($data as $d)
             <tr>
@@ -37,7 +38,7 @@
                 <?php
                     if ($currentLine != $d->line_id) {
                         ?>
-                            <td style="text-align: center;vertical-align: middle;" rowspan="{{ $data->where("line_id", $d->line_id)->where("tanggal_loading", $currentDate)->count() }}">{{ strtoupper(str_replace("_", " ", $lineData->where("line_id", $d->line_id)->first()->username)) }}</td>
+                            <td style="text-align: center;vertical-align: middle;" rowspan="{{ $data->where("line_id", $d->line_id)->where("tanggal_loading", $currentDate)->count() }}">{{ strtoupper(str_replace("_", " ", $d->nama_line)) }}</td>
                         <?php
 
                         $currentLine = $d->line_id;
@@ -49,8 +50,16 @@
                 <td>{{ $d->color }}</td>
                 <td>{{ $d->size }}</td>
                 <td data-format='0'>{{ $d->loading_qty }}</td>
+
+                @php
+                    $totalQty += $d->loading_qty;
+                @endphp
             </tr>
         @endforeach
+        <tr>
+            <th colspan="6" style="text-align:right;">TOTAL</th>
+            <th data-format='0'>{{ $totalQty }}</th>
+        </tr>
 </table>
 
 </html>

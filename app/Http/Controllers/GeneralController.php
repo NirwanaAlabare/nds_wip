@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Marker;
 use App\Models\MarkerDetail;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -62,7 +63,7 @@ class GeneralController extends Controller
             where ac.id = '" . $request->act_costing_id . "' and sd.cancel = 'N'
             group by sd.color");
 
-        return $colors ? $colors[0] : null;
+        return $colors ? $colors : null;
     }
 
     public function getSizeList(Request $request)
@@ -89,7 +90,7 @@ class GeneralController extends Controller
             $sizeQuery->where("marker_input_detail.marker_id", $request->marker_id);
         }
 
-        $sizes = $sizeQuery->groupBy("so_det_id", "size", "color")->orderBy("master_sb_ws.dest")->orderBy("master_size_new.urutan")->get();
+        $sizes = $sizeQuery->groupBy("so_det_id", "size", "color")->orderBy("master_size_new.urutan")->get();
 
         return json_encode([
             "draw" => intval($request->input('draw')),
@@ -204,5 +205,29 @@ class GeneralController extends Controller
     public function destroy(Marker $marker)
     {
         //
+    }
+
+    public function generateUnlockToken(Request $request) {
+        if ($request->id) {
+            $user = User::where("type", "admin")->where("id", $request->id)->first();
+
+            if ($user) {
+                $user->unlock_token = ($user->unlock_token ? $user->id."".Carbon::now()->format('ymd')."".(intval(substr($user->unlock_token, -1))+1) : $user->id."".Carbon::now()->format('ymd')."1");
+                $user->save();
+            }
+
+            return $user->unlock_token;
+        } else {
+            $users = User::where("type", "admin")->get();
+
+            if ($users->count() > 0) {
+                foreach ($users as $user) {
+                    $user->unlock_token = ($user->unlock_token ? $user->id."".Carbon::now()->format('ymd')."".(intval(substr($user->unlock_token, -1))+1) : $user->id."".Carbon::now()->format('ymd')."1");
+                    $user->save();
+                }
+            }
+
+            return $users;
+        }
     }
 }

@@ -68,7 +68,8 @@
         <tr>
             <td style="width:15%"></td>
             <td style="vertical-align: middle; text-align: center;width:70%">
-             <div style="text-align: center;" class="mb-2">{!!  DNS1D::getBarcodeHTML($dataLokasi->id, 'c39',2,80,'black', false); !!}</div>
+             <!-- <div style="text-align: center;" class="mb-2">{!!  DNS1D::getBarcodeHTML($dataLokasi->id, 'c39',2,80,'black', false); !!}</div> -->
+             <img style="width: 40%" src="data:image/png;base64, {!! base64_encode(QrCode::format('svg')->size(100)->generate('http://nag.ddns.net:8080//generateQr/index.php?rak='.$dataLokasi->kode)) !!}">
              <!-- {{$dataLokasi->id}} -->
             </td>
             <td style="width:15%"></td>

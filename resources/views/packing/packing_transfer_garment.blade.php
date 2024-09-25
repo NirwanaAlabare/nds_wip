@@ -12,18 +12,80 @@
 @endsection
 
 @section('content')
+    <div class="modal fade" id="exampleModalStokTemporary" tabindex="-1" role="dialog"
+        aria-labelledby="exampleModalStokTemporaryLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-light">
+                    <h1 class="modal-title fs-5" id="exampleModalStokTemporaryLabel"> <i class="fas fa-box-open"></i>
+                        Stok Temporary
+                    </h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class='row'>
+                        <div class="col-md-12 table-responsive">
+                            <table id="datatable_stok_temporary"
+                                class="table table-bordered table-striped table-sm w-100 nowrap">
+                                <thead>
+                                    <tr>
+                                        <th>Buyer</th>
+                                        <th>PO</th>
+                                        <th>WS</th>
+                                        <th>Style</th>
+                                        <th>Color</th>
+                                        <th>Size</th>
+                                        <th>Dest</th>
+                                        <th>Qty</th>
+                                    </tr>
+                                </thead>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="7"></th>
+                                        <th> <input type = 'text' class="form-control form-control-sm" style="width:75px"
+                                                readonly id = 'total_qty_chk'> </th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
     <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-shirt"></i> Transfer Garment</h5>
         </div>
         <div class="card-body">
-            <div class="mb-3">
-                <a href="{{ route('create-transfer-garment') }}" class="btn btn-outline-primary position-relative">
-                    <i class="fas fa-plus"></i>
-                    Baru
-                </a>
+            <div class="d-flex align-items-end gap-3 mb-3">
+                <div class="mb-3">
+                    <a href="{{ route('create-transfer-garment') }}" class="btn btn-outline-primary position-relative">
+                        <i class="fas fa-hand"></i>
+                        Ambil Sewing
+                    </a>
+                </div>
+                <div class="mb-3">
+                    <a href="{{ route('create-transfer-garment-temporary') }}"
+                        class="btn btn-outline-warning position-relative">
+                        <i class="fas fa-warehouse"></i>
+                        Ambil Temporary Packing
+                    </a>
+                </div>
+                <div class="mb-3">
+                    <a class="btn btn-outline-secondary position-relative" data-bs-toggle="modal"
+                        data-bs-target="#exampleModalStokTemporary" onclick="dataTableStokTemporaryReload()">
+                        <i class="fas fa-box-open fa-sm"></i>
+                        Stok Temporary
+                    </a>
+                </div>
             </div>
-
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Awal</b></small></label>
@@ -36,7 +98,7 @@
                         oninput="dataTableReload()" value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
-                    <a onclick="export_excel_bpb()" class="btn btn-outline-success position-relative btn-sm">
+                    <a onclick="export_excel_trf_garment()" class="btn btn-outline-success position-relative btn-sm">
                         <i class="fas fa-file-excel fa-sm"></i>
                         Export Excel
                     </a>
@@ -44,18 +106,34 @@
             </div>
 
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped table-sm w-100">
-                    <thead>
+                <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                    <thead class="table-success">
                         <tr style='text-align:center; vertical-align:middle'>
-                            <th>No. Transaksi</th>
-                            <th>Tgl. Transaksi</th>
-                            <th>WS</th>
-                            <th>Qty</th>
-                            <th>Line Asal</th>
+                            <th>No. Trans</th>
+                            <th>Tgl. Trans</th>
+                            <th>Line</th>
                             <th>PO</th>
+                            <th>WS</th>
+                            <th>Color</th>
+                            <th>Size</th>
+                            <th>Qty</th>
+                            <th>Tujuan</th>
                             <th>Status</th>
+                            <th>User</th>
+                            <th>Tgl. Input</th>
                         </tr>
                     </thead>
+                    <tfoot>
+                        <tr>
+                            <th colspan="7"></th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_chk'> </th>
+                            <th>PCS</th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -73,74 +151,278 @@
             alert("Maaf, Fitur belum tersedia!");
         }
     </script>
-    <script type="text/javascript">
-        function setinisial() {
-            let lok = $('#txtlok').val();
-            let tingkat = $('#txttingkat').val();
-            let baris = $('#txtbaris').val();
-            let kode = lok.toUpperCase() + '.' + baris + '.' + tingkat;
+    <script>
+        $(document).ready(() => {
+            dataTableReload();
+        });
 
-            $('#txtkode_lok').val(kode);
+        function dataTableReload() {
+            datatable.ajax.reload();
         }
-    </script>
-    <script>
-        function reset() {
-            $("#form").trigger("reset");
+
+        function dataTableStokTemporaryReload() {
+            datatable_stok_temporary.ajax.reload();
         }
-    </script>
-    <script>
+
+        $('#datatable thead tr').clone(true).appendTo('#datatable thead');
+        $('#datatable thead tr:eq(1) th').each(function(i) {
+            var title = $(this).text();
+            $(this).html('<input type="text" class="form-control form-control-sm"/>');
+            $('input', this).on('keyup change', function() {
+                if (datatable.column(i).search() !== this.value) {
+                    datatable
+                        .column(i)
+                        .search(this.value)
+                        .draw();
+                }
+            });
+        });
+
         let datatable = $("#datatable").DataTable({
-            ordering: true,
+            "footerCallback": function(row, data, start, end, display) {
+                var api = this.api(),
+                    data;
+
+                // converting to interger to find total
+                var intVal = function(i) {
+                    return typeof i === 'string' ?
+                        i.replace(/[\$,]/g, '') * 1 :
+                        typeof i === 'number' ?
+                        i : 0;
+                };
+
+                // computing column Total of the complete result
+                var sumTotal = api
+                    .column(7)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                // Update footer by showing the total with the reference of the column index
+                $(api.column(0).footer()).html('Total');
+                $(api.column(7).footer()).html(sumTotal);
+            },
+
+
+            ordering: false,
             processing: true,
             serverSide: true,
-            paging: true,
+            paging: false,
             searching: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
             ajax: {
-                url: '{{ route('master-lokasi-fg-stock') }}',
+                url: '{{ route('transfer-garment') }}',
                 data: function(d) {
                     d.dateFrom = $('#tgl-awal').val();
                     d.dateTo = $('#tgl-akhir').val();
                 },
             },
             columns: [{
-                    data: 'kode_lok_fg_stok'
+                    data: 'no_trans'
 
                 }, {
-                    data: 'lokasi'
+                    data: 'tgl_trans_fix'
                 },
                 {
-                    data: 'baris'
+                    data: 'line'
                 },
                 {
-                    data: 'tingkat'
+                    data: 'po'
                 },
                 {
-                    data: 'baris'
+                    data: 'ws'
+                },
+                {
+                    data: 'color'
+                },
+                {
+                    data: 'size'
+                },
+                {
+                    data: 'qty'
+                },
+                {
+                    data: 'tujuan'
+                },
+                {
+                    data: 'status'
+                },
+                {
+                    data: 'created_by'
+                },
+                {
+                    data: 'created_at'
                 },
             ],
+
             columnDefs: [{
-                    targets: [4],
+                    "className": "align-left",
+                    "targets": "_all"
+                },
+                {
+                    targets: '_all',
+                    className: 'text-nowrap',
                     render: (data, type, row, meta) => {
-                        return `
-                    <div
-                    class='d-flex gap-1 justify-content-center'>
-                    <a class='btn btn-warning btn-sm' data-bs-toggle='tooltip' onclick='notif()'><i class='fas fa-edit'></i></a>
-                    <a class='btn btn-success btn-sm' data-bs-toggle='tooltip' onclick='notif()'><i class='fas fa-lock'></i></a>
-                    </div>
-                        `;
+                        if (row.tujuan == 'Temporary') {
+                            color = ' #d68910';
+                        } else if (row.status == 'Full' && row.tujuan != 'Temporary' && row.line !=
+                            'Temporary') {
+                            color = '#087521';
+                        } else if (row.status != 'Full' && row.tujuan != 'Temporary' && row.line !=
+                            'Temporary') {
+                            color = 'blue';
+                        } else if (row.status != 'Full' && row.tujuan != 'Temporary' && row.line !=
+                            'Temporary') {
+                            color = 'blue';
+                        } else if (row.status != 'Full' && row.tujuan != 'Temporary' && row.line !=
+                            'Temporary') {
+                            color = 'blue';
+                        } else if (row.status != 'Full' && row.line == 'Temporary') {
+                            color = 'purple';
+                        } else if (row.status == 'Full' && row.line == 'Temporary') {
+                            color = 'green';
+                        }
+                        return '<span style="font-weight: 600; color:' + color + '">' + data + '</span>';
                     }
                 },
-                // <a class='btn btn-warning btn-sm' href='{{ route('create-dc-in') }}/` +
-            //             row.id +
-            //             `' data-bs-toggle='tooltip'><i class='fas fa-edit'></i></a>
+
+            ]
+
+        });
+
+
+        $('#datatable_stok_temporary thead tr').clone(true).appendTo('#datatable_stok_temporary thead');
+        $('#datatable_stok_temporary thead tr:eq(1) th').each(function(i) {
+            var title = $(this).text();
+            $(this).html('<input type="text" class="form-control form-control-sm"/>');
+            $('input', this).on('keyup change', function() {
+                if (datatable_stok_temporary.column(i).search() !== this.value) {
+                    datatable_stok_temporary
+                        .column(i)
+                        .search(this.value)
+                        .draw();
+                }
+            });
+        });
+        let datatable_stok_temporary = $("#datatable_stok_temporary").DataTable({
+            "footerCallback": function(row, data, start, end, display) {
+                var api = this.api(),
+                    data;
+
+                // converting to interger to find total
+                var intVal = function(i) {
+                    return typeof i === 'string' ?
+                        i.replace(/[\$,]/g, '') * 1 :
+                        typeof i === 'number' ?
+                        i : 0;
+                };
+
+                // computing column Total of the complete result
+                var sumTotal = api
+                    .column(7)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                // Update footer by showing the total with the reference of the column index
+                $(api.column(0).footer()).html('Total');
+                $(api.column(7).footer()).html(sumTotal);
+            },
+
+
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            paging: false,
+            searching: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
+            ajax: {
+                url: '{{ route('stok-temporary-transfer-garment') }}',
+            },
+            columns: [{
+                    data: 'buyer'
+
+                }, {
+                    data: 'po'
+                },
                 {
-                    "className": "dt-center",
+                    data: 'ws'
+                },
+                {
+                    data: 'styleno'
+                },
+                {
+                    data: 'color'
+                },
+                {
+                    data: 'size'
+                },
+                {
+                    data: 'dest'
+                },
+                {
+                    data: 'stok'
+                },
+            ],
+
+            columnDefs: [{
+                    "className": "align-left",
                     "targets": "_all"
                 },
 
-
-
             ]
+
         });
+
+
+        function export_excel_trf_garment() {
+            let from = document.getElementById("tgl-awal").value;
+            let to = document.getElementById("tgl-akhir").value;
+
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                type: "get",
+                url: '{{ route('export_excel_trf_garment') }}',
+                data: {
+                    from: from,
+                    to: to
+                },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(response) {
+                    {
+                        swal.close();
+                        Swal.fire({
+                            title: 'Data Sudah Di Export!',
+                            icon: "success",
+                            showConfirmButton: true,
+                            allowOutsideClick: false
+                        });
+                        var blob = new Blob([response]);
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = "Laporan Trf Garment " + from + " sampai " +
+                            to + ".xlsx";
+                        link.click();
+
+                    }
+                },
+            });
+        }
     </script>
 @endsection

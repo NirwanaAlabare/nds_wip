@@ -62,9 +62,9 @@
                         $newColorArray = [];
 
                         for ($i = (count($colorArray)-1); $i > 0; $i--) {
-                            array_push($newColorArray, $colorArray[$i]); 
+                            array_push($newColorArray, $colorArray[$i]);
                         }
-                        
+
                         $color = implode(" ", $newColorArray);
                     }
                 @endphp

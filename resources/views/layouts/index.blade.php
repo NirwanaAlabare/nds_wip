@@ -16,15 +16,34 @@
     @endphp
 @endif
 
+@if (!isset($head))
+    @php
+        $head = '';
+    @endphp
+@endif
+
+@if (!isset($navbar))
+    @php
+        $navbar = true;
+    @endphp
+@endif
+
+@if (!isset($footer))
+    @php
+        $footer = true;
+    @endphp
+@endif
+
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}" />
-    <title>NDS</title>
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('dist/img/tabicon.png') }}">
+    <title>NDS {{ $head }}</title>
 
     @include('layouts.link')
 
@@ -33,27 +52,25 @@
 
 <body class="hold-transition layout-top-nav">
     <div class="wrapper">
-        @if (!isset($navbar))
-            @php
-                $navbar = true;
-            @endphp
-        @endif
-
+        <!-- Navbar -->
         @if ($navbar)
-            @include('layouts.navbar', ['page' => $page, 'subPage' => $subPage])
+            @include('layouts.navbar', ['page' => $page, 'subPage' => $subPage, 'subPageGroup' => $subPageGroup])
         @endif
 
+        <!-- Offcanvas -->
         @include('layouts.offcanvas')
 
+        <!-- Loading -->
         <div class="loading-container-fullscreen d-none" id="loading">
             <div class="loading-container">
                 <div class="loading"></div>
             </div>
         </div>
 
-        <!-- Content Wrapper. Contains page content -->
+        <!-- Content Wrapper -->
         <div class="content-wrapper pt-3">
-            <!-- Content Header (Page header) -->
+
+            <!-- Header -->
             @if (isset($title))
                 <div class="content-header">
                     <div class="container">
@@ -74,17 +91,11 @@
             </div>
         </div>
 
-        @if (!isset($footer))
-            @php
-                $footer = true;
-            @endphp
-        @endif
-
+        <!-- Footer -->
         @if ($footer)
             <footer class="main-footer">
                 <strong>
-                    <a href="https://nirwanagroup.co.id/en/service/nirwana-alabare-santosa/" class="text-dark"
-                        target="_blank">
+                    <a href="https://nirwanagroup.co.id/en/service/nirwana-alabare-santosa/" class="text-dark" target="_blank">
                         Nirwana Digital Solution
                     </a> &copy; {{ date('Y') }}
                 </strong>
@@ -93,6 +104,8 @@
     </div>
 
     @include('layouts.script')
+
+    @stack('scripts')
 </body>
 
 </html>

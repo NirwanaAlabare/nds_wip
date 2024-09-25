@@ -66,11 +66,12 @@ class SecondaryInController extends Controller
                 a.qty_in,
                 a.created_at,
                 f.no_cut,
-                s.size,
+                COALESCE(msb.size, s.size) size,
                 a.user,
                 mp.nama_part
                 from secondary_in_input a
                 inner join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+                left join master_sb_ws msb on msb.id_so_det = s.so_det_id
                 left join form_cut_input f on f.id = s.form_cut_id
                 inner join part_detail pd on s.part_detail_id = pd.id
                 inner join part p on pd.part_id = p.id
@@ -106,7 +107,7 @@ class SecondaryInController extends Controller
             }
 
             $data_input = DB::select("
-            select s.act_costing_ws, buyer,s.color,styleno, COALESCE(dc.qty_awal - dc.qty_reject + dc.qty_replace, 0) qty_in, COALESCE(si.qty_in, 0) qty_out, COALESCE((dc.qty_awal - dc.qty_reject + dc.qty_replace -  si.qty_in), 0) balance, dc.tujuan,dc.lokasi
+            select s.act_costing_ws, m.buyer,s.color,styleno, COALESCE(dc.qty_awal - dc.qty_reject + dc.qty_replace, 0) qty_in, COALESCE(si.qty_in, 0) qty_out, COALESCE((dc.qty_awal - dc.qty_reject + dc.qty_replace -  si.qty_in), 0) balance, dc.tujuan,dc.lokasi
             from dc_in_input dc
             inner join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
             inner join master_sb_ws m on s.so_det_id = m.id_so_det
@@ -137,15 +138,15 @@ class SecondaryInController extends Controller
         select
         s.id_qr_stocker,
         s.act_costing_ws,
-        buyer,
+        msb.buyer,
         no_cut,
         style,
         s.color,
-        s.size,
+        COALESCE(msb.size, s.size) size,
         dc.tujuan,
         dc.lokasi,
         mp.nama_part,
-        if(dc.tujuan = 'SECONDARY LUAR',dc.qty_awal, si.qty_awal) qty_awal,
+        if(dc.tujuan = 'SECONDARY LUAR', (dc.qty_awal - dc.qty_reject + dc.qty_replace), (si.qty_awal - si.qty_reject + si.qty_replace)) qty_awal,
         s.lokasi lokasi_tujuan,
         s.tempat tempat_tujuan
         from
@@ -161,6 +162,7 @@ class SecondaryInController extends Controller
         where dc.tujuan = 'SECONDARY LUAR'	and	if(sii.id_qr_stocker is null ,dc.id_qr_stocker,'x') != 'x'
         ) md
         inner join stocker_input s on md.id_qr_stocker = s.id_qr_stocker
+        left join master_sb_ws msb on msb.id_so_det = s.so_det_id
         inner join form_cut_input a on s.form_cut_id = a.id
         inner join part_detail p on s.part_detail_id = p.id
         inner join master_part mp on p.master_part_id = mp.id
@@ -250,7 +252,7 @@ class SecondaryInController extends Controller
                 'qty_awal' => $request['txtqtyawal'],
                 'qty_reject' => $request['txtqtyreject'],
                 'qty_replace' => $request['txtqtyreplace'],
-                'qty_in' => $request['txtqtyin'],
+                'qty_in' => $request['txtqtyawal'] - $request['txtqtyreject'] + $request['txtqtyreplace'],
                 'user' => Auth::user()->name,
                 'ket' => $request['txtket'],
                 'created_at' => $timestamp,
@@ -268,6 +270,157 @@ class SecondaryInController extends Controller
         return array(
             'status' => 300,
             'message' => 'Data Sudah Disimpan',
+            'redirect' => '',
+            'table' => 'datatable-input',
+            'additional' => [],
+        );
+    }
+
+    public function massStore(Request $request)
+    {
+        $tgltrans = date('Y-m-d');
+        $timestamp = Carbon::now();
+
+        $thisStocker = Stocker::selectRaw("stocker_input.id_qr_stocker, stocker_input.act_costing_ws, stocker_input.color, form_cut_input.no_cut")->
+            leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+            where("id_qr_stocker", $request['txtno_stocker'])->
+            first();
+
+        if ($thisStocker) {
+            $cekdata =  DB::select("
+                SELECT
+                    s.id_qr_stocker,
+                    s.act_costing_ws,
+                    msb.buyer,
+                    no_cut,
+                    style,
+                    s.color,
+                    COALESCE ( msb.size, s.size ) size,
+                    dc.tujuan,
+                    dc.lokasi,
+                    mp.nama_part,
+                IF
+                    ( dc.tujuan = 'SECONDARY LUAR', dc.qty_awal, si.qty_awal ) qty_awal,
+                    s.lokasi lokasi_tujuan,
+                    s.tempat tempat_tujuan
+                FROM
+                    (
+                    SELECT
+                        dc.id_qr_stocker,
+                        ifnull( si.id_qr_stocker, 'x' ) cek_1,
+                        ifnull( sii.id_qr_stocker, 'x' ) cek_2
+                    FROM
+                        dc_in_input dc
+                        LEFT JOIN secondary_inhouse_input si ON dc.id_qr_stocker = si.id_qr_stocker
+                        LEFT JOIN secondary_in_input sii ON dc.id_qr_stocker = sii.id_qr_stocker
+                    WHERE
+                        dc.tujuan = 'SECONDARY DALAM'
+                        AND ifnull( si.id_qr_stocker, 'x' ) != 'x'
+                        AND ifnull( sii.id_qr_stocker, 'x' ) = 'x' UNION
+                    SELECT
+                        dc.id_qr_stocker,
+                        'x' cek_1,
+                    IF
+                        ( sii.id_qr_stocker IS NULL, dc.id_qr_stocker, 'x' ) cek_2
+                    FROM
+                        dc_in_input dc
+                        LEFT JOIN secondary_in_input sii ON dc.id_qr_stocker = sii.id_qr_stocker
+                    WHERE
+                        dc.tujuan = 'SECONDARY LUAR'
+                    AND
+                    IF
+                        ( sii.id_qr_stocker IS NULL, dc.id_qr_stocker, 'x' ) != 'x'
+                    ) md
+                    INNER JOIN stocker_input s ON md.id_qr_stocker = s.id_qr_stocker
+                    LEFT JOIN master_sb_ws msb ON msb.id_so_det = s.so_det_id
+                    INNER JOIN form_cut_input a ON s.form_cut_id = a.id
+                    INNER JOIN part_detail p ON s.part_detail_id = p.id
+                    INNER JOIN master_part mp ON p.master_part_id = mp.id
+                    INNER JOIN marker_input mi ON a.id_marker = mi.kode
+                    LEFT JOIN dc_in_input dc ON s.id_qr_stocker = dc.id_qr_stocker
+                    LEFT JOIN secondary_inhouse_input si ON s.id_qr_stocker = si.id_qr_stocker
+                WHERE
+                    s.act_costing_ws = '".$thisStocker->act_costing_ws."' AND
+                    s.color = '".$thisStocker->color."' AND
+                    a.no_cut = '".$thisStocker->no_cut."'
+            ");
+
+            foreach ($cekdata as $d) {
+                if ($d->tempat_tujuan == 'RAK') {
+                    $rak = DB::table('rack_detail')
+                    ->select('id')
+                    ->where('nama_detail_rak', '=', $d->lokasi_tujuan)
+                    ->get();
+                    $rak_data = $rak ? $rak[0]->id : null;
+
+                    $insert_rak = RackDetailStocker::create([
+                        'nm_rak' => $d->lokasi_tujuan,
+                        'detail_rack_id' => $rak_data,
+                        'stocker_id' => $d->id_qr_stocker,
+                        'qty_in' => $d->qty_awal,
+                        'created_at' => $timestamp,
+                        'updated_at' => $timestamp,
+                    ]);
+                }
+
+                if ($d->tempat_tujuan == 'TROLLEY') {
+                    $lastTrolleyStock = TrolleyStocker::select('kode')->orderBy('id', 'desc')->first();
+                    $trolleyStockNumber = $lastTrolleyStock ? intval(substr($lastTrolleyStock->kode, -5)) + 1 : 1;
+
+                    $trolleyStockArr = [];
+
+                    $thisStocker = Stocker::whereRaw("id_qr_stocker = '" . $d->id_qr_stocker . "'")->first();
+                    $thisTrolley = Trolley::where("nama_trolley", $d->lokasi_tujuan)->first();
+                    if ($thisTrolley && $thisStocker) {
+                        $trolleyCheck = TrolleyStocker::where('stocker_id', $thisStocker->id)->first();
+                        if (!$trolleyCheck) {
+                            TrolleyStocker::create([
+                                "kode" => "TLS".sprintf('%05s', ($trolleyStockNumber)),
+                                "trolley_id" => $thisTrolley->id,
+                                "stocker_id" => $thisStocker->id,
+                                "status" => "active",
+                                "tanggal_alokasi" => date('Y-m-d'),
+                            ]);
+                        }
+
+                        $thisStocker->status = "trolley";
+                        $thisStocker->latest_alokasi = Carbon::now();
+                        $thisStocker->save();
+                    }
+                }
+
+                $saveinhouse = SecondaryIn::updateOrCreate(
+                    ['id_qr_stocker' => $d->id_qr_stocker],
+                    [
+                        'tgl_trans' => $tgltrans,
+                        'qty_awal' => $d->qty_awal,
+                        'qty_reject' => 0,
+                        'qty_replace' => 0,
+                        'qty_in' => $d->qty_awal,
+                        'user' => Auth::user()->name,
+                        'ket' => '',
+                        'created_at' => $timestamp,
+                        'updated_at' => $timestamp,
+                    ]
+                );
+
+                DB::update(
+                    "update stocker_input set status = 'non secondary' where id_qr_stocker = '" . $d->id_qr_stocker . "'"
+                );
+            }
+
+            return array(
+                'status' => 300,
+                'message' => 'Data Sudah Disimpan',
+                'redirect' => '',
+                'table' => 'datatable-input',
+                'additional' => [],
+            );
+        }
+
+        return array(
+            'status' => 400,
+            'message' => 'Data gagal disimpan',
             'redirect' => '',
             'table' => 'datatable-input',
             'additional' => [],

@@ -8,13 +8,18 @@
     ],
     "license": "MIT",
     "require": {
-        "php": "^7.3",
+        "php": "^7.3|^8.0",
+        "avadim/fast-excel-laravel": "^2.7",
+        "avadim/fast-excel-reader": "^2.15",
+        "avadim/fast-excel-writer": "^5.3",
+        "barryvdh/laravel-dompdf": "^2.2",
         "fideloper/proxy": "^4.2",
         "fruitcake/laravel-cors": "^2.0",
         "guzzlehttp/guzzle": "^7.0.1",
         "laravel/framework": "^8.0",
         "laravel/tinker": "^2.0",
         "laravel/ui": "^3.4",
+        "livewire/livewire": "^2.12",
         "maatwebsite/excel": "^3.1",
         "milon/barcode": "^10.0",
         "simplesoftwareio/simple-qrcode": "^4.2",
@@ -35,8 +40,7 @@
     },
     "extra": {
         "laravel": {
-            "dont-discover": [
-            ]
+            "dont-discover": []
         }
     },
     "autoload": {
@@ -59,7 +63,8 @@
     "scripts": {
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-            "@php artisan package:discover --ansi"
+            "@php artisan package:discover --ansi",
+            "@php artisan vendor:publish --force --tag=livewire:assets --ansi"
         ],
         "post-root-package-install": [
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\CutPlan;
+use App\Models\CutPlanOutput;
+use App\Models\CutPlanOutputForm;
 use App\Models\FormCutInput;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
@@ -504,7 +506,7 @@ class CuttingPlanController extends Controller
                 $markerData = $row->formCutInput ? $row->formCutInput->marker : null;
 
                 $markerInfo = "<ul class='list-group'>";
-                $markerInfo = $markerInfo . "<li class='list-group-item'>Kode Marker :<br><b>" . ($markerData ? $markerData->kode : "-") . "</b></li>";
+                $markerInfo = $markerInfo . "<li class='list-group-item'>Kode Marker : <br>" . ($markerData ? "<a href='".route('edit-marker')."/".$markerData->id."' target='_blank'>" : '') . "<b><u>" . ($markerData ? $markerData->kode : "-") . "</u></b>" . ($markerData ? "</a>" : "") . "</li>";
                 $markerInfo = $markerInfo . "<li class='list-group-item'>WS Number :<br><b>" . ($markerData ? $markerData->act_costing_ws : "-") . "</b></li>";
                 $markerInfo = $markerInfo . "<li class='list-group-item'>Buyer :<br><b>" . ($markerData ? $markerData->buyer : "-") . "</b></li>";
                 $markerInfo = $markerInfo . "<li class='list-group-item'>Style :<br><b>" . ($markerData ? $markerData->style : "-") . "</b></li>";
@@ -549,7 +551,7 @@ class CuttingPlanController extends Controller
                     foreach ($markerDetailData as $markerDetail) {
                         $markerDetailInfo .= "
                                 <tr>
-                                    <td>" . $markerDetail->size . "</td>
+                                    <td>" . ($markerDetail->masterSbWs ? $markerDetail->masterSbWs->size : $markerDetail->size) . ($markerDetail->masterSbWs && $markerDetail->masterSbWs->dest && $markerDetail->masterSbWs->dest != "-" ? " - ". $markerDetail->masterSbWs->dest : "") . "</td>
                                     <td>" . $markerDetail->ratio . "</td>
                                     <td>" . $markerDetail->cut_qty . "</td>
                                     <td>" . ($markerDetail->ratio * ($row->formCutInput ? $row->formCutInput->qty_ply : 1)) . "</td>
@@ -623,5 +625,616 @@ class CuttingPlanController extends Controller
                 $query->orderByRaw('FIELD(app, "N", "Y")')->orderBy('no_form_cut_input', 'desc');
             })->toJson();
         }
+    }
+
+    // Cutting Plan Output
+    public function cuttingPlanOutput(Request $request) {
+        if ($request->ajax()) {
+            $date = $request->date;
+
+            $cutPlanOutputQuery = CutPlanOutput::selectRaw('
+                    cutting_plan_output.id,
+                    cutting_plan_output.tgl_plan,
+                    cutting_plan_output.no_meja,
+                    meja.name nama_meja,
+                    cutting_plan_output.id_ws,
+                    cutting_plan_output.ws,
+                    cutting_plan_output.style,
+                    cutting_plan_output.color,
+                    cutting_plan_output.target_1,
+                    cutting_plan_output.pending_1,
+                    cutting_plan_output.target_2,
+                    cutting_plan_output.pending_2,
+                    cutting_plan_output.balance,
+                    cutting_plan_output.cons,
+                    cutting_plan_output.need,
+                    cutting_plan_output.in,
+                    cutting_plan_output.total_in,
+                    cutting_plan_output.material_balance,
+                    cutting_plan_output.use_act,
+                    cutting_plan_output.sisa,
+                    cutting_plan_output.unit,
+                    cutting_plan_output.created_by
+                ')->
+                leftJoin("users as meja", "meja.id", "=", "cutting_plan_output.no_meja");
+
+            if ($date) {
+                $cutPlanOutputQuery->where("tgl_plan", $date);
+            }
+
+            $cutPlanOutput = $cutPlanOutputQuery->orderBy("tgl_plan", "desc")->get();
+
+            return DataTables::of($cutPlanOutput)->toJson();
+        }
+
+        return view(
+            "cutting.cutting-plan.cutting-plan-output",
+            [
+                "page" => "dashboard-cutting", "subPageGroup" => "cuttingplan-cutting", "subPage" => "cut-plan-output",
+            ]
+        );
+    }
+
+    public function showCuttingPlanOutput($id) {
+        $cutPlanData = CutPlanOutput::find($id);
+
+        if ($cutPlanData) {
+            return view(
+                "cutting.cutting-plan.detail-cutting-plan-output",
+                [
+                    "page" => "dashboard-cutting", "subPageGroup" => "cuttingplan-cutting", "subPage" => "cut-plan-output",
+                    "cutPlanData" => $cutPlanData
+                ]
+            );
+        }
+
+        return redirect(route("cut-plan-output"));
+    }
+
+    public function showCutPlanOutputForm(Request $request) {
+        $thisStoredCutPlan = CutPlanOutput::selectRaw("
+                form_cut_input.no_form
+            ")->
+            leftJoin("cutting_plan_output_form", "cutting_plan_output_form.cutting_plan_id", "=", "cutting_plan_output.id")->
+            leftJoin("form_cut_input", "form_cut_input.id", "=", "cutting_plan_output_form.form_cut_id")->
+            where("cutting_plan_output.id", $request->id)->
+            groupBy("form_cut_input.no_form")->
+            get();
+
+        $additionalQuery = "";
+        if ($thisStoredCutPlan->count() > 0) {
+            $i = 0;
+            $additionalQuery .= " AND a.no_form IN (";
+            foreach ($thisStoredCutPlan as $cutPlan) {
+                if ($i+1 == count($thisStoredCutPlan)) {
+                    $additionalQuery .= "'".$cutPlan->no_form . "' ";
+                } else {
+                    $additionalQuery .= "'".$cutPlan->no_form . "' , ";
+                }
+
+                $i++;
+            }
+            $additionalQuery .= ") ";
+        } else {
+            $additionalQuery .= " AND a.no_form IN (null)";
+        }
+
+        if ($request->act_costing_id) {
+            $additionalQuery .= " AND b.act_costing_id = '".$request->act_costing_id."'";
+        }
+        if ($request->act_costing_ws) {
+            $additionalQuery .= " AND b.act_costing_ws = '".$request->act_costing_ws."'";
+        }
+        if ($request->color) {
+            $additionalQuery .= " AND b.color = '".$request->color."'";
+        }
+        if ($request->no_meja) {
+            $additionalQuery .= " AND a.no_meja = '".$request->no_meja."'";
+        }
+
+        $keywordQuery = "";
+        if ($request->search["value"]) {
+            $keywordQuery = "
+                and (
+                    a.id_marker like '%" . $request->search["value"] . "%' OR
+                    a.no_meja like '%" . $request->search["value"] . "%' OR
+                    a.no_form like '%" . $request->search["value"] . "%' OR
+                    a.tgl_form_cut like '%" . $request->search["value"] . "%' OR
+                    b.act_costing_ws like '%" . $request->search["value"] . "%' OR
+                    panel like '%" . $request->search["value"] . "%' OR
+                    b.color like '%" . $request->search["value"] . "%' OR
+                    a.status like '%" . $request->search["value"] . "%' OR
+                    users.name like '%" . $request->search["value"] . "%'
+                )
+            ";
+        }
+
+        $data_spreading = DB::select("
+            SELECT
+                a.id,
+                a.no_meja,
+                a.id_marker,
+                a.no_form,
+                a.tgl_form_cut,
+                b.id marker_id,
+                b.act_costing_ws ws,
+                b.style,
+                b.panel,
+                b.color,
+                a.status,
+                UPPER(users.name) nama_meja,
+                b.panjang_marker,
+                UPPER(b.unit_panjang_marker) unit_panjang_marker,
+                b.comma_marker,
+                UPPER(b.unit_comma_marker) unit_comma_marker,
+                b.lebar_marker,
+                UPPER(b.unit_lebar_marker) unit_lebar_marker,
+                COALESCE(a.total_lembar, 0) total_lembar,
+                a.qty_ply,
+                b.gelar_qty,
+                b.po_marker,
+                b.urutan_marker,
+                b.cons_marker,
+                a.tipe_form_cut,
+                CONCAT(b.panel, ' - ', b.urutan_marker) panel,
+                GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' / ') marker_details
+            FROM `form_cut_input` a
+            left join marker_input b on a.id_marker = b.kode
+            left join marker_input_detail on b.id = marker_input_detail.marker_id
+            left join master_size_new on marker_input_detail.size = master_size_new.size
+            left join users on users.id = a.no_meja
+            where
+                b.cancel = 'N' and
+                marker_input_detail.ratio > 0
+                " . $additionalQuery . "
+                " . $keywordQuery . "
+            GROUP BY a.id
+            ORDER BY b.cancel asc, a.tgl_form_cut desc, a.no_form desc
+        ");
+
+        return DataTables::of($data_spreading)->toJson();
+    }
+
+    public function showCutPlanOutputAvailableForm(Request $request) {
+        $thisStoredCutPlan = CutPlanOutput::selectRaw("
+                form_cut_input.no_form
+            ")->
+            join("cutting_plan_output_form", "cutting_plan_output_form.cutting_plan_id", "=", "cutting_plan_output.id")->
+            join("form_cut_input", "form_cut_input.id", "=", "cutting_plan_output_form.form_cut_id")->
+            where("cutting_plan_output.id", $request->id)->
+            groupBy("form_cut_input.no_form")->
+            get();
+
+        $additionalQuery = "";
+        if ($thisStoredCutPlan->count() > 0) {
+            $i = 0;
+            $additionalQuery .= " AND a.no_form NOT IN (";
+            foreach ($thisStoredCutPlan as $cutPlan) {
+                if ($i+1 == count($thisStoredCutPlan)) {
+                    $additionalQuery .= "'".$cutPlan->no_form . "' ";
+                } else {
+                    $additionalQuery .= "'".$cutPlan->no_form . "' , ";
+                }
+
+                $i++;
+            }
+            $additionalQuery .= ") ";
+        }
+
+        if ($request->act_costing_id) {
+            $additionalQuery .= " AND b.act_costing_id = '".$request->act_costing_id."'";
+        }
+        if ($request->act_costing_ws) {
+            $additionalQuery .= " AND b.act_costing_ws = '".$request->act_costing_ws."'";
+        }
+        if ($request->color) {
+            $additionalQuery .= " AND b.color = '".$request->color."'";
+        }
+        if ($request->no_meja) {
+            $additionalQuery .= " AND (CASE WHEN a.status = 'SPREADING' THEN a.no_meja IS NULL OR a.no_meja = '".$request->no_meja."' ELSE a.no_meja = '".$request->no_meja."' END)";
+        }
+
+        $keywordQuery = "";
+        if ($request->search["value"]) {
+            $keywordQuery = "
+                and (
+                    a.id_marker like '%" . $request->search["value"] . "%' OR
+                    a.no_meja like '%" . $request->search["value"] . "%' OR
+                    a.no_form like '%" . $request->search["value"] . "%' OR
+                    a.tgl_form_cut like '%" . $request->search["value"] . "%' OR
+                    b.act_costing_ws like '%" . $request->search["value"] . "%' OR
+                    panel like '%" . $request->search["value"] . "%' OR
+                    b.color like '%" . $request->search["value"] . "%' OR
+                    a.status like '%" . $request->search["value"] . "%' OR
+                    users.name like '%" . $request->search["value"] . "%'
+                )
+            ";
+        }
+
+        $data_spreading = DB::select("
+            SELECT
+                a.id,
+                a.no_meja,
+                a.id_marker,
+                a.no_form,
+                a.tgl_form_cut,
+                b.id marker_id,
+                b.act_costing_ws ws,
+                b.style,
+                b.panel,
+                b.color,
+                a.status,
+                UPPER(users.name) nama_meja,
+                b.panjang_marker,
+                UPPER(b.unit_panjang_marker) unit_panjang_marker,
+                b.comma_marker,
+                UPPER(b.unit_comma_marker) unit_comma_marker,
+                b.lebar_marker,
+                UPPER(b.unit_lebar_marker) unit_lebar_marker,
+                COALESCE(a.total_lembar, 0) total_lembar,
+                a.qty_ply,
+                b.gelar_qty,
+                b.po_marker,
+                b.urutan_marker,
+                b.cons_marker,
+                a.tipe_form_cut,
+                CONCAT(b.panel, ' - ', b.urutan_marker) panel,
+                GROUP_CONCAT(DISTINCT CONCAT(marker_input_detail.size, '(', marker_input_detail.ratio, ')') ORDER BY master_size_new.urutan ASC SEPARATOR ' / ') marker_details
+            FROM `form_cut_input` a
+            left join marker_input b on a.id_marker = b.kode
+            left join marker_input_detail on b.id = marker_input_detail.marker_id
+            left join master_size_new on marker_input_detail.size = master_size_new.size
+            left join users on users.id = a.no_meja
+            where
+                b.cancel = 'N' and
+                marker_input_detail.ratio > 0
+                " . $additionalQuery . "
+                " . $keywordQuery . "
+            GROUP BY a.id
+            ORDER BY b.cancel asc, a.tgl_form_cut desc, a.no_form desc
+        ");
+
+        return DataTables::of($data_spreading)->toJson();
+    }
+
+    public function checkAllForms(Request $request) {
+        $thisStoredCutPlan = CutPlanOutput::selectRaw("
+                form_cut_input.no_form
+            ")->
+            join("cutting_plan_output_form", "cutting_plan_output_form.cutting_plan_id", "=", "cutting_plan_output.id")->
+            join("form_cut_input", "form_cut_input.id", "=", "cutting_plan_output_form.form_cut_id")->
+            where("cutting_plan_output.id", $request->id)->
+            groupBy("form_cut_input.no_form")->
+            get();
+
+        $additionalQuery = "";
+        if ($thisStoredCutPlan->count() > 0) {
+            $i = 0;
+            $additionalQuery .= " AND a.no_form NOT IN (";
+            foreach ($thisStoredCutPlan as $cutPlan) {
+                if ($i+1 == count($thisStoredCutPlan)) {
+                    $additionalQuery .= "'".$cutPlan->no_form . "' ";
+                } else {
+                    $additionalQuery .= "'".$cutPlan->no_form . "' , ";
+                }
+
+                $i++;
+            }
+            $additionalQuery .= ") ";
+        }
+
+        if ($request->act_costing_id) {
+            $additionalQuery .= " AND b.act_costing_id = '".$request->act_costing_id."'";
+        }
+        if ($request->act_costing_ws) {
+            $additionalQuery .= " AND b.act_costing_ws = '".$request->act_costing_ws."'";
+        }
+        if ($request->color) {
+            $additionalQuery .= " AND b.color = '".$request->color."'";
+        }
+        if ($request->no_meja) {
+            $additionalQuery .= " AND (CASE WHEN a.status = 'SPREADING' THEN a.no_meja IS NULL OR a.no_meja = '".$request->no_meja."' ELSE a.no_meja = '".$request->no_meja."' END)";
+        }
+
+        $keywordQuery = "";
+        if ($request->search) {
+            $keywordQuery = "
+                and (
+                    a.id_marker like '%" . $request->search["value"] . "%' OR
+                    a.no_meja like '%" . $request->search["value"] . "%' OR
+                    a.no_form like '%" . $request->search["value"] . "%' OR
+                    a.tgl_form_cut like '%" . $request->search["value"] . "%' OR
+                    b.act_costing_ws like '%" . $request->search["value"] . "%' OR
+                    panel like '%" . $request->search["value"] . "%' OR
+                    b.color like '%" . $request->search["value"] . "%' OR
+                    a.status like '%" . $request->search["value"] . "%' OR
+                    users.name like '%" . $request->search["value"] . "%'
+                )
+            ";
+        }
+
+        $data_spreading = DB::select("
+            SELECT
+                a.id
+            FROM `form_cut_input` a
+            left join marker_input b on a.id_marker = b.kode
+            left join marker_input_detail on b.id = marker_input_detail.marker_id
+            left join master_size_new on marker_input_detail.size = master_size_new.size
+            left join users on users.id = a.no_meja
+            where
+                b.cancel = 'N' and
+                marker_input_detail.ratio > 0
+                " . $additionalQuery . "
+                " . $keywordQuery . "
+            GROUP BY a.id
+            ORDER BY b.cancel asc, a.tgl_form_cut desc, a.no_form desc
+        ");
+
+        return array_column($data_spreading, 'id');
+    }
+
+    public function createCuttingPlanOutput(Request $request) {
+        $mejas = User::select("id", "name", "username")->where('type', 'meja')->get();
+
+        $orderList = DB::connection('mysql_sb')->
+            table('act_costing')->
+            selectRaw('
+                act_costing.id,
+                act_costing.kpno,
+                act_costing.styleno,
+                act_costing.qty order_qty,
+                mastersupplier.supplier buyer,
+                GROUP_CONCAT(DISTINCT so_det.color SEPARATOR ", ") colors
+            ')->
+            leftJoin('mastersupplier', 'mastersupplier.Id_Supplier', '=', 'act_costing.id_buyer')->
+            leftJoin('so', 'so.id_cost', '=', 'act_costing.id')->
+            leftJoin('so_det', 'so_det.id_so', '=', 'so.id')->
+            where('act_costing.cost_date', '>=', date('Y-m-d', strtotime(date('Y-m-d').' -1 year')))->
+            where('act_costing.type_ws', 'STD')->
+            groupBy('act_costing.id')->
+            get();
+
+        return view("cutting.cutting-plan.create-cutting-plan-output",
+            [
+                "orderList" => $orderList, "mejas" => $mejas,
+                "page" => "dashboard-cutting", "subPageGroup" => "cuttingplan-cutting", "subPage" => "cut-plan-output"
+            ]
+        );
+    }
+
+    public function storeCuttingPlanOutput(Request $request) {
+        $validatedRequest = $request->validate([
+            "tgl_plan" => "required",
+            "no_meja" => "required",
+            "id_ws" => "required",
+            "ws" => "required",
+            "style" => "required",
+            "color" => "required",
+            "panel" => "required",
+            "target_1" => "required",
+            "pending_1" => "required",
+            "target_2" => "required",
+            "pending_2" => "required",
+            "cons" => "required",
+            "need" => "required",
+            "unit" => "required"
+        ]);
+
+        $cutPlanOutputInsert = CutPlanOutput::create([
+            "tgl_plan" => $validatedRequest['tgl_plan'],
+            "no_meja" => $validatedRequest['no_meja'],
+            "id_ws" => $validatedRequest['id_ws'],
+            "ws" => $validatedRequest['ws'],
+            "style" => $validatedRequest['style'],
+            "color" => $validatedRequest['color'],
+            "panel" => $validatedRequest['panel'],
+            "target_1" => $validatedRequest['target_1'],
+            "pending_1" => $validatedRequest['pending_1'],
+            "target_2" => $validatedRequest['target_2'],
+            "pending_2" => $validatedRequest['pending_2'],
+            "balance" => $validatedRequest['target_1'] + $validatedRequest['pending_1'] + $validatedRequest['target_2'] + $validatedRequest['pending_2'],
+            "cons" => $validatedRequest['cons'],
+            "need" => $validatedRequest['need'],
+            "in" => 0,
+            "total_in" => 0,
+            "material_balance" => 0,
+            "use_act" => 0,
+            "sisa" => 0,
+            "unit" => $validatedRequest['unit'],
+            "created_by" => Auth::user()->id
+        ]);
+
+        if ($cutPlanOutputInsert) {
+            return array(
+                'status' => 200,
+                'message' => 'Cut Plan Output berhasil ditambahkan',
+                'redirect' => '',
+                'table' => 'datatable-cut-plan-output',
+            );
+        }
+
+        return array(
+            'status' => 400,
+            'message' => 'Cut Plan Output gagal ditambahkan',
+            'redirect' => '',
+            'table' => 'datatable-cut-plan-output',
+        );
+    }
+
+    public function updateCuttingPlanOutput(Request $request) {
+        $validatedRequest = $request->validate([
+            "id" => "required",
+            "tgl_plan" => "required",
+            "no_meja" => "required",
+            "id_ws" => "required",
+            "ws" => "required",
+            "style" => "required",
+            "color" => "required",
+            "target_1" => "required",
+            "pending_1" => "required",
+            "target_2" => "required",
+            "pending_2" => "required",
+            "balance" => "required",
+            "cons" => "required",
+            "need" => "required",
+            "in" => "required",
+            "total_in" => "required",
+            "material_balance" => "required",
+            "use_act" => "required",
+            "sisa" => "required",
+            "unit" => "required"
+        ]);
+
+        $cutPlanOutputUpdate = CutPlanOutput::where("id", $validatedRequest['id'])->
+            update([
+                "tgl_plan" => $validatedRequest['tgl_plan'],
+                "no_meja" => $validatedRequest['no_meja'],
+                "id_ws" => $validatedRequest['id_ws'],
+                "ws" => $validatedRequest['ws'],
+                "style" => $validatedRequest['style'],
+                "color" => $validatedRequest['color'],
+                "target_1" => $validatedRequest['target_1'],
+                "pending_1" => $validatedRequest['pending_1'],
+                "target_2" => $validatedRequest['target_2'],
+                "pending_2" => $validatedRequest['pending_2'],
+                "balance" => $validatedRequest['balance'],
+                "cons" => $validatedRequest['cons'],
+                "need" => $validatedRequest['need'],
+                "in" => $validatedRequest['in'],
+                "total_in" => $validatedRequest['total_in'],
+                "material_balance" => $validatedRequest['material_balance'],
+                "use_act" => $validatedRequest['use_act'],
+                "sisa" => $validatedRequest['sisa'],
+                "unit" => $validatedRequest['unit'],
+                "created_by" => Auth::user()->id
+            ]);
+
+        if ($cutPlanOutputUpdate) {
+            return array(
+                'status' => 200,
+                'message' => 'Cut Plan Output berhasil diubah',
+                'redirect' => '',
+                'table' => 'datatable-cut-plan-output',
+            );
+        }
+
+        return array(
+            'status' => 400,
+            'message' => 'Cut Plan Output gagal diubah',
+            'redirect' => '',
+            'table' => 'datatable-cut-plan-output',
+        );
+    }
+
+    public function destroyCuttingPlanOutput($id) {
+        $deleteCutPlan = CutPlanOutput::find($id)->delete();
+
+        if ($deleteCutPlan) {
+            return array(
+                'status' => 200,
+                'message' => 'Cut Plan berhasil dihapus',
+                'redirect' => '',
+                'table' => 'datatable-cut-plan-output',
+            );
+        }
+
+        return array(
+            'status' => 400,
+            'message' => 'Cut Plan gagal dihapus',
+            'redirect' => '',
+            'table' => 'datatable-cut-plan-output',
+        );
+    }
+
+    public function addCuttingPlanOutputForm(Request $request) {
+        $id = $request->id;
+        $tglPlan = $request->tgl_plan;
+        $noMeja = $request->no_meja;
+        $forms = $request->forms;
+
+        $dateFormat = date("dmY", strtotime($tglPlan));
+        $noCutPlan = "CP-" . $dateFormat;
+
+        if ($id) {
+            if ($forms && count($forms) > 0) {
+                $addFormsArray = [];
+
+                for ($i = 0; $i < count($forms); $i++) {
+                    $form = FormCutInput::find($forms[$i]);
+
+                    CutPlan::updateOrCreate(
+                        ["tgl_plan" => $tglPlan, "no_cut_plan" => $noCutPlan,"no_form_cut_input" => $form->no_form],
+                        ["app" => "Y", "app_by" => Auth::user()->id, "app_at" => Carbon::now()]
+                    );
+
+                    array_push($addFormsArray, [
+                        "cutting_plan_id" => $id,
+                        "form_cut_id" => $form->id,
+                        "no_form" => $form->no_form,
+                        "created_by" => Auth::user()->id
+                    ]);
+                }
+
+                if (count($addFormsArray) > 0) {
+                    $addForms = CutPlanOutputForm::upsert($addFormsArray, ['cutting_plan_id', "form_cut_id", "no_form"], ['created_by']);
+
+                    if ($addForms) {
+                        FormCutInput::whereIn("id", $forms)->where("status", "SPREADING")->update([
+                            'no_meja' => $noMeja,
+                            'app' => 'Y',
+                            'app_by' => Auth::user()->id,
+                        ]);
+
+                        return array(
+                            'status' => 200,
+                            'message' => 'Form berhasil ditambahkan',
+                            'redirect' => '',
+                            'table' => 'datatable-cut-plan-output-form',
+                        );
+                    }
+                }
+
+                return array(
+                    'status' => 400,
+                    'message' => 'Form Output gagal ditambahkan',
+                    'redirect' => '',
+                    'table' => 'datatable-cut-plan-output-form',
+                );
+            }
+
+            return array(
+                'status' => 400,
+                'message' => 'Tidak ada form yang dipilih',
+                'redirect' => '',
+                'table' => 'datatable-cut-plan-output-form',
+            );
+        }
+
+        return array(
+            'status' => 400,
+            'message' => 'Plan tidak diketahui',
+            'redirect' => '',
+            'table' => 'datatable-cut-plan-output-form',
+        );
+    }
+
+    public function removeCuttingPlanOutputForm($id) {
+        $removeForm = CutPlan::find($id)->delete();
+
+        if ($removeForm) {
+            return array(
+                'status' => 200,
+                'message' => 'Form berhasil dihapus',
+                'redirect' => '',
+                'table' => 'datatable-cut-plan-output-form',
+            );
+        }
+
+        return array(
+            'status' => 400,
+            'message' => 'Form gagal dihapus',
+            'redirect' => '',
+            'table' => 'datatable-cut-plan-output-form',
+        );
     }
 }

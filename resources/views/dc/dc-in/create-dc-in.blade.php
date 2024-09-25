@@ -19,7 +19,9 @@
             <div class="modal-dialog modal-lg modal-dialog-scrollable">
                 <div class="modal-content">
                     <div class="modal-header bg-sb text-light">
-                        <h1 class="modal-title fs-5" id="updateMassTmpDcModalLabel"></h1>
+                        <div style="max-width: 80%; max-height: 100%; overflow: auto;">
+                            <h1 class="modal-title fs-5" id="updateMassTmpDcModalLabel"></h1>
+                        </div>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
@@ -56,8 +58,7 @@
     </div>
 
     {{-- Update Lokasi --}}
-    <div class="modal fade" id="updateTmpDcModal" tabindex="-1" role="dialog" aria-labelledby="updateTmpDcModalLabel"
-        aria-hidden="true">
+    <div class="modal fade" id="updateTmpDcModal" tabindex="-1" role="dialog" aria-labelledby="updateTmpDcModalLabel" aria-hidden="true">
         <form action="{{ route('update_tmp_dc_in') }}" method="post" name='form_modal' onsubmit="submitForm(this, event)">
             @method('PUT')
             <div class="modal-dialog modal-lg modal-dialog-scrollable">
@@ -146,6 +147,7 @@
                             <div class="input-group">
                                 <input type="text" class="form-control form-control-sm border-input" name="txtqr" id="txtqr" data-prevent-submit="true" autocomplete="off" enterkeyhint="go" autofocus>
                                 <button class="btn btn-sm btn-primary" type="button" id="scan_qr" onclick="scanqr()">Scan</button>
+                                <button class="btn btn-sm btn-success d-none" type="button" id="mass_scan_qr" onclick="massscanqr()">Mass Scan</button>
                             </div>
                         </div>
                     </div>
@@ -250,7 +252,9 @@
                         <thead>
                             <tr>
                                 <th>Act</th>
-                                <th>Check</th>
+                                <th>
+                                    <input type="checkbox" class="form-check" id="check-all-stocker" style="scale: 1.5;" onchange="checkAll(this)">
+                                </th>
                                 <th>Stocker</th>
                                 <th>Part</th>
                                 <th>Tujuan</th>
@@ -386,7 +390,6 @@
         }
 
         function resetCheckedStocker() {
-            console.log("asdasdasd");
             document.getElementById("checked-stocker-count").innerText = 0;
         }
 
@@ -442,6 +445,89 @@
                         let html = $.ajax({
                             type: "post",
                             url: '{{ route('insert_tmp_dc_in') }}',
+                            data: {
+                                txtqrstocker: txtqrstocker,
+                                txttuj_h: document.form.txttuj_h.value,
+                                txtlok_h: response.lokasi,
+                                txttempat_h: response.tempat
+                            },
+                            success: function(response) {
+                                if (document.getElementById("loading")) {
+                                    document.getElementById("loading").classList.add("d-none");
+                                }
+
+                                $("#txtqr").val('');
+                                getdatatmp();
+                                initScan();
+                            },
+                            error: function(request, status, error) {
+                                if (document.getElementById("loading")) {
+                                    document.getElementById("loading").classList.add("d-none");
+                                }
+
+                                alert(request.responseText);
+                            },
+                        });
+                    } else {
+                        if (document.getElementById("loading")) {
+                            document.getElementById("loading").classList.add("d-none");
+                        }
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: 'Stocker Tidak Ditemukan',
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                            timerProgressBar: true
+                        })
+                    }
+                },
+                error: function(request, status, error) {
+                    if (document.getElementById("loading")) {
+                        document.getElementById("loading").classList.add("d-none");
+                    }
+
+                    alert(request.responseText);
+                },
+            });
+        };
+
+        function massscanqr() {
+            if (document.getElementById("loading")) {
+                document.getElementById("loading").classList.remove("d-none");
+            }
+
+            let txtqrstocker = document.form.txtqr.value;
+            $.ajax({
+                url: '{{ route('show_data_header') }}',
+                method: 'get',
+                data: {
+                    txtqrstocker: txtqrstocker
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response) {
+                        document.getElementById('txtws').value = response.act_costing_ws;
+                        document.getElementById('txtbuyer').value = response.buyer;
+                        document.getElementById('txtstyle').value = response.styleno;
+                        document.getElementById('txtcolor').value = response.color;
+                        document.getElementById('txtshell').value = response.panel;
+                        document.getElementById('txtnocut').value = response.no_cut;
+                        document.getElementById('txtsize').value = response.size;
+                        document.getElementById('txtgroup').value = response.grouplot;
+                        document.getElementById('txtqtyply_h').value = response.qty_ply;
+                        document.getElementById('txtrange_awal').value = response.range_awal;
+                        document.getElementById('txtrange_akhir').value = response.range_akhir;
+                        document.getElementById('txtkode').value = response.kode;
+                        document.getElementById('txttuj_h').value = response.tujuan;
+                        document.getElementById('txtlok_h').value = response.lokasi;
+                        document.getElementById('txttempat_h').value = response.tempat;
+
+                        let html = $.ajax({
+                            type: "post",
+                            url: '{{ route('mass_insert_tmp_dc_in') }}',
                             data: {
                                 txtqrstocker: txtqrstocker,
                                 txttuj_h: document.form.txttuj_h.value,
@@ -553,13 +639,14 @@
                     },
                     {
                         targets: [1],
+                        className: "text-center",
                         render: (data, type, row, meta) => {
 
                             if (row.cek_stat != 'x') {
                                 return `
                                     <div class="d-flex justify-content-center">
                                         <div class="form-check mt-1 mb-0">
-                                            <input class="form-check-input tmp_dc_stock_check" type="checkbox" data-tujuan-tempat-proses="`+row.tujuan+`-`+row.tempat+`-`+row.lokasi+`" name="tmp_dc_stock[`+meta.row+`]" id="tmp_dc_stock_`+meta.row+`" value="`+data+`" onchange="filterCheck(this)">
+                                            <input class="form-check-input tmp_dc_stock_check" type="checkbox" data-tujuan-tempat-proses="`+row.tujuan+`-`+row.tempat+`-`+row.lokasi+`" name="tmp_dc_stock[`+meta.row+`]" id="tmp_dc_stock_`+meta.row+`" value="`+data+`" onchange="filterCheck(this)" style="scale: 1.5;">
                                         </div>
                                     </div>
                                 `;
@@ -739,6 +826,35 @@
             let result_fix = Math.ceil(result)
             if (!isNaN(result_fix)) {
                 document.getElementById("txtqtyin").value = result_fix;
+            }
+        }
+
+        async function checkAll(element) {
+            let tmpDcStockCheck = document.getElementsByClassName('tmp_dc_stock_check');
+
+            if (tmpDcStockCheck) {
+                let checkedTmpDcStock = 0;
+
+                if (element.checked) {
+                    for (let i = 0; i < tmpDcStockCheck.length; i++) {
+                        if (tmpDcStockCheck[i].getAttribute('data-tujuan-tempat-proses') == tmpDcStockCheck[0].getAttribute('data-tujuan-tempat-proses')) {
+                            tmpDcStockCheck[i].checked = true;
+                            tmpDcStockCheck[i].removeAttribute('disabled');
+
+                            checkedTmpDcStock++;
+                        } else {
+                            tmpDcStockCheck[i].checked = false;
+                            tmpDcStockCheck[i].setAttribute('disabled', true);
+                        }
+                    }
+                } else {
+                    for (let i = 0; i < tmpDcStockCheck.length; i++) {
+                        tmpDcStockCheck[i].checked = false;
+                        tmpDcStockCheck[i].removeAttribute('disabled');
+                    }
+                }
+
+                document.getElementById('checked-stocker-count').innerText = checkedTmpDcStock;
             }
         }
 

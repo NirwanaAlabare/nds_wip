@@ -394,7 +394,7 @@
                                             <th class="label-scan">ID Roll</th>
                                             <th class="label-scan">ID Item</th>
                                             <th class="label-scan">Lot</th>
-                                            <th class="label-scan">Roll</th>
+                                            <th class="label-scan">Roll Buyer</th>
                                             <th class="label-scan">Qty</th>
                                             <th class="label-scan">Unit</th>
                                             <th>Sisa Gelaran</th>
@@ -405,11 +405,13 @@
                                             <th>Kepala Kain</th>
                                             <th>Sisa Tidak Bisa</th>
                                             <th>Reject</th>
+                                            <th>Piping</th>
                                             <th>Sisa Kain</th>
                                             <th class="label-calc">Total Pemakaian Per Roll</th>
                                             <th class="label-calc">Short Roll +/-</th>
-                                            <th>Piping</th>
+                                            <th class="label-calc">Short Roll (%)</th>
                                             <th>Remark</th>
+                                            <th id="th-berat-amparan" class="d-none">Berat 1 Ampar</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -427,11 +429,13 @@
                                             <th id="total-kepala-kain"></th>
                                             <th id="total-sisa-tidak-bisa"></th>
                                             <th id="total-reject"></th>
+                                            <th id="total-piping"></th>
                                             <th id="total-sisa-kain"></th>
                                             <th id="total-total-pemakaian"></th>
                                             <th id="total-short-roll"></th>
-                                            <th id="total-piping"></th>
+                                            <th id="total-short-roll-percentage"></th>
                                             <th id="total-remark"></th>
+                                            <th id="total-berat-amparan" class="d-none"></th>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -441,7 +445,7 @@
                             <div class="row align-items-end">
                                 <div class="col-md-3">
                                     <div class="mb-3">
-                                        <label class="form-labe label-calc"><small><b>Cons. Actual 1 Gelaran</b></small></label>
+                                        <label class="form-labe label-calc"><small><b>Cons. Actual</b></small></label>
                                         <input type="text" class="form-control form-control-sm border-calc" name="cons_actual_gelaran" id="cons_actual_gelaran" readonly>
                                     </div>
                                 </div>
@@ -476,7 +480,7 @@
                                 </div>
                                 <div class="col-md-3">
                                     <div class="mb-3">
-                                        <label class="form-labe label-calc"><small><b>Cons. Actual 1 Gelaran Tanpa Short Roll</b></small></label>
+                                        <label class="form-labe label-calc"><small><b>Cons. Actual Tanpa Short Roll</b></small></label>
                                         <input type="text" class="form-control form-control-sm border-calc" name="cons_actual_gelaran_short_rolless" id="cons_actual_gelaran_short_rolless" readonly>
                                     </div>
                                 </div>
@@ -552,10 +556,16 @@
                                     <input type="text" class="form-control form-control-sm" id="current_lot" name="current_lot">
                                 </div>
                             </div>
-                            <div class="col-3">
+                            <div class="col-3 d-none">
                                 <div class="mb-3">
                                     <label class="form-label" id="current_roll_label"><small><b>Roll</b></small></label>
                                     <input type="text" class="form-control form-control-sm" id="current_roll" name="current_roll">
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="mb-3">
+                                    <label class="form-label" id="current_roll_buyer_label"><small><b>Roll Buyer</b></small></label>
+                                    <input type="text" class="form-control form-control-sm" id="current_roll_buyer" name="current_roll_buyer">
                                 </div>
                             </div>
                             <div class="col-6">
@@ -628,44 +638,75 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-4">
-                                <div class="mb-3">
-                                    <label class="form-label label-input"><small><b>Group</b></small></label>
-                                    <input type="text" class="form-control form-control-sm border-input" id="current_group" name="current_group">
-                                </div>
-                            </div>
-                            <div class="col-3 d-none">
-                                <div class="mb-3">
-                                    <label class="form-label label-input"><small><b>Group Number</b></small></label>
-                                    <input type="text" class="form-control form-control-sm border-input" id="current_group_stocker" name="current_group_stocker">
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="mb-3">
-                                    <label class="form-label label-calc"><small><b>Estimasi Amparan</b></small></label>
-                                    <input type="number" class="form-control form-control-sm border-calc"
-                                        id="current_est_amparan" name="current_est_amparan" step=".01" readonly>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="mb-3">
-                                    <label class="form-label label-sb"><small><b>Lembar Gelaran</b></small></label>
-                                    <input type="hidden" id="lembar_gelaran" name="lembar_gelaran">
-                                    <input type="number" class="form-control form-control-sm border-sb" id="current_lembar_gelaran" name="current_lembar_gelaran"
-                                        onkeyup="
-                                            calculateTotalPemakaian();
-                                            calculateShortRoll();
-                                            calculateRemark();
-                                            updatePlyProgress();
-                                            calculateSisaKain();
-                                        "
-                                        onchange="
-                                            calculateTotalPemakaian();
-                                            calculateShortRoll();
-                                            calculateRemark();
-                                            updatePlyProgress();
-                                            calculateSisaKain();
-                                        ">
+                            <div class="col-12">
+                                <div class="row">
+                                    <div class="col d-none" id="berat_amparan">
+                                        <div class="mb-3">
+                                            <label class="form-label label-input"><small><b>Berat Amparan</b></small></label>
+                                            <div class="input-group input-group-sm mb-3">
+                                                <input type="number" class="form-control form-control-sm " id="current_berat_amparan" name="current_berat_amparan" step=".01"
+                                                    onkeyup="
+                                                        calculateSambungan();
+                                                        calculateRemark();
+                                                        calculateShortRoll();
+                                                        calculateTotalPemakaian();
+                                                        calculateEstAmpar();
+                                                        // calculateSisaKain();
+                                                    "
+
+                                                    onchange="
+                                                        calculateSambungan();
+                                                        calculateRemark();
+                                                        calculateShortRoll();
+                                                        calculateTotalPemakaian();
+                                                        calculateEstAmpar();
+                                                        // calculateSisaKain();
+                                                    "
+                                                >
+                                                <span class="input-group-text">KG</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="mb-3">
+                                            <label class="form-label label-input"><small><b>Group</b></small></label>
+                                            <input type="text" class="form-control form-control-sm border-input" id="current_group" name="current_group">
+                                        </div>
+                                    </div>
+                                    <div class="col d-none">
+                                        <div class="mb-3">
+                                            <label class="form-label label-input"><small><b>Group Number</b></small></label>
+                                            <input type="text" class="form-control form-control-sm border-input" id="current_group_stocker" name="current_group_stocker">
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="mb-3">
+                                            <label class="form-label label-calc"><small><b>Estimasi Amparan</b></small></label>
+                                            <input type="number" class="form-control form-control-sm border-calc"
+                                                id="current_est_amparan" name="current_est_amparan" step=".01" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="mb-3">
+                                            <label class="form-label label-sb"><small><b>Lembar Gelaran</b></small></label>
+                                            <input type="hidden" id="lembar_gelaran" name="lembar_gelaran">
+                                            <input type="number" class="form-control form-control-sm border-sb" id="current_lembar_gelaran" name="current_lembar_gelaran"
+                                                onkeyup="
+                                                    calculateTotalPemakaian();
+                                                    calculateShortRoll();
+                                                    calculateRemark();
+                                                    updatePlyProgress();
+                                                    calculateSisaKain();
+                                                "
+                                                onchange="
+                                                    calculateTotalPemakaian();
+                                                    calculateShortRoll();
+                                                    calculateRemark();
+                                                    updatePlyProgress();
+                                                    calculateSisaKain();
+                                                ">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-12">
@@ -769,12 +810,22 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-3">
-                                <div class="mb-3">
-                                    <label class="form-label label-calc"><small><b>Short Roll +/-</b></small></label>
-                                    <div class="input-group input-group-sm mb-3">
-                                        <input type="number" class="form-control form-control-sm border-calc" id="current_short_roll" name="current_short_roll" step=".01" readonly>
-                                        <span class="input-group-text input-group-unit"></span>
+                            <div class="col-6 col-md-3">
+                                <div class="row align-items-end">
+                                    <div class="col-8">
+                                        <div class="mb-3">
+                                            <label class="form-label label-calc"><small><b>Short Roll +/-</b></small></label>
+                                            <div class="input-group input-group-sm mb-3">
+                                                <input type="number" class="form-control form-control-sm border-calc" id="current_short_roll" name="current_short_roll" step=".01" readonly>
+                                                <span class="input-group-text input-group-unit"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="mb-3">
+                                            <label class="form-label label-calc"><small><b>(%)</b></small></label>
+                                            <input type="number" class="form-control form-control-sm border-calc" id="current_short_roll_percentage" name="current_short_roll_percentage" step=".01" readonly>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -805,8 +856,14 @@
                                 </div>
                             </div>
                             <div class="col-md-12">
-                                <button type="button" class="btn btn-success btn-sm btn-block my-3" id="stopLapButton" onclick="storeTimeRecord()"><i class="fa fa-check"></i> Simpan</button>
-                                <button type="button" class="btn btn-no btn-sm btn-block my-3" id="stopLapButton" onclick="deleteTimeRecord()"><i class="fa fa-trash"></i> Hapus</button>
+                                <div class="row justify-content-between">
+                                    <div class="col-md-4">
+                                        <button type="button" class="btn btn-no btn-sm btn-block my-3 fw-bold" id="stopLapButton" onclick="deleteTimeRecord()"><i class="fa fa-trash"></i> HAPUS</button>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <button type="button" class="btn btn-yes btn-sm btn-block my-3 fw-bold" id="stopLapButton" onclick="storeTimeRecord()"><i class="fa fa-save"></i> SIMPAN</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </form>
@@ -898,7 +955,7 @@
         }
 
         // -Calculate Cons. Actual 1 Gelaran-
-        async function calculateConsActualGelaran(unit, totalQtyFabric, totalKepalaKain, totalSisaTidakBisa, totalReject, totalSisaKain, totalPiping, totalShortRoll) {
+        function calculateConsActualGelaran(unit, totalQtyFabric, totalKepalaKain, totalSisaTidakBisa, totalReject, totalSisaKain, totalPiping, totalShortRoll, totalLembar, totalTotalPemakaian) {
             let unitVar = unit;
             let totalQtyFabricVar = totalQtyFabric ? Number(totalQtyFabric) : 0;
             let totalKepalaKainVar = totalKepalaKain ? Number(totalKepalaKain) : 0;
@@ -907,12 +964,14 @@
             let totalSisaKainVar = totalSisaKain ? Number(totalSisaKain) : 0;
             let totalPipingVar = totalPiping ? Number(totalPiping) : 0;
             let totalShortRollVar = totalShortRoll ? Number(totalShortRoll) : 0;
+            let totalLembarVar = totalLembar ? Number(totalLembar) : 0;
+            let totalTotalPemakaianVar = totalTotalPemakaian ? Number(totalTotalPemakaian) : 0;
 
-            let consActualGelaran = (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar)/totalQtyCut;
-            let consActualGelaranShortRolless = (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar + totalShortRollVar)/totalQtyCut;
+            let consActualGelaran = (totalLembar * totalRatio) > 0 ? (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar)/(totalLembarVar * totalRatio) : 0;
+            let consActualGelaranShortRolless = (totalLembar * totalRatio) > 0 ? (totalQtyFabricVar - totalKepalaKainVar - totalSisaTidakBisaVar - totalRejectVar - totalSisaKainVar - totalPipingVar + totalShortRollVar)/(totalLembarVar * totalRatio) : 0;
 
             document.getElementById('cons_actual_gelaran').value = Number(consActualGelaran).round(3);
-            document.getElementById('cons_actual_gelaran_short_rolless').value = Number(consActualGelaranShortRolless).round(3);
+            document.getElementById('cons_actual_gelaran_short_rolless').value = Number(consActualGelaranShortRolless.toString().replace(/[e,-]/ig,"")).round(3);
 
             document.getElementById("unit_cons_actual_gelaran").value = unitVar.toLowerCase();
             document.getElementById("unit_cons_actual_gelaran_short_rolless").value = unitVar.toLowerCase();
@@ -937,7 +996,7 @@
             let consWsUpRateNoSr = 0;
             let consMarkerUpRateNoSr = 0;
 
-            if (unitConsActualGelaran != "METER" && unitConsActualGelaranShortRolless != "METER") {
+            if ((unitConsActualGelaran == "YARD" || unitConsActualGelaran == "YRD") && (unitConsActualGelaranShortRolless == "YARD" || unitConsActualGelaranShortRolless == "YRD")) {
                 let consActualGelaranConverted = conversion(consActualGelaran, "METER", unitConsActualGelaran.toUpperCase());
                 let consActualGelaranShortRollessConverted = conversion(consActualGelaranShortRolless, "METER", unitConsActualGelaranShortRolless.toUpperCase());
 
@@ -946,12 +1005,16 @@
 
                 consWsUpRateNoSr = ((consActualGelaranShortRollessConverted - consWs)/consWs) * 100;
                 consMarkerUpRateNoSr = ((consActualGelaranShortRollessConverted - consMarker)/consMarker) * 100;
+
+                // console.log("cons actual gelaran converted "+consActualGelaranConverted, consWs, consMarker, consWsUpRate, consMarkerUpRate);
             } else {
                 consWsUpRate = ((consActualGelaran - consWs)/consWs) * 100;
                 consMarkerUpRate = ((consActualGelaran - consMarker)/consMarker) * 100;
 
                 consWsUpRateNoSr = ((consActualGelaranShortRolless - consWs)/consWs) * 100;
                 consMarkerUpRateNoSr = ((consActualGelaranShortRolless - consMarker)/consMarker) * 100;
+
+                // console.log("cons actual gelaran "+consActualGelaran, consWs, consMarker);
             }
 
             document.getElementById('cons_ws_uprate').value = Number(consWsUpRate).round(2);
@@ -1005,19 +1068,22 @@
         var totalSisaKain = 0;
         var totalTotalPemakaian = 0;
         var totalShortRoll = 0;
+        var totalShortRollPercentage = 0;
         var totalRemark = 0;
         var totalLembar = 0;
         var totalPiping = 0;
         var totalQtyFabric = 0;
+        var totalBeratAmparan = 0;
         var latestStatus = "";
         var latestUnit = "";
+        var latestBerat = "";
 
         function appendSummaryItem(data) {
             totalLembar += Number(data.lembar_gelaran);
             totalPiping += Number(data.piping);
-            totalQtyFabric += Number(data.qty);
             latestStatus != 'extension complete' ? totalQtyFabric += Number(data.qty) : '';
             latestUnit = data.unit;
+            latestBerat = data.berat_amparan;
 
             let tr = document.createElement('tr');
             let td1 = document.createElement('td');
@@ -1042,13 +1108,14 @@
             let td20 = document.createElement('td');
             let td21 = document.createElement('td');
             let td22 = document.createElement('td');
+            let td23 = document.createElement('td');
             td1.innerHTML = (latestStatus != 'extension complete' ? totalSummaryData + 1 : "");
             td2.innerHTML = data.group_roll ? data.group_roll : '-';
             td3.innerHTML = data.group_stocker ? data.group_stocker : '-';
             td4.innerHTML = data.id_roll ? data.id_roll : '-';
             td5.innerHTML = data.id_item ? data.id_item : '-';
             td6.innerHTML = data.lot ? data.lot : '-';
-            td7.innerHTML = data.roll ? data.roll : '-';
+            td7.innerHTML = data.roll_buyer ? data.roll_buyer : '-';
             td8.innerHTML = data.qty ? data.qty : '-';
             td9.innerHTML = data.unit ? data.unit : '-';
             td10.innerHTML = data.sisa_gelaran ? data.sisa_gelaran : '-';
@@ -1059,11 +1126,12 @@
             td15.innerHTML = data.kepala_kain ? data.kepala_kain : '-';
             td16.innerHTML = data.sisa_tidak_bisa ? data.sisa_tidak_bisa : '-';
             td17.innerHTML = data.reject ? data.reject : '-';
-            td18.innerHTML = data.sisa_kain ? data.sisa_kain : '-';
-            td19.innerHTML = data.total_pemakaian_roll ? data.total_pemakaian_roll : '-';
-            td20.innerHTML = data.short_roll ? data.short_roll : '-';
-            td21.innerHTML = data.piping ? data.piping : '-';
-            td22.innerHTML = data.remark ? data.remark : '-';
+            td18.innerHTML = data.piping ? data.piping : '-';
+            td19.innerHTML = data.sisa_kain ? data.sisa_kain : '-';
+            td20.innerHTML = data.total_pemakaian_roll ? data.total_pemakaian_roll : '-';
+            td21.innerHTML = data.short_roll ? data.short_roll : '-';
+            td22.innerHTML = data.short_roll ? data.qty > 0 ? Number(data.short_roll/data.qty*100).round(2) : '-' : '-';
+            td23.innerHTML = data.remark ? data.remark : '-';
             tr.appendChild(td1);
             tr.appendChild(td2);
             tr.appendChild(td3);
@@ -1086,6 +1154,20 @@
             tr.appendChild(td20);
             tr.appendChild(td21);
             tr.appendChild(td22);
+            tr.appendChild(td23);
+
+            if (latestUnit == "KGM" || latestUnit == "KG") {
+                let td23 = document.createElement('td');
+                td23.innerHTML = data.berat_amparan ? data.berat_amparan : '-';
+                tr.appendChild(td23);
+
+                document.getElementById("th-berat-amparan").classList.remove("d-none");
+                document.getElementById("total-berat-amparan").classList.remove("d-none");
+            } else {
+
+                document.getElementById("th-berat-amparan").classList.add("d-none");
+                document.getElementById("total-berat-amparan").classList.add("d-none");
+            }
 
             tr.onclick = async function() {
                 clearSpreadingForm();
@@ -1116,6 +1198,8 @@
             totalSisaKain += Number(data.sisa_kain);
             totalTotalPemakaian += Number(data.total_pemakaian_roll);
             Number(data.short_roll) < 0 ? totalShortRoll += Number(data.short_roll) : "";
+            Number(data.short_roll) < 0 ? totalShortRollPercentage += Number(data.short_roll ? data.qty > 0 ? Number(data.short_roll/data.qty*100).round(2) : 0 : 0) : "";
+            latestStatus != 'extension complete' ? totalBeratAmparan += Number(data.berat_amparan) : '';
             totalRemark += Number(data.remark);
 
             let averageTotalAverageTime = totalAverageTime / totalRow;
@@ -1135,11 +1219,12 @@
             document.getElementById("total-sisa-kain").innerText = Number(totalSisaKain).round(2);
             document.getElementById("total-total-pemakaian").innerText = Number(totalTotalPemakaian).round(2);
             document.getElementById("total-short-roll").innerText = Number(totalShortRoll).round(2);
+            document.getElementById("total-short-roll-percentage").innerText = Number(totalShortRollPercentage).round(2);
             document.getElementById("total-piping").innerText = Number(totalPiping).round(2);
             document.getElementById("total-remark").innerText = Number(totalRemark).round(2);
+            document.getElementById("total-berat-amparan").innerText = Number(totalBeratAmparan).round(3);
 
-
-            calculateConsActualGelaran(latestUnit, totalQtyFabric, totalKepalaKain, totalSisaTidakBisa, totalReject, totalSisaKain, totalPiping, totalShortRoll);
+            calculateConsActualGelaran(latestUnit, totalQtyFabric, totalKepalaKain, totalSisaTidakBisa, totalReject, totalSisaKain, totalPiping, totalShortRoll, totalLembar, totalTotalPemakaian);
 
             latestStatus = data.status;
         }
@@ -1177,6 +1262,7 @@
             data.id_item ? document.getElementById("current_id_item").value = data.id_item : '';
             data.lot ? document.getElementById("current_lot").value = data.lot : '';
             data.roll ? document.getElementById("current_roll").value = data.roll : '';
+            data.roll_buyer ? document.getElementById("current_roll_buyer").value = data.roll_buyer : '';
             data.qty ? document.getElementById("current_qty").value = convertedQty : '';
             data.qty ? document.getElementById("current_qty_real").value = data.qty : '';
             data.unit ? document.getElementById("current_unit").value = data.unit : '';
@@ -1195,6 +1281,17 @@
             data.short_roll ? document.getElementById("current_short_roll").value = data.short_roll : '';
             data.piping ? document.getElementById("current_piping").value = data.piping : '';
             data.remark ? document.getElementById("current_remark").value = data.remark : '';
+            data.berat_amparan ? document.getElementById("current_berat_amparan").value = data.berat_amparan : '';
+
+            if (data.unit == "KGM" || data.unit == "KG") {
+                document.getElementById("berat_amparan").classList.remove("d-none");
+                document.getElementById("th-berat-amparan").classList.remove("d-none");
+                document.getElementById("total-berat-amparan").classList.remove("d-none");
+            } else if (data.unit == "METER" || data.unit == "YARD" || data.unit == "YRD") {
+                document.getElementById("berat_amparan").classList.add("d-none");
+                document.getElementById("th-berat-amparan").classList.add("d-none");
+                document.getElementById("total-berat-amparan").classList.add("d-none");
+            }
 
             // simplified unit name
             let unitSimplified = data.unit != "KGM" ? "M" : "KG";
@@ -1223,6 +1320,7 @@
             document.getElementById("current_id_item").value = "";
             document.getElementById("current_lot").value = "";
             document.getElementById("current_roll").value = "";
+            document.getElementById("current_roll_buyer").value = "";
             document.getElementById("current_qty").value = "";
             document.getElementById("current_qty_real").value = "";
             document.getElementById("current_unit").value = "";
@@ -1451,7 +1549,8 @@
             } else {
                 qtyVar = Number(document.getElementById("current_qty_real").value);
 
-                pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                // pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                pActualConverted = Number(document.getElementById("current_berat_amparan").value);
             }
 
             let estAmpar = pActualConverted > 0 ? qtyVar / pActualConverted : 0;
@@ -1479,7 +1578,8 @@
             } else {
                 qtyVar = Number(document.getElementById("current_qty_real").value);
 
-                pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                // pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                pActualConverted = Number(document.getElementById("current_berat_amparan").value);
             }
 
             // let totalPemakaian = lembarGelaranVar * pActualConverted + kepalaKainVar + sisaTidakBisaVar + rejectVar;
@@ -1516,7 +1616,8 @@
                 } else {
                     qtyVar = Number(document.getElementById("current_qty_real").value);
 
-                    pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                    // pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                    pActualConverted = Number(document.getElementById("current_berat_amparan").value);
                 }
             }
 
@@ -1527,7 +1628,10 @@
                 shortRoll = 0;
             }
 
+            let shortRollPercentage = qtyVar > 0 ? (shortRoll / qtyVar) * 100 : 0;
+
             document.getElementById("current_short_roll").value = isNaN(shortRoll.round(2)) ? 0 : shortRoll.round(2);
+            document.getElementById("current_short_roll_percentage").value = isNaN(shortRollPercentage.round(2)) ? 0 : shortRollPercentage.round(2);
         }
 
         // -Calculate Remark-
@@ -1555,7 +1659,8 @@
             } else {
                 qtyVar = Number(document.getElementById("current_qty_real").value);
 
-                pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                // pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                pActualConverted = Number(document.getElementById("current_berat_amparan").value);
             }
 
             let remark = ((pActualConverted * lembarGelaranVar) + sisaGelaranVar + sambunganVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar);
@@ -1587,7 +1692,8 @@
             } else {
                 qtyVar = Number(document.getElementById("current_qty_real").value);
 
-                pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                // pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                pActualConverted = Number(document.getElementById("current_berat_amparan").value);
             }
 
             let sisaKain = qtyVar - ((pActualConverted * lembarGelaranVar) + kepalaKainVar + sisaTidakBisaVar + rejectVar + rejectVar + pipingVar);
@@ -1614,7 +1720,10 @@
             if (unitQtyVar != "KGM") {
                 pActualConverted = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
             } else {
-                pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                qtyVar = Number(document.getElementById("current_qty_real").value);
+
+                // pActualConverted = pActualConversion(pActualVar, unitPActualVar, commaActualVar, lActualVar, gramasiVar, unitQtyVar);
+                pActualConverted = Number(document.getElementById("current_berat_amparan").value);
             }
 
             // Convert Sisa Gelaran
@@ -1705,22 +1814,24 @@
                 error: function(jqXHR) {
                     document.getElementById("loading").classList.add("d-none");
 
-                    let res = jqXHR.responseJSON;
-                    let message = '';
-                    let i = 0;
+                    console.log(jqXHR);
 
-                    for (let key in res.errors) {
-                        message = res.errors[key];
-                        document.getElementById(key).classList.add('is-invalid');
-                        modified.push(
-                            [key, '.classList', '.remove(', "'is-invalid')"],
-                        )
+                    // let res = jqXHR.responseJSON;
+                    // let message = '';
+                    // let i = 0;
 
-                        if (i == 0) {
-                            document.getElementById(key).focus();
-                            i++;
-                        }
-                    };
+                    // for (let key in res.errors) {
+                    //     message = res.errors[key];
+                    //     document.getElementById(key).classList.add('is-invalid');
+                    //     modified.push(
+                    //         [key, '.classList', '.remove(', "'is-invalid')"],
+                    //     )
+
+                    //     if (i == 0) {
+                    //         document.getElementById(key).focus();
+                    //         i++;
+                    //     }
+                    // };
                 }
             });
         }
@@ -1801,7 +1912,7 @@
                 return Swal.fire({
                     icon: 'error',
                     title: 'Tidak Dapat Menyelesaikan Proses',
-                    text: 'Harap pastikan data "Operator" dan "Cons. Actual 1 Gelaran" telah terisi',
+                    text: 'Harap pastikan data "Operator" dan "Cons. Actual" telah terisi',
                     showConfirmButton: true,
                     confirmButtonText: 'Oke',
                     confirmButtonColor: "#6531a0",

@@ -12,8 +12,7 @@
 @endsection
 
 @section('content')
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <form action="{{ route('store-secondary-inhouse') }}" method="post" onsubmit="submitForm(this, event)"
             name='form' id='form'>
             @method('POST')
@@ -29,7 +28,10 @@
                                 <div class="mb-3">
                                     <label class="form-label label-input">Scan QR Stocker</label>
                                     <div class="input-group">
-                                        <input type="text" class="form-control form-control-sm border-input" name="txtqrstocker" id="txtqrstocker" autocomplete="off" enterkeyhint="go" onkeyup="if (event.keyCode == 13) document.getElementById('scanqr').click()" autofocus>
+                                        <input type="text" class="form-control form-control-sm border-input"
+                                            name="txtqrstocker" id="txtqrstocker" autocomplete="off" enterkeyhint="go"
+                                            onkeyup="if (event.keyCode == 13) document.getElementById('scanqr').click()"
+                                            autofocus>
                                         {{-- <input type="button" class="btn btn-sm btn-primary" value="Scan Line" /> --}}
                                         {{-- style="display: none;" --}}
                                         <button class="btn btn-sm btn-primary" type="button" id="scanqr" onclick="scan_qr()">Scan</button>
@@ -50,26 +52,31 @@
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>No Stocker</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtno_stocker' name='txtno_stocker' value = '' readonly>
-                                    <input type='hidden' class='form-control form-control-sm' id='txtno_form' name='txtno_form' value = '' readonly>
+                                    <input type='text' class='form-control form-control-sm' id='txtno_stocker'
+                                        name='txtno_stocker' value = '' readonly>
+                                    <input type='hidden' class='form-control form-control-sm' id='txtno_form'
+                                        name='txtno_form' value = '' readonly>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>WS</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtws' name='txtws' value = '' readonly>
+                                    <input type='text' class='form-control form-control-sm' id='txtws' name='txtws'
+                                        value = '' readonly>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Buyer</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtbuyer' name='txtbuyer' value = '' readonly>
+                                    <input type='text' class='form-control form-control-sm' id='txtbuyer'
+                                        name='txtbuyer' value = '' readonly>
                                 </div>
                             </div>
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>No Cut</small></label>
-                                    <input type='text' class='form-control form-control-sm' id='txtno_cut' name='txtno_cut' value = '' readonly>
+                                    <input type='text' class='form-control form-control-sm' id='txtno_cut'
+                                        name='txtno_cut' value = '' readonly>
                                 </div>
                             </div>
                         </div>
@@ -120,18 +127,20 @@
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
+                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
+                        value="{{ date('Y-m-d') }}" onchange="datatableReload()">
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small>Tgl Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
+                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
+                        value="{{ date('Y-m-d') }}" onchange="datatableReload()">
                 </div>
             </div>
             <h5 class="card-title fw-bold mb-0">List Transaksi DC IN</h5>
             <br>
             <br>
             <div class="table-responsive">
-                <table id="datatable-input" class="table table-bordered table-striped table-sm w-100">
+                <table id="datatable-input" class="table table-bordered table-striped table-sm w-100 text-nowrap">
                     <thead>
                         <tr>
                             <th>Tgl Transaksi</th>
@@ -153,8 +162,20 @@
                             <th>User</th>
                         </tr>
                     </thead>
-                    <tbody>
-                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="11"></th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_awal'> </th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_reject'> </th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_replace'> </th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_in'> </th>
+                            <th colspan="2"></th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -171,12 +192,86 @@
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
+        $('#datatable-input thead tr').clone(true).appendTo('#datatable-input thead');
+        $('#datatable-input thead tr:eq(1) th').each(function(i) {
+            var title = $(this).text();
+            $(this).html('<input type="text" class="form-control form-control-sm"/>');
+
+            $('input', this).on('keyup change', function() {
+                if (datatable.column(i).search() !== this.value) {
+                    datatable
+                        .column(i)
+                        .search(this.value)
+                        .draw();
+                }
+            });
+        });
+
+
         let datatable = $("#datatable-input").DataTable({
+            "footerCallback": function(row, data, start, end, display) {
+                var api = this.api(),
+                    data;
+
+                // converting to interger to find total
+                var intVal = function(i) {
+                    return typeof i === 'string' ?
+                        i.replace(/[\$,]/g, '') * 1 :
+                        typeof i === 'number' ?
+                        i : 0;
+                };
+
+                // computing column Total of the complete result
+                var sumTotal = api
+                    .column(11)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalAwal = api
+                    .column(11)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalReject = api
+                    .column(12)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalReplace = api
+                    .column(13)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalIn = api
+                    .column(14)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                // Update footer by showing the total with the reference of the column index
+                $(api.column(0).footer()).html('Total');
+                $(api.column(11).footer()).html(sumTotalAwal);
+                $(api.column(12).footer()).html(sumTotalReject);
+                $(api.column(13).footer()).html(sumTotalReplace);
+                $(api.column(14).footer()).html(sumTotalIn);
+            },
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: true,
-            pageLength: 25,
+            // paging: false,
+            searching: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
             ajax: {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -189,8 +284,7 @@
                     d.dateTo = $('#tgl-akhir').val();
                 },
             },
-            columns: [
-                {
+            columns: [{
                     data: 'tgl_trans_fix',
                 },
                 {
@@ -242,27 +336,10 @@
                     data: 'user',
                 },
             ],
-            columnDefs: [
-                {
-                    targets: "_all",
-                    className: "text-nowrap"
-                }
-            ]
-        });
-
-        $('#datatable-input thead tr').clone(true).appendTo('#datatable-input thead');
-        $('#datatable-input thead tr:eq(1) th').each(function(i) {
-            var title = $(this).text();
-            $(this).html('<input type="text" class="form-control form-control-sm"/>');
-
-            $('input', this).on('keyup change', function() {
-                if (datatable.column(i).search() !== this.value) {
-                    datatable
-                        .column(i)
-                        .search(this.value)
-                        .draw();
-                }
-            });
+            columnDefs: [{
+                targets: "_all",
+                className: "text-nowrap"
+            }]
         });
 
         function datatableReload() {
@@ -385,8 +462,7 @@
                     dataType: 'json',
                     dataSrc: 'data',
                 },
-                columns: [
-                    {
+                columns: [{
                         data: 'id_qr_stocker',
                     },
                     {

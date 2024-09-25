@@ -248,7 +248,7 @@ select 'OUT' id,b.id_item,b.goods_code,a.id_jo,b.mattype, b.matclass, b.itemdesc
             ) br on a.id_item = br.id_item and a.id_jo = br.id_jo
             group by a.id_item, a.id_jo, a.unit");           
         } else if ($tipe == 'DTH'){
-            $sql = DB::connection('mysql_sb')->select("select mi.id_item, ac.kpno,jo.jo_no,mi.goods_code,mi.itemdesc, a.id_jo, 
+            $det_item = DB::connection('mysql_sb')->select("select mi.id_item, ac.kpno,jo.jo_no,mi.goods_code,mi.itemdesc, a.id_jo, 
             round(coalesce(sum(a.qty_in),0),2) qty_bpb, 
             round(coalesce(sum(a.qty_out),0),2) qty_bppb,
             round(coalesce(sum(a.qty_in) - sum(a.qty_out),0),2) sisa_stok, 
@@ -361,8 +361,41 @@ select 'OUT' id,b.id_item,b.goods_code,a.id_jo,b.mattype, b.matclass, b.itemdesc
             group by mi.id_item, br.id_jo
             ) br on a.id_item = br.id_item and a.id_jo = br.id_jo
             group by a.id_item, a.id_jo, a.unit) a");           
-        } else if ($tipe == 'DTH'){
-            $sql = DB::connection('mysql_sb')->select("select COUNT(id_item) jml_item from (select mi.id_item, ac.kpno,jo.jo_no,mi.goods_code,mi.itemdesc, a.id_jo, 
+        } else if ($tipe == 'GLOBAL') {
+            $sum_item = DB::connection('mysql_sb')->select("select COUNT(id_item) jml_item from (select a.id_item,ac.kpno,jo_no,a.goods_code,a.id_jo,a.mattype,a.matclass,a.itemdesc,    round( COALESCE ( sum( qty_bpb ), 0 ), 2 ) qty_bpb,
+            round(COALESCE ( sum( qty_bppb ), 0 ),2) qty_bppb,
+            round(COALESCE ( sum( qty_bpb ), 0 ) - COALESCE ( sum( qty_bppb ), 0 ),2) sisa_stok,
+            round(COALESCE ( br.qty_br, 0 ),2) qty_br,
+            round(COALESCE ( br.qty_br_out, 0 ),2) qty_br_out,
+            round( COALESCE ( br.qty_br, 0 ) - COALESCE ( br.qty_br_out, 0 ), 2 ) sisa_req,  a.unit from
+            (select mi.id_item,mi.goods_code,k.id_jo,mi.mattype, mi.matclass, mi.itemdesc, sum(bpb.qty) qty_bpb, '0' qty_bppb, bpb.unit
+            from (select id_item,id_jo from bom_jo_global_item k where k.id_jo = '" . $request->id_jo . "' group by id_item) k 
+            inner join masteritem mi on k.id_item = mi.id_item
+            left join bpb on mi.id_item = bpb.id_item and k.id_jo = bpb.id_jo          
+            where k.id_jo = '" . $request->id_jo . "' and mi.mattype = 'F'
+            group by mi.id_item, bpb.id_jo, bpb.unit
+            union
+            select mi.id_item,mi.goods_code,id_jo,mi.mattype, mi.matclass, mi.itemdesc, '0' qty_bpb, sum(bppb.qty) qty_bppb, bppb.unit
+            from bppb 
+            inner join masteritem mi on bppb.id_item = mi.id_item
+            where bppb.id_jo = '" . $request->id_jo . "' and mi.mattype = 'F'  and bppb.unit is not null
+            group by mi.id_item, bppb.id_jo, bppb.unit                  
+            ) a
+            inner join jo_det jd on a.id_jo = jd.id_jo
+            inner join jo on jd.id_jo = jo.id
+            inner join so on jd.id_so = so.id
+            inner join act_costing ac on so.id_cost = ac.id
+            left join 
+            (select mi.id_item,mi.goods_code,br.id_jo,mi.mattype, mi.matclass, mi.itemdesc,round(sum(br.qty),2) qty_br,round(sum(bppb.qty),2) qty_br_out
+            from bppb_req br
+            inner join masteritem mi on br.id_item = mi.id_item
+            left join bppb on br.bppbno = bppb.bppbno_req and br.id_item = bppb.id_item and br.id_jo = bppb.id_jo
+            where br.id_jo = '" . $request->id_jo . "' and mi.mattype = 'F'  and br.unit is not null
+            group by mi.id_item, br.id_jo
+            ) br on a.id_item = br.id_item and a.id_jo = br.id_jo
+            group by a.id_item, a.id_jo, a.unit) a");           
+        }else if ($tipe == 'DTH'){
+            $sum_item = DB::connection('mysql_sb')->select("select COUNT(id_item) jml_item from (select mi.id_item, ac.kpno,jo.jo_no,mi.goods_code,mi.itemdesc, a.id_jo, 
             round(coalesce(sum(a.qty_in),0),2) qty_bpb, 
             round(coalesce(sum(a.qty_out),0),2) qty_bppb,
             round(coalesce(sum(a.qty_in) - sum(a.qty_out),0),2) sisa_stok, 

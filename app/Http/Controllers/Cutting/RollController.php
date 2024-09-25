@@ -18,15 +18,18 @@ class RollController extends Controller
      */
     public function index(Request $request)
     {
+        ini_set("memory_limit", "1024M");
+        ini_set("max_execution_time", 36000);
+
         if ($request->ajax()) {
             $additionalQuery = "";
 
             if ($request->dateFrom) {
-                $additionalQuery .= " and b.created_at >= '" . $request->dateFrom . " 00:00:00'";
+                $additionalQuery .= " and DATE(b.created_at) >= '" . $request->dateFrom . "'";
             }
 
             if ($request->dateTo) {
-                $additionalQuery .= " and b.created_at <= '" . $request->dateTo . " 23:59:59'";
+                $additionalQuery .= " and DATE(b.created_at) <= '" . $request->dateTo . "'";
             }
 
             $keywordQuery = "";
@@ -50,10 +53,12 @@ class RollController extends Controller
                     COALESCE(b.color_act, '-') color_act,
                     COALESCE(b.group_roll, '-') group_roll,
                     COALESCE(b.lot, '-') lot,
-                    COALESCE(b.roll, '-') roll,
+                    COALESCE(b.roll_buyer, b.roll) roll,
                     b.no_form_cut_input,
                     b.qty qty_item,
                     b.unit unit_item,
+                    a.cons_pipping,
+                    b.berat_amparan,
                     b.sisa_gelaran,
                     b.sambungan,
                     b.est_amparan,
@@ -64,6 +69,7 @@ class RollController extends Controller
                     COALESCE(b.sisa_kain, 0) sisa_kain,
                     b.total_pemakaian_roll,
                     b.short_roll,
+                    CONCAT(ROUND(((b.short_roll / b.qty) * 100), 2), ' %') short_roll_percentage,
                     b.piping,
                     b.remark,
                     UPPER(meja.name) nama_meja
@@ -73,7 +79,9 @@ class RollController extends Controller
                     left join marker_input mrk on a.id_marker = mrk.kode
                     left join users meja on meja.id = a.no_meja
                 where
-                    a.cancel = 'N' and mrk.cancel = 'N' and id_item is not null
+                    (a.cancel = 'N'  OR a.cancel IS NULL)
+	                AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
+                    and id_item is not null
                     " . $additionalQuery . "
                     " . $keywordQuery . "
                 order by
@@ -82,7 +90,7 @@ class RollController extends Controller
                     b.id_roll desc,
                     b.id_item desc,
                     b.no_form_cut_input desc
-                ");
+            ");
 
             return DataTables::of($data_pemakaian)->toJson();
         }
@@ -99,6 +107,8 @@ class RollController extends Controller
 
     public function export_excel(Request $request)
     {
+        ini_set("max_execution_time", 36000);
+
         return Excel::download(new ExportLaporanRoll($request->from, $request->to), 'Laporan_pemakaian_cutting.xlsx');
     }
 

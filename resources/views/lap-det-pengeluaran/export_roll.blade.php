@@ -24,6 +24,8 @@
             <th>Id Item</th>
             <th>Id Jo</th>
             <th>No WS</th>
+            <th>No WS Aktual</th>
+            <th>No Style</th>
             <th>Kode Barang</th>
             <th>Nama Barang</th>
             <th>Warna</th>
@@ -38,8 +40,8 @@
             $no = 1;
         @endphp
         @foreach ($data as $item)
-            <tr>
-                <td>{{ $no++ }}.</td>
+            <tr style="text-align: left;">
+                <td style="text-align: center;">{{ $no++ }}.</td>
                 <td>{{ $item->no_bppb }}</td>
                 <td>{{ $item->tgl_bppb }}</td>
                 <td>{{ $item->no_req }}</td>
@@ -47,11 +49,13 @@
                 <td>{{ $item->no_barcode }}</td>
                 <td>{{ $item->no_roll }}</td>
                 <td>{{ $item->no_lot }}</td>
-                <td>{{ $item->qty_out }}</td>
+                <td style="text-align: right;">{{ $item->qty_out }}</td>
                 <td>{{ $item->unit }}</td>
                 <td>{{ $item->id_item }}</td>
                 <td>{{ $item->id_jo }}</td>
                 <td>{{ $item->ws }}</td>
+                <td>{{ $item->idws_act }}</td>
+                <td>{{ $item->styleno }}</td>
                 <td>{{ $item->goods_code }}</td>
                 <td>{{ $item->itemdesc }}</td>
                 <td>{{ $item->color }}</td>

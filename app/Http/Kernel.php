@@ -68,6 +68,7 @@ class Kernel extends HttpKernel
         'stocker' => \App\Http\Middleware\IsStocker::class,
         'dc' => \App\Http\Middleware\IsDc::class,
         'meja' => \App\Http\Middleware\IsMeja::class,
+        'sewing' => \App\Http\Middleware\IsSewing::class,
         'warehouse' => \App\Http\Middleware\IsWarehouse::class,
         'master-lokasi' => \App\Http\Middleware\IsWarehouse::class,
         'in-material' => \App\Http\Middleware\IsMaterial::class,
@@ -81,5 +82,10 @@ class Kernel extends HttpKernel
         'hr' => \App\Http\Middleware\IsHr::class,
         'fg-stock' => \App\Http\Middleware\IsFGStock::class,
         'packing' => \App\Http\Middleware\IsPacking::class,
+        'ppic' => \App\Http\Middleware\IsPpic::class,
+        'finishgood' => \App\Http\Middleware\IsFinishGood::class,
+        'bc' => \App\Http\Middleware\IsBC::class,
+        'ga' => \App\Http\Middleware\IsGa::class,
+        'so' => \App\Http\Middleware\IsStockOpname::class,
     ];
 }

@@ -17,7 +17,7 @@ class IsDc
      */
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::user() &&  (Auth::user()->type == 'admin' || Auth::user()->type == 'dc')) {
+        if (Auth::user() &&  (Auth::user()->type == 'admin' || Auth::user()->type == 'superadmin' || Auth::user()->type == 'dc')) {
             return $next($request);
         }
 

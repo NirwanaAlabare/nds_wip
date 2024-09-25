@@ -63,11 +63,12 @@ class DCInController extends Controller
                     a.created_at,
                     a.user,
                     f.no_cut,
-                    s.size,
+                    COALESCE(msb.size, s.size) size,
                     mp.nama_part
                 from
                     dc_in_input a
                     inner join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+                    left join master_sb_ws msb on msb.id_so_det = s.so_det_id
                     inner join form_cut_input f on f.id = s.form_cut_id
                     inner join part_detail pd on s.part_detail_id = pd.id
                     inner join part p on pd.part_id = p.id
@@ -91,11 +92,11 @@ class DCInController extends Controller
                 m.buyer,
                 m.style styleno,
                 a.color,
-                a.size,
+                COALESCE(msb.size, a.size) size,
                 a.panel,
                 f.no_cut,
                 f.id,
-                b.grouplot,
+                a.shade,
                 a.qty_ply,
                 a.range_awal,
                 a.range_akhir,
@@ -105,21 +106,11 @@ class DCInController extends Controller
                 a.tempat
             FROM
                 `stocker_input` a
+                left join master_sb_ws msb on msb.id_so_det = a.so_det_id
                 inner join form_cut_input f on a.form_cut_id = f.id
                 INNER JOIN marker_input m ON m.kode = f.id_marker
                 inner join part_detail pd on a.part_detail_id = pd.id
                 inner join master_secondary ms on pd.master_secondary_id = ms.id
-                inner join
-                (
-                    select
-                        no_form_cut_input,
-                        group_concat(distinct(upper(group_roll))) grouplot
-                    from
-                        form_cut_input_detail
-                    group by
-                        no_form_cut_input,
-                        group_roll
-                ) b on f.no_form = b.no_form_cut_input
             WHERE
                 a.id_qr_stocker = '$request->txtqrstocker'
         ");
@@ -183,48 +174,80 @@ class DCInController extends Controller
     {
         $user = Auth::user()->name;
 
+        // $tmpDcIn = DB::select("
+        //     select
+        //         ms.id_qr_stocker,
+        //         mp.nama_part,
+        //         concat(ms.id_qr_stocker,' - ',mp.nama_part) kode_stocker,
+        //         ifnull(s.tujuan,'-') tujuan,
+        //         ifnull(tmp.tempat,'-') tempat,
+        //         ifnull(tmp.lokasi,'-') lokasi,
+        //         concat(coalesce(ms.qty_ply_mod, ms.qty_ply) - coalesce(tmp.qty_reject,0) + coalesce(tmp.qty_replace,0), concat(' (', (coalesce(tmp.qty_replace,0) - coalesce(tmp.qty_reject,0)), ')')) qty_in,
+        //         ms.act_costing_ws,
+        //         ms.size,
+        //         ms.color,
+        //         ms.panel,
+        //         concat(ms.range_awal, '-', ms.range_akhir) rangeAwalAkhir,
+        //         ifnull(tmp.id_qr_stocker,'x') cek_stat
+        //     from
+        //         (
+        //             select
+        //                 *,
+        //                 concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) kode
+        //             from
+        //                 stocker_input
+        //         ) ms
+        //         inner join
+        //             (
+        //                 select
+        //                     concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) kode
+        //                 from
+        //                     tmp_dc_in_input_new x
+        //                     inner join stocker_input y on x.id_qr_stocker = y.id_qr_stocker
+        //                 where
+        //                     user = '$user'
+        //                 group by
+        //                     concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade)
+        //             )
+        //         a on ms.kode = a.kode
+        //         inner join part_detail pd on ms.part_detail_id = pd.id
+        //         inner join master_part mp  on pd.master_part_id = mp.id
+        //         left join master_secondary s on pd.master_secondary_id = s.id
+        //         left join tmp_dc_in_input_new tmp on ms.id_qr_stocker = tmp.id_qr_stocker
+        //     order by
+        //         ifnull(tmp.id_qr_stocker,'x') asc
+        // ");
+
         $tmpDcIn = DB::select("
-            select
+            SELECT
                 ms.id_qr_stocker,
                 mp.nama_part,
-                concat(ms.id_qr_stocker,' - ',mp.nama_part) kode_stocker,
-                ifnull(s.tujuan,'-') tujuan,
-                ifnull(tmp.tempat,'-') tempat,
-                ifnull(tmp.lokasi,'-') lokasi,
-                concat(coalesce(ms.qty_ply_mod, ms.qty_ply) - coalesce(tmp.qty_reject,0) + coalesce(tmp.qty_replace,0), concat(' (', (coalesce(tmp.qty_replace,0) - coalesce(tmp.qty_reject,0)), ')')) qty_in,
+                concat( ms.id_qr_stocker, ' - ', mp.nama_part ) kode_stocker,
+                ifnull( s.tujuan, '-' ) tujuan,
+                ifnull( tmp.tempat, '-' ) tempat,
+                ifnull( tmp.lokasi, '-' ) lokasi,
+                concat(
+                    COALESCE ( ms.qty_ply_mod, ms.qty_ply ) - COALESCE ( tmp.qty_reject, 0 ) + COALESCE ( tmp.qty_replace, 0 ),
+                concat( ' (', ( COALESCE ( tmp.qty_replace, 0 ) - COALESCE ( tmp.qty_reject, 0 )), ')' )) qty_in,
                 ms.act_costing_ws,
-                ms.size,
+                msb.size,
                 ms.color,
                 ms.panel,
-                concat(ms.range_awal, '-', ms.range_akhir) rangeAwalAkhir,
-                ifnull(tmp.id_qr_stocker,'x') cek_stat
-            from
-                (
-                    select
-                        *,
-                        concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) kode
-                    from
-                        stocker_input
-                ) ms
-                inner join
-                    (
-                        select
-                            concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) kode
-                        from
-                            tmp_dc_in_input_new x
-                            inner join stocker_input y on x.id_qr_stocker = y.id_qr_stocker
-                        where
-                            user = '$user'
-                        group by
-                            concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade)
-                    )
-                a on ms.kode = a.kode
-                inner join part_detail pd on ms.part_detail_id = pd.id
-                inner join master_part mp  on pd.master_part_id = mp.id
-                left join master_secondary s on pd.master_secondary_id = s.id
-                left join tmp_dc_in_input_new tmp on ms.id_qr_stocker = tmp.id_qr_stocker
-            order by
-                ifnull(tmp.id_qr_stocker,'x') asc
+                concat( ms.range_awal, '-', ms.range_akhir ) rangeAwalAkhir,
+                ifnull( tmp.id_qr_stocker, 'x' ) cek_stat
+            FROM
+                tmp_dc_in_input_new x
+                INNER JOIN stocker_input y ON x.id_qr_stocker = y.id_qr_stocker
+                LEFT JOIN stocker_input ms ON ms.form_cut_id = y.form_cut_id AND ms.so_det_id = y.so_det_id AND ms.group_stocker = y.group_stocker AND ms.ratio = y.ratio
+                LEFT JOIN master_sb_ws msb ON msb.id_so_det = ms.so_det_id
+                LEFT JOIN tmp_dc_in_input_new tmp ON tmp.id_qr_stocker = ms.id_qr_stocker
+                INNER JOIN part_detail pd ON ms.part_detail_id = pd.id
+                INNER JOIN master_part mp ON pd.master_part_id = mp.id
+                LEFT JOIN master_secondary s ON pd.master_secondary_id = s.id
+            WHERE
+                x.`user` = '".$user."'
+            group by ms.id_qr_stocker
+            order by ifnull( tmp.id_qr_stocker, 'x' )
         ");
 
         return DataTables::of($tmpDcIn)->toJson();
@@ -289,12 +312,131 @@ class DCInController extends Controller
         }
     }
 
+    // mass insert tmp dc in
+    public function mass_insert_tmp_dc_in(Request $request)
+    {
+        $thisStocker = Stocker::selectRaw("stocker_input.id_qr_stocker, stocker_input.act_costing_ws, stocker_input.color, form_cut_input.no_cut")->
+            leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+            where("id_qr_stocker", $request->txtqrstocker)->
+            first();
+
+        if ($thisStocker) {
+            $data_header = DB::select("
+                SELECT
+                    a.act_costing_ws,
+                    m.buyer,
+                    m.style styleno,
+                    a.color,
+                    COALESCE(msb.size, a.size) size,
+                    a.panel,
+                    f.no_cut,
+                    f.id,
+                    a.shade,
+                    a.qty_ply,
+                    a.range_awal,
+                    a.range_akhir,
+                    concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) kode,
+                    ms.tujuan,
+                    IF(ms.tujuan = 'NON SECONDARY',a.lokasi,ms.proses) lokasi,
+                    a.tempat,
+                    a.id_qr_stocker
+                FROM
+                    `stocker_input` a
+                    left join master_sb_ws msb on msb.id_so_det = a.so_det_id
+                    inner join form_cut_input f on a.form_cut_id = f.id
+                    INNER JOIN marker_input m ON m.kode = f.id_marker
+                    inner join part_detail pd on a.part_detail_id = pd.id
+                    inner join master_secondary ms on pd.master_secondary_id = ms.id
+                WHERE
+                    a.act_costing_ws = '".$thisStocker->act_costing_ws."' AND
+                    a.color = '".$thisStocker->color."' AND
+                    f.no_cut = '".$thisStocker->no_cut."'
+            ");
+
+            $user = Auth::user()->name;
+            foreach ($data_header as $d) {
+                if ($d->tujuan == 'NON SECONDARY') {
+                    $tujuan = $d->tujuan;
+                    $lokasi = $d->lokasi;
+                    $tempat = $d->tempat;
+                } else {
+                    $tujuan = $d->tujuan;
+                    $lokasi = $d->lokasi;
+                    $tempat = '-';
+                }
+
+                $cekdata =  DB::select("
+                    select
+                        *
+                    from
+                        tmp_dc_in_input_new
+                        left join dc_in_input on dc_in_input.id_qr_stocker = tmp_dc_in_input_new.id_qr_stocker
+                    where
+                        tmp_dc_in_input_new.id_qr_stocker = '" . $d->id_qr_stocker . "'
+                ");
+
+                $cekdata_fix = $cekdata ? $cekdata[0] : null;
+                if ($cekdata_fix ==  null) {
+
+                    $cekdata_fix = $cekdata ? $cekdata[0] : null;
+                    if ($cekdata_fix ==  null) {
+
+                        DB::insert("
+                            insert into tmp_dc_in_input_new
+                            (
+                                id_qr_stocker,
+                                qty_reject,
+                                qty_replace,
+                                tujuan,
+                                tempat,
+                                lokasi,
+                                user
+                            )
+                            values
+                            (
+                                '" . $d->id_qr_stocker . "',
+                                '0',
+                                '0',
+                                '$tujuan',
+                                '$tempat',
+                                '$lokasi',
+                                '$user'
+                            )
+                        ");
+
+                        DB::update(
+                            "update stocker_input set status = 'dc' where id_qr_stocker = '" . $d->id_qr_stocker . "'"
+                        );
+                    }
+                }
+            }
+
+            return array(
+                'status' => 200,
+                'message' => 'Data Stocker berhasil disimpan',
+                'redirect' => '',
+                'table' => 'datatable-scan',
+                'additional' => [],
+                'callback' => 'resetCheckedStocker()'
+            );
+        }
+
+        return array(
+            'status' => 400,
+            'message' => 'Data Stocker gagal disimpan',
+            'redirect' => '',
+            'table' => 'datatable-scan',
+            'additional' => [],
+            'callback' => 'resetCheckedStocker()'
+        );
+    }
+
     public function show_tmp_dc_in(Request $request)
     {
         $data_tmp_dc_in = DB::select("
             SELECT
                 s.id_qr_stocker,
-                coalesce(s.qty_ply_mod, s.qty_ply) - coalesce(tmp.qty_reject,0) + coalesce(tmp.qty_replace,0) qty_in,
+                (case when s.qty_ply_mod > 0 THEN s.qty_ply_mod ELSE s.qty_ply END) - coalesce(tmp.qty_reject,0) + coalesce(tmp.qty_replace,0) qty_in,
                 tmp.qty_reject,
                 tmp.qty_replace,
                 ms.tujuan,
@@ -526,7 +668,7 @@ class DCInController extends Controller
                 tmp.tujuan,
                 tmp.lokasi,
                 tmp.tempat,
-                coalesce(ms.qty_ply_mod, ms.qty_ply),
+                (case when ms.qty_ply_mod > 0 THEN ms.qty_ply_mod ELSE ms.qty_ply END),
                 qty_reject,
                 qty_replace,
                 user,
@@ -556,7 +698,7 @@ class DCInController extends Controller
             select
                 r.id,nama_detail_rak,
                 tmp.id_qr_stocker,
-                coalesce(s.qty_ply_mod, s.qty_ply) - qty_reject + qty_replace qty_in,
+                (case when s.qty_ply_mod > 0 THEN s.qty_ply_mod ELSE s.qty_ply END) - qty_reject + qty_replace qty_in,
                 '$timestamp',
                 '$timestamp'
             from

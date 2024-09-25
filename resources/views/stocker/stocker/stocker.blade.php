@@ -137,7 +137,8 @@
                     data: 'color'
                 },
                 {
-                    data: 'part_details'
+                    data: 'part_details',
+                    searchable: false
                 },
                 {
                     data: 'total_lembar',
@@ -170,6 +171,13 @@
                     targets: [3],
                     className: "text-nowrap",
                     render: (data, type, row, meta) => data ? data.toUpperCase() : "-"
+                },
+                // Marker Hyperlink
+                {
+                    targets: [10],
+                    render: (data, type, row, meta) => {
+                        return data ? `<a class='fw-bold' href='{{ route('edit-marker') }}/ `+row.marker_id+`' target='_blank'><u>`+data+`</u></a>` : "-";
+                    }
                 },
                 // Text No Wrap
                 {

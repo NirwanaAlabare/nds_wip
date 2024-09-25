@@ -48,13 +48,7 @@ class DashboardFabricController extends Controller
 
             return DataTables::of($data_rak)->toJson();
         }
-            $tot_roll = DB::connection('mysql_sb')->select("select concat(format(sum(roll_stok),0), ' ROLL') stok from (select a.kode_lok,kapasitas,count(no_barcode) roll_stok from (select a.kode_lok,a.no_barcode,a.buyer,a.no_ws,a.id_jo,a.id_item,b.goods_code,b.itemdesc,a.qty from whs_sa_fabric a inner join masteritem b on b.id_item = a.id_item where a.qty > 0 and qty_mut is null
-UNION
-select a.kode_lok,a.no_barcode,mb.supplier buyer,a.no_ws,a.id_jo,a.id_item,b.goods_code,b.itemdesc,a.qty_sj from whs_lokasi_inmaterial a 
-inner join masteritem b on b.id_item = a.id_item
-inner join (select ac.id_buyer,ac.styleno,jd.id_jo, ac.kpno from jo_det jd inner join so on jd.id_so = so.id inner join act_costing ac on so.id_cost = ac.id where jd.cancel = 'N' group by id_cost order by id_jo asc) jd on a.id_jo = jd.id_jo
-inner join mastersupplier mb on jd.id_buyer = mb.id_supplier where a.status = 'Y' and qty_mutasi is null) a left JOIN
-(select id_roll,no_rak from whs_bppb_det where status = 'Y' GROUP BY id_roll) b on a.no_barcode = b.id_roll left join (select kode_lok,kapasitas from whs_master_lokasi GROUP BY kode_lok) c on c.kode_lok = a.kode_lok where id_roll is null GROUP BY a.kode_lok) a");
+            $tot_roll = DB::connection('mysql_sb')->select("select total stok from whs_data_dsb");
 
             $qty_in = DB::connection('mysql_sb')->select("select concat(format(count(id),0), ' ROLL') qty_in from whs_lokasi_inmaterial where DATE_FORMAT(created_at, '%Y-%m-%d') = CURRENT_DATE() and status = 'Y'");
 

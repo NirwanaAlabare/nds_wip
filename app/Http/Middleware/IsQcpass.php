@@ -17,7 +17,7 @@ class IsQcpass
      */
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::user() &&  (Auth::user()->type == 'admin' || Auth::user()->type == 'Qcpass')) {
+        if (Auth::user() &&  (Auth::user()->type == 'admin' || Auth::user()->type == 'superadmin' || Auth::user()->type == 'Qcpass')) {
             return $next($request);
         }
 

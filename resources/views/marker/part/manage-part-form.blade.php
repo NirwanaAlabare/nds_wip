@@ -15,7 +15,7 @@
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="card-title fw-bold">
-                    <i class="fa fa-cog fa-sm"></i> Atur Part Form Cut
+                    <i class="fa fa-folder-plus fa-sm"></i> Tambah Form ke Part
                 </h5>
                 <a href="{{ route('part') }}" class="btn btn-sm btn-primary">
                     <i class="fa fa-reply"></i> Kembali ke Part
@@ -79,12 +79,18 @@
                     <div class="row align-items-center">
                         <div class="col-6">
                             <h5 class="card-title fw-bold">
-                                Form Cut yang belum ditambahkan :
+                                <i class="fa-regular fa-hourglass-half"></i> Form Cut Pending :
                             </h5>
                         </div>
                     </div>
                 </div>
                 <div class="card-body">
+                    {{-- <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        <h5 class="mb-1">Harap cek kembali data <strong>Form</strong> jika <strong>Form</strong> tidak muncul.</h5>
+                        <hr>
+                        <p>Mungkin <a href="{{ route('marker-panel') }}"><strong>Panel Marker</strong></a> dari <strong>Form</strong> yang tidak muncul tersebut tidak sesuai dengan <strong>Panel</strong> dari <strong>Part</strong> yang telah dibuat. Jika kesulitan bisa hubungi IT.</p>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" onclick="updatePartFormInfoReaded()"></button>
+                    </div> --}}
                     {{-- <div class="d-flex gap-3">
                         <div class="mb-3">
                             <label><small><b>Tgl Awal</b></small></label>
@@ -95,13 +101,13 @@
                             <input type="date" class="form-control form-control-sm w-auto" id="tgl_akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}">
                         </div>
                     </div> --}}
-                    <div class="row justify-content-between mb-3">
+                    <div class="row justify-content-between mb-3 align-items-center">
                         <div class="col-6">
-                            <p>Form yang dipilih : <span class="fw-bold" id="selected-row-count-2">0</span></p>
+                            <p class="mb-0">Form yang dipilih : <span class="fw-bold" id="selected-row-count-2">0</span></p>
                         </div>
                         <div class="col-6">
-                            <button class="btn btn-success btn-sm float-end" onclick="addToPartForm(this)">
-                                <i class="fa fa-plus fa-sm"></i> Tambahkan ke Part
+                            <button class="btn btn-success btn-sm float-end fw-bold" onclick="addToPartForm(this)">
+                                <i class="fa fa-arrow-right fa-sm"></i> FORM IN
                             </button>
                         </div>
                     </div>
@@ -133,18 +139,20 @@
             <div class="card card-info h-100">
                 <div class="card-header">
                     <h5 class="card-title mb-0 fw-bold" style="padding-bottom: 2px">
-                        Form Cut yang sudah ditambahkan :
+                        <i class="fa fa-check"></i> Form Cut In :
                     </h5>
                 </div>
                 <div class="card-body">
-                    {{-- <div class="row mb-3">
+                    <div class="row justify-content-between align-items-center mb-3">
                         <div class="col-6">
-                            <p>Form yang dipilih : <span class="fw-bold" id="selected-row-count-1">0</span></p>
+                            <p class="mb-0">Form yang dipilih : <span class="fw-bold" id="selected-row-count-1">0</span></p>
                         </div>
                         <div class="col-6">
-                            <button class="btn btn-danger btn-sm float-end" onclick="removePartForm()"><i class="fa fa-minus fa-sm"></i> Singkirkan Form</button>
+                            <button class="btn btn-danger btn-sm float-end fw-bold" onclick="removePartForm()">
+                                <i class="fa fa-arrow-left fa-sm"></i> FORM OUT
+                            </button>
                         </div>
-                    </div> --}}
+                    </div>
                     <div class="table-responsive">
                         <table id="datatable-selected" class="table table-bordered table-sm w-100">
                             <thead>
@@ -204,6 +212,7 @@
             ordering: false,
             processing: true,
             serverSide: true,
+            paging: false,
             ajax: {
                 url: '{{ route('manage-part-form') }}/'+id,
                 data: function(d) {
@@ -237,7 +246,8 @@
                     data: 'qty_ply'
                 },
                 {
-                    data: 'marker_details'
+                    data: 'marker_details',
+                    searchable: false
                 },
                 {
                     data: 'id_marker'
@@ -267,6 +277,14 @@
                     }
                 },
                 {
+                    targets: [9],
+                    render: (data, type, row, meta) => {
+                        return `
+                            <a href='{{ route('edit-marker') }}/ `+row.marker_id+`' target='_blank'>`+data+`</a>
+                        `;
+                    }
+                },
+                {
                     targets: '_all',
                     className: 'text-nowrap',
                     render: (data, type, row, meta) => {
@@ -291,7 +309,7 @@
         // Datatable row selection
         datatableSelected.on('click', 'tbody tr', function(e) {
             e.currentTarget.classList.toggle('selected');
-            // document.getElementById('selected-row-count-1').innerText = $('#datatable-selected').DataTable().rows('.selected').data().length;
+            document.getElementById('selected-row-count-1').innerText = $('#datatable-selected').DataTable().rows('.selected').data().length;
         });
 
         $('#datatable-selected thead tr').clone(true).appendTo('#datatable-selected thead');
@@ -358,7 +376,7 @@
                             });
 
                             $('#datatable-select').DataTable().ajax.reload(() => {
-                                // document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
+                                document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
                             });
                         }
 
@@ -431,6 +449,7 @@
             ordering: false,
             processing: true,
             serverSide: true,
+            paging: false,
             ajax: {
                 url: '{{ route('get-part-form-cut') }}/',
                 data: function(d) {
@@ -461,10 +480,11 @@
                     data: 'panel'
                 },
                 {
-                    data: 'qty_ply'
+                    data: 'qty_ply',
                 },
                 {
-                    data: 'marker_details'
+                    data: 'marker_details',
+                    searchable: false
                 },
                 {
                     data: 'id_marker'
@@ -480,7 +500,15 @@
 
                         return data ? data.toUpperCase() : "-";
                     }
-                }
+                },
+                {
+                    targets: [9],
+                    render: (data, type, row, meta) => {
+                        return `
+                            <a href='{{ route('edit-marker') }}/ `+row.marker_id+`' target='_blank'>`+data+`</a>
+                        `;
+                    }
+                },
             ]
         });
 
@@ -560,7 +588,7 @@
                                     });
 
                                     $('#datatable-select').DataTable().ajax.reload(() => {
-                                        // document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
+                                        document.getElementById('selected-row-count-1').innerText = $('#datatable-select').DataTable().rows('.selected').data().length;
                                     });
                                 }
 

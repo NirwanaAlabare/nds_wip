@@ -12,6 +12,8 @@ use App\Models\Marker;
 use App\Models\MarkerDetail;
 use App\Models\PartDetail;
 use App\Models\ModifySizeQty;
+use App\Models\MonthCount;
+use App\Models\YearSequence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -36,6 +38,7 @@ class StockerController extends Controller
                     form_cut_input.no_form,
                     DATE(form_cut_input.waktu_selesai) tanggal_selesai,
                     users.name nama_meja,
+                    marker_input.id as marker_id,
                     marker_input.act_costing_ws,
                     marker_input.buyer,
                     marker_input.urutan_marker,
@@ -133,6 +136,7 @@ class StockerController extends Controller
     public function show($formCutId = 0)
     {
         $dataSpreading = FormCutInput::selectRaw("
+                part.id part_id,
                 part_detail.id part_detail_id,
                 form_cut_input.id form_cut_id,
                 form_cut_input.no_meja,
@@ -196,70 +200,113 @@ class StockerController extends Controller
         $dataRatio = MarkerDetail::selectRaw("
                 marker_input_detail.id marker_detail_id,
                 marker_input_detail.so_det_id,
-                marker_input_detail.size,
+                COALESCE(master_sb_ws.size, marker_input_detail.size) size,
+                COALESCE((CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE master_sb_ws.size END), marker_input_detail.size) size_dest,
                 marker_input_detail.ratio
             ")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
             leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->
             leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
             leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
             leftJoin("part", "part.id", "=", "part_form.part_id")->
             leftJoin("part_detail", "part_detail.part_id", "=", "part.id")->
             where("marker_input.id", $dataSpreading->marker_id)->
-            where("marker_input_detail.ratio", ">", "0")->
+            // where("marker_input_detail.ratio", ">", "0")->
             orderBy("marker_input_detail.id", "asc")->
             groupBy("marker_input_detail.id")->
             get();
 
         $dataStocker = MarkerDetail::selectRaw("
-                stocker_input.id_qr_stocker,
+                MAX(stocker_input.id_qr_stocker) id_qr_stocker,
                 marker_input.color,
                 marker_input_detail.so_det_id,
-                marker_input_detail.ratio,
+                COALESCE(stocker_input.ratio, marker_input_detail.ratio) ratio,
+                MAX(form_cut_input.no_form) no_form,
                 form_cut_input.no_cut,
-                stocker_input.id stocker_id,
-                stocker_input.shade,
-                stocker_input.group_stocker,
-                stocker_input.qty_ply,
-                MAX(CAST(stocker_input.range_akhir as UNSIGNED)) range_akhir
+                MAX(stocker_input.id) stocker_id,
+                MAX(stocker_input.shade) shade,
+                MAX(stocker_input.group_stocker) group_stocker,
+                MAX(stocker_input.qty_ply) qty_ply,
+                MAX(CAST(stocker_input.range_akhir as UNSIGNED)) range_akhir,
+                modify_size_qty.difference_qty
             ")->
             leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->
             leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
+            leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
             leftJoin("stocker_input", function ($join) {
                 $join->on("stocker_input.form_cut_id", "=", "form_cut_input.id");
                 $join->on("stocker_input.so_det_id", "=", "marker_input_detail.so_det_id");
+            })->
+            leftJoin("modify_size_qty", function ($join) {
+                $join->on("modify_size_qty.no_form", "=", "form_cut_input.no_form");
+                $join->on("modify_size_qty.so_det_id", "=", "marker_input_detail.so_det_id");
             })->
             where("marker_input.act_costing_ws", $dataSpreading->ws)->
             where("marker_input.color", $dataSpreading->color)->
             where("marker_input.panel", $dataSpreading->panel)->
             where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
-            where("marker_input_detail.ratio", ">", "0")->
-            groupBy("form_cut_input.no_cut", "marker_input_detail.so_det_id")->
+            where("part_form.part_id", $dataSpreading->part_id)->
+            // where("marker_input_detail.ratio", ">", "0")->
+            groupBy("form_cut_input.no_form", "form_cut_input.no_cut", "marker_input_detail.so_det_id")->
             orderBy("form_cut_input.no_cut", "desc")->
+            orderBy("form_cut_input.no_form", "desc")->
             get();
 
         $dataNumbering = MarkerDetail::selectRaw("
                 marker_input.color,
                 marker_input_detail.so_det_id,
                 marker_input_detail.ratio,
+                MAX(form_cut_input.no_form) no_form,
                 form_cut_input.no_cut,
-                stocker_numbering.id numbering_id,
-                stocker_numbering.no_cut_size,
-                MAX(stocker_numbering.number) range_akhir
+                MAX(number.numbering_id) numbering_id,
+                MAX(number.no_cut_size) no_cut_size,
+                MAX(number.range_akhir) range_akhir,
+                modify_size_qty.difference_qty
             ")->
             leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->
             leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
-            leftJoin("stocker_numbering", function ($join) {
-                $join->on("stocker_numbering.form_cut_id", "=", "form_cut_input.id");
-                $join->on("stocker_numbering.so_det_id", "=", "marker_input_detail.so_det_id");
+            leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
+            leftJoin(
+                DB::raw(
+                    "(
+                        SELECT
+                            stocker_numbering.form_cut_id,
+                            stocker_numbering.so_det_id,
+                            MAX( stocker_numbering.no_cut_size ) no_cut_size,
+                            MAX( stocker_numbering.id ) numbering_id,
+                            MAX( stocker_numbering.number ) range_akhir
+                        FROM
+                            form_cut_input
+                            INNER JOIN marker_input ON form_cut_input.id_marker = marker_input.kode
+                            INNER JOIN `stocker_numbering` ON form_cut_input.id = stocker_numbering.form_cut_id
+                        WHERE
+                            `marker_input`.`act_costing_ws` = '".$dataSpreading->ws."'
+                            AND `marker_input`.`color` = '".$dataSpreading->color."'
+                            AND `marker_input`.`panel` = '".$dataSpreading->panel."'
+                            AND ( stocker_numbering.cancel IS NULL OR stocker_numbering.cancel != 'Y' )
+                            AND `form_cut_input`.`no_cut` <= ".$dataSpreading->no_cut."
+                        GROUP BY
+                            stocker_numbering.form_cut_id,
+                            stocker_numbering.so_det_id
+                    ) number"
+                ), function ($join) {
+                    $join->on("number.form_cut_id", "=", "form_cut_input.id");
+                    $join->on("number.so_det_id", "=", "marker_input_detail.so_det_id");
+                }
+            )->
+            leftJoin("modify_size_qty", function ($join) {
+                $join->on("modify_size_qty.no_form", "=", "form_cut_input.no_form");
+                $join->on("modify_size_qty.so_det_id", "=", "marker_input_detail.so_det_id");
             })->
             where("marker_input.act_costing_ws", $dataSpreading->ws)->
             where("marker_input.color", $dataSpreading->color)->
             where("marker_input.panel", $dataSpreading->panel)->
             where("form_cut_input.no_cut", "<=", $dataSpreading->no_cut)->
-            where("marker_input_detail.ratio", ">", "0")->
-            whereRaw("(stocker_numbering.cancel IS NULL OR stocker_numbering.cancel != 'Y')")->
-            groupBy("no_cut", "marker_input_detail.so_det_id")->
+            where("part_form.part_id", $dataSpreading->part_id)->
+            // where("marker_input_detail.ratio", ">", "0")->
+            groupBy("form_cut_input.no_form", "form_cut_input.no_cut", "marker_input_detail.so_det_id")->
             orderBy("form_cut_input.no_cut", "desc")->
+            orderBy("form_cut_input.no_form", "desc")->
             get();
 
         $modifySizeQty = ModifySizeQty::where("no_form", $dataSpreading->no_form)->get();
@@ -315,16 +362,20 @@ class StockerController extends Controller
         $cumRangeAwal = $rangeAwal;
         $cumRangeAkhir = $rangeAwal - 1;
 
+        $ratio = $request['ratio'][$index];
+        if ($ratio < 1 && $modifySizeQty) {
+            $ratio += 1;
+        }
+
         $storeItemArr = [];
-        for ($i = 0; $i < $request['ratio'][$index]; $i++) {
-            $checkStocker = Stocker::select("id_qr_stocker", "range_awal", "range_akhir")->whereRaw("
+        for ($i = 0; $i < $ratio; $i++) {
+            $checkStocker = Stocker::select("id_qr_stocker", "qty_ply", "range_awal", "range_akhir")->whereRaw("
                 part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
                 form_cut_id = '" . $request['form_cut_id'] . "' AND
                 so_det_id = '" . $request['so_det_id'][$index] . "' AND
                 color = '" . $request['color'] . "' AND
                 panel = '" . $request['panel'] . "' AND
                 shade = '" . $request['group'][$index] . "' AND
-                qty_ply = '" . $request['qty_ply_group'][$index] . "' AND
                 " . ($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "") . "
                 ratio = " . ($i + 1) . "
             ")->first();
@@ -332,7 +383,7 @@ class StockerController extends Controller
             $ratio = $i + 1;
             $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $i);
             $cumRangeAwal = $cumRangeAkhir + 1;
-            $cumRangeAkhir = $cumRangeAkhir + $request['qty_ply_group'][$index];
+            $cumRangeAkhir = $cumRangeAkhir + ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]);
 
             if (!$checkStocker) {
                 array_push($storeItemArr, [
@@ -347,17 +398,23 @@ class StockerController extends Controller
                     'group_stocker' => $request['group_stocker'][$index],
                     'ratio' => $i + 1,
                     'size' => $request["size"][$index],
-                    'qty_ply' => $request['qty_ply_group'][$index],
-                    'qty_ply_mod' => (($request['group_stocker'][$i] == min($request['group_stocker'])) && ($i == ($request['ratio'][$index] - 1) && $modifySizeQty) ? $request['qty_ply_group'][$index] + $modifySizeQty->difference_qty : null),
+                    'qty_ply' => ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]),
+                    'qty_ply_mod' => (($request['group_stocker'][$index] == min($request['group_stocker'])) && (($i == ($request['ratio'][$index] - 1) && $modifySizeQty) || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]) + $modifySizeQty->difference_qty : null),
                     'qty_cut' => $request['qty_cut'][$index],
                     'notes' => $request['note'],
                     'range_awal' => $cumRangeAwal,
-                    'range_akhir' => (($request['group_stocker'][$i] == min($request['group_stocker'])) && ($i == ($request['ratio'][$index] - 1) && $modifySizeQty) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir),
+                    'range_akhir' => (($request['group_stocker'][$index] == min($request['group_stocker'])) && (($i == ($request['ratio'][$index] - 1) && $modifySizeQty)  || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir),
                     'created_by' => Auth::user()->id,
                     'created_by_username' => Auth::user()->username,
                     'created_at' => Carbon::now(),
                     'updated_at' => Carbon::now()
                 ]);
+            } else if ($checkStocker && $checkStocker->qty_ply != ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index])) {
+                $checkStocker->qty_ply = ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]);
+                $checkStocker->qty_ply_mod = (($request['group_stocker'][$index] == min($request['group_stocker'])) && (($i == ($request['ratio'][$index] - 1) && $modifySizeQty) || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]) + $modifySizeQty->difference_qty : null);
+                $checkStocker->range_awal = $cumRangeAwal;
+                $checkStocker->range_akhir = (($request['group_stocker'][$index] == min($request['group_stocker'])) && (($i == ($request['ratio'][$index] - 1) && $modifySizeQty)  || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir);
+                $checkStocker->save();
             }
         }
 
@@ -367,7 +424,7 @@ class StockerController extends Controller
 
         $dataStockers = Stocker::selectRaw("
                 (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) != 0 THEN (CONCAT(stocker_input.qty_ply, (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) > 0 THEN CONCAT('+', (stocker_input.qty_ply_mod - stocker_input.qty_ply)) ELSE (stocker_input.qty_ply_mod - stocker_input.qty_ply) END))) ELSE stocker_input.qty_ply END) bundle_qty,
-                stocker_input.size,
+                COALESCE(master_sb_ws.size, stocker_input.size) size,
                 stocker_input.range_awal,
                 stocker_input.range_akhir,
                 stocker_input.id_qr_stocker,
@@ -398,9 +455,9 @@ class StockerController extends Controller
             where("marker_input_detail.so_det_id", $request['so_det_id'][$index])->
             where("stocker_input.so_det_id", $request['so_det_id'][$index])->
             where("stocker_input.shade", $request['group'][$index])->
-            where("stocker_input.qty_ply", $request['qty_ply_group'][$index])->
+            // where("stocker_input.qty_ply", $request['qty_ply_group'][$index])->
             where("stocker_input.group_stocker", $request['group_stocker'][$index])->
-            groupBy("form_cut_input.id", "stocker_input.id")->
+            groupBy("form_cut_input.id", "part_detail.id", "stocker_input.size", "stocker_input.group_stocker", "stocker_input.shade", "stocker_input.ratio")->
             orderBy("stocker_input.group_stocker", "desc")->
             orderBy("stocker_input.so_det_id", "asc")->
             orderBy("stocker_input.ratio", "asc")->
@@ -411,9 +468,9 @@ class StockerController extends Controller
         $pdf = PDF::loadView('stocker.stocker.pdf.print-stocker', ["dataStockers" => $dataStockers])->setPaper('a7', 'landscape');
 
         $path = public_path('pdf/');
-        $fileName = 'stocker-' . $stockerId . '.pdf';
-        $pdf->save($path . '/' . $fileName);
-        $generatedFilePath = public_path('pdf/' . $fileName);
+        $fileName = 'STOCKER_'.$request["no_ws"]."_".$request['color']."_".$request['panel']."_".$request['group'][$index]."_".$request["size"][$index] . '.pdf';
+        $pdf->save($path . '/' . str_replace("/", "_", $fileName));
+        $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
 
         return response()->download($generatedFilePath);
     }
@@ -425,7 +482,6 @@ class StockerController extends Controller
         $storeItemArr = [];
         for ($i = 0; $i < count($request['part_detail_id']); $i++) {
             if ($request['part_detail_id'][$i] == $partDetailId) {
-
                 $modifySizeQty = ModifySizeQty::where("no_form", $formData->no_form)->where("so_det_id", $request['so_det_id'][$i])->first();
 
                 $stockerCount = Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first() ? str_replace("STK-", "", Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first()->id_qr_stocker) + 1 : 1;
@@ -436,22 +492,26 @@ class StockerController extends Controller
                 $cumRangeAwal = $rangeAwal;
                 $cumRangeAkhir = $rangeAwal - 1;
 
-                for ($j = 0; $j < $request['ratio'][$i]; $j++) {
-                    $checkStocker = Stocker::select("id_qr_stocker", "range_awal", "range_akhir")->whereRaw("
+                $ratio = $request['ratio'][$i];
+                if ($ratio < 1 && $modifySizeQty) {
+                    $ratio += 1;
+                }
+
+                for ($j = 0; $j < $ratio; $j++) {
+                    $checkStocker = Stocker::select("id_qr_stocker", "qty_ply", "range_awal", "range_akhir", "notes")->whereRaw("
                         part_detail_id = '" . $request['part_detail_id'][$i] . "' AND
                         form_cut_id = '" . $request['form_cut_id'] . "' AND
                         so_det_id = '" . $request['so_det_id'][$i] . "' AND
                         color = '" . $request['color'] . "' AND
                         panel = '" . $request['panel'] . "' AND
                         shade = '" . $request['group'][$i] . "' AND
-                        " . ($request['group_stocker'][$i] && $request['group_stocker'][$i] != "" ? "group_stocker = '" . $request['group_stocker'][$i] . "' AND" : "") . "
-                        qty_ply = '" . $request['qty_ply_group'][$i] . "' AND
+                        " . ( $request['group_stocker'][$i] && $request['group_stocker'][$i] != "" ? "group_stocker = '" . $request['group_stocker'][$i] . "' AND" : "" ) . "
                         ratio = " . ($j + 1) . "
                     ")->first();
 
                     $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j);
                     $cumRangeAwal = $cumRangeAkhir + 1;
-                    $cumRangeAkhir = $cumRangeAkhir + $request['qty_ply_group'][$i];
+                    $cumRangeAkhir = $cumRangeAkhir + ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]);
 
                     if (!$checkStocker) {
                         array_push($storeItemArr, [
@@ -466,17 +526,26 @@ class StockerController extends Controller
                             'group_stocker' => $request['group_stocker'][$i],
                             'ratio' => ($j + 1),
                             'size' => $request["size"][$i],
-                            'qty_ply' => $request['qty_ply_group'][$i],
-                            'qty_ply_mod' => (($request['group_stocker'][$i] == min($request['group_stocker'])) && ($j == ($request['ratio'][$i] - 1) && $modifySizeQty) ? $request['qty_ply_group'][$i] + $modifySizeQty->difference_qty : null),
+                            'qty_ply' => ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]),
+                            'qty_ply_mod' => (($request['group_stocker'][$i] == min($request['group_stocker'])) && (($j == ($request['ratio'][$i] - 1) && $modifySizeQty) || ($request['ratio'][$i] < 1 && $modifySizeQty)) ? ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]) + $modifySizeQty->difference_qty : null),
                             'qty_cut' => $request['qty_cut'][$i],
                             'notes' => $request['note'],
                             'range_awal' => $cumRangeAwal,
-                            'range_akhir' => (($request['group_stocker'][$i] == min($request['group_stocker'])) && ($j == ($request['ratio'][$i] - 1) && $modifySizeQty) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir),
+                            'range_akhir' => (($request['group_stocker'][$i] == min($request['group_stocker'])) && (($j == ($request['ratio'][$i] - 1) && $modifySizeQty) || ($request['ratio'][$i] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir),
                             'created_by' => Auth::user()->id,
                             'created_by_username' => Auth::user()->username,
                             'created_at' => Carbon::now(),
                             'updated_at' => Carbon::now(),
                         ]);
+                    } else if ($checkStocker && $checkStocker->qty_ply != ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i])) {
+                        $checkStocker->qty_ply = ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]);
+                        $checkStocker->qty_ply_mod = (($request['group_stocker'][$i] == min($request['group_stocker'])) && (($j == ($request['ratio'][$i] - 1) && $modifySizeQty) || ($request['ratio'][$i] < 1 && $modifySizeQty)) ? ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]) + $modifySizeQty->difference_qty : null);
+                        $checkStocker->range_awal = $cumRangeAwal;
+                        $checkStocker->range_akhir = (($request['group_stocker'][$i] == min($request['group_stocker'])) && (($j == ($request['ratio'][$i] - 1) && $modifySizeQty) || ($request['ratio'][$i] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir);
+                        $checkStocker->save();
+                    } else if ($checkStocker && $checkStocker->notes != $request['note']) {
+                        $checkStocker->notes = $request['note'];
+                        $checkStocker->save();
                     }
                 }
             }
@@ -488,7 +557,7 @@ class StockerController extends Controller
 
         $dataStockers = Stocker::selectRaw("
                 (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) != 0 THEN (CONCAT(stocker_input.qty_ply, (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) > 0 THEN CONCAT('+', (stocker_input.qty_ply_mod - stocker_input.qty_ply)) ELSE (stocker_input.qty_ply_mod - stocker_input.qty_ply) END))) ELSE stocker_input.qty_ply END) bundle_qty,
-                stocker_input.size,
+                COALESCE(master_sb_ws.size, stocker_input.size) size,
                 stocker_input.range_awal,
                 stocker_input.range_akhir,
                 stocker_input.id_qr_stocker,
@@ -516,7 +585,7 @@ class StockerController extends Controller
             where("form_cut_input.status", "SELESAI PENGERJAAN")->
             where("part_detail.id", $partDetailId)->
             where("form_cut_input.id", $request['form_cut_id'])->
-            groupBy("form_cut_input.id", "stocker_input.id")->
+            groupBy("form_cut_input.id", "part_detail.id", "stocker_input.size", "stocker_input.group_stocker", "stocker_input.shade", "stocker_input.ratio")->
             orderBy("stocker_input.group_stocker", "desc")->
             orderBy("stocker_input.shade", "desc")->
             orderBy("stocker_input.so_det_id", "asc")->
@@ -529,8 +598,8 @@ class StockerController extends Controller
 
         $path = public_path('pdf/');
         $fileName = 'stocker-' . $request['form_cut_id'] . '-' . $partDetailId . '.pdf';
-        $pdf->save($path . '/' . $fileName);
-        $generatedFilePath = public_path('pdf/' . $fileName);
+        $pdf->save($path . '/' . str_replace("/", "_", $fileName));
+        $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
 
         return response()->download($generatedFilePath);
     }
@@ -550,57 +619,67 @@ class StockerController extends Controller
         $i = 0;
         $storeItemArr = [];
         foreach ($partDetailKeys as $index) {
+            $modifySizeQty = ModifySizeQty::where("no_form", $formData->no_form)->where("so_det_id", $request['so_det_id'][$index])->first();
+
             $rangeAwal = $request['range_awal'][$index];
             $rangeAkhir = $request['range_akhir'][$index];
 
             $cumRangeAwal = $rangeAwal;
             $cumRangeAkhir = $rangeAwal - 1;
 
-            for ($j = 0; $j < $request['ratio'][$index]; $j++) {
-                $modifySizeQty = ModifySizeQty::where("no_form", $formData->no_form)->where("so_det_id", $request['so_det_id'][$index])->first();
+            $ratio = $request['ratio'][$index];
+            if ($ratio < 1 && $modifySizeQty) {
+                $ratio += 1;
+            }
 
-                $checkStocker = Stocker::select("id_qr_stocker", "range_awal", "range_akhir")->whereRaw("
+            for ($j = 0; $j < $ratio; $j++) {
+                $checkStocker = Stocker::whereRaw("
                     part_detail_id = '" . $request['part_detail_id'][$index] . "' AND
                     form_cut_id = '" . $request['form_cut_id'] . "' AND
                     so_det_id = '" . $request['so_det_id'][$index] . "' AND
                     color = '" . $request['color'] . "' AND
                     panel = '" . $request['panel'] . "' AND
                     shade = '" . $request['group'][$index] . "' AND
-                    " . ($request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "") . "
-                    qty_ply = '" . $request['qty_ply_group'][$index] . "' AND
+                    " . ( $request['group_stocker'][$index] && $request['group_stocker'][$index] != "" ? "group_stocker = '" . $request['group_stocker'][$index] . "' AND" : "" ) . "
                     ratio = " . ($j + 1) . "
                 ")->first();
 
                 $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $j + $i + 1);
                 $cumRangeAwal = $cumRangeAkhir + 1;
-                $cumRangeAkhir = $cumRangeAkhir + $request['qty_ply_group'][$index];
-
-                \Log::info($stockerId);
+                $cumRangeAkhir = $cumRangeAkhir + ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]);
 
                 if (!$checkStocker) {
-                    array_push($storeItemArr, [
-                        'id_qr_stocker' => $stockerId,
-                        'act_costing_ws' => $request["no_ws"],
-                        'part_detail_id' => $request['part_detail_id'][$index],
-                        'form_cut_id' => $request['form_cut_id'],
-                        'so_det_id' => $request['so_det_id'][$index],
-                        'color' => $request['color'],
-                        'panel' => $request['panel'],
-                        'shade' => $request['group'][$index],
-                        'group_stocker' => $request['group_stocker'][$index],
-                        'ratio' => ($j + 1),
-                        'size' => $request["size"][$index],
-                        'qty_ply' => $request['qty_ply_group'][$index],
-                        'qty_ply_mod' => ($request['group_stocker'][$index] == (min($request['group_stocker'])) && ($j == ($request['ratio'][$index] - 1) && $modifySizeQty) ? $request['qty_ply_group'][$index] + $modifySizeQty->difference_qty : null),
-                        'qty_cut' => $request['qty_cut'][$index],
-                        'notes' => $request['note'],
-                        'range_awal' => $cumRangeAwal,
-                        'range_akhir' => ($request['group_stocker'][$index] == (min($request['group_stocker'])) && ($j == ($request['ratio'][$index] - 1) && $modifySizeQty) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir),
-                        'created_by' => Auth::user()->id,
-                        'created_by_username' => Auth::user()->username,
-                        'created_at' => Carbon::now(),
-                        'updated_at' => Carbon::now(),
-                    ]);
+                    if ($request['qty_cut'][$index] > 0 || $modifySizeQty) {
+                        array_push($storeItemArr, [
+                            'id_qr_stocker' => $stockerId,
+                            'act_costing_ws' => $request["no_ws"],
+                            'part_detail_id' => $request['part_detail_id'][$index],
+                            'form_cut_id' => $request['form_cut_id'],
+                            'so_det_id' => $request['so_det_id'][$index],
+                            'color' => $request['color'],
+                            'panel' => $request['panel'],
+                            'shade' => $request['group'][$index],
+                            'group_stocker' => $request['group_stocker'][$index],
+                            'ratio' => ($j + 1),
+                            'size' => $request["size"][$index],
+                            'qty_ply' => ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]),
+                            'qty_ply_mod' => ($request['group_stocker'][$index] == (min($request['group_stocker'])) && (($j == ($request['ratio'][$index] - 1) && $modifySizeQty) || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]) + $modifySizeQty->difference_qty : null),
+                            'qty_cut' => $request['qty_cut'][$index],
+                            'notes' => $request['note'],
+                            'range_awal' => $cumRangeAwal,
+                            'range_akhir' => ($request['group_stocker'][$index] == (min($request['group_stocker'])) && (($j == ($request['ratio'][$index] - 1) && $modifySizeQty) || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir),
+                            'created_by' => Auth::user()->id,
+                            'created_by_username' => Auth::user()->username,
+                            'created_at' => Carbon::now(),
+                            'updated_at' => Carbon::now(),
+                        ]);
+                    }
+                } else if ($checkStocker && ($checkStocker->qty_ply != ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]) || $checkStocker->range_awal != $cumRangeAwal || $checkStocker->range_akhir != ($request['group_stocker'][$index] == (min($request['group_stocker'])) && (($j == ($request['ratio'][$index] - 1) && $modifySizeQty) || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir) )) {
+                    $checkStocker->qty_ply = ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]);
+                    $checkStocker->qty_ply_mod = (($request['group_stocker'][$index] == min($request['group_stocker'])) && (($j == ($request['ratio'][$index] - 1) && $modifySizeQty) || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? ($request['ratio'][$index] < 1 ? 0 : $request['qty_ply_group'][$index]) + $modifySizeQty->difference_qty : null);
+                    $checkStocker->range_awal = $cumRangeAwal;
+                    $checkStocker->range_akhir = (($request['group_stocker'][$index] == min($request['group_stocker'])) && (($j == ($request['ratio'][$index] - 1) && $modifySizeQty)  || ($request['ratio'][$index] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir);
+                    $checkStocker->save();
                 }
             }
 
@@ -613,10 +692,10 @@ class StockerController extends Controller
 
         $dataStockers = Stocker::selectRaw("
                 (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) != 0 THEN (CONCAT(stocker_input.qty_ply, (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) > 0 THEN CONCAT('+', (stocker_input.qty_ply_mod - stocker_input.qty_ply)) ELSE (stocker_input.qty_ply_mod - stocker_input.qty_ply) END))) ELSE stocker_input.qty_ply END) bundle_qty,
-                stocker_input.size,
+                COALESCE(master_sb_ws.size, stocker_input.size) size,
                 stocker_input.range_awal,
                 stocker_input.range_akhir,
-                stocker_input.id_qr_stocker,
+                MAX(stocker_input.id_qr_stocker) id_qr_stocker,
                 marker_input.act_costing_ws,
                 marker_input.buyer,
                 marker_input.style,
@@ -641,7 +720,7 @@ class StockerController extends Controller
             where("form_cut_input.status", "SELESAI PENGERJAAN")->
             whereIn("part_detail.id", $request['generate_stocker'])->
             where("form_cut_input.id", $request['form_cut_id'])->
-            groupBy("form_cut_input.id", "stocker_input.id")->
+            groupBy("form_cut_input.id", "part_detail.id", "stocker_input.size", "stocker_input.group_stocker", "stocker_input.shade", "stocker_input.ratio")->
             orderBy("stocker_input.group_stocker", "desc")->
             orderBy("stocker_input.shade", "desc")->
             orderBy("stocker_input.so_det_id", "asc")->
@@ -654,8 +733,8 @@ class StockerController extends Controller
 
         $path = public_path('pdf/');
         $fileName = 'stocker-' . $request['form_cut_id'] . '-' . implode($request['generate_stocker']) . '.pdf';
-        $pdf->save($path . '/' . $fileName);
-        $generatedFilePath = public_path('pdf/' . $fileName);
+        $pdf->save($path . '/' . str_replace("/", "_", $fileName));
+        $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
 
         return response()->download($generatedFilePath);
     }
@@ -663,6 +742,8 @@ class StockerController extends Controller
     public function printNumbering(Request $request, $index)
     {
         $stockerDetailCount = StockerDetail::select("kode")->orderBy("id", "desc")->first() ? str_replace("WIP-", "", StockerDetail::select("kode")->orderBy("id", "desc")->first()->kode) + 1 : 1;
+        $stockerDetailMonth = StockerDetail::select('year_month_number')->where('year_month', Carbon::now()->format('Y-m'))->orderBy('year_month_number', 'desc');
+        $stockerDetailMonthCount = $stockerDetailMonth->first() ? $stockerDetailMonth->first()->year_month_number + 1 : 1;
 
         $rangeAwal = $request['range_awal'][$index];
         $rangeAkhir = $request['range_akhir'][$index] + 1;
@@ -688,6 +769,8 @@ class StockerController extends Controller
                     'shade' => $request['shade'],
                     'panel' => $request['panel'],
                     'number' => $i,
+                    'year_month' => $now->format('Y-m'),
+                    'year_month_number' => ($stockerDetailMonthCount + $n),
                     'created_by' => Auth::user()->id,
                     'created_by_username' => Auth::user()->username,
                     'created_at' => $now,
@@ -695,13 +778,19 @@ class StockerController extends Controller
                 ]);
             }
 
+            // array_push($detailItemArr, [
+            //     'kode' => $checkStockerDetailData ? $checkStockerDetailData->kode : "WIP-" . ($stockerDetailCount + $n),
+            //     'no_cut_size' => $noCutSize . sprintf('%04s', ($i)),
+            //     'size' => $request['size'][$index],
+            //     'so_det_id' => $request['so_det_id'][$index],
+            //     'created_at' => $now,
+            //     'updated_at' => $now
+            // ]);
+
             array_push($detailItemArr, [
                 'kode' => $checkStockerDetailData ? $checkStockerDetailData->kode : "WIP-" . ($stockerDetailCount + $n),
-                'no_cut_size' => $noCutSize . sprintf('%04s', ($i)),
-                'size' => $request['size'][$index],
-                'so_det_id' => $request['so_det_id'][$index],
-                'created_at' => $now,
-                'updated_at' => $now
+                'year_month' => $checkStockerDetailData ? $checkStockerDetailData->year_month : $now->format('Y-m'),
+                'year_month_number' => $checkStockerDetailData ? $checkStockerDetailData->year_month_number : ($stockerDetailMonthCount + $n)
             ]);
 
             $n++;
@@ -712,13 +801,16 @@ class StockerController extends Controller
         }
 
         // generate pdf
-        $customPaper = array(0, 0, 56.70, 33.39);
-        $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering', ["ws" => $request["no_ws"], "color" => $request["color"], "no_cut" => $request["no_cut"], "dataNumbering" => $detailItemArr])->setPaper($customPaper);
+        // $customPaper = array(0, 0, 56.70, 33.39);
+        // $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering', ["ws" => $request["no_ws"], "color" => $request["color"], "no_cut" => $request["no_cut"], "dataNumbering" => $detailItemArr])->setPaper($customPaper);
+
+        $customPaper = array(0, 0, 35.35, 110.90);
+        $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearmonth', ["ws" => $request["no_ws"], "color" => $request["color"], "no_cut" => $request["no_cut"], "dataNumbering" => $detailItemArr])->setPaper($customPaper);
 
         $path = public_path('pdf/');
         $fileName = str_replace("/", "-", ($request["no_ws"]. '-' . $request["color"] . '-' . $request["no_cut"] . '-Numbering.pdf'));
-        $pdf->save($path . '/' . $fileName);
-        $generatedFilePath = public_path('pdf/' . $fileName);
+        $pdf->save($path . '/' . str_replace("/", "_", $fileName));
+        $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
 
         return response()->download($generatedFilePath);
     }
@@ -727,8 +819,13 @@ class StockerController extends Controller
     {
         ini_set('max_execution_time', 36000);
 
+        $type = $request->type ? $request->type : 'numbering';
+
         $detailItemArr = [];
+        $detailItemMonthArr = [];
+
         $storeDetailItemArr = [];
+        $updateDetailItemIds = [];
 
         $checkedSize = collect($request['generate_num']);
 
@@ -736,6 +833,8 @@ class StockerController extends Controller
 
         $stockerDetail = StockerDetail::orderBy("id", "desc");
         $stockerDetailCount = $stockerDetail->first() ? str_replace("WIP-", "", $stockerDetail->first()->kode) + 1 : 1;
+        $stockerDetailMonth = StockerDetail::select('year_month_number')->where('year_month', Carbon::now()->format('Y-m'))->orderBy('year_month_number', 'desc');
+        $stockerDetailMonthCount = $stockerDetailMonth->first() ? $stockerDetailMonth->first()->year_month_number + 1 : 1;
 
         $n = 0;
         foreach ($checkedSizeKeys as $index) {
@@ -760,19 +859,33 @@ class StockerController extends Controller
                         'shade' => $request['shade'],
                         'panel' => $request['panel'],
                         'number' => $i,
+                        'year_month' => $now->format('Y-m'),
+                        'year_month_number' => ($stockerDetailMonthCount + $n),
                         'created_at' => $now,
                         'updated_at' => $now,
                     ]);
+                } else if ($checkStockerDetailData && $checkStockerDetailData->cancel == "Y") {
+                    array_push($updateDetailItemIds, $checkStockerDetailData->id);
                 }
 
-                array_push($detailItemArr, [
-                    'kode' => $checkStockerDetailData ? $checkStockerDetailData->kode : "WIP-" . ($stockerDetailCount + $n),
-                    'no_cut_size' => $noCutSize . sprintf('%04s', ($i)),
-                    'size' => $request['size'][$index],
-                    'so_det_id' => $request['so_det_id'][$index],
-                    'created_at' => $now,
-                    'updated_at' => $now
-                ]);
+                if ($type == "numbering") {
+                    array_push($detailItemArr, [
+                        'kode' => $checkStockerDetailData ? $checkStockerDetailData->kode : "WIP-" . ($stockerDetailCount + $n),
+                        'no_cut_size' => $noCutSize . sprintf('%04s', ($i)),
+                        'size' => $request['size'][$index],
+                        'so_det_id' => $request['so_det_id'][$index],
+                        'created_at' => $now,
+                        'updated_at' => $now
+                    ]);
+                }
+
+                if ($type == "month_count") {
+                    array_push($detailItemMonthArr , [
+                        'kode' => $checkStockerDetailData ? $checkStockerDetailData->kode : "WIP-" . ($stockerDetailCount + $n),
+                        'year_month' => $checkStockerDetailData ? $checkStockerDetailData->year_month : $now->format('Y-m'),
+                        'year_month_number' => $checkStockerDetailData ? $checkStockerDetailData->year_month_number : ($stockerDetailMonthCount + $n)
+                    ]);
+                }
 
                 $n++;
             }
@@ -782,14 +895,28 @@ class StockerController extends Controller
             $storeDetailItem = StockerDetail::insert($storeDetailItemArr);
         }
 
+        if (count($updateDetailItemIds) > 0) {
+            $updateDetailItem = StockerDetail::whereIn("id", $updateDetailItemIds)->
+                update([
+                    "cancel" => "N"
+                ]);
+        }
+
         // generate pdf
-        $customPaper = array(0, 0, 56.70, 33.39);
-        $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering', ["ws" => $request["no_ws"], "color" => $request["color"], "no_cut" => $request["no_cut"], "dataNumbering" => $detailItemArr])->setPaper($customPaper);
+        if ($type == "numbering") {
+            $customPaper = array(0, 0, 56.70, 33.39);
+            $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering', ["ws" => $request["no_ws"], "color" => $request["color"], "no_cut" => $request["no_cut"], "dataNumbering" => $detailItemArr])->setPaper($customPaper);
+        }
+
+        if ($type == "month_count") {
+            $customPaper = array(0, 0, 35.35, 110.90);
+            $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearmonth', ["ws" => $request["no_ws"], "color" => $request["color"], "no_cut" => $request["no_cut"], "dataNumbering" => $detailItemArr])->setPaper($customPaper);
+        }
 
         $path = public_path('pdf/');
         $fileName = str_replace("/", "-", ($request["no_ws"]. '-' . $request["color"] . '-' . $request["no_cut"] . '-Numbering.pdf'));
-        $pdf->save($path . '/' . $fileName);
-        $generatedFilePath = public_path('pdf/' . $fileName);
+        $pdf->save($path . '/' . str_replace("/", "_", $fileName));
+        $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
 
         return response()->download($generatedFilePath);
     }
@@ -819,6 +946,8 @@ class StockerController extends Controller
 
         $stockerDetail = StockerDetail::orderBy("id", "desc");
         $stockerDetailCount = $stockerDetail->first() ? str_replace("WIP-", "", $stockerDetail->first()->kode) + 1 : 1;
+        $stockerDetailMonth = StockerDetail::select('year_month_number')->where('year_month', Carbon::now()->format('Y-m'))->orderBy('year_month_number', 'desc');
+        $stockerDetailMonthCount = $stockerDetailMonth->first() ? $stockerDetailMonth->first()->year_month_number + 1 : 1;
 
         $n = 0;
         foreach ($formCutInputs as $formCut) {
@@ -880,10 +1009,12 @@ class StockerController extends Controller
             $dataRatio = MarkerDetail::selectRaw("
                     marker_input_detail.id marker_detail_id,
                     marker_input_detail.so_det_id,
-                    marker_input_detail.size,
+                    COALESCE(master_sb_ws.size, marker_input_detail.size) size,
+                    COALESCE((CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE master_sb_ws.size END), marker_input_detail.size) size_dest,
                     marker_input_detail.ratio,
                     stocker_input.id stocker_id
                 ")->
+                leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
                 leftJoin("marker_input", "marker_input_detail.marker_id", "=", "marker_input.id")->
                 leftJoin("form_cut_input", "form_cut_input.id_marker", "=", "marker_input.kode")->
                 leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
@@ -984,6 +1115,8 @@ class StockerController extends Controller
                             'size' => $ratio->size,
                             'panel' => $dataSpreading->panel,
                             'number' => $i,
+                            'year_month' => $now->format('Y-m'),
+                            'year_month_number' => ($stockerDetailMonthCount + $n),
                             'created_at' => $now,
                             'updated_at' => $now,
                         ]);
@@ -1383,7 +1516,7 @@ class StockerController extends Controller
             }
 
             // Adjust stocker data
-            $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->orderBy("group_stocker", "desc")->orderBy("size", "asc")->orderBy("ratio", "asc")->orderBy("part_detail_id", "asc")->get();
+            $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->orderBy("group_stocker", "asc")->orderBy("size", "asc")->orderBy("so_det_id", "asc")->orderBy("ratio", "asc")->orderBy("part_detail_id", "asc")->get();
 
             $currentStockerPart = $stockerForm->first() ? $stockerForm->first()->part_detail_id : "";
             $currentStockerSize = "";
@@ -1392,7 +1525,6 @@ class StockerController extends Controller
 
             foreach ($stockerForm as $key => $stocker) {
                 $lembarGelaran = 1;
-
                 if ($stocker->group_stocker) {
                     $lembarGelaran = FormCutInputDetail::where("no_form_cut_input", $formCut->no_form)->where('group_stocker', $stocker->group_stocker)->sum('lembar_gelaran');
                 } else {
@@ -1400,31 +1532,35 @@ class StockerController extends Controller
                 }
 
                 if ($currentStockerPart == $stocker->part_detail_id) {
-                    if (isset($sizeRangeAkhir[$stocker->size]) && ($currentStockerSize != $stocker->size || $currentStockerGroup != $stocker->group_stocker || $currentStockerRatio != $stocker->ratio)) {
-                        if ($stockerForm->min("group_stocker") == $stocker->group_stocker && $stockerForm->filter(function ($item) use ($stocker) { return $item->size == $stocker->size; })->max("ratio") == $stocker->ratio) {
-                            $modifyThis = $modifySizeQty->where("so_det_id", $stocker->so_det_id)->first();
+                    if ($stockerForm->min("group_stocker") == $stocker->group_stocker && $stockerForm->filter(function ($item) use ($stocker) { return $item->size == $stocker->size; })->max("ratio") == $stocker->ratio) {
+                        $modifyThis = $modifySizeQty->where("so_det_id", $stocker->so_det_id)->first();
 
-                            if ($modifyThis) {
-                                $lembarGelaran = $lembarGelaran + $modifyThis->difference_qty;
-                            }
+                        if ($modifyThis) {
+                            $lembarGelaran = ($stocker->qty_ply < 1 ? 0 : $lembarGelaran) + $modifyThis->difference_qty;
                         }
+                    }
 
-                        $rangeAwal = $sizeRangeAkhir[$stocker->size] + 1;
-                        $sizeRangeAkhir[$stocker->size] = $sizeRangeAkhir[$stocker->size] + $lembarGelaran;
+                    if (isset($sizeRangeAkhir[$stocker->so_det_id]) && ($currentStockerSize != $stocker->so_det_id || $currentStockerGroup != $stocker->group_stocker || $currentStockerRatio != $stocker->ratio)) {
+                        $rangeAwal = $sizeRangeAkhir[$stocker->so_det_id] + 1;
+                        $sizeRangeAkhir[$stocker->so_det_id] = ($sizeRangeAkhir[$stocker->so_det_id] + $lembarGelaran);
 
-                        $currentStockerSize = $stocker->size;
+                        $currentStockerSize = $stocker->so_det_id;
                         $currentStockerGroup = $stocker->group_stocker;
                         $currentStockerRatio = $stocker->ratio;
-                    } else if (!isset($sizeRangeAkhir[$stocker->size])) {
+                    } else if (!isset($sizeRangeAkhir[$stocker->so_det_id])) {
                         $rangeAwal =  1;
-                        $sizeRangeAkhir->put($stocker->size, $lembarGelaran);
+                        $sizeRangeAkhir->put($stocker->so_det_id, $lembarGelaran);
                     }
                 }
 
-                ($sizeRangeAkhir[$stocker->size] - ($rangeAwal-1)) != $stocker->qty && $stocker->qty_ply_mod = ($sizeRangeAkhir[$stocker->size] - ($rangeAwal-1));
+                $stocker->so_det_id && (($sizeRangeAkhir[$stocker->so_det_id] - ($rangeAwal-1)) != $stocker->qty || $stocker->qty_ply < 1) ? ($stocker->qty_ply_mod = ($sizeRangeAkhir[$stocker->so_det_id] - ($rangeAwal-1))) : $stocker->qty_ply_mod = 0;
                 $stocker->range_awal = $rangeAwal;
-                $stocker->range_akhir = $sizeRangeAkhir[$stocker->size];
+                $stocker->range_akhir = $stocker->so_det_id ? $sizeRangeAkhir[$stocker->so_det_id] : 0;
                 $stocker->save();
+
+                if ($stocker->qty_ply < 1 && $stocker->qty_ply_mod < 1) {
+                    $stocker->delete();
+                }
             }
 
             // Adjust numbering data
@@ -1444,30 +1580,30 @@ class StockerController extends Controller
                 get();
 
             foreach ($numbers as $number) {
-                if (isset($sizeRangeAkhir[$number->size])) {
-                    if ($number->number > $sizeRangeAkhir[$number->size]) {
+                if (isset($sizeRangeAkhir[$number->so_det_id])) {
+                    if ($number->number > $sizeRangeAkhir[$number->so_det_id]) {
                         StockerDetail::where("form_cut_id", $number->form_cut_id)->
-                            where("size", $number->size)->
-                            where("number", ">", $sizeRangeAkhir[$number->size])->
+                            where("so_det_id", $number->so_det_id)->
+                            where("number", ">", $sizeRangeAkhir[$number->so_det_id])->
                             update([
                                 "cancel" => "Y"
                             ]);
                     } else {
                         StockerDetail::where("form_cut_id", $number->form_cut_id)->
-                            where("size", $number->size)->
-                            where("number", "<=", $sizeRangeAkhir[$number->size])->
+                            where("so_det_id", $number->so_det_id)->
+                            where("number", "<=", $sizeRangeAkhir[$number->so_det_id])->
                             where("cancel", "Y")->
                             update([
                                 "cancel" => "N"
                             ]);
                     }
 
-                    if ($number->number < $sizeRangeAkhir[$number->size]) {
+                    if ($number->number < $sizeRangeAkhir[$number->so_det_id]) {
                         $stockerDetailCount = StockerDetail::select("kode")->orderBy("id", "desc")->first() ? str_replace("WIP-", "", StockerDetail::select("kode")->orderBy("id", "desc")->first()->kode) + 1 : 1;
                         $noCutSize = substr($number->no_cut_size, 0, strlen($number->size)+2);
 
                         $no = 0;
-                        for ($i = $number->number; $i < $sizeRangeAkhir[$number->size]; $i++) {
+                        for ($i = $number->number; $i < $sizeRangeAkhir[$number->so_det_id]; $i++) {
                             StockerDetail::create([
                                 "kode" => "WIP-".($stockerDetailCount+$no),
                                 "form_cut_id" => $number->form_cut_id,
@@ -1638,7 +1774,7 @@ class StockerController extends Controller
                 }
 
                 // Adjust stocker data
-                $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->orderBy("group_stocker", "desc")->orderBy("size", "asc")->orderBy("ratio", "asc")->orderBy("part_detail_id", "asc")->get();
+                $stockerForm = Stocker::where("form_cut_id", $formCut->id_form)->orderBy("group_stocker", "desc")->orderBy("size", "asc")->orderBy("so_det_id", "asc")->orderBy("ratio", "asc")->orderBy("part_detail_id", "asc")->get();
 
                 $currentStockerPart = $stockerForm->first() ? $stockerForm->first()->part_detail_id : "";
                 $currentStockerSize = "";
@@ -1654,33 +1790,39 @@ class StockerController extends Controller
                         $lembarGelaran = FormCutInputDetail::where("no_form_cut_input", $formCut->no_form)->where('group_roll', $stocker->shade)->sum('lembar_gelaran');
                     }
 
-
                     if ($currentStockerPart == $stocker->part_detail_id) {
-                        if (isset($sizeRangeAkhir[$stocker->size]) && ($currentStockerSize != $stocker->size || $currentStockerGroup != $stocker->group_stocker || $currentStockerRatio != $stocker->ratio)) {
-                            if ($stockerForm->min("group_stocker") == $stocker->group_stocker && $stockerForm->filter(function ($item) use ($stocker) { return $item->size == $stocker->size; })->max("ratio") == $stocker->ratio) {
-                                $modifyThis = $modifySizeQty->where("so_det_id", $stocker->so_det_id)->first();
+                        if ($stockerForm->min("group_stocker") == $stocker->group_stocker && $stockerForm->filter(function ($item) use ($stocker) { return $item->size == $stocker->size; })->max("ratio") == $stocker->ratio) {
+                            $modifyThis = $modifySizeQty->where("so_det_id", $stocker->so_det_id)->first();
 
-                                if ($modifyThis) {
-                                    $lembarGelaran = $lembarGelaran + $modifyThis->difference_qty;
-                                }
+                            if ($modifyThis) {
+                                $lembarGelaran = ($stocker->qty_ply < 1 ? 0 : $lembarGelaran) + $modifyThis->difference_qty;
                             }
+                        }
 
-                            $rangeAwal = $sizeRangeAkhir[$stocker->size] + 1;
-                            $sizeRangeAkhir[$stocker->size] = $sizeRangeAkhir[$stocker->size] + $lembarGelaran;
+                        if (isset($sizeRangeAkhir[$stocker->so_det_id]) && ($currentStockerSize != $stocker->so_det_id || $currentStockerGroup != $stocker->group_stocker || $currentStockerRatio != $stocker->ratio)) {
+                            $rangeAwal = $sizeRangeAkhir[$stocker->so_det_id] + 1;
+                            $sizeRangeAkhir[$stocker->so_det_id] = ($sizeRangeAkhir[$stocker->so_det_id] + $lembarGelaran);
 
-                            $currentStockerSize = $stocker->size;
+                            $currentStockerSize = $stocker->so_det_id;
                             $currentStockerGroup = $stocker->group_stocker;
                             $currentStockerRatio = $stocker->ratio;
-                        } else if (!isset($sizeRangeAkhir[$stocker->size])) {
+                        } else if (!isset($sizeRangeAkhir[$stocker->so_det_id])) {
                             $rangeAwal =  1;
-                            $sizeRangeAkhir->put($stocker->size, $lembarGelaran);
+                            $sizeRangeAkhir->put($stocker->so_det_id, $lembarGelaran);
                         }
                     }
 
-                    ($sizeRangeAkhir[$stocker->size] - ($rangeAwal-1)) != $stocker->qty && $stocker->qty_ply_mod = ($sizeRangeAkhir[$stocker->size] - ($rangeAwal-1));
+                    $stocker->size && (($sizeRangeAkhir[$stocker->so_det_id] - ($rangeAwal-1)) != $stocker->qty || $stocker->qty_ply < 1) ? ($stocker->qty_ply_mod = ($sizeRangeAkhir[$stocker->so_det_id] - ($rangeAwal-1))) : $stocker->qty_ply_mod = 0;
                     $stocker->range_awal = $rangeAwal;
-                    $stocker->range_akhir = $sizeRangeAkhir[$stocker->size];
+                    $stocker->range_akhir = $stocker->size ? $sizeRangeAkhir[$stocker->so_det_id] : 0;
                     $stocker->save();
+
+                    if ($stocker->qty_ply < 1 && $stocker->qty_ply_mod < 1) {
+                        $stocker->delete();
+                    }
+                    // if ($formCut->no_form == '14-05-17' && $stocker->size == 'M') {
+                    //     dd($stocker);
+                    // }
                 }
 
                 // Adjust numbering data
@@ -1699,30 +1841,30 @@ class StockerController extends Controller
                     get();
 
                 foreach ($numbers as $number) {
-                    if (isset($sizeRangeAkhir[$number->size])) {
-                        if ($number->number > $sizeRangeAkhir[$number->size]) {
+                    if (isset($sizeRangeAkhir[$number->so_det_id])) {
+                        if ($number->number > $sizeRangeAkhir[$number->so_det_id]) {
                             StockerDetail::where("form_cut_id", $number->form_cut_id)->
-                                where("size", $number->size)->
-                                where("number", ">", $sizeRangeAkhir[$number->size])->
+                                where("so_det_id", $number->so_det_id)->
+                                where("number", ">", $sizeRangeAkhir[$number->so_det_id])->
                                 update([
                                     "cancel" => "Y"
                                 ]);
                         } else {
                             StockerDetail::where("form_cut_id", $number->form_cut_id)->
-                                where("size", $number->size)->
-                                where("number", "<=", $sizeRangeAkhir[$number->size])->
+                                where("so_det_id", $number->so_det_id)->
+                                where("number", "<=", $sizeRangeAkhir[$number->so_det_id])->
                                 where("cancel", "Y")->
                                 update([
                                     "cancel" => "N"
                                 ]);
                         }
 
-                        if ($number->number < $sizeRangeAkhir[$number->size]) {
+                        if ($number->number < $sizeRangeAkhir[$number->so_det_id]) {
                             $stockerDetailCount = StockerDetail::select("kode")->orderBy("id", "desc")->first() ? str_replace("WIP-", "", StockerDetail::select("kode")->orderBy("id", "desc")->first()->kode) + 1 : 1;
                             $noCutSize = substr($number->no_cut_size, 0, strlen($number->size)+2);
 
                             $no = 0;
-                            for ($i = $number->number; $i < $sizeRangeAkhir[$number->size]; $i++) {
+                            for ($i = $number->number; $i < $sizeRangeAkhir[$number->so_det_id]; $i++) {
                                 StockerDetail::create([
                                     "kode" => "WIP-".($stockerDetailCount+$no),
                                     "form_cut_id" => $number->form_cut_id,
@@ -1759,4 +1901,749 @@ class StockerController extends Controller
             'additional' => [],
         );
     }
+
+    public function stockerList(Request $request) {
+        if ($request->ajax()) {
+            $additionalQuery = "";
+
+            $dateFrom = $request->dateFrom ? $request->dateFrom : date('Y-m-d');
+            $dateTo = $request->dateTo ? $request->dateTo : date('Y-m-d');
+
+            $stockerList = DB::select("
+                SELECT
+                    year_sequence_num.updated_at,
+                    GROUP_CONCAT( DISTINCT stocker_input.id_qr_stocker ) id_qr_stocker,
+                    GROUP_CONCAT( DISTINCT master_part.nama_part ) part,
+                    stocker_input.form_cut_id,
+                    stocker_input.act_costing_ws,
+                    stocker_input.so_det_id,
+                    master_sb_ws.styleno style,
+                    master_sb_ws.color,
+                    master_sb_ws.size,
+                    master_sb_ws.dest,
+                    form_cut_input.no_form,
+                    form_cut_input.no_cut,
+                    stocker_input.group_stocker,
+                    stocker_input.shade,
+                    stocker_input.ratio,
+                    CONCAT( MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir)) stocker_range,
+                    year_sequence_num.year_sequence,
+                    (MAX(year_sequence_num.range_akhir) - MIN(year_sequence_num.range_awal) + 1) qty,
+                    CONCAT( MIN(year_sequence_num.range_awal), ' - ', MAX(year_sequence_num.range_akhir)) numbering_range
+                FROM
+                    stocker_input
+                    LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
+                    LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
+                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                    LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
+                    INNER JOIN (
+                        SELECT
+                            form_cut_id,
+                            so_det_id,
+                            CONCAT(`year`, '_', year_sequence) year_sequence,
+                            MIN( number ) range_numbering_awal,
+                            MAX( number ) range_numbering_akhir,
+                            MIN( year_sequence_number ) range_awal,
+                            MAX( year_sequence_number ) range_akhir,
+                            COALESCE(updated_at, created_at) updated_at
+                        FROM
+                            year_sequence
+                        GROUP BY
+                            form_cut_id,
+                            so_det_id,
+                            COALESCE(updated_at, created_at)
+                    ) year_sequence_num on year_sequence_num.form_cut_id = stocker_input.form_cut_id and year_sequence_num.so_det_id = stocker_input.so_det_id and year_sequence_num.range_numbering_awal >= stocker_input.range_awal
+                WHERE
+                    ( form_cut_input.cancel IS NOT NULL OR form_cut_input.cancel != 'Y' )
+                    AND (
+                        DATE ( form_cut_input.waktu_mulai ) >= '".$dateFrom."'
+                        OR DATE ( form_cut_input.waktu_selesai ) >= '".$dateFrom."'
+                        OR DATE ( stocker_input.updated_at ) >= '".$dateFrom."'
+                        OR DATE ( stocker_input.created_at ) >= '".$dateFrom."'
+                        OR year_sequence_num.updated_at >= '".$dateFrom."'
+                    )
+                    AND (
+                        DATE ( form_cut_input.waktu_mulai ) <= '".$dateTo."'
+                        OR DATE ( form_cut_input.waktu_selesai ) <= '".$dateTo."'
+                        OR DATE ( stocker_input.updated_at ) <= '".$dateTo."'
+                        OR DATE ( stocker_input.created_at ) <= '".$dateTo."'
+                        OR year_sequence_num.updated_at <= '".$dateTo."'
+                    )
+                GROUP BY
+                    stocker_input.form_cut_id,
+                    stocker_input.so_det_id,
+                    year_sequence_num.updated_at
+                ORDER BY
+                    stocker_input.updated_at DESC,
+                    stocker_input.created_at DESC,
+                    form_cut_input.waktu_selesai DESC,
+                    form_cut_input.waktu_mulai DESC
+            ");
+
+            return DataTables::of($stockerList)->toJson();
+        }
+
+        $months = [['angka' => '01','nama' => 'Januari'],['angka' => '02','nama' => 'Februari'],['angka' => '03','nama' => 'Maret'],['angka' => '04','nama' => 'April'],['angka' => '05','nama' => 'Mei'],['angka' => '06','nama' => 'Juni'],['angka' => '07','nama' => 'Juli'],['angka' => '08','nama' => 'Agustus'],['angka' => '09','nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
+        $years = array_reverse(range(1999, date('Y')));
+
+        return view("stocker.stocker.stocker-list", ["page" => "dashboard-dc",  "subPageGroup" => "stocker-number", "subPage" => "stocker-list", "months" => $months, "years" => $years]);
+    }
+
+    public function stockerListDetail($form_cut_id, $so_det_id) {
+        if ($form_cut_id && $so_det_id) {
+            $months = [['angka' => '01','nama' => 'Januari'],['angka' => '02','nama' => 'Februari'],['angka' => '03','nama' => 'Maret'],['angka' => '04','nama' => 'April'],['angka' => '05','nama' => 'Mei'],['angka' => '06','nama' => 'Juni'],['angka' => '07','nama' => 'Juli'],['angka' => '08','nama' => 'Agustus'],['angka' => '09','nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
+            $years = array_reverse(range(1999, date('Y')));
+
+            $stockerList = DB::select("
+                    SELECT
+                        GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker) id_qr_stocker,
+                        GROUP_CONCAT(DISTINCT master_part.nama_part) part,
+                        stocker_input.form_cut_id,
+                        stocker_input.act_costing_ws,
+                        stocker_input.so_det_id,
+                        master_sb_ws.styleno style,
+                        master_sb_ws.color,
+                        master_sb_ws.size,
+                        master_sb_ws.dest,
+                        form_cut_input.no_form,
+                        form_cut_input.no_cut,
+                        stocker_input.group_stocker,
+                        stocker_input.shade,
+                        stocker_input.ratio,
+                        MIN(stocker_input.range_awal) range_awal,
+                        MAX(stocker_input.range_akhir) range_akhir,
+                        CONCAT(MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir)) stocker_range
+                    FROM
+                        stocker_input
+                    LEFT JOIN
+                        part_detail on part_detail.id = stocker_input.part_detail_id
+                    LEFT JOIN
+                        master_part on master_part.id = part_detail.master_part_id
+                    LEFT JOIN
+                        master_sb_ws on master_sb_ws.id_so_det = stocker_input.so_det_id
+                    LEFT JOIN
+                        form_cut_input on form_cut_input.id = stocker_input.form_cut_id
+                    WHERE
+                        (form_cut_input.cancel is not null or form_cut_input.cancel != 'Y') AND
+                        stocker_input.form_cut_id = '".$form_cut_id."' AND
+                        stocker_input.so_det_id = '".$so_det_id."'
+                    GROUP BY
+                        stocker_input.form_cut_id,
+                        stocker_input.so_det_id
+                    ORDER BY
+                        stocker_input.updated_at desc,
+                        stocker_input.created_at desc,
+                        form_cut_input.waktu_selesai desc,
+                        form_cut_input.waktu_mulai desc
+                    LIMIT 1
+                ");
+
+            if ($stockerList[0]) {
+                $stockerListNumber = YearSequence::selectRaw("
+                    year_sequence.id_year_sequence,
+                    year_sequence.number,
+                    year_sequence.year,
+                    year_sequence.year_sequence,
+                    year_sequence.year_sequence_number,
+                    master_sb_ws.size,
+                    master_sb_ws.dest
+                ")->
+                leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "year_sequence.so_det_id")->
+                whereRaw("
+                    year_sequence.form_cut_id = '".$form_cut_id."' and
+                    year_sequence.so_det_id = '".$so_det_id."'
+                ")->
+                get();
+
+                return view("stocker.stocker.stocker-list-detail", ["page" => "dashboard-dc",  "subPageGroup" => "stocker-number", "subPage" => "stocker-list", "stockerList" => $stockerList[0], "stockerListNumber" => $stockerListNumber, "months" => $months, "years" => $years]);
+            }
+        }
+
+        return redirect()->route('stocker-list');
+    }
+
+    public function setMonthCountNumber(Request $request) {
+        $validatedRequest = $request->validate([
+            "month" => 'required',
+            "year" => 'required',
+            "form_cut_id" => 'required',
+            "so_det_id" => 'required',
+            "size" => 'required',
+            "range_awal_stocker" => 'required',
+            "range_akhir_stocker" => 'required',
+            "range_awal_month_count" => 'required',
+            "range_akhir_month_count" => 'required',
+        ]);
+
+        if ($validatedRequest) {
+            $currentData = MonthCount::selectRaw("
+                    number
+                ")->
+                where('form_cut_id', $validatedRequest['form_cut_id'])->
+                where('so_det_id', $validatedRequest['so_det_id'])->
+                orderBy('number')->
+                get();
+
+            if ($validatedRequest['range_awal_month_count'] > 0 && $validatedRequest['range_awal_month_count'] <= $validatedRequest['range_akhir_month_count']) {
+
+                $upsertData = [];
+
+                $n = 0;
+                $n1 = 0;
+                for ($i = $validatedRequest['range_awal_month_count']; $i <= $validatedRequest['range_akhir_month_count']; $i++) {
+
+                    if ($currentData->where('number', $validatedRequest['range_awal_stocker']+$n)->count() < 1) {
+                        array_push($upsertData, [
+                            "id_month_year" => $validatedRequest['year']."-".$validatedRequest['month']."_".($validatedRequest['range_awal_month_count'] + $n1),
+                            "month_year" => $validatedRequest['year']."-".$validatedRequest['month'],
+                            "month_year_number" => ($validatedRequest['range_awal_month_count'] + $n1),
+                            "form_cut_id" => $validatedRequest['form_cut_id'],
+                            "so_det_id" => $validatedRequest['so_det_id'],
+                            "size" => $validatedRequest['size'],
+                            "number" => $validatedRequest['range_awal_stocker']+$n,
+                            "created_at" => Carbon::now(),
+                            "updated_at" => Carbon::now(),
+                        ]);
+
+                        $n1++;
+                    }
+
+                    $n++;
+                }
+
+                if (count($upsertData) > 0) {
+                    MonthCount::upsert($upsertData, ['id_month_year', 'month_year', 'month_year_number'], ['form_cut_id', 'so_det_id', 'size', 'number', 'created_at', 'updated_at']);
+
+                    $customPaper = array(0, 0, 35.35, 110.90);
+                    $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearmonth-1', ["data" => $upsertData])->setPaper($customPaper);
+
+                    $path = public_path('pdf/');
+                    $fileName = str_replace("/", "-", ('Month Count.pdf'));
+                    $pdf->save($path . '/' . str_replace("/", "_", $fileName));
+                    $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
+
+                    return response()->download($generatedFilePath);
+                }
+            }
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Data kosong",
+        );
+    }
+
+    public function setYearSequenceNumber(Request $request) {
+        ini_set("max_execution_time", 36000);
+
+        $validatedRequest = $request->validate([
+            "year" => 'required',
+            "year_sequence" => 'required',
+            "form_cut_id" => 'required',
+            "so_det_id" => 'required',
+            "size" => 'required',
+            "range_awal_stocker" => 'required',
+            "range_akhir_stocker" => 'required',
+            "range_awal_year_sequence" => 'required',
+            "range_akhir_year_sequence" => 'required',
+        ]);
+
+        if ($validatedRequest) {
+            if ($request->replace) {
+                $deleteYearSequence = YearSequence::where("year", $validatedRequest['year'])->
+                    where("year_sequence", $validatedRequest['year_sequence'])->
+                    where("form_cut_id", $validatedRequest['form_cut_id'])->
+                    where("so_det_id", $validatedRequest['so_det_id'])->
+                    where("number", ">=", $validatedRequest['range_awal_stocker'])->
+                    where("number", "<=", $validatedRequest['range_akhir_stocker'])->
+                    delete();
+            }
+
+            $currentData = YearSequence::selectRaw("
+                    number
+                ")->
+                where('form_cut_id', $validatedRequest['form_cut_id'])->
+                where('so_det_id', $validatedRequest['so_det_id'])->
+                where("number", ">=", $validatedRequest['range_awal_stocker'])->
+                where("number", "<=", $validatedRequest['range_akhir_stocker'])->
+                orderBy('number')->
+                get();
+
+            if ($validatedRequest['range_awal_year_sequence'] > 0 && $validatedRequest['range_awal_year_sequence'] <= $validatedRequest['range_akhir_year_sequence'] && $validatedRequest['range_akhir_year_sequence'] <= 999999 && $validatedRequest['year_sequence'] > 0) {
+                $yearSequence = YearSequence::selectRaw("year_sequence, year_sequence_number")->where("year", $validatedRequest['year'])->where("year_sequence", $validatedRequest['year_sequence'])->orderBy("year_sequence", "desc")->orderBy("year_sequence_number", "desc")->first();
+                $yearSequenceSequence = $yearSequence ? $yearSequence->year_sequence : $validatedRequest['year_sequence'];
+                $yearSequenceNumber = $yearSequence ? $yearSequence->year_sequence_number + 1 : 1;
+
+                $upsertData = [];
+
+                $n = 0;
+                $n1 = 0;
+                $largeCount = 0;
+
+                for ($i = $validatedRequest['range_awal_year_sequence']; $i <= $validatedRequest['range_akhir_year_sequence']; $i++) {
+                    if ($i > 999999) {
+                        $yearSequenceSequence = $yearSequenceSequence + 1;
+                        $yearSequenceNumber = 1;
+                    }
+
+                    if ($currentData->where('number', $validatedRequest['range_awal_stocker']+$n)->count() < 1 || $request->method == "add" ) {
+                        $now = Carbon::now();
+
+                        $currentNumber = ($currentData->count() > 0 ? $currentData->max("number")+1+$n : $validatedRequest['range_awal_stocker']+$n);
+
+                        array_push($upsertData, [
+                            "id_year_sequence" => $validatedRequest['year']."_".($yearSequenceSequence)."_".($validatedRequest['range_awal_year_sequence']+$n1),
+                            "year" => $validatedRequest['year'],
+                            "year_sequence" => $yearSequenceSequence,
+                            "year_sequence_number" => ($validatedRequest['range_awal_year_sequence']+$n1),
+                            "form_cut_id" => $validatedRequest['form_cut_id'],
+                            "so_det_id" => $validatedRequest['so_det_id'],
+                            "size" => $validatedRequest['size'],
+                            "number" => ($currentNumber > $validatedRequest['range_akhir_stocker'] ? $validatedRequest['range_akhir_stocker'] : ($currentNumber)),
+                            "created_at" => $now,
+                            "updated_at" => $now,
+                        ]);
+
+                        if (count($upsertData) % 5000 == 0) {
+                            YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], ['form_cut_id', 'so_det_id', 'size', 'number', 'created_at', 'updated_at']);
+
+                            $upsertData = [];
+
+                            $largeCount++;
+                        }
+
+                        $n1++;
+                    }
+
+                    $n++;
+                }
+
+                if (count($upsertData) > 0 || $largeCount > 0) {
+                    if (count($upsertData) > 0) {
+                        YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], ['form_cut_id', 'so_det_id', 'size', 'number', 'created_at', 'updated_at']);
+                    }
+
+                    // $customPaper = array(0, 0, 35.35, 110.90);
+                    // $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearsequence', ["data" => $upsertData])->setPaper($customPaper);
+
+                    // $path = public_path('pdf/');
+                    // $fileName = str_replace("/", "-", ('Year Sequence.pdf'));
+                    // $pdf->save($path . '/' . str_replace("/", "_", $fileName));
+                    // $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
+
+                    return array(
+                        "status" => 200,
+                        "message" => "Berhasil"
+                    );
+                } else {
+                    return array(
+                        "status" => 400,
+                        "message" => "Fkin Hell"
+                    );
+                }
+            }
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Data kosong",
+        );
+    }
+
+    public function deleteYearSequence(Request $request) {
+        ini_set("max_execution_time", 36000);
+
+        $validatedRequest = $request->validate([
+            "year" => 'required',
+            "year_sequence" => 'required',
+            "form_cut_id" => 'required',
+            "so_det_id" => 'required',
+            "size" => 'required',
+            "range_awal_stocker" => 'required',
+            "range_akhir_stocker" => 'required',
+            "range_awal_year_sequence" => 'required',
+            "range_akhir_year_sequence" => 'required',
+        ]);
+
+        $deleteYearSequence = YearSequence::where("year", $validatedRequest['year'])->
+            where("year_sequence", $validatedRequest['year_sequence'])->
+            where("fomr_cut_id", $validatedRequest['fomr_cut_id'])->
+            where("so_det_id", $validatedRequest['so_det_id'])->
+            where("number", ">=", $validatedRequest['range_awal_stocker'])->
+            delete();
+    }
+
+
+    public function customMonthCount() {
+        $months = [['angka' => '01','nama' => 'Januari'],['angka' => '02','nama' => 'Februari'],['angka' => '03','nama' => 'Maret'],['angka' => '04','nama' => 'April'],['angka' => '05','nama' => 'Mei'],['angka' => '06','nama' => 'Juni'],['angka' => '07','nama' => 'Juli'],['angka' => '08','nama' => 'Agustus'],['angka' => '09','nama' => 'September'],['angka' => 10,'nama' => 'Oktober'],['angka' => 11,'nama' => 'November'],['angka' => 12,'nama' => 'Desember']];
+        $years = array_reverse(range(1999, date('Y')));
+
+        return view("stocker.stocker.month-count", ["page" => "dashboard-dc",  "subPageGroup" => "stocker-number", "subPage" => "month-count", "months" => $months,  "years" => $years]);
+    }
+
+    public function yearSequence() {
+        $years = array_reverse(range(1999, date('Y')));
+
+        return view("stocker.stocker.year-sequence", ["page" => "dashboard-dc",  "subPageGroup" => "stocker-number", "subPage" => "year-sequence", "years" => $years]);
+    }
+
+    public function printMonthCount(Request $request) {
+        ini_set("max_execution_time", 360000);
+
+        $method = $request->method ? $request->method : 'qty';
+        $qty = $request->qty ? $request->qty : 0;
+        $rangeAwal = $request->rangeAwal ? $request->rangeAwal : 0;
+        $rangeAkhir = $request->rangeAkhir ? $request->rangeAkhir : 0;
+
+        if ($method == 'qty' && $qty > 0) {
+            $insertData = [];
+
+            $monthCount = MonthCount::select("month_year_number")->where("month_year", Carbon::now()->format('Y-m'))->orderBy("month_year_number", "desc")->first();
+            $monthCountNumber = $monthCount ? $monthCount->month_year_number + 1 : 1;
+
+            for ($i = 0; $i < $qty; $i++) {
+                array_push($insertData, [
+                    "id_month_year" => Carbon::now()->format('Y-m')."_".$monthCountNumber,
+                    "month_year" => Carbon::now()->format('Y-m'),
+                    "month_year_number" => $monthCountNumber,
+                    "created_at" => Carbon::now(),
+                    "updated_at" => Carbon::now(),
+                ]);
+
+                $monthCountNumber++;
+            }
+
+            if (count($insertData) > 0) {
+                MonthCount::insert($insertData);
+
+                $customPaper = array(0, 0, 35.35, 110.90);
+                $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearmonth-1', ["data" => $insertData])->setPaper($customPaper);
+
+                $path = public_path('pdf/');
+                $fileName = str_replace("/", "-", ('Month Count.pdf'));
+                $pdf->save($path . '/' . str_replace("/", "_", $fileName));
+                $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
+
+                return response()->download($generatedFilePath);
+            }
+
+            return array(
+                "status" => 400,
+                "message" => "Something went wrong",
+            );
+        } else if ($method == 'range' && $rangeAwal > 0 && $rangeAkhir > 0 && $rangeAwal <= $rangeAkhir) {
+            $upsertData = [];
+
+            for ($i = $rangeAwal; $i <= $rangeAkhir; $i++) {
+                array_push($upsertData, [
+                    "id_month_year" => Carbon::now()->format('Y-m')."_".$i,
+                    "month_year" => Carbon::now()->format('Y-m'),
+                    "month_year_number" => $i,
+                    "created_at" => Carbon::now(),
+                    "updated_at" => Carbon::now(),
+                ]);
+            }
+
+            if (count($upsertData) > 0) {
+                MonthCount::upsert($upsertData, ['id_month_year', 'month_year', 'month_year_number'], ['created_at', 'updated_at']);
+
+                $customPaper = array(0, 0, 35.35, 110.90);
+                $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearmonth-1', ["data" => $upsertData])->setPaper($customPaper);
+
+                $path = public_path('pdf/');
+                $fileName = str_replace("/", "-", ('Month Count.pdf'));
+                $pdf->save($path . '/' . str_replace("/", "_", $fileName));
+                $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
+
+                return response()->download($generatedFilePath);
+            }
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Data kosong",
+        );
+    }
+
+    public function printYearSequence(Request $request) {
+        ini_set("max_execution_time", 360000);
+        ini_set("memory_limit", '2048M');
+
+        $method = $request->method ? $request->method : 'qty';
+        $yearSequenceYear = $request->year ? $request->year : Carbon::now()->format('Y');
+        $yearSequenceSequence = $request->yearSequence ? $request->yearSequence : 0;
+        $qty = $request->qty ? $request->qty : 0;
+        $rangeAwal = $request->rangeAwal ? $request->rangeAwal : 0;
+        $rangeAkhir = $request->rangeAkhir ? $request->rangeAkhir : 0;
+
+        if ($method == 'qty' && $qty > 0) {
+            $insertData = [];
+
+            $yearSequence = YearSequence::selectRaw("year_sequence, year_sequence_number")->where("year", $yearSequenceYear)->where("year_sequence", $yearSequenceSequence)->orderBy("year_sequence", "desc")->orderBy("year_sequence_number", "desc")->first();
+            $yearSequenceSequence = $yearSequence ? $yearSequence->year_sequence : 1;
+            $yearSequenceNumber = $yearSequence ? $yearSequence->year_sequence_number + 1 : 1;
+
+            for ($i = 0; $i < $qty; $i++) {
+                if ($yearSequenceNumber > 999999) {
+                    $yearSequenceSequence = $yearSequenceSequence + 1;
+                    $yearSequenceNumber = 1;
+                }
+
+                array_push($insertData, [
+                    "id_year_sequence" => $yearSequenceYear."_".sprintf('%03d', $yearSequenceSequence)."_".$yearSequenceNumber,
+                    "year" => $yearSequenceYear,
+                    "year_sequence" => $yearSequenceSequence,
+                    "year_sequence_number" => $yearSequenceNumber,
+                    "created_at" => Carbon::now(),
+                    "updated_at" => Carbon::now(),
+                ]);
+
+                $yearSequenceNumber++;
+            }
+
+            if (count($insertData) > 0) {
+                YearSequence::insert($insertData);
+
+                $customPaper = array(0, 0, 35.35, 110.90);
+                $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearsequence', ["data" => $insertData])->setPaper($customPaper);
+
+                $path = public_path('pdf/');
+                $fileName = str_replace("/", "-", ('Year Sequence.pdf'));
+                $pdf->save($path . '/' . str_replace("/", "_", $fileName));
+                $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
+
+                return response()->download($generatedFilePath);
+            }
+
+            return array(
+                "status" => 400,
+                "message" => "Something went wrong",
+            );
+        } else if ($method == 'range' && $rangeAwal > 0 && $rangeAkhir > 0 && $rangeAwal <= $rangeAkhir && $rangeAkhir <= 999999) {
+            $upsertData = [];
+
+            $yearSequence = YearSequence::selectRaw("year_sequence, year_sequence_number")->where("year", $yearSequenceYear)->where("year_sequence", $yearSequenceSequence)->orderBy("year_sequence", "desc")->orderBy("year_sequence_number", "desc")->first();
+            $yearSequenceSequence = $yearSequence ? $yearSequence->year_sequence : 1;
+
+            for ($i = $rangeAwal; $i <= $rangeAkhir; $i++) {
+
+                array_push($upsertData, [
+                    "id_year_sequence" => $yearSequenceYear."_".$yearSequenceSequence."_".$i,
+                    "year" => $yearSequenceYear,
+                    "year_sequence" => $yearSequenceSequence,
+                    "year_sequence_number" => $i,
+                    "created_at" => Carbon::now(),
+                    "updated_at" => Carbon::now(),
+                ]);
+            }
+
+            if (count($upsertData) > 0) {
+                YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], ['created_at', 'updated_at']);
+
+                $customPaper = array(0, 0, 35.35, 110.90);
+                $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearsequence', ["data" => $upsertData])->setPaper($customPaper);
+
+                $path = public_path('pdf/');
+                $fileName = str_replace("/", "-", ('Year Sequence.pdf'));
+                $pdf->save($path . '/' . str_replace("/", "_", $fileName));
+                $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
+
+                return response()->download($generatedFilePath);
+            }
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Data kosong",
+        );
+    }
+
+    public function getStocker(Request $request) {
+        if ($request->stocker) {
+            $stockerData = Stocker::selectRaw("
+                    stocker_input.id_qr_stocker,
+                    stocker_input.form_cut_id,
+                    stocker_input.so_det_id,
+                    stocker_input.act_costing_ws,
+                    part.style,
+                    stocker_input.color,
+                    stocker_input.size,
+                    master_part.nama_part part,
+                    form_cut_input.no_form,
+                    (
+                        (COALESCE ( dc_in_input.qty_awal, stocker_input.qty_ply_mod, stocker_input.qty_ply )) -
+                        (COALESCE ( MAX(dc_in_input.qty_reject), 0 )) +
+                        (COALESCE ( MAX(dc_in_input.qty_replace), 0 )) -
+                        (COALESCE ( MAX(secondary_in_input.qty_reject), 0 )) +
+                        (COALESCE ( MAX(secondary_in_input.qty_replace), 0 )) -
+                        (COALESCE ( MAX(secondary_inhouse_input.qty_reject), 0 )) +
+                        (COALESCE ( MAX(secondary_inhouse_input.qty_replace), 0 ))
+                    ) qty,
+                    stocker_input.range_awal,
+                    stocker_input.range_akhir
+                ")->
+                leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+                leftJoin("part", "part.id", "=", "part_detail.part_id")->
+                leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+                leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+                leftJoin("dc_in_input", "dc_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                leftJoin("secondary_in_input", "secondary_in_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                leftJoin("secondary_inhouse_input", "secondary_inhouse_input.id_qr_stocker", "=", "stocker_input.id_qr_stocker")->
+                where("stocker_input.id_qr_stocker", $request->stocker)->
+                first();
+
+            if ($stockerData) {
+                return json_encode($stockerData);
+            }
+
+            return array(
+                "status" => "400",
+                "message" => "Stocker tidak ditemukan",
+            );
+        }
+
+        return array(
+            "status" => "400",
+            "message" => "Stocker tidak valid",
+        );
+    }
+
+    public function getStockerMonthCount(Request $request) {
+        $stockerListNumber = MonthCount::selectRaw("
+                month_count.id_month_year,
+                month_count.number,
+                month_count.month_year,
+                month_count.month_year_number,
+                master_sb_ws.size,
+                master_sb_ws.dest
+            ")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "month_count.so_det_id")->
+            whereRaw("
+                month_count.form_cut_id = '".$request->form_cut_id."' and
+                month_count.so_det_id = '".$request->so_det_id."' and
+                (month_count.number >= '".$request->range_awal."' and month_count.number <= '".$request->range_akhir."')
+            ")->
+            get();
+
+        return Datatables::of($stockerListNumber)->toJson();
+    }
+
+    public function getStockerYearSequence(Request $request) {
+        $stockerListNumber = YearSequence::selectRaw("
+                year_sequence.id_year_sequence,
+                year_sequence.number,
+                year_sequence.year,
+                year_sequence.year_sequence,
+                year_sequence.year_sequence_number,
+                master_sb_ws.size,
+                master_sb_ws.dest
+            ")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "year_sequence.so_det_id")->
+            whereRaw("
+                year_sequence.form_cut_id = '".$request->form_cut_id."' and
+                year_sequence.so_det_id = '".$request->so_det_id."' and
+                (year_sequence.number >= '".$request->range_awal."') and
+                (year_sequence.number <= '".$request->range_akhir."')
+            ")->
+            orderBy("year_sequence.number", "asc")->
+            get();
+
+        return Datatables::of($stockerListNumber)->toJson();
+    }
+
+    public function getRangeMonthCount(Request $request) {
+        if ($request->month && $request->year) {
+
+            $monthYear = $request->year."-".$request->month;
+
+            $availableMonthCount = MonthCount::selectRaw("
+                    month_year,
+                    month_year_number
+                ")->
+                where("month_count.month_year", $monthYear)->
+                whereRaw('number IS NOT NULL')->
+                whereRaw('form_cut_id IS NOT NULL')->
+                whereRaw('so_det_id IS NOT NULL')->
+                orderBy('month_year_number', 'desc')->
+                first();
+
+            if ($availableMonthCount) {
+                return json_encode($availableMonthCount);
+            } else {
+                return json_encode(["month_year" => $monthYear, "month_year_number" => 1]);
+            }
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Bulan dan tahun tidak valid",
+        );
+    }
+
+    public function getSequenceYearSequence(Request $request) {
+        if ($request->year) {
+            $availableYearSequence = YearSequence::selectRaw("
+                    year_sequence
+                ")->
+                where("year_sequence.year",  $request->year)->
+                groupBy("year_sequence.year_sequence")->
+                orderBy("year_sequence.year_sequence", "asc")->
+                get();
+
+            if ($availableYearSequence->count() > 0) {
+                return json_encode($availableYearSequence);
+            } else {
+                return json_encode([["year" => $request->year, "year_sequence" => 1]]);
+            }
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Tahun tidak valid",
+        );
+    }
+
+    public function getRangeYearSequence(Request $request) {
+        if ($request->year && $request->sequence) {
+
+            $availableYearSequence = YearSequence::selectRaw("
+                    year,
+                    year_sequence,
+                    year_sequence_number
+                ")->
+                where("year_sequence.year",  $request->year)->
+                where("year_sequence.year_sequence",  $request->sequence)->
+                whereRaw('number IS NOT NULL')->
+                whereRaw('form_cut_id IS NOT NULL')->
+                whereRaw('so_det_id IS NOT NULL')->
+                orderBy('year_sequence_number', 'desc')->
+                first();
+
+            if ($availableYearSequence) {
+                return json_encode($availableYearSequence);
+            } else {
+                return json_encode(["year" => $request->year, "year_sequence" => $request->year_sequence, "year_sequence_number" => 1]);
+            }
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Tahun tidak valid",
+        );
+    }
+
+    // public function printMonthCountChecked(Request $request) {
+    //     $checkedSize = collect($request['generate_num']);
+
+    //     $checkedSizeKeys = $checkedSize->keys();
+
+    //     $n = 0;
+    //     foreach ($checkedSizeKeys as $index) {
+    //         $rangeAwal = $request['range_awal'][$index];
+    //         $rangeAkhir = $request['range_akhir'][$index] + 1;
+
+    //         $now = Carbon::now();
+    //     }
+    // }
 }
+

@@ -47,31 +47,31 @@ class ExportLaporanFGStokMutasiInternal implements FromView, WithEvents, ShouldA
 
     {
         $data = DB::select("
-        select
-        a.id,
-        no_mut,
-        tgl_mut,
-        concat((DATE_FORMAT(tgl_mut,  '%d')), '-', left(DATE_FORMAT(tgl_mut,  '%M'),3),'-',DATE_FORMAT(tgl_mut,  '%Y')) tgl_mut_fix,
-        buyer,
-        ws,
-        brand,
-        styleno,
-        color,
-        size,
-        a.qty_mut,
-        a.grade,
-        lokasi_asal,
-        no_carton_asal,
-        lokasi_tujuan,
-        no_carton_tujuan,
-        a.created_by,
-        created_at,
-        bpb.no_trans,
-        bppb.no_trans_out
-        from fg_stok_mutasi_log a
-        inner join master_sb_ws m on a.id_so_det = m.id_so_det
-        inner join (select no_mutasi,no_trans from fg_stok_bpb where cancel = 'N' and mutasi = 'Y' group by no_trans) bpb on a.no_mut = bpb.no_mutasi
-        inner join (select no_mutasi,no_trans_out from fg_stok_bppb where cancel = 'N' and mutasi = 'Y' group by no_trans_out) bppb on a.no_mut = bpb.no_mutasi
+            select
+            a.id,
+            no_mut,
+            tgl_mut,
+            concat((DATE_FORMAT(tgl_mut,  '%d')), '-', left(DATE_FORMAT(tgl_mut,  '%M'),3),'-',DATE_FORMAT(tgl_mut,  '%Y')) tgl_mut_fix,
+            buyer,
+            ws,
+            brand,
+            styleno,
+            color,
+            size,
+            a.qty_mut,
+            a.grade,
+            lokasi_asal,
+			no_carton_asal,
+            lokasi_tujuan,
+            no_carton_tujuan,
+            a.created_by,
+            created_at,
+			bpb.no_trans,
+			bppb.no_trans_out
+            from fg_stok_mutasi_log a
+            inner join master_sb_ws m on a.id_so_det = m.id_so_det
+            inner join (select no_mutasi,no_trans_out from fg_stok_bppb where cancel = 'N' and mutasi = 'Y' group by no_trans_out) bppb on a.no_mut = bppb.no_mutasi
+            inner join (select no_mutasi,no_trans from fg_stok_bpb where cancel = 'N' and mutasi = 'Y' group by no_trans) bpb on a.no_mut = bpb.no_mutasi
         where tgl_mut >= '$this->from' and tgl_mut <= '$this->to'
         order by substr(no_trans,14) desc
         ");

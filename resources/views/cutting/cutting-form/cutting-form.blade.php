@@ -31,9 +31,10 @@
                         <button class="btn btn-primary btn-sm" onclick="dataTableReload()"><i class="fa fa-search"></i></button>
                     </div>
                 </div>
-
                 <div class="d-flex align-items-end gap-3 mb-3">
-                    <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-sb"><i class="fas fa-clipboard-list"></i> Manual</a>
+                    @if (Auth::user()->type != 'meja')
+                        <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-sb"><i class="fas fa-clipboard-list"></i> Manual</a>
+                    @endif
                 </div>
             </div>
             <div class="table-responsive">
@@ -251,7 +252,7 @@
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i != 0 && i != 8 && i != 9 && i != 11 && i != 12) {
+            if (i != 0 && i != 8 && i != 9 && i != 12) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm"/>');
 
@@ -343,14 +344,9 @@
                     }
                 },
                 {
-                    targets: [9],
+                    targets: [4],
                     render: (data, type, row, meta) => {
-                        return `
-                            <div class="progress border border-sb position-relative" style="min-width: 50px;height: 21px">
-                                <p class="position-absolute" style="top: 50%;left: 50%;transform: translate(-50%, -50%);">`+row.total_lembar+`/`+row.qty_ply+`</p>
-                                <div class="progress-bar" style="background-color: #75baeb;width: `+((row.total_lembar/row.qty_ply)*100)+`%" role="progressbar"></div>
-                            </div>
-                        `;
+                        return data ? `<a class='fw-bold' href='{{ route('edit-marker') }}/ `+row.marker_id+`' target='_blank'><u>`+data+`</u></a>` : "-";
                     }
                 },
                 {

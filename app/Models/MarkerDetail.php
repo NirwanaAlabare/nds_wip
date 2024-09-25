@@ -20,4 +20,9 @@ class MarkerDetail extends Model
     {
         return $this->belongsTo(Marker::class, 'marker_id', 'id');
     }
+
+    public function masterSbWs()
+    {
+        return $this->belongsTo(MasterSbWs::class, 'so_det_id', 'id_so_det');
+    }
 }

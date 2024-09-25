@@ -25,7 +25,7 @@
                     <i class="fa fa-cog fa-sm"></i> Atur Cutting Plan
                 </h5>
                 <a href="{{ route('cut-plan') }}" class="btn btn-primary btn-sm">
-                    <i class="fa fa-reply fa-sm"></i> Kembali ke Daftar Cutting Plan
+                    <i class="fa fa-reply fa-sm"></i> Kembali ke Data Cutting Plan
                 </a>
             </div>
         </div>
@@ -45,7 +45,7 @@
                     <div class="row align-items-center">
                         <div class="col-6">
                             <h5 class="card-title fw-bold">
-                                Tambah Form Cut :
+                                <i class="fa fa-plus"></i> Tambah Form Cut :
                             </h5>
                         </div>
                         {{-- <div class="col-6">
@@ -91,7 +91,7 @@
             <div class="card card-info h-100">
                 <div class="card-header">
                     <h5 class="card-title fw-bold" style="padding-bottom: 2px">
-                        Form Cut Terdaftar :
+                        <i class="fa fa-list"></i> Form Cut Terdaftar :
                     </h5>
                 </div>
                 <div class="card-body">
@@ -191,7 +191,7 @@
 
         $('#datatable-select thead tr').clone(true).appendTo('#datatable-select thead');
         $('#datatable-select thead tr:eq(1) th').each(function(i) {
-            if (i != 8) {
+            if (i != 6) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" />');
 
@@ -251,6 +251,12 @@
                 },
             ],
             columnDefs: [
+                {
+                    targets: [8],
+                    render: (data, type, row, meta) => {
+                        return data ? `<a class='fw-bold' href='{{ route('edit-marker') }}/ `+row.marker_id+`' target='_blank'><u>`+data+`</u></a>` : "-";
+                    }
+                },
                 {
                     targets: "_all",
                     className: "text-nowrap",

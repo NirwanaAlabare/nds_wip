@@ -15,7 +15,7 @@
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="card-title fw-bold">
-                    <i class="fa fa-cog fa-sm"></i> Atur Part Secondary
+                    <i class="fa fa-circle-plus fa-sm"></i> Tambah Part Secondary
                 </h5>
                 <a href="{{ route('part') }}" class="btn btn-sm btn-primary">
                     <i class="fa fa-reply"></i> Kembali ke Part
@@ -79,82 +79,90 @@
                     <div class="row align-items-center">
                         <div class="col-6">
                             <h5 class="card-title fw-bold">
-                                <i class="fa fa-list fa-sm"></i> Tambah Part Secondary :
+                                <i class="fa fa-list fa-sm"></i> Tambah Part Secondary
                             </h5>
                         </div>
                     </div>
                 </div>
-                <form method="post" id="store-spreading" name='form' onsubmit="submitSpreadingForm(this, event)">
-                    <div class="card-body">
+                <div class="card-body">
+                    <form method="post" id="store-secondary" name='form'>
                         <div class="row">
-                            <div class="col-md-3">
+                            <div class="col-6 col-md-3">
                                 <div class="mb-4">
                                     <label><small><b>Part</b></small></label>
-                                    <select class="form-control form-control-sm" id="txtpart" name="txtpart">
+                                    <select class="form-control select2bs4" id="txtpart" name="txtpart"
+                                        style="width: 100%;">
                                         <option selected="selected" value="">Pilih Part</option>
-                                        @foreach ($masterPart as $mp)
-                                            <option value="{{ $mp->isi }}">
-                                                {{ $mp->tampil }}
+                                        @foreach ($data_part as $datapart)
+                                            <option value="{{ $datapart->id }}">
+                                                {{ $datapart->nama_part . ' - ' . $datapart->bag }}
                                             </option>
                                         @endforeach
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-6 col-md-3">
                                 <div class="mb-4">
                                     <label><small><b>Cons</b></small></label>
-                                    <div class="input-group input-group-sm mb-3">
-                                        <input type="text" class="form-control form-control-sm" name="txtcons" id="txtcons">
+                                    <div class="input-group mb-3">
+                                        <input type="text" class="form-control" name="txtcons" id="txtcons">
                                         <div class="input-group-prepend">
-                                            <span class="input-group-text" id="inputGroup-sizing-sm">METER</span>
+                                            <span class="input-group-text" style="border-radius: 0 3px 3px 0;">METER</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-6 col-md-3">
                                 <div class="mb-4">
                                     <label><small><b>Tujuan</b></small></label>
-                                    <select class="form-control form-control-sm" id="cbotuj" name="cbotuj" onchange="getProses();">
+                                    <select class="form-control select2bs4" id="cbotuj" name="cbotuj"
+                                        style="width: 100%;" onchange="getproses();">
                                         <option selected="selected" value="">Pilih Tujuan</option>
-                                        @foreach ($masterTujuan as $mt)
-                                            <option value="{{ $mt->isi }}">
-                                                {{ $mt->tampil }}
+                                        @foreach ($data_tujuan as $datatujuan)
+                                            <option value="{{ $datatujuan->isi }}">
+                                                {{ $datatujuan->tampil }}
                                             </option>
                                         @endforeach
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-3">
-                                <div class="mb-4">
-                                    <label><small><b>Proses</b></small></label>
-                                    <select class="form-control form-control-sm" id="cboproses" name="cboproses" style="width: 100%;">
-                                    </select>
+                            <div class="col-6 col-md-3">
+                                <div class="row align-items-end">
+                                    <div class="col-9">
+                                        <div class="mb-4">
+                                            <label><small><b>Proses</b></small></label>
+                                            <select class="form-control select2bs4 w-100" id="cboproses" name="cboproses" style="width: 100%;">
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="mb-4">
+                                            <label><small><b>&nbsp</b></small></label>
+                                            <button type="button" class="btn btn-block bg-primary" name="simpan" id="simpan" onclick="simpan_data();"><i class="fa fa-save"></i></button>
+                                            {{-- <input type="button" class="btn bg-primary w-100" name="simpan" id="simpan" value="Simpan" onclick="simpan_data();"> --}}
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-1">
-                                <div class="mb-4">
-                                    <label><small><b>&nbsp;</b></small></label>
-                                    <input type="button" class="form-control form-control-sm bg-primary" name="simpan" id="simpan" value="Simpan"onclick="save();">
-                                </div>
-                            </div>
-                            <div class="table-responsive">
-                                <table id="datatable_list_part" class="table table-bordered table-sm w-100">
-                                    <thead>
-                                        <tr>
-                                            <th>Part</th>
-                                            <th>Cons</th>
-                                            <th>Satuan</th>
-                                            <th>Tujuan</th>
-                                            <th>Proses</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    </tbody>
-                                </table>
                             </div>
                         </div>
+                    </form>
+                    <div class="table-responsive">
+                        <table id="datatable_list_part" class="table table-bordered table-sm w-100">
+                            <thead>
+                                <tr>
+                                    <th>Action</th>
+                                    <th>Part</th>
+                                    <th>Cons.</th>
+                                    <th>Satuan</th>
+                                    <th>Tujuan</th>
+                                    <th>Proses</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
@@ -178,15 +186,33 @@
             theme: 'bootstrap4'
         })
 
-        clear();
+        cleardata();
         dataTableReload();
 
-        function clear() {
-            $("#cboproses").val('');
-            $("#cbotuj").val('');
-            $("#txtpart").val('');
-            $("#txtcons").val('');
+        function cleardata() {
+            $("#cboproses").val('').trigger('change');
+            $("#cbotuj").val('').trigger('change');
+            $("#txtpart").val('').trigger('change');
+            $("#txtcons").val('').trigger('change');
         }
+
+        function getproses() {
+            let cbotuj = document.form.cbotuj.value;
+            let html = $.ajax({
+                type: "GET",
+                url: '{{ route('get_proses') }}',
+                data: {
+                    cbotuj: cbotuj
+                },
+                async: false
+            }).responseText;
+
+            console.log(html != "");
+
+            if (html != "") {
+                $("#cboproses").html(html);
+            }
+        };
 
         function dataTableReload() {
             let datatable = $("#datatable_list_part").DataTable({
@@ -206,7 +232,11 @@
                         d.id = $('#id').val();
                     },
                 },
-                columns: [{
+                columns: [
+                    {
+                        data: 'id',
+                    },
+                    {
                         data: 'nama_part',
                     },
                     {
@@ -222,26 +252,32 @@
                         data: 'proses',
                     },
                 ],
+                columnDefs: [
+                    {
+                        targets: [0],
+                        className: "text-center",
+                        render: (data, type, row, meta) => {
+                            if (row.total_stocker > 0) {
+                                return `
+                                    <button class='btn btn-secondary btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['id']+`' onclick='deleteData(this)' disabled>
+                                        <i class='fa fa-trash'></i>
+                                    </button>
+                                `;
+                            }
+
+                            return `
+                                <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['id']+`' onclick='deleteData(this)' `+(row.total_stocker > 0 ? 'disabled' : '')+`>
+                                    <i class='fa fa-trash'></i>
+                                </a>
+                            `;
+                        }
+                    },
+                ]
             });
         }
 
-        function getProses() {
-            let cbotuj = document.form.cbotuj.value;
-            let html = $.ajax({
-                type: "GET",
-                url: '{{ route('get_proses') }}',
-                data: {
-                    cbotuj: cbotuj
-                },
-                async: false
-            }).responseText;
-
-            if (html != "") {
-                $("#cboproses").html(html);
-            }
-        };
-
-        function save() {
+        function simpan_data() {
+            let id = document.getElementById("id").value;
             let cbotuj = document.form.cbotuj.value;
             let txtpart = document.form.txtpart.value;
             let txtcons = document.form.txtcons.value;
@@ -250,6 +286,7 @@
                 type: "post",
                 url: '{{ route('store_part_secondary') }}',
                 data: {
+                    id: id,
                     cbotuj: cbotuj,
                     txtpart: txtpart,
                     txtcons: txtcons,
@@ -268,8 +305,11 @@
                         });
                     }
                     dataTableReload();
-                    clear();
+                    cleardata();
                 },
+                // error: function(request, status, error) {
+                //     alert(request.responseText);
+                // },
             });
         };
     </script>

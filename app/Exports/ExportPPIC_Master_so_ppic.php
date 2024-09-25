@@ -10,6 +10,7 @@ use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Sheet;
 use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use Maatwebsite\Excel\Concerns\WithEvents;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use DB;
 
 Sheet::macro('styleCells', function (Sheet $sheet, string $cellRange, array $style) {
@@ -27,18 +28,18 @@ Sheet::macro('styleCells', function (Sheet $sheet, string $cellRange, array $sty
 //     }
 // }
 
-class ExportPPIC_Master_so_ppic implements FromView, WithEvents, ShouldAutoSize
+class ExportPPIC_Master_so_ppic implements FromView, WithEvents, ShouldAutoSize, WithColumnFormatting
 {
     use Exportable;
 
 
-    // protected $from, $to;
+    protected $from, $to;
 
-    public function __construct()
+    public function __construct($from, $to)
     {
 
-        // $this->from = $from;
-        // $this->to = $to;
+        $this->from = $from;
+        $this->to = $to;
         $this->rowCount = 0;
     }
 
@@ -46,24 +47,51 @@ class ExportPPIC_Master_so_ppic implements FromView, WithEvents, ShouldAutoSize
     public function view(): View
 
     {
-        $data = DB::select("
-        SELECT
-        m.buyer,
-        date_format(a.tgl_shipment,'%d-%m-%y') tgl_shipment_fix,
-        a.barcode,
-        m.reff_no,
-        a.po,
-        a.dest,
-        m.color,
-        m.size,
-        a.qty_po,
-        m.ws,
-        a.created_by,
-        a.created_at
-        FROM ppic_master_so a
-        inner join master_sb_ws m on a.id_so_det = m.id_so_det
-        left join master_size_new msn on m.size = msn.size
-        order by tgl_shipment desc, buyer asc, ws asc , msn.urutan asc
+        $data = DB::select("SELECT
+            a.id,
+            a.id_so_det,
+            m.buyer,
+            concat((DATE_FORMAT(a.tgl_shipment,  '%d')), '-', left(DATE_FORMAT(a.tgl_shipment,  '%M'),3),'-',DATE_FORMAT(a.tgl_shipment,  '%Y')
+            ) tgl_shipment_fix,
+            a.barcode,
+            m.reff_no,
+            a.po,
+            a.dest,
+            a.desc,
+            m.ws,
+            m.styleno,
+            m.color,
+            m.size,
+            a.qty_po,
+            coalesce(trf.qty_trf,0) qty_trf,
+            coalesce(pck.qty_packing_in,0) qty_packing_in,
+            coalesce(pck_out.qty_packing_out,0) qty_packing_out,
+            m.ws,
+            a.created_by,
+            a.created_at
+            FROM ppic_master_so a
+            inner join master_sb_ws m on a.id_so_det = m.id_so_det
+            left join master_size_new msn on m.size = msn.size
+            left join
+            (
+                select id_ppic_master_so, coalesce(sum(qty),0) qty_trf from packing_trf_garment group by id_ppic_master_so
+            ) trf on trf.id_ppic_master_so = a.id
+            left join
+            (
+                select id_ppic_master_so, coalesce(sum(qty),0) qty_packing_in from packing_packing_in group by id_ppic_master_so
+            ) pck on pck.id_ppic_master_so = a.id
+            left join
+            (
+            select p.id, qty_packing_out from
+                (
+                select count(barcode) qty_packing_out,po, barcode, dest from packing_packing_out_scan
+                group by barcode, po, dest
+                ) a
+            inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po and a.dest = p.dest
+            group by p.id
+            ) pck_out on pck_out.id = a.id
+            where tgl_shipment >= '$this->from' and tgl_shipment <= '$this->to'
+            order by tgl_shipment desc, buyer asc, ws asc, dest asc, color asc, msn.urutan asc, dest asc
         ");
 
 
@@ -71,7 +99,9 @@ class ExportPPIC_Master_so_ppic implements FromView, WithEvents, ShouldAutoSize
 
 
         return view('ppic.export_master_so_ppic', [
-            'data' => $data
+            'data' => $data,
+            'from' => $this->from,
+            'to' => $this->to
         ]);
     }
 
@@ -88,7 +118,7 @@ class ExportPPIC_Master_so_ppic implements FromView, WithEvents, ShouldAutoSize
     {
 
         $event->sheet->styleCells(
-            'A4:L' . $event->getConcernable()->rowCount,
+            'A4:Q' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [
@@ -98,5 +128,12 @@ class ExportPPIC_Master_so_ppic implements FromView, WithEvents, ShouldAutoSize
                 ],
             ]
         );
+    }
+
+    public function columnFormats(): array
+    {
+        return [
+            'F' => NumberFormat::FORMAT_NUMBER,
+        ];
     }
 }

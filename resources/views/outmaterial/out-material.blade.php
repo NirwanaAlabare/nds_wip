@@ -46,7 +46,7 @@
             <div class="mb-1">
                 <div class="form-group">
                 <label>jenis Pengeluaran</label>
-                <select class="form-control select2supp" id="jns_pengeluaran" name="jns_pengeluaran" style="width: 100%;">
+                <select class="form-control select2supp form-control-sm" id="jns_pengeluaran" name="jns_pengeluaran" style="width: 100%;">
                     <option selected="selected" value="ALL">ALL</option>
                         @foreach ($jns_klr as $jklr)
                     <option value="{{ $jklr->isi }}">
@@ -418,7 +418,9 @@ $('.select2roll').select2({
             theme: 'bootstrap4'
 })
 $('.select2supp').select2({
-            theme: 'bootstrap4'
+    theme: 'bootstrap4',
+    // width: '100%',
+    // containerCssClass: 'form-control-sm'
 })
 $('.select2type').select2({
             theme: 'bootstrap4'

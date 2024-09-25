@@ -14,6 +14,10 @@
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-th fa-sm"></i> Part</h5>
         </div>
         <div class="card-body">
+            <a href="{{ route('create-part') }}" class="btn btn-success btn-sm mb-3">
+                <i class="fas fa-plus"></i>
+                Baru
+            </a>
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div>
                     <label class="form-label"><small>Tanggal Awal</small></label>
@@ -58,46 +62,46 @@
                 <div class="modal-body">
                     <div class="row align-items-end">
                         <input type="hidden" name="detail_id" id="detail_id" onchange="dataTablePartFormReload()">
-                        <div class="col-md-4">
+                        <div class="col-md-6 col-lg-4">
                             <div class="mb-3">
                                 <label class="form-label">No. WS</label>
                                 <input type="text" class="form-control" name="detail_act_costing_ws" id="detail_act_costing_ws" value="" readonly>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6 col-lg-4">
                             <div class="mb-3">
                                 <label class="form-label">Style</label>
                                 <input type="text" class="form-control" name="detail_style" id="detail_style" value="" readonly>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6 col-lg-4">
                             <div class="mb-3">
                                 <label class="form-label">Color</label>
                                 <input type="text" class="form-control" name="detail_color" id="detail_color" value="" readonly>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6 col-lg-4">
                             <div class="mb-3">
                                 <label class="form-label">Panel</label>
                                 <input type="text" class="form-control" name="detail_panel" id="detail_panel" value="" readonly>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6 col-lg-4">
                             <div class="mb-3">
                                 <label class="form-label">Part</label>
                                 <input type="text" class="form-control" name="detail_part" id="detail_part_details" value="" readonly>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6 col-lg-4 ">
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <button class="btn btn-primary btn-block" onclick="reorderStockerNumbering()"><i class="fa-solid fa-arrow-up-wide-short"></i> Reorder Stocker</button>
+                                        <button class="btn btn-primary btn-block fw-bold" onclick="reorderStockerNumbering()"><i class="fa-solid fa-arrow-up-wide-short"></i> URUTKAN ULANG</button>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-6 d-none">
                                     <div class="mb-3">
-                                        <button class="btn btn-info btn-block" onclick="generateFullStockerNumbering()"><i class="fa-solid fa-list-check"></i> Full Generate</button>
+                                        <button class="btn btn-info btn-block fw-bold" onclick="generateFullStockerNumbering()"><i class="fa-solid fa-list-check"></i> GENERATE SEMUA</button>
                                     </div>
                                 </div>
                             </div>
@@ -217,9 +221,9 @@
                                     <i class='fa fa-plus-circle'></i>
                                 </a>
                                 <a href='{{ route('manage-part-form') }}/` + row['id'] + `' class='btn btn-success btn-sm'>
-                                    <i class='fa fa-cog'></i>
+                                    <i class="fa-solid fa-folder-plus"></i>
                                 </a>
-                                <a class='btn btn-danger btn-sm' data='` + JSON.stringify(row) +`' data-url='{{ route('destroy-part') }}/` + row['id'] + `' onclick='deleteData(this)'>
+                                <a class='btn btn-danger btn-sm' data='` + JSON.stringify(row) + `' data-url='{{ route('destroy-part') }}/` + row['id'] + `' onclick='deleteData(this)'>
                                     <i class='fa fa-trash'></i>
                                 </a>
                             </div>
@@ -280,7 +284,6 @@
                 $(this).empty();
             }
         });
-
 
         // Open Detail Part Modal
         function showPartForm(data) {
@@ -377,6 +380,15 @@
                     targets: [3],
                     render: (data, type, row, meta) => data ? data.toUpperCase() : "-"
                 },
+                // Marker Hyperlink
+                {
+                    targets: [10],
+                    render: (data, type, row, meta) => {
+                        return `
+                            <a href='{{ route('edit-marker') }}/ `+row.marker_id+`' target='_blank'>`+data+`</a>
+                        `;
+                    }
+                },
                 // No Wrap
                 {
                     targets: '_all',
@@ -430,6 +442,8 @@
                 success: function (res) {
                     console.log(res);
 
+                    dataTablePartFormReload();
+
                     swal.close();
                 },
                 error: function (jqXHR) {
@@ -457,6 +471,8 @@
                 },
                 success: function (res) {
                     console.log(res);
+
+                    dataTablePartFormReload();
 
                     swal.close();
                 },

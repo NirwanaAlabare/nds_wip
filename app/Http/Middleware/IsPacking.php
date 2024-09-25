@@ -17,10 +17,10 @@ class IsPacking
      */
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::user()) {
+        if (Auth::user() &&  (Auth::user()->type == 'admin' || Auth::user()->type == 'superadmin' || Auth::user()->type == 'ppic' || Auth::user()->type == 'packing')) {
             return $next($request);
         }
 
-        return redirect('home')->with('error', 'You have not dc access');
+        return redirect('home')->with('error', 'You have not packing access');
     }
 }

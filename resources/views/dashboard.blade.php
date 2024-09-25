@@ -11,34 +11,32 @@
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/datatables-rowgroup/css/rowGroup.bootstrap4.min.css') }}">
     <!-- Apex Charts -->
     <link rel="stylesheet" href="{{ asset('plugins/apexcharts/apexcharts.css') }}">
+    <!-- Select2 -->
+    <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
 
-    @if ($page == 'dashboard-dc')
-        <!-- Select2 -->
-        <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
-        <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
-
-        <style>
-            .tooltip-inner {
-                text-align: left !important;
-            }
-            .dataTables_wrapper .dataTables_processing {
-                position: absolute;
-                top: 35% !important;
-            }
-        </style>
-    @endif
+    <style>
+        .tooltip-inner {
+            text-align: left !important;
+        }
+        .dataTables_wrapper .dataTables_processing {
+            position: absolute;
+            top: 35% !important;
+        }
+    </style>
 @endsection
 
 @section('content')
     <div style="{{ $page ? 'height: 100%;' : 'height: 75vh;' }}">
         @if ($page == 'dashboard-marker')
-            <div style="height: 75vh;"></div>
+            @include('marker.dashboard', ["months" => $months, "years" => $years])
         @endif
 
         @if ($page == 'dashboard-cutting')
-            <div style="height: 75vh;"></div>
+            @include('cutting.dashboard', ["months" => $months, "years" => $years])
         @endif
 
         @if ($page == 'dashboard-stocker')
@@ -47,6 +45,10 @@
 
         @if ($page == 'dashboard-dc')
             @include('dc.dashboard', ["months" => $months, "years" => $years])
+        @endif
+
+        @if ($page == 'dashboard-sewing-eff')
+            @include('sewing.dashboard', ["months" => $months, "years" => $years])
         @endif
 
         @if ($page == 'dashboard-mut-karyawan')
@@ -2387,6 +2389,8 @@
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-rowgroup/js/dataTables.rowGroup.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-rowgroup/js/rowGroup.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-rowsgroup/dataTables.rowsGroup.js') }}"></script>
     <!-- Apex Charts -->
     <script src="{{ asset('plugins/apexcharts/apexcharts.min.js') }}"></script>
@@ -2425,8 +2429,648 @@
                 "autoWidth": false,
             })
         });
+
+        function formatDecimalNumber(number) {
+            if (number) {
+                if (Math.round(number) !== number) {
+                    return formatNumber(number.toFixed(1));
+                }
+            }
+
+            return formatNumber(number);
+        }
+
+        function formatNumber(val) {
+            // remove sign if negative
+            var sign = 1;
+            if (val < 0) {
+                sign = -1;
+                val = -val;
+            }
+
+            if (val) {
+                // trim the number decimal point if it exists
+                let num = val.toString().includes('.') ? val.toString().split('.')[0] : val.toString();
+                let len = num.toString().length;
+                let result = '';
+                let count = 1;
+
+                for (let i = len - 1; i >= 0; i--) {
+                    result = num.toString()[i] + result;
+                    if (count % 3 === 0 && count !== 0 && i !== 0) {
+                    result = '.' + result;
+                    }
+                    count++;
+                }
+
+                // add number after decimal point
+                if (val.toString().includes('.')) {
+                    result = result + ',' + val.toString().split('.')[1];
+                }
+
+                // return result with - sign if negative
+                return sign < 0 ? '-' + result : result;
+            }
+
+            return 0;
+        }
     </script>
 
+    {{-- Dashboard Marker --}}
+    @if ($page == 'dashboard-marker')
+        <script>
+            $(document).ready(async function() {
+                let today = new Date();
+                let todayDate = ("0" + today.getDate()).slice(-2);
+                let todayMonth = ("0" + (today.getMonth() + 1)).slice(-2);
+                let todayYear = today.getFullYear();
+                let todayFullDate = todayYear + '-' + todayMonth + '-' + todayDate;
+
+                // Marker Datatable
+                $('#marker-month-filter').val((today.getMonth() + 1)).trigger("change");
+                $('#marker-year-filter').val(todayYear).trigger("change");
+
+                var datatableMarker = $("#datatable-marker").DataTable({
+                    serverSide: false,
+                    processing: true,
+                    ordering: false,
+                    pageLength: 50,
+                    ajax: {
+                        url: '{{ route('dashboard-marker') }}',
+                        dataType: 'json',
+                        data: function (d) {
+                            d.month = $('#marker-month-filter').val();
+                            d.year = $('#marker-year-filter').val();
+                        }
+                    },
+                    columns: [
+                        {
+                            data: 'buyer',
+                        },
+                        {
+                            data: 'act_costing_ws',
+                        },
+                        {
+                            data: 'style',
+                        },
+                        {
+                            data: 'color',
+                        },
+                        {
+                            data: 'panel',
+                        },
+                        {
+                            data: 'kode',
+                        },
+                        {
+                            data: 'urutan_marker',
+                        },
+                        {
+                            data: 'gelar_qty',
+                        },
+                        {
+                            data: 'marker_details',
+                        },
+                        {
+                            data: 'nama_part',
+                        }
+                    ],
+                    columnDefs: [
+                        {
+                            targets: "_all",
+                            className: "text-nowrap colorize"
+                        }
+                    ],
+                });
+
+                $('#datatable-marker thead tr').clone(true).appendTo('#datatable-marker thead');
+                $('#datatable-marker thead tr:eq(1) th').each(function(i) {
+                    var title = $(this).text();
+                    $(this).html('<input type="text" class="form-control form-control-sm"/>');
+
+                    $('input', this).on('keyup change', function() {
+                        if (datatableMarker.column(i).search() !== this.value) {
+                            datatableMarker
+                                .column(i)
+                                .search(this.value)
+                                .draw();
+                        }
+                    });
+                });
+
+                $('#marker-month-filter').on('change', () => {
+                    $('#datatable-marker').DataTable().ajax.reload();
+                });
+                $('#marker-year-filter').on('change', () => {
+                    $('#datatable-marker').DataTable().ajax.reload();
+                });
+
+                // Marker Qty
+                $('#markerqty-month-filter').val((today.getMonth() + 1)).trigger("change");
+                $('#markerqty-year-filter').val(todayYear).trigger("change");
+                await getMarkerQty();
+
+                $('#markerqty-month-filter').on('change', () => {
+                    getMarkerQty();
+                });
+                $('#markerqty-year-filter').on('change', () => {
+                    getMarkerQty();
+                });
+            });
+
+            function getMarkerQty() {
+                document.getElementById("marker-qty-data").classList.add("d-none");
+                document.getElementById("loading-marker-qty").classList.remove("d-none");
+
+                return $.ajax({
+                    url: '{{ route('marker-qty') }}',
+                    type: 'get',
+                    data: {
+                        month : $('#markerqty-month-filter').val(),
+                        year : $('#markerqty-year-filter').val()
+                    },
+                    dataType: 'json',
+                    success: function(res) {
+                        if (res) {
+                            let wsCount = res['wsQty'] ? res['wsQty'] : 0;
+                            let partCount = res['partQty'] ? res['partQty'] : 0;
+                            let markerCount = res['markerQty'] ? res['markerQty'] : 0;
+                            let markerSum = res['markerSum'] ? res['markerSum'] : 0;
+
+                            document.getElementById("ws-qty").innerText = Number(wsCount).toLocaleString('ID-id');
+                            document.getElementById("part-qty").innerText = Number(partCount).toLocaleString('ID-id');
+                            document.getElementById("marker-qty").innerText = Number(markerCount).toLocaleString('ID-id');
+                            document.getElementById("marker-sum").innerText = Number(markerSum).toLocaleString('ID-id');
+                        }
+
+                        document.getElementById("marker-qty-data").classList.remove("d-none");
+                        document.getElementById("loading-marker-qty").classList.add("d-none");
+                    },
+                    error: function(jqXHR) {
+                        console.log(jqXHR);
+
+                        document.getElementById("marker-qty-data").classList.remove("d-none");
+                        document.getElementById("loading-marker-qty").classList.add("d-none");
+                    }
+                });
+            }
+        </script>
+    @endif
+
+    {{-- Dashboard Cutting --}}
+    @if ($page == 'dashboard-cutting')
+        <script>
+            $(document).ready(async function() {
+                let today = new Date();
+                let todayDate = ("0" + today.getDate()).slice(-2);
+                let todayMonth = ("0" + (today.getMonth() + 1)).slice(-2);
+                let todayYear = today.getFullYear();
+                let todayFullDate = todayYear + '-' + todayMonth + '-' + todayDate;
+
+                // Cutting Form Cut
+                $('#cutting-form-date-filter').val(todayFullDate).trigger("change");
+
+                // Cutting Form Chart
+                await loadCuttingFormChart();
+
+                // Cutting Datatable
+                // $('#cutting-month-filter').val((today.getMonth() + 1)).trigger("change");
+                // $('#cutting-year-filter').val(todayYear).trigger("change");
+                $('#cutting-date-filter').val(todayFullDate).trigger("change");
+
+                $('#datatable-cutting thead tr').clone(true).appendTo('#datatable-cutting thead');
+                $('#datatable-cutting thead tr:eq(1) th').each(function(i) {
+                    var title = $(this).text();
+                    $(this).html('<input type="text" class="form-control form-control-sm"/>');
+
+                    $('input', this).on('keyup change', function() {
+                        if (datatableCutting.column(i).search() !== this.value) {
+                            datatableCutting
+                                .column(i)
+                                .search(this.value)
+                                .draw();
+                        }
+                    });
+                });
+
+                // legacy
+                    // var datatableCutting = $("#datatable-cutting").DataTable({
+                    //     serverSide: false,
+                    //     processing: true,
+                    //     ordering: false,
+                    //     scrollX: '500px',
+                    //     scrollY: '500px',
+                    //     pageLength: 50,
+                    //     ajax: {
+                    //         url: '{{ route('dashboard-cutting') }}',
+                    //         dataType: 'json',
+                    //         data: function (d) {
+                    //             d.date = $('#cutting-date-filter').val();
+                    //             // d.month = $('#cutting-month-filter').val();
+                    //             // d.year = $('#cutting-year-filter').val();
+                    //         }
+                    //     },
+                    //     columns: [
+                    //         {
+                    //             data: 'tgl_form_cut',
+                    //         },
+                    //         {
+                    //             data: 'act_costing_ws',
+                    //         },
+                    //         {
+                    //             data: 'style',
+                    //         },
+                    //         {
+                    //             data: 'color',
+                    //         },
+                    //         {
+                    //             data: 'kode',
+                    //         },
+                    //         {
+                    //             data: 'urutan_marker',
+                    //         },
+                    //         {
+                    //             data: 'panel',
+                    //         },
+                    //         {
+                    //             data: 'no_form',
+                    //         },
+                    //         {
+                    //             data: 'no_cut',
+                    //         },
+                    //         {
+                    //             data: 'total_lembar',
+                    //         },
+                    //         {
+                    //             data: 'id_item',
+                    //         },
+                    //         {
+                    //             data: 'qty',
+                    //         },
+                    //         {
+                    //             data: 'total_pemakaian_roll',
+                    //         },
+                    //         {
+                    //             data: 'piping',
+                    //         },
+                    //         {
+                    //             data: 'short_roll',
+                    //         },
+                    //         {
+                    //             data: 'remark',
+                    //         },
+                    //         {
+                    //             data: 'unit',
+                    //         }
+                    //     ],
+                    //     columnDefs: [
+                    //         {
+                    //             targets: "_all",
+                    //             className: "text-nowrap align-middle"
+                    //         },
+                    //         {
+                    //             targets: [4],
+                    //             className: "text-nowrap align-middle",
+                    //             render: (data, type, row, meta) => {
+                    //                 return data ? `<a class='fw-bold' href='{{ route('edit-marker') }}/ `+row.marker_id+`' target='_blank'><u>`+data+`</u></a>` : "-";
+                    //             }
+                    //         },
+                    //         {
+                    //             targets: [7],
+                    //             className: "text-nowrap align-middle",
+                    //             render: (data, type, row, meta) => {
+                    //                 let formLink = "";
+
+                    //                 if (row.form_status == 'SELESAI PENGERJAAN') {
+                    //                     formLink = `<a class="fw-bold" href='{{ route('detail-cutting') }}/` + row.form_id + `' target='_blank'><u>`+ (data) +`</u></a>`;
+                    //                 } else {
+                    //                     if (row.tipe_form_cut == 'MANUAL') {
+                    //                         formLink = `<a class="fw-bold" href='{{ route('process-manual-form-cut') }}/` +row.form_id + `' target='_blank'><u>`+data+`</u></a>`;
+                    //                     } else if (row.tipe_form_cut == 'PILOT') {
+                    //                         formLink = `<a class="fw-bold" href='{{ route('process-pilot-form-cut') }}/` + row.form_id + `' target='_blank'><u>`+data+`</u></a>`;
+                    //                     } else {
+                    //                         formLink = `<a class="fw-bold" href='{{ route('process-form-cut-input') }}/` + row.form_id + `' target='_blank'><u>`+data+`</u></a>`;
+                    //                     }
+                    //                 }
+
+                    //                 return formLink;
+                    //             }
+                    //         },
+                    //         {
+                    //             targets: "_all",
+                    //             className: "text-nowrap colorize"
+                    //         }
+                    //     ],
+                    //     // rowCallback: function( row, data, index ) {
+                    //     //     if (data['line'] != '-') {
+                    //     //         $('td.colorize', row).css('color', '#2e8a57');
+                    //     //         $('td.colorize', row).css('font-weight', '600');
+                    //     //     } else if (!data['dc_in_id'] && data['troli'] == '-') {
+                    //     //         $('td.colorize', row).css('color', '#da4f4a');
+                    //     //         $('td.colorize', row).css('font-weight', '600');
+                    //     //     }
+                    //     // }
+                    // });
+
+                var datatableCutting = $("#datatable-cutting").DataTable({
+                    serverSide: false,
+                    processing: true,
+                    ordering: false,
+                    scrollX: '500px',
+                    scrollY: '500px',
+                    pageLength: 50,
+                    ajax: {
+                        url: '{{ route('dashboard-cutting') }}',
+                        dataType: 'json',
+                        data: function (d) {
+                            d.date = $('#cutting-date-filter').val();
+                            // d.month = $('#cutting-month-filter').val();
+                            // d.year = $('#cutting-year-filter').val();
+                        }
+                    },
+                    columns: [
+                        {
+                            data: 'ws',
+                        },
+                        {
+                            data: 'styleno',
+                        },
+                        {
+                            data: 'total_order',
+                        },
+                        {
+                            data: 'total_lembar',
+                        },
+                        {
+                            data: 'tanggal',
+                        },
+                        {
+                            data: 'total_plan',
+                        },
+                        {
+                            data: 'total_complete',
+                        },
+                    ],
+                    columnDefs: [
+                        {
+                            targets: "_all",
+                            className: "text-nowrap align-middle"
+                        },
+                        {
+                            targets: [2, 3, 5, 6],
+                            className: "text-nowrap align-middle",
+                            render: (data, type, row, meta) => {
+                                return data ? Number(data).toLocaleString("ID-id") : 0;
+                            }
+                        },
+                        // {
+                        //     targets: [4],
+                        //     className: "text-nowrap align-middle",
+                        //     render: (data, type, row, meta) => {
+                        //         return data ? `<a class='fw-bold' href='{{ route('edit-marker') }}/ `+row.marker_id+`' target='_blank'><u>`+data+`</u></a>` : "-";
+                        //     }
+                        // },
+                        // {
+                        //     targets: [7],
+                        //     className: "text-nowrap align-middle",
+                        //     render: (data, type, row, meta) => {
+                        //         let formLink = "";
+
+                        //         if (row.form_status == 'SELESAI PENGERJAAN') {
+                        //             formLink = `<a class="fw-bold" href='{{ route('detail-cutting') }}/` + row.form_id + `' target='_blank'><u>`+ (data) +`</u></a>`;
+                        //         } else {
+                        //             if (row.tipe_form_cut == 'MANUAL') {
+                        //                 formLink = `<a class="fw-bold" href='{{ route('process-manual-form-cut') }}/` +row.form_id + `' target='_blank'><u>`+data+`</u></a>`;
+                        //             } else if (row.tipe_form_cut == 'PILOT') {
+                        //                 formLink = `<a class="fw-bold" href='{{ route('process-pilot-form-cut') }}/` + row.form_id + `' target='_blank'><u>`+data+`</u></a>`;
+                        //             } else {
+                        //                 formLink = `<a class="fw-bold" href='{{ route('process-form-cut-input') }}/` + row.form_id + `' target='_blank'><u>`+data+`</u></a>`;
+                        //             }
+                        //         }
+
+                        //         return formLink;
+                        //     }
+                        // },
+                        {
+                            targets: "_all",
+                            className: "text-nowrap colorize"
+                        }
+                    ],
+                    // rowCallback: function( row, data, index ) {
+                    //     if (data['line'] != '-') {
+                    //         $('td.colorize', row).css('color', '#2e8a57');
+                    //         $('td.colorize', row).css('font-weight', '600');
+                    //     } else if (!data['dc_in_id'] && data['troli'] == '-') {
+                    //         $('td.colorize', row).css('color', '#da4f4a');
+                    //         $('td.colorize', row).css('font-weight', '600');
+                    //     }
+                    // }
+                });
+
+                // $('#cutting-month-filter').on('change', () => {
+                //     $('#datatable-cutting').DataTable().ajax.reload();
+                // });
+                // $('#cutting-year-filter').on('change', () => {
+                //     $('#datatable-cutting').DataTable().ajax.reload();
+                // });
+                $('#cutting-date-filter').on('change', () => {
+                    $('#datatable-cutting').DataTable().ajax.reload();
+                });
+
+                // Cutting Qty
+                // $('#cuttingqty-month-filter').val((today.getMonth() + 1)).trigger("change");
+                // $('#cuttingqty-year-filter').val(todayYear).trigger("change");
+                $('#cuttingqty-date-filter').val(todayFullDate).trigger("change");
+
+                await getCuttingQty();
+
+                // $('#cuttingqty-month-filter').on('change', () => {
+                //     getCuttingQty();
+                // });
+                // $('#cuttingqty-year-filter').on('change', () => {
+                //     getCuttingQty();
+                // });
+            });
+
+            // Cutting Qty
+            function getCuttingQty() {
+                document.getElementById("cutting-qty-data").classList.add("d-none");
+                document.getElementById("loading-cutting-qty").classList.remove("d-none");
+
+                return $.ajax({
+                    url: '{{ route('cutting-qty') }}',
+                    type: 'get',
+                    data: {
+                        date : $('#cuttingqty-date-filter').val(),
+                        // month : $('#cuttingqty-month-filter').val(),
+                        // year : $('#cuttingqty-year-filter').val()
+                    },
+                    dataType: 'json',
+                    success: function(res) {
+                        if (res && res[0]) {
+                            let pendingQty = res[0].pending ? res[0].pending : 0;
+                            let pendingTotal = res[0].pending_total ? res[0].pending_total : 0;
+                            let planQty = res[0].plan ? res[0].plan : 0;
+                            let planTotal = res[0].plan_total ? res[0].plan_total : 0;
+                            let progressQty = res[0].progress ? res[0].progress : 0;
+                            let progressTotal = res[0].progress_total ? res[0].progress_total : 0;
+                            let finishedQty = res[0].finished ? res[0].finished : 0;
+                            let finishedTotal = res[0].finished_total ? res[0].finished_total : 0;
+
+                            console.log(pendingQty, pendingTotal, planQty, planTotal, progressQty, progressTotal, finishedQty, finishedTotal)
+
+                            document.getElementById("pending-qty").innerText = Number(pendingQty).toLocaleString('ID-id');
+                            document.getElementById("pending-total").innerText = Number(pendingTotal).toLocaleString('ID-id');
+                            document.getElementById("plan-qty").innerText = Number(planQty).toLocaleString('ID-id');
+                            document.getElementById("plan-total").innerText = Number(planTotal).toLocaleString('ID-id');
+                            document.getElementById("progress-qty").innerText = Number(progressQty).toLocaleString('ID-id');
+                            document.getElementById("progress-total").innerText = Number(progressTotal).toLocaleString('ID-id');
+                            document.getElementById("finished-qty").innerText = Number(finishedQty).toLocaleString('ID-id');
+                            document.getElementById("finished-total").innerText = Number(finishedTotal).toLocaleString('ID-id');
+                        }
+
+                        document.getElementById("cutting-qty-data").classList.remove("d-none");
+                        document.getElementById("loading-cutting-qty").classList.add("d-none");
+                    },
+                    error: function(jqXHR) {
+                        console.log(jqXHR);
+
+                        document.getElementById("cutting-qty-data").classList.remove("d-none");
+                        document.getElementById("loading-cutting-qty").classList.add("d-none");
+                    }
+                });
+            }
+
+            $('#cuttingqty-date-filter').on('change', async () => {
+                await getCuttingQty();
+            });
+
+            // Cutting Form Chart
+            var cuttingFormChartOptions = {
+                series: [],
+                chart: {
+                    height: 450,
+                    type: 'bar',
+                    toolbar: {
+                        show: true
+                    }
+                },
+                colors: ['#b02ffa', '#428af5', '#1c59ff'],
+                grid: {
+                    borderColor: '#e7e7e7',
+                    row: {
+                        colors: ['#ebebeb', 'transparent'], // takes an array which will be repeated on columns
+                        opacity: 0.5
+                    },
+                },
+                xaxis: {
+                    labels: {
+                        formatter: function (value) {
+                            return value.toString().replace(/_/ig, " ").toUpperCase();
+                        }
+                    }
+                },
+                yaxis: {
+                    tickAmount: 10,
+                    labels: {
+                        formatter: function (value) {
+                            return formatDecimalNumber(value);
+                        }
+                    },
+                },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (val, opts) {
+                        return formatDecimalNumber(val);
+                    },
+                    style: {
+                        fontSize: '10px',
+                        fontFamily: 'Helvetica, Arial, sans-serif',
+                    },
+                },
+                legend: {
+                    show: true,
+                    position: 'top',
+                    horizontalAlign: 'left',
+                },
+                noData: {
+                    text: 'Loading...'
+                }
+            };
+
+            var cuttingFormChart = new ApexCharts(document.querySelector("#cutting-form-chart"), cuttingFormChartOptions);
+            cuttingFormChart.render();
+
+            function loadCuttingFormChart() {
+                document.getElementById("cutting-form-data").classList.add("d-none");
+                document.getElementById("loading-cutting-form").classList.remove("d-none");
+
+                return $.ajax({
+                    url: '{{ route('cutting-form-chart') }}',
+                    type: 'get',
+                    data: {
+                        date: $("#cutting-form-date-filter").val(),
+                    },
+                    dataType: 'json',
+                    success: async function(res) {
+                        let tglArr = [];
+                        let mejaArr = [];
+                        let totalFormArr = [];
+                        let completedFormArr = [];
+
+                        if (res) {
+                            res.forEach(item => {
+                                mejaArr.push(item.no_meja ? item.no_meja : 0 );
+                                totalFormArr.push(item.total_form ? item.total_form : 0 );
+                                completedFormArr.push(item.completed_form ? item.completed_form : 0 );
+                            });
+
+                            await cuttingFormChart.updateSeries(
+                            [
+                                {
+                                    name: 'Total Form',
+                                    data: totalFormArr
+                                },
+                                {
+                                    name: 'Completed Form',
+                                    data: completedFormArr
+                                }
+                            ], true);
+
+                            await cuttingFormChart.updateOptions({
+                                xaxis: {
+                                    categories: mejaArr,
+                                },
+                                noData: {
+                                    text: 'Data Not Found'
+                                }
+                            });
+                        }
+
+                        document.getElementById("cutting-form-data").classList.remove("d-none");
+                        document.getElementById("loading-cutting-form").classList.add("d-none");
+                    }, error: function (jqXHR) {
+                        let res = jqXHR.responseJSON;
+                        console.error(res.message);
+                        iziToast.error({
+                            title: 'Error',
+                            message: res.message,
+                            position: 'topCenter'
+                        });
+
+                        document.getElementById("cutting-form-data").classList.remove("d-none");
+                        document.getElementById("loading-cutting-form").classList.add("d-none");
+                    }
+                });
+            }
+
+            $('#cutting-form-date-filter').on("change", async function () {
+                await loadCuttingFormChart()
+            });
+        </script>
+    @endif
+
+    {{-- Dashboard DC --}}
     @if ($page == 'dashboard-dc')
         <script>
             $(document).ready(async function() {
@@ -2441,7 +3085,7 @@
                 $('#dc-year-filter').val(todayYear).trigger("change");
 
                 var datatableDc = $("#datatable-dc").DataTable({
-                    serveSide: true,
+                    serverSide: false,
                     processing: true,
                     ordering: false,
                     pageLength: 50,
@@ -2500,26 +3144,19 @@
                     columnDefs: [
                         {
                             targets: [0, 1, 2, 3, 4, 5],
-                            className: "text-nowrap text-center align-middle"
+                            className: "text-nowrap text-center align-middle",
                         },
                         {
                             targets: "_all",
                             className: "text-nowrap colorize"
                         }
                     ],
-                    rowsGroup: [
-                        0,
-                        1,
-                        2,
-                        3,
-                        4,
-                        5
-                    ],
                     rowCallback: function( row, data, index ) {
                         if (data['line'] != '-') {
                             $('td.colorize', row).css('color', '#2e8a57');
                             $('td.colorize', row).css('font-weight', '600');
                         } else if (!data['dc_in_id'] && data['troli'] == '-') {
+                            console.log(data['dc_in_id'], data['troli'] == '-');
                             $('td.colorize', row).css('color', '#da4f4a');
                             $('td.colorize', row).css('font-weight', '600');
                         }
@@ -2615,6 +3252,298 @@
         </script>
     @endif
 
+    {{-- Dashboard Sewing --}}
+    @if ($page == 'dashboard-sewing-eff')
+        <script>
+            $(document).ready(async function() {
+                let today = new Date();
+                let todayDate = ("0" + today.getDate()).slice(-2);
+                let todayMonth = ("0" + (today.getMonth() + 1)).slice(-2);
+                let todayYear = today.getFullYear();
+                let todayFullDate = todayYear + '-' + todayMonth + '-' + todayDate;
+
+                // Sewing Chart
+                if (!$('#sewing-eff-month-filter').val()) {
+                    $('#sewing-eff-month-filter').val((today.getMonth() + 1)).trigger("change");
+                }
+
+                if (!$('#sewing-eff-year-filter').val()) {
+                    $('#sewing-eff-year-filter').val(todayYear).trigger("change");
+                }
+
+                // Sewing Efficiency Chart
+                await sewingEfficiencyData();
+
+                if (!$('#sewing-output-month-filter').val()) {
+                    $('#sewing-output-month-filter').val((today.getMonth() + 1)).trigger("change");
+                }
+
+                if (!$('#sewing-output-year-filter').val()) {
+                    $('#sewing-output-year-filter').val(todayYear).trigger("change");
+                }
+            });
+
+            var options = {
+                series: [],
+                chart: {
+                    height: 450,
+                    type: 'line',
+                    toolbar: {
+                        show: true
+                    }
+                },
+                colors: ['#b02ffa', '#428af5', '#1c59ff'],
+                grid: {
+                    borderColor: '#e7e7e7',
+                    row: {
+                        colors: ['#ebebeb', 'transparent'], // takes an array which will be repeated on columns
+                        opacity: 0.5
+                    },
+                },
+                yaxis: {
+                    tickAmount: 10,
+                    labels: {
+                        formatter: function (value) {
+                            return formatDecimalNumber(value) + "%";
+                        }
+                    },
+                },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (val, opts) {
+                        return formatDecimalNumber(val);
+                    },
+                    style: {
+                        fontSize: '10px',
+                        fontFamily: 'Helvetica, Arial, sans-serif',
+                    },
+                },
+                legend: {
+                    show: true,
+                    position: 'top',
+                    horizontalAlign: 'left',
+                },
+                noData: {
+                    text: 'Loading...'
+                }
+            };
+
+            var chart = new ApexCharts(document.querySelector("#sewing-eff-chart"), options);
+            chart.render();
+
+            function getSewingEfficiency() {
+                return $.ajax({
+                    url: '{{ route('dashboard-sewing-eff') }}',
+                    type: 'get',
+                    data: {
+                        month: $("#sewing-eff-month-filter").val(),
+                        year: $("#sewing-eff-year-filter").val(),
+                    },
+                    dataType: 'json',
+                    success: async function(res) {
+                        let tglArr = [];
+                        let efficiencyArr = [];
+                        let targetEfficiencyArr = [];
+                        let rftArr = [];
+
+                        if (res) {
+
+                            res.forEach(item => {
+                                tglArr.push(item.tgl_produksi.substr(-2));
+                                efficiencyArr.push(item.mins_prod_total / item.mins_avail * 100);
+                                targetEfficiencyArr.push(item.target_efficiency);
+                                rftArr.push(item.rft);
+                            });
+
+                            await chart.updateSeries(
+                            [
+                                {
+                                    name: 'Efficiency',
+                                    data: efficiencyArr
+                                },
+                                {
+                                    name: 'Target Efficiency',
+                                    data: targetEfficiencyArr
+                                },
+                                {
+                                    name: 'RFT',
+                                    data: rftArr
+                                }
+                            ], true);
+
+                            await chart.updateOptions({
+                                xaxis: {
+                                    categories: tglArr,
+                                },
+                                noData: {
+                                    text: 'Data Not Found'
+                                }
+                            });
+                        }
+                    }, error: function (jqXHR) {
+                        let res = jqXHR.responseJSON;
+                        console.error(res.message);
+                        iziToast.error({
+                            title: 'Error',
+                            message: res.message,
+                            position: 'topCenter'
+                        });
+                    }
+                });
+            }
+
+            function getSewingSummary() {
+                return $.ajax({
+                    url: '{{ route('dashboard-sewing-sum') }}',
+                    type: 'get',
+                    data: {
+                        month: $("#sewing-eff-month-filter").val(),
+                        year: $("#sewing-eff-year-filter").val(),
+                    },
+                    dataType: 'json',
+                    success: async function(res) {
+                        let totalOrderEl = document.getElementById('sewing-total-order');
+                        let totalOutputEl = document.getElementById('sewing-total-output');
+                        let totalEfficiencyEl = document.getElementById('sewing-total-efficiency');
+
+                        if (res) {
+                            totalOrderEl.innerText = formatNumber(res.total_order);
+                            totalOutputEl.innerText = formatNumber(res.total_output);
+                            totalEfficiencyEl.innerText = formatNumber(res.total_efficiency)+ '%';
+                        }
+                    },
+                    error: function (jqXHR) {
+                        let res = jqXHR.responseJSON;
+                        console.error(res.message);
+                        iziToast.error({
+                            title: 'Error',
+                            message: res.message,
+                            position: 'topCenter'
+                        });
+                    }
+                });
+            }
+
+            async function sewingEfficiencyData() {
+                document.getElementById("loading-sewing-chart").classList.remove("d-none");
+                await getSewingEfficiency();
+                await getSewingSummary();
+                document.getElementById("loading-sewing-chart").classList.add("d-none");
+            }
+
+            $('#datatable-sewing-output thead tr').clone(true).appendTo('#datatable-sewing-output thead');
+            $('#datatable-sewing-output thead tr:eq(1) th').each(function(i) {
+                var title = $(this).text();
+                $(this).html('<input type="text" class="form-control form-control-sm"/>');
+
+                $('input', this).on('keyup change', function() {
+                    if (datatableSewingOutput.column(i).search() !== this.value) {
+                        datatableSewingOutput
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            });
+
+            var datatableSewingOutput = $("#datatable-sewing-output").DataTable({
+                serverSide: false,
+                processing: true,
+                ordering: false,
+                pageLength: 50,
+                scrollX: '400px',
+                scrollY: '400px',
+                ajax: {
+                    url: '{{ route('dashboard-sewing-output') }}',
+                    dataType: 'json',
+                    data: function (d) {
+                        d.month = $('#sewing-output-month-filter').val();
+                        d.year = $('#sewing-output-year-filter').val();
+                    }
+                },
+                columns: [
+                    {
+                        data: 'tanggal_order',
+                    },
+                    {
+                        data: 'buyer',
+                    },
+                    {
+                        data: 'act_costing_ws',
+                    },
+                    {
+                        data: 'style',
+                    },
+                    {
+                        data: 'color',
+                    },
+                    {
+                        data: 'size',
+                    },
+                    {
+                        data: 'qty',
+                    },
+                    {
+                        data: 'qty_output',
+                    },
+                    {
+                        data: 'qty_balance',
+                    },
+                    {
+                        data: 'qty_output_p',
+                    },
+                    {
+                        data: 'qty_balance_p',
+                    },
+                    {
+                        data: 'rft_rate',
+                    },
+                    {
+                        data: 'defect_rate',
+                    },
+                    {
+                        data: 'tanggal_delivery',
+                    },
+                ],
+                columnDefs: [
+                    {
+                        targets: [6, 7, 8, 9, 10],
+                        render: (data, type, row, meta) => {
+                            return "<b>"+formatNumber(data)+"</b>";
+                        }
+                    },
+                    {
+                        targets: [11, 12],
+                        render: (data, type, row, meta) => {
+                            return "<b>"+formatNumber(data)+" % </b>";
+                        }
+                    },
+                    {
+                        targets: "_all",
+                        className: "text-nowrap colorize"
+                    }
+                ],
+            });
+
+            $('#sewing-output-month-filter').on('change', () => {
+                $('#datatable-sewing-output').DataTable().ajax.reload();
+            });
+
+            $('#sewing-output-year-filter').on('change', () => {
+                $('#datatable-sewing-output').DataTable().ajax.reload();
+            });
+
+            $("#sewing-eff-month-filter").on("change", async () => {
+                await sewingEfficiencyData();
+            })
+
+            $("#sewing-eff-year-filter").on("change", async () => {
+                await sewingEfficiencyData();
+            })
+        </script>
+    @endif
+
+    {{-- Dashboard Mutasi Karyawan --}}
     @if ($page == 'dashboard-mut-karyawan')
         <script>
             function autoBreak(label) {

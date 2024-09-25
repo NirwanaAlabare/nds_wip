@@ -15,7 +15,7 @@
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="card-title fw-bold">
-                    <i class="fa fa-cog fa-sm"></i> Atur Part Secondary
+                    <i class="fa fa-circle-plus fa-sm"></i> Tambah Part Secondary
                 </h5>
                 <a href="{{ route('part') }}" class="btn btn-sm btn-primary">
                     <i class="fa fa-reply"></i> Kembali ke Part
@@ -257,8 +257,16 @@
                         targets: [0],
                         className: "text-center",
                         render: (data, type, row, meta) => {
+                            if (row.total_stocker > 0) {
+                                return `
+                                    <button class='btn btn-secondary btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['id']+`' onclick='deleteData(this)' disabled>
+                                        <i class='fa fa-trash'></i>
+                                    </button>
+                                `;
+                            }
+
                             return `
-                                <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['id']+`' onclick='deleteData(this)'>
+                                <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('destroy-part-detail') }}/`+row['id']+`' onclick='deleteData(this)' `+(row.total_stocker > 0 ? 'disabled' : '')+`>
                                     <i class='fa fa-trash'></i>
                                 </a>
                             `;

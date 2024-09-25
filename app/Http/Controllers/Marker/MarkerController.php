@@ -204,7 +204,7 @@ class MarkerController extends Controller
     public function getNumber(Request $request)
     {
         $number = DB::connection('mysql_sb')->select("
-                select k.cons cons_ws,sum(sd.qty) order_qty from bom_jo_item k
+                select k.cons cons_ws,sum(coalesce(sd.qty, 0)) order_qty from bom_jo_item k
                     inner join so_det sd on k.id_so_det = sd.id
                     inner join so on sd.id_so = so.id
                     inner join act_costing ac on so.id_cost = ac.id
@@ -221,7 +221,7 @@ class MarkerController extends Controller
 
     public function getCount(Request $request)
     {
-        $countMarker = Marker::where('act_costing_id', $request->act_costing_id)->where('color', $request->color)->where('panel', $request->panel)->count() + 1;
+        $countMarker = Marker::where('act_costing_id', $request->act_costing_id)->where('color', $request->color)->where('panel', $request->panel)->whereRaw('(cancel != "Y" OR cancel is null)')->count() + 1;
 
         return $countMarker ? $countMarker : 1;
     }
@@ -348,21 +348,26 @@ class MarkerController extends Controller
         where id = '$request->id_c'");
 
         $data_marker_det = DB::select("
-        SELECT a.size, ratio
+        SELECT master_sb_ws.size, ratio
         from marker_input_detail a
-        left join master_size_new b on a.size = b.size
-        where marker_id = '$request->id_c'
+        left join master_sb_ws on master_sb_ws.id_so_det = a.so_det_id
+        left join master_size_new b on master_sb_ws.size = b.size
+        where marker_id = '$request->id_c' and a.ratio > 0
         order by urutan asc");
 
         $data_marker_tracking = DB::select("
-        select no_form,
+        select
+        a.id form_cut_id,
+        no_form,
+        a.tipe_form_cut tipe_form,
         DATE_FORMAT(tgl_form_cut, '%d-%m-%Y') tgl_form_cut,
         UPPER(u.name) no_meja,
         DATE_FORMAT(waktu_mulai, '%d-%m-%Y %T') waktu_mulai,
         DATE_FORMAT(waktu_selesai, '%d-%m-%Y %T') waktu_selesai,
         a.status,
         a.tipe_form_cut,
-        COALESCE(a.no_cut, '-') no_cut
+        COALESCE(a.no_cut, '-') no_cut,
+        COALESCE(a.total_lembar, 0) total_lembar
         from form_cut_input a
         inner join marker_input b on  a.id_marker = b.kode
         left join users u on a.no_meja = u.id
@@ -399,7 +404,37 @@ class MarkerController extends Controller
                     $bgColor = '#c5e0fa';
                 }
 
+                $actButton = '';
+
                 switch ($track->status) {
+                    case "SPREADING":
+                        if ($track->tipe_form_cut == 'MANUAL') {
+                            $actButton = "
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    <a class='btn btn-success btn-sm' href='".route('process-manual-form-cut')."/".$track->form_cut_id."' data-bs-toggle='tooltip' target='_blank'>
+                                        <i class='fa fa-plus'></i>
+                                    </a>
+                                </div>
+                            ";
+                        } else if ($track->tipe_form_cut == 'PILOT') {
+                            $actButton = "
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    <a class='btn btn-success btn-sm' href='".route('process-pilot-form-cut')."/".$track->form_cut_id."' data-bs-toggle='tooltip' target='_blank'>
+                                        <i class='fa fa-plus'></i>
+                                    </a>
+                                </div>
+                            ";
+                        } else {
+                            $actButton = "
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    <a class='btn btn-success btn-sm' href='".route('process-manual-form-cut')."/".$track->form_cut_id."' data-bs-toggle='tooltip' target='_blank'>
+                                        <i class='fa fa-plus'></i>
+                                    </a>
+                                </div>
+                            ";
+                        }
+
+                        break;
                     case "PENGERJAAN PILOT MARKER":
                     case "PENGERJAAN PILOT DETAIL":
                     case "PENGERJAAN MARKER":
@@ -407,21 +442,60 @@ class MarkerController extends Controller
                     case "PENGERJAAN FORM CUTTING DETAIL":
                     case "PENGERJAAN FORM CUTTING SPREAD":
                         $textColor = '#2243d6';
+
+                        if ($track->tipe_form_cut == 'MANUAL') {
+                            $actButton = "
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    <a class='btn btn-primary btn-sm' href='".route('process-manual-form-cut')."/".$track->form_cut_id."' data-bs-toggle='tooltip' target='_blank'>
+                                        <i class='fa fa-search-plus'></i>
+                                    </a>
+                                </div>
+                            ";
+                        } else if ($track->tipe_form_cut == 'PILOT') {
+                            $actButton = "
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    <a class='btn btn-primary btn-sm' href='".route('process-pilot-form-cut')."/".$track->form_cut_id."' data-bs-toggle='tooltip' target='_blank'>
+                                        <i class='fa fa-search-plus'></i>
+                                    </a>
+                                </div>
+                            ";
+                        } else {
+                            $actButton = "
+                                <div class='d-flex gap-1 justify-content-center'>
+                                    <a class='btn btn-primary btn-sm' href='".route('process-manual-form-cut')."/".$track->form_cut_id."' data-bs-toggle='tooltip' target='_blank'>
+                                        <i class='fa fa-search-plus'></i>
+                                    </a>
+                                </div>
+                            ";
+                        }
+
                         break;
                     case "SELESAI PENGERJAAN":
                         $textColor = '#087521';
+
+                        $actButton = "
+                            <div class='d-flex gap-1 justify-content-center'>
+                                <a class='btn btn-primary btn-sm' href='".route('show-stocker')."/".$track->form_cut_id."' data-bs-toggle='tooltip' target='_blank'>
+                                    <i class='fa fa-search-plus'></i>
+                                </a>
+                            </div>
+                        ";
+
                         break;
                 }
-                // dd($track->status);
 
                 $html_tracking .= "
                     <tr style='".($bgColor ? "background-color:".$bgColor.";border:0.15px solid #d0d0d0;" : "")." ".($textColor ? "color:".$textColor.";" : "")."'>
+                        <td class='text-nowrap' style='font-weight: 600;'>
+                            ".$actButton."
+                        </td>
                         <td class='text-nowrap' style='font-weight: 600;'>$track->tgl_form_cut</td>
                         <td class='text-nowrap' style='font-weight: 600;'>$track->no_form</td>
                         <td class='text-nowrap' style='font-weight: 600;'>" . ($track->no_meja ? $track->no_meja : '-') . "</td>
                         <td class='text-nowrap' style='font-weight: 600;'>" . ($track->waktu_mulai ? $track->waktu_mulai : '-') . "</td>
                         <td class='text-nowrap' style='font-weight: 600;'>" . ($track->waktu_selesai ? $track->waktu_selesai : '-') . "</td>
                         <td class='text-nowrap' style='font-weight: 600;'>$track->status</td>
+                        <td class='text-nowrap' style='font-weight: 600;'>$track->total_lembar</td>
                         <td class='text-nowrap' style='font-weight: 600;'>$track->no_cut</td>
                     </tr>
                 ";
@@ -556,7 +630,7 @@ class MarkerController extends Controller
 
             <div class='row'>
                 <div class='col-sm-12'>
-                    <div class='card card-info collapsed-card'>
+                    <div class='card card-primary collapsed-card'>
                         <div class='card-header'>
                             <h1 class='card-title'><i class='fa-solid fa-expand fa-sm'></i> Detail Size</h1>
                             <div class='card-tools'>
@@ -585,7 +659,7 @@ class MarkerController extends Controller
 
             <div class='row'>
                 <div class='col-md-12'>
-                    <div class='card card-info collapsed-card'>
+                    <div class='card card-primary collapsed-card'>
                         <div class='card-header'>
                             <h1 class='card-title'><i class='fa-solid fa-copy fa-sm'></i> Status Form</h1>
                             <div class='card-tools'>
@@ -599,12 +673,14 @@ class MarkerController extends Controller
                                 <table class='table table-bordered table-sm w-100' id='detail-marker-form'>
                                     <thead>
                                         <tr>
+                                            <th>Act</th>
                                             <th>Tanggal Form</th>
                                             <th>No. Form</th>
                                             <th>No. Meja</th>
                                             <th>Waktu Mulai</th>
                                             <th>Waktu Selesai</th>
                                             <th>Status</th>
+                                            <th>Total Lembar</th>
                                             <th>No. Cut</th>
                                         </tr>
                                     </thead>
@@ -753,11 +829,36 @@ class MarkerController extends Controller
         return json_encode($data_gramasi[0]);
     }
 
-    public function update_status(Request $request, Marker $marker)
+    public function update_status(Request $request)
     {
+        $thisMarker = Marker::find($request->id_c);
+
+        if ($thisMarker) {
+            if ($thisMarker->cancel == "Y") {
+                $afterMarker = Marker::where('act_costing_id', $thisMarker->act_costing_id)->
+                    where('style', $thisMarker->style)->
+                    where('color', $thisMarker->color)->
+                    where('panel', $thisMarker->panel)->
+                    whereRaw('(cancel != "Y" OR cancel IS NULL)')->
+                    update([
+                        'urutan_marker' => DB::raw('(urutan_marker + 1)')
+                    ]);
+            } else {
+                $afterMarker = Marker::where('act_costing_id', $thisMarker->act_costing_id)->
+                    where('style', $thisMarker->style)->
+                    where('color', $thisMarker->color)->
+                    where('panel', $thisMarker->panel)->
+                    whereRaw('(cancel != "Y" OR cancel IS NULL)')->
+                    update([
+                        'urutan_marker' => DB::raw('(urutan_marker - 1)')
+                    ]);
+            }
+        }
+
         $update_data = DB::update("
-        update marker_input set cancel = case when cancel = 'Y' then'N' else 'Y' end
-        where id = '$request->id_c'");
+            update marker_input set cancel = case when cancel = 'Y' then'N' else 'Y' end
+            where id = '$request->id_c'
+        ");
     }
 
     public function update_marker(Request $request)
@@ -916,7 +1017,7 @@ class MarkerController extends Controller
 
         return array(
             "status" => 200,
-            "message" => $markers->count()." marker telah diperbaiki.",
+            "message" => $markers->count()." Balance Marker telah berhasil dihitung ulang.",
             "redirect" => '',
             "additional" => []
         );

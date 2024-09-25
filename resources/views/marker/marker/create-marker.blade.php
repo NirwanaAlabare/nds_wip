@@ -408,6 +408,7 @@
             ordering: false,
             processing: true,
             serverSide: true,
+            paging: false,
             ajax: {
                 url: '{{ route("get-general-sizes") }}',
                 data: function (d) {
@@ -756,6 +757,9 @@
                         }
                     }
                 }, error: function (jqXHR) {
+                    document.getElementById("loading").classList.add("d-none");
+                    $("input[type=submit][clicked=true]").removeAttr('disabled');
+
                     // Error Response
 
                     let res = jqXHR.responseJSON;

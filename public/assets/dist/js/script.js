@@ -7,12 +7,19 @@ $.ajaxSetup({
 
 document.addEventListener('DOMContentLoaded', () => {
     // Bootstrap modal configuration
-    $.fn.modal.Constructor.prototype.enforceFocus = function() {};
+    $.fn.modal.Constructor.prototype.enforceFocus = function () { };
 
     // Enable bootstrap tooltip
-    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+
 });
+
+function isImage(i) {
+    return i instanceof HTMLImageElement;
+}
 
 // Capitalize
 function capitalizeFirstLetter(string) {
@@ -24,8 +31,8 @@ function capitalizeFirstLetter(string) {
 }
 
 // Round
-Number.prototype.round = function(places) {
-    return +(Math.round(this + "e+" + places)  + "e-" + places);
+Number.prototype.round = function (places) {
+    return +(Math.round(this + "e+" + places) + "e-" + places);
 }
 
 // Pad 2 Digits
@@ -59,9 +66,9 @@ function clearModified() {
     if (modified.length > 0) {
         modified.forEach(element => {
             let strFunction = '';
-            element.forEach((ele,idx) => {
+            element.forEach((ele, idx) => {
                 if (idx == 0) {
-                    strFunction += 'document.getElementById("'+ele+'")';
+                    strFunction += 'document.getElementById("' + ele + '")';
                 } else {
                     strFunction += ele
                 }
@@ -89,7 +96,7 @@ function submitForm(e, evt) {
         data: new FormData(e),
         processData: false,
         contentType: false,
-        success: function(res) {
+        success: function (res) {
             if (document.getElementById("loading")) {
                 document.getElementById("loading").classList.add("d-none");
             }
@@ -127,7 +134,41 @@ function submitForm(e, evt) {
                 if (res.callback != '') {
                     eval(res.callback);
                 }
-            } else if (res.status == 300) {
+            }
+            // else if (res.status == 201) {
+            //     $('.modal').modal('hide');
+
+            //     Swal.fire({
+            //         icon: 'warning',
+            //         title: res.message,
+            //         showCancelButton: false,
+            //         showConfirmButton: true,
+            //         confirmButtonText: 'Oke',
+            //         timer: (res.status == 201 ? 5000 : 3000),
+            //         timerProgressBar: true
+            //     }).then(() => {
+            //         if (isNotNull(res.redirect)) {
+            //             if (res.redirect != 'reload') {
+            //                 location.href = res.redirect;
+            //             } else {
+            //                 location.reload();
+            //             }
+            //         } else {
+            //             location.reload();
+            //         }
+            //     });
+
+            //     e.reset();
+            //     if (document.getElementsByClassName('select2')) {
+            //         $(".select2").val('').trigger('change');
+            //         $(".select2bs4").val('').trigger('change');
+            //     }
+
+            //     if (res.callback != '') {
+            //         eval(res.callback);
+            //     }
+            // }
+            else if (res.status == 300) {
                 $('.modal').modal('hide');
 
                 iziToast.success({
@@ -169,9 +210,40 @@ function submitForm(e, evt) {
                 if (res.callback != '') {
                     eval(res.callback);
                 }
-            }
-            else {
-                for(let i = 0;i < res.errors; i++) {
+            } else if (res.status == 201) {
+                // $('.modal').modal('hide');
+
+                Swal.fire({
+                    icon: 'success',
+                    title: res.message,
+                    showCancelButton: false,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Oke',
+                    timer: 2000,
+                    timerProgressBar: true
+                }).then(() => {
+                    if (isNotNull(res.redirect)) {
+                        if (res.redirect != 'reload') {
+                            location.href = res.redirect;
+                        } else {
+                            location.reload();
+                        }
+                    } else {
+                        // location.reload();
+                    }
+                });
+
+                // e.reset();
+                // if (document.getElementsByClassName('select2')) {
+                //     $(".select2").val('').trigger('change');
+                //     $(".select2bs4").val('').trigger('change');
+                // }
+
+                if (res.callback != '') {
+                    eval(res.callback);
+                }
+            } else {
+                for (let i = 0; i < res.errors; i++) {
                     document.getElementById(res.errors[i]).classList.add('is-invalid');
                     modified.push([res.errors[i], 'classList', 'remove(', "'is-invalid')"])
                 }
@@ -184,17 +256,17 @@ function submitForm(e, evt) {
             }
 
             if (res.table != '') {
-                $('#'+res.table).DataTable().ajax.reload();
+                $('#' + res.table).DataTable().ajax.reload();
             }
 
-            if (Object.keys(res.additional).length > 0 ) {
+            if (Object.keys(res.additional).length > 0) {
                 for (let key in res.additional) {
                     if (document.getElementById(key)) {
                         document.getElementById(key).classList.add('is-invalid');
 
                         if (res.additional[key].hasOwnProperty('message')) {
-                            document.getElementById(key+'_error').classList.remove('d-none');
-                            document.getElementById(key+'_error').innerHTML = res.additional[key]['message'];
+                            document.getElementById(key + '_error').classList.remove('d-none');
+                            document.getElementById(key + '_error').innerHTML = res.additional[key]['message'];
                         }
 
                         if (res.additional[key].hasOwnProperty('value')) {
@@ -203,8 +275,8 @@ function submitForm(e, evt) {
 
                         modified.push(
                             [key, '.classList', '.remove(', "'is-invalid')"],
-                            [key+'_error', '.classList', '.add(', "'d-none')"],
-                            [key+'_error', '.innerHTML = ', "''"],
+                            [key + '_error', '.classList', '.add(', "'d-none')"],
+                            [key + '_error', '.innerHTML = ', "''"],
                         )
                     }
                 }
@@ -222,13 +294,13 @@ function submitForm(e, evt) {
             for (let key in res.errors) {
                 message = res.errors[key];
                 document.getElementById(key).classList.add('is-invalid');
-                document.getElementById(key+'_error').classList.remove('d-none');
-                document.getElementById(key+'_error').innerHTML = res.errors[key];
+                document.getElementById(key + '_error').classList.remove('d-none');
+                document.getElementById(key + '_error').innerHTML = res.errors[key];
 
                 modified.push(
                     [key, '.classList', '.remove(', "'is-invalid')"],
-                    [key+'_error', '.classList', '.add(', "'d-none')"],
-                    [key+'_error', '.innerHTML = ', "''"],
+                    [key + '_error', '.classList', '.add(', "'d-none')"],
+                    [key + '_error', '.innerHTML = ', "''"],
                 )
             };
 
@@ -246,16 +318,21 @@ function editData(e, modal, addons = []) {
     let data = e;
 
     for (let key in data) {
-        if (document.getElementById('edit_'+key)) {
-            document.getElementById('edit_'+key).value = data[key];
-            document.getElementById('edit_'+key).setAttribute('value', data[key]);
+        if (document.getElementById('edit_' + key)) {
+            console.log("img", isImage(document.getElementById('edit_' + key)));
+            if (isImage(document.getElementById('edit_' + key))) {
+                document.getElementById('edit_' + key).src = data[key];
+            }
 
-            if (document.getElementById('edit_'+key).classList.contains('select2') || document.getElementById('edit_'+key).classList.contains('select2bs4') || document.getElementById('edit_'+key).classList.contains('select2bs4stat') || document.getElementById('edit_'+key).classList.contains('select2custom')) {
-                $('#edit_'+key).val(data[key]).trigger('change.select2');
+            document.getElementById('edit_' + key).value = data[key];
+            document.getElementById('edit_' + key).setAttribute('value', data[key]);
+
+            if (document.getElementById('edit_' + key).classList.contains('select2') || document.getElementById('edit_' + key).classList.contains('select2bs4') || document.getElementById('edit_' + key).classList.contains('select2bs4stat') || document.getElementById('edit_' + key).classList.contains('select2custom')) {
+                $('#edit_' + key).val(data[key]).trigger('change.select2');
             }
         } else {
             if (addons.length > 0) {
-                for (let i=0; i < addons.length; i++) {
+                for (let i = 0; i < addons.length; i++) {
                     if (typeof addons == "object") {
                         for (let addonsKey in addons[i]) {
                             if (addonsKey == "function") {
@@ -268,7 +345,7 @@ function editData(e, modal, addons = []) {
         }
     }
 
-    $('#'+modal).modal('show');
+    $('#' + modal).modal('show');
 }
 
 // Delete data confirmation
@@ -296,7 +373,7 @@ function deleteData(e) {
                     data: {
                         _method: 'DELETE'
                     },
-                    success: function(res) {
+                    success: function (res) {
                         if (document.getElementById("loading")) {
                             document.getElementById("loading").classList.add("d-none");
                         }
@@ -318,7 +395,9 @@ function deleteData(e) {
                         }
 
                         if (res.table != '') {
-                            $('#'+res.table).DataTable().ajax.reload();
+                            $('#' + res.table).DataTable().ajax.reload();
+                        } else {
+                            location.reload();
                         }
                     }, error: function (jqXHR) {
                         if (document.getElementById("loading")) {
@@ -334,7 +413,7 @@ function deleteData(e) {
 
                         iziToast.error({
                             title: 'Error',
-                            message: 'Terjadi kesalahan. '+message,
+                            message: 'Terjadi kesalahan. ' + message,
                             position: 'topCenter'
                         });
                     }
@@ -342,4 +421,19 @@ function deleteData(e) {
             }
         })
     }
+}
+
+function generateToken(id, route) {
+    $.ajax({
+        url: route,
+        method: 'post',
+        data: {
+            id: id
+        },
+        success: function (res) {
+            if (res) {
+                document.getElementById("unlock_token").value = res;
+            }
+        }
+    });
 }

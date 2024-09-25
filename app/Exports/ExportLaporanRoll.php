@@ -48,7 +48,7 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                 t.qty_order,
                 b.id_roll,
                 b.detail_item,
-                roll roll_number,
+                COALESCE(roll_buyer, roll) roll_number,
                 lot,
                 cons_ws,
                 cons_marker,
@@ -58,6 +58,8 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                 mrk.panel,
                 b.qty,
                 b.unit,
+                a.cons_pipping,
+                b.berat_amparan,
                 sisa_kain,
                 lembar_gelaran,
                 mr.tot_ratio,
@@ -78,6 +80,7 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                 reject,
                 piping,
                 short_roll,
+                CONCAT(ROUND(((b.short_roll / b.qty) * 100), 2), ' %') short_roll_percentage,
                 remark,
                 operator
             FROM
@@ -110,7 +113,7 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A3:AS' . $event->getConcernable()->rowCount,
+            'A3:AT' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [

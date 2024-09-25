@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Stocker</title>
+    <title>Marker</title>
     <style>
         @page { margin: 5px; }
 

@@ -51,7 +51,7 @@
             <div class="mb-1">
                 <div class="form-group">
                 <label><small>No Request</small></label>
-                <select class="form-control select2req" id="txt_noreq" name="txt_noreq" style="width: 100%;" onchange="det_request(this.value)">
+                <select class="form-control select2bs4" id="txt_noreq" name="txt_noreq" style="width: 100%;" onchange="det_request(this.value)">
                     <option selected="selected" value="">Pilih Request</option>
                         @foreach ($no_req as $noreq)
                     <option value="{{ $noreq->isi }}">
@@ -266,7 +266,7 @@
             <div class="mb-1">
                 <div class="form-group">
                     <button class="btn btn-sb float-end mt-2 ml-2"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
-                    <a href="{{ route('out-material') }}" class="btn btn-danger float-end mt-2">
+                    <a href="{{ route('out-material') }}" class="btn btn-danger float-end mt-2" onclick="delete_all_temp()">
                     <i class="fas fa-arrow-circle-left"></i> Kembali</a>
                 </div>
             </div>
@@ -435,6 +435,7 @@
         $(document).on('select2:open', () => {
             document.querySelector('.select2-search__field').focus();
         });
+        
 
         //Initialize Select2 Elements
         $('.select2').select2()
@@ -680,7 +681,7 @@ function submitFormScan(e, evt) {
 
             for (let i = 1; i < (table.rows.length); i++) {
                 var cek =  document.getElementById("pil_item"+i);
-                satuan = document.getElementById("tableshow").rows[i].cells[5].children[0].value;
+                satuan = document.getElementById("tableshow").rows[i].cells[6].children[0].value;
                 qty_stok = document.getElementById("qty_stok"+i).value || 0;
                 qty_out = document.getElementById("qty_out"+i).value || 0;
                 sisa_qty = parseFloat(qty_stok) - parseFloat(qty_out) ;
@@ -696,13 +697,13 @@ function submitFormScan(e, evt) {
                     sum_out += parseFloat(qty_out);
                 }
             }
-                h_qty_out = sum_out + ' ' + satuan;
+                h_qty_out = sum_out.round(2) + ' ' + satuan;
                 sum_bal = parseFloat(qty_req) - parseFloat(sum_out);
-                h_sum_bal = sum_bal + ' ' + satuan;
+                h_sum_bal = sum_bal.round(2) + ' ' + satuan;
                 $('#m_qty_out').val(h_qty_out);
-                $('#m_qty_out_h').val(sum_out);
-                $('#m_qty_bal').val(h_sum_bal);
-                $('#m_qty_bal_h').val(sum_bal);
+                $('#m_qty_out_h').val(sum_out.round(2));
+                $('#m_qty_bal').val(h_sum_bal || 0);
+                $('#m_qty_bal_h').val(sum_bal.round(2) || 0);
 
         }
 
@@ -721,7 +722,7 @@ function submitFormScan(e, evt) {
             var sum_out = 0;
 
             for (let i = 1; i < (table.rows.length); i++) {
-                satuan = document.getElementById("tableshow").rows[i].cells[6].children[0].value;
+                satuan = document.getElementById("tableshow").rows[i].cells[7].children[0].value;
                 qty_stok = document.getElementById("qty_stok"+i).value || 0;
                 qty_out = document.getElementById("qty_out"+i).value || 0;
                 sisa_qty = parseFloat(qty_stok) - parseFloat(qty_out) ;
@@ -739,13 +740,13 @@ function submitFormScan(e, evt) {
                 }
             }
 
-                h_qty_out = sum_out + ' ' + satuan;
+                h_qty_out = sum_out.round(2) + ' ' + satuan;
                 sum_bal = parseFloat(qty_req) - parseFloat(sum_out);
-                h_sum_bal = sum_bal + ' ' + satuan;
+                h_sum_bal = sum_bal.round(2) + ' ' + satuan;
                 $('#m_qty_out2').val(h_qty_out);
-                $('#m_qty_out_h2').val(sum_out);
+                $('#m_qty_out_h2').val(sum_out.round(2));
                 $('#m_qty_bal2').val(h_sum_bal);
-                $('#m_qty_bal_h2').val(sum_bal);
+                $('#m_qty_bal_h2').val(sum_bal.round(2));
 
         }
 
@@ -879,6 +880,7 @@ function submitFormScan(e, evt) {
                     return `<div class='d-flex gap-1 justify-content-center'>
                     <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='out_manual("` + row.id_item + `","` + row.id_jo + `","` + row.qty_sisa_out + `","` + row.unit + `")'><i class="fa-solid fa-table-list"></i></button>
                     <button type='button' class='btn btn-sm btn-success' href='javascript:void(0)' onclick='out_scan("` + row.id_item + `","` + row.id_jo + `","` + row.qty_sisa_out + `","` + row.unit + `","` + row.no_req + `")'><i class="fa-solid fa-barcode"></i></i></button>
+                    <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='delete_scan("` + row.id_item + `","` + row.id_jo + `")'><i class="fa-solid fa-undo"></i></i></button>
                     </div>`;
                 }
                 },
@@ -920,6 +922,44 @@ function submitFormScan(e, evt) {
                         document.getElementById('detail_showbarcode').innerHTML = res;
                         sum_qty_barcode('1');
                     }
+                }
+            });
+
+    }
+
+    function delete_scan($id_item,$id_jo){
+        let id_item = $id_item;
+        let id_jo = $id_jo;
+        return $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '{{ route("delete-scan-temp") }}',
+                type: 'get',
+                data: {
+                    id_item: id_item,
+                    id_jo: id_jo,
+                },
+                success: function (res) {
+                    getlistdata();
+                }
+            });
+
+    }
+
+    function delete_all_temp(){
+        let no_bppb = $('#txt_nobppb').val();
+        return $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '{{ route("delete-all-temp") }}',
+                type: 'get',
+                data: {
+                    no_bppb: no_bppb,
+                },
+                success: function (res) {
+                    // getlistdata();
                 }
             });
 
