@@ -915,11 +915,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-barcode', 'getbarcodeso')->name('get-data-barcodeso');
         Route::get('/save-barcode', 'simpanbarcodeso')->name('simpan-scan-barcode-so');
         Route::get('/list-scan-barcode', 'listscanbarcode')->name('list-scan-barcode-so');
+        Route::get('/list-scan-barcode-cancel', 'listscanbarcodecancel')->name('list-scan-barcode-so-cancel');
         Route::get('/get-sum-barcode', 'getsumbarcodeso')->name('get-sum-barcodeso');
         Route::get('/get-nomor-so', 'getNolapSO')->name('get-nomor-so');
         Route::get('/laporan-stok-opname', 'laporanstokopname')->name('laporan-stok-opname');
         Route::get('/export_excel_laporan_so', 'export_excel_laporanso')->name('export_excel_laporan_so');
         Route::get('/delete-so-temp', 'deletesotemp')->name('delete-so-temp');
+        Route::get('/delete-so-temp-all', 'deletesotempall')->name('delete-so-temp-all');
+        Route::get('/undo-so-temp', 'undosotemp')->name('undo-so-temp');
+        Route::get('/undo-so-temp-all', 'undosotempall')->name('undo-so-temp-all');
         Route::get('/edit-barcode', 'editbarcodeso')->name('simpan-edit-barcode-so');
         Route::post('/store', 'store')->name('save-stockopname-fabric');
         Route::get('/detail-stock-opname', 'detailstokopname')->name('detail-stok-opname');

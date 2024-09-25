@@ -145,12 +145,11 @@
 
               <!--   </div>
             </div> 
- -->
-        </div>
+        -->
     </div>
 </div>
+</div>
 
-<div class="row">
 
 <div class="card card-sb">
     <div class="card-header">
@@ -187,73 +186,120 @@
             <div class="form-group">
                 <!-- <button class="btn btn-sb float-end mt-2 ml-2" onclick="savedataopname()"><i class="fa-solid fa-floppy-disk"></i> Save</button> -->
                 <input type="button"   class="btn btn-sb float-end mt-2 ml-2" value="Save" onclick="savedataopname()" />
-                <a href="{{ route('list-stok-opname') }}" class="btn btn-danger float-end mt-2">
+                <input type="button"   class="btn btn-danger float-end mt-2 ml-2" value="Delete All" onclick="delete_scan_all()" />
+                <a href="{{ route('list-stok-opname') }}" class="btn btn-warning float-end mt-2">
                     <i class="fas fa-arrow-circle-left"></i> Back</a>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="card card-sb col-md-6">
-    <div class="card-header">
-        <h5 class="card-title fw-bold">
-            Data Hasil Scan
-        </h5>
-        <div class="card-tools">
-              <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
-          </div>
-    </div>
-    <div class="card-body">
-        <div class="form-group row">
+    <div class="card card-sb">
+        <div class="card-header">
+            <h5 class="card-title fw-bold">
+                Data Detail Cancel
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="form-group row">
 
-            <div class="table-responsive" >
-                <table id="datatable2" class="table table-bordered table-striped table-sm w-100 text-nowrap">
-                    <thead>
-                        <tr>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">No Barcode</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID Item</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Item Desc</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty</th>
-                    </thead>
-                    <tbody>
+                <div class="table-responsive" >
+                    <table id="datatable4" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                        <thead>
+                            <tr>
+                                <th class="text-center" style="font-size: 0.6rem;width: 300px;">No Barcode</th>
+                                <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID JO</th>
+                                <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID Item</th>
+                                <th class="text-center" style="font-size: 0.6rem;width: 300px;">Item Desc</th>
+                                <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty SO</th>
+                                <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Scan</th>
+                                <th class="text-center" style="font-size: 0.6rem;width: 300px;">Unit</th>
+                                <th class="text-center" style="font-size: 0.6rem;width: 300px;">Lokasi SO</th>
+                                <th class="text-center" style="font-size: 0.6rem;width: 300px;">Lokasi Aktual</th>
+                                <th class="text-center" style="font-size: 0.6rem;width: 300px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
 
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="mb-1">
+                <div class="form-group">
+                    <input type="button"  class="btn btn-info float-end mt-2 ml-2" value="Undo All" onclick="undo_scan_all()" />
+                </div>
             </div>
         </div>
-        </div>
     </div>
 
-    <div class="card card-sb col-md-6">
-    <div class="card-header">
-        <h5 class="card-title fw-bold">
-            Data Barcode
-        </h5>
-        <div class="card-tools">
-              <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
-          </div>
-    </div>
-    <div class="card-body">
-        <div class="form-group row">
+    <div class="form-group row">
+        <div class="col-md-6">
+            <div class="card card-sb">
+                <div class="card-header">
+                    <h5 class="card-title fw-bold">
+                        Data Hasil Scan
+                    </h5>
+                    <div class="card-tools">
+                      <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
+                  </div>
+              </div>
+              <div class="card-body">
+                <div class="form-group row">
 
-            <div class="table-responsive" >
-                <table id="datatable3" class="table table-bordered table-striped table-sm w-100 text-nowrap">
-                    <thead>
-                        <tr>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">No Barcode</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID Item</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Item Desc</th>
-                            <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                    <div class="table-responsive" >
+                        <table id="datatable2" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                            <thead>
+                                <tr>
+                                    <th class="text-center" style="font-size: 0.6rem;width: 300px;">Lokasi Aktual</th>
+                                    <th class="text-center" style="font-size: 0.6rem;width: 300px;">No Barcode</th>
+                                    <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID Item</th>
+                                    <th class="text-center" style="font-size: 0.6rem;width: 300px;">Item Desc</th>
+                                    <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty</th>
+                                </tr>
+                            </thead>
+                            <tbody>
 
-                    </tbody>
-                </table>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card card-sb">
+            <div class="card-header">
+                <h5 class="card-title fw-bold">
+                    Data Barcode
+                </h5>
+                <div class="card-tools">
+                  <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
+              </div>
+          </div>
+          <div class="card-body">
+            <div class="form-group row">
+
+                <div class="table-responsive" >
+                    <table id="datatable3" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                        <thead>
+                            <tr>
+                                <th class="text-center" style="font-size: 0.6rem;width: 300px;">No Barcode</th>
+                                <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID Item</th>
+                                <th class="text-center" style="font-size: 0.6rem;width: 300px;">Item Desc</th>
+                                <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
+</div>
 
 </div>
 
@@ -550,7 +596,8 @@
             },
             dataType: 'json',
             success: function(res) {
-                if (res) {
+                console.log(res);
+                if (res.barcode_so == null) {
                     // console.log(res);
                     var txt_lokasi_h = $('#txt_lokasi_h').val();
                     if (txt_lokasi_h == res.kode_lok) {
@@ -583,31 +630,51 @@
                         savedatabarcode();
                     });  
                 }
-            }else{
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Gagal',
-                    text: 'Data Barcode Tidak Tersedia!',
-                    showCancelButton: false,
-                    showConfirmButton: true,
-                    confirmButtonText: 'Oke',
-                }).then(async (result) => {
-                    document.getElementById('txt_qty_barcode').value = '';
-                    document.getElementById('txt_barcode').value = '';
-                    document.getElementById('txt_item_barcode').value = '';
-                    document.getElementById('txt_iditem_barcode').value = '';
-                    document.getElementById('txt_jo_barcode').value = '';
-                    document.getElementById('txt_lok_barcode').value = '';
-                    document.getElementById('txt_lot_barcode').value = '';
-                    document.getElementById('txt_roll_barcode').value = '';
-                    document.getElementById('txt_unit_barcode').value = '';
-                    document.getElementById('txt_barcode').focus();
-                });
+            }else if (res.barcode_so != null) {
+               Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: 'Barcode Sudah diinput!',
+                showCancelButton: false,
+                showConfirmButton: true,
+                confirmButtonText: 'Oke',
+            }).then(async (result) => {
+                document.getElementById('txt_qty_barcode').value = '';
+                document.getElementById('txt_barcode').value = '';
+                document.getElementById('txt_barcode').focus();
+                document.getElementById('txt_item_barcode').value = '';
+                document.getElementById('txt_iditem_barcode').value = '';
+                document.getElementById('txt_jo_barcode').value = '';
+                document.getElementById('txt_lok_barcode').value = '';
+                document.getElementById('txt_lot_barcode').value = '';
+                document.getElementById('txt_roll_barcode').value = '';
+                document.getElementById('txt_unit_barcode').value = '';
+            });
+        }else{
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: 'Data Barcode Tidak Tersedia!',
+                showCancelButton: false,
+                showConfirmButton: true,
+                confirmButtonText: 'Oke',
+            }).then(async (result) => {
+                document.getElementById('txt_qty_barcode').value = '';
+                document.getElementById('txt_barcode').value = '';
+                document.getElementById('txt_item_barcode').value = '';
+                document.getElementById('txt_iditem_barcode').value = '';
+                document.getElementById('txt_jo_barcode').value = '';
+                document.getElementById('txt_lok_barcode').value = '';
+                document.getElementById('txt_lot_barcode').value = '';
+                document.getElementById('txt_roll_barcode').value = '';
+                document.getElementById('txt_unit_barcode').value = '';
+                document.getElementById('txt_barcode').focus();
+            });
 
-            }
-        },
-    });
-    }
+        }
+    },
+});
+}
 </script>
 <script type="text/javascript">
     function savedatabarcode() {
@@ -654,6 +721,7 @@
                                     dataTableReload();
                                     document.getElementById('txt_qty_barcode').value = '';
                                     document.getElementById('txt_barcode').value = '';
+                                    document.getElementById('txt_barcode').focus();
                                     document.getElementById('txt_item_barcode').value = '';
                                     document.getElementById('txt_iditem_barcode').value = '';
                                     document.getElementById('txt_jo_barcode').value = '';
@@ -661,6 +729,7 @@
                                     document.getElementById('txt_lot_barcode').value = '';
                                     document.getElementById('txt_roll_barcode').value = '';
                                     document.getElementById('txt_unit_barcode').value = '';
+                                    datatable3.ajax.reload();
                                 // });
 
                             }
@@ -670,11 +739,11 @@
             }
 
 
-        function savedataopname() {
-        var txt_qty_scan = document.getElementById('txt_qty_scan').value;
-        var txt_no_dokumen = document.getElementById('txt_no_dokumen').value;
-        var txt_tgl_so = document.getElementById('txt_tgl_so').value;
-        var txt_lokasi_h = document.getElementById('txt_lokasi_h').value;
+            function savedataopname() {
+                var txt_qty_scan = document.getElementById('txt_qty_scan').value;
+                var txt_no_dokumen = document.getElementById('txt_no_dokumen').value;
+                var txt_tgl_so = document.getElementById('txt_tgl_so').value;
+                var txt_lokasi_h = document.getElementById('txt_lokasi_h').value;
 
                 // clearModified();
 
@@ -703,7 +772,7 @@
                                 }).then(async (result) => {
                                     dataTableReload();
                                     window.location.href = res.redirect;
-                                   
+
                                 });
 
                             }
@@ -781,6 +850,73 @@
         ]
     });
 
+            let datatable4 = $("#datatable4").DataTable({
+                serverSide: true,
+                processing: true,
+                ordering: false,
+                scrollX: '400px',
+                scrollY: true,
+                pageLength: 10,
+                ajax: {
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    url: '{{ route('list-scan-barcode-so-cancel') }}',
+                    dataType: 'json',
+                    dataSrc: 'data',
+                    data: function(d) {
+                        d.kode_lok = $('#txt_lokasi_h').val();
+
+                    },
+                },
+                columns: [{
+                    data: 'no_barcode'
+                },
+                {
+                    data: 'id_item'
+                },
+                {
+                    data: 'id_jo'
+                },
+                {
+                    data: 'itemdesc'
+                },
+                {
+                    data: 'qty'
+                },
+                {
+                    data: 'qty_scan'
+                },
+
+                {
+                    data: 'unit'
+                },
+                {
+                    data: 'lokasi_scan'
+                },
+                {
+                    data: 'lokasi_aktual'
+                },
+
+                {
+                    data: 'no_barcode'
+                }
+
+                ],
+                columnDefs: [{
+                    targets: [9],
+                    render: (data, type, row, meta) => {
+                   // if (row.qty_balance == 0) {
+                    return `<div class='d-flex gap-1 justify-content-center'>
+                    <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='undo_scan("` + row.no_barcode + `")'><i class="fa-solid fa-undo"></i></i></button>
+                    </div>`;
+                // }
+            }
+        }
+
+        ]
+    });
+
             let datatable2 = $("#datatable2").DataTable({
                 serverSide: true,
                 processing: true,
@@ -797,9 +933,13 @@
                     dataSrc: 'data',
                     data: function(d) {
                         d.kode_lok = $('#txt_lokasi_h').val();
+                        d.txt_no_dokumen = $('#txt_no_dokumen').val();
                     },
                 },
                 columns: [{
+                    data: 'lokasi_aktual'
+                },
+                {
                     data: 'no_barcode'
                 },
                 {
@@ -814,8 +954,8 @@
 
                 ],
                 columnDefs: [
-        ]
-    });
+                ]
+            });
 
             let datatable3 = $("#datatable3").DataTable({
                 serverSide: true,
@@ -833,6 +973,7 @@
                     dataSrc: 'data',
                     data: function(d) {
                         d.kode_lok = $('#txt_lokasi_h').val();
+                        d.txt_no_dokumen = $('#txt_no_dokumen').val();
                     },
                 },
                 columns: [{
@@ -850,13 +991,18 @@
 
                 ],
                 columnDefs: [
-        ]
-    });
+                ],
+                rowCallback: function( row, data, index ) {
+                    if (data['barcode_temp'] != null) {
+                        $('td', row).css('background-color', '#7FFFD4');
+                    }
+                }
+            });
 
             function dataTableReload() {
                 datatable.ajax.reload();
-                datatable2.ajax.reload();
-                datatable3.ajax.reload();
+                // datatable2.ajax.reload();
+                // datatable3.ajax.reload();
                 return $.ajax({
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -889,6 +1035,68 @@
                     },
                     success: function (res) {
                         dataTableReload();
+                        datatable4.ajax.reload();
+                        datatable3.ajax.reload();
+                    }
+                });
+
+            }
+
+            function delete_scan_all(){
+                let lokasi_h = document.getElementById('txt_lokasi_h').value;
+                return $.ajax({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    url: '{{ route("delete-so-temp-all") }}',
+                    type: 'get',
+                    data: {
+                        lokasi_h: lokasi_h,
+                    },
+                    success: function (res) {
+                        dataTableReload();
+                        datatable4.ajax.reload();
+                        datatable3.ajax.reload();
+                    }
+                });
+
+            }
+
+            function undo_scan($no_barcode){
+                let no_barcode = $no_barcode;
+                return $.ajax({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    url: '{{ route("undo-so-temp") }}',
+                    type: 'get',
+                    data: {
+                        no_barcode: no_barcode,
+                    },
+                    success: function (res) {
+                        dataTableReload();
+                        datatable4.ajax.reload();
+                        datatable3.ajax.reload();
+                    }
+                });
+
+            }
+
+            function undo_scan_all(){
+                let lokasi_h = document.getElementById('txt_lokasi_h').value;
+                return $.ajax({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    url: '{{ route("undo-so-temp-all") }}',
+                    type: 'get',
+                    data: {
+                        lokasi_h: lokasi_h,
+                    },
+                    success: function (res) {
+                        dataTableReload();
+                        datatable4.ajax.reload();
+                        datatable3.ajax.reload();
                     }
                 });
 
