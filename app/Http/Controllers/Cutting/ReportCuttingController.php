@@ -334,7 +334,7 @@ class ReportCuttingController extends Controller
 
                     $balance = $rolls ? $row->qty_out - (($row->unit == 'YARD' || $row->unit == 'YRD') ? $rolls->sum("total_pemakaian_roll") * 1.0361 : $rolls->sum("total_pemakaian_roll") ) : $row->qty_out;
 
-                    return $balance > 0 ? $balance : ($balance < 0 ? ( str_replace("-", "+", round($balance, 2)) ) : round($balance, 2));
+                    return $balance > 0 ? round($balance, 2) : ($balance < 0 ? ( str_replace("-", "+", round($balance, 2)) ) : round($balance, 2));
                 })->
                 toJson();
         }
@@ -344,11 +344,11 @@ class ReportCuttingController extends Controller
 
     public function detailPemakaianRoll (Request $request)
     {
-        $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb WHERE a.no_req = '".$request->no_req."' and b.id_item = '".$request->id_item."' and b.status = 'Y' GROUP BY id_roll"));
+        $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll, id_item, item_desc, no_lot, no_roll, satuan, COALESCE(retur.tgl_dok, '-') tgl_dok from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb LEFT JOIN (select * from whs_inmaterial_fabric where no_dok like '%RI%' and supplier = 'Production - Cutting') retur on a.no_bppb = retur.no_invoice WHERE a.no_req = '".$request->no_req."' and b.id_item = '".$request->id_item."' and b.status = 'Y' GROUP BY id_roll"));
 
-        $rollIds = $rollIdsArr->pluck('id_roll');
-
-        $rolls = FormCutInputDetail::selectRaw("
+        $rollData = collect();
+        foreach ($rollIdsArr as $rollId) {
+            $rolls = FormCutInputDetail::selectRaw("
                 id_roll,
                 id_item,
                 detail_item,
@@ -357,14 +357,37 @@ class ReportCuttingController extends Controller
                 MAX(qty) qty,
                 unit,
                 ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
-                ROUND(SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END), 2) total_short_roll
+                ROUND(MAX(qty) - SUM(total_pemakaian_roll), 2) total_sisa_kain,
+                ROUND(SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END), 2) total_short_roll,
+                CONCAT(ROUND((SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END) / SUM(total_pemakaian_roll) * 100), 2), ' %') total_short_roll_percentage,
+                '".$rollId->tgl_dok."' tanggal_return
             ")->
             whereNotNull("id_roll")->
-            whereIn("id_roll", $rollIds)->
+            where("id_roll", $rollId->id_roll)->
             groupBy("id_item", "id_roll")->
-            get();
+            first();
 
-        return DataTables::of($rolls)->toJson();
+            if ($rolls) {
+                $rollData->push($rolls);
+            } else {
+                $rollData->push(collect([
+                    "id_roll" => $rollId->id_roll,
+                    "id_item" => $rollId->id_item,
+                    "detail_item" => $rollId->item_desc,
+                    "lot" => $rollId->no_lot,
+                    "roll" => $rollId->no_roll,
+                    "qty" => 0,
+                    "unit" => $rollId->satuan,
+                    "total_pemakaian_roll" => 0,
+                    "total_sisa_kain" => 0,
+                    "total_short_roll" => 0,
+                    "total_short_roll_percentage" => '0.00 %',
+                    "tanggal_return" => $rollId->tgl_dok
+                ]));
+            }
+        }
+
+        return DataTables::of($rollData)->toJson();
     }
 
     public function totalPemakaianRoll(Request $request)
@@ -372,45 +395,100 @@ class ReportCuttingController extends Controller
         $dateFrom = $request->dateFrom ? $request->dateFrom : date('Y-m-d');
         $dateTo = $request->dateTo ? $request->dateTo : date('Y-m-d');
 
-        $pemakaianRoll = DB::connection("mysql_sb")->select("
-            select a.*, CONCAT('\"', b.no_bppb, '_', a.id_item, '\"') req_item, b.no_bppb no_out, COALESCE(total_roll,0) roll_out, ROUND(COALESCE(qty_out,0), 2) qty_out, c.no_dok no_retur, COALESCE(total_roll_ri,0) roll_retur, ROUND(COALESCE(qty_out_ri,0), 2) qty_retur from (select bppbno,bppbdate,s.supplier tujuan,ac.kpno no_ws,ac.styleno,ms.supplier buyer,a.id_item,
-            REPLACE(mi.itemdesc, '\"', '\\\\\"') itemdesc,a.qty qty_req,a.unit
+        $filterQuery = "";
+        if ($request->bppbno) {
+            $filterQuery = " and b.no_bppb LIKE '%".$request->bppbno."%'";
+        }
+        if ($request->bppbdate) {
+            $filterQuery = " and b.bppbdate LIKE '%".$request->bppbdate."%'";
+        }
+        if ($request->no_ws) {
+            $filterQuery = " and ac.kpno LIKE '%".$request->no_ws."%'";
+        }
+        if ($request->styleno) {
+            $filterQuery = " and ac.styleno LIKE '%".$request->styleno."%'";
+        }
+        if ($request->buyer) {
+            $filterQuery = " and ms.supplier LIKE '%".$request->buyer."%'";
+        }
+        if ($request->id_item) {
+            $filterQuery = " and a.id_item LIKE '%".$request->id_item."%'";
+        }
+        if ($request->itemdesc) {
+            $filterQuery = " and mi.itemdesc LIKE '%".$request->itemdesc."%'";
+        }
+
+        $requestRoll = DB::connection("mysql_sb")->select("
+            select a.*,b.no_bppb no_out, COALESCE(total_roll,0) roll_out, ROUND(COALESCE(qty_out,0), 2) qty_out, c.no_dok no_retur, COALESCE(total_roll_ri,0) roll_retur, ROUND(COALESCE(qty_out_ri,0), 2) qty_retur from (select bppbno,bppbdate,s.supplier tujuan,ac.kpno no_ws,ac.styleno,ms.supplier buyer,a.id_item,
+            REPLACE(mi.itemdesc, '\"', '\\\\\"') itemdesc,a.qty qty_req,a.unit, idws_act no_ws_aktual
             from bppb_req a inner join mastersupplier s on a.id_supplier=s.id_supplier
             inner join jo_det jod on a.id_jo=jod.id_jo
             inner join so on jod.id_so=so.id
             inner join act_costing ac on so.id_cost=ac.id
             inner join mastersupplier ms on ac.id_buyer=ms.id_supplier
             inner join masteritem mi on a.id_item=mi.id_item
-            where bppbno like '%RQ-F%' and a.id_supplier = '432' and bppbdate between '".$dateFrom."' and '".$dateTo."'
+            where bppbno like '%RQ-F%' and a.id_supplier = '432' and bppbdate between '".$dateFrom."' and '".$dateTo."' ".$filterQuery."
             group by a.id_item,a.bppbno
             order by bppbdate,bppbno desc) a left join
-            (select a.no_bppb,no_req,id_item,COUNT(id_roll) total_roll, sum(qty_out) qty_out,satuan from whs_bppb_h a INNER JOIN (select bppbno,bppbdate from bppb_req where bppbno like '%RQ-F%' and id_supplier = '432' and bppbdate between '".$dateFrom."' and '".$dateTo."' GROUP BY bppbno) b on b.bppbno = a.no_req inner join whs_bppb_det c on c.no_bppb = a.no_bppb where a.status != 'Cancel' GROUP BY a.no_bppb,no_req,id_item) b on b.no_req = a.bppbno and b.id_item  =a.id_item left join
-            (select a.no_dok, no_invoice no_req,id_item,COUNT(no_barcode) total_roll_ri, sum(qty_sj) qty_out_ri,satuan from (select * from whs_inmaterial_fabric where no_dok like '%RI%' and supplier = 'Production - Cutting' ) a INNER JOIN (select bppbno,bppbdate from bppb_req where bppbno like '%RQ-F%' and id_supplier = '432' and bppbdate between '".$dateFrom."' and '".$dateTo."' GROUP BY bppbno) b on b.bppbno = a.no_invoice INNER JOIN whs_lokasi_inmaterial c on c.no_dok = a.no_dok GROUP BY a.no_dok,no_invoice,id_item) c on c.no_req = a.bppbno and c.id_item  =a.id_item
+            (select a.no_bppb,no_req,id_item,COUNT(id_roll) total_roll, sum(qty_out) qty_out,satuan from whs_bppb_h a INNER JOIN (select bppbno,bppbdate from bppb_req where bppbno like '%RQ-F%' and id_supplier = '432' and bppbdate between '".$dateFrom."' and '".$dateTo."' GROUP BY bppbno) b on b.bppbno = a.no_req inner join whs_bppb_det c on c.no_bppb = a.no_bppb where a.status != 'Cancel' GROUP BY a.no_bppb,no_req,id_item) b on b.no_req = a.bppbno and b.id_item = a.id_item left join
+            (select a.no_dok, no_invoice no_req,id_item,COUNT(no_barcode) total_roll_ri, sum(qty_sj) qty_out_ri,satuan from (select * from whs_inmaterial_fabric where no_dok like '%RI%' and supplier = 'Production - Cutting' ) a INNER JOIN (select bppbno,bppbdate from bppb_req where bppbno like '%RQ-F%' and id_supplier = '432' and bppbdate between '".$dateFrom."' and '".$dateTo."' GROUP BY bppbno) b on b.bppbno = a.no_invoice INNER JOIN whs_lokasi_inmaterial c on c.no_dok = a.no_dok GROUP BY a.no_dok,no_invoice,id_item) c on c.no_req = a.bppbno and c.id_item = a.id_item
         ");
 
-        $pemakaianRollIds = $pemakaianRoll->pluck("req_item");
+        $totalQtyRequest = 0;
+        $totalRollIn = 0;
+        $totalQtyIn = 0;
+        $totalRollCutting = 0;
+        $totalQtyCutting = 0;
+        $totalRollBalance = 0;
+        $totalQtyBalance = 0;
+        $totalRollReturn = 0;
+        $totalQtyReturn = 0;
 
-        $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb WHERE CONCAT(b.no_bppb, '_', a.id_item) IN () and b.status = 'Y' GROUP BY id_roll"));
+        foreach ($requestRoll as $req) {
+            $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb WHERE a.no_req = '".$req->bppbno."' and b.id_item = '".$req->id_item."' and b.status = 'Y' GROUP BY id_roll"));
 
-        $rollIds = $rollIdsArr->pluck('id_roll');
+            $rollIds = $rollIdsArr->pluck('id_roll');
 
-        $rolls = FormCutInputDetail::selectRaw("
-                id_roll,
-                id_item,
-                detail_item,
-                lot,
-                COALESCE(roll_buyer, roll) roll,
-                MAX(qty) qty,
-                unit,
-                ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
-                ROUND(SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END), 2) total_short_roll
-            ")->
-            whereNotNull("id_roll")->
-            whereIn("id_roll", $rollIds)->
-            groupBy("id_item", "id_roll")->
-            get();
+            $rolls = FormCutInputDetail::selectRaw("
+                    id_roll,
+                    id_item,
+                    detail_item,
+                    lot,
+                    COALESCE(roll_buyer, roll) roll,
+                    MAX(qty) qty,
+                    unit,
+                    ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
+                    ROUND(SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END), 2) total_short_roll
+                ")->
+                whereNotNull("id_roll")->
+                whereIn("id_roll", $rollIds)->
+                groupBy("id_item", "id_roll")->
+                get();
 
-        return view();
+            if ($rolls->count() > 0) {
+                $totalQtyRequest += $req->qty_req;
+                $totalRollIn += $req->roll_out;
+                $totalQtyIn += $req->qty_out;
+                $totalRollCutting += $rolls->count("id_roll");
+                $totalQtyCutting += (($req->unit == 'YARD' || $req->unit == 'YRD') ? round($rolls->sum("total_pemakaian_roll") * 1.0361, 2) : round($rolls->sum("total_pemakaian_roll"), 2) );
+                $totalRollBalance += $rolls ? $req->roll_out - $rolls->count() : $req->roll_out;
+                $totalQtyBalance += $rolls ? $req->qty_out - (($req->unit == 'YARD' || $req->unit == 'YRD') ? $rolls->sum("total_pemakaian_roll") * 1.0361 : $rolls->sum("total_pemakaian_roll") ) : $req->qty_out;
+                $totalRollReturn += $req->roll_retur;
+                $totalQtyReturn += $req->qty_retur;
+            }
+        }
+
+        return array(
+            "totalQtyRequest" => $totalQtyRequest,
+            "totalRollIn" => $totalRollIn,
+            "totalQtyIn" => $totalQtyIn,
+            "totalRollCutting" => $totalRollCutting,
+            "totalQtyCutting" => $totalQtyCutting,
+            "totalRollBalance" => $totalRollBalance,
+            "totalQtyBalance" => $totalQtyBalance,
+            "totalRollReturn" => $totalRollReturn,
+            "totalQtyReturn" => $totalQtyReturn
+        );
     }
 
     /**

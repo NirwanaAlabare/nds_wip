@@ -22,7 +22,7 @@ class MutasiMesinMasterController extends Controller
         if ($request->ajax()) {
 
             $data_mesin = DB::select("
-            select m.*, coalesce(jml,0) jml from master_mesin m
+            select m.*, coalesce(jml,0) jml, if(m.gambar is null or m.gambar = '' or m.gambar = '-','N','Y')stat_foto from master_mesin m
             left join
             (
             select id_qr, count(id_qr) jml from mut_mesin_input group by id_qr
@@ -104,8 +104,8 @@ class MutasiMesinMasterController extends Controller
 
         if ($request->hasFile('uploadphoto')) {
             $folderPath = "public/";
-            $img_ext = $request->file('uploadphoto')->getClientOriginalExtension();
-            $filename = $txtedit_qr .  '.' . $img_ext;
+            // $img_ext = $request->file('uploadphoto')->getClientOriginalExtension();
+            $filename = $txtedit_qr .  '.' . 'jpeg';
             $path = $request->file('uploadphoto')->move(public_path() . '/storage/gambar_mesin', $filename);
         } else {
             if ($request->nm_gambar == '-') {

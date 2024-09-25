@@ -1368,6 +1368,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/show_ga_get_bhn_bakar_edit', 'show_ga_get_bhn_bakar_edit')->name('show_ga_get_bhn_bakar_edit');
         Route::post('/update_ga_trans', 'update_ga_trans')->name('update_ga_trans');
         Route::post('/update_ga_realisasi', 'update_ga_realisasi')->name('update_ga_realisasi');
+        Route::get('/export_excel_data_bahan_bakar', 'export_excel_data_bahan_bakar')->name('export_excel_data_bahan_bakar');
 
         // Route::post('/store', 'store')->name('store-packing-packing-in');
     });

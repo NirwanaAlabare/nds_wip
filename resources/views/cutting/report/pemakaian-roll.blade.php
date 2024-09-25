@@ -60,6 +60,31 @@
                     </thead>
                     <tbody>
                     </tbody>
+                    <tfoot>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -72,7 +97,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="row justify-content-center align-items-end mb-3 g-1">
+                    <div class="row justify-content-start align-items-end mb-3 g-1">
                         <div class="col-md-3">
                             <label class="form-label">Tanggal</label>
                             <input type="text" class="form-control form-control-sm" id="detail_tanggal" readonly>
@@ -101,51 +126,77 @@
                             <label class="form-label">Buyer</label>
                             <input type="text" class="form-control form-control-sm" id="detail_buyer" readonly>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <label class="form-label">Qty Req</label>
-                            <input type="text" class="form-control form-control-sm" id="detail_qty_req" readonly>
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control form-control-sm" id="detail_qty_req" readonly>
+                                <span class="input-group-text detail-unit"></span>
+                            </div>
                         </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Unit</label>
-                            <input type="text" class="form-control form-control-sm" id="detail_unit" readonly>
+                        <div class="col-md-3">
+                            <label class="form-label">Total Roll In</label>
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control form-control-sm" id="detail_roll_in" readonly>
+                                <span class="input-group-text">Roll</span>
+                            </div>
                         </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Roll In</label>
-                            <input type="text" class="form-control form-control-sm" id="detail_roll_in" readonly>
+                        <div class="col-md-3">
+                            <label class="form-label">Total Qty In</label>
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control form-control-sm" id="detail_qty_in" readonly>
+                                <span class="input-group-text detail-unit"></span>
+                            </div>
                         </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Qty In</label>
-                            <input type="text" class="form-control form-control-sm" id="detail_qty_in" readonly>
+                        <div class="col-md-3">
+                            <label class="form-label">Total Pemakaian Roll</label>
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control form-control-sm" id="detail_roll_cutting" readonly>
+                                <span class="input-group-text">Roll</span>
+                            </div>
                         </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Roll Cutting</label>
-                            <input type="text" class="form-control form-control-sm" id="detail_roll_cutting" readonly>
+                        <div class="col-md-3">
+                            <label class="form-label">Total Pemakaian Kain</label>
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control form-control-sm" id="detail_qty_cutting" readonly>
+                                <span class="input-group-text detail-unit"></span>
+                            </div>
                         </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Qty Cutting</label>
-                            <input type="text" class="form-control form-control-sm" id="detail_qty_cutting" readonly>
+                        <div class="col-md-3">
+                            <label class="form-label">Total Short</label>
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control form-control-sm" id="detail_short_cutting" readonly>
+                                <span class="input-group-text detail-unit"></span>
+                            </div>
                         </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Short Cutting</label>
-                            <input type="text" class="form-control form-control-sm" id="detail_short_cutting" readonly>
+                        <div class="col-md-3">
+                            <label class="form-label">Total Roll Balance</label>
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control form-control-sm" id="detail_roll_balance" readonly>
+                                <span class="input-group-text">Roll</span>
+                            </div>
                         </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Roll Balance</label>
-                            <input type="text" class="form-control form-control-sm" id="detail_roll_balance" readonly>
+                        <div class="col-md-3">
+                            <label class="form-label">Total Qty Balance</label>
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control form-control-sm" id="detail_qty_balance" readonly>
+                                <span class="input-group-text detail-unit"></span>
+                            </div>
                         </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Qty Balance</label>
-                            <input type="text" class="form-control form-control-sm" id="detail_qty_balance" readonly>
+                        <div class="col-md-3">
+                            <label class="form-label">Total Roll Return</label>
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control form-control-sm" id="detail_roll_return" readonly>
+                                <span class="input-group-text">Roll</span>
+                            </div>
                         </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Roll Return</label>
-                            <input type="text" class="form-control form-control-sm" id="detail_roll_return" readonly>
+                        <div class="col-md-3">
+                            <label class="form-label">Total Qty Return</label>
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control form-control-sm" id="detail_qty_return" readonly>
+                                <span class="input-group-text detail-unit"></span>
+                            </div>
                         </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Qty</label>
-                            <input type="text" class="form-control form-control-sm" id="detail_qty_return" readonly>
-                        </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <button type="button" class="btn btn-success btn-sm btn-block" onclick="exportExcelDetail(this)"><i class="fa fa-file-excel"></i> Export</button>
                         </div>
                     </div>
@@ -156,17 +207,22 @@
                                 <th>ID Item</th>
                                 <th>Detail Item</th>
                                 <th>Lot</th>
-                                <th>Roll</th>
-                                <th>Qty</th>
-                                <th>Total Pemakaian Kain</th>
-                                <th>Total Short Roll</th>
+                                <th>No. Roll</th>
+                                <th>Qty Roll</th>
+                                <th>Pemakaian Kain</th>
+                                <th>Sisa Kain</th>
+                                <th>Short Roll</th>
+                                <th>Short Roll (%)</th>
                                 <th>Unit</th>
+                                <th>Tanggal Return</th>
                             </tr>
                         </thead>
                         <tbody>
                         </tbody>
                         <tfoot>
-
+                            <tr>
+                                <th></th>
+                            </tr>
                         </tfoot>
                     </table>
                 </div>
@@ -205,11 +261,13 @@
             datatableReload();
         });
 
+        var pemakaianKainFilter = ['bppbno', 'bppbdate', 'tujuan', 'no_ws', 'styleno', 'buyer', 'id_item', 'itemdesc'];
+
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i != 0) {
+            if (i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8) {
                 var title = $(this).text();
-                $(this).html('<input type="text" class="form-control form-control-sm" />');
+                $(this).html('<input type="text" class="form-control form-control-sm" id="'+pemakaianKainFilter[(i-1)]+'" />');
 
                 $('input', this).on('keyup change', function() {
                     if (datatable.column(i).search() !== this.value) {
@@ -217,6 +275,8 @@
                             .column(i)
                             .search(this.value)
                             .draw();
+
+                        // datatableReload();
                     }
                 });
             } else {
@@ -229,8 +289,8 @@
             serverSide: false,
             ordering: false,
             scrollX: "500px",
-            scrollY: "500px",
-            pageLength: 50,
+            scrollY: "350px",
+            pageLength: 25,
             ajax: {
                 url: '{{ route('pemakaian-roll') }}',
                 data: function(d) {
@@ -343,7 +403,94 @@
                     targets: "_all",
                     className: "text-nowrap",
                 }
-            ]
+            ],
+            footerCallback : function(row, data, start, end, display) {
+                var api = this.api(), data;
+
+                // converting to interger to find total
+                var intVal = function(i) {
+                    return typeof i === 'string' ?
+                        i.replace(/[\$,]/g, '') * 1 :
+                        typeof i === 'number' ?
+                        i : 0;
+                };
+
+                // computing column Total of the complete result
+                var sumTotalQty = api
+                    .column(9, { search:'applied' })
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumRollIn = api
+                    .column(12, { search:'applied' })
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumQtyIn = api
+                    .column(13, { search:'applied' })
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumRollCutting = api
+                    .column(14, { search:'applied' })
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumQtyCutting = api
+                    .column(15, { search:'applied' })
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumRollBalance = api
+                    .column(16, { search:'applied' })
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumQtyBalance = api
+                    .column(17, { search:'applied' })
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumRollReturn = api
+                    .column(19, { search:'applied' })
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumQtyReturn = api
+                    .column(20, { search:'applied' })
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                // Update footer by showing the total with the reference of the column index
+                // $(api.column(0).footer()).html('Total');
+                $(api.column(9).footer()).html(sumTotalQty.round(2));
+                $(api.column(12).footer()).html(sumRollIn.round(2));
+                $(api.column(13).footer()).html(sumQtyIn.round(2));
+                $(api.column(14).footer()).html(sumRollCutting.round(2));
+                $(api.column(15).footer()).html(sumQtyCutting.round(2));
+                $(api.column(16).footer()).html(sumRollBalance.round(2));
+                $(api.column(17).footer()).html(sumQtyBalance.round(2));
+                $(api.column(19).footer()).html(sumRollReturn ? sumRollReturn.round(2) : 0);
+                $(api.column(20).footer()).html(sumQtyReturn ? sumQtyReturn.round(2) : 0);
+            }
         });
 
         function datatableReload() {
@@ -358,7 +505,15 @@
                 type: 'get',
                 data: {
                     dateFrom : $("#dateFrom").val(),
-                    dateTo : $("#dateTo").val()
+                    dateTo : $("#dateTo").val(),
+                    bppbno : $("#bppbno").val(),
+                    bppbdate : $("#bppbdate").val(),
+                    tujuan : $("#tujuan").val(),
+                    no_ws : $("#no_ws").val(),
+                    styleno : $("#styleno").val(),
+                    buyer : $("#buyer").val(),
+                    id_item : $("#id_item").val(),
+                    itemdesc : $("#itemdesc").val(),
                 },
                 success: function(res) {
                     console.log(res);
@@ -500,10 +655,19 @@
                     data: 'total_pemakaian_roll'
                 },
                 {
+                    data: 'total_sisa_kain'
+                },
+                {
                     data: 'total_short_roll'
                 },
                 {
+                    data: 'total_short_roll_percentage'
+                },
+                {
                     data: 'unit'
+                },
+                {
+                    data: 'tanggal_return'
                 },
             ]
         });
@@ -517,6 +681,12 @@
 
             let data = JSON.parse(jsonData);
 
+            if (document.getElementsByClassName('detail-unit').length > 0) {
+                for (let i = 0; i < document.getElementsByClassName('detail-unit').length; i++) {
+                    document.getElementsByClassName('detail-unit')[i].innerHTML = data.unit ? data.unit : '-';
+                }
+            }
+
             $("#detail_tanggal").val(data.bppbdate ? data.bppbdate : '-').trigger("change");
             $("#detail_no_req").val(data.bppbno ? data.bppbno : '-').trigger("change");
             $("#detail_id_item").val(data.id_item ? data.id_item : '-').trigger("change");
@@ -525,7 +695,7 @@
             $("#detail_style").val(data.styleno ? data.styleno : '-').trigger("change");
             $("#detail_buyer").val(data.buyer ? data.buyer : '-').trigger("change");
             $("#detail_qty_req").val(data.qty_req ? data.qty_req : 0).trigger("change");
-            $("#detail_unit").val(data.unit ? data.unit : '-').trigger("change");
+            // $("#detail_unit").val(data.unit ? data.unit : '-').trigger("change");
             $("#detail_roll_in").val(data.roll_out ? data.roll_out : 0).trigger("change");
             $("#detail_qty_in").val(data.qty_out ? data.qty_out : 0).trigger("change");
             $("#detail_roll_cutting").val(data.total_roll_cutting ? data.total_roll_cutting : 0).trigger("change");
