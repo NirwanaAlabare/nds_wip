@@ -8,6 +8,8 @@ use Yajra\DataTables\Facades\DataTables;
 use DB;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ExportLaporanBahanBakar;
 use App\Models\PPICMasterSo;
 use App\Models\OutputPacking;
 
@@ -497,5 +499,10 @@ class GAPengajuanBahanBakarController extends Controller
         ])->setPaper($customPaper, 'portrait');
         return $pdf->download('spl.pdf');
         // return Excel::download(new ExportSpl($data,$request->id), 'Laporan_SPL.pdf', \Maatwebsite\Excel\Excel::DOMPDF);
+    }
+
+    public function export_excel_data_bahan_bakar(Request $request)
+    {
+        return Excel::download(new ExportLaporanBahanBakar($request->from, $request->to), 'Laporan_Packing_In.xlsx');
     }
 }

@@ -186,8 +186,6 @@
         </div>
     </div>
 
-
-
     <div class="modal fade" id="exampleModalEdit" tabindex="-1" role="dialog" aria-labelledby="exampleModalEditLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-xl">
@@ -404,6 +402,71 @@
         </div>
     </div>
 
+
+    <div class="modal fade" id="exampleModalUpload" tabindex="-1" role="dialog"
+        aria-labelledby="exampleModalUploadLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-info">
+                    <h3 class="modal-title fs-5">Upload Qty Karton</h3>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class='row'>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label"><small><b>PO</b></small></label>
+                                <input type="text" class="form-control form-control-sm" id = "modal_upload_po"
+                                    name = "modal_upload_po" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>&nbsp;</label>
+                                <div class="input-group">
+                                    <a onclick="export_excel_master_so_sb()"
+                                        class="btn btn-outline-success position-relative btn-sm">
+                                        <i class="fas fa-file-download fa-sm"></i>
+                                        Export Data PO
+                                    </a>
+                                </div>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label class="form-label"><small><b>Upload File</b></small></label>
+                                <input type="file" class="form-control form-control-sm" name="file"
+                                    required="required">
+                            </div>
+                        </div>
+                    </div>
+                    <div class='row'>
+                        <div class="col-md-12 table-responsive">
+                            <table id="datatable_upload" class="table table-bordered table-hover table-sm w-100 nowrap">
+                                <thead>
+                                    <tr>
+                                        <th>No.carton</th>
+                                        <th>Qty Input</th>
+                                    </tr>
+                                </thead>
+                                {{-- <tfoot>
+                                    <tr>
+                                        <th colspan="10"></th>
+                                        <th> <input type = 'text' class="form-control form-control-sm"
+                                                style="width:75px" readonly id = 'total_qty_chk'> </th>
+                                        <th></th>
+                                    </tr>
+                                </tfoot> --}}
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> List Master Karton</h5>
@@ -522,6 +585,16 @@
             $('.select2bs4').select2({
                 theme: 'bootstrap4',
                 dropdownParent: $("#exampleModalEdit"),
+                containerCssClass: 'form-control-sm rounded'
+            })
+
+        })
+
+        $('#exampleModalUpload').on('show.bs.modal', function(e) {
+
+            $('.select2bs4').select2({
+                theme: 'bootstrap4',
+                dropdownParent: $("#exampleModalUpload"),
                 containerCssClass: 'form-control-sm rounded'
             })
 
@@ -740,6 +813,9 @@
                 <a class='btn btn-warning btn-sm'  data-bs-toggle="modal"
                         data-bs-target="#exampleModalEdit"
                 onclick="show_data_edit_h('` + row.po + `','` + row.tot_karton + `');"><i class='fas fa-edit'></i></a>
+                <a class='btn btn-info btn-sm'  data-bs-toggle="modal"
+                        data-bs-target="#exampleModalUpload"
+                onclick="show_data_upload('` + row.po + `');"><i class='fas fa-upload'></i></a>
                             </div>
                     `;
                     }
@@ -1205,6 +1281,11 @@
                     }
                 },
             });
+        }
+
+        function show_data_upload(po_u) {
+            // dataTableUploadReload();
+            $('#modal_upload_po').val(po_u);
         }
     </script>
 @endsection

@@ -16,6 +16,8 @@ class FinishGoodPenerimaanController extends Controller
     {
         $tgl_awal = $request->dateFrom;
         $tgl_akhir = $request->dateTo;
+        $tgl_skrg = date('Y-m-d');
+        $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-90 days'));
         $user = Auth::user()->name;
         if ($request->ajax()) {
             $additionalQuery = '';
@@ -46,13 +48,14 @@ order by a.created_at desc
         }
 
         $data_po = DB::select("SELECT a.po isi, concat(a.po, ' - ', p.buyer) tampil from
-(select * from packing_master_carton where status = 'draft') a
+(select * from packing_master_carton group by po) a
 inner join
 (
-select a.po, m.buyer from ppic_master_so a
+select a.po, m.buyer , tgl_shipment from ppic_master_so a
 inner join master_sb_ws m on a.id_so_det = m.id_so_det
 group by po, buyer
  ) p on a.po = p.po
+ where p.tgl_shipment >= '$tgl_skrg_min_sebulan'
  group by a.po
  order by p.buyer asc, a.po asc
         ");
@@ -84,6 +87,7 @@ group by no_carton, po, barcode, dest
 left join (
 select sum(qty) qty_fg,po, barcode, no_carton, notes from fg_fg_in where po = '" . $request->cbopo . "' group by barcode, po, no_carton, notes ) c
 on a.po = c.po and a.no_carton = c.no_carton and a.notes = c.notes and b.barcode = c.barcode
+where coalesce(b.total,0) - coalesce(c.qty_fg,0) >= '1'
 group by a.no_carton
 order by a.no_carton asc
         ");

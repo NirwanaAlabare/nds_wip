@@ -8,6 +8,7 @@ use Yajra\DataTables\Facades\DataTables;
 use App\Models\SoLogCopySaldo;
 use App\Models\SoCopySaldo;
 use App\Models\SoDetailTemp;
+use App\Models\SoDetailTempCancel;
 use App\Models\SoDetail;
 use App\Models\SoHeader;
 use App\Exports\ExportLaporanStokOpname;
@@ -142,24 +143,24 @@ class StockOpnameController extends Controller
 
                     ");
             }else{
-             $data_rak = DB::connection('mysql_sb')->select("select '' kode_lok, '' id_jo, '' kpno, '' styleno, '' buyer, '' id_item, '' itemdesc, '' ttl_roll, '' qty, '' unit");
-         }
+               $data_rak = DB::connection('mysql_sb')->select("select '' kode_lok, '' id_jo, '' kpno, '' styleno, '' buyer, '' id_item, '' itemdesc, '' ttl_roll, '' qty, '' unit");
+           }
          // dd($data_rak);
 
 
-         return DataTables::of($data_rak)->toJson();
-     }
+           return DataTables::of($data_rak)->toJson();
+       }
 
-     $item_so = DB::connection('mysql_sb')->table('whs_master_pilihan')->select('id', 'nama_pilihan')->where('type_pilihan', '=', 'item_stok_opname')->where('status', '=', 'Active')->get();
+       $item_so = DB::connection('mysql_sb')->table('whs_master_pilihan')->select('id', 'nama_pilihan')->where('type_pilihan', '=', 'item_stok_opname')->where('status', '=', 'Active')->get();
 
         // $msupplier = DB::connection('mysql_sb')->table('mastersupplier')->select('id_supplier', 'Supplier')->where('tipe_sup', '=', 'S')->get();
 
-     return view("stock_opname.data-rak", ['item_so' => $item_so,"page" => "stock_opname"]);
- }
+       return view("stock_opname.data-rak", ['item_so' => $item_so,"page" => "stock_opname"]);
+   }
 
 
- public function getListpartialso(Request $request)
- {
+   public function getListpartialso(Request $request)
+   {
     if ($request->item_so == 'Fabric') {
 
         $data_rak = DB::connection('mysql_sb')->select("select DISTINCT kode_lok data from (select kode_lok, id_jo,id_item,round(sum(qty_sisa),2) qty, unit,COUNT(no_barcode) ttl_roll from (select no_barcode,kode_lok,id_jo,id_item,no_lot,no_roll,COUNT(no_barcode) ttl_roll, sum(qty_in) qty_in, sum(qty_out) qty_out, round(sum(qty_in) - sum(qty_out),2) qty_sisa,unit from (select 'saldo_awal' id,no_barcode,kode_lok,id_jo,id_item,no_lot,no_roll,qty qty_in, 0 qty_out,unit from whs_sa_fabric GROUP BY no_barcode
@@ -218,13 +219,13 @@ class StockOpnameController extends Controller
             having sum(qty_sa) != '0' or sum(qty_in) != '0' or sum(qty_out) != '0' or sum(qty_sa) + sum(qty_in) - sum(qty_out) != '0'
             order by id_item asc");
     }else{
-     $data_rak = DB::connection('mysql_sb')->select("select '' data");
- }
+       $data_rak = DB::connection('mysql_sb')->select("select '' data");
+   }
 // dd($data_rak);
 
- $html = "";
+   $html = "";
 
- foreach ($data_rak as $data) {
+   foreach ($data_rak as $data) {
     $html .= " <option value='" . $data->data . "'>" . $data->data . "</option> ";
 }
 
@@ -240,13 +241,13 @@ public function getListpartialsoreplace(Request $request)
 
         $data_rak = DB::connection('mysql_sb')->select("select distinct id_item data from whs_saldo_stockopname where no_transaksi = '".$request->no_dok_cs."' order by id asc");
     }else{
-     $data_rak = DB::connection('mysql_sb')->select("select '' data");
- }
+       $data_rak = DB::connection('mysql_sb')->select("select '' data");
+   }
 // dd($data_rak);
 
- $html = "";
+   $html = "";
 
- foreach ($data_rak as $data) {
+   foreach ($data_rak as $data) {
     $html .= " <option value='" . $data->data . "'>" . $data->data . "</option> ";
 }
 
@@ -621,7 +622,34 @@ public function prosesscanso($lok = 0,$nodok = 0)
 public function deletesotemp(Request $request)
 {
 
+    $cancel_temp = DB::connection('mysql_sb')->insert("insert into whs_so_detail_temp_cancel select * from whs_so_detail_temp where created_by = '".Auth::user()->name."' and no_barcode = '".$request['no_barcode']."'");
+
     $deletescan = SoDetailTemp::where('no_barcode',$request['no_barcode'])->delete();
+
+}
+
+public function deletesotempall(Request $request)
+{
+    $cancel_temp = DB::connection('mysql_sb')->insert("insert into whs_so_detail_temp_cancel select * from whs_so_detail_temp where created_by = '".Auth::user()->name."' and lokasi_scan = '".$request['lokasi_h']."'");
+
+    $deletescan = SoDetailTemp::where('lokasi_scan',$request['lokasi_h'])->where('created_by',Auth::user()->name)->delete();
+
+}
+
+public function undosotemp(Request $request)
+{
+
+    $cancel_temp = DB::connection('mysql_sb')->insert("insert into whs_so_detail_temp select * from whs_so_detail_temp_cancel where created_by = '".Auth::user()->name."' and no_barcode = '".$request['no_barcode']."'");
+
+    $undoscan = SoDetailTempCancel::where('no_barcode',$request['no_barcode'])->delete();
+
+}
+
+public function undosotempall(Request $request)
+{
+    $cancel_temp = DB::connection('mysql_sb')->insert("insert into whs_so_detail_temp select * from whs_so_detail_temp_cancel where created_by = '".Auth::user()->name."' and lokasi_scan = '".$request['lokasi_h']."'");
+
+    $undoscan = SoDetailTempCancel::where('lokasi_scan',$request['lokasi_h'])->where('created_by',Auth::user()->name)->delete();
 
 }
 
@@ -630,7 +658,9 @@ public function getbarcodeso(Request $request)
 {
         // $barcode = DB::connection('mysql_sb')->select("select no_barcode,kode_lok,id_item,id_jo,no_lot,no_roll,qty,unit from whs_saldo_stockopname where no_barcode = '".$request->no_barcode."'");
 
-    $barcode = DB::connection('mysql_sb')->table('whs_saldo_stockopname')->selectRaw('whs_saldo_stockopname.no_barcode, whs_saldo_stockopname.kode_lok, whs_saldo_stockopname.id_item, whs_saldo_stockopname.id_jo, whs_saldo_stockopname.no_lot, whs_saldo_stockopname.no_roll,whs_saldo_stockopname.qty,whs_saldo_stockopname.unit,masteritem.itemdesc')->leftJoin('masteritem', 'masteritem.id_item', '=', 'whs_saldo_stockopname.id_item')->leftJoin('whs_so_detail', 'whs_so_detail.no_barcode', '=', 'whs_saldo_stockopname.no_barcode')->where('whs_saldo_stockopname.no_barcode', $request->no_barcode)->whereNull('whs_so_detail.no_barcode')->first();
+    // $barcode = DB::connection('mysql_sb')->table('whs_saldo_stockopname')->selectRaw('whs_saldo_stockopname.no_barcode, whs_saldo_stockopname.kode_lok, whs_saldo_stockopname.id_item, whs_saldo_stockopname.id_jo, whs_saldo_stockopname.no_lot, whs_saldo_stockopname.no_roll,whs_saldo_stockopname.qty,whs_saldo_stockopname.unit,masteritem.itemdesc')->leftJoin('masteritem', 'masteritem.id_item', '=', 'whs_saldo_stockopname.id_item')->leftJoin('whs_so_detail', 'whs_so_detail.no_barcode', '=', 'whs_saldo_stockopname.no_barcode')->where('whs_saldo_stockopname.no_barcode', $request->no_barcode)->whereNull('whs_so_detail.no_barcode')->first();
+
+    $barcode = DB::connection('mysql_sb')->table('whs_saldo_stockopname')->selectRaw('whs_so_detail.no_barcode barcode_so,whs_saldo_stockopname.no_barcode, whs_saldo_stockopname.kode_lok, whs_saldo_stockopname.id_item, whs_saldo_stockopname.id_jo, whs_saldo_stockopname.no_lot, whs_saldo_stockopname.no_roll,whs_saldo_stockopname.qty,whs_saldo_stockopname.unit,masteritem.itemdesc')->leftJoin('masteritem', 'masteritem.id_item', '=', 'whs_saldo_stockopname.id_item')->leftJoin('whs_so_detail', 'whs_so_detail.no_barcode', '=', 'whs_saldo_stockopname.no_barcode')->where('whs_saldo_stockopname.no_barcode', $request->no_barcode)->first();
         // dd($barcode);
 
     return json_encode($barcode);
@@ -645,28 +675,40 @@ public function simpanbarcodeso(Request $request)
         "id_jo" => "required",
     ]);
 
-    if ($validatedRequest["qty"] > 0) {
-        $SoDetailTempStore = SoDetailTemp::create([
-            'no_barcode' => $validatedRequest['no_barcode'],
-            'lokasi_scan' => $request['lokasi_scan'],
-            'lokasi_aktual' => $request['lokasi_so'],
-            'id_item' => $validatedRequest['id_item'],
-            'id_jo' => $validatedRequest['id_jo'],
-            'no_lot' => $request['no_lot'],
-            'no_roll' => $request['no_roll'],
-            'qty' => $validatedRequest['qty'],
-            'qty_old' => 0,
-            'unit' => $request['unit'],
-            'created_by' => Auth::user()->name,
-        ]);
+    $cek_barcode = DB::connection('mysql_sb')->select("select * from whs_so_detail_temp where no_barcode = '" . $validatedRequest['no_barcode'] . "'");
+    $no_barcode = $cek_barcode ? $cek_barcode[0]->no_barcode : 0;
 
-        if ($SoDetailTempStore) {
-            return array(
-                "status" => 200,
-                "message" => "",
-                "additional" => [],
-            );
+    if ($no_barcode == '0') {
+
+        if ($validatedRequest["qty"] > 0) {
+            $SoDetailTempStore = SoDetailTemp::create([
+                'no_barcode' => $validatedRequest['no_barcode'],
+                'lokasi_scan' => $request['lokasi_scan'],
+                'lokasi_aktual' => $request['lokasi_so'],
+                'id_item' => $validatedRequest['id_item'],
+                'id_jo' => $validatedRequest['id_jo'],
+                'no_lot' => $request['no_lot'],
+                'no_roll' => $request['no_roll'],
+                'qty' => $validatedRequest['qty'],
+                'qty_old' => 0,
+                'unit' => $request['unit'],
+                'created_by' => Auth::user()->name,
+            ]);
+
+            if ($SoDetailTempStore) {
+                return array(
+                    "status" => 200,
+                    "message" => "",
+                    "additional" => [],
+                );
+            }
         }
+    }else{
+        return array(
+                    "status" => 200,
+                    "message" => "",
+                    "additional" => [],
+                );
     }
 
 }
@@ -707,13 +749,27 @@ public function listscanbarcode(Request $request)
 
 }
 
-public function listscanbarcode2(Request $request)
+public function listscanbarcodecancel(Request $request)
 {
     if ($request->ajax()) {
         $additionalQuery = "";
         $keywordQuery = "";
 
-        $data_scan = DB::connection('mysql_sb')->select("select no_barcode,a.id_item,c.itemdesc,a.qty from whs_so_detail a INNER JOIN whs_so_h b on b.no_dokumen = a.no_dokumen INNER JOIN masteritem c on c.id_item = a.id_item where a.lokasi_scan = '".$request->kode_lok."'");
+        $data_scan = DB::connection('mysql_sb')->select("select a.id,a.no_barcode,a.id_item,a.id_jo,c.itemdesc,b.qty,a.qty qty_scan,a.unit,a.lokasi_aktual,a.lokasi_scan,a.qty_old from whs_so_detail_temp_cancel a INNER JOIN whs_saldo_stockopname b on b.no_barcode = a.no_barcode INNER JOIN masteritem c on c.id_item = a.id_item where a.created_by  = '".Auth::user()->name."' and a.lokasi_scan = '".$request->kode_lok."' GROUP BY a.no_barcode");
+
+        return DataTables::of($data_scan)->toJson();
+    }
+
+}
+
+public function listscanbarcode2(Request $request)
+{
+    if ($request->ajax()) {
+        $additionalQuery = "";
+        $keywordQuery = "";
+        $no_transaksi = substr($request->txt_no_dokumen,0,16);
+
+        $data_scan = DB::connection('mysql_sb')->select("select no_barcode,a.id_item,c.itemdesc,a.qty,lokasi_aktual from whs_so_detail a INNER JOIN whs_so_h b on b.no_dokumen = a.no_dokumen INNER JOIN masteritem c on c.id_item = a.id_item where a.lokasi_scan = '".$request->kode_lok."' and no_transaksi = '".$no_transaksi."'");
 
         return DataTables::of($data_scan)->toJson();
     }
@@ -725,8 +781,9 @@ public function listscanbarcode3(Request $request)
     if ($request->ajax()) {
         $additionalQuery = "";
         $keywordQuery = "";
+        $no_transaksi = substr($request->txt_no_dokumen,0,16);
 
-        $data_scan = DB::connection('mysql_sb')->select("select no_barcode,a.id_item,b.itemdesc,qty from whs_saldo_stockopname a INNER JOIN masteritem b on b.id_item = a.id_item where kode_lok = '".$request->kode_lok."'");
+        $data_scan = DB::connection('mysql_sb')->select("select * from (select no_barcode,a.id_item,b.itemdesc,qty from whs_saldo_stockopname a INNER JOIN masteritem b on b.id_item = a.id_item where kode_lok = '".$request->kode_lok."' and no_transaksi = '".$no_transaksi."' order by no_barcode asc) a LEFT JOIN (select no_barcode barcode_so from whs_so_detail where lokasi_scan = '".$request->kode_lok."' and no_dokumen like '%".$no_transaksi."%') b on b.barcode_so = a.no_barcode LEFT JOIN (select no_barcode barcode_temp, created_at from whs_so_detail_temp where lokasi_scan = '".$request->kode_lok."') c on c.barcode_temp = a.no_barcode where barcode_so is null order by created_at desc,no_barcode asc");
 
         return DataTables::of($data_scan)->toJson();
     }
@@ -903,61 +960,61 @@ public function export_excel_detailso(Request $request)
 
     public function cancelreportso(Request $request)
     {
-            $timestamp = Carbon::now();
-            $updateLokasi = SoCopySaldo::where('no_transaksi', $request['no_transaksi'])->update([
-                'status' => 'CANCEL',
+        $timestamp = Carbon::now();
+        $updateLokasi = SoCopySaldo::where('no_transaksi', $request['no_transaksi'])->update([
+            'status' => 'CANCEL',
                 // 'approved_by' => Auth::user()->name,
                 // 'approved_date' => $timestamp,
-            ]);
+        ]);
         
         $massage = '';
 
-            return array(
-                "status" => 200,
-                "message" => $massage,
-                "additional" => [],
+        return array(
+            "status" => 200,
+            "message" => $massage,
+            "additional" => [],
                 // "redirect" => url('/in-material')
-            );
+        );
         
     }
 
     public function draftreportso(Request $request)
     {
-            $timestamp = Carbon::now();
-            $updateLokasi = SoCopySaldo::where('no_transaksi', $request['no_transaksi'])->update([
-                'status' => 'DRAFT',
+        $timestamp = Carbon::now();
+        $updateLokasi = SoCopySaldo::where('no_transaksi', $request['no_transaksi'])->update([
+            'status' => 'DRAFT',
                 // 'approved_by' => Auth::user()->name,
                 // 'approved_date' => $timestamp,
-            ]);
+        ]);
         
         $massage = '';
 
-            return array(
-                "status" => 200,
-                "message" => $massage,
-                "additional" => [],
+        return array(
+            "status" => 200,
+            "message" => $massage,
+            "additional" => [],
                 // "redirect" => url('/in-material')
-            );
+        );
         
     }
 
     public function finalreportso(Request $request)
     {
-            $timestamp = Carbon::now();
-            $updateLokasi = SoCopySaldo::where('no_transaksi', $request['no_transaksi'])->update([
-                'status' => 'FINAL',
+        $timestamp = Carbon::now();
+        $updateLokasi = SoCopySaldo::where('no_transaksi', $request['no_transaksi'])->update([
+            'status' => 'FINAL',
                 // 'approved_by' => Auth::user()->name,
                 // 'approved_date' => $timestamp,
-            ]);
+        ]);
         
         $massage = '';
 
-            return array(
-                "status" => 200,
-                "message" => $massage,
-                "additional" => [],
+        return array(
+            "status" => 200,
+            "message" => $massage,
+            "additional" => [],
                 // "redirect" => url('/in-material')
-            );
+        );
         
     }
 
