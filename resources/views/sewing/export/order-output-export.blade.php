@@ -3,7 +3,7 @@
         <td colspan="{{ ($groupBy == "size" ? 6 : 5) + $orderOutputs->sortBy("tanggal")->groupBy("tanggal")->count() }}" style="text-align: center;">Tanggal Export : {{ $dateFrom || $dateTo ? $dateFrom." - ".$dateTo : 'All Day' }}</td>
     </tr>
     <tr>
-        <td colspan="{{ ($groupBy == "size" ? 6 : 5) + $orderOutputs->sortBy("tanggal")->groupBy("tanggal")->count() }}" style="text-align: center; font-weight: 800;">'{{ $orderOutputs->first()->ws }}' Output {{ $outputType ? strtoupper(str_replace("_", "", $outputType)) : "SEWING" }}</td>
+        <td colspan="{{ ($groupBy == "size" ? 6 : 5) + $orderOutputs->sortBy("tanggal")->groupBy("tanggal")->count() }}" style="text-align: center; font-weight: 800;">{{ $buyer ? '"'.$buyer.'"' : ''}} {{ $order ? '"'.$order.'"' : ''}} Output {{ $outputType ? strtoupper(str_replace("_", "", $outputType)) : "SEWING" }}</td>
     </tr>
     @if ($orderOutputs && $orderOutputs->count() > 0)
         <tr>
