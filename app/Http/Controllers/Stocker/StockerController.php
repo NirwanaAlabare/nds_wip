@@ -2199,7 +2199,7 @@ class StockerController extends Controller
                             "form_cut_id" => $validatedRequest['form_cut_id'],
                             "so_det_id" => $validatedRequest['so_det_id'],
                             "size" => $validatedRequest['size'],
-                            "number" => ($currentNumber > $validatedRequest['range_akhir_year_sequence'] ? $validatedRequest['range_akhir_year_sequence'] : ($currentNumber)),
+                            "number" => ($currentNumber > $validatedRequest['range_akhir_stocker'] ? $validatedRequest['range_akhir_stocker'] : ($currentNumber)),
                             "created_at" => $now,
                             "updated_at" => $now,
                         ]);
