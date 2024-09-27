@@ -102,21 +102,26 @@ use App\Http\Controllers\TransferBpbController;
 
 use App\Http\Controllers\PPICDashboardController;
 
+//  PPIC
 use App\Http\Controllers\PPIC_MasterSOController;
 use App\Http\Controllers\PPIC_LaporanTrackingController;
 
+// PACKING
 use App\Http\Controllers\PackingDashboardController;
-
 use App\Http\Controllers\PackingTransferGarmentController;
 use App\Http\Controllers\PackingPackingInController;
 use App\Http\Controllers\PackingPackingOutController;
+use App\Http\Controllers\PackingNeedleCheckController;
 use App\Http\Controllers\PackingMasterKartonController;
 
+// FINISH GOOD
 use App\Http\Controllers\FinishGoodPenerimaanController;
 use App\Http\Controllers\FinishGoodPengeluaranController;
 
+// REPORT DOC
 use App\Http\Controllers\ReportDocController;
 
+// GA GAIS
 use App\Http\Controllers\GAPengajuanBahanBakarController;
 use App\Http\Controllers\GAApprovalBahanBakarController;
 
@@ -1244,6 +1249,18 @@ Route::middleware('auth')->group(function () {
         Route::post('/packing_out_hapus_history', 'packing_out_hapus_history')->name('packing_out_hapus_history');
         Route::get('/packing_out_tot_barcode', 'packing_out_tot_barcode')->name('packing_out_tot_barcode');
         Route::get('/show_sum_max_carton', 'show_sum_max_carton')->name('show_sum_max_carton');
+    });
+
+    // Needle Check
+    Route::controller(PackingNeedleCheckController::class)->prefix("packing-needle-check")->middleware('packing')->group(function () {
+        Route::get('/', 'index')->name('needle-check');
+        Route::get('/create', 'create')->name('create-needle-check');
+        Route::post('/store_packing_needle', 'store_packing_needle')->name('store_packing_needle');
+        Route::get('/packing_needle_check_show_summary', 'packing_needle_check_show_summary')->name('packing_needle_check_show_summary');
+        Route::get('/packing_needle_check_show_history', 'packing_needle_check_show_history')->name('packing_needle_check_show_history');
+        Route::get('/packing_needle_check_show_tot_input', 'packing_needle_check_show_tot_input')->name('packing_needle_check_show_tot_input');
+        Route::post('/packing_needle_check_hapus_history', 'packing_needle_check_hapus_history')->name('packing_needle_check_hapus_history');
+        Route::get('/export_excel_packing_needle_check', 'export_excel_packing_needle_check')->name('export_excel_packing_needle_check');
     });
 
     // Master Karton

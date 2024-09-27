@@ -573,7 +573,9 @@
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @dc
                                 <li>
-                                    <a href="{{ route('stocker-list') }}" class="dropdown-item {{ $subPage == 'stocker-list' ? 'active' : '' }}"> Stocker List <i class="fa-solid fa-note-sticky"></i></a>
+                                    <a href="{{ route('stocker-list') }}"
+                                        class="dropdown-item {{ $subPage == 'stocker-list' ? 'active' : '' }}"> Stocker
+                                        List <i class="fa-solid fa-note-sticky"></i></a>
                                 </li>
                                 {{-- <li>
                                     <a href="{{ route('month-count') }}" class="dropdown-item {{ $subPage == 'month-count' ? 'active' : '' }}"> Month Number <i class="fa-solid fa-hashtag"></i></a>
@@ -582,7 +584,9 @@
                                     <a href="{{ route('stocker-balance') }}" class="dropdown-item {{ $subPage == 'stocker-balance' ? 'active' : '' }}"> Month Number <i class="fa-solid fa-hashtag"></i></a>
                                 </li> --}}
                                 <li>
-                                    <a href="{{ route('year-sequence') }}" class="dropdown-item {{ $subPage == 'year-sequence' ? 'active' : '' }}"> Year Sequence <i class="fa-solid fa-list-ol"></i></a>
+                                    <a href="{{ route('year-sequence') }}"
+                                        class="dropdown-item {{ $subPage == 'year-sequence' ? 'active' : '' }}"> Year
+                                        Sequence <i class="fa-solid fa-list-ol"></i></a>
                                 </li>
                             @enddc
                         </ul>
@@ -818,6 +822,12 @@
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'packing-packing-out' ? 'active' : '' }}">Packing
                             Out</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('needle-check') }}"
+                                    class="dropdown-item {{ $subPage == 'packing-needle-check' ? 'active' : '' }}">
+                                    Needle Checking Scan (Optional)<i class="fa-solid fa-check-double fa-sm"></i>
+                                </a>
+                            </li>
                             <li>
                                 <a href="{{ route('packing-out') }}"
                                     class="dropdown-item {{ $subPage == 'packing-out' ? 'active' : '' }}">
