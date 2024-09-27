@@ -62,6 +62,11 @@
                             <i class="fas fa-file-excel"></i>
                             Export
                         </a>
+
+                        <a onclick="export_excel_barcode()" class="btn btn-success position-relative btn">
+                            <i class="fas fa-file-excel"></i>
+                            Export Barcode
+                        </a>
                         </div>
                     </div>
 
@@ -469,6 +474,48 @@
                         var link = document.createElement('a');
                         link.href = window.URL.createObjectURL(blob);
                         link.download = "Laporan Stock Opname Detail  " + itemso + ".xlsx";
+                        link.click();
+
+                    }
+                },
+            });
+        }
+
+        function export_excel_barcode() {
+            let no_transaksi = document.getElementById("txt_no_dokumen").value;
+            let itemso = document.getElementById("txt_itemtipe").value;
+            Swal.fire({
+                title: 'Please Wait,',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                type: "get",
+                url: '{{ route('export_excel_laporan_so_detail_barcode') }}',
+                data: {
+                    no_transaksi: no_transaksi,
+                    itemso: itemso
+                },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(response) {
+                    {
+                        swal.close();
+                        Swal.fire({
+                            title: 'Data Berhasil Di Export!',
+                            icon: "success",
+                            showConfirmButton: true,
+                            allowOutsideClick: false
+                        });
+                        var blob = new Blob([response]);
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = "Laporan Stock Opname Detail Barcode " + itemso + ".xlsx";
                         link.click();
 
                     }

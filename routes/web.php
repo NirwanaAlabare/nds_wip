@@ -933,6 +933,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/show-detail-so/{id?}', 'showdetailso')->name('show-detail-so');
         Route::get('/list-so-detail-show', 'listsodetailshow')->name('list-so-detail-show');
         Route::get('/export_excel_laporan_so_detail', 'export_excel_laporanso_detail')->name('export_excel_laporan_so_detail');
+        Route::get('/export_excel_laporan_so_detail_barcode', 'export_excel_laporanso_detail_barcode')->name('export_excel_laporan_so_detail_barcode');
         Route::get('/cancel-report-so', 'cancelreportso')->name('cancel-report-so');
         Route::get('/draft-report-so', 'draftreportso')->name('draft-report-so');
         Route::get('/final-report-so', 'finalreportso')->name('final-report-so');
@@ -1045,6 +1046,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/upload-lokasi-retur/{id?}', 'UploadLokasiRetur')->name('upload-lokasi-retur');
         Route::post('/save-upload-lokasi-retur', 'saveuploadlokasirtr')->name('save-upload-lokasi-retur');
         Route::get('/approve-material-retur', 'approvematerialretur')->name('approve-material-retur');
+        Route::get('/create-ri-cutting', 'createricutting')->name('create-retur-inmaterial-cutting');
+        Route::get('/get-no-bppb-cutting', 'getNobppbCutting')->name('get-no-bppb-cutting');
+        Route::get('/get-list-barcode-out', 'getListbarcodeout')->name('get-list-barcode-out');
+        Route::get('/get-data-barcode-out', 'showdetailbarcodeout')->name('get-data-barcode-out');
     });
 
     //qc pass
