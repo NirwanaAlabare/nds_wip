@@ -1239,6 +1239,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/export_excel_packing_out', 'export_excel_packing_out')->name('export_excel_packing_out');
         Route::post('/packing_out_hapus_history', 'packing_out_hapus_history')->name('packing_out_hapus_history');
         Route::get('/packing_out_tot_barcode', 'packing_out_tot_barcode')->name('packing_out_tot_barcode');
+        Route::get('/show_sum_max_carton', 'show_sum_max_carton')->name('show_sum_max_carton');
     });
 
     // Master Karton
@@ -1257,6 +1258,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/get_data_stok_packing_in', 'get_data_stok_packing_in')->name('get_data_stok_packing_in');
         Route::post('/simpan_short_karton', 'simpan_short_karton')->name('simpan_short_karton');
         Route::get('/export_excel_packing_master_carton', 'export_excel_packing_master_carton')->name('export_excel_packing_master_carton');
+        Route::get('/show_data_upload_karton', 'show_data_upload_karton')->name('show_data_upload_karton');
+        Route::get('/export_data_po_upload', 'export_data_po_upload')->name('export_data_po_upload');
+        Route::post('/upload_qty_karton', 'upload_qty_karton')->name('upload_qty_karton');
+        Route::post('/delete_upload_po_karton', 'delete_upload_po_karton')->name('delete_upload_po_karton');
+        Route::post('/store_upload_qty_karton', 'store_upload_qty_karton')->name('store_upload_qty_karton');
+        Route::get('/list_data_no_carton_hapus', 'list_data_no_carton_hapus')->name('list_data_no_carton_hapus');
+        Route::post('/hapus_master_karton', 'hapus_master_karton')->name('hapus_master_karton');
         // Route::get('/show_preview_packing_in', 'show_preview_packing_in')->name('show_preview_packing_in');
         // Route::post('/store', 'store')->name('store-packing-packing-in');
     });

@@ -197,7 +197,7 @@
                 <div class="modal-body">
                     <div class="card card-danger collapsed-card" id = "modal_hapus">
                         <div class="card-header">
-                            <h3 class="card-title"><i class="fas fa-trash"></i> Hapus
+                            <h3 class="card-title"><i class="fas fa-trash"></i> Hapus Isi Karton
                             </h3>
                             <div class="card-tools">
                                 <button type="button" class="btn btn-tool" data-card-widget="collapse"><i
@@ -258,7 +258,65 @@
                             </form>
                         </div>
                     </div>
-                    <div class="card card-primary collapsed-card" id = "modal_tambah">
+
+                    <div class="card card-danger collapsed-card" id = "modal_hapus_karton">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-list"></i> Hapus Karton
+                            </h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i
+                                        class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <form id="form_h_karton" name='form_h_karton' method='post'
+                                action="{{ route('hapus_master_karton') }}" onsubmit="submitForm(this, event)">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label><small><b>No. PO</b></small></label>
+                                            <input type="text" class="form-control form-control-sm"
+                                                id="txtmodal_h_po_karton" name="txtmodal_h_po_karton" readonly
+                                                style="width: 100%;">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class='row'>
+                                    <div class="col-md-12 table-responsive">
+                                        <table id="datatable_hapus_karton"
+                                            class="table table-bordered table-sm w-100 text-nowrap">
+                                            <thead class="table-primary">
+                                                <tr style='text-align:center; vertical-align:middle'>
+                                                    <th>
+                                                        <input class="form-check checkbox-xl" type="checkbox"
+                                                            onclick="toggle(this);">
+                                                    </th>
+                                                    <th>PO</th>
+                                                    <th>No. Carton</th>
+                                                    <th>Notes</th>
+                                                    <th>Qty Isi</th>
+                                                    <th>Qty Carton</th>
+                                                </tr>
+                                            </thead>
+                                        </table>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <div class="p-2 bd-highlight">
+                                        </div>
+                                        <div class="p-2 bd-highlight">
+                                            <button type="submit" class="btn btn-outline-danger"><i
+                                                    class="fas fa-trash"></i>
+                                                Hapus
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    {{-- <div class="card card-primary collapsed-card" id = "modal_tambah">
                         <div class="card-header">
                             <h3 class="card-title"><i class="fas fa-plus"></i> Tambah Data
                             </h3>
@@ -344,8 +402,8 @@
                                 </div>
                             </form>
                         </div>
-                    </div>
-                    <div class="card card-info collapsed-card" id = "modal_short">
+                    </div> --}}
+                    {{-- <div class="card card-info collapsed-card" id = "modal_short">
                         <div class="card-header">
                             <h3 class="card-title"><i class="fas fa-box"></i> Short Carton
                             </h3>
@@ -396,7 +454,7 @@
                                 </div>
                             </form>
                         </div>
-                    </div>
+                    </div> --}}
                 </div>
             </div>
         </div>
@@ -412,55 +470,88 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class='row'>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label class="form-label"><small><b>PO</b></small></label>
-                                <input type="text" class="form-control form-control-sm" id = "modal_upload_po"
-                                    name = "modal_upload_po" readonly>
+                    <form method="post" action="{{ route('upload_qty_karton') }}" enctype="multipart/form-data"
+                        onsubmit="submitForm(this, event)" name="form_upload" id="form_upload">
+                        @csrf
+                        <div class='row'>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label"><small><b>PO</b></small></label>
+                                    <input type="text" class="form-control form-control-sm" id = "modal_upload_po"
+                                        name = "modal_upload_po" readonly>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label>&nbsp;</label>
-                                <div class="input-group">
-                                    <a onclick="export_excel_master_so_sb()"
-                                        class="btn btn-outline-success position-relative btn-sm">
-                                        <i class="fas fa-file-download fa-sm"></i>
-                                        Export Data PO
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label"><small><b>Qty PO</b></small></label>
+                                    <input type="text" class="form-control form-control-sm" id = "modal_qty_po"
+                                        name = "modal_qty_po" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>&nbsp;</label>
+                                    <div class="input-group">
+                                        <a onclick="export_data_po()"
+                                            class="btn btn-outline-success position-relative btn-sm">
+                                            <i class="fas fa-file-download fa-sm"></i>
+                                            Export Data PO
+                                        </a>
+                                    </div>
                                     </a>
                                 </div>
-                                </a>
                             </div>
                         </div>
-                        <div class="col-md-5">
-                            <div class="form-group">
-                                <label class="form-label"><small><b>Upload File</b></small></label>
-                                <input type="file" class="form-control form-control-sm" name="file"
-                                    required="required">
+                        <div class='row'>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label"><small><b>Upload File</b></small></label>
+                                    <input type="file" class="form-control form-control-sm" name="file"
+                                        id="file">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>&nbsp;</label>
+                                    <div class="input-group">
+                                        <button type="submit" class="btn btn-outline-info btn-sm"><i
+                                                class="fas fa-check"></i> Upload
+                                        </button>
+                                    </div>
+                                    </a>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class='row'>
-                        <div class="col-md-12 table-responsive">
-                            <table id="datatable_upload" class="table table-bordered table-hover table-sm w-100 nowrap">
-                                <thead>
-                                    <tr>
-                                        <th>No.carton</th>
-                                        <th>Qty Input</th>
-                                    </tr>
-                                </thead>
-                                {{-- <tfoot>
-                                    <tr>
-                                        <th colspan="10"></th>
-                                        <th> <input type = 'text' class="form-control form-control-sm"
-                                                style="width:75px" readonly id = 'total_qty_chk'> </th>
-                                        <th></th>
-                                    </tr>
-                                </tfoot> --}}
-                            </table>
+                        <div class='row'>
+                            <div class="col-md-12 table-responsive">
+                                <table id="datatable_upload"
+                                    class="table table-bordered table-hover table-sm w-100 nowrap">
+                                    <thead>
+                                        <tr>
+                                            <th>No. Karton</th>
+                                            <th>Qty Max Karton</th>
+                                        </tr>
+                                    </thead>
+                                    <tfoot>
+                                        <tr>
+                                            <th>Total</th>
+                                            <th> <input type = 'text' class="form-control form-control-sm"
+                                                    style="width:75px" readonly id = 'total_qty_chk'> </th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                                <div class="d-flex justify-content-between">
+                                    <div class="p-2 bd-highlight">
+                                    </div>
+                                    <div class="p-2 bd-highlight" id="simpan_tmp" name = "simpan_tmp">
+                                        <a class="btn btn-outline-success" onclick="simpan()">
+                                            <i class="fas fa-check"></i>
+                                            Simpan
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -473,8 +564,11 @@
         </div>
         <div class="card-body">
             <div class="mb-3">
-                <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#exampleModal"
-                    onclick="reset()"><i class="fas fa-plus"></i> Baru</button>
+                <a class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#exampleModal"
+                    onclick="reset()">
+                    <i class="fas fa-plus"></i>
+                    Baru
+                </a>
             </div>
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
@@ -510,6 +604,7 @@
                             <th>Jumlah Karton</th>
                             <th>Karton Isi</th>
                             <th>Karton Kosong</th>
+                            <th>Qty PO</th>
                             <th>Tot Scan</th>
                             <th>Act</th>
                         </tr>
@@ -523,6 +618,8 @@
                                     id = 'total_qty_carton_isi'> </th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
                                     id = 'total_qty_carton_kosong'> </th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_po'> </th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
                                     id = 'total_qty_scan'> </th>
                             <th></th>
@@ -645,6 +742,9 @@
             $('#modal_tambah').on('expanded.lte.cardwidget', () => {
                 dataTableTambahReload();
             });
+            $('#modal_hapus_karton').on('expanded.lte.cardwidget', () => {
+                dataTableHapusKartonReload();
+            });
 
         });
 
@@ -729,9 +829,16 @@
                         return intVal(a) + intVal(b);
                     }, 0);
 
+                var sumTotalQ = api
+                    .column(10)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
                 // computing column Total of the complete result
                 var sumTotalS = api
-                    .column(10)
+                    .column(11)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
@@ -742,7 +849,8 @@
                 $(api.column(7).footer()).html(sumTotal);
                 $(api.column(8).footer()).html(sumTotalI);
                 $(api.column(9).footer()).html(sumTotalK);
-                $(api.column(10).footer()).html(sumTotalS);
+                $(api.column(10).footer()).html(sumTotalQ);
+                $(api.column(11).footer()).html(sumTotalS);
             },
             ordering: false,
             processing: true,
@@ -791,6 +899,9 @@
                     data: 'tot_karton_kosong'
                 },
                 {
+                    data: 'qty_po'
+                },
+                {
                     data: 'tot_scan'
                 },
                 {
@@ -802,7 +913,7 @@
                     "targets": "_all"
                 },
                 {
-                    targets: [11],
+                    targets: [12],
                     render: (data, type, row, meta) => {
                         return `
                 <div class='d-flex gap-1 justify-content-center'>
@@ -810,12 +921,12 @@
                         data-bs-target="#exampleModalCheck"
                 onclick="show_data('` + row.po + `','` + row.buyer + `','` + row.tgl_shipment_fix + `','` + row
                             .tot_karton + `','` + row.tot_karton_isi + `','` + row.tot_karton_kosong + `' );dataTableDetKartonReload();"><i class='fas fa-search'></i></a>
-                <a class='btn btn-warning btn-sm'  data-bs-toggle="modal"
+                <a class='btn btn-danger btn-sm'  data-bs-toggle="modal"
                         data-bs-target="#exampleModalEdit"
                 onclick="show_data_edit_h('` + row.po + `','` + row.tot_karton + `');"><i class='fas fa-edit'></i></a>
                 <a class='btn btn-info btn-sm'  data-bs-toggle="modal"
                         data-bs-target="#exampleModalUpload"
-                onclick="show_data_upload('` + row.po + `');"><i class='fas fa-upload'></i></a>
+                onclick="show_data_upload('` + row.po + `','` + row.qty_po + `');"><i class='fas fa-upload'></i></a>
                             </div>
                     `;
                     }
@@ -1024,6 +1135,78 @@
             ]
         });
 
+
+        function dataTableHapusKartonReload() {
+            datatable_hapus_karton.ajax.reload();
+        }
+
+        let datatable_hapus_karton = $("#datatable_hapus_karton").DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            paging: false,
+            searching: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
+            ajax: {
+                url: '{{ route('list_data_no_carton_hapus') }}',
+                data: function(d) {
+                    d.po = $('#txtmodal_h_po_karton').val();
+                },
+            },
+            columns: [{
+                    data: 'id'
+
+                },
+                {
+                    data: 'po'
+
+                }, {
+                    data: 'no_carton'
+                },
+                {
+                    data: 'notes'
+                },
+                {
+                    data: 'qty_isi'
+                },
+                {
+                    data: 'tot_out'
+                },
+            ],
+            columnDefs: [{
+                    "className": "dt-left",
+                    "targets": "_all"
+                },
+                {
+                    targets: [0],
+                    render: (data, type, row, meta) => {
+                        if (row.tot_out >= '1') {
+                            return ``;
+                        } else {
+                            return `
+                    <div
+                        class="form-check checkbox-xl" style="text-align:center">
+                        <input class="form-check-input" type="checkbox"
+                        value="` + row.id + `" id="cek_data"  class = "chk" onchange="ceklis(this)"
+                        name="cek_data[` + row.id + `] "/>
+                    </div>
+                    <div>
+                            <input type="hidden" size="10" id="id"
+                            name="id[` + row.id + `]" value = "` + row.id + `"/>
+                    </div>
+                    `;
+                        }
+
+                    }
+                },
+
+            ]
+        });
+
+
+
         function dataTableTambahReload() {
             datatable_tambah.ajax.reload();
         }
@@ -1077,6 +1260,8 @@
         function show_data_edit_h(po_h, tot_k_h) {
             dataTableHapusReload();
             $('#txtmodal_h_po').val(po_h).trigger("change");
+            $('#txtmodal_h_po_karton').val(po_h);
+            dataTableHapusKartonReload();
             $('#cbomodal_h_no_karton').val('').trigger("change");
             $('#txtmodal_p_po').val(po_h).trigger("change");
             $('#cbomodal_p_no_karton').val('').trigger("change");
@@ -1283,9 +1468,164 @@
             });
         }
 
-        function show_data_upload(po_u) {
+        function show_data_upload(po_u, qty_po_u) {
             // dataTableUploadReload();
             $('#modal_upload_po').val(po_u);
+            $('#modal_qty_po').val(qty_po_u);
+            document.getElementById('file').value = "";
+            delete_tmp_upload();
+            dataTableUploadReload();
         }
+
+
+        function delete_tmp_upload() {
+            let po = $('#modal_upload_po').val();
+            let html = $.ajax({
+                type: "POST",
+                url: '{{ route('delete_upload_po_karton') }}',
+                data: {
+                    po: po
+                },
+                async: false
+            }).responseText;
+        }
+
+
+        function dataTableUploadReload() {
+            datatable_upload.ajax.reload();
+        }
+
+        let datatable_upload = $("#datatable_upload").DataTable({
+
+            "footerCallback": function(row, data, start, end, display) {
+                var api = this.api(),
+                    data;
+
+                // converting to interger to find total
+                var intVal = function(i) {
+                    return typeof i === 'string' ?
+                        i.replace(/[\$,]/g, '') * 1 :
+                        typeof i === 'number' ?
+                        i : 0;
+                };
+
+                // computing column Total of the complete result
+                var sumTotal = api
+                    .column(1)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                // Update footer by showing the total with the reference of the column index
+                $(api.column(0).footer()).html('Total');
+                $(api.column(1).footer()).html(sumTotal);
+            },
+
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            paging: false,
+            searching: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
+            info: true,
+            ajax: {
+                url: '{{ route('show_data_upload_karton') }}',
+                method: 'GET',
+                data: function(d) {
+                    d.po = $('#modal_upload_po').val();
+                },
+            },
+            columns: [{
+                    data: 'no_carton'
+
+                },
+                {
+                    data: 'qty_isi'
+                },
+            ],
+            columnDefs: [{
+                "className": "dt-left",
+                "targets": "_all"
+            }, ]
+        });
+
+        function export_data_po() {
+            let po = $('#modal_upload_po').val();
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                type: "get",
+                url: '{{ route('export_data_po_upload') }}',
+                data: {
+                    po: po
+                },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(response) {
+                    {
+                        swal.close();
+                        Swal.fire({
+                            title: 'Data Sudah Di Export!',
+                            icon: "success",
+                            showConfirmButton: true,
+                            allowOutsideClick: false
+                        });
+                        var blob = new Blob([response]);
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = "PO " + po + ".xlsx";
+                        link.click();
+
+                    }
+                },
+            });
+        }
+
+        function simpan() {
+            let po = $('#modal_upload_po').val();
+            $.ajax({
+                type: "post",
+                url: '{{ route('store_upload_qty_karton') }}',
+                data: {
+                    po: po
+                },
+                success: function(response) {
+                    if (response.icon == 'salah') {
+                        iziToast.warning({
+                            message: response.msg,
+                            position: 'topCenter'
+                        });
+                        dataTableReload();
+                        dataTablePreviewReload();
+                    } else {
+                        Swal.fire({
+                            text: response.msg,
+                            icon: "success"
+                        });
+                        dataTableUploadReload();
+                    }
+
+                },
+                error: function(request, status, error) {
+                    iziToast.warning({
+                        message: 'Silahkan cek lagi',
+                        position: 'topCenter'
+                    });
+                    dataTableUploadReload();
+                },
+            });
+
+        };
     </script>
 @endsection
