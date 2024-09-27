@@ -1050,6 +1050,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-no-bppb-cutting', 'getNobppbCutting')->name('get-no-bppb-cutting');
         Route::get('/get-list-barcode-out', 'getListbarcodeout')->name('get-list-barcode-out');
         Route::get('/get-data-barcode-out', 'showdetailbarcodeout')->name('get-data-barcode-out');
+        Route::post('/save-barcode-ri-scan', 'savebarcoderiscan')->name('save-barcode-ri-scan');
+        Route::get('/delete-scanri-temp', 'deletescanritemp')->name('delete-scanri-temp');
     });
 
     //qc pass
