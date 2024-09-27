@@ -296,6 +296,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/check-lost-time/{id?}', 'checkLostTime')->name('check-lost-form-cut-input');
         Route::get('/get-form-cut-ratio', 'getRatio')->name('get-form-cut-ratio');
 
+        Route::get('/check-sambungan/{id?}', 'checkSambungan')->name('check-sambungan');
+
+        Route::get('/store-sambungan', 'storeSambungan')->name('store-sambungan');
+
         // get order
         Route::get('/get-order', 'getOrderInfo')->name('form-cut-get-marker-order');
         // get colors
