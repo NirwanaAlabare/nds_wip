@@ -67,7 +67,7 @@ class RollController extends Controller
                     b.sisa_tidak_bisa,
                     b.reject,
                     COALESCE(b.sisa_kain, 0) sisa_kain,
-                    b.total_pemakaian_roll,
+                    ROUND((total_pemakaian_roll + sisa_gelaran + kepala_kain + sisa_tidak_bisa + reject + piping), 2) total_pemakaian_roll,
                     b.short_roll,
                     CONCAT(ROUND(((b.short_roll / b.qty) * 100), 2), ' %') short_roll_percentage,
                     b.piping,

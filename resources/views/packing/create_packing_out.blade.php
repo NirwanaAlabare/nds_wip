@@ -52,7 +52,7 @@
                                     <label><small><b>No. Carton # :</b></small></label>
                                     <select class='form-control select2bs4 form-control-sm' style='width: 100%;'
                                         name='cbono_carton' id='cbono_carton'
-                                        onchange = "dataTableSummaryReload();dataTableHistoryReload();"></select>
+                                        onchange = "dataTableSummaryReload();dataTableHistoryReload();get_sum_carton();"></select>
                                 </div>
                             </div>
                             <div class="mb-3">
@@ -74,6 +74,22 @@
                             <h5 class="card-title"><i class="fas fa-list"></i> Summary </h5>
                         </div>
                         <div class="card-body">
+                            <div class='row'>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="form-label"><small><b>Qty Max Karton</b></small></label>
+                                        <input type="text" class="form-control form-control-sm" id = "qty_max_carton"
+                                            name = "qty_max_carton" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="form-label"><small><b>Qty Karton Terisi </b></small></label>
+                                        <input type="text" class="form-control form-control-sm" id = "qty_terisi_carton"
+                                            name = "qty_terisi_carton" readonly>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="table-responsive">
                                 <table id="datatable_summary" class="table table-bordered table-sm w-100 text-nowrap">
                                     <thead>
@@ -170,6 +186,8 @@
             $("#cbopo_det").val('');
             $("#txtdest").val('');
             gettotal_input();
+            $("#qty_max_carton").val('');
+            $("#qty_terisi_carton").val('');
         })
 
         document.getElementById("barcode").onkeypress = function(e) {
@@ -424,12 +442,20 @@
                         barcode: barcode
                     },
                     success: function(response) {
+                        console.log(response);
                         if (response.icon == 'salah') {
                             iziToast.warning({
                                 message: response.msg,
                                 position: 'topCenter',
                                 timeout: 800,
                             });
+                        } else if (response.icon == 'lebih') {
+                            iziToast.info({
+                                message: response.msg,
+                                position: 'topCenter',
+                                timeout: 1000,
+                            });
+                            gettotal_input();
                         } else {
                             iziToast.success({
                                 message: response.msg,
@@ -443,7 +469,7 @@
                         document.getElementById('barcode').value = "";
                         document.getElementById("barcode").focus();
                         gettotal_input();
-
+                        get_sum_carton();
                     },
                     // error: function(request, status, error) {
                     //     alert(request.responseText);
@@ -452,6 +478,28 @@
 
             }
 
+        };
+
+
+        function get_sum_carton() {
+            let po_data = $('#cbopo_det').val();
+            let no_carton_data = document.form_h.cbono_carton.value;
+            $.ajax({
+                url: '{{ route('show_sum_max_carton') }}',
+                method: 'get',
+                data: {
+                    po_data: po_data,
+                    no_carton_data: no_carton_data
+                },
+                dataType: 'json',
+                success: function(response) {
+                    document.getElementById('qty_max_carton').value = response.qty_isi;
+                    document.getElementById('qty_terisi_carton').value = response.tot_out;
+                },
+                error: function(request, status, error) {
+                    alert(request.responseText);
+                },
+            });
         };
     </script>
 @endsection

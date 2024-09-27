@@ -84,7 +84,7 @@ order by o.created_at desc
     public function getpo(Request $request)
     {
         $tgl_skrg = date('Y-m-d');
-        $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-30 days'));
+        $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-120 days'));
         // $cek_po = DB::select("
         // select * from ppic_master_so where id = '" . $request->cbopo . "' and tgl_shipment >= '$tgl_skrg_min_sebulan'
         // ");
@@ -187,13 +187,13 @@ SELECT id, tgl_trans, barcode, po, no_carton,created_at, updated_at, created_by 
     {
         $user = Auth::user()->name;
 
-        $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-30 days'));
+        $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-90 days'));
 
         $data_po = DB::select("SELECT p.id isi, concat(p.po, ' - ', p.dest,  ' - ( ', coalesce(count(m.no_carton),0) , ' ) ') tampil
 from
 (
 select id, po, dest from ppic_master_so
-where barcode is not null and barcode != '' and barcode != '-' and tgl_shipment >= '".$tgl_skrg_min_sebulan."'
+where barcode is not null and barcode != '' and barcode != '-' and tgl_shipment >= '" . $tgl_skrg_min_sebulan . "'
 group by po	, dest
 ) p
 left join
@@ -268,8 +268,17 @@ group by p.po, p.dest");
             ");
             $cek_stok_fix = $cek_stok[0]->tot_s;
 
+
+            $cek_qty_isi_karton = DB::select("SELECT a.*, coalesce(b.tot_out,0)tot_out  from
+            (select * from packing_master_carton where po = '$cek_dest_po' and no_carton = '$no_carton' and notes = '$notes') a
+left join (select count(barcode) tot_out, po, no_carton, notes from packing_packing_out_scan where po = '$cek_dest_po'
+and no_carton = '$no_carton' and notes = '$notes' group by po , no_carton, notes) b on a.po = b.po and a.no_carton = b.no_carton");
+            $cek_qty_isi = $cek_qty_isi_karton[0]->qty_isi;
+            $tot_out = $cek_qty_isi_karton[0]->tot_out;
             if ($cek_stok_fix >= '1') {
-                $insert = DB::insert("
+
+                if ($cek_qty_isi === null) {
+                    $insert = DB::insert("
                 insert into packing_packing_out_scan
                 (tgl_trans,barcode,po,dest,no_carton,notes,created_by,created_at,updated_at)
                 values
@@ -285,22 +294,52 @@ group by p.po, p.dest");
                     '$timestamp'
                 )
                 ");
-                return array(
-                    'icon' => 'benar',
-                    'msg' => 'Data berhasil Disimpan',
-                );
-            } else {
+                    return array(
+                        'icon' => 'benar',
+                        'msg' => 'Data berhasil Disimpan',
+                    );
+                } else if ($cek_qty_isi > $tot_out) {
+                    $insert = DB::insert("
+                insert into packing_packing_out_scan
+                (tgl_trans,barcode,po,dest,no_carton,notes,created_by,created_at,updated_at)
+                values
+                (
+                    '$tgl_trans',
+                    '$barcode',
+                    '$cek_dest_po',
+                    '$cek_dest_dest',
+                    '$no_carton',
+                    '$notes',
+                    '$user',
+                    '$timestamp',
+                    '$timestamp'
+                )
+                ");
+                    return array(
+                        'icon' => 'benar',
+                        'msg' => 'Data berhasil Disimpan',
+                    );
+                } else if ($cek_qty_isi == $tot_out) {
+                    return array(
+                        'icon' => 'lebih',
+                        'msg' => 'Data sudah melebihi qty karton',
+                    );
+                } else {
+                    return array(
+                        'icon' => 'salah',
+                        'msg' => 'Tidak Ada Data',
+                    );
+                }
+            } else
                 return array(
                     'icon' => 'salah',
-                    'msg' => 'Tidak Ada Data',
+                    'msg' => 'Tidak Ada Stok',
                 );
-            }
-        } elseif ($cek_data_fix == '0') {
+        } else
             return array(
                 'icon' => 'salah',
                 'msg' => 'Tidak Ada Data',
             );
-        }
     }
 
     public function packing_out_show_tot_input(Request $request)
@@ -382,5 +421,28 @@ group by p.po, p.dest");
     public function export_excel_packing_out(Request $request)
     {
         return Excel::download(new ExportLaporanPackingOut($request->from, $request->to), 'Laporan_Hasil_Scan.xlsx');
+    }
+
+
+    public function show_sum_max_carton(Request $request)
+    {
+        $po = $request->po_data ? $request->po_data : null;
+        $no_carton_data_arr = $request->no_carton_data ? $request->no_carton_data : null;
+        $cekArray = explode('_', $no_carton_data_arr);
+        $no_carton = $cekArray[0];
+        $notes = $cekArray[1];
+
+        $data_kapasitas_karton = DB::select("SELECT a.*, coalesce(b.tot_out,0)tot_out from
+(
+select * from packing_master_carton
+where po = '$po' and no_carton = '$no_carton' and notes = '$notes') a
+left join
+(
+select count(barcode) tot_out, po, no_carton, notes from packing_packing_out_scan where po = '$po' and no_carton = '$no_carton ' and notes = '$notes'
+group by po, no_carton, notes
+) b on a.po = b.po and a.no_carton = b.no_carton and a.notes = b.notes
+        ");
+
+        return json_encode($data_kapasitas_karton ? $data_kapasitas_karton[0] : null);
     }
 }

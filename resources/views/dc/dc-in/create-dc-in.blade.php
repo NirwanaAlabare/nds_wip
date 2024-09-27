@@ -256,6 +256,7 @@
                                     <input type="checkbox" class="form-check" id="check-all-stocker" style="scale: 1.5;" onchange="checkAll(this)">
                                 </th>
                                 <th>Stocker</th>
+                                <th>Size</th>
                                 <th>Part</th>
                                 <th>Tujuan</th>
                                 <th>Tempat</th>
@@ -599,6 +600,9 @@
                     },
                     {
                         data: 'id_qr_stocker',
+                    },
+                    {
+                        data: 'size',
                     },
                     {
                         data: 'nama_part',

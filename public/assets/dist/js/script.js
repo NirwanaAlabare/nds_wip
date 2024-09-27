@@ -210,6 +210,38 @@ function submitForm(e, evt) {
                 if (res.callback != '') {
                     eval(res.callback);
                 }
+            } else if (res.status == 202) {
+                // $('.modal').modal('hide');
+
+                Swal.fire({
+                    icon: 'error',
+                    title: res.message,
+                    showCancelButton: false,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Oke',
+                    timer: 2000,
+                    timerProgressBar: true
+                }).then(() => {
+                    if (isNotNull(res.redirect)) {
+                        if (res.redirect != 'reload') {
+                            location.href = res.redirect;
+                        } else {
+                            location.reload();
+                        }
+                    } else {
+                        // location.reload();
+                    }
+                });
+
+                // e.reset();
+                // if (document.getElementsByClassName('select2')) {
+                //     $(".select2").val('').trigger('change');
+                //     $(".select2bs4").val('').trigger('change');
+                // }
+
+                if (res.callback != '') {
+                    eval(res.callback);
+                }
             } else if (res.status == 201) {
                 // $('.modal').modal('hide');
 

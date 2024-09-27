@@ -379,6 +379,7 @@
                             $("#range_awal_stocker").val(res.range_awal ? res.range_awal : null).trigger("change");
                             $("#range_akhir_stocker").val(res.range_akhir ? res.range_akhir : null).trigger("change");
                             $("#print_qty").val(res.qty).trigger("change");
+                            $("#add_qty").val(res.qty).trigger("change");
 
                             getRangeYearSequence();
                         } else {
@@ -472,17 +473,18 @@
         }
 
         function changeQtyMethod(element) {
-            if (element.checked) {
+            // if (element.checked) {
+                element.checked = true;
                 document.getElementById("label_qty").innerText = 'Add Qty';
                 document.getElementById("add_qty").classList.remove('d-none');
                 document.getElementById("print_qty").classList.add('d-none');
                 method = 'add'
-            } else {
-                document.getElementById("label_qty").innerText = 'Print Qty';
-                document.getElementById("print_qty").classList.remove('d-none');
-                document.getElementById("add_qty").classList.add('d-none');
-                method = 'print'
-            }
+            // } else {
+            //     document.getElementById("label_qty").innerText = 'Print Qty';
+            //     document.getElementById("print_qty").classList.remove('d-none');
+            //     document.getElementById("add_qty").classList.add('d-none');
+            //     method = 'print'
+            // }
         }
 
         function calculateRange() {

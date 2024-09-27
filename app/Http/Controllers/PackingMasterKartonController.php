@@ -9,6 +9,8 @@ use DB;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ExportLaporanPackingMasterkarton;
+use App\Exports\ExportDataPoUpload;
+use App\Imports\UploadQtyKarton;
 
 class PackingMasterKartonController extends Controller
 {
@@ -20,14 +22,14 @@ class PackingMasterKartonController extends Controller
         $user = Auth::user()->name;
         if ($request->ajax()) {
             $additionalQuery = '';
-            $data_carton = DB::select("
-SELECT
+            $data_carton = DB::select("SELECT
 a.po,
 b.ws,
 b.buyer,
 b.styleno,
 b.product_group,
 b.product_item,
+b.qty_po,
 concat((DATE_FORMAT(b.tgl_shipment,  '%d')), '-', left(DATE_FORMAT(b.tgl_shipment,  '%M'),3),'-',DATE_FORMAT(b.tgl_shipment,  '%Y')) tgl_shipment_fix,
 tot_karton,
 tot_karton_isi,
@@ -54,7 +56,8 @@ m.styleno,
 tgl_shipment,
 m.buyer,
 m.product_group,
-m.product_item
+m.product_item,
+sum(qty_po) qty_po
 from ppic_master_so p
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
 group by po
@@ -137,8 +140,8 @@ where tgl_shipment >= '$tgl_awal' and tgl_shipment <= '$tgl_akhir'
             if ($cek_data != '1') {
                 $insert = DB::insert(
                     "insert into packing_master_carton
-                        (po,no_carton,status,notes,created_at,updated_at,created_by) values
-                        ('$po','$i','draft','$notes','$timestamp','$timestamp','$user')
+                        (po,no_carton,qty_isi,status,notes,created_at,updated_at,created_by) values
+                        ('$po','$i','0','draft','$notes','$timestamp','$timestamp','$user')
                         "
                 );
             } else {
@@ -541,8 +544,173 @@ inner join master_sb_ws m on p.id_so_det = m.id_so_det
         // );
     }
 
+
+    public function show_data_upload_karton(Request $request)
+    {
+        $po = $request->po;
+
+        $data_upload = DB::select("SELECT a.id, a.po , a.no_carton, a.notes, if(b.qty_isi is null , a.qty_isi , b.qty_isi) qty_isi
+        from packing_master_carton a
+        left join packing_master_carton_upload_qty b on a.id = b.id
+        where a.po = '$po'
+        order by a.no_carton asc
+                    ");
+        return DataTables::of($data_upload)->toJson();
+    }
+
+
+
     public function export_excel_packing_master_carton(Request $request)
     {
         return Excel::download(new ExportLaporanPackingMasterkarton($request->from, $request->to), 'Laporan_Hasil_Scan.xlsx');
+    }
+
+    public function export_data_po_upload(Request $request)
+    {
+        return Excel::download(new ExportDataPoUpload($request->po), 'Laporan_Hasil_Scan.xlsx');
+    }
+
+    public function upload_qty_karton(Request $request)
+    {
+        // validasi
+        $po = $request->modal_upload_po;
+        $this->validate($request, [
+            'file' => 'required|mimes:csv,xls,xlsx'
+        ]);
+
+        $file = $request->file('file');
+
+        $nama_file = $file->getClientOriginalName();
+
+        if (strpos($nama_file, $po)) {
+            $file->move('file_upload', $nama_file);
+            Excel::import(new UploadQtyKarton, public_path('/file_upload/' . $nama_file));
+            return array(
+                "status" => 201,
+                "message" => 'Data Berhasil Di Upload',
+                'table' => 'datatable_upload',
+                "additional" => [],
+                // "redirect" => url('in-material/upload-lokasi')
+            );
+        } else {
+            return array(
+                "status" => 202,
+                "message" => 'Data Gagal Di Upload',
+                'table' => 'datatable_upload',
+                "additional" => [],
+                // "redirect" => url('in-material/upload-lokasi')
+            );
+        }
+
+
+        // $file->move('file_upload', $nama_file);
+
+        // Excel::import(new UploadQtyKarton, public_path('/file_upload/' . $nama_file));
+
+        return array(
+            "status" => 201,
+            "message" => 'Data Berhasil Di Upload',
+            'table' => 'datatable_upload',
+            "additional" => [],
+            // "redirect" => url('in-material/upload-lokasi')
+        );
+
+        // return array(
+        //     "status" => 201,
+        //     "message" => 'Data Berhasil Di Upload',
+        //     'table' => 'datatable_upload',
+        //     "additional" => [],
+        //     // "redirect" => url('in-material/upload-lokasi')
+        // );
+    }
+
+    public function delete_upload_po_karton(Request $request)
+    {
+        $user = Auth::user()->name;
+        $po = $request->po;
+
+        $delete =  DB::delete(
+            "DELETE FROM packing_master_carton_upload_qty where po = '$po'"
+        );
+    }
+
+    public function store_upload_qty_karton(Request $request)
+    {
+        $user = Auth::user()->name;
+        $timestamp = Carbon::now();
+        $po = $request->po;
+
+        $update = DB::update(
+            "UPDATE packing_master_carton a
+inner join packing_master_carton_upload_qty b on a.id = b.id
+SET a.qty_isi = b.qty_isi
+where a.po = '$po'
+            "
+        );
+        if ($update) {
+            return array(
+                'icon' => 'benar',
+                'msg' => 'Transaksi Sudah Terbuat',
+            );
+        } else {
+            return array(
+                'icon' => 'salah',
+                'msg' => 'Tidak ada yang disimpan, Periksa Data Lagi',
+            );
+        }
+    }
+
+    public function list_data_no_carton_hapus(Request $request)
+    {
+        $user = Auth::user()->name;
+        $po = $request->po;
+
+        $data_list_karton = DB::select("SELECT
+a.*, coalesce(b.tot_out,0) tot_out
+from
+(select * from packing_master_carton where po = '$po') a
+left join
+(
+select po, no_carton, notes, count(barcode)tot_out from packing_packing_out_scan where po = '$po' group by po, no_carton) b
+on a.po = b.po and a.no_carton = b.no_carton and a.notes = b.notes
+order by no_carton asc
+            ");
+
+        return DataTables::of($data_list_karton)->toJson();
+    }
+
+    public function hapus_master_karton(Request $request)
+    {
+
+        $timestamp = Carbon::now();
+        $user = Auth::user()->name;
+        $po = $request->txtmodal_h_po_karton;
+        $JmlArray                                   = $_POST['cek_data'];
+        foreach ($JmlArray as $key => $value) {
+            if ($value != '') {
+                $txtid                          = $JmlArray[$key]; {
+
+                    $del_ctn =  DB::delete("
+                        delete from packing_master_carton where id = '$txtid'");
+                }
+            }
+        }
+        return array(
+            "status" => 201,
+            "message" => 'Data Sudah di Hapus',
+            "additional" => [],
+            "redirect" => '',
+            "table" => 'datatable_hapus_karton',
+            "callback" => "show_data_edit_h(`$po`)"
+        );
+
+        // return array(
+        //     "status" => 202,
+        //     "message" => 'No Form Berhasil Di Update',
+        //     "additional" => [],
+        //     "redirect" => '',
+        //     "callback" => "getdetail(`$no_form_modal`,`$txtket_modal_input`)"
+
+        // );
     }
 }
