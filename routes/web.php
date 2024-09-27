@@ -102,21 +102,26 @@ use App\Http\Controllers\TransferBpbController;
 
 use App\Http\Controllers\PPICDashboardController;
 
+//  PPIC
 use App\Http\Controllers\PPIC_MasterSOController;
 use App\Http\Controllers\PPIC_LaporanTrackingController;
 
+// PACKING
 use App\Http\Controllers\PackingDashboardController;
-
 use App\Http\Controllers\PackingTransferGarmentController;
 use App\Http\Controllers\PackingPackingInController;
 use App\Http\Controllers\PackingPackingOutController;
+use App\Http\Controllers\PackingNeedleCheckController;
 use App\Http\Controllers\PackingMasterKartonController;
 
+// FINISH GOOD
 use App\Http\Controllers\FinishGoodPenerimaanController;
 use App\Http\Controllers\FinishGoodPengeluaranController;
 
+// REPORT DOC
 use App\Http\Controllers\ReportDocController;
 
+// GA GAIS
 use App\Http\Controllers\GAPengajuanBahanBakarController;
 use App\Http\Controllers\GAApprovalBahanBakarController;
 
@@ -937,6 +942,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/show-detail-so/{id?}', 'showdetailso')->name('show-detail-so');
         Route::get('/list-so-detail-show', 'listsodetailshow')->name('list-so-detail-show');
         Route::get('/export_excel_laporan_so_detail', 'export_excel_laporanso_detail')->name('export_excel_laporan_so_detail');
+        Route::get('/export_excel_laporan_so_detail_barcode', 'export_excel_laporanso_detail_barcode')->name('export_excel_laporan_so_detail_barcode');
         Route::get('/cancel-report-so', 'cancelreportso')->name('cancel-report-so');
         Route::get('/draft-report-so', 'draftreportso')->name('draft-report-so');
         Route::get('/final-report-so', 'finalreportso')->name('final-report-so');
@@ -1049,6 +1055,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/upload-lokasi-retur/{id?}', 'UploadLokasiRetur')->name('upload-lokasi-retur');
         Route::post('/save-upload-lokasi-retur', 'saveuploadlokasirtr')->name('save-upload-lokasi-retur');
         Route::get('/approve-material-retur', 'approvematerialretur')->name('approve-material-retur');
+        Route::get('/create-ri-cutting', 'createricutting')->name('create-retur-inmaterial-cutting');
+        Route::get('/get-no-bppb-cutting', 'getNobppbCutting')->name('get-no-bppb-cutting');
+        Route::get('/get-list-barcode-out', 'getListbarcodeout')->name('get-list-barcode-out');
+        Route::get('/get-data-barcode-out', 'showdetailbarcodeout')->name('get-data-barcode-out');
+        Route::post('/save-barcode-ri-scan', 'savebarcoderiscan')->name('save-barcode-ri-scan');
+        Route::get('/delete-scanri-temp', 'deletescanritemp')->name('delete-scanri-temp');
     });
 
     //qc pass
@@ -1247,6 +1259,19 @@ Route::middleware('auth')->group(function () {
         Route::get('/export_excel_packing_out', 'export_excel_packing_out')->name('export_excel_packing_out');
         Route::post('/packing_out_hapus_history', 'packing_out_hapus_history')->name('packing_out_hapus_history');
         Route::get('/packing_out_tot_barcode', 'packing_out_tot_barcode')->name('packing_out_tot_barcode');
+        Route::get('/show_sum_max_carton', 'show_sum_max_carton')->name('show_sum_max_carton');
+    });
+
+    // Needle Check
+    Route::controller(PackingNeedleCheckController::class)->prefix("packing-needle-check")->middleware('packing')->group(function () {
+        Route::get('/', 'index')->name('needle-check');
+        Route::get('/create', 'create')->name('create-needle-check');
+        Route::post('/store_packing_needle', 'store_packing_needle')->name('store_packing_needle');
+        Route::get('/packing_needle_check_show_summary', 'packing_needle_check_show_summary')->name('packing_needle_check_show_summary');
+        Route::get('/packing_needle_check_show_history', 'packing_needle_check_show_history')->name('packing_needle_check_show_history');
+        Route::get('/packing_needle_check_show_tot_input', 'packing_needle_check_show_tot_input')->name('packing_needle_check_show_tot_input');
+        Route::post('/packing_needle_check_hapus_history', 'packing_needle_check_hapus_history')->name('packing_needle_check_hapus_history');
+        Route::get('/export_excel_packing_needle_check', 'export_excel_packing_needle_check')->name('export_excel_packing_needle_check');
     });
 
     // Master Karton
@@ -1265,6 +1290,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/get_data_stok_packing_in', 'get_data_stok_packing_in')->name('get_data_stok_packing_in');
         Route::post('/simpan_short_karton', 'simpan_short_karton')->name('simpan_short_karton');
         Route::get('/export_excel_packing_master_carton', 'export_excel_packing_master_carton')->name('export_excel_packing_master_carton');
+        Route::get('/show_data_upload_karton', 'show_data_upload_karton')->name('show_data_upload_karton');
+        Route::get('/export_data_po_upload', 'export_data_po_upload')->name('export_data_po_upload');
+        Route::post('/upload_qty_karton', 'upload_qty_karton')->name('upload_qty_karton');
+        Route::post('/delete_upload_po_karton', 'delete_upload_po_karton')->name('delete_upload_po_karton');
+        Route::post('/store_upload_qty_karton', 'store_upload_qty_karton')->name('store_upload_qty_karton');
+        Route::get('/list_data_no_carton_hapus', 'list_data_no_carton_hapus')->name('list_data_no_carton_hapus');
+        Route::post('/hapus_master_karton', 'hapus_master_karton')->name('hapus_master_karton');
         // Route::get('/show_preview_packing_in', 'show_preview_packing_in')->name('show_preview_packing_in');
         // Route::post('/store', 'store')->name('store-packing-packing-in');
     });

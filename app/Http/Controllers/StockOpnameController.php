@@ -13,6 +13,7 @@ use App\Models\SoDetail;
 use App\Models\SoHeader;
 use App\Exports\ExportLaporanStokOpname;
 use App\Exports\ExportLaporanStokOpnameDetail;
+use App\Exports\ExportLaporanStokOpnameDetailBarcode;
 use App\Exports\ExportDetailStokOpname;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -956,6 +957,11 @@ public function export_excel_detailso(Request $request)
     public function export_excel_laporanso_detail(Request $request)
     {
         return Excel::download(new ExportLaporanStokOpnameDetail($request->no_transaksi, $request->itemso), 'Laporan_stock_opname.xlsx');
+    }
+
+    public function export_excel_laporanso_detail_barcode(Request $request)
+    {
+        return Excel::download(new ExportLaporanStokOpnameDetailBarcode($request->no_transaksi, $request->itemso), 'Laporan_stock_opname.xlsx');
     }
 
     public function cancelreportso(Request $request)

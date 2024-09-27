@@ -100,6 +100,11 @@
                 <i class="fas fa-plus"></i>
                 Add Data
             </a>
+
+            <a href="{{ route('create-retur-inmaterial-cutting') }}" class="btn btn-success">
+                <i class="fas fa-plus"></i>
+                Add From Cutting
+            </a>
             </div>
         </div>
         </div>

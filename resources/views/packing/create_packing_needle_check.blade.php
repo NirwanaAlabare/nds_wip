@@ -12,11 +12,11 @@
 @endsection
 
 @section('content')
-    <div class="card card-info">
+    <div class="card card-secondary">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center ">
-                <h5 class="card-title fw-bold mb-0"><i class="fas fa-compress"></i> Scan Packing Out</h5>
-                <a href="{{ route('transfer-garment') }}" class="btn btn-sm btn-primary">
+                <h5 class="card-title fw-bold mb-0"><i class="fas fa-check-double"></i> Needle Checking Scan</h5>
+                <a href="{{ route('needle-check') }}" class="btn btn-sm btn-light">
                     <i class="fa fa-reply"></i> Kembali
                 </a>
             </div>
@@ -24,7 +24,7 @@
         <form id="form_h" name='form_h'>
             <div class="row">
                 <div class="col-md-6">
-                    <div class="card card-primary card-outline">
+                    <div class="card card-secondary card-outline">
                         <div class="card-header">
                             <h5 class="card-title"><i class="fas fa-search"></i> Filter </h5>
                         </div>
@@ -37,7 +37,7 @@
                                     <input type="hidden" class="form-control" id="cbopo_det" name="cbopo_det">
                                     <input type="hidden" class="form-control" id="txtdest" name="txtdest">
                                     <select class="form-control select2bs4 form-control-sm" id="cbopo" name="cbopo"
-                                        style="width: 100%;" onchange="getpo();getno_carton();dataTableHistoryReload();">
+                                        style="width: 100%;" onchange="getpo();">
                                         <option selected="selected" value="" disabled="true">Pilih PO</option>
                                         @foreach ($data_po as $datapo)
                                             <option value="{{ $datapo->isi }}">
@@ -45,14 +45,6 @@
                                             </option>
                                         @endforeach
                                     </select>
-                                </div>
-                            </div>
-                            <div class="col-sm">
-                                <div class="form-group">
-                                    <label><small><b>No. Carton # :</b></small></label>
-                                    <select class='form-control select2bs4 form-control-sm' style='width: 100%;'
-                                        name='cbono_carton' id='cbono_carton'
-                                        onchange = "dataTableSummaryReload();dataTableHistoryReload();get_sum_carton();"></select>
                                 </div>
                             </div>
                             <div class="mb-3">
@@ -69,40 +61,28 @@
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="card card-primary card-outline">
+                    <div class="card card-secondary card-outline">
                         <div class="card-header">
                             <h5 class="card-title"><i class="fas fa-list"></i> Summary </h5>
                         </div>
                         <div class="card-body">
-                            <div class='row'>
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label class="form-label"><small><b>Qty Max Karton</b></small></label>
-                                        <input type="text" class="form-control form-control-sm" id = "qty_max_carton"
-                                            name = "qty_max_carton" readonly>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label class="form-label"><small><b>Qty Karton Terisi </b></small></label>
-                                        <input type="text" class="form-control form-control-sm" id = "qty_terisi_carton"
-                                            name = "qty_terisi_carton" readonly>
-                                    </div>
-                                </div>
-                            </div>
                             <div class="table-responsive">
                                 <table id="datatable_summary" class="table table-bordered table-sm w-100 text-nowrap">
                                     <thead>
                                         <tr>
                                             <th>PO #</th>
+                                            <th>Barcode</th>
                                             <th>Color</th>
                                             <th>Size</th>
+                                            <th>Dest</th>
                                             <th>Qty Input</th>
                                         </tr>
                                     </thead>
                                     <tfoot>
                                         <tr>
                                             <th>Total</th>
+                                            <th></th>
+                                            <th></th>
                                             <th></th>
                                             <th></th>
                                             <th></th>
@@ -145,6 +125,7 @@
                                         <th>Barcode</th>
                                         <th>Color</th>
                                         <th>Size</th>
+                                        <th>Dest</th>
                                         <th>Act</th>
                                     </tr>
                                 </thead>
@@ -182,12 +163,9 @@
     <script>
         $(document).ready(function() {
             $("#cbopo").val('').trigger('change');
-            // $("#cbono_carton").val('').trigger('change');
             $("#cbopo_det").val('');
             $("#txtdest").val('');
             gettotal_input();
-            $("#qty_max_carton").val('');
-            $("#qty_terisi_carton").val('');
         })
 
         document.getElementById("barcode").onkeypress = function(e) {
@@ -205,7 +183,7 @@
         function gettotal_input() {
             let user = document.form_h.user.value;
             $.ajax({
-                url: '{{ route('packing_out_show_tot_input') }}',
+                url: '{{ route('packing_needle_check_show_tot_input') }}',
                 method: 'get',
                 data: {
                     user: user
@@ -216,42 +194,6 @@
                 },
                 error: function(request, status, error) {
                     alert(request.responseText);
-                },
-            });
-        };
-
-        function getno_carton() {
-            let cbopo = document.form_h.cbopo.value;
-            let html = $.ajax({
-                type: "GET",
-                url: '{{ route('getno_carton') }}',
-                data: {
-                    cbopo: cbopo
-                },
-                async: false
-            }).responseText;
-            // console.log(html != "");
-            if (html != "") {
-                $("#cbono_carton").html(html);
-            }
-        };
-
-        function getpo() {
-            let cbopo = document.form_h.cbopo.value;
-            let html = $.ajax({
-                type: "get",
-                url: '{{ route('getpo') }}',
-                data: {
-                    cbopo: cbopo
-                },
-                dataType: 'json',
-                success: function(response) {
-                    console.log(response);
-                    document.getElementById('cbopo_det').value = response.po;
-                    document.getElementById('txtdest').value = response.dest;
-                },
-                error: function(request, status, error) {
-
                 },
             });
         };
@@ -274,7 +216,7 @@
 
                     // computing column Total of the complete result
                     var sumTotal = api
-                        .column(3)
+                        .column(5)
                         .data()
                         .reduce(function(a, b) {
                             return intVal(a) + intVal(b);
@@ -282,7 +224,7 @@
 
                     // Update footer by showing the total with the reference of the column index
                     $(api.column(0).footer()).html('Total');
-                    $(api.column(3).footer()).html(sumTotal);
+                    $(api.column(5).footer()).html(sumTotal);
                 },
 
                 ordering: false,
@@ -291,27 +233,33 @@
                 paging: false,
                 destroy: true,
                 info: false,
-                searching: false,
+                searching: true,
                 ajax: {
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
-                    url: '{{ route('packing_out_show_summary') }}',
+                    url: '{{ route('packing_needle_check_show_summary') }}',
                     dataType: 'json',
                     dataSrc: 'data',
                     data: function(d) {
-                        d.cbopo = $('#cbopo_det').val();
-                        d.cbono_carton = $('#cbono_carton').val();
+                        d.cbopo_det = $('#cbopo_det').val();
+                        d.dest = document.form_h.txtdest.value;
                     },
                 },
                 columns: [{
                         data: 'po',
                     },
                     {
+                        data: 'barcode',
+                    },
+                    {
                         data: 'color',
                     },
                     {
                         data: 'size',
+                    },
+                    {
+                        data: 'dest',
                     },
                     {
                         data: 'tot_scan',
@@ -333,12 +281,12 @@
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
-                    url: '{{ route('packing_out_show_history') }}',
+                    url: '{{ route('packing_needle_check_show_history') }}',
                     dataType: 'json',
                     dataSrc: 'data',
                     data: function(d) {
-                        d.cbopo = $('#cbopo_det').val();
-                        d.cbono_carton = $('#cbono_carton').val();
+                        d.cbopo_det = $('#cbopo_det').val();
+                        d.dest = document.form_h.txtdest.value;
                     },
                 },
                 columns: [{
@@ -357,25 +305,28 @@
                         data: 'size',
                     },
                     {
+                        data: 'dest',
+                    },
+                    {
                         data: 'id',
                     },
                 ],
                 columnDefs: [{
-                        targets: [5],
+                        targets: [6],
                         render: (data, type, row, meta) => {
                             if (row.cek_stat == 'ok') {
                                 return `
-                <div
-                class='d-flex gap-1 justify-content-center'>
-                <a class='btn btn-danger btn-sm'  data-bs-toggle="tooltip"
-                onclick="hapus(` + row.id + `)"><i class='fas fa-trash'></i></a>
-                </div>
-                    `;
+            <div
+            class='d-flex gap-1 justify-content-center'>
+            <a class='btn btn-danger btn-sm'  data-bs-toggle="tooltip"
+            onclick="hapus(` + row.id + `)"><i class='fas fa-trash'></i></a>
+            </div>
+                `;
                             } else {
                                 return `
-                <div
-                </div>
-                    `;
+            <div
+            </div>
+                `;
                             }
 
                         }
@@ -388,10 +339,33 @@
             });
         }
 
+
+        function getpo() {
+            let cbopo = document.form_h.cbopo.value;
+            let html = $.ajax({
+                type: "get",
+                url: '{{ route('getpo') }}',
+                data: {
+                    cbopo: cbopo
+                },
+                dataType: 'json',
+                success: function(response) {
+                    console.log(response);
+                    document.getElementById('cbopo_det').value = response.po;
+                    document.getElementById('txtdest').value = response.dest;
+                    dataTableHistoryReload();
+                    dataTableSummaryReload();
+                },
+                error: function(request, status, error) {
+
+                },
+            });
+        };
+
         function hapus(id_history) {
             $.ajax({
                 type: "post",
-                url: '{{ route('packing_out_hapus_history') }}',
+                url: '{{ route('packing_needle_check_hapus_history') }}',
                 data: {
                     id_history: id_history
                 },
@@ -412,34 +386,25 @@
 
 
         function scan_barcode() {
-            let cbopo = document.form_h.cbopo.value;
-            let cbono_carton = document.form_h.cbono_carton.value;
+            let cbopo_det = $('#cbopo_det').val();
             let barcode = document.form_h.barcode.value;
+            let dest = document.form_h.txtdest.value;
 
-            if (cbopo == '') {
+            if (cbopo_det == '') {
                 iziToast.warning({
                     message: 'PO masih kosong',
                     position: 'topCenter'
                 });
                 document.getElementById('barcode').value = "";
             }
-
-            if (cbono_carton == '') {
-                iziToast.warning({
-                    message: 'No Carton masih kosong',
-                    position: 'topCenter'
-                });
-                document.getElementById('barcode').value = "";
-            }
-
-            if (cbopo != '' && cbono_carton != '') {
+            if (cbopo_det != '') {
                 $.ajax({
                     type: "post",
-                    url: '{{ route('store_packing_out') }}',
+                    url: '{{ route('store_packing_needle') }}',
                     data: {
-                        cbopo: cbopo,
-                        cbono_carton: cbono_carton,
-                        barcode: barcode
+                        cbopo_det: cbopo_det,
+                        barcode: barcode,
+                        dest: dest
                     },
                     success: function(response) {
                         console.log(response);
@@ -449,13 +414,6 @@
                                 position: 'topCenter',
                                 timeout: 800,
                             });
-                        } else if (response.icon == 'lebih') {
-                            iziToast.info({
-                                message: response.msg,
-                                position: 'topCenter',
-                                timeout: 1000,
-                            });
-                            gettotal_input();
                         } else {
                             iziToast.success({
                                 message: response.msg,
@@ -469,7 +427,6 @@
                         document.getElementById('barcode').value = "";
                         document.getElementById("barcode").focus();
                         gettotal_input();
-                        get_sum_carton();
                     },
                     // error: function(request, status, error) {
                     //     alert(request.responseText);
@@ -478,28 +435,6 @@
 
             }
 
-        };
-
-
-        function get_sum_carton() {
-            let po_data = $('#cbopo_det').val();
-            let no_carton_data = document.form_h.cbono_carton.value;
-            $.ajax({
-                url: '{{ route('show_sum_max_carton') }}',
-                method: 'get',
-                data: {
-                    po_data: po_data,
-                    no_carton_data: no_carton_data
-                },
-                dataType: 'json',
-                success: function(response) {
-                    document.getElementById('qty_max_carton').value = response.qty_isi;
-                    document.getElementById('qty_terisi_carton').value = response.tot_out;
-                },
-                error: function(request, status, error) {
-                    alert(request.responseText);
-                },
-            });
         };
     </script>
 @endsection
