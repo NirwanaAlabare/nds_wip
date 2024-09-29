@@ -34,64 +34,88 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
 
     public function view(): View
     {
+        $additionalQuery = "";
+
+        if ($this->from) {
+            $additionalQuery .= " and DATE(b.created_at) >= '" . $this->from . "'";
+        }
+
+        if ($this->to) {
+            $additionalQuery .= " and DATE(b.created_at) <= '" . $this->to . "'";
+        }
+
         $data = DB::select("
-            SELECT
-                DATE_FORMAT(b.created_at, '%d-%m-%Y') tgl_input,
-                a.no_form,
-                a.no_meja,
-                act_costing_ws,
-                buyer,
-                style,
-                color,
-                color_act,
-                month(b.created_at) bulan,
-                t.qty_order,
-                b.id_roll,
-                b.detail_item,
-                COALESCE(roll_buyer, roll) roll_number,
-                lot,
+            select
+                DATE_FORMAT(b.updated_at, '%M') bulan,
+                DATE_FORMAT(b.updated_at, '%d-%m-%Y') tgl_input,
+                b.no_form_cut_input,
+                UPPER(meja.name) nama_meja,
+                mrk.act_costing_ws,
+                mrk.buyer,
+                mrk.style,
+                mrk.color,
+                COALESCE(b.color_act, '-') color_act,
+                mrk.panel,
+                master_sb_ws.qty,
                 cons_ws,
                 cons_marker,
-                cons_pipping,
-                cons_ampar,
-                cons_act,
-                mrk.panel,
-                b.qty,
-                b.unit,
-                a.cons_pipping,
-                b.berat_amparan,
-                sisa_kain,
-                lembar_gelaran,
-                mr.tot_ratio,
-                concat(panjang_marker,'.',replace(comma_marker,'.','')) p_marker,
-                concat(p_act,'.',replace(comma_p_act,'.','')) p_act,
-                unit_p_act,
-                lebar_marker,
-                l_act,
-                unit_l_act,
-                total_pemakaian_roll,
-                b.sisa_kain,
-                sisa_gelaran,
-                sambungan,
-                est_amparan,
-                average_time,
-                kepala_kain,
-                sisa_tidak_bisa,
-                reject,
-                piping,
-                short_roll,
-                CONCAT(ROUND(((b.short_roll / b.qty) * 100), 2), ' %') short_roll_percentage,
-                remark,
-                operator
-            FROM
+                a.cons_ampar,
+                a.cons_act,
+                COALESCE(a.cons_pipping, cons_piping) cons_piping,
+                panjang_marker,
+                unit_panjang_marker,
+                comma_marker,
+                unit_comma_marker,
+                a.p_act panjang_actual,
+                a.unit_p_act unit_panjang_actual,
+                a.comma_p_act comma_actual,
+                a.unit_comma_p_act unit_comma_actual,
+                a.l_act lebar_actual,
+                a.unit_l_act unit_lebar_actual,
+                COALESCE(id_roll, '-') id_roll,
+                id_item,
+                detail_item,
+                COALESCE(b.roll_buyer, b.roll) roll,
+                COALESCE(b.lot, '-') lot,
+                b.qty qty_roll,
+                b.unit unit_roll,
+                COALESCE(b.berat_amparan, '-') berat_amparan,
+                b.est_amparan,
+                b.lembar_gelaran,
+                mrk.total_ratio,
+                (mrk.total_ratio * b.lembar_gelaran) qty_cut,
+                b.average_time,
+                b.sisa_gelaran,
+                b.sambungan,
+                b.sambungan_roll,
+                b.kepala_kain,
+                b.sisa_tidak_bisa,
+                b.reject,
+                b.piping,
+                COALESCE(b.sisa_kain, 0) sisa_kain,
+                b.pemakaian_lembar,
+                b.total_pemakaian_roll,
+                b.short_roll,
+                ROUND(((b.short_roll / b.qty) * 100), 2) short_roll_percentage,
+                b.status,
+                a.operator
+            from
                 form_cut_input a
-            inner join form_cut_input_detail b on a.no_form = b.no_form_cut_input
-            inner join marker_input mrk on a.id_marker = mrk.kode
-            inner join (select marker_id, sum(ratio) tot_ratio from marker_input_detail group by marker_id) mr on mrk.id = mr.marker_id
-            left join (select ws, sum(qty) qty_order from master_sb_ws group by ws) t on mrk.act_costing_ws = t.ws
+                left join form_cut_input_detail b on a.no_form = b.no_form_cut_input
+                left join users meja on meja.id = a.no_meja
+                left join (SELECT marker_input.*, SUM(marker_input_detail.ratio) total_ratio FROM marker_input LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id GROUP BY marker_input.id) mrk on a.id_marker = mrk.kode
+                left join master_sb_ws on master_sb_ws.id_act_cost = mrk.act_costing_id
             where
-                b.created_at >='$this->from 00:00:00' and
-                b.created_at <= '$this->to 23:59:59'
+                (a.cancel = 'N'  OR a.cancel IS NULL)
+                AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
+                and id_item is not null
+                " . $additionalQuery . "
+            group by
+                b.id
+            order by
+                act_costing_ws asc,
+                a.no_form desc,
+                b.id asc
         ");
 
         $this->rowCount = count($data) + 3;
@@ -113,7 +137,7 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A3:AT' . $event->getConcernable()->rowCount,
+            'A3:BA' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [

@@ -44,58 +44,185 @@ class RollController extends Controller
 
             $data_pemakaian = DB::select("
                 select
-                    a.tgl_form_cut,
-                    DATE_FORMAT(b.created_at, '%d-%m-%Y') tgl_input,
-                    act_costing_ws,
-                    id_item,
-                    COALESCE(id_roll, '-') id_roll,
-                    detail_item,
-                    COALESCE(b.color_act, '-') color_act,
-                    COALESCE(b.group_roll, '-') group_roll,
-                    COALESCE(b.lot, '-') lot,
-                    COALESCE(b.roll_buyer, b.roll) roll,
+                    DATE_FORMAT(b.updated_at, '%M) bulan,
+                    DATE_FORMAT(b.updated_at, '%d-%m-%Y) tgl_input,
                     b.no_form_cut_input,
-                    b.qty qty_item,
-                    b.unit unit_item,
-                    a.cons_pipping,
-                    b.berat_amparan,
-                    b.sisa_gelaran,
-                    b.sambungan,
+                    UPPER(meja.name) nama_meja,
+                    act_costing_ws,
+                    buyer,
+                    style,
+                    color,
+                    b.color_act,
+                    panel,
+                    master_sb_ws.qty,
+                    cons_ws,
+                    cons_marker,
+                    a.cons_ampar,
+                    a.cons_act,
+                    COALESCE(a.cons_pipping, cons_piping) cons_piping,
+                    panjang_marker,
+                    unit_panjang_marker,
+                    comma_marker,
+                    unit_comma_marker,
+                    a.p_act panjang_actual,
+                    a.unit_p_act unit_panjang_actual,
+                    a.comma_p_act comma_actual,
+                    a.unit_comma_p_act unit_comma_actual,
+                    a.l_act lebar_actual,
+                    a.unit_l_actual unit_lebar_actual,
+                    COALESCE(id_roll, '-') id_roll,
+                    id_item,
+                    detail_item,
+                    COALESCE(b.roll_buyer, b.roll) roll,
+                    COALESCE(b.lot, '-') lot,
+                    b.qty qty_roll,
+                    b.unit unit_roll,
+                    COALESCE(b.berat_amparan, '-') berat_amparan,
                     b.est_amparan,
                     b.lembar_gelaran,
+                    mrk.total_ratio,
+                    (mrk.total_ratio * b.lembar_gelaran) qty_cut,
+                    b.average_time,
+                    b.sisa_gelaran,
+                    b.sambungan,
+                    b.sambungan_roll,
                     b.kepala_kain,
+                    b.lembar_gelaran,
                     b.sisa_tidak_bisa,
                     b.reject,
+                    b.piping,
                     COALESCE(b.sisa_kain, 0) sisa_kain,
-                    ROUND((total_pemakaian_roll + sisa_gelaran + kepala_kain + sisa_tidak_bisa + reject + piping), 2) total_pemakaian_roll,
+                    b.pemakaian_lembar,
+                    b.total_pemakaian_roll,
                     b.short_roll,
                     CONCAT(ROUND(((b.short_roll / b.qty) * 100), 2), ' %') short_roll_percentage,
-                    b.piping,
-                    b.remark,
-                    UPPER(meja.name) nama_meja
+                    a.operator
                 from
                     form_cut_input a
                     left join form_cut_input_detail b on a.no_form = b.no_form_cut_input
-                    left join marker_input mrk on a.id_marker = mrk.kode
                     left join users meja on meja.id = a.no_meja
+                    left join marker_input mrk on a.id_marker = mrk.kode
+                    left join master_sb_ws.id_ws
                 where
                     (a.cancel = 'N'  OR a.cancel IS NULL)
 	                AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
                     and id_item is not null
                     " . $additionalQuery . "
                     " . $keywordQuery . "
+                group by
+                    b.id
                 order by
-                    DATE(b.created_at) desc,
                     act_costing_ws asc,
+                    a.no_form desc,
+                    b.id desc,
                     b.id_roll desc,
-                    b.id_item desc,
-                    b.no_form_cut_input desc
+                    b.id_item desc
             ");
 
             return DataTables::of($data_pemakaian)->toJson();
         }
 
         return view('cutting.roll.roll', ['page' => 'dashboard-cutting', "subPageGroup" => "laporan-cutting", "subPage" => "lap-pemakaian"]);
+    }
+
+    public function pemakaianRollData(Request $request)
+    {
+        $additionalQuery = "";
+
+        if ($request->dateFrom) {
+            $additionalQuery .= " and DATE(b.created_at) >= '" . $request->dateFrom . "'";
+        }
+
+        if ($request->dateTo) {
+            $additionalQuery .= " and DATE(b.created_at) <= '" . $request->dateTo . "'";
+        }
+
+        $keywordQuery = "";
+        if ($request->search["value"]) {
+            $keywordQuery = "
+                and (
+                    act_costing_ws like '%" . $request->search["value"] . "%' OR
+                    DATE_FORMAT(b.created_at, '%d-%m-%Y') like '%" . $request->search["value"] . "%'
+                )
+            ";
+        }
+
+        $data_pemakaian = DB::select("
+            select
+                DATE_FORMAT(b.updated_at, '%M') bulan,
+                DATE_FORMAT(b.updated_at, '%d-%m-%Y') tgl_input,
+                b.no_form_cut_input,
+                UPPER(meja.name) nama_meja,
+                mrk.act_costing_ws,
+                mrk.buyer,
+                mrk.style,
+                mrk.color,
+                COALESCE(b.color_act, '-') color_act,
+                mrk.panel,
+                master_sb_ws.qty,
+                cons_ws,
+                cons_marker,
+                a.cons_ampar,
+                a.cons_act,
+                COALESCE(a.cons_pipping, cons_piping) cons_piping,
+                panjang_marker,
+                unit_panjang_marker,
+                comma_marker,
+                unit_comma_marker,
+                a.p_act panjang_actual,
+                a.unit_p_act unit_panjang_actual,
+                a.comma_p_act comma_actual,
+                a.unit_comma_p_act unit_comma_actual,
+                a.l_act lebar_actual,
+                a.unit_l_act unit_lebar_actual,
+                COALESCE(id_roll, '-') id_roll,
+                id_item,
+                detail_item,
+                COALESCE(b.roll_buyer, b.roll) roll,
+                COALESCE(b.lot, '-') lot,
+                b.qty qty_roll,
+                b.unit unit_roll,
+                COALESCE(b.berat_amparan, '-') berat_amparan,
+                b.est_amparan,
+                b.lembar_gelaran,
+                mrk.total_ratio,
+                (mrk.total_ratio * b.lembar_gelaran) qty_cut,
+                b.average_time,
+                b.sisa_gelaran,
+                b.sambungan,
+                b.sambungan_roll,
+                b.kepala_kain,
+                b.lembar_gelaran,
+                b.sisa_tidak_bisa,
+                b.reject,
+                b.piping,
+                COALESCE(b.sisa_kain, 0) sisa_kain,
+                b.pemakaian_lembar,
+                b.total_pemakaian_roll,
+                b.short_roll,
+                CONCAT(ROUND(((b.short_roll / b.qty) * 100), 2), ' %') short_roll_percentage,
+                a.operator
+            from
+                form_cut_input a
+                left join form_cut_input_detail b on a.no_form = b.no_form_cut_input
+                left join users meja on meja.id = a.no_meja
+                left join (SELECT marker_input.*, SUM(marker_input_detail.ratio) total_ratio FROM marker_input LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id GROUP BY marker_input.id) mrk on a.id_marker = mrk.kode
+                left join master_sb_ws on master_sb_ws.id_act_cost = mrk.act_costing_id
+            where
+                (a.cancel = 'N'  OR a.cancel IS NULL)
+                AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
+                and id_item is not null
+                " . $additionalQuery . "
+                " . $keywordQuery . "
+            group by
+                b.id
+            order by
+                act_costing_ws asc,
+                a.no_form desc,
+                b.id asc
+        ");
+
+        return DataTables::of($data_pemakaian)->toJson();
     }
 
     /**

@@ -456,6 +456,7 @@ Route::middleware('auth')->group(function () {
     // Roll
     Route::controller(RollController::class)->prefix("lap_pemakaian")->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('lap_pemakaian');
+        Route::post('/', 'pemakaianRollData')->name('lap_pemakaian_data');
         // export excel
         Route::get('/export_excel', 'export_excel')->name('export_excel');
         Route::post('/export', 'export')->name('export');
