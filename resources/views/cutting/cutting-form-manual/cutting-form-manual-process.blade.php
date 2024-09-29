@@ -700,14 +700,14 @@
                                             <input type="number" class="form-control form-control-sm border-sb" id="current_lembar_gelaran" name="current_lembar_gelaran" readonly
                                                 onkeyup="
                                                     // calculateSisaKain();
-                                                    calculateLembarPemakaian();
+                                                    calculatePemakaianLembar();
                                                     calculateTotalPemakaian();
                                                     calculateShortRoll();
                                                 "
 
                                                 onchange="
                                                     // calculateSisaKain();
-                                                    calculateLembarPemakaian();
+                                                    calculatePemakaianLembar();
                                                     calculateTotalPemakaian();
                                                     calculateShortRoll();
                                                 ">
@@ -737,13 +737,13 @@
                                     <div class="input-group input-group-sm mb-3">
                                         <input type="number" class="form-control border-input" id="current_kepala_kain" name="current_kepala_kain" step=".01"
                                             onkeyup="
-                                                calculateLembarPemakaian();
+                                                calculatePemakaianLembar();
                                                 calculateTotalPemakaian();
                                                 calculateShortRoll();
                                                 // calculateSisaKain();
                                             "
                                             onchange="
-                                                calculateLembarPemakaian();
+                                                calculatePemakaianLembar();
                                                 calculateTotalPemakaian();
                                                 calculateShortRoll();
                                                 // calculateSisaKain();
@@ -759,13 +759,13 @@
                                     <div class="input-group input-group-sm mb-3">
                                         <input type="number" class="form-control border-input" id="current_sisa_tidak_bisa" name="current_sisa_tidak_bisa" step=".01"
                                             onkeyup="
-                                                calculateLembarPemakaian();
+                                                calculatePemakaianLembar();
                                                 calculateTotalPemakaian();
                                                 calculateShortRoll();
                                                 // calculateSisaKain();
                                             "
                                             onchange="
-                                                calculateLembarPemakaian();
+                                                calculatePemakaianLembar();
                                                 calculateTotalPemakaian();
                                                 calculateShortRoll();
                                                 // calculateSisaKain();
@@ -781,13 +781,13 @@
                                     <div class="input-group input-group-sm mb-3">
                                         <input type="number" class="form-control form-control-sm border-input" id="current_reject" name="current_reject" step=".01"
                                             onkeyup="
-                                                calculateLembarPemakaian();
+                                                calculatePemakaianLembar();
                                                 calculateTotalPemakaian();
                                                 calculateShortRoll();
                                                 // calculateSisaKain();
                                             "
                                             onchange="
-                                                calculateLembarPemakaian();
+                                                calculatePemakaianLembar();
                                                 calculateTotalPemakaian();
                                                 calculateShortRoll();
                                                 // calculateSisaKain();
@@ -2724,6 +2724,8 @@
                 // let shortRoll = pActualConverted * lembarGelaranVar + kepalaKainVar + pipingVar + sisaKainVar + rejectVar + sambunganVar - qtyVar;
                 let shortRoll = ((pActualConverted * lembarGelaranVar) + sambunganVar + sisaGelaranVar + sambunganRollVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar) - qtyVar;
 
+                console.log(qtyVar, (pActualConverted * lembarGelaranVar), sambunganVar + sisaGelaranVar + sambunganRollVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar, shortRoll)
+
                 if (document.getElementById("status_sambungan").value == "extension" && sambunganVar != 0) {
                     shortRoll = 0;
                 }
@@ -2791,9 +2793,9 @@
             }
 
             // -Calculate Sambungan-
-            function calculateSambungan(sisaGelaran, unitSisaGelaran) {
-                let sisaGelaranVar = sisaGelaran > 0 ? Number(sisaGelaran) : Number(document.getElementById("current_sisa_gelaran").value);
-                let unitSisaGelaranVar = unitSisaGelaran ? unitSisaGelaran : document.getElementById("current_sisa_gelaran_unit").value;
+            function calculateSambungan(sisaGelaranParam, unitSisaGelaranParam) {
+                let sisaGelaranVar = sisaGelaranParam > 0 ? Number(sisaGelaranParam) : (sisaGelaran > 0 ? Number(sisaGelaran) : Number(document.getElementById("current_sisa_gelaran").value));
+                let unitSisaGelaranVar = unitSisaGelaranParam ? unitSisaGelaranParam : (unitSisaGelaran ? unitSisaGelaran : document.getElementById("current_sisa_gelaran_unit").value);
                 let qtyVar = Number(document.getElementById("current_qty").value);
                 let unitQtyVar = document.getElementById("current_unit").value;
                 let pActualVar = Number(document.getElementById('p_act').value);
@@ -2824,7 +2826,14 @@
                     sisaGelaranConverted = conversion(sisaGelaranVar, unitQtyVar, unitSisaGelaranVar);
                 }
 
+                console.log("sisa gelaran = "+sisaGelaranVar, "kain actual = "+pActualConverted);
+
                 let estSambungan = pActualConverted - sisaGelaranConverted;
+
+                if (latestStatus == "need extension") {
+                    document.getElementById("current_sambungan").value = estSambungan.round(2);
+                    document.getElementById("current_total_pemakaian_roll").value = estSambungan.round(2);
+                }
 
                 return estSambungan.round(2);
             }
@@ -3473,7 +3482,7 @@
                     document.getElementById("current_sambungan").removeAttribute('readonly');
                     document.getElementById("current_sisa_gelaran").setAttribute('readonly', true);
 
-                    document.getElementById("current_lembar_gelaran").removeAttribute('readonly');
+                    document.getElementById("current_lembar_gelaran").setAttribute('readonly', true);
                     document.getElementById("current_lembar_gelaran").setAttribute('onkeyup', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll();openStopTimeRecord();");
                     document.getElementById("current_lembar_gelaran").setAttribute('onchange', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll();openStopTimeRecord();");
 
@@ -4484,18 +4493,18 @@
                 }
             }
 
-            var totalSambunganRoll = 0;
+            var totalCurrentSambunganRoll = 0;
 
             async function sumNewSambungan() {
-                totalSambunganRoll = 0;
+                totalCurrentSambunganRoll = 0;
 
                 let sambunganRollElements = document.getElementsByClassName("sambungan_roll");
 
                 for (let i = 0; i < sambunganRollElements.length; i++) {
-                    totalSambunganRoll += Number(sambunganRollElements[i].value);
+                    totalCurrentSambunganRoll += Number(sambunganRollElements[i].value);
                 }
 
-                $("#current_total_sambungan_roll").val(Number(totalSambunganRoll).round(2)).trigger("change");
+                $("#current_total_sambungan_roll").val(Number(totalCurrentSambunganRoll).round(2)).trigger("change");
             }
 
             async function storeSambungan() {

@@ -684,12 +684,12 @@
                                         <input type="number" class="form-control border-input" id="current_kepala_kain" name="current_kepala_kain" step=".01"
                                             onkeyup="
                                                 // calculateSisaKain();
-                                                calculateLembarPemakaian();
+                                                calculatePemakaianLembar();
                                                 calculateTotalPemakaian();
                                                 calculateShortRoll();"
                                             onchange="
                                                 // calculateSisaKain();
-                                                calculateLembarPemakaian();
+                                                calculatePemakaianLembar();
                                                 calculateTotalPemakaian();
                                                 calculateShortRoll();"
                                         >
@@ -2639,8 +2639,6 @@
                 let sisaGelaranVar = Number(document.getElementById("current_sisa_gelaran").value);
                 let sisaTidakBisaVar = latestStatus == "extension complete" ? Number(latestSisaTidakBisa) + Number(document.getElementById("current_sisa_tidak_bisa").value) : Number(document.getElementById("current_sisa_tidak_bisa").value);
 
-                let pActualConverted = 0;
-
                 if (document.getElementById("status_sambungan").value == "extension") {
                     pActualConverted = document.getElementById("current_sambungan").value;
                 } else {
@@ -2724,9 +2722,9 @@
             }
 
             // -Calculate Sambungan-
-            function calculateSambungan(sisaGelaran, unitSisaGelaran) {
-                let sisaGelaranVar = sisaGelaran > 0 ? Number(sisaGelaran) : Number(document.getElementById("current_sisa_gelaran").value);
-                let unitSisaGelaranVar = unitSisaGelaran ? unitSisaGelaran : document.getElementById("current_sisa_gelaran_unit").value;
+            function calculateSambungan(sisaGelaranParam, unitSisaGelaranParam) {
+                let sisaGelaranVar = sisaGelaranParam > 0 ? Number(sisaGelaranParam) : (sisaGelaran > 0 ? Number(sisaGelaran) : Number(document.getElementById("current_sisa_gelaran").value));
+                let unitSisaGelaranVar = unitSisaGelaranParam ? unitSisaGelaranParam : (unitSisaGelaran ? unitSisaGelaran : document.getElementById("current_sisa_gelaran_unit").value);
                 let qtyVar = Number(document.getElementById("current_qty").value);
                 let unitQtyVar = document.getElementById("current_unit").value;
                 let pActualVar = Number(document.getElementById('p_act').value);
@@ -2757,7 +2755,14 @@
                     sisaGelaranConverted = conversion(sisaGelaranVar, unitQtyVar, unitSisaGelaranVar);
                 }
 
+                console.log("sisa gelaran = "+sisaGelaranVar, "kain actual = "+pActualConverted);
+
                 let estSambungan = pActualConverted - sisaGelaranConverted;
+
+                if (latestStatus == "need extension") {
+                    document.getElementById("current_sambungan").value = estSambungan.round(2);
+                    document.getElementById("current_total_pemakaian_roll").value = estSambungan.round(2);
+                }
 
                 return estSambungan.round(2);
             }
@@ -4415,18 +4420,18 @@
                 }
             }
 
-            var totalSambunganRoll = 0;
+            var totalCurrentSambunganRoll = 0;
 
             async function sumNewSambungan() {
-                totalSambunganRoll = 0;
+                totalCurrentSambunganRoll = 0;
 
                 let sambunganRollElements = document.getElementsByClassName("sambungan_roll");
 
                 for (let i = 0; i < sambunganRollElements.length; i++) {
-                    totalSambunganRoll += Number(sambunganRollElements[i].value);
+                    totalCurrentSambunganRoll += Number(sambunganRollElements[i].value);
                 }
 
-                $("#current_total_sambungan_roll").val(Number(totalSambunganRoll).round(2)).trigger("change");
+                $("#current_total_sambungan_roll").val(Number(totalCurrentSambunganRoll).round(2)).trigger("change");
             }
 
             async function storeSambungan() {
