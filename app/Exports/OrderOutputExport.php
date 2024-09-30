@@ -42,6 +42,18 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
         $masterPlanDateFilter = " between '".$this->dateFrom."' and '".$this->dateTo."'";
         $masterPlanDateFilter1 = " between '".date('Y-m-d', strtotime('-1 days', strtotime($this->dateFrom)))."' and '".$this->dateTo."'";
 
+        $supplier = DB::connection('mysql_sb')->table('mastersupplier')->
+            selectRaw('Id_Supplier as id, Supplier as name')->
+            leftJoin('act_costing', 'act_costing.id_buyer', '=', 'mastersupplier.Id_Supplier')->
+            where('mastersupplier.tipe_sup', 'C')->
+            where('status', '!=', 'CANCEL')->
+            where('type_ws', 'STD')->
+            where('cost_date', '>=', '2023-01-01')->
+            where('Id_Supplier', $this->buyer)->
+            orderBy('Supplier', 'ASC')->
+            groupBy('Id_Supplier', 'Supplier')->
+            first();
+
         $orderGroupSql = MasterPlan::selectRaw("
                 master_plan.tgl_plan tanggal,
                 act_costing.kpno ws,
@@ -189,6 +201,7 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
         return view('sewing.export.order-output-export', [
             'order' => $this->order,
             'buyer' => $this->buyer,
+            'buyerName' => $supplier ? $supplier->name : null,
             'groupBy' => $this->groupBy,
             'dateFrom' => $this->dateFrom,
             'dateTo' => $this->dateTo,
