@@ -1740,6 +1740,8 @@
                             showConfirmButton: true,
                             confirmButtonText: 'Oke',
                             confirmButtonColor: "#6531a0",
+                        }).then(() => {
+                            // location.reload();
                         });
                     }
                 });
@@ -4076,7 +4078,7 @@
                             confirmButtonText: 'Oke',
                             confirmButtonColor: "#6531a0",
                         }).then(() => {
-                            location.reload();
+                            // location.reload();
                         });
                     }
                 });
