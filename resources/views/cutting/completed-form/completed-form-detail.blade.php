@@ -772,11 +772,13 @@
                                     <div class="input-group input-group-sm mb-3">
                                         <input type="number" class="form-control form-control-sm border-input" id="current_reject" name="current_reject" step=".01"
                                             onkeyup="
+                                                calculatePemakaianLembar();
                                                 calculateTotalPemakaian();
                                                 calculateShortRoll();
                                                 calculateSisaKain();
                                             "
                                             onchange="
+                                                calculatePemakaianLembar();
                                                 calculateTotalPemakaian();
                                                 calculateShortRoll();
                                                 calculateSisaKain();
@@ -806,16 +808,26 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-3">
+                            <div class="col-4">
                                 <div class="mb-3">
-                                    <label class="form-label label-calc"><small><b>Pemakaian Lembar</b></small></label>
+                                    <label class="form-label label-input"><small><b>Sisa Kain</b></small></label>
                                     <div class="input-group input-group-sm mb-3">
-                                        <input type="number" class="form-control form-control-sm border-calc" id="current_pemakaian_lembar" name="current_pemakaian_lembar" step=".01" readonly>
+                                        <input type="number" class="form-control form-control-sm border-input" id="current_sisa_kain" name="current_sisa_kain" step=".01"
+                                            onkeyup="
+                                                calculateShortRoll();
+                                            "
+                                            onchange="
+                                                calculateShortRoll();
+                                            ">
                                         <span class="input-group-text input-group-unit"></span>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-6 col-md-3">
+                            <div class="col-4" id="total-sambungan-section">
+                                <label class="form-label label-input"><small><b>Sambungan Roll</b></small></label>
+                                <input type="number" class="form-control form-control-sm" id="current_total_sambungan_roll" name="current_total_sambungan_roll" onchange="calculatePemakaianLembar();calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll();">
+                            </div>
+                            <div class="col-4">
                                 <div class="row align-items-end">
                                     <div class="col-8">
                                         <div class="mb-3">
@@ -834,38 +846,21 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-3">
+                            <div class="col-6">
                                 <div class="mb-3">
-                                    <label class="form-label label-input"><small><b>Sisa Kain</b></small></label>
+                                    <label class="form-label label-calc"><small><b>Pemakaian Lembar</b></small></label>
                                     <div class="input-group input-group-sm mb-3">
-                                        <input type="number" class="form-control form-control-sm border-input" id="current_sisa_kain" name="current_sisa_kain" step=".01"
-                                            onkeyup="
-                                                calculateShortRoll();
-                                            "
-                                            onchange="
-                                                calculateShortRoll();
-                                            ">
+                                        <input type="number" class="form-control form-control-sm border-calc" id="current_pemakaian_lembar" name="current_pemakaian_lembar" step=".01" readonly>
                                         <span class="input-group-text input-group-unit"></span>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-6" id="total-sambungan-section">
-                                <div class="row align-items-end mb-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label label-input"><small><b>Total Sambungan Roll</b></small></label>
-                                        <input type="number" class="form-control form-control-sm" id="current_total_sambungan_roll" name="current_total_sambungan_roll" readonly onchange="calculatePemakaianLembar();calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll();/*calculatePemakaianLembar();*/">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <button type="button" class="btn btn-primary btn-sm btn-block float-end fw-bold" onclick="addNewSambungan()"><i class="fa-regular fa-square-plus"></i> SAMBUNGAN</button>
-                                        <input type="hidden" class="form-control form-control-sm" id="current_jumlah_sambungan" name="current_jumlah_sambungan">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6" id="sambungan-section">
-                                <div class="row">
-                                    <div class="col-12 mb-1">
-                                        <label class="form-label label-input"><small><b>Sambungan Roll</b></small></label>
-                                        <input type="number" class="form-control form-control-sm sambungan_roll" id="sambungan_roll_0" name="sambungan_roll[0]" onkeyup="sumNewSambungan()" onchange="sumNewSambungan()">
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    <label class="form-label label-calc"><small><b>Tot. Pemakaian Roll</b></small></label>
+                                    <div class="input-group input-group-sm mb-3">
+                                        <input type="number" class="form-control form-control-sm border-calc" id="current_total_pemakaian_roll" name="current_total_pemakaian_roll" step=".01" readonly>
+                                        <span class="input-group-text input-group-unit"></span>
                                     </div>
                                 </div>
                             </div>
@@ -1208,7 +1203,21 @@
                 document.getElementById("total-berat-amparan").classList.add("d-none");
             }
 
-            scannedItemTableTbody.appendChild(tr);
+            tr.onclick = async function() {
+                clearSpreadingForm();
+
+                for (let i = 0; i < summaryItemTableTbody.children.length; i++) {
+                    summaryItemTableTbody.children[i].classList.remove('selected');
+                }
+
+                this.classList.add('selected');
+
+                setSpreadingForm(data);
+
+                location.href = '#spreading-form-card';
+            };
+
+            summaryItemTableTbody.appendChild(tr);
 
             totalRow++;
             latestStatus != 'need extension' ? totalScannedItem++ : '';
@@ -1310,6 +1319,7 @@
             data.unit ? document.getElementById("current_sambungan_unit").value = (data.unit != "KGM" ? "METER" : "KGM") : '';
             data.sisa_gelaran ? document.getElementById("current_sisa_gelaran").value = data.sisa_gelaran : '';
             data.sambungan ? document.getElementById("current_sambungan").value = data.sambungan : '';
+            data.sambungan_roll ? document.getElementById("current_total_sambungan_roll").value = data.sambungan_roll : '';
             data.est_amparan ? document.getElementById("current_est_amparan").value = data.est_amparan : '';
             data.lembar_gelaran ? document.getElementById("lembar_gelaran").value = data.lembar_gelaran : '';
             data.lembar_gelaran ? document.getElementById("current_lembar_gelaran").value = data.lembar_gelaran : '';
@@ -1317,6 +1327,7 @@
             data.sisa_tidak_bisa ? document.getElementById("current_sisa_tidak_bisa").value = data.sisa_tidak_bisa : '';
             data.reject ? document.getElementById("current_reject").value = data.reject : '';
             data.sisa_kain ? document.getElementById("current_sisa_kain").value = data.sisa_kain : '';
+            data.pemakaian_lembar ? document.getElementById("current_pemakaian_lembar").value = data.pemakaian_lembar : '';
             data.total_pemakaian_roll ? document.getElementById("current_total_pemakaian_roll").value = data.total_pemakaian_roll : '';
             data.short_roll ? document.getElementById("current_short_roll").value = data.short_roll : '';
             data.piping ? document.getElementById("current_piping").value = data.piping : '';
@@ -1376,7 +1387,6 @@
             document.getElementById("current_total_pemakaian_roll").value = 0;
             document.getElementById("current_short_roll").value = 0;
             document.getElementById("current_piping").value = 0;
-            document.getElementById("current_remark").value = 0;
 
             let inputGroupUnit = document.getElementsByClassName("input-group-unit");
 
@@ -1612,7 +1622,7 @@
 
             let pActualConverted = 0;
 
-            if (document.getElementById("status_sambungan").value == "extension") {
+            if (document.getElementById("current_sambungan").value != 0) {
                 pActualConverted = document.getElementById("current_sambungan").value;
             } else {
                 if (unitQtyVar != "KGM") {
@@ -1684,7 +1694,7 @@
 
             let pActualConverted = 0;
 
-            if (document.getElementById("status_sambungan").value == "extension") {
+            if (document.getElementById("current_sambungan").value != 0) {
                 pActualConverted = document.getElementById("current_sambungan").value;
             } else {
                 if (unitQtyVar != "KGM") {
@@ -1730,7 +1740,7 @@
 
             let pActualConverted = 0;
 
-            if (document.getElementById("status_sambungan").value == "extension") {
+            if (document.getElementById("current_sambungan").value != 0) {
                 pActualConverted = document.getElementById("current_sambungan").value;
             } else {
                 if (unitQtyVar != "KGM") {
@@ -1746,7 +1756,7 @@
             // let shortRoll = pActualConverted * lembarGelaranVar + kepalaKainVar + pipingVar + sisaKainVar + rejectVar + sambunganVar - qtyVar;
             let shortRoll = ((pActualConverted * lembarGelaranVar) + sambunganVar + sisaGelaranVar + sambunganRollVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar) - qtyVar;
 
-            if (document.getElementById("status_sambungan").value == "extension" && sambunganVar != 0) {
+            if (sambunganVar != 0) {
                 shortRoll = 0;
             }
 
@@ -2085,200 +2095,200 @@
         }
 
         // Sambungan Module
-            var sambunganSection = document.getElementById("sambungan-section");
-            var totalSambunganSection = document.getElementById("total-sambungan-section");
-            var jumlahSambungan = document.getElementById("current_jumlah_sambungan");
+            // var sambunganSection = document.getElementById("sambungan-section");
+            // var totalSambunganSection = document.getElementById("total-sambungan-section");
+            // var jumlahSambungan = document.getElementById("current_jumlah_sambungan");
 
-            function showSambungan() {
-                sambunganSection.classList.remove('d-none');
-                totalSambunganSection.classList.remove('d-none');
-            }
+            // function showSambungan() {
+            //     sambunganSection.classList.remove('d-none');
+            //     totalSambunganSection.classList.remove('d-none');
+            // }
 
-            function hideSambungan() {
-                sambunganSection.classList.add('d-none');
-                totalSambunganSection.classList.add('d-none');
-            }
+            // function hideSambungan() {
+            //     sambunganSection.classList.add('d-none');
+            //     totalSambunganSection.classList.add('d-none');
+            // }
 
-            async function addNewSambungan() {
-                let currentSambunganRoll = document.getElementById('sambungan_roll_'+(jumlahSambungan.value-1));
+            // async function addNewSambungan() {
+            //     let currentSambunganRoll = document.getElementById('sambungan_roll_'+(jumlahSambungan.value-1));
 
-                console.log(currentSambunganRoll, jumlahSambungan.value);
+            //     console.log(currentSambunganRoll, jumlahSambungan.value);
 
-                if ((currentSambunganRoll) && (currentSambunganRoll.value > 0)) {
-                    document.getElementById("loading").classList.remove("d-none");
+            //     if ((currentSambunganRoll) && (currentSambunganRoll.value > 0)) {
+            //         document.getElementById("loading").classList.remove("d-none");
 
-                    await storeSambungan();
+            //         await storeSambungan();
 
-                    document.getElementById("loading").classList.add("d-none");
+            //         document.getElementById("loading").classList.add("d-none");
 
-                    // row
-                    let divRow = document.createElement('div');
-                    divRow.setAttribute('class', 'row');
+            //         // row
+            //         let divRow = document.createElement('div');
+            //         divRow.setAttribute('class', 'row');
 
-                    // 1
-                    let divCol1 = document.createElement('div');
-                    divCol1.setAttribute('class', 'col-12 mb-1');
+            //         // 1
+            //         let divCol1 = document.createElement('div');
+            //         divCol1.setAttribute('class', 'col-12 mb-1');
 
-                    divCol1.innerHTML=`
-                        <div class="input-group input-group-sm">
-                            <input type="number" class="form-control form-control-sm border-input sambungan_roll" id="sambungan_roll_`+jumlahSambungan.value+`" name="sambungan_roll[`+jumlahSambungan.value+`]" step=".0001" onkeyup="sumNewSambungan()" onchange="sumNewSambungan();"
-                            <span class="input-group-text input-group-unit"></span>
-                        </div>
-                    `;
+            //         divCol1.innerHTML=`
+            //             <div class="input-group input-group-sm">
+            //                 <input type="number" class="form-control form-control-sm border-input sambungan_roll" id="sambungan_roll_`+jumlahSambungan.value+`" name="sambungan_roll[`+jumlahSambungan.value+`]" step=".0001" onkeyup="sumNewSambungan()" onchange="sumNewSambungan();"
+            //                 <span class="input-group-text input-group-unit"></span>
+            //             </div>
+            //         `;
 
-                    divRow.appendChild(divCol1);
-                    sambunganSection.appendChild(divRow);
+            //         divRow.appendChild(divCol1);
+            //         sambunganSection.appendChild(divRow);
 
-                    jumlahSambungan.value++;
-                }
-            }
+            //         jumlahSambungan.value++;
+            //     }
+            // }
 
-            var totalCurrentSambunganRoll = 0;
+            // var totalCurrentSambunganRoll = 0;
 
-            async function sumNewSambungan() {
-                totalCurrentSambunganRoll = 0;
+            // async function sumNewSambungan() {
+            //     totalCurrentSambunganRoll = 0;
 
-                let sambunganRollElements = document.getElementsByClassName("sambungan_roll");
+            //     let sambunganRollElements = document.getElementsByClassName("sambungan_roll");
 
-                for (let i = 0; i < sambunganRollElements.length; i++) {
-                    totalCurrentSambunganRoll += Number(sambunganRollElements[i].value);
-                }
+            //     for (let i = 0; i < sambunganRollElements.length; i++) {
+            //         totalCurrentSambunganRoll += Number(sambunganRollElements[i].value);
+            //     }
 
-                $("#current_total_sambungan_roll").val(Number(totalCurrentSambunganRoll).round(2)).trigger("change");
-            }
+            //     $("#current_total_sambungan_roll").val(Number(totalCurrentSambunganRoll).round(2)).trigger("change");
+            // }
 
-            async function storeSambungan() {
-                document.getElementById("loading").classList.remove("d-none");
+            // async function storeSambungan() {
+            //     document.getElementById("loading").classList.remove("d-none");
 
-                let spreadingForm = new FormData(document.getElementById("spreading-form"));
+            //     let spreadingForm = new FormData(document.getElementById("spreading-form"));
 
-                let dataObj = {
-                    "no_form_cut_input": $("#no_form").val(),
-                    "color_act": $("#color_act").val(),
-                    "detail_item": $("#detail_item").val(),
-                    "no_meja": $("#no_meja").val(),
-                    "metode": method,
-                    "lap": lap
-                }
+            //     let dataObj = {
+            //         "no_form_cut_input": $("#no_form").val(),
+            //         "color_act": $("#color_act").val(),
+            //         "detail_item": $("#detail_item").val(),
+            //         "no_meja": $("#no_meja").val(),
+            //         "metode": method,
+            //         "lap": lap
+            //     }
 
-                spreadingForm.forEach((value, key) => dataObj[key] = value);
+            //     spreadingForm.forEach((value, key) => dataObj[key] = value);
 
-                return $.ajax({
-                    url: '{{ route('store-this-time-form-cut-input') }}',
-                    type: 'post',
-                    dataType: 'json',
-                    data: dataObj,
-                    success: function(res) {
-                        document.getElementById("loading").classList.add("d-none");
+            //     return $.ajax({
+            //         url: '{{ route('store-this-time-form-cut-input') }}',
+            //         type: 'post',
+            //         dataType: 'json',
+            //         data: dataObj,
+            //         success: function(res) {
+            //             document.getElementById("loading").classList.add("d-none");
 
-                        if (res) {
-                            console.log(res);
-                        }
-                    }, error: function(jqXHR) {
-                        document.getElementById("loading").classList.add("d-none");
+            //             if (res) {
+            //                 console.log(res);
+            //             }
+            //         }, error: function(jqXHR) {
+            //             document.getElementById("loading").classList.add("d-none");
 
-                        console.log(jqXHR);
+            //             console.log(jqXHR);
 
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Koneksi Hilang',
-                            text: 'Terjadi Kesalahan',
-                            showConfirmButton: true,
-                            confirmButtonText: 'Oke',
-                            confirmButtonColor: "#6531a0",
-                        }).then(() => {
-                            // location.reload();
-                        });
-                    }
-                });
-            }
+            //             Swal.fire({
+            //                 icon: 'error',
+            //                 title: 'Koneksi Hilang',
+            //                 text: 'Terjadi Kesalahan',
+            //                 showConfirmButton: true,
+            //                 confirmButtonText: 'Oke',
+            //                 confirmButtonColor: "#6531a0",
+            //             }).then(() => {
+            //                 // location.reload();
+            //             });
+            //         }
+            //     });
+            // }
 
-            function checkSambungan(detailId) {
-                $.ajax({
-                    url: '{{ route('check-sambungan') }}/' + detailId,
-                    type: 'get',
-                    dataType: 'json',
-                    success: async function(res) {
-                        if (res.count > 0) {
-                            await setSambungan(res.data);
+            // function checkSambungan(detailId) {
+            //     $.ajax({
+            //         url: '{{ route('check-sambungan') }}/' + detailId,
+            //         type: 'get',
+            //         dataType: 'json',
+            //         success: async function(res) {
+            //             if (res.count > 0) {
+            //                 await setSambungan(res.data);
 
-                            sumNewSambungan();
-                        }
-                    }
-                });
-            }
+            //                 sumNewSambungan();
+            //             }
+            //         }
+            //     });
+            // }
 
-            async function setSambungan(data) {
-                jumlahSambungan.value = 0;
+            // async function setSambungan(data) {
+            //     jumlahSambungan.value = 0;
 
-                sambunganSection.innerHTML = "";
+            //     sambunganSection.innerHTML = "";
 
-                let divRow = document.createElement('div');
-                divRow.setAttribute('class', 'row');
+            //     let divRow = document.createElement('div');
+            //     divRow.setAttribute('class', 'row');
 
-                data.forEach((element, index, array) => {
-                    // 1
-                    let divCol1 = document.createElement('div');
-                    divCol1.setAttribute('class', 'col-12 mb-1');
+            //     data.forEach((element, index, array) => {
+            //         // 1
+            //         let divCol1 = document.createElement('div');
+            //         divCol1.setAttribute('class', 'col-12 mb-1');
 
-                    divCol1.innerHTML=`
-                        `+(index == 0 ? `<label class="form-label"><small><b>Sambungan Roll</b></small></label>`: `` )+`
-                        <div class="input-group input-group-sm">
-                            <input type="number" class="form-control form-control-sm border-input sambungan_roll" id="sambungan_roll_`+index+`" name="sambungan_roll[`+index+`]" step=".0001" onkeyup="sumNewSambungan()" onchange="sumNewSambungan()" value="`+element.sambungan_roll+`">
-                        </div>
-                    `;
+            //         divCol1.innerHTML=`
+            //             `+(index == 0 ? `<label class="form-label"><small><b>Sambungan Roll</b></small></label>`: `` )+`
+            //             <div class="input-group input-group-sm">
+            //                 <input type="number" class="form-control form-control-sm border-input sambungan_roll" id="sambungan_roll_`+index+`" name="sambungan_roll[`+index+`]" step=".0001" onkeyup="sumNewSambungan()" onchange="sumNewSambungan()" value="`+element.sambungan_roll+`">
+            //             </div>
+            //         `;
 
-                    // row
-                    divRow.appendChild(divCol1);
-                    sambunganSection.appendChild(divRow);
+            //         // row
+            //         divRow.appendChild(divCol1);
+            //         sambunganSection.appendChild(divRow);
 
-                    jumlahSambungan.value++;
-                });
+            //         jumlahSambungan.value++;
+            //     });
 
-                // 1
-                let divCol1 = document.createElement('div');
-                divCol1.setAttribute('class', 'col-12 mb-1');
+            //     // 1
+            //     let divCol1 = document.createElement('div');
+            //     divCol1.setAttribute('class', 'col-12 mb-1');
 
-                divCol1.innerHTML=`
-                    <div class="input-group input-group-sm">
-                        <input type="number" class="form-control form-control-sm border-input sambungan_roll" id="sambungan_roll_`+jumlahSambungan.value+`" name="sambungan_roll[`+jumlahSambungan.value+`]" step=".0001" onkeyup="sumNewSambungan()" onchange="sumNewSambungan()" value="">
-                    </div>
-                `;
+            //     divCol1.innerHTML=`
+            //         <div class="input-group input-group-sm">
+            //             <input type="number" class="form-control form-control-sm border-input sambungan_roll" id="sambungan_roll_`+jumlahSambungan.value+`" name="sambungan_roll[`+jumlahSambungan.value+`]" step=".0001" onkeyup="sumNewSambungan()" onchange="sumNewSambungan()" value="">
+            //         </div>
+            //     `;
 
-                // row
-                divRow.appendChild(divCol1);
-                sambunganSection.appendChild(divRow);
+            //     // row
+            //     divRow.appendChild(divCol1);
+            //     sambunganSection.appendChild(divRow);
 
-                jumlahSambungan.value++;
-            }
+            //     jumlahSambungan.value++;
+            // }
 
-            function resetSambungan() {
-                $("#current_total_sambungan_roll").val("0");
+            // function resetSambungan() {
+            //     $("#current_total_sambungan_roll").val("0");
 
-                sambunganSection.innerHTML = "";
+            //     sambunganSection.innerHTML = "";
 
-                // row
-                let divRow = document.createElement('div');
-                divRow.setAttribute('class', 'row');
+            //     // row
+            //     let divRow = document.createElement('div');
+            //     divRow.setAttribute('class', 'row');
 
-                // 1
-                let divCol1 = document.createElement('div');
-                divCol1.setAttribute('class', 'col-12 mb-1');
+            //     // 1
+            //     let divCol1 = document.createElement('div');
+            //     divCol1.setAttribute('class', 'col-12 mb-1');
 
-                divCol1.innerHTML=`
-                    <label class="form-label"><small><b>Sambungan Roll</b></small></label>
-                    <div class="input-group input-group-sm">
-                        <input type="number" class="form-control form-control-sm border-input sambungan_roll" id="sambungan_roll_0" name="sambungan_roll[0]" step=".0001" onkeyup="sumNewSambungan()" onchange="sumNewSambungan()">
-                        <span class="input-group-text input-group-unit"></span>
-                    </div>
-                `;
+            //     divCol1.innerHTML=`
+            //         <label class="form-label"><small><b>Sambungan Roll</b></small></label>
+            //         <div class="input-group input-group-sm">
+            //             <input type="number" class="form-control form-control-sm border-input sambungan_roll" id="sambungan_roll_0" name="sambungan_roll[0]" step=".0001" onkeyup="sumNewSambungan()" onchange="sumNewSambungan()">
+            //             <span class="input-group-text input-group-unit"></span>
+            //         </div>
+            //     `;
 
-                // row
-                divRow.appendChild(divCol1);
+            //     // row
+            //     divRow.appendChild(divCol1);
 
-                sambunganSection.appendChild(divRow);
+            //     sambunganSection.appendChild(divRow);
 
-                jumlahSambungan.value = 1;
-            }
+            //     jumlahSambungan.value = 1;
+            // }
     </script>
 @endsection
