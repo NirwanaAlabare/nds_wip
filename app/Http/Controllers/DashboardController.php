@@ -715,8 +715,8 @@ class DashboardController extends Controller
                                 output_rfts rfts
                             inner join master_plan on master_plan.id = rfts.master_plan_id
                             where
-                                (MONTH(rfts.updated_at) = '08' AND YEAR(rfts.updated_at) = '2024') and
-                                (MONTH(master_plan.tgl_plan) = '08' AND YEAR(master_plan.tgl_plan) = '2024')
+                                (MONTH(rfts.updated_at) = '".$month."' AND YEAR(rfts.updated_at) = '".$year."') and
+                                (MONTH(master_plan.tgl_plan) = '".$month."' AND YEAR(master_plan.tgl_plan) = '".$year."')
                             GROUP BY
                                 master_plan.id, master_plan.tgl_plan, DATE(rfts.updated_at)
                             having tgl_plan != tgl_output
