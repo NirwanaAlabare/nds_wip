@@ -2833,8 +2833,7 @@
                 data.sisa_kain ? document.getElementById("current_sisa_kain").value = data.sisa_kain : '';
                 data.total_pemakaian_roll ? document.getElementById("current_total_pemakaian_roll").value = data.total_pemakaian_roll : '';
                 data.short_roll ? document.getElementById("current_short_roll").value = data.short_roll : '';
-                data.piping ? document.getElementById("current_piping").value = data.piping : '';
-                data.remark ? document.getElementById("current_remark").value = data.remark : '';
+                data.piping ? document.getElementById("current_piping").value = data.piping : '';justin
                 document.getElementById("current_berat_amparan").value = latestBerat;
 
                 if (data.unit == "KGM" || data.unit == "KG") {
