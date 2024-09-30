@@ -132,7 +132,7 @@
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i <= 9) {
+            if (i <= 9 || i == 17 || i == 21 || i == 23 || i == 25 || i == 26 || i == 27 || i == 28 || i == 29 || i == 30 || i == 31) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" />');
 
