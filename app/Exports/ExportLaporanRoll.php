@@ -77,7 +77,7 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                 b.detail_item,
                 COALESCE(b.roll_buyer, b.roll) roll,
                 COALESCE(b.lot, '-') lot,
-                COALESCE(MAX(before_roll.qty), b.qty) qty_roll,
+                b.qty qty_roll,
                 b.unit unit_roll,
                 COALESCE(b.berat_amparan, '-') berat_amparan,
                 b.est_amparan,
@@ -105,7 +105,7 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                 left join users meja on meja.id = a.no_meja
                 left join (SELECT marker_input.*, SUM(marker_input_detail.ratio) total_ratio FROM marker_input LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id GROUP BY marker_input.id) mrk on a.id_marker = mrk.kode
                 left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = mrk.act_costing_id
-                left join (SELECT * FROM form_cut_input_detail WHERE id_roll IS NOT NULL GROUP BY id_roll) before_roll ON b.id_roll = before_roll.id_roll AND b.id > before_roll.id
+                left join (SELECT * FROM form_cut_input_detail WHERE id_roll IS NOT NULL GROUP BY id) before_roll ON b.id_roll = before_roll.id_roll AND b.id > before_roll.id
             where
                 (a.cancel = 'N'  OR a.cancel IS NULL)
                 AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
@@ -114,8 +114,8 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
             group by
                 b.id
             order by
-                act_costing_ws asc,
-                a.no_form desc,
+                a.waktu_mulai asc,
+                a.waktu_selesai asc,
                 b.id asc
         ");
 

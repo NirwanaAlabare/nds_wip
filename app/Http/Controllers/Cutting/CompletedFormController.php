@@ -236,7 +236,6 @@ class CompletedFormController extends Controller
             "current_total_pemakaian_roll" => "required",
             "current_short_roll" => "required",
             "current_piping" => "required",
-            "current_remark" => "required",
             "current_sambungan" => "required",
             "p_act" => "required"
         ]);
@@ -258,16 +257,17 @@ class CompletedFormController extends Controller
                 "unit" => $itemUnit,
                 "sisa_gelaran" => $validatedRequest['current_sisa_gelaran'],
                 "sambungan" => $validatedRequest['current_sambungan'],
+                "sambungan_roll" => $request->current_total_sambungan_roll,
                 "est_amparan" => $validatedRequest['current_est_amparan'],
                 "lembar_gelaran" => $validatedRequest['current_lembar_gelaran'],
                 "kepala_kain" => $validatedRequest['current_kepala_kain'],
                 "sisa_tidak_bisa" => $validatedRequest['current_sisa_tidak_bisa'],
                 "reject" => $validatedRequest['current_reject'],
                 "sisa_kain" => $validatedRequest['current_sisa_kain'],
+                "pemakaian_lembar" => $request->current_pemakaian_lembar,
                 "total_pemakaian_roll" => $validatedRequest['current_total_pemakaian_roll'],
                 "short_roll" => $validatedRequest['current_short_roll'],
-                "piping" => $validatedRequest['current_piping'],
-                "remark" => $validatedRequest['current_remark'],
+                "piping" => $validatedRequest['current_piping']
             ]);
 
         if ($updateTimeRecordSummary) {
