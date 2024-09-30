@@ -89,7 +89,7 @@
         @endphp
         @foreach ($data as $item)
             <tr>
-                <td>{{ $no++ }}.</td>
+                <td>{{ $latestStatus != 'need extension' ? $no++ : '' }}</td>
                 <td>{{ $item->bulan }}</td>
                 <td>{{ $item->tgl_input }}</td>
                 <td>{{ $item->no_form_cut_input }}</td>
