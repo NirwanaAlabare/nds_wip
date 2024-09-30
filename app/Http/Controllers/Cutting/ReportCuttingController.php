@@ -344,7 +344,7 @@ class ReportCuttingController extends Controller
 
     public function detailPemakaianRoll (Request $request)
     {
-        $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll, id_item, item_desc, no_lot, no_roll, satuan, COALESCE(retur.tgl_dok, '-') tgl_dok from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb LEFT JOIN (select * from whs_inmaterial_fabric where no_dok like '%RI%' and supplier = 'Production - Cutting') retur on a.no_bppb = retur.no_invoice WHERE a.no_req = '".$request->no_req."' and b.id_item = '".$request->id_item."' and b.status = 'Y' GROUP BY id_roll"));
+        $rollIdsArr = collect(DB::connection("mysql_sb")->select("select id_roll, id_item, item_desc, no_lot, no_roll, satuan, COALESCE(retur.tgl_dok, '-') tgl_dok, b.qty_out from whs_bppb_h a INNER JOIN whs_bppb_det b on b.no_bppb = a.no_bppb LEFT JOIN (select * from whs_inmaterial_fabric where no_dok like '%RI%' and supplier = 'Production - Cutting') retur on a.no_bppb = retur.no_invoice WHERE a.no_req = '".$request->no_req."' and b.id_item = '".$request->id_item."' and b.status = 'Y' GROUP BY id_roll"));
 
         $rollData = collect();
         foreach ($rollIdsArr as $rollId) {
@@ -376,7 +376,7 @@ class ReportCuttingController extends Controller
                     "detail_item" => $rollId->item_desc,
                     "lot" => $rollId->no_lot,
                     "roll" => $rollId->no_roll,
-                    "qty" => 0,
+                    "qty" => $rollId->qty_out,
                     "unit" => $rollId->satuan,
                     "total_pemakaian_roll" => 0,
                     "total_sisa_kain" => 0,

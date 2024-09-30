@@ -112,11 +112,8 @@ class RollController extends Controller
                 group by
                     b.id
                 order by
-                    act_costing_ws asc,
-                    a.no_form desc,
-                    b.id desc,
-                    b.id_roll desc,
-                    b.id_item desc
+                    a.waktu_mulai asc,
+                    b.id asc
             ");
 
             return DataTables::of($data_pemakaian)->toJson();
