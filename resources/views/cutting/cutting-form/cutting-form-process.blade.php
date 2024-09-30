@@ -2302,8 +2302,10 @@
 
                 let estSambungan = pActualConverted - sisaGelaranConverted;
 
-                document.getElementById("current_sambungan").value = estSambungan.round(2);
-                document.getElementById("current_total_pemakaian_roll").value = estSambungan.round(2);
+                if (latestStatus == "need extension" || sisaGelaran > 0) {
+                    document.getElementById("current_sambungan").value = estSambungan.round(2);
+                    document.getElementById("current_total_pemakaian_roll").value = estSambungan.round(2);
+                }
 
                 return estSambungan.round(2);
             }

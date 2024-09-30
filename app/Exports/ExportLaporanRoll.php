@@ -72,12 +72,12 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                 a.unit_comma_p_act unit_comma_actual,
                 a.l_act lebar_actual,
                 a.unit_l_act unit_lebar_actual,
-                COALESCE(id_roll, '-') id_roll,
-                id_item,
-                detail_item,
+                COALESCE(b.id_roll, '-') id_roll,
+                b.id_item,
+                b.detail_item,
                 COALESCE(b.roll_buyer, b.roll) roll,
                 COALESCE(b.lot, '-') lot,
-                b.qty qty_roll,
+                COALESCE(MAX(before_roll.qty), b.qty) qty_roll,
                 b.unit unit_roll,
                 COALESCE(b.berat_amparan, '-') berat_amparan,
                 b.est_amparan,
@@ -95,8 +95,8 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                 COALESCE(b.sisa_kain, 0) sisa_kain,
                 b.pemakaian_lembar,
                 b.total_pemakaian_roll,
-                b.short_roll,
-                ROUND(((b.short_roll / b.qty) * 100), 2) short_roll_percentage,
+                ROUND((CASE WHEN MAX(before_roll.qty) > 0 THEN (SUM(before_roll.total_pemakaian_roll)+b.total_pemakaian_roll) - MAX(before_roll.qty) ELSE b.short_roll END), 2) short_roll,
+                ROUND((CASE WHEN MAX(before_roll.qty) > 0 THEN ((SUM(before_roll.total_pemakaian_roll)+b.total_pemakaian_roll) - MAX(before_roll.qty))/MAX(before_roll.qty) ELSE (b.short_roll / b.qty) END), 2) short_roll_percentage,
                 b.status,
                 a.operator
             from
@@ -104,11 +104,12 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                 left join form_cut_input_detail b on a.no_form = b.no_form_cut_input
                 left join users meja on meja.id = a.no_meja
                 left join (SELECT marker_input.*, SUM(marker_input_detail.ratio) total_ratio FROM marker_input LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id GROUP BY marker_input.id) mrk on a.id_marker = mrk.kode
-                left join master_sb_ws on master_sb_ws.id_act_cost = mrk.act_costing_id
+                left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = mrk.act_costing_id
+                left join (SELECT * FROM form_cut_input_detail WHERE id_roll IS NOT NULL GROUP BY id_roll) before_roll ON b.id_roll = before_roll.id_roll AND b.id > before_roll.id
             where
                 (a.cancel = 'N'  OR a.cancel IS NULL)
                 AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
-                and id_item is not null
+                and b.id_item is not null
                 " . $additionalQuery . "
             group by
                 b.id
