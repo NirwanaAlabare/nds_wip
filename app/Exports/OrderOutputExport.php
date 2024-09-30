@@ -137,7 +137,7 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                         DATE( rfts.updated_at ) ".$masterPlanDateFilter."
                         AND master_plan.tgl_plan ".$masterPlanDateFilter1."
                         ".($this->order ? " AND master_plan.id_ws = '".$this->order."'" : "")."
-                        ".($this->order ? " AND act_costing.id_buyer = '".$this->buyer."'" : "")."
+                        ".($this->buyer ? " AND act_costing.id_buyer = '".$this->buyer."'" : "")."
                     GROUP BY
                         master_plan.id_ws,
                         DATE ( rfts.updated_at ),
