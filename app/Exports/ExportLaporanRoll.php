@@ -96,7 +96,7 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                 b.pemakaian_lembar,
                 b.total_pemakaian_roll,
                 ROUND((CASE WHEN MAX(before_roll.qty) > 0 THEN (SUM(before_roll.total_pemakaian_roll)+b.total_pemakaian_roll) - MAX(before_roll.qty) ELSE b.short_roll END), 2) short_roll,
-                ROUND((CASE WHEN MAX(before_roll.qty) > 0 THEN ((SUM(before_roll.total_pemakaian_roll)+b.total_pemakaian_roll) - MAX(before_roll.qty))/MAX(before_roll.qty) ELSE (b.short_roll / b.qty) END), 2) short_roll_percentage,
+                ROUND((CASE WHEN MAX(before_roll.qty) > 0 THEN ((SUM(before_roll.total_pemakaian_roll)+b.total_pemakaian_roll) - MAX(before_roll.qty))/MAX(before_roll.qty)*100 ELSE (b.short_roll / b.qty)*100 END), 2) short_roll_percentage,
                 b.status,
                 a.operator
             from
