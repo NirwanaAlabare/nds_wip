@@ -19,6 +19,7 @@
         <th>Roll</th>
         <th>Qty</th>
         <th>Total Pemakaian Kain</th>
+        <th>Sisa Kain</th>
         <th>Total Short Roll</th>
         <th>Unit</th>
     </tr>
@@ -31,6 +32,7 @@
             <td>{{ $roll->roll }}</td>
             <td>{{ $roll->qty }}</td>
             <td>{{ $roll->total_pemakaian_roll }}</td>
+            <td>{{ $roll->sisa_kain }}</td>
             <td>{{ $roll->total_short_roll }}</td>
             <td>{{ $roll->unit }}</td>
         </tr>

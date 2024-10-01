@@ -71,6 +71,7 @@ class ExportPemakaianKain implements FromView, WithEvents, ShouldAutoSize /*With
                     lot,
                     COALESCE(roll_buyer, roll) roll,
                     MAX(qty) qty,
+                    MIN(sisa_kain) sisa_kain,
                     unit,
                     ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
                     ROUND(SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END), 2) total_short_roll
@@ -115,7 +116,7 @@ class ExportPemakaianKain implements FromView, WithEvents, ShouldAutoSize /*With
         $currentRow = 1;
 
         $event->sheet->styleCells(
-            'A3:N' . ($event->getConcernable()->rowCount+2+1),
+            'A3:O' . ($event->getConcernable()->rowCount+2+1),
             [
                 'borders' => [
                     'allBorders' => [
