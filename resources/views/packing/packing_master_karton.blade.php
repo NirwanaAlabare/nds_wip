@@ -293,10 +293,10 @@
                                                             onclick="toggle(this);">
                                                     </th>
                                                     <th>PO</th>
-                                                    <th>No. Carton</th>
+                                                    <th>No. Karton</th>
                                                     <th>Notes</th>
-                                                    <th>Qty Isi</th>
-                                                    <th>Qty Carton</th>
+                                                    <th>Qty Max Karton</th>
+                                                    <th>Qty Karton</th>
                                                 </tr>
                                             </thead>
                                         </table>
@@ -579,7 +579,7 @@
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Shipment Akhir</b></small></label>
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                        oninput="dataTableReload()" value="{{ date('Y-m-d') }}">
+                        oninput="dataTableReload()" value="{{ $tgl_akhir_fix }}">
                 </div>
                 {{-- <div class="mb-3">
                     <a onclick="export_excel_packing_master_karton()"
@@ -721,16 +721,16 @@
             console.log(formattedTodayA);
             $("#tgl-awal").val(formattedTodayA).trigger("change");
 
-            const todayE = new Date();
-            const yyyyE = todayE.getFullYear();
-            let mmE = todayE.getMonth() + 4; // Months start at 0!
-            let ddE = todayE.getDate();
-            if (ddE < 10) ddE = '0' + ddE;
-            if (mmE < 10) mmE = '0' + mmE;
-            const formattedTodayE = yyyyE + '-' + mmE + '-' + ddE;
-            console.log(formattedTodayE);
+            // const todayE = new Date();
+            // const yyyyE = todayE.getFullYear();
+            // let mmE = todayE.getMonth() + 3; // Months start at 0!
+            // let ddE = todayE.getDate();
+            // if (ddE < 10) ddE = '0' + ddE;
+            // if (mmE < 10) mmE = '0' + mmE;
+            // const formattedTodayE = yyyyE + '-' + mmE + '-' + ddE;
+            // console.log(formattedTodayE);
 
-            $("#tgl-akhir").val(formattedTodayE).trigger("change");
+            // $("#tgl-akhir").val(formattedTodayE).trigger("change");
 
             dataTableReload();
             // dataTablePreviewReload();

@@ -875,7 +875,14 @@
                                 <a href="{{ route('finish_good_pengeluaran') }}"
                                     class="dropdown-item {{ $subPage == 'finish_good_pengeluaran' ? 'active' : '' }}">
                                     Pengeluaran Finish Good <i class="fas fa-arrow-circle-right fa-sm"
-                                        style="color: red;"></i>
+                                        style="color: blue;"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('finish_good_retur') }}"
+                                    class="dropdown-item {{ $subPage == 'finish_good_retur' ? 'active' : '' }}">
+                                    Retur Finish Good Ekspedisi <i class="fas fa-arrow-circle-left fa-sm"
+                                        style="color:red;"></i>
                                 </a>
                             </li>
                         </ul>
