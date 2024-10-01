@@ -117,6 +117,7 @@ use App\Http\Controllers\PackingMasterKartonController;
 // FINISH GOOD
 use App\Http\Controllers\FinishGoodPenerimaanController;
 use App\Http\Controllers\FinishGoodPengeluaranController;
+use App\Http\Controllers\FinishGoodReturController;
 
 // REPORT DOC
 use App\Http\Controllers\ReportDocController;
@@ -1325,6 +1326,22 @@ Route::middleware('auth')->group(function () {
         Route::get('/show_det_karton_fg_out_terinput', 'show_det_karton_fg_out_terinput')->name('show_det_karton_fg_out_terinput');
         Route::get('/show_summary_karton_fg_out_terinput', 'show_summary_karton_fg_out_terinput')->name('show_summary_karton_fg_out_terinput');
         Route::post('/edit_store_fg_out', 'edit_store_fg_out')->name('edit-store-fg-out');
+    });
+
+    // Retur Finish Good
+    Route::controller(FinishGoodReturController::class)->prefix("finish_good_retur")->middleware('finishgood')->group(function () {
+        Route::get('/', 'index')->name('finish_good_retur');
+        Route::post('/store', 'store')->name('store-fg-retur');
+        Route::get('/create', 'create')->name('create_retur_finish_good');
+        Route::get('/getpo_fg_retur', 'getpo_fg_retur')->name('getpo_fg_retur');
+        Route::get('/getcarton_notes_fg_retur', 'getcarton_notes_fg_retur')->name('getcarton_notes_fg_retur');
+        Route::get('/show_number_carton_fg_retur', 'show_number_carton_fg_retur')->name('show_number_carton_fg_retur');
+        Route::post('/insert_tmp_fg_retur', 'insert_tmp_fg_retur')->name('insert_tmp_fg_retur');
+        Route::get('/show_det_karton_fg_retur', 'show_det_karton_fg_retur')->name('show_det_karton_fg_retur');
+        Route::get('/show_summary_karton_fg_retur', 'show_summary_karton_fg_retur')->name('show_summary_karton_fg_retur');
+        Route::get('/show_delete_karton_fg_retur', 'show_delete_karton_fg_retur')->name('show_delete_karton_fg_retur');
+        Route::post('/delete_karton_fg_retur', 'delete_karton_fg_retur')->name('delete_karton_fg_retur');
+        Route::post('/clear_tmp_fg_retur', 'clear_tmp_fg_retur')->name('clear_tmp_fg_retur');
     });
 
 

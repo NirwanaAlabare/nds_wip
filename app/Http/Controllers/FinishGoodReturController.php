@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ExportLaporanTrfGarment;
 
-class FinishGoodPengeluaranController extends Controller
+class FinishGoodReturController extends Controller
 {
     public function index(Request $request)
     {
@@ -35,7 +35,7 @@ jenis_dok,
 a.created_at,
 a.created_by
 from fg_fg_out a
-where tgl_pengeluaran >='$tgl_awal' and tgl_pengeluaran <= '$tgl_akhir' and a.status = 'NORMAL'
+where tgl_pengeluaran >='$tgl_awal' and tgl_pengeluaran <= '$tgl_akhir' and a.status = 'RETUR'
 group by no_sb
             ");
 
@@ -43,11 +43,11 @@ group by no_sb
         }
 
         return view(
-            'finish_good.finish_good_pengeluaran',
+            'finish_good.finish_good_retur',
             [
                 'page' => 'dashboard-finish-good',
-                "subPageGroup" => "finish_good_pengeluaran",
-                "subPage" => "finish_good_pengeluaran"
+                "subPageGroup" => "finish_good_retur",
+                "subPage" => "finish_good_retur"
             ]
         );
     }
@@ -56,35 +56,35 @@ group by no_sb
     {
         $user = Auth::user()->name;
 
-        $data_buyer = DB::select("SELECT buyer isi, buyer tampil from
-        (select id_so_det from ppic_master_so group by po) p
-        inner join master_sb_ws m on p.id_so_det = m.id_so_det
-		inner join fg_fg_in f on p.id_so_det = f.id_so_det
-        group by buyer");
+        $data_buyer = DB::select("SELECT buyer isi, buyer tampil from ppic_master_so p
+inner join master_sb_ws m on p.id_so_det = m.id_so_det
+inner join (select * from fg_fg_in where status = 'NORMAL' group by id_so_det) f on p.id_so_det = f.id_so_det
+group by buyer");
 
         $data_dok = DB::connection('mysql_sb')->select("SELECT nama_pilihan isi,nama_pilihan tampil
         from masterpilihan where
          kode_pilihan='Status KB Out' order by nama_pilihan");
 
 
-        return view('finish_good.create_finish_good_pengeluaran', [
+        return view('finish_good.create_finish_good_retur', [
             'page' => 'dashboard-finish-good',
-            "subPageGroup" => "finish_good_pengeluaran",
-            "subPage" => "finish_good_pengeluaran",
+            "subPageGroup" => "finish_good_retur",
+            "subPage" => "finish_good_retur",
             "data_buyer" => $data_buyer,
             "data_dok" => $data_dok,
             "user" => $user
         ]);
     }
 
-    public function getpo_fg_out(Request $request)
+    public function getpo_fg_retur(Request $request)
     {
         $user = Auth::user()->name;
         $data_po = DB::select("SELECT p.po isi, p.po tampil
         from fg_fg_in a
         inner join ppic_master_so p on a.id_ppic_master_so = p.id
         inner join master_sb_ws m on p.id_so_det = m.id_so_det
-        where buyer = '" . $request->cbobuyer . "'
+				left join fg_fg_out b on a.id = b.id_fg_in
+        where m.buyer = '" . $request->cbobuyer . "' and a.status = 'NORMAL' and b.id_fg_in is null
         group by p.po
         order by p.po asc
         ");
@@ -98,14 +98,14 @@ group by no_sb
         return $html;
     }
 
-    public function getcarton_notes_fg_out(Request $request)
+    public function getcarton_notes_fg_retur(Request $request)
     {
         $user = Auth::user()->name;
         $data_notes = DB::select("SELECT a.notes isi, a.notes tampil
         from fg_fg_in a
         inner join ppic_master_so p on a.id_ppic_master_so = p.id
         inner join master_sb_ws m on p.id_so_det = m.id_so_det
-        where buyer = '" . $request->cbobuyer . "' and a.po = '" . $request->cbopo . "'
+        where buyer = '" . $request->cbobuyer . "' and a.po = '" . $request->cbopo . "' and a.status = 'NORMAL'
         group by p.po
         order by p.po asc
         ");
@@ -119,7 +119,7 @@ group by no_sb
         return $html;
     }
 
-    public function show_number_carton_fg_out(Request $request)
+    public function show_number_carton_fg_retur(Request $request)
     {
         $datanumber_carton = DB::select("SELECT
         min(no_carton) min ,max(no_carton) max from packing_master_carton
@@ -128,7 +128,7 @@ group by no_sb
     }
 
 
-    public function insert_tmp_fg_out(Request $request)
+    public function insert_tmp_fg_retur(Request $request)
     {
         $timestamp = Carbon::now();
         $user = Auth::user()->name;
@@ -139,19 +139,19 @@ group by no_sb
         $notes = $request->cbonotes;
         $ctn_awal = $request->txtctn_awal;
         $ctn_akhir = $request->txtctn_akhir;
-        $ins_tmp_fg =  DB::insert("INSERT into fg_fg_out_tmp (id_fg_in,buyer,po,notes,no_carton,created_at,updated_at,created_by)
+        $ins_tmp_fg =  DB::insert("INSERT into fg_fg_retur_tmp (id_fg_in,buyer,po,notes,no_carton,created_at,updated_at,created_by)
         select a.id, m.buyer, a.po, a.notes, a.no_carton, '$timestamp','$timestamp','$user' from fg_fg_in a
         inner join ppic_master_so p on a.id_ppic_master_so = p.id
         inner join master_sb_ws m on p.id_so_det = m.id_so_det
         inner join packing_master_carton pc on a.po = pc.po and a.no_carton = pc.no_carton and a.notes = pc.notes
-        left join fg_fg_out_tmp b on a.id = b.id_fg_in
+        left join fg_fg_out b on a.id = b.id_fg_in
         where m.buyer = '$buyer' and a.po = '$po' and a.notes = '$notes' and cast(a.no_carton as int) >= '$ctn_awal' and cast(a.no_carton as int) <= '$ctn_akhir'
-        and b.id_fg_in is null and pc.status != 'terkirim'
+        and a.status = 'NORMAL' and b.id_fg_in is null
         order by a.po asc, a.no_carton asc ");
     }
 
 
-    public function show_det_karton_fg_out(Request $request)
+    public function show_det_karton_fg_retur(Request $request)
     {
         $timestamp = Carbon::now();
         $user = Auth::user()->name;
@@ -168,12 +168,12 @@ group by no_sb
         a.qty,
         m.dest,
         tmp.id
-        from fg_fg_out_tmp tmp
+        from fg_fg_retur_tmp tmp
         inner join fg_fg_in a on tmp.id_fg_in = a.id
         inner join ppic_master_so p on a.id_ppic_master_so = p.id
         inner join master_sb_ws m on p.id_so_det = m.id_so_det
         left join master_size_new msn on m.size = msn.size
-        where tmp.created_by = '$user' and a.status = 'NORMAL'
+        where tmp.created_by = '$user'
         order by po asc, cast(tmp.no_carton as int) asc, color asc, urutan asc
             ");
 
@@ -182,7 +182,7 @@ group by no_sb
         }
     }
 
-    public function show_summary_karton_fg_out(Request $request)
+    public function show_summary_karton_fg_retur(Request $request)
     {
         $timestamp = Carbon::now();
         $user = Auth::user()->name;
@@ -199,12 +199,12 @@ group by no_sb
         sum(a.qty) qty,
         m.curr,
         m.price
-        from fg_fg_out_tmp tmp
+        from fg_fg_retur_tmp tmp
         inner join fg_fg_in a on tmp.id_fg_in = a.id
         inner join ppic_master_so p on a.id_ppic_master_so = p.id
         inner join master_sb_ws m on p.id_so_det = m.id_so_det
         left join master_size_new msn on m.size = msn.size
-        where tmp.created_by = '$user' and a.status = 'NORMAL'
+        where tmp.created_by = '$user'
         group by id_so_det
         order by ws asc, color asc, msn.urutan asc
 
@@ -216,7 +216,7 @@ group by no_sb
     }
 
 
-    public function show_delete_karton_fg_out(Request $request)
+    public function show_delete_karton_fg_retur(Request $request)
     {
         $timestamp = Carbon::now();
         $user = Auth::user()->name;
@@ -231,7 +231,7 @@ group by no_sb
         m.size,
         a.qty,
         tmp.id
-        from fg_fg_out_tmp tmp
+        from fg_fg_retur_tmp tmp
         inner join fg_fg_in a on tmp.id_fg_in = a.id
         inner join ppic_master_so p on a.id_ppic_master_so = p.id
         inner join master_sb_ws m on p.id_so_det = m.id_so_det
@@ -247,7 +247,7 @@ group by no_sb
 
 
 
-    public function delete_karton_fg_out(Request $request)
+    public function delete_karton_fg_retur(Request $request)
     {
         $timestamp = Carbon::now();
         $user               = Auth::user()->name;
@@ -258,7 +258,7 @@ group by no_sb
             foreach ($JmlArray as $key => $value) {
                 if ($value != '') {
                     $id         = $JmlArray[$key]; {
-                        $del =  DB::delete("delete from fg_fg_out_tmp where id = '$id'");
+                        $del =  DB::delete("delete from fg_fg_retur_tmp where id = '$id'");
                     }
                 }
             }
@@ -280,12 +280,12 @@ group by no_sb
         }
     }
 
-    public function clear_tmp_fg_out(Request $request)
+    public function clear_tmp_fg_retur(Request $request)
     {
         $timestamp = Carbon::now();
         $user = Auth::user()->name;
 
-        $clear_tmp_fg =  DB::insert("delete from fg_fg_out_tmp where created_by = '$user' ");
+        $clear_tmp_fg =  DB::insert("delete from fg_fg_retur_tmp where created_by = '$user' ");
     }
 
     public function store(Request $request)
@@ -312,7 +312,7 @@ group by no_sb
         $bppbno_int_no_tr = $data_bppbno_int[0]->BPBNo;
         $bppbno_int_no_tr_fix = sprintf("%05s", $bppbno_int_no_tr);
         $thn_bln_bppbno_int = date('my', strtotime($timestamp));
-        $bppbno_int = 'FG/OUT/' . $thn_bln_bppbno_int . '/' . $bppbno_int_no_tr_fix;
+        $bppbno_int = 'FG/RO/' . $thn_bln_bppbno_int . '/' . $bppbno_int_no_tr_fix;
 
         $id_so_detArray         = $_POST['id_so_det'];
         $qtyArray               = $_POST['qty'];
@@ -329,8 +329,8 @@ group by no_sb
                 $id_item = $cek_id_item ? $cek_id_item[0]->id_item : null;
 
                 $insert_fg_out_sb =  DB::connection('mysql_sb')->insert("INSERT into
-                bppb(bppbno,bppbno_int,bppbdate,id_item,id_so_det,qty,curr,price,username,unit,invno,id_supplier,print,status_retur,jenis_dok,confirm,dateinput,cancel,grade,stat_inv,status_input,id_buyer)
-        values('SJ-FG$bppbno','$bppbno_int','$tgl_pengeluaran','$id_item','$id_so_det','$qty','$curr','$price','$user','PCS','$inv','$id_buyer','N','N','$jns_dok','N','$timestamp','N','GRADE A','0','NDS','$id_buyer') ");
+                bppb(bppbno,bppbno_int,bppbdate,id_item,id_so_det,qty,curr,price,username,unit,invno,id_supplier,print,status_retur,jenis_dok,confirm,dateinput,cancel,grade,stat_inv,status_input,id_buyer,remark)
+        values('SJ-FG$bppbno','$bppbno_int','$tgl_pengeluaran','$id_item','$id_so_det','$qty','$curr','$price','$user','PCS','$inv','$id_buyer','N','Y','$jns_dok','N','$timestamp','N','GRADE A','0','NDS','1384','RETUR') ");
 
                 // $update_karton =  DB::update("
                 //     update packing_master_carton set status = 'transfer' where po = '$po' and no_carton = '$no_carton' ");
@@ -340,16 +340,29 @@ group by no_sb
 
         $insert_fg_out_nds = DB::insert("INSERT into fg_fg_out
         (no_sb,tgl_pengeluaran,buyer,id_ppic_master_so,id_so_det,barcode,qty,po,no_carton,lokasi,notes,id_fg_in,jenis_dok,invno,remark,status,created_at,updated_at,created_by)
-select '$bppbno_int','$tgl_skrg',buyer,id_ppic_master_so,id_so_det,barcode,qty,a.po,a.no_carton,lokasi,a.notes,a.id_fg_in,'$jns_dok','$inv','-','NORMAL','$timestamp','$timestamp','$user'
-from fg_fg_out_tmp	a
+select '$bppbno_int','$tgl_skrg',buyer,id_ppic_master_so,id_so_det,barcode,qty,a.po,a.no_carton,lokasi,a.notes,a.id_fg_in,'$jns_dok','$inv','-','RETUR','$timestamp','$timestamp','$user'
+from fg_fg_retur_tmp a
 inner join fg_fg_in b on a.id_fg_in = b.id
 where a.created_by = '$user'");
 
-        $update_karton =  DB::update("
-update packing_master_carton a
-inner join fg_fg_out_tmp b on a.po = b.po and a.no_carton = b.no_carton
-set a.status = 'terkirim'
+        $update_fg_in =  DB::update("UPDATE fg_fg_in a
+inner join fg_fg_retur_tmp b on a.po = b.po and a.no_carton = b.no_carton
+set a.status = 'RETUR'
 where b.created_by = '$user'");
+
+        $ins_history =  DB::insert("
+insert into packing_packing_out_scan_log (id_packing_Packing_out_scan, tgl_trans, barcode, po, no_carton, created_at, updated_at, created_by)
+SELECT p.id, p.tgl_trans, p.barcode, p.po, p.no_carton,p.created_at, p.updated_at, p.created_by  FROM `packing_packing_out_scan` p
+INNER JOIN fg_fg_retur_tmp tmp ON p.po = tmp.po and p.no_carton = tmp.no_carton and p.notes = tmp.notes
+WHERE tmp.created_by ='$user'");
+
+        $delete_fg_in =  DB::delete("DELETE p
+FROM packing_packing_out_scan p
+INNER JOIN fg_fg_retur_tmp tmp ON p.po = tmp.po and p.no_carton = tmp.no_carton and p.notes = tmp.notes
+WHERE tmp.created_by ='$user'");
+
+
+
 
         if ($insert_fg_out_sb != '') {
             return array(
