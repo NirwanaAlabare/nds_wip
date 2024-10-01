@@ -62,6 +62,8 @@
                                 <th>Unit Panjang Marker</th>
                                 <th>Comma Marker</th>
                                 <th>Unit Comma Marker</th>
+                                <th>Lebar Marker</th>
+                                <th>Unit Lebar Marker</th>
                                 <th>Panjang Actual</th>
                                 <th>Unit Panjang Actual</th>
                                 <th>Comma Actual</th>
@@ -224,6 +226,12 @@
                 },
                 {
                     data: "unit_comma_marker"
+                },
+                {
+                    data: "lebar_marker"
+                },
+                {
+                    data: "unit_lebar_marker"
                 },
                 {
                     data: "panjang_actual"

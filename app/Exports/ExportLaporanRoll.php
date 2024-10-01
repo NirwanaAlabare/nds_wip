@@ -66,6 +66,8 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                 unit_panjang_marker,
                 comma_marker,
                 unit_comma_marker,
+                lebar_marker,
+                unit_lebar_marker,
                 a.p_act panjang_actual,
                 a.unit_p_act unit_panjang_actual,
                 a.comma_p_act comma_actual,
@@ -138,7 +140,7 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A3:BA' . $event->getConcernable()->rowCount,
+            'A3:BC' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [

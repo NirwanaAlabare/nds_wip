@@ -35,6 +35,8 @@
             <th style="background-color: #a9cff5">Unit Panjang Marker</th>
             <th style="background-color: #a9cff5">Comma Marker</th>
             <th style="background-color: #a9cff5">Unit Comma Marker</th>
+            <th style="background-color: #a9cff5">Lebar Marker</th>
+            <th style="background-color: #a9cff5">Unit Lebar Marker</th>
             <th style="background-color: #a9cff5">Panjang Actual</th>
             <th style="background-color: #a9cff5">Unit Panjang Actual</th>
             <th style="background-color: #a9cff5">Comma Actual</th>
@@ -110,6 +112,8 @@
                 <td>{{ $item->unit_panjang_marker }}</td>
                 <td>{{ $item->comma_marker }}</td>
                 <td>{{ $item->unit_comma_marker }}</td>
+                <td>{{ $item->lebar_marker }}</td>
+                <td>{{ $item->unit_lebar_marker }}</td>
                 <td>{{ $item->panjang_actual }}</td>
                 <td>{{ $item->unit_panjang_actual }}</td>
                 <td>{{ $item->comma_actual }}</td>
