@@ -302,6 +302,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/check-lost-time/{id?}', 'checkLostTime')->name('check-lost-form-cut-input');
         Route::get('/get-form-cut-ratio', 'getRatio')->name('get-form-cut-ratio');
 
+        Route::get('/check-sambungan/{id?}', 'checkSambungan')->name('check-sambungan');
+
+        Route::get('/store-sambungan', 'storeSambungan')->name('store-sambungan');
+
         // get order
         Route::get('/get-order', 'getOrderInfo')->name('form-cut-get-marker-order');
         // get colors
@@ -453,6 +457,7 @@ Route::middleware('auth')->group(function () {
     // Roll
     Route::controller(RollController::class)->prefix("lap_pemakaian")->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('lap_pemakaian');
+        Route::post('/', 'pemakaianRollData')->name('lap_pemakaian_data');
         // export excel
         Route::get('/export_excel', 'export_excel')->name('export_excel');
         Route::post('/export', 'export')->name('export');
@@ -684,6 +689,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/{type}', 'index')->name("daily-sewing");
         Route::post('/output/export', 'exportOutput');
         Route::post('/production/export', 'exportProduction');
+        Route::post('/production/defect/export', 'exportProductionDefect');
         Route::post('/production-all/export', 'exportProductionAll');
         Route::post('/track-order-output/export', 'exportOrderOutput');
     });

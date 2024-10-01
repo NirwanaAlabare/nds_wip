@@ -42,33 +42,60 @@
                     <table id="datatable" class="table table-bordered table-hover table-sm w-100">
                         <thead>
                             <tr>
-                                <th>Tanggal Pemakaian</th>
+                                <th>Bulan</th>
+                                <th>Tanggal Input</th>
+                                <th>No. Form</th>
+                                <th>Meja</th>
                                 <th>No. WS</th>
+                                <th>Buyer</th>
+                                <th>Style</th>
+                                <th>Color</th>
+                                <th>Color Actual</th>
+                                <th>Panel</th>
+                                <th>Qty Order</th>
+                                <th>Cons. WS</th>
+                                <th>Cons. Marker</th>
+                                <th>Cons. Ampar</th>
+                                <th>Cons. Actual</th>
+                                <th>Cons. Piping</th>
+                                <th>Panjang Marker</th>
+                                <th>Unit Panjang Marker</th>
+                                <th>Comma Marker</th>
+                                <th>Unit Comma Marker</th>
+                                <th>Lebar Marker</th>
+                                <th>Unit Lebar Marker</th>
+                                <th>Panjang Actual</th>
+                                <th>Unit Panjang Actual</th>
+                                <th>Comma Actual</th>
+                                <th>Unit Comma Actual</th>
+                                <th>Lebar Actual</th>
+                                <th>Unit Lebar Actual</th>
                                 <th>ID Roll</th>
                                 <th>ID Item</th>
-                                <th>Nama Barang</th>
-                                <th>No. Form</th>
-                                <th>No. Meja</th>
-                                <th>Color</th>
-                                <th>Group</th>
+                                <th>Detail Item</th>
+                                <th>No. Roll</th>
                                 <th>Lot</th>
-                                <th>Roll</th>
-                                <th>Qty</th>
-                                <th>Unit</th>
-                                <th>Cons. Piping</th>
+                                <th>Qty Roll</th>
+                                <th>Unit Roll</th>
                                 <th>Berat Amparan (KGM)</th>
-                                <th>Lembar Gelaran</th>
-                                <th>Total Pemakaian</th>
-                                <th>Short Roll</th>
-                                <th>Short Roll (%)</th>
-                                <th>Remark</th>
+                                <th>Estimasi Amparan</th>
+                                <th>Lembar Amparan</th>
+                                <th>Ratio</th>
+                                <th>Qty Cut</th>
+                                <th>Average Time</th>
                                 <th>Sisa Gelaran</th>
                                 <th>Sambungan</th>
+                                <th>Sambungan Roll</th>
                                 <th>Kepala Kain</th>
                                 <th>Sisa Tidak Bisa</th>
                                 <th>Reject</th>
-                                <th>Sisa Kain</th>
                                 <th>Piping</th>
+                                <th>Sisa Kain</th>
+                                <th>Pemakaian Gelar</th>
+                                <th>Total Pemakaian Roll</th>
+                                <th>Short Roll</th>
+                                <th>Short Roll (%)</th>
+                                <th>Operator</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -107,7 +134,7 @@
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i <= 9) {
+            if (i <= 9 || i == 17 || i == 21 || i == 23 || i == 25 || i == 26 || i == 27 || i == 28 || i == 29 || i == 30 || i == 31) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" />');
 
@@ -132,7 +159,8 @@
             scrollY: "500px",
             pageLength: 50,
             ajax: {
-                url: '{{ route('lap_pemakaian') }}',
+                url: '{{ route('lap_pemakaian_data') }}',
+                method: "POST",
                 data: function(d) {
                     d.dateFrom = $('#from').val();
                     d.dateTo = $('#to').val();
@@ -140,86 +168,167 @@
             },
             columns: [
                 {
-                    data: 'tgl_input'
+                    data: "bulan"
                 },
                 {
-                    data: 'act_costing_ws'
+                    data: "tgl_input"
                 },
                 {
-                    data: 'id_roll'
+                    data: "no_form_cut_input"
                 },
                 {
-                    data: 'id_item'
+                    data: "nama_meja"
                 },
                 {
-                    data: 'detail_item'
+                    data: "act_costing_ws"
                 },
                 {
-                    data: 'no_form_cut_input'
+                    data: "buyer"
                 },
                 {
-                    data: 'nama_meja'
+                    data: "style"
                 },
                 {
-                    data: 'color_act'
+                    data: "color"
                 },
                 {
-                    data: 'group_roll'
+                    data: "color_act"
                 },
                 {
-                    data: 'lot'
+                    data: "panel"
                 },
                 {
-                    data: 'roll'
+                    data: "qty"
                 },
                 {
-                    data: 'qty_item'
+                    data: "cons_ws"
                 },
                 {
-                    data: 'unit_item'
+                    data: "cons_marker"
                 },
                 {
-                    data: 'cons_pipping'
+                    data: "cons_ampar"
                 },
                 {
-                    data: 'berat_amparan'
+                    data: "cons_act"
                 },
                 {
-                    data: 'lembar_gelaran'
+                    data: "cons_piping"
                 },
                 {
-                    data: 'total_pemakaian_roll'
+                    data: "panjang_marker"
                 },
                 {
-                    data: 'short_roll'
+                    data: "unit_panjang_marker"
                 },
                 {
-                    data: 'short_roll_percentage'
+                    data: "comma_marker"
                 },
                 {
-                    data: 'remark'
+                    data: "unit_comma_marker"
                 },
                 {
-                    data: 'sisa_gelaran'
+                    data: "lebar_marker"
                 },
                 {
-                    data: 'sambungan'
+                    data: "unit_lebar_marker"
                 },
                 {
-                    data: 'kepala_kain'
+                    data: "panjang_actual"
                 },
                 {
-                    data: 'sisa_tidak_bisa'
+                    data: "unit_panjang_actual"
                 },
                 {
-                    data: 'reject'
+                    data: "comma_actual"
                 },
                 {
-                    data: 'sisa_kain'
+                    data: "unit_comma_actual"
                 },
                 {
-                    data: 'piping'
+                    data: "lebar_actual"
                 },
+                {
+                    data: "unit_lebar_actual"
+                },
+                {
+                    data: "id_roll"
+                },
+                {
+                    data: "id_item"
+                },
+                {
+                    data: "detail_item"
+                },
+                {
+                    data: "roll"
+                },
+                {
+                    data: "lot"
+                },
+                {
+                    data: "qty_roll"
+                },
+                {
+                    data: "unit_roll"
+                },
+                {
+                    data: "berat_amparan"
+                },
+                {
+                    data: "est_amparan"
+                },
+                {
+                    data: "lembar_gelaran"
+                },
+                {
+                    data: "total_ratio"
+                },
+                {
+                    data: "qty_cut"
+                },
+                {
+                    data: "average_time"
+                },
+                {
+                    data: "sisa_gelaran"
+                },
+                {
+                    data: "sambungan"
+                },
+                {
+                    data: "sambungan_roll"
+                },
+                {
+                    data: "kepala_kain"
+                },
+                {
+                    data: "sisa_tidak_bisa"
+                },
+                {
+                    data: "reject"
+                },
+                {
+                    data: "piping"
+                },
+                {
+                    data: "sisa_kain"
+                },
+                {
+                    data: "pemakaian_lembar"
+                },
+                {
+                    data: "total_pemakaian_roll"
+                },
+                {
+                    data: "short_roll"
+                },
+                {
+                    data: "short_roll_percentage"
+                },
+                {
+                    data: "operator"
+                }
             ],
             columnDefs: [
                 {

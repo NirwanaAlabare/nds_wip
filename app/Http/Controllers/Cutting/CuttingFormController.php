@@ -8,6 +8,7 @@ use App\Models\MarkerDetail;
 use App\Models\FormCutInput;
 use App\Models\FormCutInputDetail;
 use App\Models\FormCutInputDetailLap;
+use App\Models\FormCutInputDetailSambungan;
 use App\Models\FormCutInputLostTime;
 use App\Models\ScannedItem;
 use App\Models\CutPlan;
@@ -508,10 +509,10 @@ class CuttingFormController extends Controller
             "current_sisa_tidak_bisa" => "required",
             "current_reject" => "required",
             "current_sisa_kain" => "required",
-            "current_total_pemakaian_roll" => "required",
+            "current_pemakaian_lembar" => "required",
             "current_short_roll" => "required",
             "current_piping" => "required",
-            "current_remark" => "required",
+            "current_total_pemakaian_roll" => "required",
             "current_sambungan" => "required",
             "p_act" => "required"
         ]);
@@ -545,6 +546,7 @@ class CuttingFormController extends Controller
                     "qty" => $itemQty,
                     "unit" => $itemUnit,
                     "sisa_gelaran" => $validatedRequest['current_sisa_gelaran'],
+                    "sambungan_roll" => $request->current_total_sambungan_roll ? $request->current_total_sambungan_roll : 0,
                     "sambungan" => $validatedRequest['current_sambungan'],
                     "est_amparan" => $validatedRequest['current_est_amparan'],
                     "lembar_gelaran" => $validatedRequest['current_lembar_gelaran'],
@@ -553,10 +555,10 @@ class CuttingFormController extends Controller
                     "sisa_tidak_bisa" => $validatedRequest['current_sisa_tidak_bisa'],
                     "reject" => $validatedRequest['current_reject'],
                     "sisa_kain" => $validatedRequest['current_sisa_kain'],
-                    "total_pemakaian_roll" => $validatedRequest['current_total_pemakaian_roll'],
+                    "pemakaian_lembar" => $validatedRequest['current_pemakaian_lembar'],
                     "short_roll" => $validatedRequest['current_short_roll'],
                     "piping" => $validatedRequest['current_piping'],
-                    "remark" => $validatedRequest['current_remark'],
+                    "total_pemakaian_roll" => $validatedRequest['current_total_pemakaian_roll'],
                     "status" => $status,
                     "metode" => $request->metode ? $request->metode : "scan",
                     "group_stocker" => $groupStocker,
@@ -564,8 +566,24 @@ class CuttingFormController extends Controller
                 ]
             );
 
-            \Log::info(array("process" => "Store Time Record", "object" => $storeTimeRecordSummary, "user" => Auth::user()->username));
         if ($storeTimeRecordSummary) {
+            $sambunganRoll = $request['sambungan_roll'] ? array_filter($request['sambungan_roll'], function ($var) {
+                return ($var > 0);
+            }) : [];
+
+            if ($sambunganRoll && count($sambunganRoll) > 0) {
+                for ($i = 0; $i < count($sambunganRoll); $i++) {
+                    if ($sambunganRoll[$i] > 0) {
+                        $storeSambungan = FormCutInputDetailSambungan::updateOrCreate(
+                            ["form_cut_input_detail_id" => $storeTimeRecordSummary->id, "sambungan_ke" => $i+1],
+                            [
+                                "sambungan_roll" => $sambunganRoll[$i],
+                            ]
+                        );
+                    }
+                }
+            }
+
             // $itemRemain = $itemQty - floatval($validatedRequest['current_total_pemakaian_roll']) - floatval($validatedRequest['current_kepala_kain']) - floatval($validatedRequest['current_sisa_tidak_bisa']) - floatval($validatedRequest['current_reject']) - floatval($validatedRequest['current_piping']);
             $itemRemain = $validatedRequest['current_sisa_kain'];
 
@@ -594,7 +612,6 @@ class CuttingFormController extends Controller
                     "group_stocker" => $groupStocker
                 ]);
 
-                \Log::info(array("process" => "Store Time Record + Extension ", "object" => $storeTimeRecordSummaryExt, "user" => Auth::user()->username));
                 if ($storeTimeRecordSummaryExt) {
                     return array(
                         "status" => 200,
@@ -621,8 +638,6 @@ class CuttingFormController extends Controller
                         "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
                     ]
                 );
-
-                \Log::info(array("process" => "Store Time Record Only ", "object" => $storeTimeRecordSummary, "user" => Auth::user()->username));
             }
 
             return array(
@@ -675,17 +690,15 @@ class CuttingFormController extends Controller
                     "sisa_tidak_bisa" => $request->current_sisa_tidak_bisa,
                     "reject" => $request->current_reject,
                     "sisa_kain" => $request->current_sisa_kain,
+                    "pemakaian_lembar" => $request->current_pemakaian_lembar,
                     "total_pemakaian_roll" => $request->current_total_pemakaian_roll,
                     "short_roll" => $request->current_short_roll,
                     "piping" => $request->current_piping,
-                    "remark" => $request->current_remark,
                     "status" => "not complete",
                     "metode" => $request->metode ? $request->metode : "scan",
                     "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
                 ]
             );
-
-            \Log::info(array("process" => "Store Current Time Record", "object" => $storeTimeRecordSummary, "user" => Auth::user()->username));
         if ($storeTimeRecordSummary) {
             $now = Carbon::now();
 
@@ -696,13 +709,18 @@ class CuttingFormController extends Controller
                         "waktu" => $request["time_record"][$lap]
                     ]
                 );
+            }
 
-                if ($storeTimeRecordLap) {
-                    return array(
-                        "status" => 200,
-                        "message" => "alright",
-                        "additional" => [],
-                    );
+            if ($request['sambungan_roll'] && count($request['sambungan_roll']) > 0) {
+                for ($i = 0; $i < count($request['sambungan_roll']); $i++) {
+                    if ($request['sambungan_roll'][$i] > 0) {
+                        $storeSambungan = FormCutInputDetailSambungan::updateOrCreate(
+                            ["form_cut_input_detail_id" => $storeTimeRecordSummary->id, "sambungan_ke" => $i+1],
+                            [
+                                "sambungan_roll" => $request['sambungan_roll'][$i],
+                            ]
+                        );
+                    }
                 }
             }
 
@@ -747,10 +765,10 @@ class CuttingFormController extends Controller
             "current_sisa_tidak_bisa" => "required",
             "current_reject" => "required",
             "current_sisa_kain" => "nullable",
-            "current_total_pemakaian_roll" => "required",
+            "current_pemakaian_lembar" => "required",
             "current_short_roll" => "required",
             "current_piping" => "required",
-            "current_remark" => "required",
+            "current_total_pemakaian_roll" => "required",
             "current_sambungan" => "required"
         ]);
 
@@ -774,6 +792,7 @@ class CuttingFormController extends Controller
                 "unit" => $itemUnit,
                 "sisa_gelaran" => $validatedRequest['current_sisa_gelaran'],
                 "sambungan" => $validatedRequest['current_sambungan'],
+                "sambungan_roll" => $request->current_total_sambungan_roll ? $request->current_total_sambungan_roll : 0,
                 "est_amparan" => $validatedRequest['current_est_amparan'],
                 "lembar_gelaran" => $validatedRequest['current_lembar_gelaran'],
                 "average_time" => $validatedRequest['current_average_time'],
@@ -781,10 +800,10 @@ class CuttingFormController extends Controller
                 "sisa_tidak_bisa" => $validatedRequest['current_sisa_tidak_bisa'],
                 "reject" => $validatedRequest['current_reject'],
                 "sisa_kain" => ($validatedRequest['current_sisa_kain'] ? $validatedRequest['current_sisa_kain'] : 0),
+                "pemakaian_lembar" => $validatedRequest['current_pemakaian_lembar'],
                 "total_pemakaian_roll" => $validatedRequest['current_total_pemakaian_roll'],
                 "short_roll" => $validatedRequest['current_short_roll'],
                 "piping" => $validatedRequest['current_piping'],
-                "remark" => $validatedRequest['current_remark'],
                 "status" => "extension complete",
                 "metode" => $request->metode ? $request->metode : "scan",
                 "group_stocker" => $groupStocker,
@@ -792,9 +811,24 @@ class CuttingFormController extends Controller
             ]
         );
 
-        \Log::info(array("process" => "Store Time Record Extension ", "object" => $storeTimeRecordSummary, "user" => Auth::user()->username));
-
         if ($storeTimeRecordSummary) {
+            $sambunganRoll = $request['sambungan_roll'] ? array_filter($request['sambungan_roll'], function ($var) {
+                return ($var > 0);
+            }) : [];
+
+            if ($sambunganRoll && count($sambunganRoll) > 0) {
+                for ($i = 0; $i < count($sambunganRoll); $i++) {
+                    if ($sambunganRoll[$i] > 0) {
+                        $storeSambungan = FormCutInputDetailSambungan::updateOrCreate(
+                            ["form_cut_input_detail_id" => $storeTimeRecordSummary->id, "sambungan_ke" => $i+1],
+                            [
+                                "sambungan_roll" => $sambunganRoll[$i],
+                            ]
+                        );
+                    }
+                }
+            }
+
             $itemRemain = $itemQty - floatval($validatedRequest['current_total_pemakaian_roll']) - floatval($validatedRequest['current_kepala_kain']) - floatval($validatedRequest['current_sisa_tidak_bisa']) - floatval($validatedRequest['current_reject']) - floatval($validatedRequest['current_piping']);;
             // $itemRemain = $validatedRequest['current_sisa_kain'];
 
@@ -839,22 +873,18 @@ class CuttingFormController extends Controller
                         "unit" => $itemUnit,
                         "sambungan" => 0,
                         "status" => "not complete",
-                        "metode" => $request->metode ? $request->metode : "scan",
+                        "metode" => $request->metode ? $request->metode : null,
                         "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
                     ]);
 
-                    \Log::info(array("process" => "Store Time Record Extension on After ", "object" => $storeTimeRecordSummaryNext, "user" => Auth::user()->username));
-
-                    if ($storeTimeRecordSummaryNext) {
-                        return array(
-                            "status" => 200,
-                            "message" => "alright",
-                            "additional" => [
-                                FormCutInputDetail::where('id', $storeTimeRecordSummary->id)->first(),
-                                FormCutInputDetail::where('id', $storeTimeRecordSummaryNext->id)->first(),
-                            ],
-                        );
-                    }
+                    return array(
+                        "status" => 200,
+                        "message" => "alright",
+                        "additional" => [
+                            FormCutInputDetail::where('id', $storeTimeRecordSummary->id)->first(),
+                            FormCutInputDetail::where('id', $storeTimeRecordSummaryNext->id)->first(),
+                        ],
+                    );
                 }
             }
 
@@ -891,15 +921,6 @@ class CuttingFormController extends Controller
             if ($formCutInputDetailData->status == 'extension') {
                 $thisFormCutInputDetail = FormCutInputDetail::select("sisa_gelaran", "unit")->where('id', $formCutInputDetailData->id_sambungan)->first();
 
-                \Log::info(array(
-                    "process" => "Check Spreading Form",
-                    "count" => $formCutInputDetailCount,
-                    "data" => $formCutInputDetailData,
-                    "sisaGelaran" => $thisFormCutInputDetail->sisa_gelaran,
-                    "unitSisaGelaran" => $thisFormCutInputDetail->unit,
-                    "meja" => Auth::user()->username
-                ));
-
                 return array(
                     "count" => $formCutInputDetailCount,
                     "data" => $formCutInputDetailData,
@@ -907,13 +928,6 @@ class CuttingFormController extends Controller
                     "unitSisaGelaran" => $thisFormCutInputDetail->unit,
                 );
             } else if ($formCutInputDetailData->status == 'not complete') {
-                \Log::info(array(
-                    "process" => "Check Spreading Form",
-                    "count" => $formCutInputDetailCount,
-                    "data" => $formCutInputDetailData,
-                    "sisaGelaran" => 0,
-                    "unitSisaGelaran" => null,
-                ));
 
                 return array(
                     "count" => $formCutInputDetailCount,
@@ -965,6 +979,16 @@ class CuttingFormController extends Controller
         );
     }
 
+    public function checkSambungan($id = 0)
+    {
+        $sambungan = FormCutInputDetailSambungan::where('form_cut_input_detail_id', $id)->get();
+
+        return array(
+            "count" => $sambungan->count(),
+            "data" => $sambungan,
+        );
+    }
+
     public function finishProcess($id = 0, Request $request)
     {
         $formCutInputData = FormCutInput::where("id", $id)->first();
@@ -1008,6 +1032,7 @@ class CuttingFormController extends Controller
                     "qty" => $notCompletedDetail['qty'],
                     "unit" => $notCompletedDetail['unit'],
                     "sisa_gelaran" => $notCompletedDetail['sisa_gelaran'],
+                    "sambungan_roll" => $notCompletedDetail['sambungan_roll'],
                     "sambungan" => $notCompletedDetail['sambungan'],
                     "est_amparan" => $notCompletedDetail['est_amparan'],
                     "lembar_gelaran" => $notCompletedDetail['lembar_gelaran'],
@@ -1016,10 +1041,10 @@ class CuttingFormController extends Controller
                     "sisa_tidak_bisa" => $notCompletedDetail['sisa_tidak_bisa'],
                     "reject" => $notCompletedDetail['reject'],
                     "sisa_kain" => ($notCompletedDetail['sisa_kain'] ? $notCompletedDetail['sisa_kain'] : 0),
-                    "total_pemakaian_roll" => $notCompletedDetail['total_pemakaian_roll'],
+                    "pemakaian_lembar" => $notCompletedDetail['pemakaian_lembar'],
                     "short_roll" => $notCompletedDetail['short_roll'],
                     "piping" => $notCompletedDetail['piping'],
-                    "remark" => $notCompletedDetail['remark'],
+                    "total_pemakaian_roll" => $notCompletedDetail['total_pemakaian_roll'],
                     "status" => $notCompletedDetail['status'],
                     "metode" => $notCompletedDetail['metode'],
                     "group_stocker" => $notCompletedDetail['group_stocker'],

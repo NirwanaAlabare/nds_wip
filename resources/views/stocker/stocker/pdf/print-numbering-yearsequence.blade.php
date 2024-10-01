@@ -44,7 +44,7 @@
         <div style="{{ $i == 0 ? '' : 'page-break-after: always;' }}">
             <hr style="margin-bottom: 25px;border-collapse: collapse;">
             <hr style="margin-top: 10px;border-style: dashed;border-collapse: collapse;">
-            <h5 style="font-size: 11px;text-align: center;margin-top: 30px;margin-bottom: 3px;">{{ date('y', strtotime($data[$i]['year']))."_".sprintf('%03d', $data[$i]['year_sequence']) }}</h5>
+            <h5 style="font-size: 11px;text-align: center;margin-top: 30px;margin-bottom: 3px;">{{ date('Y', strtotime($data[$i]['year']))."_".$data[$i]['year_sequence'] }}</h5>
             <div style="margin-bottom: 0px;">
                 <center>
                     <img style="margin-bottom: 0px;" src="data:image/png;base64, {!! base64_encode(QrCode::format('svg')->size(100)->generate($data[$i]['id_year_sequence'])) !!}">

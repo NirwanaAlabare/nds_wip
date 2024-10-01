@@ -14,6 +14,7 @@ use App\Exports\OutputExport;
 use App\Exports\OutputExportCustomRange;
 use App\Exports\ProductionExport;
 use App\Exports\ProductionAllExport;
+use App\Exports\ProductionDefectExport;
 use App\Exports\OrderOutputExport;
 use DB;
 use Excel;
@@ -48,6 +49,13 @@ class ReportController extends Controller
         return Excel::download(new ProductionExport($date, $line), 'production_excel.xlsx');
     }
 
+    public function exportProductionDefect(Request $request) {
+        $date = $request->date;
+        $line = $request->line;
+
+        return Excel::download(new ProductionDefectExport($date, $line), 'production_defect_excel.xlsx');
+    }
+
     public function exportProductionAll(Request $request) {
         $date = $request->date;
 
@@ -56,7 +64,7 @@ class ReportController extends Controller
 
     public function exportOrderOutput(Request $request) {
         ini_set("max_execution_time", 36000);
-        
+
         $dateFrom = $request->dateFrom;
         $dateTo = $request->dateTo;
         $outputType = $request->outputType;
