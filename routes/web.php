@@ -688,6 +688,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/{type}', 'index')->name("daily-sewing");
         Route::post('/output/export', 'exportOutput');
         Route::post('/production/export', 'exportProduction');
+        Route::post('/production/defect/export', 'exportProductionDefect');
         Route::post('/production-all/export', 'exportProductionAll');
         Route::post('/track-order-output/export', 'exportOrderOutput');
     });

@@ -210,7 +210,12 @@
                 </tfoot>
             </table>
         </div>
-        <h5 class="mt-3 text-center text-sb fw-bold">Top 5 Defects</h5>
+        <div class="d-flex justify-content-between mt-3">
+            <h5 class="text-center text-sb fw-bold">Top 5 Defects</h5>
+            <button class="btn btn-sm btn-success" onclick="exportExcelDefect(this, '{{ $this->date }}', '{{ $this->selectedLine }}')">
+                Export <i class="fa-solid fa-file-excel"></i>
+            </button>
+        </div>
         <div class="row table-responsive">
             <table class="table table-sm table-bordered mt-3">
                 <thead>
@@ -400,6 +405,68 @@
                     }
                 });
             }
+        }
+
+        function exportExcelDefect(elm, date, line) {
+            console.log(date, line);
+
+            @this.set('loadingLine', true);
+
+            elm.setAttribute('disabled', 'true');
+            elm.innerText = "";
+            let loading = document.createElement('div');
+            loading.classList.add('loading-small');
+            elm.appendChild(loading);
+
+            iziToast.info({
+                title: 'Exporting...',
+                message: 'Data sedang di export. Mohon tunggu...',
+                position: 'topCenter'
+            });
+
+            $.ajax({
+                url: "{{ url("/report/production/defect/export") }}",
+                type: 'post',
+                data: { date : date, line : line },
+                xhrFields: { responseType : 'blob' },
+                success: function(res) {
+                    @this.set('loadingLine', false);
+
+                    elm.removeAttribute('disabled');
+                    elm.innerText = "Export ";
+                    let icon = document.createElement('i');
+                    icon.classList.add('fa-solid');
+                    icon.classList.add('fa-file-excel');
+                    elm.appendChild(icon);
+
+                    iziToast.success({
+                        title: 'Success',
+                        message: 'Success',
+                        position: 'topCenter'
+                    });
+
+                    var blob = new Blob([res]);
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = line.replace("_", "-")+" "+date+" Production Defect Report.xlsx";
+                    link.click();
+                }, error: function (jqXHR) {
+                    @this.set('loadingLine', false);
+
+                    let res = jqXHR.responseJSON;
+                    let message = '';
+                    console.log(res.message);
+                    for (let key in res.errors) {
+                        message += res.errors[key]+' ';
+                        document.getElementById(key).classList.add('is-invalid');
+                    };
+                    iziToast.error({
+                        title: 'Error',
+                        message: message,
+                        position: 'topCenter'
+                    });
+                }
+            });
         }
     </script>
 @endpush
