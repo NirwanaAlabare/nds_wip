@@ -2223,18 +2223,18 @@ class StockerController extends Controller
                         YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], ['form_cut_id', 'so_det_id', 'size', 'number', 'created_at', 'updated_at']);
                     }
 
-                    // $customPaper = array(0, 0, 35.35, 110.90);
-                    // $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearsequence', ["data" => $upsertData])->setPaper($customPaper);
+                    $stockerData = Stocker::where("id_qr_stocker", $request->id_qr_stocker)->first();
 
-                    // $path = public_path('pdf/');
-                    // $fileName = str_replace("/", "-", ('Year Sequence.pdf'));
-                    // $pdf->save($path . '/' . str_replace("/", "_", $fileName));
-                    // $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
 
-                    return array(
-                        "status" => 200,
-                        "message" => "Berhasil"
-                    );
+                    $customPaper = array(0, 0, 425.7, 198.66);
+                    $pdf = PDF::loadView('stocker.stocker.pdf.print-year-sequence-stock', ["stockerData" => $stockerData, "range_awal" => $validatedRequest['range_awal_year_sequence'], "range_akhir" => $validatedRequest['range_akhir_year_sequence']])->setPaper($customPaper);
+
+                    $path = public_path('pdf/');
+                    $fileName = str_replace("/", "-", ('Stock Year Sequence.pdf'));
+                    $pdf->save($path . '/' . str_replace("/", "_", $fileName));
+                    $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
+
+                    return response()->download($generatedFilePath);
                 } else {
                     return array(
                         "status" => 400,

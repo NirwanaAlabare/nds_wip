@@ -355,6 +355,8 @@
         })
 
         function getScannedItem(stocker) {
+            document.getElementById('loading').classList.remove("d-none");
+
             $.ajax({
                 url: '{{ route('get-stocker') }}',
                 type: 'get',
@@ -364,6 +366,8 @@
                 dataType: 'json',
                 success: function(res)
                 {
+                    document.getElementById('loading').classList.add("d-none");
+
                     if (res) {
                         if (res.status != "400") {
                             document.getElementById("stocker").value = res.id_qr_stocker ? res.id_qr_stocker : null;
@@ -393,6 +397,8 @@
                 },
                 error: function(jqXHR)
                 {
+                    document.getElementById('loading').classList.add("d-none");
+
                     console.error(jqXHR)
                 }
             })
@@ -561,6 +567,7 @@
                     url: '{{ route('set-year-sequence-number') }}',
                     type: 'post',
                     data: {
+                        "id_qr_stocker": $('#id_qr_stocker').val(),
                         "method": method,
                         "year": $('#year').val(),
                         "year_sequence": $('#sequence').val(),
@@ -572,12 +579,13 @@
                         "range_awal_year_sequence": Number($('#range_awal').val()),
                         "range_akhir_year_sequence": Number($('#range_akhir').val()),
                     },
-                    // xhrFields:
-                    // {
-                    //     responseType: 'blob'
-                    // },
+                    xhrFields:
+                    {
+                        responseType: 'blob'
+                    },
                     success: function(res) {
-                        if (res.status == 200) {
+                        console.log(res);
+                        if (res) {
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Berhasil',
@@ -586,6 +594,12 @@
                             }).then(() => {
                                 yearSequenceTableReload();
                                 getRangeYearSequence();
+
+                                var blob = new Blob([res], {type: 'application/pdf'});
+                                var link = document.createElement('a');
+                                link.href = window.URL.createObjectURL(blob);
+                                link.download = "Stocker '"+$("#stocker").val()+" Number'.pdf";
+                                link.click();
                             });
                         } else {
                             Swal.fire({
@@ -599,6 +613,7 @@
                         generating = false;
                     },
                     error: function(jqXHR) {
+                        console.error(jqXHR);
                         Swal.fire("Nomor stocker sudah mencapai "+$("#print_qty").val()+".", "", "info");
 
                         generating = false;
