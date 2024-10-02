@@ -16,6 +16,7 @@ class PackingMasterKartonController extends Controller
 {
     public function index(Request $request)
     {
+        $tgl_akhir_fix = date('Y-m-d', strtotime("+120 days"));
         $user = Auth::user()->name;
         $tgl_awal = $request->dateFrom;
         $tgl_akhir = $request->dateTo;
@@ -116,6 +117,7 @@ where tgl_shipment >= '$tgl_awal' and tgl_shipment <= '$tgl_akhir'
                 "subPage" => "master-karton",
                 "data_po" => $data_po,
                 "user" => $user,
+                "tgl_akhir_fix" => $tgl_akhir_fix,
             ]
         );
     }
@@ -192,6 +194,7 @@ p.desc,
 m.styleno,
 m.product_group,
 m.product_item,
+mc.qty_isi,
 coalesce(dc.tot,'0') tot,
 if (mc.po = dc.po,'isi','kosong')stat
 from
@@ -223,6 +226,11 @@ left join
 SELECT count(barcode) tot,po, no_carton, notes from packing_packing_out_scan where po = '" . $request->txtmodal_h_po . "'
 group by po, no_carton, notes
 ) o on p.po = o.po and p.no_carton = o.no_carton and p.notes = o.notes
+left join
+(
+select sum(qty) qty_fg, po, no_carton, notes  from fg_fg_in where po = '" . $request->txtmodal_h_po . "' and status = 'NORMAL' group by po, no_carton, notes
+) f on p.po = f.po and p.no_carton = f.no_carton and p.notes = f.notes
+ where f.po is null and f.no_carton is null and f.notes is null
  order by p.no_carton asc
         ");
 
@@ -282,31 +290,34 @@ where a.po = '$po' and a.no_carton = '$no_carton' and a.notes = '$notes'
             if ($value != '') {
                 $txtid                          = $JmlArray[$key]; {
 
-                    $cek_id = DB::select("select b.id id_fg_in, no_sb, id_so_det from
-(select * from packing_packing_out_scan where id = '$txtid')a
-inner join fg_fg_in b on a.barcode = b.barcode and a.po = b.po and a.no_carton = b.no_carton
-                    ");
-                    $no_sb = $cek_id ? $cek_id[0]->no_sb : 0;
-                    $id_so_det = $cek_id ? $cek_id[0]->id_so_det : 0;
-                    $id_fg_in = $cek_id ? $cek_id[0]->id_fg_in : 0;
+                    $del_history =  DB::delete("
+                    delete from packing_packing_out_scan where id = '$txtid'");
 
-                    if ($no_sb != '0') {
-                        $update_sb = DB::connection('mysql_sb')->update("
-                        update bpb set qty = qty - 1 where bpbno_int = '$no_sb'  and id_so_det = '$id_so_det' and status_input = 'nds' ");
+                    //                     $cek_id = DB::select("select b.id id_fg_in, no_sb, id_so_det from
+                    // (select * from packing_packing_out_scan where id = '$txtid')a
+                    // inner join fg_fg_in b on a.barcode = b.barcode and a.po = b.po and a.no_carton = b.no_carton
+                    //                     ");
+                    //                     $no_sb = $cek_id ? $cek_id[0]->no_sb : 0;
+                    //                     $id_so_det = $cek_id ? $cek_id[0]->id_so_det : 0;
+                    //                     $id_fg_in = $cek_id ? $cek_id[0]->id_fg_in : 0;
 
-                        $update_nds = DB::update("
-                        update fg_fg_in set qty = qty  - 1 where id = '$id_fg_in ' ");
+                    // if ($no_sb != '0') {
+                    //     $update_sb = DB::connection('mysql_sb')->update("
+                    //     update bpb set qty = qty - 1 where bpbno_int = '$no_sb'  and id_so_det = '$id_so_det' and status_input = 'nds' ");
 
-                        $ins_history =  DB::insert("
-                        insert into packing_packing_out_scan_log (id_packing_Packing_out_scan, tgl_trans, barcode, po, no_carton, created_at, updated_at, created_by)
-                        SELECT id, tgl_trans, barcode, po, no_carton,created_at, '$timestamp', '$user'  FROM `packing_packing_out_scan` where id = '$txtid'");
+                    //     $update_nds = DB::update("
+                    //     update fg_fg_in set qty = qty  - 1 where id = '$id_fg_in ' ");
 
-                        $del_history =  DB::delete("
-                        delete from packing_packing_out_scan where id = '$txtid'");
-                    } else {
-                        $del_history =  DB::delete("
-                        delete from packing_packing_out_scan where id = '$txtid'");
-                    }
+                    //     $ins_history =  DB::insert("
+                    //     insert into packing_packing_out_scan_log (id_packing_Packing_out_scan, tgl_trans, barcode, po, no_carton, created_at, updated_at, created_by)
+                    //     SELECT id, tgl_trans, barcode, po, no_carton,created_at, '$timestamp', '$user'  FROM `packing_packing_out_scan` where id = '$txtid'");
+
+                    //     $del_history =  DB::delete("
+                    //     delete from packing_packing_out_scan where id = '$txtid'");
+                    // } else {
+                    //     $del_history =  DB::delete("
+                    //     delete from packing_packing_out_scan where id = '$txtid'");
+                    // }
                 }
             }
         }

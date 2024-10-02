@@ -157,7 +157,7 @@ class MutLokasiController extends Controller
         //     group by br.id
         //     order by br.id");
 
-        $det_item = DB::connection('mysql_sb')->select("select fil,no_barcode, no_roll_buyer,id_jo,id,itemdesc, id_item, goods_code, supplier, bpbno_int,pono,invno,kpno,roll_no, roll_qty, lot_no, unit, kode_rak, filter from (select 'TR' fil, no_barcode,a.id_jo,a.id,a.item_desc itemdesc,a.id_item,a.kode_item goods_code,b.supplier,a.no_dok bpbno_int,b.no_po pono,b.no_invoice invno,a.no_ws kpno,a.no_roll roll_no,a.no_roll_buyer,a.qty_aktual roll_qty,a.no_lot lot_no,a.satuan unit,a.kode_lok kode_rak, CONCAT(a.id_item,'-',kode_item,'-',item_desc,'-',a.no_ws,'-',a.no_dok,'-',a.satuan) filter,COALESCE(c.qty_out,0) qty_out,(a.qty_aktual - COALESCE(c.qty_out,0)) qty_sisa from whs_lokasi_inmaterial a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok left join (select id_roll,round(sum(qty_out),4) qty_out from (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll
+        $det_item = DB::connection('mysql_sb')->select("select fil,no_barcode, no_roll_buyer,id_jo,id,itemdesc, id_item, goods_code, supplier, bpbno_int,pono,invno,kpno,roll_no, qty_sisa roll_qty, lot_no, unit, kode_rak, filter from (select 'TR' fil, no_barcode,a.id_jo,a.id,a.item_desc itemdesc,a.id_item,a.kode_item goods_code,b.supplier,a.no_dok bpbno_int,b.no_po pono,b.no_invoice invno,a.no_ws kpno,a.no_roll roll_no,a.no_roll_buyer,a.qty_aktual roll_qty,a.no_lot lot_no,a.satuan unit,a.kode_lok kode_rak, CONCAT(a.id_item,'-',kode_item,'-',item_desc,'-',a.no_ws,'-',a.no_dok,'-',a.satuan) filter,COALESCE(c.qty_out,0) qty_out,(a.qty_aktual - COALESCE(c.qty_out,0)) qty_sisa from whs_lokasi_inmaterial a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok left join (select id_roll,round(sum(qty_out),4) qty_out from (select id_roll,sum(qty_out) qty_out from whs_bppb_det GROUP BY id_roll
             UNION
             select no_barcode,sum(qty_mutasi) qty_out from whs_lokasi_inmaterial where qty_mutasi > 0 GROUP BY no_barcode
             UNION
@@ -188,7 +188,7 @@ class MutLokasiController extends Controller
             <td >'.$detitem->lot_no.' <input type="hidden" id="lot_no'.$x.'" name="lot_no['.$x.']" value="'.$detitem->lot_no.'" / readonly></td>
             <td >'.$detitem->roll_no.' <input type="hidden" id="roll_no'.$x.'" name="roll_no['.$x.']" value="'.$detitem->roll_no.'" / readonly></td>
             <td >'.$detitem->roll_qty.' <input type="hidden" id="qty_roll'.$x.'" name="qty_roll['.$x.']" value="'.$detitem->roll_qty.'" / readonly></td>
-            <td><input style="width:100px;text-align:right;" class="form-control" type="text" id="qty_mut'.$x.'" name="qty_mut['.$x.']" value="" onkeyup="sum_qty_mut(this.value)" /></td>
+            <td><input style="width:100px;text-align:right;" class="form-control" type="text" id="qty_mut'.$x.'" name="qty_mut['.$x.']" value="'.$detitem->roll_qty.'" onkeyup="sum_qty_mut(this.value)" /></td>
             <td >'.$detitem->unit.' <input type="hidden" id="unit'.$x.'" name="unit['.$x.']" value="'.$detitem->unit.'" / readonly></td>
             <td >'.$detitem->kode_rak.' <input type="hidden" id="kode_rak'.$x.'" name="kode_rak['.$x.']" value="'.$detitem->kode_rak.'" / readonly></td>
             <td ><select class="form-control select2lok" id="selectlok'.$x.'" name="selectlok['.$x.']" style="width: 150px;">
@@ -327,7 +327,10 @@ class MutLokasiController extends Controller
                         ]);
                     }
 
-                    $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F',(if(kode is null,'19999',kode)  + 1)) kode from (select max(SUBSTR(no_barcode,2,10)) kode from whs_lokasi_inmaterial where no_barcode like '%F%') a");
+                    // $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F',(if(kode is null,'19999',kode)  + 1)) kode from (select max(SUBSTR(no_barcode,2,10)) kode from whs_lokasi_inmaterial where no_barcode like '%F%') a");
+                    // $barcode = $sql_barcode[0]->kode;
+
+                    $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F',(if(kode is null,'19999',kode)  + 1)) kode from (select max(cast(SUBSTR(no_barcode,2,10) as SIGNED)) kode from whs_lokasi_inmaterial where no_barcode like '%F%') a");
                     $barcode = $sql_barcode[0]->kode;
 
                     $save_lokasi = InMaterialLokasi::create([

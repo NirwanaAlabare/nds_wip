@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ExportLaporanTrfGarment;
 
-class FinishGoodPenerimaanController extends Controller
+class FinishGoodMasterLokasiController extends Controller
 {
     public function index(Request $request)
     {
@@ -62,11 +62,11 @@ group by po, buyer
 
 
         return view(
-            'finish_good.finish_good_penerimaan',
+            'finish_good.finish_good_master_lokasi',
             [
                 'page' => 'dashboard-finish-good',
-                "subPageGroup" => "finish_good_penerimaan",
-                "subPage" => "finish_good_penerimaan",
+                "subPageGroup" => "finish_good_master_lokasi",
+                "subPage" => "finish_good_master_lokasi",
                 "data_po" => $data_po
             ]
         );
@@ -101,14 +101,14 @@ group by po, buyer
 concat(a.no_carton,'_',a.notes)  isi,
 concat(a.no_carton, ' ( ', coalesce(sum(b.total),0) - coalesce(sum(c.qty_fg),0), ' ) ', a.notes) tampil
  from
-(select id,po, no_carton, notes, qty_isi from packing_master_carton where po = '" . $request->cbopo . "') a
+(select id,po, no_carton, notes, qty_isi from packing_master_carton where po = 'S9SW26A') a
 left join (
 select count(barcode) total, po, barcode, dest, no_carton, notes from packing_packing_out_scan
-where po = '" . $request->cbopo . "'
+where po = 'S9SW26A'
 group by no_carton, po, barcode, dest
 ) b on a.po = b.po and a.no_carton = b.no_carton and a.notes = b.notes
 left join (
-select sum(qty) qty_fg,po, barcode, no_carton, notes from fg_fg_in where po = '" . $request->cbopo . "' and status = 'NORMAL' group by barcode, po, no_carton, notes ) c
+select sum(qty) qty_fg,po, barcode, no_carton, notes from fg_fg_in where po = 'S9SW26A' and status = 'NORMAL' group by barcode, po, no_carton, notes ) c
 on a.po = c.po and a.no_carton = c.no_carton and a.notes = c.notes and b.barcode = c.barcode
 where
 (
