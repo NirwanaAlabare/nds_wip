@@ -12,7 +12,7 @@
 @endsection
 
 @section('content')
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    {{-- <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
         <form action="{{ route('store-lokasi-fg-stock') }}" method="post" onsubmit="submitForm(this, event)" name='form'
             id='form'>
@@ -53,7 +53,7 @@
                 </div>
             </div>
         </form>
-    </div>
+    </div> --}}
 
     <div class="card card-sb">
         <div class="card-header">

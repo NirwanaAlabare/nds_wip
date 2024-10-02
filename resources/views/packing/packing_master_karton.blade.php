@@ -163,6 +163,7 @@
                                         <th>Style</th>
                                         <th>Product</th>
                                         <th>Qty</th>
+                                        <th>Qty Max Karton</th>
                                         <th>Status</th>
                                     </tr>
                                 </thead>
@@ -171,6 +172,7 @@
                                         <th colspan="10"></th>
                                         <th> <input type = 'text' class="form-control form-control-sm"
                                                 style="width:75px" readonly id = 'total_qty_chk'> </th>
+                                        <th></th>
                                         <th></th>
                                     </tr>
                                 </tfoot>
@@ -638,6 +640,7 @@
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-rowsgroup/dataTables.rowsGroup.js') }}"></script>
 
     <style>
         .checkbox-xl .form-check-input {
@@ -1048,11 +1051,14 @@
                     data: 'tot'
                 },
                 {
+                    data: 'qty_isi'
+                },
+                {
                     data: 'stat'
                 },
             ],
             columnDefs: [{
-                    "className": "dt-left",
+                    "className": "align-middle",
                     "targets": "_all"
                 },
                 // {
@@ -1069,6 +1075,9 @@
                 //     }
                 // },
 
+            ],
+            rowsGroup: [
+                0, 11
             ]
         });
 

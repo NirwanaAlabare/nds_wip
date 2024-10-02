@@ -115,6 +115,7 @@ use App\Http\Controllers\PackingNeedleCheckController;
 use App\Http\Controllers\PackingMasterKartonController;
 
 // FINISH GOOD
+use App\Http\Controllers\FinishGoodMasterLokasiController;
 use App\Http\Controllers\FinishGoodPenerimaanController;
 use App\Http\Controllers\FinishGoodPengeluaranController;
 use App\Http\Controllers\FinishGoodReturController;
@@ -1305,6 +1306,12 @@ Route::middleware('auth')->group(function () {
     });
 
     // Finish Good
+    // Master Finish Good
+    Route::controller(FinishGoodMasterLokasiController::class)->prefix("finish_good_master")->middleware('finishgood')->group(function () {
+        Route::get('/', 'index')->name('finish_good_master_lokasi');
+    });
+
+
     // Penerimaan Finish Good
     Route::controller(FinishGoodPenerimaanController::class)->prefix("finish_good_penerimaan")->middleware('finishgood')->group(function () {
         Route::get('/', 'index')->name('finish_good_penerimaan');

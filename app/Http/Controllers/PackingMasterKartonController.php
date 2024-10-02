@@ -194,6 +194,7 @@ p.desc,
 m.styleno,
 m.product_group,
 m.product_item,
+mc.qty_isi,
 coalesce(dc.tot,'0') tot,
 if (mc.po = dc.po,'isi','kosong')stat
 from
