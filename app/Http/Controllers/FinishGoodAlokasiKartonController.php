@@ -10,66 +10,40 @@ use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ExportLaporanTrfGarment;
 
-class FinishGoodPenerimaanController extends Controller
+class FinishGoodAlokasiKartonController extends Controller
 {
     public function index(Request $request)
     {
         $tgl_awal = $request->dateFrom;
         $tgl_akhir = $request->dateTo;
         $tgl_skrg = date('Y-m-d');
-        $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-90 days'));
         $user = Auth::user()->name;
         if ($request->ajax()) {
             $additionalQuery = '';
             $data_input = DB::select("SELECT
-no_sb,
-tgl_penerimaan,
-concat((DATE_FORMAT(a.tgl_penerimaan,  '%d')), '-', left(DATE_FORMAT(a.tgl_penerimaan,  '%M'),3),'-',DATE_FORMAT(a.tgl_penerimaan,  '%Y')
-            ) tgl_penerimaan_fix,
-a.po,
-a.barcode,
-buyer,
-ws,
-color,
-size,
-a.qty,
-a.no_carton,
-a.notes,
-a.created_at,
-a.created_by
-from fg_fg_in a
-inner join ppic_master_so p on a.id_ppic_master_so = p.id
-inner join master_sb_ws m on p.id_so_det = m.id_so_det
-where tgl_penerimaan >= '$tgl_awal' and tgl_penerimaan <= '$tgl_akhir' and a.status = 'NORMAL'
-order by a.created_at desc
+*
+from fg_fg_master_lok
             ");
 
             return DataTables::of($data_input)->toJson();
         }
-
-        $data_po = DB::select("SELECT a.po isi, concat(a.po, ' - ', p.buyer) tampil from
-(select * from packing_master_carton group by po) a
-inner join
-(
-select a.po, m.buyer , tgl_shipment from ppic_master_so a
-inner join master_sb_ws m on a.id_so_det = m.id_so_det
-group by po, buyer
- ) p on a.po = p.po
- where p.tgl_shipment >= '$tgl_skrg_min_sebulan'
- group by a.po
- order by p.buyer asc, a.po asc
-        ");
-
-
         return view(
-            'finish_good.finish_good_penerimaan',
+            'finish_good.finish_good_alokasi_karton',
             [
                 'page' => 'dashboard-finish-good',
-                "subPageGroup" => "finish_good_penerimaan",
-                "subPage" => "finish_good_penerimaan",
-                "data_po" => $data_po
+                "subPageGroup" => "finish_good_alokasi_karton",
+                "subPage" => "finish_good_alokasi_karton"
             ]
         );
+    }
+
+
+    public function getdata_finish_good_master_lokasi(Request $request)
+    {
+        $cek_data = DB::select("
+        SELECT * FROM fg_fg_master_lok	where id = '$request->id_e'
+        ");
+        return json_encode($cek_data ? $cek_data[0] : null);
     }
 
     public function fg_in_getno_carton(Request $request)
@@ -105,7 +79,7 @@ concat(a.no_carton, ' ( ', coalesce(sum(b.total),0) - coalesce(sum(c.qty_fg),0),
 left join (
 select count(barcode) total, po, barcode, dest, no_carton, notes from packing_packing_out_scan
 where po = '" . $request->cbopo . "'
-group by no_carton, po
+group by no_carton, po, barcode, dest
 ) b on a.po = b.po and a.no_carton = b.no_carton and a.notes = b.notes
 left join (
 select sum(qty) qty_fg,po, barcode, no_carton, notes from fg_fg_in where po = '" . $request->cbopo . "' and status = 'NORMAL' group by barcode, po, no_carton, notes ) c
