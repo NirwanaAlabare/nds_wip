@@ -23,8 +23,7 @@
             <img src="{{ asset('dist/img/logo-icon.png') }}" alt="nds Logo" class="brand-image">
         </a>
 
-        <button class="navbar-toggler order-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
-            aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler order-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
@@ -341,9 +340,23 @@
                             </ul>
                         </li>
                         <li class="nav-item dropdown">
-                            <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
-                                aria-expanded="false"
-                                class="nav-link dropdown-toggle {{ $subPageGroup == 'cutting-report' ? 'active' : '' }}">Report</a>
+                            <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'laporan-cutting' ? 'active' : '' }}">Roll</a>
+                            <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
+                                <li>
+                                    <a href="{{ route('lap_pemakaian') }}"
+                                        class="dropdown-item {{ $subPage == 'lap-pemakaian' ? 'active' : '' }}">
+                                        Manajemen Roll <i class="fa-solid fa-toilet-paper fa-sm"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('sisa_kain_roll') }}" class="dropdown-item {{ $subPage == 'sisa_kain_roll' ? 'active' : '' }}">
+                                        Sisa Kain Roll <i class="fa-solid fa-note-sticky"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'cutting-report' ? 'active' : '' }}">Report</a>
                             <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
                                 <li>
                                     <a href="{{ route('report-cutting') }}"
@@ -355,19 +368,6 @@
                                     <a href="{{ route('pemakaian-roll') }}"
                                         class="dropdown-item {{ $subPage == 'pemakaian-roll' ? 'active' : '' }}">
                                         Pemakaian Kain <i class="fa fa-file"></i>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
-                                aria-expanded="false"
-                                class="nav-link dropdown-toggle {{ $subPageGroup == 'laporan-cutting' ? 'active' : '' }}">Roll</a>
-                            <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
-                                <li>
-                                    <a href="{{ route('lap_pemakaian') }}"
-                                        class="dropdown-item {{ $subPage == 'lap-pemakaian' ? 'active' : '' }}">
-                                        Roll Consumption <i class="fa-solid fa-toilet-paper fa-sm"></i>
                                     </a>
                                 </li>
                             </ul>

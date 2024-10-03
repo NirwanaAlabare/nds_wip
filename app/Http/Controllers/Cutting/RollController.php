@@ -226,6 +226,11 @@ class RollController extends Controller
         return DataTables::of($data_pemakaian)->toJson();
     }
 
+    public function sisaKainRoll(Request $request)
+    {
+        return view("cutting.roll.sisa-kain-roll", ['page' => 'dashboard-cutting', "subPageGroup" => "laporan-cutting", "subPage" => "sisa-kain-roll"]);
+    }
+
     /**
      * Show the form for creating a new resource.
      *

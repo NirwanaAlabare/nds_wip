@@ -458,7 +458,8 @@ Route::middleware('auth')->group(function () {
     // Roll
     Route::controller(RollController::class)->prefix("lap_pemakaian")->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('lap_pemakaian');
-        Route::post('/', 'pemakaianRollData')->name('lap_pemakaian_data');
+        Route::post('/manajemen_roll', 'pemakaianRollData')->name('lap_pemakaian_data');
+        Route::get('/sisa_kain_roll', 'sisaKainRoll')->name('sisa_kain_roll');
         // export excel
         Route::get('/export_excel', 'export_excel')->name('export_excel');
         Route::post('/export', 'export')->name('export');
@@ -502,6 +503,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/stocker-list/detail/{form_cut_id?}/{so_det_id?}', 'stockerListDetail')->name('stocker-list-detail');
         Route::post('/stocker-list/set-month-count', 'setMonthCountNumber')->name('set-month-count-number');
         Route::post('/stocker-list/set-year-sequence', 'setYearSequenceNumber')->name('set-year-sequence-number');
+        Route::post('/stocker-list/check-all-stock-number', 'checkAllStockNumber')->name('check-all-stock-number');
+        Route::post('/stocker-list/print-stock-number', 'printStockNumber')->name('print-stock-number');
 
         // month count
         Route::get('/month-count', 'customMonthCount')->name('month-count');
