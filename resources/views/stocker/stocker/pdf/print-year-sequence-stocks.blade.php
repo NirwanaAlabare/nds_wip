@@ -126,6 +126,11 @@
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['numbering_range'] }}</td>
                 </tr>
             </table>
+            <div class="clearfix">
+                <div style="float: right;">
+                    <p>{{ $stockerData->updated_at }}</p>
+                </div>
+            </div>
         </div>
     @endforeach
 </body>
