@@ -60,13 +60,13 @@
     </style>
 </head>
 <body>
-    <div style="border: 1px solid;padding: 5px">
-        <div class="clearfix">
+    <div style="border: 1px solid;padding: 5px;">
+        <div class="clearfix" style="margin-bottom: 5px;">
             <div style="float: left;">
                 <p>'{{ $stockerData->id_qr_stocker }}' Numbering Stock</p>
             </div>
         </div>
-        <table style="margin-bottom: 30px;">
+        <table style="margin-bottom: 5px;">
             <tr>
                 <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>No. WS</th>
                 <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
