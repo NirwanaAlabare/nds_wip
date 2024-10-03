@@ -128,7 +128,7 @@
             </table>
             <div class="clearfix">
                 <div style="float: right;">
-                    <p>{{ $stockerData->updated_at }}</p>
+                    <p>{{ $stockerNumber['updated_at'] }}</p>
                 </div>
             </div>
         </div>
