@@ -70,7 +70,7 @@
                         FG
                         RO
                     </h5>
-                    <a href="{{ route('finish_good_pengeluaran') }}" class="btn btn-sm btn-secondary">
+                    <a href="{{ route('finish_good_retur') }}" class="btn btn-sm btn-secondary">
                         <i class="fa fa-reply"></i> Kembali
                     </a>
                 </div>

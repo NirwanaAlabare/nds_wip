@@ -874,8 +874,14 @@
                             <li>
                                 <a href="{{ route('finish_good_penerimaan') }}"
                                     class="dropdown-item {{ $subPage == 'finish_good_penerimaan' ? 'active' : '' }}">
-                                    Penerimaan Finish Good <i class="fas fa-arrow-circle-left fa-sm"
-                                        style="color: green;"></i>
+                                    <i class="fas fa-arrow-circle-left fa-sm" style="color: green;"></i> Penerimaan
+                                    Finish Good
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('finish_good_alokasi_karton') }}"
+                                    class="dropdown-item {{ $subPage == 'finish_good_alokasi_karton' ? 'active' : '' }}">
+                                    <i class="fas fa-boxes-packing fa-sm"></i> Alokasi Karton
                                 </a>
                             </li>
                         </ul>
@@ -888,15 +894,15 @@
                             <li>
                                 <a href="{{ route('finish_good_pengeluaran') }}"
                                     class="dropdown-item {{ $subPage == 'finish_good_pengeluaran' ? 'active' : '' }}">
-                                    Pengeluaran Finish Good <i class="fas fa-arrow-circle-right fa-sm"
-                                        style="color: blue;"></i>
+                                    <i class="fas fa-arrow-circle-right fa-sm" style="color: blue;"></i> Pengeluaran
+                                    Finish Good
                                 </a>
                             </li>
                             <li>
                                 <a href="{{ route('finish_good_retur') }}"
                                     class="dropdown-item {{ $subPage == 'finish_good_retur' ? 'active' : '' }}">
-                                    Retur Finish Good Ekspedisi <i class="fas fa-arrow-circle-left fa-sm"
-                                        style="color:red;"></i>
+                                    <i class="fas fa-arrow-circle-left fa-sm" style="color:red;"></i> Retur Finish
+                                    Good Ekspedisi
                                 </a>
                             </li>
                         </ul>

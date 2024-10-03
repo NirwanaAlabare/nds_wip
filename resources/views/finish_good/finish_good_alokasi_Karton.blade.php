@@ -12,7 +12,7 @@
 @endsection
 
 @section('content')
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    <div class="modal fade" id="exampleModalTambah" tabindex="-1" role="dialog" aria-labelledby="exampleModalTambahLabel"
         aria-hidden="true">
         <form action="{{ route('store_finish_good_master_lokasi') }}" method="post" onsubmit="submitForm(this, event)"
             name='form' id='form'>
@@ -20,7 +20,7 @@
             <div class="modal-dialog modal-dialog-scrollable">
                 <div class="modal-content">
                     <div class="modal-header bg-sb text-light">
-                        <h3 class="modal-title fs-5">Tambah Master Lokasi</h3>
+                        <h3 class="modal-title fs-5">Tambah Alokasi</h3>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
@@ -51,69 +51,29 @@
         </form>
     </div>
 
-    <div class="modal fade" id="exampleModalEdit" tabindex="-1" role="dialog" aria-labelledby="exampleModalEditLabel"
-        aria-hidden="true">
-        <form action="{{ route('edit_finish_good_master_lokasi') }}" method="post" onsubmit="submitForm(this, event)"
-            name='form' id='form' enctype="multipart/form-data">
-            @method('POST')
-            <div class="modal-dialog modal-dialog-scrollable modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header bg-warning">
-                        <h3 class="modal-title fs-5">Edit Master Lokasi</h3>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label class="form-label">Kode Lokasi :</label>
-                            <input type='hidden' class='form-control form-control-sm' id="txtid_lokasi_edit"
-                                name="txtid_lokasi_edit" style="text-transform: uppercase" value=""
-                                autocomplete="off">
-                            <input type='text' class='form-control form-control-sm' id="txtkode_lokasi_edit"
-                                name="txtkode_lokasi_edit" style="text-transform: uppercase" value=""
-                                autocomplete="off">
-                        </div>
-                        <div class="form-group">
-                            <label for="recipient-name" class="col-form-label">Lokasi :</label>
-                            <input type='text' class='form-control form-control-sm' id="txtlok_edit"
-                                name="txtlok_edit" style="text-transform: uppercase" value = '' autocomplete="off">
-                        </div>
-                        <div class="form-group">
-                            <label for="recipient-name" class="col-form-label">Keterangan :</label>
-                            <input type='text' class='form-control form-control-sm' id="txtket_edit"
-                                name="txtket_edit" style="text-transform: uppercase" value = '' autocomplete="off">
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal"><i
-                                class="fas fa-times-circle"></i> Tutup</button>
-                        <button type="submit" class="btn btn-outline-success"><i class="fas fa-check"></i> Simpan
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </form>
-    </div>
-
 
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-map-marker"></i> Master Lokasi</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-truck-loading"></i> Alokasi Karton</h5>
         </div>
         <div class="card-body">
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
-                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#exampleModal"
-                        onclick="reset()"><i class="fas fa-plus"></i> Baru</button>
+                    <a onclick="notif()" class="btn btn-outline-success position-relative btn-sm">
+                        <i class="fas fa-file-excel fa-sm"></i>
+                        Export Excel
+                    </a>
                 </div>
             </div>
 
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                <table id="datatable" class="table table-bordered table-hover table-sm w-100 text-nowrap">
                     <thead class="table-success">
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>Kode Lokasi</th>
                             <th>Lokasi</th>
                             <th>Keterangan</th>
+                            <th>Total Carton</th>
                             <th>Act</th>
                         </tr>
                     </thead>
@@ -165,10 +125,6 @@
             dataTableReload();
         });
 
-        function reset() {
-            $("#form").trigger("reset");
-        }
-
         function dataTableReload() {
             datatable.ajax.reload();
         }
@@ -217,29 +173,27 @@
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: true,
-            lengthMenu: [
-                [5, 50, 100, -1],
-                [5, 50, 100, 'All']
-            ],
+            paging: false,
             searching: true,
             scrollY: '300px',
             scrollX: '300px',
             scrollCollapse: true,
             ajax: {
-                url: '{{ route('finish_good_master_lokasi') }}',
+                url: '{{ route('finish_good_alokasi_karton') }}',
             },
             columns: [{
                     data: 'kode_lok'
 
+                }, {
+                    data: 'lokasi'
                 },
                 {
-                    data: 'lokasi'
-
-                }, {
                     data: 'ket'
-
-                }, {
+                },
+                {
+                    data: 'id'
+                },
+                {
                     data: 'id'
                 },
             ],
@@ -249,14 +203,18 @@
                     "targets": "_all"
                 },
                 {
-                    targets: [3],
+                    targets: [4],
                     render: (data, type, row, meta) => {
                         return `
-                    <div
-                    class='d-flex gap-1 justify-content-center'>
-                <a class='btn btn-warning btn-sm'  data-bs-toggle="modal"
-                        data-bs-target="#exampleModalEdit"
-                onclick="show_data_edit_h('` + row.id + `');"><i class='fas fa-edit'></i></a>                    </div>
+                <div class='d-flex gap-1 justify-content-center'>
+                <a class='btn btn-success btn-sm' data-bs-toggle="modal"
+                data-bs-target="#exampleModalEdit"
+                onclick="show_data_edit_h('` + row.id + `');"><i class='fas fa-search'></i></a>
+
+                <a class='btn btn-primary btn-sm' data-bs-toggle="modal"
+                data-bs-target="#exampleModalTambah"
+                onclick="show_data_tambah('` + row.id + `');"><i class='fas fa-plus'></i></a>
+                </div>
                         `;
                     }
                 },
@@ -265,10 +223,10 @@
 
         });
 
-        function show_data_edit_h(id) {
+        function show_data_tambah(id) {
             let id_e = id;
             jQuery.ajax({
-                url: '{{ route('getdata_finish_good_master_lokasi') }}',
+                url: '{{ route('getdata_lokasi_alokasi') }}',
                 method: 'GET',
                 data: {
                     id_e: id_e

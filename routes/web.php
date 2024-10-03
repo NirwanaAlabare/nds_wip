@@ -119,6 +119,7 @@ use App\Http\Controllers\FinishGoodMasterLokasiController;
 use App\Http\Controllers\FinishGoodPenerimaanController;
 use App\Http\Controllers\FinishGoodPengeluaranController;
 use App\Http\Controllers\FinishGoodReturController;
+use App\Http\Controllers\FinishGoodAlokasiKartonController;
 
 // REPORT DOC
 use App\Http\Controllers\ReportDocController;
@@ -1309,8 +1310,16 @@ Route::middleware('auth')->group(function () {
     // Master Finish Good
     Route::controller(FinishGoodMasterLokasiController::class)->prefix("finish_good_master")->middleware('finishgood')->group(function () {
         Route::get('/', 'index')->name('finish_good_master_lokasi');
+        Route::post('/store', 'store')->name('store_finish_good_master_lokasi');
+        Route::get('/getdata_finish_good_master_lokasi', 'getdata_finish_good_master_lokasi')->name('getdata_finish_good_master_lokasi');
+        Route::post('/edit_finish_good_master_lokasi', 'edit_finish_good_master_lokasi')->name('edit_finish_good_master_lokasi');
     });
 
+    // Alokasi Karton
+    Route::controller(FinishGoodAlokasiKartonController::class)->prefix("finish_good_alokasi_karton")->middleware('finishgood')->group(function () {
+        Route::get('/', 'index')->name('finish_good_alokasi_karton');
+        Route::get('/getdata_lokasi_alokasi', 'getdata_lokasi_alokasi')->name('getdata_lokasi_alokasi');
+    });
 
     // Penerimaan Finish Good
     Route::controller(FinishGoodPenerimaanController::class)->prefix("finish_good_penerimaan")->middleware('finishgood')->group(function () {
