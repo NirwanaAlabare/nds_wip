@@ -1952,7 +1952,7 @@ class StockerController extends Controller
                             form_cut_id,
                             so_det_id,
                             COALESCE(updated_at, created_at)
-                    ) year_sequence_num on year_sequence_num.form_cut_id = stocker_input.form_cut_id and year_sequence_num.so_det_id = stocker_input.so_det_id and year_sequence_num.range_numbering_awal >= stocker_input.range_awal
+                    ) year_sequence_num on year_sequence_num.form_cut_id = stocker_input.form_cut_id and year_sequence_num.so_det_id = stocker_input.so_det_id and year_sequence_num.range_numbering_awal >= stocker_input.range_awal and year_sequence_num.range_numbering_akhir <= stocker_input.range_akhir
                 WHERE
                     ( form_cut_input.cancel IS NOT NULL OR form_cut_input.cancel != 'Y' )
                     AND (
@@ -1972,6 +1972,8 @@ class StockerController extends Controller
                 GROUP BY
                     stocker_input.form_cut_id,
                     stocker_input.so_det_id,
+                    stocker_input.group_stocker,
+                    stocker_input.ratio,
                     year_sequence_num.updated_at
                 ORDER BY
                     stocker_input.updated_at DESC,
@@ -2029,7 +2031,9 @@ class StockerController extends Controller
                         stocker_input.so_det_id = '".$so_det_id."'
                     GROUP BY
                         stocker_input.form_cut_id,
-                        stocker_input.so_det_id
+                        stocker_input.so_det_id,
+                        stocker_input.group_stocker,
+                        stocker_input.ratio
                     ORDER BY
                         stocker_input.updated_at desc,
                         stocker_input.created_at desc,
@@ -2223,18 +2227,18 @@ class StockerController extends Controller
                         YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], ['form_cut_id', 'so_det_id', 'size', 'number', 'created_at', 'updated_at']);
                     }
 
-                    // $customPaper = array(0, 0, 35.35, 110.90);
-                    // $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearsequence', ["data" => $upsertData])->setPaper($customPaper);
+                    $stockerData = Stocker::where("id_qr_stocker", $request->id_qr_stocker)->first();
 
-                    // $path = public_path('pdf/');
-                    // $fileName = str_replace("/", "-", ('Year Sequence.pdf'));
-                    // $pdf->save($path . '/' . str_replace("/", "_", $fileName));
-                    // $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
 
-                    return array(
-                        "status" => 200,
-                        "message" => "Berhasil"
-                    );
+                    $customPaper = array(0, 0, 425.7, 198.66);
+                    $pdf = PDF::loadView('stocker.stocker.pdf.print-year-sequence-stock', ["stockerData" => $stockerData, "range_awal" => $validatedRequest['range_awal_year_sequence'], "range_akhir" => $validatedRequest['range_akhir_year_sequence']])->setPaper($customPaper);
+
+                    $path = public_path('pdf/');
+                    $fileName = str_replace("/", "-", ('Stock Year Sequence.pdf'));
+                    $pdf->save($path . '/' . str_replace("/", "_", $fileName));
+                    $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
+
+                    return response()->download($generatedFilePath);
                 } else {
                     return array(
                         "status" => 400,
@@ -2242,6 +2246,184 @@ class StockerController extends Controller
                     );
                 }
             }
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Data kosong",
+        );
+    }
+
+    public function checkAllStockNumber(Request $request) {
+        ini_set("max_execution_time", 36000);
+
+        $dateFrom = $request->dateFrom ? $request->dateFrom : date('Y-m-d');
+        $dateTo = $request->dateTo ? $request->dateTo : date('Y-m-d');
+
+        $tanggalFilter = $request->tanggalFilter ? $request->tanggalFilter : '';
+        $stockerFilter = $request->stockerFilter ? $request->stockerFilter : '';
+        $partFilter = $request->partFilter ? $request->partFilter : '';
+        $wsFilter = $request->wsFilter ? $request->wsFilter : '';
+        $styleFilter = $request->styleFilter ? $request->styleFilter : '';
+        $no_formFilter = $request->no_formFilter ? $request->no_formFilter : '';
+        $no_cutFilter = $request->no_cutFilter ? $request->no_cutFilter : '';
+        $colorFilter = $request->colorFilter ? $request->colorFilter : '';
+        $sizeFilter = $request->sizeFilter ? $request->sizeFilter : '';
+        $destFilter = $request->destFilter ? $request->destFilter : '';
+        $groupFilter = $request->groupFilter ? $request->groupFilter : '';
+        $shadeFilter = $request->shadeFilter ? $request->shadeFilter : '';
+        $ratioFilter = $request->ratioFilter ? $request->ratioFilter : '';
+        $stockerRangeFilter = $request->stockerRangeFilter ? $request->stockerRangeFilter : '';
+        $qtyFilter = $request->qtyFilter ? $request->qtyFilter : '';
+        $numberingRangeFilter = $request->numberingRangeFilter ? $request->numberingRangeFilter : '';
+
+        $filterQuery = "";
+
+        if ($tanggalFilter || $stockerFilter || $partFilter || $wsFilter || $styleFilter || $no_formFilter || $no_cutFilter || $colorFilter || $sizeFilter || $destFilter || $groupFilter || $shadeFilter || $ratioFilter || $stockerRangeFilter || $qtyFilter || $numberingRangeFilter) {
+            $filterQuery = "HAVING year_sequence_num.updated_at IS NOT NULL";
+
+            if ($tanggalFilter) {
+                $filterQuery .= ' AND tanggal LIKE "%'.$tanggalFilter.'%"';
+            }
+            if ($stockerFilter) {
+                $filterQuery .= ' AND GROUP_CONCAT( DISTINCT stocker_input.id_qr_stocker ) LIKE "%'.$stockerFilter.'%"';
+            }
+            if ($partFilter) {
+                $filterQuery .= ' AND GROUP_CONCAT( DISTINCT master_part.nama_part ) LIKE "%'.$partFilter.'%"';
+            }
+            if ($wsFilter) {
+                $filterQuery .= ' AND ws LIKE "%'.$wsFilter.'%"';
+            }
+            if ($styleFilter) {
+                $filterQuery .= ' AND styleno LIKE "%'.$styleFilter.'%"';
+            }
+            if ($no_formFilter) {
+                $filterQuery .= ' AND no_form LIKE "%'.$no_formFilter.'%"';
+            }
+            if ($no_cutFilter) {
+                $filterQuery .= ' AND no_cut LIKE "%'.$no_cutFilter.'%"';
+            }
+            if ($colorFilter) {
+                $filterQuery .= ' AND color LIKE "%'.$colorFilter.'%"';
+            }
+            if ($sizeFilter) {
+                $filterQuery .= ' AND size LIKE "%'.$sizeFilter.'%"';
+            }
+            if ($destFilter) {
+                $filterQuery .= ' AND dest LIKE "%'.$destFilter.'%"';
+            }
+            if ($groupFilter) {
+                $filterQuery .= ' AND group LIKE "%'.$groupFilter.'%"';
+            }
+            if ($shadeFilter) {
+                $filterQuery .= ' AND shade LIKE "%'.$shadeFilter.'%"';
+            }
+            if ($ratioFilter) {
+                $filterQuery .= ' AND ratio LIKE "%'.$ratioFilter.'%"';
+            }
+            if ($stockerRangeFilter) {
+                $filterQuery .= ' AND CONCAT( MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir)) LIKE "%'.$stockerRangeFilter.'%"';
+            }
+            if ($qtyFilter) {
+                $filterQuery .= ' AND (MAX(year_sequence_num.range_akhir) - MIN(year_sequence_num.range_awal) + 1) LIKE "%'.$qtyFilter.'%"';
+            }
+            if ($numberingRangeFilter) {
+                $filterQuery .= ' AND CONCAT( MIN(year_sequence_num.range_awal), ' - ', MAX(year_sequence_num.range_akhir)) LIKE "%'.$numberingRangeFilter.'%"';
+            }
+        }
+
+        $stockerList = DB::select("
+            SELECT
+                year_sequence_num.updated_at,
+                GROUP_CONCAT( DISTINCT stocker_input.id_qr_stocker ) id_qr_stocker,
+                GROUP_CONCAT( DISTINCT master_part.nama_part ) part,
+                stocker_input.form_cut_id,
+                stocker_input.act_costing_ws,
+                stocker_input.so_det_id,
+                master_sb_ws.styleno style,
+                master_sb_ws.color,
+                master_sb_ws.size,
+                master_sb_ws.dest,
+                form_cut_input.no_form,
+                form_cut_input.no_cut,
+                stocker_input.group_stocker,
+                stocker_input.shade,
+                stocker_input.ratio,
+                CONCAT( MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir)) stocker_range,
+                year_sequence_num.year_sequence,
+                (MAX(year_sequence_num.range_akhir) - MIN(year_sequence_num.range_awal) + 1) qty,
+                CONCAT( MIN(year_sequence_num.range_awal), ' - ', MAX(year_sequence_num.range_akhir)) numbering_range
+            FROM
+                stocker_input
+                LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
+                LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
+                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+                LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
+                INNER JOIN (
+                    SELECT
+                        form_cut_id,
+                        so_det_id,
+                        CONCAT(`year`, '_', year_sequence) year_sequence,
+                        MIN( number ) range_numbering_awal,
+                        MAX( number ) range_numbering_akhir,
+                        MIN( year_sequence_number ) range_awal,
+                        MAX( year_sequence_number ) range_akhir,
+                        COALESCE(updated_at, created_at) updated_at
+                    FROM
+                        year_sequence
+                    GROUP BY
+                        form_cut_id,
+                        so_det_id,
+                        COALESCE(updated_at, created_at)
+                ) year_sequence_num on year_sequence_num.form_cut_id = stocker_input.form_cut_id and year_sequence_num.so_det_id = stocker_input.so_det_id and year_sequence_num.range_numbering_awal >= stocker_input.range_awal and year_sequence_num.range_numbering_akhir <= stocker_input.range_akhir
+            WHERE
+                ( form_cut_input.cancel IS NOT NULL OR form_cut_input.cancel != 'Y' )
+                AND (
+                    DATE ( form_cut_input.waktu_mulai ) >= '".$dateFrom."'
+                    OR DATE ( form_cut_input.waktu_selesai ) >= '".$dateFrom."'
+                    OR DATE ( stocker_input.updated_at ) >= '".$dateFrom."'
+                    OR DATE ( stocker_input.created_at ) >= '".$dateFrom."'
+                    OR year_sequence_num.updated_at >= '".$dateFrom."'
+                )
+                AND (
+                    DATE ( form_cut_input.waktu_mulai ) <= '".$dateTo."'
+                    OR DATE ( form_cut_input.waktu_selesai ) <= '".$dateTo."'
+                    OR DATE ( stocker_input.updated_at ) <= '".$dateTo."'
+                    OR DATE ( stocker_input.created_at ) <= '".$dateTo."'
+                    OR year_sequence_num.updated_at <= '".$dateTo."'
+                )
+            GROUP BY
+                stocker_input.form_cut_id,
+                stocker_input.so_det_id,
+                stocker_input.group_stocker,
+                stocker_input.ratio,
+                year_sequence_num.updated_at
+                ".$filterQuery."
+            ORDER BY
+                stocker_input.updated_at DESC,
+                stocker_input.created_at DESC,
+                form_cut_input.waktu_selesai DESC,
+                form_cut_input.waktu_mulai DESC
+        ");
+
+        return $stockerList;
+    }
+
+    public function printStockNumber(Request $request) {
+        ini_set("max_execution_time", 36000);
+
+        ini_set("max_input_vars", 100000);
+
+        if ($request->stockNumbers && count($request->stockNumbers) > 0) {
+            $customPaper = array(0, 0, 368.29, 198.66);
+            $pdf = PDF::loadView('stocker.stocker.pdf.print-year-sequence-stocks', ["stockNumbers" => $request->stockNumbers])->setPaper($customPaper);
+
+            $path = public_path('pdf/');
+            $fileName = str_replace("/", "-", ('Stock Year Sequence.pdf'));
+            $pdf->save($path . '/' . str_replace("/", "_", $fileName));
+            $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
+
+            return response()->download($generatedFilePath);
         }
 
         return array(

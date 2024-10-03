@@ -90,7 +90,7 @@
                 </div>
             </div>
             </div>
-            
+
             <div class="col-md-2">
             <div class="mb-1">
                 <div class="form-group">
@@ -106,7 +106,7 @@
                 </div>
             </div>
             </div>
-            
+
             <div class="col-md-6" style="padding-top: 0.5rem;">
             <div class="mt-4 ">
                 <button class="btn btn-primary " onclick="dataTableReload()"> <i class="fas fa-search"></i> Search</button>
@@ -121,7 +121,7 @@
                 Saldo Awal
             </a> -->
             </div>
-           
+
         </div>
         </div>
     </div>

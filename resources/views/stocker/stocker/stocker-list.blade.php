@@ -33,6 +33,7 @@
                 </div>
                 <div class="d-flex justify-content-end align-items-end gap-3">
                     {{-- <button class="btn btn-sb btn-sm" data-bs-toggle="modal" data-bs-target="#printModal"><i class="fa-regular fa-file-lines fa-sm"></i> Print Month Count</button> --}}
+                    <button class="btn btn-sb btn-sm" id="print-stock-number" onclick="printStockNumber()"><i class="fa-regular fa-file-lines fa-sm"></i> Print Stock Number</button>
                     <button class="btn btn-sb-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#printYearModal"><i class="fa-regular fa-file-lines fa-sm"></i> Print Year Sequence</button>
                 </div>
                 {{-- <div class="d-none">
@@ -210,11 +211,13 @@
             $("#switch-method").prop("checked", false);
         });
 
+        var stockListFilter = ['action', 'tanggal_filter', 'stocker_filter', 'part_filter', 'ws_filter', 'style_filter', 'no_form_filter', 'no_cut_filter', 'color_filter', 'size_filter', 'dest_filter', 'group_filter', 'shade_filter', 'ratio_filter', 'stocker_range_filter', 'qty_filter', 'numbering_range_filter'];
+
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
             if (i != 0 && i != 17) {
                 var title = $(this).text();
-                $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%"/>');
+                $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%" id="'+stockListFilter[i]+'" />');
 
                 $('input', this).on('keyup change', function() {
                     if (datatable.column(i).search() !== this.value) {
@@ -225,7 +228,15 @@
                     }
                 });
             } else {
-                $(this).empty();
+                if (i == 0) {
+                    $(this).html(`
+                        <div class="form-check" style="scale: 1.5;translate: 50%;">
+                            <input class="form-check-input" type="checkbox" value="" id="checkAllStockNumber">
+                        </div>
+                    `);
+                } else {
+                    $(this).empty();
+                }
             }
         });
 
@@ -235,7 +246,7 @@
             processing: true,
             serverSide: true,
             scrollX: "500px",
-            scrollY: "500px",
+            scrollY: "400px",
             ajax: {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -310,7 +321,14 @@
                 {
                     targets: [0],
                     render: (data, type, row, meta) => {
-                        return "<div class='d-flex gap-1 justify-content-center'><a class='btn btn-primary btn-sm' href='{{ route('stocker-list-detail') }}/"+row.form_cut_id+"/"+row.so_det_id+"' target='_blank'><i class='fa fa-search-plus'></i></a></div>";
+                        return `
+                            <div class='d-flex gap-1 justify-content-center'>
+                                <a class='btn btn-primary btn-sm' href={{ route('stocker-list-detail') }}/`+row.form_cut_id+`/`+row.so_det_id+`' target='_blank'><i class='fa fa-search-plus'></i></a>
+                                <div class="form-check">
+                                    <input class="form-check-input check-stock-number" type="checkbox" onchange="checkStockNumber(this)" id="stock_number_`+meta.row+`">
+                                </div>
+                            </div>
+                        `;
                     }
                 },
                 // Stocker List
@@ -333,13 +351,28 @@
                     className: "text-nowrap"
                 }
             ],
-            "rowCallback": function( row, data, index ) {
+            rowCallback: function( row, data, index ) {
                 let numberingMonth = data['numbering_month'], //data numbering month
                     $node = this.api().row(row).nodes().to$();
 
                 if (numberingMonth && numberingMonth != "-") {
                     $node.addClass('red');
                 }
+
+                if (stockNumberArr.filter(item => item.updated_at == data['updated_at'] && item.id_qr_stocker == data['id_qr_stocker']).length > 0) {
+                    currentPageCheck++;
+
+                    $(row).find('input[type="checkbox"]').prop('checked', true);
+                }
+            },
+            drawCallback: function (settings) {
+                if (currentPageCheck == 0) {
+                    $('#checkAllStockNumber').prop("checked", false);
+                } else {
+                    $('#checkAllStockNumber').prop("checked", true);
+                }
+
+                currentPageCheck = 0;
             }
         });
 
@@ -430,7 +463,7 @@
                 return true;
             }
 
-            return false
+            return false;
         }
 
         function printMonthCount() {
@@ -734,6 +767,119 @@
                             generating = false;
                         }
                     });
+        }
+
+        var currentPageCheck = 0;
+        var stockNumberArr = [];
+
+        $("#checkAllStockNumber").on("change", function () {
+            if (this.checked) {
+                $.ajax({
+                    url: '{{ route('check-all-stock-number') }}',
+                    method: 'post',
+                    data: {
+                        dateFrom: $("#tgl-awal").val(),
+                        dateTo: $("#tgl-akhir").val(),
+                        tanggalFilter: $('#tanggal_filter').val(),
+                        stockerFilter: $('#stocker_filter').val(),
+                        partFilter: $('#part_filter').val(),
+                        wsFilter: $('#ws_filter').val(),
+                        styleFilter: $('#style_filter').val(),
+                        no_formFilter: $('#no_form_filter').val(),
+                        no_cutFilter: $('#no_cut_filter').val(),
+                        colorFilter: $('#color_filter').val(),
+                        sizeFilter: $('#size_filter').val(),
+                        destFilter: $('#dest_filter').val(),
+                        groupFilter: $('#group_filter').val(),
+                        shadeFilter: $('#shade_filter').val(),
+                        ratioFilter: $('#ratio_filter').val(),
+                        stockerRangeFilter: $('#stocker_range_filter').val(),
+                        qtyFilter: $('#qty_filter').val(),
+                        numberingRangeFilter: $('#numbering_range_filter').val()
+                    },
+                    success: function (res) {
+                        if (res) {
+                            stockNumberArr = res;
+
+                            dataTableReload();
+                        }
+                    },
+                    error: function (jqXHR) {
+                        console.log(jqXHR);
+                    }
+                })
+            } else {
+                stockNumberArr = [];
+
+                dataTableReload();
+            }
+        })
+
+        function checkStockNumber(element) {
+            let data = $('#datatable').DataTable().row(element.closest('tr')).data();
+
+            if (data) {
+                if (element.checked) {
+                    stockNumberArr.push(data);
+                } else {
+                    stockNumberArr = stockNumberArr.filter(item => item.updated_at != data.updated_at && item.id_qr_stocker != data.id_qr_stocker);
+                }
+            }
+        }
+
+        async function printStockNumber() {
+            document.getElementById('loading').classList.remove('d-none');
+
+            if (stockNumberArr.length > 0) {
+                let chunkSize = 50;
+
+                let i = 0;
+                do {
+                    let stockNumberArrChunk = stockNumberArr.slice(i, i + chunkSize);
+
+                    if (stockNumberArrChunk) {
+                        await $.ajax({
+                            url: '{{ route('print-stock-number') }}',
+                            method: 'post',
+                            data: {
+                                stockNumbers: stockNumberArrChunk,
+                            },
+                            xhrFields:
+                            {
+                                responseType: 'blob'
+                            },
+                            success: function (res) {
+                                if (res) {
+                                    var blob = new Blob([res], {type: 'application/pdf'});
+                                    var link = document.createElement('a');
+                                    link.href = window.URL.createObjectURL(blob);
+                                    link.download = "Stock Numbers.pdf";
+                                    link.click();
+                                }
+                            },
+                            error: function (jqXHR) {
+                                console.log(jqXHR);
+                            }
+                        })
+
+                        i += chunkSize;
+
+                        if (i >= stockNumberArr.length) {
+                            document.getElementById('loading').classList.add('d-none');
+                        }
+                    }
+                }
+                while (i < stockNumberArr.length);
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal',
+                    html: 'Harap pilih stocker',
+                    allowOutsideClick: false,
+                });
+
+                document.getElementById('loading').classList.add('d-none');
+            }
         }
     </script>
 @endsection

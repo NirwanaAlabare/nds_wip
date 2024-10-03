@@ -21,6 +21,25 @@ class LoadingLineController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
+            $detailDateFilter = "";
+            if ($request->dateFrom || $request->dateTo) {
+                $detailDateFilter = "WHERE ";
+                $dateFromFilter = " loading_line.tanggal >= '".$request->dateFrom."' ";
+                $dateToFilter = " loading_line.tanggal <= '".$request->dateTo."' ";
+
+                if ($request->dateFrom && $request->dateTo) {
+                    $detailDateFilter .= $dateFromFilter." AND ".$dateToFilter;
+                } else {
+                    if ($request->dateTo) {
+                        $detailDateFilter .= $dateFromFilter;
+                    }
+
+                    if ($request->dateFrom) {
+                        $detailDateFilter .= $dateToFilter;
+                    }
+                }
+            }
+
             $dateFilter = "";
             if ($request->dateFrom || $request->dateTo) {
                 $dateFilter = "WHERE ";
@@ -78,6 +97,7 @@ class LoadingLineController extends Controller
                             LEFT JOIN trolley_stocker ON stocker_input.id = trolley_stocker.stocker_id
                             LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
                             LEFT JOIN master_size_new ON master_size_new.size = stocker_input.size
+                            ".$detailDateFilter."
                         GROUP BY
                             loading_line.tanggal_loading,
                             stocker_input.form_cut_id,
