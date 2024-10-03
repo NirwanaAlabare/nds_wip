@@ -42,7 +42,6 @@
                         <button class="btn btn-primary btn-sm" onclick="fixRedundantNumbering()"><i class="fa fa-cog"></i> Numbering Redundant</button>
                     </div>
                 </div> --}}
-
             </div>
             <div class="table-responsive">
                 <table id="datatable" class="table table-bordered table-sm w-100">
@@ -323,7 +322,7 @@
                     render: (data, type, row, meta) => {
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
-                                <a class='btn btn-primary btn-sm' href={{ route('stocker-list-detail') }}/`+row.form_cut_id+`/`+row.so_det_id+`' target='_blank'><i class='fa fa-search-plus'></i></a>
+                                <a class='btn btn-primary btn-sm' href='{{ route("stocker-list-detail") }}/`+row.form_cut_id+`/`+row.so_det_id+`' target='_blank'><i class='fa fa-search-plus'></i></a>
                                 <div class="form-check">
                                     <input class="form-check-input check-stock-number" type="checkbox" onchange="checkStockNumber(this)" id="stock_number_`+meta.row+`">
                                 </div>

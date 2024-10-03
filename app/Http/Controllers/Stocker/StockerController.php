@@ -1927,6 +1927,7 @@ class StockerController extends Controller
                     stocker_input.shade,
                     stocker_input.ratio,
                     CONCAT( MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir)) stocker_range,
+                    (MAX(stocker_input.range_akhir) - MIN(stocker_input.range_awal) + 1) qty_stocker,
                     year_sequence_num.year_sequence,
                     (MAX(year_sequence_num.range_akhir) - MIN(year_sequence_num.range_awal) + 1) qty,
                     CONCAT( MIN(year_sequence_num.range_awal), ' - ', MAX(year_sequence_num.range_akhir)) numbering_range
@@ -2230,7 +2231,7 @@ class StockerController extends Controller
                     $stockerData = Stocker::where("id_qr_stocker", $request->id_qr_stocker)->first();
 
 
-                    $customPaper = array(0, 0, 425.7, 198.66);
+                    $customPaper = array(0,0,300,200);
                     $pdf = PDF::loadView('stocker.stocker.pdf.print-year-sequence-stock', ["stockerData" => $stockerData, "range_awal" => $validatedRequest['range_awal_year_sequence'], "range_akhir" => $validatedRequest['range_akhir_year_sequence']])->setPaper($customPaper);
 
                     $path = public_path('pdf/');
@@ -2349,8 +2350,9 @@ class StockerController extends Controller
                 stocker_input.group_stocker,
                 stocker_input.shade,
                 stocker_input.ratio,
-                CONCAT( MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir)) stocker_range,
                 year_sequence_num.year_sequence,
+                CONCAT( MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir)) stocker_range,
+                (MAX(stocker_input.range_akhir) - MIN(stocker_input.range_awal) + 1) qty_stocker,
                 (MAX(year_sequence_num.range_akhir) - MIN(year_sequence_num.range_awal) + 1) qty,
                 CONCAT( MIN(year_sequence_num.range_awal), ' - ', MAX(year_sequence_num.range_akhir)) numbering_range
             FROM
@@ -2412,10 +2414,8 @@ class StockerController extends Controller
     public function printStockNumber(Request $request) {
         ini_set("max_execution_time", 36000);
 
-        ini_set("max_input_vars", 100000);
-
         if ($request->stockNumbers && count($request->stockNumbers) > 0) {
-            $customPaper = array(0, 0, 368.29, 198.66);
+            $customPaper = array(0,0,300,200);
             $pdf = PDF::loadView('stocker.stocker.pdf.print-year-sequence-stocks', ["stockNumbers" => $request->stockNumbers])->setPaper($customPaper);
 
             $path = public_path('pdf/');
