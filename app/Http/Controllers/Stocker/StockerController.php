@@ -1956,7 +1956,7 @@ class StockerController extends Controller
                             COALESCE(updated_at, created_at)
                     ) year_sequence_num on year_sequence_num.form_cut_id = stocker_input.form_cut_id and year_sequence_num.so_det_id = stocker_input.so_det_id and year_sequence_num.range_numbering_awal >= stocker_input.range_awal and year_sequence_num.range_numbering_akhir <= stocker_input.range_akhir
                 WHERE
-                    ( form_cut_input.cancel IS NOT NULL OR form_cut_input.cancel != 'Y' )
+                    ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' )
                     AND (
                         DATE ( form_cut_input.waktu_mulai ) >= '".$dateFrom."'
                         OR DATE ( form_cut_input.waktu_selesai ) >= '".$dateFrom."'
@@ -2029,7 +2029,7 @@ class StockerController extends Controller
                     LEFT JOIN
                         form_cut_input on form_cut_input.id = stocker_input.form_cut_id
                     WHERE
-                        (form_cut_input.cancel is not null or form_cut_input.cancel != 'Y') AND
+                        (form_cut_input.cancel is null or form_cut_input.cancel != 'Y') AND
                         stocker_input.form_cut_id = '".$form_cut_id."' AND
                         stocker_input.so_det_id = '".$so_det_id."'
                     GROUP BY
@@ -2385,7 +2385,7 @@ class StockerController extends Controller
                         COALESCE(updated_at, created_at)
                 ) year_sequence_num on year_sequence_num.form_cut_id = stocker_input.form_cut_id and year_sequence_num.so_det_id = stocker_input.so_det_id and year_sequence_num.range_numbering_awal >= stocker_input.range_awal and year_sequence_num.range_numbering_akhir <= stocker_input.range_akhir
             WHERE
-                ( form_cut_input.cancel IS NOT NULL OR form_cut_input.cancel != 'Y' )
+                ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' )
                 AND (
                     DATE ( form_cut_input.waktu_mulai ) >= '".$dateFrom."'
                     OR DATE ( form_cut_input.waktu_selesai ) >= '".$dateFrom."'

@@ -380,7 +380,9 @@
         });
 
         function dataTableReload() {
-            $('#datatable').DataTable().ajax.reload();
+            $('#datatable').DataTable().ajax.reload(function () {
+                document.getElementById("loading").classList.add("d-none");
+            }, false);
         }
 
         function fixRedundantStocker() {
@@ -776,6 +778,8 @@
         var stockNumberArr = [];
 
         $("#checkAllStockNumber").on("change", function () {
+            document.getElementById("loading").classList.remove("d-none");
+
             if (this.checked) {
                 $.ajax({
                     url: '{{ route('check-all-stock-number') }}',
@@ -789,8 +793,8 @@
                         buyerFilter: $('#buyer_filter').val(),
                         wsFilter: $('#ws_filter').val(),
                         styleFilter: $('#style_filter').val(),
-                        no_formFilter: $('#no_form_filter').val(),
-                        no_cutFilter: $('#no_cut_filter').val(),
+                        noFormFilter: $('#no_form_filter').val(),
+                        noCutFilter: $('#no_cut_filter').val(),
                         colorFilter: $('#color_filter').val(),
                         sizeFilter: $('#size_filter').val(),
                         destFilter: $('#dest_filter').val(),
@@ -806,16 +810,22 @@
                             stockNumberArr = res;
 
                             dataTableReload();
+                        } else {
+                            document.getElementById("loading").classList.add("d-none");
                         }
                     },
                     error: function (jqXHR) {
                         console.log(jqXHR);
+
+                        document.getElementById("loading").classList.add("d-none");
                     }
                 })
             } else {
                 stockNumberArr = [];
 
                 dataTableReload();
+
+                document.getElementById("loading").classList.add("d-none");
             }
         })
 
