@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Cutting;
 use App\Http\Controllers\Controller;
 use App\Models\FormCutInputDetail;
 use App\Exports\ExportReportCutting;
+use App\Exports\ExportReportCuttingSinglePage;
 use App\Exports\ExportPemakaianKain;
 use App\Exports\ExportDetailPemakaianKain;
 use Maatwebsite\Excel\Facades\Excel;
@@ -503,7 +504,7 @@ class ReportCuttingController extends Controller
     {
         ini_set("max_execution_time", 36000);
 
-        return Excel::download(new ExportReportCutting($request->dateFrom, $request->dateTo), 'Report Cutting.xlsx');
+        return Excel::download(new ExportReportCuttingSinglePage($request->dateFrom, $request->dateTo), 'Report Cutting.xlsx');
     }
 
     public function pemakaianRollExport(Request $request)

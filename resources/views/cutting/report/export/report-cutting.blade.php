@@ -147,14 +147,14 @@
             $totalTotalTargetCut += $cutting->spreading_gelar ? $cutting->spreading_gelar : 0;
             $totalOutputCut += $cutting->form_gelar ? $cutting->form_gelar : 0;
             $totalOutputCutDiff += $cutting->form_diff ? $cutting->form_diff : 0;
-            $totalBalanceCut += ($cutting->form_gelar ? $cutting->form_gelar : 0) - ($cutting->spreading_gelar ? $cutting->spreading_gelar : 0);
+            $totalBalanceCut += ($cutting->form_gelar ? $cutting->form_gelar : 0) - ($cutting->marker_gelar ? $cutting->marker_gelar : 0);
             $totalConsWs += $cutting->cons_ws ? $cutting->cons_ws : 0;
             $totalNeed += 0;
             $totalSisaKemarin += 0;
             $totalIn += 0;
             $totalTotalIn += 0;
             $totalBalance += 0;
-            $totalUseAct += ($cutting->spreading_gelar ? $cutting->spreading_gelar : 0) * ($cutting->cons_ws ? $cutting->cons_ws : 0);
+            $totalUseAct += ($cutting->form_gelar ? $cutting->form_gelar : 0) * ($cutting->cons_ws ? $cutting->cons_ws : 0);
             $totalSisa += 0;
             $totalUnit = ($cutting->unit ? $cutting->unit : '-');
         @endphp
