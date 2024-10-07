@@ -1917,6 +1917,7 @@ class StockerController extends Controller
                     stocker_input.form_cut_id,
                     stocker_input.act_costing_ws,
                     stocker_input.so_det_id,
+                    master_sb_ws.buyer buyer,
                     master_sb_ws.styleno style,
                     master_sb_ws.color,
                     master_sb_ws.size,
@@ -2004,6 +2005,7 @@ class StockerController extends Controller
                         stocker_input.form_cut_id,
                         stocker_input.act_costing_ws,
                         stocker_input.so_det_id,
+                        master_sb_ws.buyer buyer,
                         master_sb_ws.styleno style,
                         master_sb_ws.color,
                         master_sb_ws.size,
@@ -2264,10 +2266,11 @@ class StockerController extends Controller
         $tanggalFilter = $request->tanggalFilter ? $request->tanggalFilter : '';
         $stockerFilter = $request->stockerFilter ? $request->stockerFilter : '';
         $partFilter = $request->partFilter ? $request->partFilter : '';
+        $buyerFilter = $request->buyerFilter ? $request->buyerFilter : '';
         $wsFilter = $request->wsFilter ? $request->wsFilter : '';
         $styleFilter = $request->styleFilter ? $request->styleFilter : '';
-        $no_formFilter = $request->no_formFilter ? $request->no_formFilter : '';
-        $no_cutFilter = $request->no_cutFilter ? $request->no_cutFilter : '';
+        $noFormFilter = $request->noFormFilter ? $request->noFormFilter : '';
+        $noCutFilter = $request->noCutFilter ? $request->noCutFilter : '';
         $colorFilter = $request->colorFilter ? $request->colorFilter : '';
         $sizeFilter = $request->sizeFilter ? $request->sizeFilter : '';
         $destFilter = $request->destFilter ? $request->destFilter : '';
@@ -2280,7 +2283,7 @@ class StockerController extends Controller
 
         $filterQuery = "";
 
-        if ($tanggalFilter || $stockerFilter || $partFilter || $wsFilter || $styleFilter || $no_formFilter || $no_cutFilter || $colorFilter || $sizeFilter || $destFilter || $groupFilter || $shadeFilter || $ratioFilter || $stockerRangeFilter || $qtyFilter || $numberingRangeFilter) {
+        if ($tanggalFilter || $stockerFilter || $partFilter || $buyerFilter || $wsFilter || $styleFilter || $noFormFilter || $noCutFilter || $colorFilter || $sizeFilter || $destFilter || $groupFilter || $shadeFilter || $ratioFilter || $stockerRangeFilter || $qtyFilter || $numberingRangeFilter) {
             $filterQuery = "HAVING year_sequence_num.updated_at IS NOT NULL";
 
             if ($tanggalFilter) {
@@ -2292,17 +2295,20 @@ class StockerController extends Controller
             if ($partFilter) {
                 $filterQuery .= ' AND GROUP_CONCAT( DISTINCT master_part.nama_part ) LIKE "%'.$partFilter.'%"';
             }
+            if ($buyerFilter) {
+                $filterQuery .= ' AND buyer LIKE "%'.$buyerFilter.'%"';
+            }
             if ($wsFilter) {
                 $filterQuery .= ' AND ws LIKE "%'.$wsFilter.'%"';
             }
             if ($styleFilter) {
                 $filterQuery .= ' AND styleno LIKE "%'.$styleFilter.'%"';
             }
-            if ($no_formFilter) {
-                $filterQuery .= ' AND no_form LIKE "%'.$no_formFilter.'%"';
+            if ($noFormFilter) {
+                $filterQuery .= ' AND no_form LIKE "%'.$noFormFilter.'%"';
             }
-            if ($no_cutFilter) {
-                $filterQuery .= ' AND no_cut LIKE "%'.$no_cutFilter.'%"';
+            if ($noCutFilter) {
+                $filterQuery .= ' AND no_cut LIKE "%'.$noCutFilter.'%"';
             }
             if ($colorFilter) {
                 $filterQuery .= ' AND color LIKE "%'.$colorFilter.'%"';
@@ -2340,8 +2346,8 @@ class StockerController extends Controller
                 GROUP_CONCAT( DISTINCT master_part.nama_part ) part,
                 stocker_input.form_cut_id,
                 stocker_input.act_costing_ws,
-                stocker_input.so_det_id,
                 master_sb_ws.styleno style,
+                master_sb_ws.buyer buyer,
                 master_sb_ws.color,
                 master_sb_ws.size,
                 master_sb_ws.dest,

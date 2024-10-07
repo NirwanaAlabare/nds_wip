@@ -51,6 +51,7 @@
                             <th>Tanggal</th>
                             <th>Stocker</th>
                             <th>Part</th>
+                            <th>Buyer</th>
                             <th>No. WS</th>
                             <th>Style</th>
                             <th>No. Form</th>
@@ -210,11 +211,11 @@
             $("#switch-method").prop("checked", false);
         });
 
-        var stockListFilter = ['action', 'tanggal_filter', 'stocker_filter', 'part_filter', 'ws_filter', 'style_filter', 'no_form_filter', 'no_cut_filter', 'color_filter', 'size_filter', 'dest_filter', 'group_filter', 'shade_filter', 'ratio_filter', 'stocker_range_filter', 'qty_filter', 'numbering_range_filter'];
+        var stockListFilter = ['action', 'tanggal_filter', 'stocker_filter', 'part_filter', 'buyer_filter', 'ws_filter', 'style_filter', 'no_form_filter', 'no_cut_filter', 'color_filter', 'size_filter', 'dest_filter', 'group_filter', 'shade_filter', 'ratio_filter', 'stocker_range_filter', 'qty_filter', 'numbering_range_filter'];
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i != 0 && i != 17) {
+            if (i != 0 && i != 18) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%" id="'+stockListFilter[i]+'" />');
 
@@ -271,6 +272,9 @@
                 },
                 {
                     data: 'part'
+                },
+                {
+                    data: 'buyer'
                 },
                 {
                     data: 'act_costing_ws'
@@ -782,6 +786,7 @@
                         tanggalFilter: $('#tanggal_filter').val(),
                         stockerFilter: $('#stocker_filter').val(),
                         partFilter: $('#part_filter').val(),
+                        buyerFilter: $('#buyer_filter').val(),
                         wsFilter: $('#ws_filter').val(),
                         styleFilter: $('#style_filter').val(),
                         no_formFilter: $('#no_form_filter').val(),

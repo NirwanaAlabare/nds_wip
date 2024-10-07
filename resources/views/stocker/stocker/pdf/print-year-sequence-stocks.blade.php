@@ -81,33 +81,27 @@
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['no_form']." / ".$stockNumber['no_cut'] }}</td>
                 </tr>
                 <tr>
-                    <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Color</th>
+                    <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Buyer</th>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
-                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['color'] }}</td>
+                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ strtoupper(substr($stockNumber['buyer'], 0, 15)).(strlen($stockNumber['buyer']) > 15 ? '...' : '') }}</td>
 
                     <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Stocker Qty</th>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['qty_stocker']  }}</td>
                 </tr>
                 <tr>
-                    <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Size</th>
+                    <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Color</th>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
-                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['size'] }}</td>
+                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['color'] }}</td>
 
                     <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Range Stocker</th>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['stocker_range'] }} </td>
                 </tr>
                 <tr>
-                    <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Part</th>
+                    <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Size</th>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
-                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>
-                        @php
-                            foreach (explode(',', $stockNumber['part']) as $key => $value) {
-                                echo $value."<br>";
-                            }
-                        @endphp
-                    </td>
+                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['size'] }}</td>>
 
                     <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Numbering Qty</th>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>

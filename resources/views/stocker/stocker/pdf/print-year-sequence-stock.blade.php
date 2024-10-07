@@ -77,27 +77,27 @@
                 <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockerData->formCut->no_form." / ".$stockerData->formCut->no_cut }}</td>
             </tr>
             <tr>
-                <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Color</th>
+                <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Buyer</th>
                 <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
-                <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockerData->color }}</td>
+                <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ strtoupper(substr($stockerData->formCut->marker->buyer, 0, 15)).(strlen($stockerData->formCut->marker->buyer) > 15 ? '...' : '') }}</td>
 
                 <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Stocker Qty</th>
                 <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
                 <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockerData->range_akhir - $stockerData->range_awal + 1  }}</td>
             </tr>
             <tr>
-                <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Size</th>
+                <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Color</th>
                 <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
-                <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockerData->size }}</td>
+                <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ strtoupper(substr($stockerData->color, 0, 15)).(strlen($stockerData->color) > 15 ? '...' : '') }}</td>
 
                 <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Range Stocker</th>
                 <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
                 <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockerData->range_awal. ' - ' .$stockerData->range_akhir }} </td>
             </tr>
             <tr>
-                <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Part</th>
+                <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Size</th>
                 <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
-                <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockerData->partDetail->masterPart->nama_part }}</td>
+                <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockerData->size }}</td>
 
                 <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Numbering Qty</th>
                 <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
