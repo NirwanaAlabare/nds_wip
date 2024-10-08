@@ -79,14 +79,14 @@
 
                 <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Style</th>
                 <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
-                <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ strtoupper(substr($stockerData->formCut->marker->style, 0, 15)).(strlen($stockerData->formCut->marker->style) > 15 ? '...' : '') }}</td>
+                <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ strtoupper(substr($stockerData->formCut->marker->style, 0, 9)).(strlen($stockerData->formCut->marker->style) > 9 ? '...' : '') }}</td>
             </tr>
             <tr>
                 <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Color</th>
                 <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
                 <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockerData->color }}</td>
 
-                <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Numbering Qty</th>
+                <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Qty</th>
                 <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
                 <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $range_akhir - $range_awal + 1 }}</td>
             </tr>
