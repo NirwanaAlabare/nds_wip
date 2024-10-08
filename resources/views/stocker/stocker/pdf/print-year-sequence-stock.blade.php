@@ -97,7 +97,7 @@
 
                 <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Range QR</th>
                 <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
-                <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $range_akhir." - ".$range_awal }}</td>
+                <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $range_awal." - ".$range_akhir }}</td>
             </tr>
         </table>
         <div class="clearfix">
