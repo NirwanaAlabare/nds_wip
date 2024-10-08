@@ -67,52 +67,39 @@
         <div style="border: 1px solid;padding: 5px">
             <div class="clearfix" style="margin-bottom: 5px;">
                 <div style="float: left;">
-                    <p>'{{ $stockNumber['id_qr_stocker'] }}' Numbering Stock</p>
+                    <p>'{{ $stockNumber['id_qr_stocker'] }}' QR Stock</p>
                 </div>
             </div>
             <table style="margin-bottom: 5px;">
+                <tr>
+                    <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Buyer</th>
+                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
+                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;' colspan="4">{{ strtoupper(substr($stockNumber['buyer'], 0, 100)).(strlen($stockNumber['buyer']) > 100 ? '...' : '') }}</td>
+                </tr>
                 <tr>
                     <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>No. WS</th>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['act_costing_ws'] }}</td>
 
-                    <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>No. Form</th>
+                    <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Style</th>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
-                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['no_form']." / ".$stockNumber['no_cut'] }}</td>
-                </tr>
-                <tr>
-                    <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Buyer</th>
-                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
-                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ strtoupper(substr($stockNumber['buyer'], 0, 15)).(strlen($stockNumber['buyer']) > 15 ? '...' : '') }}</td>
-
-                    <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Stocker Qty</th>
-                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
-                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['qty_stocker']  }}</td>
+                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ strtoupper(substr($stockNumber['style'], 0, 15)).(strlen($stockNumber['style']) > 15 ? '...' : '') }}</td>
                 </tr>
                 <tr>
                     <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Color</th>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['color'] }}</td>
 
-                    <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Range Stocker</th>
+                    <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Numbering Qty</th>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
-                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['stocker_range'] }} </td>
+                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['qty'] }}</td>
                 </tr>
                 <tr>
                     <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Size</th>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['size'] }}</td>>
 
-                    <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Numbering Qty</th>
-                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
-                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['qty'] }}</td>
-                </tr>
-                <tr>
-                    <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Shade</th>
-                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
-                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['shade'] }}</td>
-
-                    <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Range Numbering</th>
+                    <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Range QR</th>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['numbering_range'] }}</td>
                 </tr>

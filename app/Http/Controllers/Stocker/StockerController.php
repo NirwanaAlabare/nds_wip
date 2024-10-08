@@ -2233,7 +2233,7 @@ class StockerController extends Controller
                     $stockerData = Stocker::where("id_qr_stocker", $request->id_qr_stocker)->first();
 
 
-                    $customPaper = array(0,0,300,200);
+                    $customPaper = array(0,0,275,175);
                     $pdf = PDF::loadView('stocker.stocker.pdf.print-year-sequence-stock', ["stockerData" => $stockerData, "range_awal" => $validatedRequest['range_awal_year_sequence'], "range_akhir" => $validatedRequest['range_akhir_year_sequence']])->setPaper($customPaper);
 
                     $path = public_path('pdf/');
@@ -2279,6 +2279,7 @@ class StockerController extends Controller
         $ratioFilter = $request->ratioFilter ? $request->ratioFilter : '';
         $stockerRangeFilter = $request->stockerRangeFilter ? $request->stockerRangeFilter : '';
         $qtyFilter = $request->qtyFilter ? $request->qtyFilter : '';
+        $yearSequenceFilter = $request->yearSequenceFilter ? $request->yearSequenceFilter : '';
         $numberingRangeFilter = $request->numberingRangeFilter ? $request->numberingRangeFilter : '';
 
         $filterQuery = "";
@@ -2333,6 +2334,9 @@ class StockerController extends Controller
             }
             if ($qtyFilter) {
                 $filterQuery .= ' AND (MAX(year_sequence_num.range_akhir) - MIN(year_sequence_num.range_awal) + 1) LIKE "%'.$qtyFilter.'%"';
+            }
+            if ($yearSequenceFilter) {
+                $filterQuery .= ' AND year_seqeuence_num.year_sequence LIKE "%'.$yearSequenceFilter.'%"';
             }
             if ($numberingRangeFilter) {
                 $filterQuery .= ' AND CONCAT( MIN(year_sequence_num.range_awal), ' - ', MAX(year_sequence_num.range_akhir)) LIKE "%'.$numberingRangeFilter.'%"';
@@ -2421,7 +2425,7 @@ class StockerController extends Controller
         ini_set("max_execution_time", 36000);
 
         if ($request->stockNumbers && count($request->stockNumbers) > 0) {
-            $customPaper = array(0,0,300,200);
+            $customPaper = array(0,0,275,175);
             $pdf = PDF::loadView('stocker.stocker.pdf.print-year-sequence-stocks', ["stockNumbers" => $request->stockNumbers])->setPaper($customPaper);
 
             $path = public_path('pdf/');

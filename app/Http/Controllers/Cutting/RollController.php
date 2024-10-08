@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Cutting;
 
 use App\Http\Controllers\Controller;
+use App\Models\ScannedItem;
+use App\Models\FormCutInputDetail;
 use App\Exports\ExportLaporanRoll;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
@@ -229,6 +231,156 @@ class RollController extends Controller
     public function sisaKainRoll(Request $request)
     {
         return view("cutting.roll.sisa-kain-roll", ['page' => 'dashboard-cutting', "subPageGroup" => "laporan-cutting", "subPage" => "sisa-kain-roll"]);
+    }
+
+    public function getScannedItem($id)
+    {
+        $newItem = DB::connection("mysql_sb")->select("
+            SELECT
+                mastersupplier.Supplier buyer,
+                act_costing.kpno no_ws,
+                act_costing.styleno style,
+                whs_bppb_det.id_roll,
+                whs_bppb_det.item_desc detail_item,
+                whs_bppb_det.id_item,
+                whs_bppb_det.no_lot lot,
+                COALESCE(whs_lokasi_inmaterial.no_roll_buyer, whs_bppb_det.no_roll) no_roll,
+                whs_bppb_det.satuan unit,
+                whs_bppb_det.qty_stok,
+                SUM(whs_bppb_det.qty_out) qty
+            FROM
+                whs_bppb_det
+                LEFT JOIN (SELECT jo_det.* FROM jo_det GROUP BY id_jo) jodet ON jodet.id_jo = whs_bppb_det.id_jo
+                LEFT JOIN so ON so.id = jodet.id_so
+                LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                LEFT JOIN masteritem ON masteritem.id_item = whs_bppb_det.id_item
+                LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
+                LEFT JOIN whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
+            WHERE
+                whs_bppb_det.id_roll = '".$id."'
+                AND whs_bppb_h.tujuan = 'Production - Cutting'
+                AND cast(whs_bppb_det.qty_out AS DECIMAL ( 11, 3 )) > 0.000
+            GROUP BY
+                whs_bppb_det.id_roll
+            LIMIT 1
+        ");
+        if ($newItem) {
+            $scannedItem = ScannedItem::selectRaw("
+                id_roll,
+                id_item,
+                detail_item,
+                color,
+                lot,
+                COALESCE(roll, roll_buyer) no_roll,
+                qty,
+                qty_in,
+                qty_stok,
+                unit,
+                COALESCE(updated_at, created_at) updated_at
+            ")->
+            where('id_roll', $id)->
+            where('id_item', $newItem[0]->id_item)->
+            first();
+
+            if ($scannedItem) {
+                if (floatval($newItem[0]->qty - $scannedItem->qty_in + $scannedItem->qty) > 0 ) {
+                    $scannedItem->qty_stok = $newItem[0]->qty_stok;
+                    $scannedItem->qty_in = $newItem[0]->qty;
+                    $scannedItem->qty = floatval($newItem[0]->qty - $scannedItem->qty_in + $scannedItem->qty);
+                    $scannedItem->save();
+
+                    return json_encode($scannedItem);
+                }
+            }
+
+            return json_encode($newItem ? $newItem[0] : null);
+        }
+
+        $item = DB::connection("mysql_sb")->select("
+            SELECT
+                br.id id_roll,
+                mi.itemdesc detail_item,
+                mi.id_item,
+                goods_code,
+                supplier,
+                bpbno_int,
+                pono,
+                invno,
+                ac.kpno,
+                roll_no no_roll,
+                roll_qty qty,
+                lot_no lot,
+                bpb.unit,
+                kode_rak
+            FROM
+                bpb_roll br
+                INNER JOIN bpb_roll_h brh ON br.id_h = brh.id
+                INNER JOIN masteritem mi ON brh.id_item = mi.id_item
+                INNER JOIN bpb ON brh.bpbno = bpb.bpbno
+                AND brh.id_jo = bpb.id_jo
+                AND brh.id_item = bpb.id_item
+                INNER JOIN mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
+                INNER JOIN jo_det jd ON brh.id_jo = jd.id_jo
+                INNER JOIN so ON jd.id_so = so.id
+                INNER JOIN act_costing ac ON so.id_cost = ac.id
+                INNER JOIN master_rak mr ON br.id_rak_loc = mr.id
+            WHERE
+                br.id = '" . $id . "'
+                AND cast(roll_qty AS DECIMAL ( 11, 3 )) > 0.000
+                LIMIT 1
+        ");
+        if ($item) {
+            $scannedItem = ScannedItem::selectRaw("
+                id_roll,
+                id_item,
+                detail_item,
+                color,
+                lot,
+                COALESCE(roll, roll_buyer) no_roll,
+                qty,
+                qty_in,
+                qty_stok,
+                unit,
+                COALESCE(updated_at, created_at) updated_at
+            ")->
+            where('id_roll', $id)->
+            where('id_item', $item[0]->id_item)->
+            first();
+
+            if ($scannedItem) {
+                if (floatval($scannedItem->qty) > 0) {
+                    return json_encode($scannedItem);
+                }
+
+                $formCutInputDetail = FormCutInputDetail::where("id_roll", $id)->orderBy("updated_at", "desc")->first();
+            }
+
+            return json_encode($item ? $item[0] : null);
+        }
+
+        return  null;
+    }
+
+    public function getSisaKainForm($id) {
+        $forms = FormCutInputDetail::selectRaw("
+                no_form_cut_input,
+                id_roll,
+                qty,
+                unit,
+                total_pemakaian_roll,
+                short_roll,
+                sisa_kain,
+                COALESCE(updated_at, created_at) updated_at
+            ")->
+            where("id_roll", $id)->
+            get();
+
+        if ($forms) {
+            return $forms;
+        }
+
+        return null;
     }
 
     /**
