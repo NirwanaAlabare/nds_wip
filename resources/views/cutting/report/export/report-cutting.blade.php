@@ -35,14 +35,15 @@
                 <tr></tr>
             @endif
             <tr>
-                <td colspan="2" style="font-weight: 800;background: #ffd966;">PLANNING</td>
+                <td colspan="3" style="font-weight: 800;background: #ffd966;">PLANNING</td>
                 <td colspan="2" style="font-weight: 800;background: #ffd966;">{{ $cutting->panel }}</td>
-                <td colspan="7" style="font-weight: 800;background: #ffd966;">{{ localeDateFormat($date) }}</td>
+                <td colspan="7" style="font-weight: 800;background: #ffd966;">{{ localeDateFormat($dateFrom)." - ".localeDateFormat($dateTo) }}</td>
                 <td colspan="5" style="font-weight: 800;background: #f8cbad;text-align: center;">CUTTING</td>
                 {{-- <td colspan="4" style="font-weight: 800;background: #bdd7ee;text-align: center;">SPREADING</td> --}}
                 <td colspan="9" style="font-weight: 800;background: #ccccff;text-align: center;">MATERIAL</td>
             </tr>
             <tr>
+                <th style="font-weight: 800;background: #ffd966;">Tanggal</th>
                 <th style="font-weight: 800;background: #ffd966;">Buyer</th>
                 <th style="font-weight: 800;background: #ffd966;">No. WS</th>
                 <th style="font-weight: 800;background: #ffd966;">Style</th>
@@ -103,6 +104,7 @@
             @endphp
         @endif
         <tr>
+            <td style="vertical-align: top;">{{ $cutting->tgl_form_cut ? $cutting->tgl_form_cut : '-'  }}</td>
             <td style="vertical-align: top;">{{ $cutting->buyer ? $cutting->buyer : '-'  }}</td>
             <td style="vertical-align: top;">{{ $cutting->act_costing_ws ? $cutting->act_costing_ws : '-'  }}</td>
             <td data-format="@" style="vertical-align: top;">{{ $cutting->style ? $cutting->style : '-'  }}</td>
@@ -160,6 +162,7 @@
         @endphp
         @if (($loop->index == ($reportCutting->count()-1)) || ($loop->index <= ($reportCutting->count()-1) && $currentPanel != $reportCutting->slice($loop->index+1, 1)->first()->panel))
             <tr>
+                <td></td>
                 <td></td>
                 <td></td>
                 <td></td>

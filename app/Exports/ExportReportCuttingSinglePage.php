@@ -144,16 +144,17 @@
                         marker_cutting.so_det_id,
                         marker_cutting.tgl_form_cut
                 ");
+
+                $this->reportCutting = collect($reportCutting);
+
+                $this->rowCount = count($reportCutting) + 2;
+
+                return view('cutting.report.export.report-cutting', [
+                    'reportCutting' => collect($reportCutting),
+                    'dateFrom' => $this->dateFrom,
+                    'dateTo' => $this->dateTo,
+                ]);
             }
-
-            $this->reportCutting = collect($reportCutting);
-
-            $this->rowCount = count($reportCutting) + 2;
-
-            return view('cutting.report.export.report-cutting', [
-                'reportCutting' => collect($reportCutting),
-                'date' => $this->dateFrom." - ".$this->dateTo,
-            ]);
         }
 
         public function registerEvents(): array
@@ -169,7 +170,7 @@
             foreach ( $event->getConcernable()->reportCutting->groupBy('panel') as $cutting ) {
                 if ($currentRow > 1) {
                     $event->sheet->styleCells(
-                        'A'.$currentRow.':Y' . ($currentRow+$event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+1),
+                        'A'.$currentRow.':Z' . ($currentRow+$event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+1),
                         [
                             'borders' => [
                                 'allBorders' => [
@@ -181,7 +182,7 @@
                     );
 
                     $event->sheet->styleCells(
-                        'F'.($currentRow+$event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+2).':Y' . ($currentRow+$event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+2),
+                        'F'.($currentRow+$event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+2).':Z' . ($currentRow+$event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+2),
                         [
                             'borders' => [
                                 'allBorders' => [
@@ -193,7 +194,7 @@
                     );
                 } else {
                     $event->sheet->styleCells(
-                        'A1:Y' . ($event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+2),
+                        'A1:Z' . ($event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+2),
                         [
                             'borders' => [
                                 'allBorders' => [
@@ -205,7 +206,7 @@
                     );
 
                     $event->sheet->styleCells(
-                        'F'.($event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+3).':Y' . ($event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+3),
+                        'F'.($event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+3).':Z' . ($event->getConcernable()->reportCutting->where('panel', $cutting->first()->panel)->count()+3),
                         [
                             'borders' => [
                                 'allBorders' => [
