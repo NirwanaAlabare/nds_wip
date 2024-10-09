@@ -7,6 +7,7 @@ use App\Models\Marker;
 use App\Models\MarkerDetail;
 use App\Models\FormCutInput;
 use App\Models\FormCutInputDetail;
+use App\Models\FormCutInputDetailSambungan;
 use App\Models\FormCutInputDetailLap;
 use App\Models\FormCutInputLostTime;
 use App\Models\ScannedItem;
