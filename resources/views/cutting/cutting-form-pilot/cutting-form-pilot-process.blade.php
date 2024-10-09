@@ -839,25 +839,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-6 col-md-3">
-                                <div class="mb-3">
-                                    <label class="form-label label-input"><small><b>Sisa Kain</b></small></label>
-                                    <div class="input-group input-group-sm mb-3">
-                                        <input type="number" class="form-control form-control-sm border-input" id="current_sisa_kain" name="current_sisa_kain" step=".01"
-                                            onkeyup="
-                                                calculateShortRoll();
-                                                calculatePemakaianLembar();
-                                                calculateTotalPemakaian();
-                                            "
-                                            onchange="
-                                                calculateShortRoll();
-                                                calculatePemakaianLembar();
-                                                calculateTotalPemakaian();
-                                            ">
-                                        <span class="input-group-text input-group-unit"></span>
-                                    </div>
-                                </div>
-                            </div>
                             <div class="col-6 col-md-6 my-3">
                                 <button type="button" class="fs-5 fw-bold btn btn-success btn-sm w-100 h-100" style="min-height: 90px !important;" id="startLapButton" onclick="startTimeRecord()">START</button>
                                 <button type="button" class="fs-5 fw-bold btn btn-primary btn-sm d-none w-100 h-100" style="min-height: 90px !important;" id="nextLapButton" onclick="addNewTimeRecord()">NEXT LAP</button>
