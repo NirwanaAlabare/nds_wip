@@ -610,7 +610,8 @@ inner join master_sb_ws m on p.id_so_det = m.id_so_det
                 "additional" => [],
                 // "redirect" => url('in-material/upload-lokasi')
             );
-        } else {
+        } 
+        else {
             return array(
                 "status" => 202,
                 "message" => 'Data Gagal Di Upload',
