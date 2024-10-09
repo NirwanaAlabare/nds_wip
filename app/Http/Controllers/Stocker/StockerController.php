@@ -1917,6 +1917,7 @@ class StockerController extends Controller
                     stocker_input.form_cut_id,
                     stocker_input.act_costing_ws,
                     stocker_input.so_det_id,
+                    master_sb_ws.buyer buyer,
                     master_sb_ws.styleno style,
                     master_sb_ws.color,
                     master_sb_ws.size,
@@ -1927,6 +1928,7 @@ class StockerController extends Controller
                     stocker_input.shade,
                     stocker_input.ratio,
                     CONCAT( MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir)) stocker_range,
+                    (MAX(stocker_input.range_akhir) - MIN(stocker_input.range_awal) + 1) qty_stocker,
                     year_sequence_num.year_sequence,
                     (MAX(year_sequence_num.range_akhir) - MIN(year_sequence_num.range_awal) + 1) qty,
                     CONCAT( MIN(year_sequence_num.range_awal), ' - ', MAX(year_sequence_num.range_akhir)) numbering_range
@@ -1954,7 +1956,7 @@ class StockerController extends Controller
                             COALESCE(updated_at, created_at)
                     ) year_sequence_num on year_sequence_num.form_cut_id = stocker_input.form_cut_id and year_sequence_num.so_det_id = stocker_input.so_det_id and year_sequence_num.range_numbering_awal >= stocker_input.range_awal and year_sequence_num.range_numbering_akhir <= stocker_input.range_akhir
                 WHERE
-                    ( form_cut_input.cancel IS NOT NULL OR form_cut_input.cancel != 'Y' )
+                    ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' )
                     AND (
                         DATE ( form_cut_input.waktu_mulai ) >= '".$dateFrom."'
                         OR DATE ( form_cut_input.waktu_selesai ) >= '".$dateFrom."'
@@ -2003,6 +2005,7 @@ class StockerController extends Controller
                         stocker_input.form_cut_id,
                         stocker_input.act_costing_ws,
                         stocker_input.so_det_id,
+                        master_sb_ws.buyer buyer,
                         master_sb_ws.styleno style,
                         master_sb_ws.color,
                         master_sb_ws.size,
@@ -2026,7 +2029,7 @@ class StockerController extends Controller
                     LEFT JOIN
                         form_cut_input on form_cut_input.id = stocker_input.form_cut_id
                     WHERE
-                        (form_cut_input.cancel is not null or form_cut_input.cancel != 'Y') AND
+                        (form_cut_input.cancel is null or form_cut_input.cancel != 'Y') AND
                         stocker_input.form_cut_id = '".$form_cut_id."' AND
                         stocker_input.so_det_id = '".$so_det_id."'
                     GROUP BY
@@ -2230,7 +2233,7 @@ class StockerController extends Controller
                     $stockerData = Stocker::where("id_qr_stocker", $request->id_qr_stocker)->first();
 
 
-                    $customPaper = array(0, 0, 425.7, 198.66);
+                    $customPaper = array(0,0,275,175);
                     $pdf = PDF::loadView('stocker.stocker.pdf.print-year-sequence-stock', ["stockerData" => $stockerData, "range_awal" => $validatedRequest['range_awal_year_sequence'], "range_akhir" => $validatedRequest['range_akhir_year_sequence']])->setPaper($customPaper);
 
                     $path = public_path('pdf/');
@@ -2263,10 +2266,11 @@ class StockerController extends Controller
         $tanggalFilter = $request->tanggalFilter ? $request->tanggalFilter : '';
         $stockerFilter = $request->stockerFilter ? $request->stockerFilter : '';
         $partFilter = $request->partFilter ? $request->partFilter : '';
+        $buyerFilter = $request->buyerFilter ? $request->buyerFilter : '';
         $wsFilter = $request->wsFilter ? $request->wsFilter : '';
         $styleFilter = $request->styleFilter ? $request->styleFilter : '';
-        $no_formFilter = $request->no_formFilter ? $request->no_formFilter : '';
-        $no_cutFilter = $request->no_cutFilter ? $request->no_cutFilter : '';
+        $noFormFilter = $request->noFormFilter ? $request->noFormFilter : '';
+        $noCutFilter = $request->noCutFilter ? $request->noCutFilter : '';
         $colorFilter = $request->colorFilter ? $request->colorFilter : '';
         $sizeFilter = $request->sizeFilter ? $request->sizeFilter : '';
         $destFilter = $request->destFilter ? $request->destFilter : '';
@@ -2275,11 +2279,12 @@ class StockerController extends Controller
         $ratioFilter = $request->ratioFilter ? $request->ratioFilter : '';
         $stockerRangeFilter = $request->stockerRangeFilter ? $request->stockerRangeFilter : '';
         $qtyFilter = $request->qtyFilter ? $request->qtyFilter : '';
+        $yearSequenceFilter = $request->yearSequenceFilter ? $request->yearSequenceFilter : '';
         $numberingRangeFilter = $request->numberingRangeFilter ? $request->numberingRangeFilter : '';
 
         $filterQuery = "";
 
-        if ($tanggalFilter || $stockerFilter || $partFilter || $wsFilter || $styleFilter || $no_formFilter || $no_cutFilter || $colorFilter || $sizeFilter || $destFilter || $groupFilter || $shadeFilter || $ratioFilter || $stockerRangeFilter || $qtyFilter || $numberingRangeFilter) {
+        if ($tanggalFilter || $stockerFilter || $partFilter || $buyerFilter || $wsFilter || $styleFilter || $noFormFilter || $noCutFilter || $colorFilter || $sizeFilter || $destFilter || $groupFilter || $shadeFilter || $ratioFilter || $stockerRangeFilter || $qtyFilter || $numberingRangeFilter) {
             $filterQuery = "HAVING year_sequence_num.updated_at IS NOT NULL";
 
             if ($tanggalFilter) {
@@ -2291,17 +2296,20 @@ class StockerController extends Controller
             if ($partFilter) {
                 $filterQuery .= ' AND GROUP_CONCAT( DISTINCT master_part.nama_part ) LIKE "%'.$partFilter.'%"';
             }
+            if ($buyerFilter) {
+                $filterQuery .= ' AND buyer LIKE "%'.$buyerFilter.'%"';
+            }
             if ($wsFilter) {
                 $filterQuery .= ' AND ws LIKE "%'.$wsFilter.'%"';
             }
             if ($styleFilter) {
                 $filterQuery .= ' AND styleno LIKE "%'.$styleFilter.'%"';
             }
-            if ($no_formFilter) {
-                $filterQuery .= ' AND no_form LIKE "%'.$no_formFilter.'%"';
+            if ($noFormFilter) {
+                $filterQuery .= ' AND no_form LIKE "%'.$noFormFilter.'%"';
             }
-            if ($no_cutFilter) {
-                $filterQuery .= ' AND no_cut LIKE "%'.$no_cutFilter.'%"';
+            if ($noCutFilter) {
+                $filterQuery .= ' AND no_cut LIKE "%'.$noCutFilter.'%"';
             }
             if ($colorFilter) {
                 $filterQuery .= ' AND color LIKE "%'.$colorFilter.'%"';
@@ -2327,6 +2335,9 @@ class StockerController extends Controller
             if ($qtyFilter) {
                 $filterQuery .= ' AND (MAX(year_sequence_num.range_akhir) - MIN(year_sequence_num.range_awal) + 1) LIKE "%'.$qtyFilter.'%"';
             }
+            if ($yearSequenceFilter) {
+                $filterQuery .= ' AND year_seqeuence_num.year_sequence LIKE "%'.$yearSequenceFilter.'%"';
+            }
             if ($numberingRangeFilter) {
                 $filterQuery .= ' AND CONCAT( MIN(year_sequence_num.range_awal), ' - ', MAX(year_sequence_num.range_akhir)) LIKE "%'.$numberingRangeFilter.'%"';
             }
@@ -2339,8 +2350,8 @@ class StockerController extends Controller
                 GROUP_CONCAT( DISTINCT master_part.nama_part ) part,
                 stocker_input.form_cut_id,
                 stocker_input.act_costing_ws,
-                stocker_input.so_det_id,
                 master_sb_ws.styleno style,
+                master_sb_ws.buyer buyer,
                 master_sb_ws.color,
                 master_sb_ws.size,
                 master_sb_ws.dest,
@@ -2349,8 +2360,9 @@ class StockerController extends Controller
                 stocker_input.group_stocker,
                 stocker_input.shade,
                 stocker_input.ratio,
-                CONCAT( MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir)) stocker_range,
                 year_sequence_num.year_sequence,
+                CONCAT( MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir)) stocker_range,
+                (MAX(stocker_input.range_akhir) - MIN(stocker_input.range_awal) + 1) qty_stocker,
                 (MAX(year_sequence_num.range_akhir) - MIN(year_sequence_num.range_awal) + 1) qty,
                 CONCAT( MIN(year_sequence_num.range_awal), ' - ', MAX(year_sequence_num.range_akhir)) numbering_range
             FROM
@@ -2377,7 +2389,7 @@ class StockerController extends Controller
                         COALESCE(updated_at, created_at)
                 ) year_sequence_num on year_sequence_num.form_cut_id = stocker_input.form_cut_id and year_sequence_num.so_det_id = stocker_input.so_det_id and year_sequence_num.range_numbering_awal >= stocker_input.range_awal and year_sequence_num.range_numbering_akhir <= stocker_input.range_akhir
             WHERE
-                ( form_cut_input.cancel IS NOT NULL OR form_cut_input.cancel != 'Y' )
+                ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' )
                 AND (
                     DATE ( form_cut_input.waktu_mulai ) >= '".$dateFrom."'
                     OR DATE ( form_cut_input.waktu_selesai ) >= '".$dateFrom."'
@@ -2412,10 +2424,8 @@ class StockerController extends Controller
     public function printStockNumber(Request $request) {
         ini_set("max_execution_time", 36000);
 
-        ini_set("max_input_vars", 100000);
-
         if ($request->stockNumbers && count($request->stockNumbers) > 0) {
-            $customPaper = array(0, 0, 368.29, 198.66);
+            $customPaper = array(0,0,275,175);
             $pdf = PDF::loadView('stocker.stocker.pdf.print-year-sequence-stocks', ["stockNumbers" => $request->stockNumbers])->setPaper($customPaper);
 
             $path = public_path('pdf/');

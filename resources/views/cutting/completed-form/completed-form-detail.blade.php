@@ -825,7 +825,7 @@
                             </div>
                             <div class="col-4" id="total-sambungan-section">
                                 <label class="form-label label-input"><small><b>Sambungan Roll</b></small></label>
-                                <input type="number" class="form-control form-control-sm" id="current_total_sambungan_roll" name="current_total_sambungan_roll" onchange="calculatePemakaianLembar();calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll();">
+                                <input type="number" class="form-control form-control-sm" id="current_total_sambungan_roll" name="current_total_sambungan_roll" onkeyup="calculatePemakaianLembar();calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll();" onchange="calculatePemakaianLembar();calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll();">
                             </div>
                             <div class="col-4">
                                 <div class="row align-items-end">

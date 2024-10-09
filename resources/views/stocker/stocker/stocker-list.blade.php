@@ -42,7 +42,6 @@
                         <button class="btn btn-primary btn-sm" onclick="fixRedundantNumbering()"><i class="fa fa-cog"></i> Numbering Redundant</button>
                     </div>
                 </div> --}}
-
             </div>
             <div class="table-responsive">
                 <table id="datatable" class="table table-bordered table-sm w-100">
@@ -50,22 +49,23 @@
                         <tr>
                             <th>Act</th>
                             <th>Tanggal</th>
-                            <th>Stocker</th>
-                            <th>Part</th>
-                            <th>No. WS</th>
-                            <th>Style</th>
                             <th>No. Form</th>
                             <th>No. Cut</th>
                             <th>Color</th>
                             <th>Size</th>
                             <th>Dest</th>
+                            <th>Qty</th>
+                            <th>Year Sequence</th>
+                            <th>Year Sequence Range</th>
+                            <th>Buyer</th>
+                            <th>No. WS</th>
+                            <th>Style</th>
+                            <th>Stocker</th>
+                            <th>Part</th>
                             <th>Group</th>
                             <th>Shade</th>
                             <th>Ratio</th>
                             <th>Stocker Range</th>
-                            <th>Qty</th>
-                            <th>Year Sequence</th>
-                            <th>Year Sequence Range</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -211,11 +211,11 @@
             $("#switch-method").prop("checked", false);
         });
 
-        var stockListFilter = ['action', 'tanggal_filter', 'stocker_filter', 'part_filter', 'ws_filter', 'style_filter', 'no_form_filter', 'no_cut_filter', 'color_filter', 'size_filter', 'dest_filter', 'group_filter', 'shade_filter', 'ratio_filter', 'stocker_range_filter', 'qty_filter', 'numbering_range_filter'];
+        var stockListFilter = ['action', 'tanggal_filter', 'no_form_filter', 'no_cut_filter', 'color_filter', 'size_filter', 'dest_filter', 'qty_filter', 'year_sequence_filter', 'numbering_range_filter', 'buyer_filter', 'ws_filter', 'style_filter', 'stocker_filter', 'part_filter', 'group_filter', 'shade_filter', 'ratio_filter', 'stocker_range_filter'];
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i != 0 && i != 17) {
+            if (i != 0 && i != 9 && i != 18) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%" id="'+stockListFilter[i]+'" />');
 
@@ -268,18 +268,6 @@
                     data: 'updated_at'
                 },
                 {
-                    data: 'id_qr_stocker'
-                },
-                {
-                    data: 'part'
-                },
-                {
-                    data: 'act_costing_ws'
-                },
-                {
-                    data: 'style',
-                },
-                {
                     data: 'no_form'
                 },
                 {
@@ -295,6 +283,30 @@
                     data: 'dest'
                 },
                 {
+                    data: 'qty'
+                },
+                {
+                    data: 'year_sequence'
+                },
+                {
+                    data: 'numbering_range'
+                },
+                {
+                    data: 'buyer'
+                },
+                {
+                    data: 'act_costing_ws'
+                },
+                {
+                    data: 'style',
+                },
+                {
+                    data: 'id_qr_stocker'
+                },
+                {
+                    data: 'part'
+                },
+                {
                     data: 'group_stocker',
                 },
                 {
@@ -306,15 +318,6 @@
                 {
                     data: 'stocker_range',
                 },
-                {
-                    data: 'qty'
-                },
-                {
-                    data: 'year_sequence'
-                },
-                {
-                    data: 'numbering_range'
-                },
             ],
             columnDefs: [
                 // Act Column
@@ -323,7 +326,7 @@
                     render: (data, type, row, meta) => {
                         return `
                             <div class='d-flex gap-1 justify-content-center'>
-                                <a class='btn btn-primary btn-sm' href={{ route('stocker-list-detail') }}/`+row.form_cut_id+`/`+row.so_det_id+`' target='_blank'><i class='fa fa-search-plus'></i></a>
+                                <a class='btn btn-primary btn-sm' href='{{ route("stocker-list-detail") }}/`+row.form_cut_id+`/`+row.so_det_id+`' target='_blank'><i class='fa fa-search-plus'></i></a>
                                 <div class="form-check">
                                     <input class="form-check-input check-stock-number" type="checkbox" onchange="checkStockNumber(this)" id="stock_number_`+meta.row+`">
                                 </div>
@@ -331,18 +334,18 @@
                         `;
                     }
                 },
-                // Stocker List
+                // Form Hyperlink
                 {
                     targets: [2],
                     render: (data, type, row, meta) => {
-                        return `<div style='width: 300px; overflow-x: auto;'>`+data+`</div>`;
+                        return data ? `<a class='fw-bold' href='{{ route("show-stocker") }}/`+row.form_cut_id+`' target='_blank'><u>`+data+`</u></a>` : "-";
                     }
                 },
-                // Form Hyperlink
+                // Stocker List
                 {
-                    targets: [6],
+                    targets: [13],
                     render: (data, type, row, meta) => {
-                        return data ? `<a class='fw-bold' href='{{ route("show-stocker") }}/`+row.form_cut_id+`' target='_blank'><u>`+data+`</u></a>` : "-";
+                        return `<div style='width: 200px; overflow-x: auto;'>`+data+`</div>`;
                     }
                 },
                 // Text No Wrap
@@ -377,7 +380,9 @@
         });
 
         function dataTableReload() {
-            $('#datatable').DataTable().ajax.reload();
+            $('#datatable').DataTable().ajax.reload(function () {
+                document.getElementById("loading").classList.add("d-none");
+            }, false);
         }
 
         function fixRedundantStocker() {
@@ -773,6 +778,8 @@
         var stockNumberArr = [];
 
         $("#checkAllStockNumber").on("change", function () {
+            document.getElementById("loading").classList.remove("d-none");
+
             if (this.checked) {
                 $.ajax({
                     url: '{{ route('check-all-stock-number') }}',
@@ -783,10 +790,11 @@
                         tanggalFilter: $('#tanggal_filter').val(),
                         stockerFilter: $('#stocker_filter').val(),
                         partFilter: $('#part_filter').val(),
+                        buyerFilter: $('#buyer_filter').val(),
                         wsFilter: $('#ws_filter').val(),
                         styleFilter: $('#style_filter').val(),
-                        no_formFilter: $('#no_form_filter').val(),
-                        no_cutFilter: $('#no_cut_filter').val(),
+                        noFormFilter: $('#no_form_filter').val(),
+                        noCutFilter: $('#no_cut_filter').val(),
                         colorFilter: $('#color_filter').val(),
                         sizeFilter: $('#size_filter').val(),
                         destFilter: $('#dest_filter').val(),
@@ -795,6 +803,7 @@
                         ratioFilter: $('#ratio_filter').val(),
                         stockerRangeFilter: $('#stocker_range_filter').val(),
                         qtyFilter: $('#qty_filter').val(),
+                        yearSequenceFilter: $('#year_sequence_filter').val(),
                         numberingRangeFilter: $('#numbering_range_filter').val()
                     },
                     success: function (res) {
@@ -802,16 +811,22 @@
                             stockNumberArr = res;
 
                             dataTableReload();
+                        } else {
+                            document.getElementById("loading").classList.add("d-none");
                         }
                     },
                     error: function (jqXHR) {
                         console.log(jqXHR);
+
+                        document.getElementById("loading").classList.add("d-none");
                     }
                 })
             } else {
                 stockNumberArr = [];
 
                 dataTableReload();
+
+                document.getElementById("loading").classList.add("d-none");
             }
         })
 

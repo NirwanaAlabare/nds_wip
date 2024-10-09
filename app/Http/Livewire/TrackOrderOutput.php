@@ -257,16 +257,16 @@ class TrackOrderOutput extends Component
 
                 $dailyOrderOutputSql->
                     where("act_costing.id", $this->selectedOrder)->
-                    groupByRaw("master_plan.id_ws, act_costing.styleno, master_plan.color, COALESCE(rfts.created_by, master_plan.sewing_line) , master_plan.tgl_plan ".($this->groupBy == 'size' ? ', so_det.size' : '')."")->
+                    groupByRaw("master_plan.id_ws, act_costing.styleno, master_plan.color, COALESCE(rfts.created_by, master_plan.sewing_line) , master_plan.tgl_plan, rfts.tanggal ".($this->groupBy == 'size' ? ', so_det.size' : '')."")->
                     orderBy("master_plan.id_ws", "asc")->
                     orderBy("act_costing.styleno", "asc")->
                     orderBy("master_plan.color", "asc")->
                     orderByRaw("COALESCE(rfts.created_by, master_plan.sewing_line) asc ".($this->groupBy == 'size' ? ', so_det.id asc' : ''));
                 if ($this->dateFromFilter) {
-                    $dailyOrderOutputSql->whereRaw('rfts.tanggal', $this->dateFromFilter);
+                    $dailyOrderOutputSql->whereRaw('rfts.tanggal >= "'.$this->dateFromFilter.'"');
                 }
                 if ($this->dateToFilter) {
-                    $dailyOrderOutputSql->whereRaw('rfts.tanggal', $this->dateToFilter);
+                    $dailyOrderOutputSql->whereRaw('rfts.tanggal <= "'.$this->dateToFilter.'"');
                 }
                 if ($this->colorFilter) {
                     $dailyOrderOutputSql->where('master_plan.color', $this->colorFilter);

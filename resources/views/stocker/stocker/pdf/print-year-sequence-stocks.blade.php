@@ -3,7 +3,7 @@
 <head>
     <title>Stocker</title>
     <style>
-        @page { margin: 5px; }
+        @page { margin: 1px; }
 
         @font-face {
             font-family: 'Open Sans';
@@ -13,7 +13,7 @@
         }
 
         body {
-            margin: 5px;
+            margin: 1px;
             font-family: 'Open Sans', sans-serif;
             font-weight: bold;
         }
@@ -64,53 +64,51 @@
         @if ($loop->index > 0)
             <div class="page-break"></div>
         @endif
-        <div class="clearfix">
-            <div style="float: left;">
-                <p>'{{ $stockNumber['id_qr_stocker'] }}' Numbering Stock</p>
+        <div style="border: 1px solid;padding: 5px">
+            <div class="clearfix" style="margin-bottom: 5px;">
+                <div style="float: left;">
+                    <p>'{{ $stockNumber['id_qr_stocker'] }}' QR Stock</p>
+                </div>
             </div>
-            <div style="float: right;">
-                <p>{{ $stockNumber['updated_at'] }}</p>
-            </div>
-        </div>
-        <div>
-            <table>
+            <table style="margin-bottom: 5px;">
+                <tr>
+                    <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Buyer</th>
+                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
+                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;' colspan="4">{{ strtoupper(substr($stockNumber['buyer'], 0, 50)).(strlen($stockNumber['buyer']) > 50 ? '...' : '') }}</td>
+                </tr>
                 <tr>
                     <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>No. WS</th>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['act_costing_ws'] }}</td>
 
-                    <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>No. Form</th>
+                    <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Style</th>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
-                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['no_form']." / ".$stockNumber['no_cut'] }}</td>
+                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ strtoupper(substr($stockNumber['style'], 0, 9)).(strlen($stockNumber['style']) > 9 ? '...' : '') }}</td>
                 </tr>
                 <tr>
                     <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Color</th>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
-                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['color'] }}</td>
+                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ strtoupper(substr($stockNumber['color'], 0, 7)).(strlen($stockNumber['color']) > 7 ? '...' : '') }}</td>
 
-                    <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Range Stocker</th>
+                    <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Qty</th>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
-                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['stocker_range'] }} </td>
+                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['qty'] }}</td>
                 </tr>
                 <tr>
                     <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Size</th>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
-                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['size'] }}</td>
+                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ strtoupper(substr($stockNumber['size'], 0, 7)).(strlen($stockNumber['size']) > 7 ? '...' : '') }}</td>>
 
-                    <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Qty</th>
-                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
-                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['qty']  }}</td>
-                </tr>
-                <tr>
-                    <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Part</th>
-                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
-                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['part'] }}</td>
-
-                    <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Range Numbering</th>
+                    <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Range QR</th>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['numbering_range'] }}</td>
                 </tr>
             </table>
+            <div class="clearfix">
+                <div style="float: right;">
+                    <p>{{ $stockNumber['updated_at'] }}</p>
+                </div>
+            </div>
         </div>
     @endforeach
 </body>
