@@ -174,7 +174,7 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
             }
 
             $orderOutputsSql->
-                groupByRaw("master_plan.id_ws, act_costing.styleno, master_plan.color, COALESCE(rfts.created_by, master_plan.sewing_line) , master_plan.tgl_plan ".($this->groupBy == 'size' ? ', so_det.size' : '')."")->
+                groupByRaw("master_plan.id_ws, act_costing.styleno, master_plan.color, COALESCE(rfts.created_by, master_plan.sewing_line) , rfts.tanggal ".($this->groupBy == 'size' ? ', so_det.size' : '')."")->
                 orderBy("master_plan.id_ws", "asc")->
                 orderBy("act_costing.styleno", "asc")->
                 orderBy("master_plan.color", "asc")->
