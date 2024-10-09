@@ -17,28 +17,48 @@ class FinishGoodAlokasiKartonController extends Controller
         $tgl_awal = $request->dateFrom;
         $tgl_akhir = $request->dateTo;
         $tgl_skrg = date('Y-m-d');
-        $user = Auth::user()->name;
+        $user = Auth::user()->username;
         if ($request->ajax()) {
             $additionalQuery = '';
-            $data_input = DB::select("SELECT
-*
-from fg_fg_master_lok
-            ");
+            $data_input = DB::select("SELECT a.*, coalesce(tot_karton,0)tot_karton from fg_fg_master_lok a
+left join
+(
+select lokasi,count(no_carton) tot_karton from
+(
+select * from (select * from fg_fg_in where status  = 'NORMAL') a
+left join
+(
+select id_fg_in from fg_fg_out where status = 'NORMAL'
+) b on a.id = b.id_fg_in
+where b.id_fg_in is null
+group by a.no_carton, a.po
+)
+b
+group by lokasi
+) b on a.kode_lok = b.lokasi
+");
 
             return DataTables::of($data_input)->toJson();
         }
+        $data_po = DB::select("SELECT po isi, concat(po, ' - ', buyer) tampil from
+(select id_so_det, po from fg_fg_in WHERE status = 'NORMAL' group by po) a
+inner join master_sb_ws m on a.id_so_det = m.id_so_det
+order by buyer asc");
+
         return view(
             'finish_good.finish_good_alokasi_karton',
             [
-                'page' => 'dashboard-finish-good',
+                'page' => 'dashboard_finish_good',
                 "subPageGroup" => "finish_good_alokasi_karton",
+                "data_po" => $data_po,
+                "user" => $user,
                 "subPage" => "finish_good_alokasi_karton"
             ]
         );
     }
 
 
-    public function getdata_finish_good_master_lokasi(Request $request)
+    public function getdata_lokasi_alokasi(Request $request)
     {
         $cek_data = DB::select("
         SELECT * FROM fg_fg_master_lok	where id = '$request->id_e'
@@ -46,58 +66,17 @@ from fg_fg_master_lok
         return json_encode($cek_data ? $cek_data[0] : null);
     }
 
-    public function fg_in_getno_carton(Request $request)
-    // SELECT
-    // concat(a.no_carton,'_',a.notes)  isi,
-    // concat(a.no_carton, ' ( ', coalesce(sum(b.total),0) - coalesce(sum(c.qty_fg),0), ' ) ', a.notes) tampil
-    // from
-    // (select id,po, no_carton, notes, qty_isi from packing_master_carton where po = '" . $request->cbopo . "') a
-    // left join (
-    // select count(barcode) total, po, barcode, dest, no_carton, notes from packing_packing_out_scan
-    // where po = '" . $request->cbopo . "'
-    // group by no_carton, po, barcode, dest
-    // ) b on a.po = b.po and a.no_carton = b.no_carton and a.notes = b.notes
-    // left join (
-    // select sum(qty) qty_fg,po, barcode, no_carton, notes from fg_fg_in where po = '" . $request->cbopo . "' and status = 'NORMAL' group by barcode, po, no_carton, notes ) c
-    // on a.po = c.po and a.no_carton = c.no_carton and a.notes = c.notes and b.barcode = c.barcode
-    // where
-    // (
-    // case
-    // when a.qty_isi is null then coalesce(b.total,0) - coalesce(c.qty_fg,0) >= '1'
-    // when a.qty_isi = b.total then a.qty_isi - coalesce(c.qty_fg,0) != '0'
-    // end
-    // )
-    // group by a.no_carton
-    // order by a.no_carton asc
-
+    public function getno_carton_alokasi(Request $request)
     {
         $data_no_carton = DB::select("SELECT
-concat(a.no_carton,'_',a.notes)  isi,
-concat(a.no_carton, ' ( ', coalesce(sum(b.total),0) - coalesce(sum(c.qty_fg),0), ' ) ', a.notes) tampil
- from
-(select id,po, no_carton, notes, qty_isi from packing_master_carton where po = '" . $request->cbopo . "') a
-left join (
-select count(barcode) total, po, barcode, dest, no_carton, notes from packing_packing_out_scan
-where po = '" . $request->cbopo . "'
-group by no_carton, po, barcode, dest
-) b on a.po = b.po and a.no_carton = b.no_carton and a.notes = b.notes
-left join (
-select sum(qty) qty_fg,po, barcode, no_carton, notes from fg_fg_in where po = '" . $request->cbopo . "' and status = 'NORMAL' group by barcode, po, no_carton, notes ) c
-on a.po = c.po and a.no_carton = c.no_carton and a.notes = c.notes and b.barcode = c.barcode
-where
-(
-     case
-     when a.qty_isi is null then coalesce(b.total,0) - coalesce(c.qty_fg,0) >= '1'
-     when a.qty_isi = b.total then coalesce(b.total,0) - coalesce(c.qty_fg,0) >= '1'
-     end
-    )
-     group by a.no_carton
-     order by a.no_carton asc
-
-
+        concat(no_carton,'_',notes) isi, concat(no_carton, ' ( ', sum(qty) , ' pcs ) ', ' ( Lok : ', a.lokasi,' ) ', notes) tampil
+        from fg_fg_in a
+        left join (select id_fg_in from fg_fg_in_alokasi_karton_tmp) b on a.id = b.id_fg_in
+        where  lokasi != '" . $request->txtkode_lok . "' and po = '" . $request->cbopo . "'
+        and status = 'NORMAL' and b.id_fg_in is null
+        GROUP BY po, no_carton
+        order by no_carton asc
         ");
-
-        // where coalesce(b.total,0) - coalesce(c.qty_fg,0) >= '1'
 
         $html = "<option value=''>Pilih No. Carton</option>";
 
@@ -108,156 +87,159 @@ where
         return $html;
     }
 
-    public function show_preview_fg_in(Request $request)
+    public function show_preview_detail_alokasi(Request $request)
     {
         $user = Auth::user()->name;
-        $po = $request->cbopo;
-
-        $no_carton_cek = $request->cbo_no_carton;
-
-        if ($no_carton_cek == '') {
-            $cbo_no_carton = '-';
-            $notes = '-';
-        } else {
-            $cekArray = explode('_', $no_carton_cek);
-            $cbo_no_carton = $cekArray[0];
-            $notes = $cekArray[1];
-        }
-
-
+        $lok = $request->txtkode_lok;
         if ($request->ajax()) {
 
+
+            // SELECT
+            // buyer,
+            // po,
+            // no_carton,
+            // ws,
+            // color,
+            // size,
+            // notes,
+            // a.qty,
+            // 'tetap' stat
+            // from fg_fg_in a
+            // inner join master_sb_ws m on a.id_so_det = m.id_so_det
+            // where lokasi = '$lok' and status = 'NORMAL'
+            // union all
+            // select
+            // buyer,
+            // a.po,
+            // a.no_carton,
+            // ws,
+            // color,
+            // size,
+            // b.notes,
+            // b.qty,
+            // 'tmp' stat
+            // from fg_fg_in_alokasi_karton_tmp a
+            // inner join 	fg_fg_in b on a.id_fg_in = b.id
+            // inner join master_sb_ws m on b.id_so_det = m.id_so_det
+            // where a.lokasi = '$lok'
+            // order by
+            // case when stat = 'tmp' then '1'
+            // else
+            // '2'
+            // end, no_carton ASC
+
             $data_preview = DB::select("SELECT
-        m.id_so_det,
-        a.no_carton,
-        p.barcode,
-        p.po,
-        p.dest,
-        m.color,
-        m.size,
-        m.ws,
-        coalesce(a.qty,0) - coalesce(c.qty_fg,0) qty,
-        'PCS' unit,
-        price,
-        m.curr,
-        p.id id_ppic_master_so
-        from
-        (
-        select count(barcode)qty, barcode, po, dest, no_carton, notes from packing_packing_out_scan
-        where po = '$po' and no_carton = '$cbo_no_carton' and notes = '$notes'
-        group by po, barcode, dest, notes
-        ) a
-        inner join ppic_master_so p on a.po = p.po and  a.barcode = p.barcode and a.po = p.po and a.dest = p.dest
-        inner join master_sb_ws m on p.id_so_det = m.id_so_det
-        left join (
-				select sum(qty) qty_fg,po, barcode, no_carton, notes from fg_fg_in where po = '$po' and no_carton = '$cbo_no_carton' and notes = '$notes' and status = 'NORMAL' group by barcode, po, no_carton, notes ) c on
-				a.po = c.po and a.no_carton = c.no_carton and a.notes = c.notes and a.barcode = c.barcode
+            buyer,
+            a.po,
+            no_carton,
+            ws,
+            color,
+            size,
+            notes,
+            a.qty,
+			p.tgl_shipment,
+			concat((DATE_FORMAT(p.tgl_shipment,  '%d')), '-', left(DATE_FORMAT(p.tgl_shipment,  '%M'),3),'-',DATE_FORMAT(p.tgl_shipment,  '%Y')
+            ) tgl_shipment_fix,
+            'tetap' stat
+            from (select * from fg_fg_in where status = 'NORMAL') a
+			left join (select id_fg_in from fg_fg_out where status = 'NORMAL') b on a.id = b.id_fg_in
+            inner join master_sb_ws m on a.id_so_det = m.id_so_det
+			inner join ppic_master_so p on a.id_ppic_master_so = p.id
+            where lokasi = '$lok' and b.id_fg_in is null
+            union all
+            SELECT
+            buyer,
+            a.po,
+            a.no_carton,
+            ws,
+            color,
+            size,
+            b.notes,
+            b.qty,
+            p.tgl_shipment,
+			concat((DATE_FORMAT(p.tgl_shipment,  '%d')), '-', left(DATE_FORMAT(p.tgl_shipment,  '%M'),3),'-',DATE_FORMAT(p.tgl_shipment,  '%Y')
+            ) tgl_shipment_fix,
+            'tmp' stat
+            from fg_fg_in_alokasi_karton_tmp a
+            inner join 	fg_fg_in b on a.id_fg_in = b.id
+            inner join master_sb_ws m on b.id_so_det = m.id_so_det
+			inner join ppic_master_so p on b.id_ppic_master_so = p.id
+            where a.lokasi = '$lok' and status = 'NORMAL'
+            order by
+            case when stat = 'tmp' then '1'
+            else
+            '2'
+            end, no_carton ASC
             ");
 
             return DataTables::of($data_preview)->toJson();
         }
     }
 
-    public function store(Request $request)
+
+    public function insert_tmp_alokasi_karton(Request $request)
     {
         $timestamp = Carbon::now();
-        $user = Auth::user()->name;
+        $user = Auth::user()->username;
         $tgl_skrg = date('Y-m-d');
-        $po                     = $_POST['cbopo'];
 
-        $cekArray = explode('_', $_POST['cbo_no_carton']);
+        $lokasi = $request->cbolok;
+        $po = $request->cbopo;
+        $cekArray = explode('_', $_POST['cbono_carton']);
         $no_carton = $cekArray[0];
         $notes = $cekArray[1];
 
-        $cek_sb = DB::connection('mysql_sb')->select("select count(id) tot from bpb where bpbdate = '$tgl_skrg'
-        and po_fg = '$po' and status_input = 'nds'");
-        $data_cek_sb = $cek_sb[0]->tot;
+        $ins_tmp =  DB::insert("INSERT into fg_fg_in_alokasi_karton_tmp (id_fg_in,po,no_carton,lokasi,notes,created_at,updated_at,created_by)
+        select id,po,no_carton,'$lokasi','$notes','$timestamp','$timestamp','$user' from fg_fg_in where  status = 'NORMAL' and po = '$po' and no_carton = '$no_carton' and notes = '$notes' ");
+    }
 
-        if ($data_cek_sb == '0') {
+    public function alokasi_hapus_tmp(Request $request)
+    {
+        $id_po = $request->id_po;
+        $id_no_carton = $request->id_no_carton;
+        $id_notes = $request->id_notes;
 
-            $update_data_bpbno = DB::connection('mysql_sb')->update("update tempbpb set bpbno = bpbno + 1  where mattype = 'fg'");
-            $data_bpbno = DB::connection('mysql_sb')->select("select * from tempbpb where mattype = 'fg'");
-            $bpbno = $data_bpbno[0]->BPBNo;
+        $del_history =  DB::delete("
+        delete from fg_fg_in_alokasi_karton_tmp where po = '$id_po' and no_carton = '$id_no_carton' and notes = '$id_notes'");
+    }
 
-            $tahun = date('Y', strtotime($timestamp));
-            $kode = 'FG-IN-' . $tahun;
-            $update_data_bpbno_int = DB::connection('mysql_sb')->update("update tempbpb set bpbno = bpbno + 1  where mattype = '$kode'");
-            $data_bpbno_int = DB::connection('mysql_sb')->select("select * from tempbpb where mattype = '$kode '");
-            $bpbno_int_no_tr = $data_bpbno_int[0]->BPBNo;
-            $bpbno_int_no_tr_fix = sprintf("%05s", $bpbno_int_no_tr);
-            $thn_bln_bpbno_int = date('my', strtotime($timestamp));
-            $bpbno_int = 'FG/IN/' . $thn_bln_bpbno_int . '/' . $bpbno_int_no_tr_fix;
-        } else {
-            $cek_no_sb = DB::connection('mysql_sb')->select("select substring(bpbno,3)bpbno,bpbno_int from bpb where bpbdate = '$tgl_skrg'
-            and po_fg = '$po' and status_input = 'nds' limit 1");
-            $bpbno = $cek_no_sb[0]->bpbno;
-            $bpbno_int = $cek_no_sb[0]->bpbno_int;
-        }
+    public function delete_tmp_all_alokasi_karton(Request $request)
+    {
+        $user = $request->user;
+        $lokasi = $request->cbolok;
+        $del_tmp_all =  DB::delete("
+        delete from fg_fg_in_alokasi_karton_tmp where created_by = '$user' and lokasi = '$lokasi'");
+    }
 
-        $JmlArray               = $_POST['txtqty'];
-        $id_so_detArray         = $_POST['id_so_det'];
-        $priceArray             = $_POST['price'];
-        $currArray              = $_POST['curr'];
-        $id_ppic_master_soArray = $_POST['id_ppic_master_so'];
-        $barcodeArray           = $_POST['barcode'];
-        $tgl_penerimaan         = date('Y-m-d');
+    public function store(Request $request)
+    {
+        $timestamp = Carbon::now();
+        $user = Auth::user()->username;
+        $tgl_skrg = date('Y-m-d');
 
-        foreach ($JmlArray as $key => $value) {
-            if ($value != '0' && $value != '') {
-                $txtqty         = $JmlArray[$key];
-                $id_so_det      = $id_so_detArray[$key];
-                $price          = $priceArray[$key];
-                $curr           = $currArray[$key];
-                $id_ppic_master_so         = $id_ppic_master_soArray[$key];
-                $barcode          = $barcodeArray[$key]; {
-                    $cek = DB::connection('mysql_sb')->select("select count(id_so_det) cek from masterstyle where id_so_det = '$id_so_det'");
-                    $cek_data = $cek[0]->cek;
-                    if ($cek_data == '0') {
-                        $ins_m_style = DB::connection('mysql_sb')->insert("insert into masterstyle
-				(Styleno,Buyerno,DelDate,unit,itemname,Color,Size,id_so_det,KPNo,country,goods_code)
-				select Styleno,so.Buyerno,DelDate_det,sod.unit,product_item,Color,Size,sod.id,KPNo,sod.dest,product_group from
-				so_det sod inner join so on sod.id_so=so.id
-				inner join act_costing ac on ac.id=so.id_cost
-				inner join masterproduct mp on ac.id_product=mp.id
-				where sod.cancel='N' and sod.id='$id_so_det'");
-                        $cek_id_item = DB::connection('mysql_sb')->select("select * from masterstyle where id_so_det = '$id_so_det'");
-                        $id_item = $cek_id_item[0]->id_item;
-                    } else {
-                        $cek_id_item = DB::connection('mysql_sb')->select("select * from masterstyle where id_so_det = '$id_so_det'");
-                        $id_item = $cek_id_item[0]->id_item;
-                    }
+        $lokasi   = $_POST['txtkode_lok'];
+        // $po       = $_POST['cbopo'];
+        // $cekArray = explode('_', $_POST['cbono_carton']);
+        // $no_carton = $cekArray[0];
+        // $notes = $cekArray[1];
 
-                    $cek_id_sb = DB::connection('mysql_sb')->select("select id from bpb where bpbdate = '$tgl_skrg'
-                    and po_fg = '$po' and status_input = 'nds' and id_so_det = '$id_so_det' and id_item = '$id_item' ");
-                    $id_sb = $cek_id_sb ? $cek_id_sb[0]->id : 0;
+        $update_lokasi =  DB::update("UPDATE fg_fg_in a
+        inner join fg_fg_in_alokasi_karton_tmp b on a.id = b.id_fg_in
+        set a.lokasi = b.lokasi, a.updated_at = '$timestamp'
+        where b.lokasi = '$lokasi' and a.status = 'NORMAL' ");
 
-                    if ($id_sb == '0') {
-                        $insert_fg_in_sb =  DB::connection('mysql_sb')->insert("insert into bpb(bpbno,bpbno_int,bpbdate,id_supplier,grade,invno,jenis_dok,id_item,id_so_det,qty,unit,price,curr,username,status_input,po_fg)
-                        values('FG$bpbno','$bpbno_int','$tgl_penerimaan','435','GRADE A','-','INHOUSE','$id_item','$id_so_det','$txtqty','PCS','$price','$curr','$user','nds','$po') ");
-                    } else {
-                        $insert_fg_in_sb =  DB::connection('mysql_sb')->update("update bpb set qty = qty + $txtqty where id = '$id_sb' ");
-                    }
+        $del_tmp =  DB::delete("
+        delete from fg_fg_in_alokasi_karton_tmp where lokasi = '$lokasi'");
 
-                    $update_karton =  DB::update("
-                    update packing_master_carton set status = 'transfer' where po = '$po' and no_carton = '$no_carton' ");
 
-                    $insert_fg_in_nds =  DB::insert("
-                    insert into fg_fg_in (no_sb,tgl_penerimaan,id_ppic_master_so,id_so_det,barcode,qty,po,no_carton,lokasi,notes,status,created_by,updated_at,created_at)
-                    values('$bpbno_int','$tgl_skrg','$id_ppic_master_so','$id_so_det','$barcode','$txtqty','$po','$no_carton','-','$notes','NORMAL','$user','$timestamp','$timestamp')
-                    ");
-                }
-            }
-        }
 
-        if ($insert_fg_in_sb != '') {
+        if ($update_lokasi != '') {
             return array(
                 "status" => 201,
-                "message" => 'No Transaksi :
-                 ' . $bpbno_int . '
-                 Sudah Terbuat',
+                "message" => 'Data Sudah Terbuat',
                 "additional" => [],
-                'table' => 'datatable_preview',
-                "callback" => "getno_carton();dataTableReload();"
+                'table' => 'datatable_preview'
+                // "callback" => "getno_carton();dataTableReload();"
             );
         } else {
             return array(

@@ -45,7 +45,7 @@ group by no_sb
         return view(
             'finish_good.finish_good_retur',
             [
-                'page' => 'dashboard-finish-good',
+                'page' => 'dashboard_finish_good',
                 "subPageGroup" => "finish_good_retur",
                 "subPage" => "finish_good_retur"
             ]
@@ -67,7 +67,7 @@ group by buyer");
 
 
         return view('finish_good.create_finish_good_retur', [
-            'page' => 'dashboard-finish-good',
+            'page' => 'dashboard_finish_good',
             "subPageGroup" => "finish_good_retur",
             "subPage" => "finish_good_retur",
             "data_buyer" => $data_buyer,
@@ -398,7 +398,7 @@ WHERE tmp.created_by ='$user'");
 
 
         return view('finish_good.edit_finish_good_pengeluaran', [
-            'page' => 'dashboard-finish-good',
+            'page' => 'dashboard_finish_good',
             "subPageGroup" => "finish_good_pengeluaran",
             "subPage" => "finish_good_pengeluaran",
             "id" => $id,
