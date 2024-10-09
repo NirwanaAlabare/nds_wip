@@ -89,7 +89,7 @@ class ExportLaporanPemasukan implements FromView, WithEvents, ShouldAutoSize
             UNION
             select s.id_gen,a.no_mut bpbno,a.tgl_mut bpbdate,a.type_bc jenis_dok,right(a.no_aju,6) no_aju,a.tgl_aju, lpad(a.no_daftar,6,'0') bcno,a.tgl_daftar bcdate,a.supplier,a.no_po pono,z.tipe_com,a.no_invoice invno,a.id_item,goods_code,concat(itemdesc,' ',add_info) itemdesc,s.color,s.size, qty,qty_good, qty_reject, a.unit,'' berat_bersih,a.deskripsi remark,a.username,a.confirm_by,a.curr,if(z.tipe_com !='Regular','0',a.price)price, a.type_pch jenis_trans,'' reffno,lr.rak,a.id_jo from (select a.no_mut,a.tgl_mut,c.type_bc,c.no_aju,c.tgl_aju, c.no_daftar,c.tgl_daftar,c.supplier,c.no_po,c.no_invoice,b.id_item, sum(qty_mutasi) qty,sum(qty_mutasi) as qty_good,'0' as qty_reject, b.unit,mut.deskripsi,CONCAT(mut.created_by,' (',mut.created_at, ') ') username,CONCAT(mut.approved_by,' (',mut.approved_date, ') ') confirm_by,b.curr,b.price, c.type_pch,b.id_jo from whs_mut_lokasi a 
             inner join whs_mut_lokasi_h mut on mut.no_mut = a.no_mut
-            inner join whs_inmaterial_fabric c on c.no_dok = a.no_bpb
+            left join whs_inmaterial_fabric c on c.no_dok = a.no_bpb
             left join (select no_dok,id_jo,id_item,'-' curr, '0' price,satuan unit FROM whs_lokasi_inmaterial GROUP BY no_dok,id_item
             UNION
             select no_bpb,id_jo,id_item,'-' curr, '0' price,unit FROM whs_sa_fabric GROUP BY no_bpb,id_item) b on b.no_dok = a.no_bpb and a.id_item = b.id_item where a.status = 'Y' GROUP BY a.no_mut,id_item) a

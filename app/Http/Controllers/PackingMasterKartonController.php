@@ -593,7 +593,11 @@ inner join master_sb_ws m on p.id_so_det = m.id_so_det
 
         $nama_file = $file->getClientOriginalName();
 
-        if (strpos($nama_file, $po)) {
+        $nama_file_normalized = str_replace('_', '/', $nama_file);
+
+        $po_normalized = str_replace('/', '_', $po);
+
+        if (($nama_file_normalized == $po_normalized)) {
             $file->move('file_upload', $nama_file);
             Excel::import(new UploadQtyKarton, public_path('/file_upload/' . $nama_file));
             return array(
@@ -603,7 +607,8 @@ inner join master_sb_ws m on p.id_so_det = m.id_so_det
                 "additional" => [],
                 // "redirect" => url('in-material/upload-lokasi')
             );
-        } else {
+        } 
+        else {
             return array(
                 "status" => 202,
                 "message" => 'Data Gagal Di Upload',
