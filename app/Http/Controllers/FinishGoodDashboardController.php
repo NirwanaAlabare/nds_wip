@@ -92,18 +92,18 @@ sum(tot_karton_lok) tot_karton_lok,
 sum(tot_karton) tot_karton
 FROM
 (
-SELECT COUNT(*) OVER () as tot_karton_non, '0' tot_karton_lok,  '0' tot_karton
+SELECT COUNT(*) as tot_karton_non, '0' tot_karton_lok,  '0' tot_karton
 FROM fg_fg_in a
 left join fg_fg_out b on a.id = b.id_fg_in
 WHERE a.lokasi = '-' and a.status = 'NORMAL' and b.id_fg_in is null
 group by a.po, a.no_carton
 UNION
-SELECT '0' tot_karton_non,'0' tot_karton_lok,count(*) over ()  tot_karton FROM fg_fg_in a
+SELECT '0' tot_karton_non,'0' tot_karton_lok,count(*)  tot_karton FROM fg_fg_in a
 left join fg_fg_out b on a.id = b.id_fg_in
 where a.status = 'NORMAL' and b.id_fg_in is null
 group by a.po, a.no_carton
 UNION
-SELECT '0' tot_karton_non, count(*) over ()  tot_karton_lok, '0' tot_karton FROM fg_fg_in a
+SELECT '0' tot_karton_non, count(*)  tot_karton_lok, '0' tot_karton FROM fg_fg_in a
 left join fg_fg_out b on a.id = b.id_fg_in
 where a.status = 'NORMAL' and a.lokasi != '-' and b.id_fg_in is null
 group by a.po, a.no_carton
