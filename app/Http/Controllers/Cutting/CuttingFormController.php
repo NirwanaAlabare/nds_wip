@@ -828,7 +828,7 @@ class CuttingFormController extends Controller
                 }
             }
 
-            $itemRemain = $itemQty - floatval($validatedRequest['current_total_pemakaian_roll']) - floatval($validatedRequest['current_kepala_kain']) - floatval($validatedRequest['current_sisa_tidak_bisa']) - floatval($validatedRequest['current_reject']) - floatval($validatedRequest['current_piping']);;
+            $itemRemain = $itemQty - floatval($validatedRequest['current_total_pemakaian_roll']);
             // $itemRemain = $validatedRequest['current_sisa_kain'];
 
             ScannedItem::updateOrCreate(
