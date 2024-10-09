@@ -88,7 +88,7 @@
                     @for ($i = 0; $i < count($hours); $i++)
                         @php
                             if ($i < 1) {
-                                $timeFrom = $date.' 07:00:00';
+                                $timeFrom = $date.' 05:00:00';
                                 $timeTo = $date.' '.$hours[$i];
                             }
                             else if ($i == count($hours)-1) {
