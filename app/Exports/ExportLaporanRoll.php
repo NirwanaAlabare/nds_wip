@@ -111,6 +111,7 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
             where
                 (a.cancel = 'N'  OR a.cancel IS NULL)
                 AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
+                and b.status != 'not completed'
                 and b.id_item is not null
                 " . $additionalQuery . "
             group by

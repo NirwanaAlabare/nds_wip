@@ -110,6 +110,7 @@ class RollController extends Controller
                 where
                     (a.cancel = 'N'  OR a.cancel IS NULL)
 	                AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
+                    and b.status != 'not completed'
                     and id_item is not null
                     " . $additionalQuery . "
                     " . $keywordQuery . "
@@ -214,6 +215,7 @@ class RollController extends Controller
             where
                 (a.cancel = 'N'  OR a.cancel IS NULL)
                 AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
+                and b.status != 'not completed'
                 and id_item is not null
                 " . $additionalQuery . "
                 " . $keywordQuery . "
@@ -265,6 +267,7 @@ class RollController extends Controller
                 whs_bppb_det.id_roll
             LIMIT 1
         ");
+
         if ($newItem) {
             $scannedItem = ScannedItem::selectRaw("
                 id_roll,
@@ -349,11 +352,8 @@ class RollController extends Controller
             first();
 
             if ($scannedItem) {
-                if (floatval($scannedItem->qty) > 0) {
-                    return json_encode($scannedItem);
-                }
 
-                $formCutInputDetail = FormCutInputDetail::where("id_roll", $id)->orderBy("updated_at", "desc")->first();
+                return json_encode($scannedItem);
             }
 
             return json_encode($item ? $item[0] : null);
@@ -374,13 +374,10 @@ class RollController extends Controller
                 COALESCE(updated_at, created_at) updated_at
             ")->
             where("id_roll", $id)->
+            orderBy("id")->
             get();
 
-        if ($forms) {
-            return $forms;
-        }
-
-        return null;
+        return DataTables::of($forms)->toJson();
     }
 
     /**
