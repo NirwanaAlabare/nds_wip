@@ -1037,9 +1037,8 @@ class CuttingFormManualController extends Controller
         $storeTimeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->
             leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->
             where('form_cut_input.no_meja', $request->no_meja)->
-            where('form_cut_input_detail.status', 'not complete')->
             updateOrCreate(
-                ["no_form_cut_input" => $request->no_form_cut_input],
+                ["no_form_cut_input" => $request->no_form_cut_input, 'form_cut_input_detail.status' => 'not complete'],
                 [
                     "id_roll" => $request->current_id_roll,
                     "id_item" => $request->current_id_item,
@@ -1148,8 +1147,8 @@ class CuttingFormManualController extends Controller
         $itemQty = ($validatedRequest["current_unit"] != "KGM" ? floatval($validatedRequest['current_qty']) : floatval($validatedRequest['current_qty_real']));
         $itemUnit = ($validatedRequest["current_unit"] != "KGM" ? "METER" : $validatedRequest['current_unit']);
 
-        $storeTimeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->where('form_cut_input.no_meja', $validatedRequest['no_meja'])->where('form_cut_input_detail.status', 'extension')->updateOrCreate(
-            ['form_cut_input_detail.no_form_cut_input' => $validatedRequest['no_form_cut_input']],
+        $storeTimeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->where('form_cut_input.no_meja', $validatedRequest['no_meja'])->updateOrCreate(
+            ['form_cut_input_detail.no_form_cut_input' => $validatedRequest['no_form_cut_input'], 'form_cut_input_detail.status' => 'extension'],
             [
                 "id_roll" => $validatedRequest['current_id_roll'],
                 "id_item" => $validatedRequest['current_id_item'],
