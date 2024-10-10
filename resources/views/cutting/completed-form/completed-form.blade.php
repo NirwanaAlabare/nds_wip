@@ -51,7 +51,7 @@
                     <thead>
                         <tr>
                             <th>Action</th>
-                            <th>Tanggal Form</th>
+                            <th>Tanggal Spreading</th>
                             <th>No. Form</th>
                             <th>No. Meja</th>
                             <th>Style</th>
