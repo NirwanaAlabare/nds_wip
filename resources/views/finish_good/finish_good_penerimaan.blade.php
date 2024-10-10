@@ -462,49 +462,5 @@
             clearInterval(interval);
         }
 
-
-        function export_excel_fg_in() {
-            let from = document.getElementById("tgl-awal").value;
-            let to = document.getElementById("tgl-akhir").value;
-
-            Swal.fire({
-                title: 'Please Wait...',
-                html: 'Exporting Data...',
-                didOpen: () => {
-                    Swal.showLoading()
-                },
-                allowOutsideClick: false,
-            });
-
-            $.ajax({
-                type: "get",
-                url: '{{ route('export_excel_trf_garment') }}',
-                data: {
-                    from: from,
-                    to: to
-                },
-                xhrFields: {
-                    responseType: 'blob'
-                },
-                success: function(response) {
-                    {
-                        swal.close();
-                        Swal.fire({
-                            title: 'Data Sudah Di Export!',
-                            icon: "success",
-                            showConfirmButton: true,
-                            allowOutsideClick: false
-                        });
-                        var blob = new Blob([response]);
-                        var link = document.createElement('a');
-                        link.href = window.URL.createObjectURL(blob);
-                        link.download = "Laporan Trf Garment " + from + " sampai " +
-                            to + ".xlsx";
-                        link.click();
-
-                    }
-                },
-            });
-        }
     </script>
 @endsection
