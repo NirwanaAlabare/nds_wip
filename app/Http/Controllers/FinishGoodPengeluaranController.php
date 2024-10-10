@@ -8,7 +8,8 @@ use Yajra\DataTables\Facades\DataTables;
 use DB;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\ExportLaporanTrfGarment;
+use App\Exports\ExportLaporanFGOUTList;
+use App\Exports\ExportLaporanFGOUTSummary;
 
 class FinishGoodPengeluaranController extends Controller
 {
@@ -519,5 +520,13 @@ where b.created_by = '$user'");
                 "additional" => [],
             );
         }
+    }
+    public function export_excel_fg_out_list(Request $request)
+    {
+        return Excel::download(new ExportLaporanFGOUTList($request->from, $request->to), 'Laporan_Penerimaan FG_Stok.xlsx');
+    }
+    public function export_excel_fg_out_summary(Request $request)
+    {
+        return Excel::download(new ExportLaporanFGOUTSummary($request->from, $request->to), 'Laporan_Penerimaan FG_Stok.xlsx');
     }
 }

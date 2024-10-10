@@ -27,7 +27,7 @@ Sheet::macro('styleCells', function (Sheet $sheet, string $cellRange, array $sty
 //     }
 // }
 
-class ExportLaporanFGIN implements FromView, WithEvents, ShouldAutoSize
+class ExportLaporanFGINList implements FromView, WithEvents, ShouldAutoSize
 {
     use Exportable;
 
@@ -53,11 +53,13 @@ concat((DATE_FORMAT(a.tgl_penerimaan,  '%d')), '-', left(DATE_FORMAT(a.tgl_pener
             ) tgl_penerimaan_fix,
 a.po,
 a.barcode,
+a.id_so_det,
 buyer,
 ws,
 color,
 size,
 a.qty,
+m.dest,
 a.no_carton,
 a.notes,
 a.created_at,
@@ -73,7 +75,7 @@ order by a.created_at desc
         $this->rowCount = count($data) + 4;
 
 
-        return view('finish_good.export_finish_good_penerimaan', [
+        return view('finish_good.export_finish_good_penerimaan_list', [
             'data' => $data,
             'from' => $this->from,
             'to' => $this->to
@@ -93,7 +95,7 @@ order by a.created_at desc
     {
 
         $event->sheet->styleCells(
-            'A4:L' . $event->getConcernable()->rowCount,
+            'A4:N' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [

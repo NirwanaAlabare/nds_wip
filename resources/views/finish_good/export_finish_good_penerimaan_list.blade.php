@@ -3,7 +3,7 @@
 
 <table class="table">
     <tr>
-        <td colspan='16'>Laporan FG IN</td>
+        <td colspan='16'>Laporan FG IN List</td>
     </tr>
     <tr>
         <td colspan='16'>{{ date('d-M-Y', strtotime($from)) }} - {{ date('d-M-Y', strtotime($to)) }}
@@ -19,9 +19,11 @@
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">PO</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">Buyer</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">WS</th>
+            <th style="background-color: yellow;border:1px solid black;font-weight:bold">ID So Det</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">Color</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">Size</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">Qty</th>
+            <th style="background-color: yellow;border:1px solid black;font-weight:bold">Dest</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">No. Carton</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">Notes</th>
             <th style="background-color: yellow;border:1px solid black;font-weight:bold">User</th>
@@ -40,9 +42,11 @@
                 <td>{{ $item->po }}</td>
                 <td>{{ $item->buyer }}</td>
                 <td>{{ $item->ws }}</td>
+                <td>{{ $item->id_so_det }}</td>
                 <td>{{ $item->color }}</td>
                 <td>{{ $item->size }}</td>
                 <td>{{ $item->qty }}</td>
+                <td>{{ $item->dest }}</td>
                 <td>{{ $item->no_carton }}</td>
                 <td>{{ $item->notes }}</td>
                 <td>{{ $item->created_by }}</td>

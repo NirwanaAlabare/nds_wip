@@ -1350,11 +1350,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/show_preview_fg_in', 'show_preview_fg_in')->name('show_preview_fg_in');
         Route::get('/create', 'create')->name('create_penerimaan_finish_good');
         Route::post('/store', 'store')->name('store-fg-in');
-<<<<<<< HEAD
-        // Route::get('/export_excel_fg_in', 'export_excel_fg_in')->name('export_excel_fg_in');
-=======
-        Route::get('/export_excel_fg_in', 'export_excel_fg_in')->name('export_excel_fg_in');
->>>>>>> 9af76438f701794f2a8337fb9489b5b592e5c18e
+        Route::get('/export_excel_fg_in_list', 'export_excel_fg_in_list')->name('export_excel_fg_in_list');
+        Route::get('/export_excel_fg_in_summary', 'export_excel_fg_in_summary')->name('export_excel_fg_in_summary');
     });
 
     // Pengeluaran Finish Good
@@ -1375,6 +1372,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/show_det_karton_fg_out_terinput', 'show_det_karton_fg_out_terinput')->name('show_det_karton_fg_out_terinput');
         Route::get('/show_summary_karton_fg_out_terinput', 'show_summary_karton_fg_out_terinput')->name('show_summary_karton_fg_out_terinput');
         Route::post('/edit_store_fg_out', 'edit_store_fg_out')->name('edit-store-fg-out');
+        Route::get('/export_excel_fg_out_list', 'export_excel_fg_out_list')->name('export_excel_fg_out_list');
+        Route::get('/export_excel_fg_out_summary', 'export_excel_fg_out_summary')->name('export_excel_fg_out_summary');
     });
 
     // Retur Finish Good
@@ -1391,6 +1390,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/show_delete_karton_fg_retur', 'show_delete_karton_fg_retur')->name('show_delete_karton_fg_retur');
         Route::post('/delete_karton_fg_retur', 'delete_karton_fg_retur')->name('delete_karton_fg_retur');
         Route::post('/clear_tmp_fg_retur', 'clear_tmp_fg_retur')->name('clear_tmp_fg_retur');
+        Route::get('/export_excel_fg_retur_list', 'export_excel_fg_retur_list')->name('export_excel_fg_retur_list');
+        Route::get('/export_excel_fg_retur_summary', 'export_excel_fg_retur_summary')->name('export_excel_fg_retur_summary');
     });
 
 
