@@ -8,7 +8,7 @@ use Yajra\DataTables\Facades\DataTables;
 use DB;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\ExportLaporanTrfGarment;
+use App\Exports\ExportLaporanFGIN;
 
 class FinishGoodPenerimaanController extends Controller
 {
@@ -292,5 +292,10 @@ where
                 "additional" => [],
             );
         }
+    }
+
+    public function export_excel_fg_in(Request $request)
+    {
+        return Excel::download(new ExportLaporanFGIN($request->from, $request->to), 'Laporan_Penerimaan FG_Stok.xlsx');
     }
 }

@@ -1350,6 +1350,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/show_preview_fg_in', 'show_preview_fg_in')->name('show_preview_fg_in');
         Route::get('/create', 'create')->name('create_penerimaan_finish_good');
         Route::post('/store', 'store')->name('store-fg-in');
+        Route::get('/export_excel_fg_in', 'export_excel_fg_in')->name('export_excel_fg_in');
     });
 
     // Pengeluaran Finish Good
