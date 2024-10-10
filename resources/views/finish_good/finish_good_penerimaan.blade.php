@@ -105,9 +105,15 @@
                         oninput="dataTableReload()" value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
-                    <a onclick="export_excel_fg_in()" class="btn btn-outline-success position-relative btn-sm">
+                    <a onclick="export_excel_fg_in_data()" class="btn btn-outline-success position-relative btn-sm">
                         <i class="fas fa-file-excel fa-sm"></i>
-                        Export Excel
+                        Export Excel List
+                    </a>
+                </div>
+                <div class="mb-3">
+                    <a onclick="export_excel_fg_in_data()" class="btn btn-outline-success position-relative btn-sm">
+                        <i class="fas fa-file-excel fa-sm"></i>
+                        Export Excel Summary
                     </a>
                 </div>
             </div>
@@ -463,7 +469,7 @@
         }
 
 
-        function export_excel_fg_in() {
+        function export_excel_fg_in_data() {
             let from = document.getElementById("tgl-awal").value;
             let to = document.getElementById("tgl-akhir").value;
 
@@ -478,7 +484,7 @@
 
             $.ajax({
                 type: "get",
-                url: '{{ route('export_excel_trf_garment') }}',
+                url: '{{ route('export_excel_fg_in_list') }}',
                 data: {
                     from: from,
                     to: to
@@ -498,7 +504,7 @@
                         var blob = new Blob([response]);
                         var link = document.createElement('a');
                         link.href = window.URL.createObjectURL(blob);
-                        link.download = "Laporan Trf Garment " + from + " sampai " +
+                        link.download = "Laporan FG IN " + from + " sampai " +
                             to + ".xlsx";
                         link.click();
 
