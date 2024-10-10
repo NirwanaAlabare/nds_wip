@@ -462,6 +462,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('lap_pemakaian');
         Route::post('/manajemen_roll', 'pemakaianRollData')->name('lap_pemakaian_data');
         Route::get('/sisa_kain_roll', 'sisaKainRoll')->name('sisa_kain_roll');
+        Route::get('/sisa_kain_roll/get_scanned_item/{id?}', 'getScannedItem')->name('sisa_kain_scan_item');
+        Route::get('/sisa_kain_roll/forms', 'getSisaKainForm')->name('sisa_kain_form');
         // export excel
         Route::get('/export_excel', 'export_excel')->name('export_excel');
         Route::post('/export', 'export')->name('export');
@@ -470,7 +472,7 @@ Route::middleware('auth')->group(function () {
     // Stocker :
     Route::controller(StockerController::class)->prefix("stocker")->middleware('stocker')->group(function () {
         Route::get('/', 'index')->name('stocker');
-        Route::get('/show/{partDetailId?}/{formCutId?}', 'show')->name('show-stocker');
+        Route::get('/show/{formCutId?}', 'show')->name('show-stocker');
         Route::post('/print-stocker/{index?}', 'printStocker')->name('print-stocker');
         Route::post('/print-stocker-all-size/{partDetailId?}', 'printStockerAllSize')->name('print-stocker-all-size');
         Route::post('/print-stocker-checked', 'printStockerChecked')->name('print-stocker-checked');
@@ -1348,7 +1350,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/show_preview_fg_in', 'show_preview_fg_in')->name('show_preview_fg_in');
         Route::get('/create', 'create')->name('create_penerimaan_finish_good');
         Route::post('/store', 'store')->name('store-fg-in');
+<<<<<<< HEAD
         // Route::get('/export_excel_fg_in', 'export_excel_fg_in')->name('export_excel_fg_in');
+=======
+        Route::get('/export_excel_fg_in', 'export_excel_fg_in')->name('export_excel_fg_in');
+>>>>>>> 9af76438f701794f2a8337fb9489b5b592e5c18e
     });
 
     // Pengeluaran Finish Good

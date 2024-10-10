@@ -105,9 +105,15 @@
                         oninput="dataTableReload()" value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
-                    <a onclick="export_excel_fg_in()" class="btn btn-outline-success position-relative btn-sm">
+                    <a onclick="export_excel_fg_in_data()" class="btn btn-outline-success position-relative btn-sm">
                         <i class="fas fa-file-excel fa-sm"></i>
-                        Export Excel
+                        Export Excel List
+                    </a>
+                </div>
+                <div class="mb-3">
+                    <a onclick="export_excel_fg_in_data()" class="btn btn-outline-success position-relative btn-sm">
+                        <i class="fas fa-file-excel fa-sm"></i>
+                        Export Excel Summary
                     </a>
                 </div>
             </div>
@@ -462,5 +468,52 @@
             clearInterval(interval);
         }
 
+<<<<<<< HEAD
+=======
+
+        function export_excel_fg_in_data() {
+            let from = document.getElementById("tgl-awal").value;
+            let to = document.getElementById("tgl-akhir").value;
+
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                type: "get",
+                url: '{{ route('export_excel_fg_in_list') }}',
+                data: {
+                    from: from,
+                    to: to
+                },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(response) {
+                    {
+                        swal.close();
+                        Swal.fire({
+                            title: 'Data Sudah Di Export!',
+                            icon: "success",
+                            showConfirmButton: true,
+                            allowOutsideClick: false
+                        });
+                        var blob = new Blob([response]);
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = "Laporan FG IN " + from + " sampai " +
+                            to + ".xlsx";
+                        link.click();
+
+                    }
+                },
+            });
+        }
+>>>>>>> 9af76438f701794f2a8337fb9489b5b592e5c18e
     </script>
 @endsection
