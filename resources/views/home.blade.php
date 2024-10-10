@@ -37,7 +37,10 @@
                         </div>
                     @endadmin
 
-                    @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'marker' || auth()->user()->type == 'spreading')
+                    @if (auth()->user()->type == 'admin' ||
+                            auth()->user()->type == 'superadmin' ||
+                            auth()->user()->type == 'marker' ||
+                            auth()->user()->type == 'spreading')
                         <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('dashboard-marker') }}" class="home-item">
                                 <div class="card h-100">
@@ -150,17 +153,17 @@
 
                     <!-- warehouse -->
                     <!-- <div class="col-lg-2 col-md-3 col-sm-6">
-                                <a href="{{ route('dashboard-warehouse') }}" class="home-item">
-                                    <div class="card h-100">
-                                        <div class="card-body">
-                                            <div class="d-flex h-100 flex-column justify-content-between">
-                                                <img src="{{ asset('dist/img/warehouse.png') }}" class="img-fluid p-3" alt="cutting image">
-                                                <p class="text-center fw-bold text-uppercase text-dark">Warehouse</p>
+                                        <a href="{{ route('dashboard-warehouse') }}" class="home-item">
+                                            <div class="card h-100">
+                                                <div class="card-body">
+                                                    <div class="d-flex h-100 flex-column justify-content-between">
+                                                        <img src="{{ asset('dist/img/warehouse.png') }}" class="img-fluid p-3" alt="cutting image">
+                                                        <p class="text-center fw-bold text-uppercase text-dark">Warehouse</p>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                </a>
-                            </div> -->
+                                        </a>
+                                    </div> -->
 
                     @warehouse
                         <div class="col-lg-2 col-md-3 col-sm-6">
@@ -228,13 +231,13 @@
                         </div>
 
                         <div class="col-lg-2 col-md-3 col-sm-6">
-                            <a href="{{ route('dashboard-finish-good') }}" class="home-item">
+                            <a href="{{ route('dashboard_finish_good') }}" class="home-item">
                                 <div class="card h-100">
                                     <div class="card-body">
                                         <div class="d-flex h-100 flex-column justify-content-between">
                                             <img src="{{ asset('dist/img/finish_good.png') }}" class="img-fluid p-3"
                                                 alt="qr code image">
-                                            <p class="text-center fw-bold text-uppercase text-dark">Finish Good</p>
+                                            <p class="text-center fw-bold text-uppercase text-dark">Finish Good Ekspedisi</p>
                                         </div>
                                     </div>
                                 </div>

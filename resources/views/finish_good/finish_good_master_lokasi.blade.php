@@ -279,6 +279,11 @@
                     document.getElementById('txtket_edit').value = response.ket;
                     document.getElementById('txtlok_edit').value = response.lokasi;
                     document.getElementById('txtid_lokasi_edit').value = response.id;
+                    if (response.status_lokasi == 'Y') {
+                        document.getElementById('txtkode_lokasi_edit').readOnly = true;
+                    } else {
+                        document.getElementById('txtkode_lokasi_edit').readOnly = false;
+                    }
                 },
                 error: function(request, status, error) {
                     alert(request.responseText);

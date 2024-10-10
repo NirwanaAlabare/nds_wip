@@ -25,7 +25,7 @@ class FinishGoodMasterLokasiController extends Controller
         return view(
             'finish_good.finish_good_master_lokasi',
             [
-                'page' => 'dashboard-finish-good',
+                'page' => 'dashboard_finish_good',
                 "subPageGroup" => "finish_good_master_lokasi",
                 "subPage" => "finish_good_master_lokasi",
             ]
@@ -55,10 +55,15 @@ class FinishGoodMasterLokasiController extends Controller
         );
     }
 
-    public function getdata_lokasi_alokasi(Request $request)
+    public function getdata_finish_good_master_lokasi(Request $request)
     {
-        $cek_data = DB::select("
-        SELECT * FROM fg_fg_master_lok	where id = '$request->id_e'
+        $cek_data = DB::select("SELECT a.*, if(b.lokasi is not null, 'Y', 'N')status_lokasi
+        FROM fg_fg_master_lok a
+left join
+(
+select lokasi from fg_fg_in where status = 'NORMAL' GROUP by lokasi
+) b on a.kode_lok = b.lokasi
+where a.id = '$request->id_e'
         ");
         return json_encode($cek_data ? $cek_data[0] : null);
     }

@@ -115,6 +115,7 @@ use App\Http\Controllers\PackingNeedleCheckController;
 use App\Http\Controllers\PackingMasterKartonController;
 
 // FINISH GOOD
+use App\Http\Controllers\FinishGoodDashboardController;
 use App\Http\Controllers\FinishGoodMasterLokasiController;
 use App\Http\Controllers\FinishGoodPenerimaanController;
 use App\Http\Controllers\FinishGoodPengeluaranController;
@@ -1312,6 +1313,16 @@ Route::middleware('auth')->group(function () {
     });
 
     // Finish Good
+    // Dashboard Finish Good
+    Route::controller(FinishGoodDashboardController::class)->middleware('finishgood')->group(function () {
+        Route::get('/dashboard_finish_good', 'dashboard_finish_good')->name('dashboard_finish_good');
+        Route::get('/get_data_dashboard_fg_ekspedisi', 'get_data_dashboard_fg_ekspedisi')->name('get_data_dashboard_fg_ekspedisi');
+        Route::get('/show_tot_dash_fg_ekspedisi', 'show_tot_dash_fg_ekspedisi')->name('show_tot_dash_fg_ekspedisi');
+        Route::get('/getws_dashboard_ekspedisi', 'getws_dashboard_ekspedisi')->name('getws_dashboard_ekspedisi');
+        Route::get('/getpo_dashboard_ekspedisi', 'getpo_dashboard_ekspedisi')->name('getpo_dashboard_ekspedisi');
+        Route::get('/get_detail_dashboard_ekspedisi', 'get_detail_dashboard_ekspedisi')->name('get_detail_dashboard_ekspedisi');
+    });
+
     // Master Finish Good
     Route::controller(FinishGoodMasterLokasiController::class)->prefix("finish_good_master")->middleware('finishgood')->group(function () {
         Route::get('/', 'index')->name('finish_good_master_lokasi');
@@ -1324,6 +1335,12 @@ Route::middleware('auth')->group(function () {
     Route::controller(FinishGoodAlokasiKartonController::class)->prefix("finish_good_alokasi_karton")->middleware('finishgood')->group(function () {
         Route::get('/', 'index')->name('finish_good_alokasi_karton');
         Route::get('/getdata_lokasi_alokasi', 'getdata_lokasi_alokasi')->name('getdata_lokasi_alokasi');
+        Route::get('/getno_carton_alokasi', 'getno_carton_alokasi')->name('getno_carton_alokasi');
+        Route::get('/show_preview_detail_alokasi', 'show_preview_detail_alokasi')->name('show_preview_detail_alokasi');
+        Route::post('/insert_tmp_alokasi_karton', 'insert_tmp_alokasi_karton')->name('insert_tmp_alokasi_karton');
+        Route::post('/alokasi_hapus_tmp', 'alokasi_hapus_tmp')->name('alokasi_hapus_tmp');
+        Route::post('/delete_tmp_all_alokasi_karton', 'delete_tmp_all_alokasi_karton')->name('delete_tmp_all_alokasi_karton');
+        Route::post('/store', 'store')->name('store_karton_alokasi');
     });
 
     // Penerimaan Finish Good

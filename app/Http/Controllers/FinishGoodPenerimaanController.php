@@ -64,7 +64,7 @@ group by po, buyer
         return view(
             'finish_good.finish_good_penerimaan',
             [
-                'page' => 'dashboard-finish-good',
+                'page' => 'dashboard_finish_good',
                 "subPageGroup" => "finish_good_penerimaan",
                 "subPage" => "finish_good_penerimaan",
                 "data_po" => $data_po
