@@ -79,6 +79,7 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                 b.detail_item,
                 COALESCE(b.roll_buyer, b.roll) roll,
                 COALESCE(b.lot, '-') lot,
+                COALESCE(b.group_roll, '-') group_roll,
                 b.qty qty_roll,
                 b.unit unit_roll,
                 COALESCE(b.berat_amparan, '-') berat_amparan,
@@ -141,7 +142,7 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A3:BC' . $event->getConcernable()->rowCount,
+            'A3:BD' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [

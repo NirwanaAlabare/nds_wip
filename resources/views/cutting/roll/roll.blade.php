@@ -75,6 +75,7 @@
                                 <th>Detail Item</th>
                                 <th>No. Roll</th>
                                 <th>Lot</th>
+                                <th>Group</th>
                                 <th>Qty Roll</th>
                                 <th>Unit Roll</th>
                                 <th>Berat Amparan (KGM)</th>
@@ -265,6 +266,9 @@
                 },
                 {
                     data: "lot"
+                },
+                {
+                    data: "group_roll"
                 },
                 {
                     data: "qty_roll"

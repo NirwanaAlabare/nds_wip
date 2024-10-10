@@ -165,8 +165,8 @@ class StockerController extends Controller
                 form_cut_input.total_lembar,
                 form_cut_input.no_cut,
                 UPPER(form_cut_input.shell) shell,
-                GROUP_CONCAT(DISTINCT master_size_new.size ORDER BY master_size_new.urutan ASC SEPARATOR ', ') sizes,
-                GROUP_CONCAT(DISTINCT CONCAT(' ', master_size_new.size, '(', marker_input_detail.ratio * form_cut_input.total_lembar, ')') ORDER BY master_size_new.urutan ASC) marker_details,
+                GROUP_CONCAT(DISTINCT COALESCE(master_size_new.size, marker_input_detail.size) ORDER BY master_size_new.urutan ASC SEPARATOR ', ') sizes,
+                GROUP_CONCAT(DISTINCT CONCAT(' ', COALESCE(master_size_new.size, marker_input_detail.size), '(', marker_input_detail.ratio * form_cut_input.total_lembar, ')') ORDER BY master_size_new.urutan ASC) marker_details,
                 GROUP_CONCAT(DISTINCT CONCAT(master_part.nama_part, ' - ', master_part.bag) SEPARATOR ', ') part
             ")->
             leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
@@ -908,10 +908,10 @@ class StockerController extends Controller
             $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering', ["ws" => $request["no_ws"], "color" => $request["color"], "no_cut" => $request["no_cut"], "dataNumbering" => $detailItemArr])->setPaper($customPaper);
         }
 
-        if ($type == "month_count") {
-            $customPaper = array(0, 0, 35.35, 110.90);
-            $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearmonth', ["ws" => $request["no_ws"], "color" => $request["color"], "no_cut" => $request["no_cut"], "dataNumbering" => $detailItemArr])->setPaper($customPaper);
-        }
+        // if ($type == "month_count") {
+        //     $customPaper = array(0, 0, 35.35, 110.90);
+        //     $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearmonth', ["ws" => $request["no_ws"], "color" => $request["color"], "no_cut" => $request["no_cut"], "dataNumbering" => $detailItemArr])->setPaper($customPaper);
+        // }
 
         $path = public_path('pdf/');
         $fileName = str_replace("/", "-", ($request["no_ws"]. '-' . $request["color"] . '-' . $request["no_cut"] . '-Numbering.pdf'));

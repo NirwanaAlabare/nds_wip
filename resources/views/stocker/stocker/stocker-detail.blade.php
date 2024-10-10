@@ -825,6 +825,8 @@
         }
 
         function generateCheckedNumbering(type = null) {
+            type ? type = type : type = 'numbering';
+
             generating = true;
 
             let generateNumberingCheck = document.getElementsByClassName('generate-num-check');
@@ -839,7 +841,7 @@
             if (checkedCount > 0) {
                 let stockerForm = new FormData(document.getElementById("stocker-form"));
 
-                stockerForm.append('type', $type);
+                stockerForm.append('type', type);
 
                 let no_ws = document.getElementById("no_ws").value;
                 let style = document.getElementById("style").value;

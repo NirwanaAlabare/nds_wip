@@ -79,6 +79,7 @@ class RollController extends Controller
                     detail_item,
                     COALESCE(b.roll_buyer, b.roll) roll,
                     COALESCE(b.lot, '-') lot,
+                    COALESCE(b.group_roll, '-') group_roll,
                     b.qty qty_roll,
                     b.unit unit_roll,
                     COALESCE(b.berat_amparan, '-') berat_amparan,
@@ -184,6 +185,7 @@ class RollController extends Controller
                 detail_item,
                 COALESCE(b.roll_buyer, b.roll) roll,
                 COALESCE(b.lot, '-') lot,
+                COALESCE(b.group_roll, '-') group_roll,
                 b.qty qty_roll,
                 b.unit unit_roll,
                 COALESCE(b.berat_amparan, '-') berat_amparan,
@@ -230,8 +232,17 @@ class RollController extends Controller
         return DataTables::of($data_pemakaian)->toJson();
     }
 
+    public function export_excel(Request $request)
+    {
+        ini_set("max_execution_time", 36000);
+
+        return Excel::download(new ExportLaporanRoll($request->from, $request->to), 'Laporan_pemakaian_cutting.xlsx');
+    }
+
     public function sisaKainRoll(Request $request)
     {
+        dd($request);
+
         return view("cutting.roll.sisa-kain-roll", ['page' => 'dashboard-cutting', "subPageGroup" => "laporan-cutting", "subPage" => "sisa-kain-roll"]);
     }
 
@@ -240,8 +251,9 @@ class RollController extends Controller
         $newItem = DB::connection("mysql_sb")->select("
             SELECT
                 mastersupplier.Supplier buyer,
-                act_costing.kpno no_ws,
+                whs_bppb_h.no_ws_aktual no_ws,
                 act_costing.styleno style,
+                masteritem.color,
                 whs_bppb_det.id_roll,
                 whs_bppb_det.item_desc detail_item,
                 whs_bppb_det.id_item,
@@ -252,7 +264,7 @@ class RollController extends Controller
                 SUM(whs_bppb_det.qty_out) qty
             FROM
                 whs_bppb_det
-                LEFT JOIN (SELECT jo_det.* FROM jo_det GROUP BY id_jo) jodet ON jodet.id_jo = whs_bppb_det.id_jo
+                LEFT JOIN (SELECT jo_det.* FROM jo_det WHERE cancel != 'Y' GROUP BY id_jo) jodet ON jodet.id_jo = whs_bppb_det.id_jo
                 LEFT JOIN so ON so.id = jodet.id_so
                 LEFT JOIN act_costing ON act_costing.id = so.id_cost
                 LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
@@ -270,20 +282,26 @@ class RollController extends Controller
 
         if ($newItem) {
             $scannedItem = ScannedItem::selectRaw("
-                id_roll,
-                id_item,
-                detail_item,
-                color,
-                lot,
-                COALESCE(roll, roll_buyer) no_roll,
-                qty,
-                qty_in,
-                qty_stok,
-                unit,
-                COALESCE(updated_at, created_at) updated_at
+                marker_input.buyer,
+                marker_input.act_costing_ws no_ws,
+                marker_input.style style,
+                marker_input.color color,
+                scanned_item.id_roll,
+                scanned_item.id_item,
+                scanned_item.detail_item,
+                scanned_item.lot,
+                COALESCE(scanned_item.roll, scanned_item.roll_buyer) no_roll,
+                scanned_item.qty,
+                scanned_item.qty_in,
+                scanned_item.qty_stok,
+                scanned_item.unit,
+                COALESCE(scanned_item.updated_at, scanned_item.created_at) updated_at
             ")->
-            where('id_roll', $id)->
-            where('id_item', $newItem[0]->id_item)->
+            leftJoin('form_cut_input_detail', 'form_cut_input_detail.id_roll', '=', 'scanned_item.id_roll')->
+            leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->
+            leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')->
+            where('scanned_item.id_roll', $id)->
+            where('scanned_item.id_item', $newItem[0]->id_item)->
             first();
 
             if ($scannedItem) {
@@ -302,6 +320,10 @@ class RollController extends Controller
 
         $item = DB::connection("mysql_sb")->select("
             SELECT
+                ms.Supplier buyer,
+                ac.kpno no_ws,
+                ac.styleno style,
+                mi.color,
                 br.id id_roll,
                 mi.itemdesc detail_item,
                 mi.id_item,
@@ -310,7 +332,6 @@ class RollController extends Controller
                 bpbno_int,
                 pono,
                 invno,
-                ac.kpno,
                 roll_no no_roll,
                 roll_qty qty,
                 lot_no lot,
@@ -335,20 +356,26 @@ class RollController extends Controller
         ");
         if ($item) {
             $scannedItem = ScannedItem::selectRaw("
-                id_roll,
-                id_item,
-                detail_item,
-                color,
-                lot,
-                COALESCE(roll, roll_buyer) no_roll,
-                qty,
-                qty_in,
-                qty_stok,
-                unit,
-                COALESCE(updated_at, created_at) updated_at
+                marker_input.buyer,
+                marker_input.act_costing_ws no_ws,
+                marker_input.style style,
+                marker_input.color color,
+                scanned_item.id_roll,
+                scanned_item.id_item,
+                scanned_item.detail_item,
+                scanned_item.lot,
+                COALESCE(scanned_item.roll, scanned_item.roll_buyer) no_roll,
+                scanned_item.qty,
+                scanned_item.qty_in,
+                scanned_item.qty_stok,
+                scanned_item.unit,
+                COALESCE(scanned_item.updated_at, scanned_item.created_at) updated_at
             ")->
-            where('id_roll', $id)->
-            where('id_item', $item[0]->id_item)->
+            leftJoin('form_cut_input_detail', 'form_cut_input_detail.id_roll', '=', 'scanned_item.id_roll')->
+            leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->
+            leftJoin('marker_input', 'marker_input.kode', '=', 'form_cut_input.id_marker')->
+            where('scanned_item.id_roll', $id)->
+            where('scanned_item.id_item', $item[0]->id_item)->
             first();
 
             if ($scannedItem) {
@@ -362,8 +389,9 @@ class RollController extends Controller
         return  null;
     }
 
-    public function getSisaKainForm($id) {
+    public function getSisaKainForm(Request $request) {
         $forms = FormCutInputDetail::selectRaw("
+                form_cut_input.id id_form,
                 no_form_cut_input,
                 id_roll,
                 qty,
@@ -371,27 +399,23 @@ class RollController extends Controller
                 total_pemakaian_roll,
                 short_roll,
                 sisa_kain,
-                COALESCE(updated_at, created_at) updated_at
+                form_cut_input.status status_form,
+                form_cut_input_detail.status,
+                COALESCE(form_cut_input_detail.updated_at, form_cut_input_detail.created_at) updated_at
             ")->
-            where("id_roll", $id)->
-            orderBy("id")->
+            leftJoin("form_cut_input", "form_cut_input.no_form", "=", "form_cut_input_detail.no_form_cut_input")->
+            whereRaw("(form_cut_input.status != 'SELESAI PENGERJAAN' OR (form_cut_input.status = 'SELESAI PENGERJAAN' AND form_cut_input.status != 'not complete' AND form_cut_input.status != 'extension') )")->
+            where("id_roll", $request->id)->
+            whereRaw("id_roll > 0")->
+            orderBy("form_cut_input_detail.id")->
             get();
 
         return DataTables::of($forms)->toJson();
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     * @param  \Illuminate\Http\Request  $request
-     */
-
-    public function export_excel(Request $request)
+    public function printSisaKain(Request $request)
     {
-        ini_set("max_execution_time", 36000);
 
-        return Excel::download(new ExportLaporanRoll($request->from, $request->to), 'Laporan_pemakaian_cutting.xlsx');
     }
 
     public function create()
