@@ -592,14 +592,18 @@ inner join master_sb_ws m on p.id_so_det = m.id_so_det
         $file = $request->file('file');
 
         $nama_file = $file->getClientOriginalName();
-        $nama_file_base = substr($nama_file, strpos($nama_file, ' ') + 1, strrpos($nama_file, '(') - strpos($nama_file, ' ') - 1);
-        $nama_file_base = str_replace('_', '/', $nama_file_base);
+        $nama_file_without_extension = substr($nama_file, 0, strrpos($nama_file, '.'));
+        $nama_file_base = preg_replace('/^.+ |\(.*\)/', '', $nama_file_without_extension);
+        // dd($nama_file_base === $po);
+        // $nama_file_base = substr($nama_file, strpos($nama_file, ' ') + 1, strrpos($nama_file, '(') - strpos($nama_file, ' ') - 1);
+        // $nama_file_base = str_replace('_', '/', $nama_file_base);
         // dd($nama_file_base, $po);
 
         // if (str_contains($po, $nama_file)) {
 
         // dd($nama_file_base, $po);
         // dd($nama_file_base === $po);
+        // dd($nama_file_without_extension);
         if ($nama_file_base === $po) {
             $file->move('file_upload', $nama_file);
             Excel::import(new UploadQtyKarton, public_path('/file_upload/' . $nama_file));
