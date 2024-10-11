@@ -467,6 +467,8 @@ Route::middleware('auth')->group(function () {
         // export excel
         Route::get('/export_excel', 'export_excel')->name('export_excel');
         Route::post('/export', 'export')->name('export');
+        // print
+        Route::post('/sisa_kain/print/{id?}', 'printSisaKain')->name('print_sisa_kain');
     });
 
     // Stocker :

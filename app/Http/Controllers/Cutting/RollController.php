@@ -9,6 +9,8 @@ use App\Exports\ExportLaporanRoll;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
+use DNS1D;
+use PDF;
 use DB;
 
 class RollController extends Controller
@@ -241,7 +243,37 @@ class RollController extends Controller
 
     public function sisaKainRoll(Request $request)
     {
-        dd($request);
+        $newItem = DB::connection("mysql_sb")->select("
+            SELECT
+                mastersupplier.Supplier buyer,
+                whs_bppb_h.no_ws_aktual no_ws,
+                act_costing.styleno style,
+                masteritem.color,
+                whs_bppb_det.id_roll,
+                whs_bppb_det.item_desc detail_item,
+                whs_bppb_det.id_item,
+                whs_bppb_det.no_lot lot,
+                COALESCE(whs_lokasi_inmaterial.no_roll_buyer, whs_bppb_det.no_roll) no_roll,
+                whs_bppb_det.satuan unit,
+                whs_bppb_det.qty_stok,
+                SUM(whs_bppb_det.qty_out) qty
+            FROM
+                whs_bppb_det
+                LEFT JOIN (SELECT jo_det.* FROM jo_det WHERE cancel != 'Y' GROUP BY id_jo) jodet ON jodet.id_jo = whs_bppb_det.id_jo
+                LEFT JOIN so ON so.id = jodet.id_so
+                LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                LEFT JOIN masteritem ON masteritem.id_item = whs_bppb_det.id_item
+                LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
+                LEFT JOIN whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
+            WHERE
+                whs_bppb_det.id_roll = '".$request->id."'
+                AND whs_bppb_h.tujuan = 'Production - Cutting'
+                AND cast(whs_bppb_det.qty_out AS DECIMAL ( 11, 3 )) > 0.000
+            GROUP BY
+                whs_bppb_det.id_roll
+            LIMIT 1
+        ");
 
         return view("cutting.roll.sisa-kain-roll", ['page' => 'dashboard-cutting', "subPageGroup" => "laporan-cutting", "subPage" => "sisa-kain-roll"]);
     }
@@ -413,9 +445,66 @@ class RollController extends Controller
         return DataTables::of($forms)->toJson();
     }
 
-    public function printSisaKain(Request $request)
+    public function printSisaKain($id)
     {
+        $sbItem = DB::connection("mysql_sb")->select("
+            SELECT
+                masteritem.itemdesc detail_item,
+                masteritem.goods_code,
+                masteritem.id_item,
+                CONCAT(whs_bppb_h.no_bppb, ' | ', whs_bppb_h.tgl_bppb) bppb,
+                whs_bppb_h.no_req,
+                whs_bppb_h.no_ws_aktual no_ws,
+                act_costing.styleno style,
+                masteritem.color,
+                whs_bppb_det.id_roll,
+                whs_bppb_det.id_item,
+                whs_bppb_det.no_lot lot,
+                whs_bppb_det.no_roll,
+                whs_lokasi_inmaterial.no_roll_buyer no_roll_buyer,
+                whs_lokasi_inmaterial.kode_lok lokasi,
+                whs_bppb_det.satuan unit,
+                whs_bppb_det.qty_stok,
+                SUM(whs_bppb_det.qty_out) qty
+            FROM
+                whs_bppb_det
+                LEFT JOIN (SELECT jo_det.* FROM jo_det WHERE cancel != 'Y' GROUP BY id_jo) jodet ON jodet.id_jo = whs_bppb_det.id_jo
+                LEFT JOIN so ON so.id = jodet.id_so
+                LEFT JOIN act_costing ON act_costing.id = so.id_cost
+                LEFT JOIN mastersupplier ON mastersupplier.Id_Supplier = act_costing.id_buyer
+                LEFT JOIN masteritem ON masteritem.id_item = whs_bppb_det.id_item
+                LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
+                LEFT JOIN whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
+            WHERE
+                whs_bppb_det.id_roll = '".$id."'
+                AND whs_bppb_h.tujuan = 'Production - Cutting'
+                AND cast(whs_bppb_det.qty_out AS DECIMAL ( 11, 3 )) > 0.000
+            GROUP BY
+                whs_bppb_det.id_roll
+            LIMIT 1
+        ");
 
+        $ndsItem = ScannedItem::selectRaw("
+                MIN(form_cut_input_detail.sisa_kain) sisa_kain,
+                scanned_item.unit,
+                GROUP_CONCAT(CONCAT(form_cut_input.no_form, ' | ', form_cut_input.operator), ' , ') no_form
+            ")->
+            leftJoin("form_cut_input_detail", "form_cut_input_detail.id_roll", "=", "scanned_item.id")->
+            leftJoin("form_cut_input", "form_cut_input.no_form", "=", "form_cut_input_detail.no_form_cut_input")->
+            where("scanned_item.id_roll", $id)->
+            orderBy("scanned_item.id", "desc")->
+            groupBy("scanned_item.id_roll")->
+            first();
+
+        PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
+        $pdf = PDF::loadView('cutting.roll.pdf.sisa-kain-roll', ["sbItem" => ($sbItem ? $sbItem[0] : null), "ndsItem" => $ndsItem])->setPaper('a7', 'landscape');
+
+        $path = public_path('pdf/');
+        $fileName = 'Sisa_Kain_'.$id.'.pdf';
+        $pdf->save($path . '/' . str_replace("/", "_", $fileName));
+        $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
+
+        return response()->download($generatedFilePath);
     }
 
     public function create()
