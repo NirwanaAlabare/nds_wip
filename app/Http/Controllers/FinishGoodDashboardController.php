@@ -79,7 +79,9 @@ group by a.no_carton, a.po
 )
 b
 group by lokasi
-) b on a.kode_lok = b.lokasi");
+) b on a.kode_lok = b.lokasi
+order by coalesce(tot_karton,0) desc
+limit 10");
         return json_encode($data_dash);
     }
 

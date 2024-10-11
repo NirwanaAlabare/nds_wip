@@ -8,7 +8,8 @@ use Yajra\DataTables\Facades\DataTables;
 use DB;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\ExportLaporanFGIN;
+use App\Exports\ExportLaporanFGINList;
+use App\Exports\ExportLaporanFGINSummary;
 
 class FinishGoodPenerimaanController extends Controller
 {
@@ -33,6 +34,7 @@ ws,
 color,
 size,
 a.qty,
+m.dest,
 a.no_carton,
 a.notes,
 a.created_at,
@@ -164,6 +166,7 @@ where
         m.ws,
         coalesce(a.qty,0) - coalesce(c.qty_fg,0) qty,
         'PCS' unit,
+        m.dest,
         price,
         m.curr,
         p.id id_ppic_master_so
@@ -294,8 +297,12 @@ where
         }
     }
 
-    public function export_excel_fg_in(Request $request)
+    public function export_excel_fg_in_list(Request $request)
     {
-        return Excel::download(new ExportLaporanFGIN($request->from, $request->to), 'Laporan_Penerimaan FG_Stok.xlsx');
+        return Excel::download(new ExportLaporanFGINList($request->from, $request->to), 'Laporan_Penerimaan FG_Stok.xlsx');
+    }
+    public function export_excel_fg_in_summary(Request $request)
+    {
+        return Excel::download(new ExportLaporanFGINSummary($request->from, $request->to), 'Laporan_Penerimaan FG_Stok.xlsx');
     }
 }

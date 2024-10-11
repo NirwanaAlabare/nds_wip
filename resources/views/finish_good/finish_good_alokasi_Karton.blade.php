@@ -382,12 +382,25 @@
                         i : 0;
                 };
 
-                // computing column Total of the complete result
                 var columnData1 = api.column(1).data();
-                var columnData2 = api.column(2).data();
-                // var groupedData = columnData1.group([columnData2]);
-                var rowCount = columnData2.count();
+                var columnData2 = api.column(3).data();
 
+                var groups = [];
+
+
+                for (var i = 0; i < columnData1.length; i++) {
+
+                    var key = [columnData1[i], columnData2[i]].join(',');
+
+                    if (!groups.includes(key)) {
+
+                        groups.push(key);
+
+                    }
+
+                }
+                // Count the number of unique combinations
+                var rowCount = groups.length;
                 var sumTotal_Isi = api
                     .column(7)
                     .data()

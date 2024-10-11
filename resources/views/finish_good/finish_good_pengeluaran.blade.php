@@ -38,9 +38,15 @@
                         oninput="dataTableReload()" value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
-                    <a onclick="notif()" class="btn btn-outline-success position-relative btn-sm">
+                    <a onclick="export_excel_list()" class="btn btn-outline-success position-relative btn-sm">
                         <i class="fas fa-file-excel fa-sm"></i>
-                        Export Excel
+                        Export Excel List
+                    </a>
+                </div>
+                <div class="mb-3">
+                    <a onclick="export_excel_summary()" class="btn btn-outline-success position-relative btn-sm">
+                        <i class="fas fa-file-excel fa-sm"></i>
+                        Export Excel Summary
                     </a>
                 </div>
             </div>
@@ -230,93 +236,92 @@
 
         });
 
+        function export_excel_list() {
+            let from = document.getElementById("tgl-awal").value;
+            let to = document.getElementById("tgl-akhir").value;
 
-        // $('#datatable thead tr').clone(true).appendTo('#datatable thead');
-        // $('#datatable thead tr:eq(1) th').each(function(i) {
-        //     var title = $(this).text();
-        //     $(this).html('<input type="text" class="form-control form-control-sm"/>');
-        //     $('input', this).on('keyup change', function() {
-        //         if (datatable.column(i).search() !== this.value) {
-        //             datatable
-        //                 .column(i)
-        //                 .search(this.value)
-        //                 .draw();
-        //         }
-        //     });
-        // });
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
 
-        // let datatable = $("#datatable").DataTable({
-        //     // "footerCallback": function(row, data, start, end, display) {
-        //     //     var api = this.api(),
-        //     //         data;
+            $.ajax({
+                type: "get",
+                url: '{{ route('export_excel_fg_out_list') }}',
+                data: {
+                    from: from,
+                    to: to
+                },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(response) {
+                    {
+                        swal.close();
+                        Swal.fire({
+                            title: 'Data Sudah Di Export!',
+                            icon: "success",
+                            showConfirmButton: true,
+                            allowOutsideClick: false
+                        });
+                        var blob = new Blob([response]);
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = "Laporan List FG OUT " + from + " sampai " +
+                            to + ".xlsx";
+                        link.click();
 
-        //     //     // converting to interger to find total
-        //     //     var intVal = function(i) {
-        //     //         return typeof i === 'string' ?
-        //     //             i.replace(/[\$,]/g, '') * 1 :
-        //     //             typeof i === 'number' ?
-        //     //             i : 0;
-        //     //     };
+                    }
+                },
+            });
+        }
 
-        //     //     // computing column Total of the complete result
-        //     //     var sumTotal = api
-        //     //         .column(7)
-        //     //         .data()
-        //     //         .reduce(function(a, b) {
-        //     //             return intVal(a) + intVal(b);
-        //     //         }, 0);
+        function export_excel_summary() {
+            let from = document.getElementById("tgl-awal").value;
+            let to = document.getElementById("tgl-akhir").value;
 
-        //     //     // Update footer by showing the total with the reference of the column index
-        //     //     $(api.column(0).footer()).html('Total');
-        //     //     $(api.column(7).footer()).html(sumTotal);
-        //     // },
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
 
+            $.ajax({
+                type: "get",
+                url: '{{ route('export_excel_fg_out_summary') }}',
+                data: {
+                    from: from,
+                    to: to
+                },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(response) {
+                    {
+                        swal.close();
+                        Swal.fire({
+                            title: 'Data Sudah Di Export!',
+                            icon: "success",
+                            showConfirmButton: true,
+                            allowOutsideClick: false
+                        });
+                        var blob = new Blob([response]);
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = "Laporan Summary FG OUT " + from + " sampai " +
+                            to + ".xlsx";
+                        link.click();
 
-        //     ordering: false,
-        //     processing: true,
-        //     serverSide: true,
-        //     paging: false,
-        //     searching: true,
-        //     scrollY: '300px',
-        //     scrollX: '300px',
-        //     scrollCollapse: true,
-        //     ajax: {
-        //         url: '{{ route('finish_good_pengeluaran') }}',
-        //         data: function(d) {
-        //             d.dateFrom = $('#tgl-awal').val();
-        //             d.dateTo = $('#tgl-akhir').val();
-        //         },
-        //     },
-        //     columns: [{
-        //             data: 'no_sb'
-
-        //         }, {
-        //             data: 'tgl_pengeluaran_fix'
-        //         },
-        //         {
-        //             data: 'buyer'
-        //         },
-        //         {
-        //             data: 'tot_karton'
-        //         },
-        //         {
-        //             data: 'tot_qty'
-        //         },
-        //         {
-        //             data: 'jenis_dok'
-        //         },
-        //         {
-        //             data: 'invno'
-        //         },
-        //         {
-        //             data: 'remark'
-        //         },
-        //     ],
-        //     columnDefs: [{
-        //         "className": "align-left",
-        //         "targets": "_all"
-        //     }, ]
-
-        // });
+                    }
+                },
+            });
+        }
     </script>
 @endsection
