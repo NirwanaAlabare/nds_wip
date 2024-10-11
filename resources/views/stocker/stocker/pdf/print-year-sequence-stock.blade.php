@@ -84,26 +84,27 @@
             <tr>
                 <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Color</th>
                 <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
-                <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockerData->color }}</td>
+                <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ strtoupper(substr($stockerData->color, 0, 9)).(strlen($stockerData->color) > 9 ? '...' : '') }}</td>
 
                 <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Qty</th>
                 <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
                 <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $range_akhir - $range_awal + 1 }}</td>
             </tr>
             <tr>
-                <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Size</th>
-                <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
-                <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockerData->size }}</td>>
+                <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-left: 1px solid;border-right: 1px solid;font-size: 60px;text-align: center;' colspan="3" rowspan="2">{{ strtoupper(substr($stockerData->size, 0, 7)).(strlen($stockerData->size) > 7 ? '...' : '') }}</td>>
 
                 <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Range QR</th>
                 <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
                 <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $range_awal." - ".$range_akhir }}</td>
             </tr>
+            <tr>
+                <td style="text-align: center;" colspan="3"><p>{{ $stockerData->updated_at }}</p></td>
+            </tr>
         </table>
-        <div class="clearfix">
+        {{-- <div class="clearfix">
             <div style="float: right;">
                 <p>{{ $stockerData->updated_at }}</p>
             </div>
-        </div>
+        </div> --}}
     </div>
 </body>
