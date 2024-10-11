@@ -3748,32 +3748,43 @@
                             dataType: 'json',
                             success: function(res) {
                                 if (res) {
-                                    if (totalScannedItem > 0) {
-                                        // if (res.unit.toLowerCase() != ($("#unit_cons_actual_gelaran").val()).toLowerCase()) {
-                                        //     Swal.fire({
-                                        //         icon: 'error',
-                                        //         title: 'Gagal',
-                                        //         text: 'Unit tidak sesuai',
-                                        //         showCancelButton: false,
-                                        //         showConfirmButton: true,
-                                        //         confirmButtonText: 'Oke',
-                                        //     });
-                                        // } else {
-                                        //     currentScannedItem = res;
+                                    if (res.qty > 0) {
+                                        if (totalScannedItem > 0) {
+                                            // if (res.unit.toLowerCase() != ($("#unit_cons_actual_gelaran").val()).toLowerCase()) {
+                                            //     Swal.fire({
+                                            //         icon: 'error',
+                                            //         title: 'Gagal',
+                                            //         text: 'Unit tidak sesuai',
+                                            //         showCancelButton: false,
+                                            //         showConfirmButton: true,
+                                            //         confirmButtonText: 'Oke',
+                                            //     });
+                                            // } else {
+                                            //     currentScannedItem = res;
 
-                                        //     document.getElementById("id_item").value = res.id_item;
-                                        //     document.getElementById("detail_item").value = res.detail_item;
-                                        // }
+                                            //     document.getElementById("id_item").value = res.id_item;
+                                            //     document.getElementById("detail_item").value = res.detail_item;
+                                            // }
 
-                                        currentScannedItem = res;
+                                            currentScannedItem = res;
 
-                                        document.getElementById("id_item").value = res.id_item;
-                                        document.getElementById("detail_item").value = res.detail_item;
+                                            document.getElementById("id_item").value = res.id_item;
+                                            document.getElementById("detail_item").value = res.detail_item;
+                                        } else {
+                                            currentScannedItem = res;
+
+                                            document.getElementById("id_item").value = res.id_item;
+                                            document.getElementById("detail_item").value = res.detail_item;
+                                        }
                                     } else {
-                                        currentScannedItem = res;
-
-                                        document.getElementById("id_item").value = res.id_item;
-                                        document.getElementById("detail_item").value = res.detail_item;
+                                        Swal.fire({
+                                            icon: 'error',
+                                            title: 'Gagal',
+                                            text: res ? res : 'Qty sudah habis.',
+                                            showCancelButton: false,
+                                            showConfirmButton: true,
+                                            confirmButtonText: 'Oke',
+                                        });
                                     }
                                 } else {
                                     Swal.fire({
