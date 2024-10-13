@@ -296,12 +296,12 @@ class CuttingFormController extends Controller
             $scannedItem = ScannedItem::where('id_roll', $id)->where('id_item', $newItem[0]->id_item)->first();
 
             if ($scannedItem) {
-                if (floatval($newItem[0]->qty - $scannedItem->qty_in + $scannedItem->qty) > 0 ) {
-                    $scannedItem->qty_stok = $newItem[0]->qty_stok;
-                    $scannedItem->qty_in = $newItem[0]->qty;
-                    $scannedItem->qty = floatval($newItem[0]->qty - $scannedItem->qty_in + $scannedItem->qty);
-                    $scannedItem->save();
+                $scannedItem->qty_stok = $newItem[0]->qty_stok;
+                $scannedItem->qty_in = $newItem[0]->qty;
+                $scannedItem->qty = floatval($newItem[0]->qty - $scannedItem->qty_in + $scannedItem->qty);
+                $scannedItem->save();
 
+                if ($scannedItem->qty > 0) {
                     return json_encode($scannedItem);
                 }
 

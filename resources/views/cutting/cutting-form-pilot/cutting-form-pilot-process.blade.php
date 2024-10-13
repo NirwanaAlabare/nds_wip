@@ -3251,6 +3251,7 @@
                         type: 'get',
                         dataType: 'json',
                         success: function(res) {
+                            console.log(res);
                             if (res) {
                                 if (res.qty > 0) {
                                     if (totalScannedItem > 0) {
@@ -3284,7 +3285,7 @@
                                     Swal.fire({
                                         icon: 'error',
                                         title: 'Gagal',
-                                        text: res ? res : 'Qty sudah habis.',
+                                        text: 'Qty sudah habis.',
                                         showCancelButton: false,
                                         showConfirmButton: true,
                                         confirmButtonText: 'Oke',

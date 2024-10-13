@@ -12,10 +12,12 @@ use App\Models\Marker;
 use App\Models\Stocker;
 use App\Models\StockerDetail;
 use App\Models\User;
+use App\Exports\Cutting\ExportCuttingForm;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
-use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Auth;
+use Yajra\DataTables\Facades\DataTables;
+use Maatwebsite\Excel\Facades\Excel;
+use Carbon\Carbon;
 use DB;
 
 class SpreadingController extends Controller
@@ -481,5 +483,12 @@ class SpreadingController extends Controller
             "message" => "Form tidak berhasil dihapus",
             "table" => "datatable"
         );
+    }
+
+    public function exportExcel(Request $request)
+    {
+        ini_set("max_execution_time", 36000);
+
+        return Excel::download(new ExportCuttingForm($request->dateFrom, $request->dateTo), 'Laporan_pemakaian_cutting.xlsx');
     }
 }
