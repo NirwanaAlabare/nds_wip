@@ -98,29 +98,73 @@ group by po, buyer
     // group by a.no_carton
     // order by a.no_carton asc
 
+
+// NEW
+    // SELECT
+    // concat(a.no_carton,'_',a.notes)  isi,
+    // concat(a.no_carton, ' ( ', coalesce(sum(b.total),0) - coalesce(sum(c.qty_fg),0), ' ) ', a.notes) tampil
+    //  from
+    // (select id,po, no_carton, notes, qty_isi from packing_master_carton where po = '" . $request->cbopo . "') a
+    // left join (
+    // select count(barcode) total, po, barcode, dest, no_carton, notes from packing_packing_out_scan
+    // where po = '" . $request->cbopo . "'
+    // group by no_carton, po
+    // ) b on a.po = b.po and a.no_carton = b.no_carton and a.notes = b.notes
+    // left join (
+    // select sum(qty) qty_fg,po, barcode, no_carton, notes from fg_fg_in where po = '" . $request->cbopo . "' and status = 'NORMAL' group by barcode, po, no_carton, notes ) c
+    // on a.po = c.po and a.no_carton = c.no_carton and a.notes = c.notes and b.barcode = c.barcode
+    // where
+    // (
+    //      case
+    //      when a.qty_isi is null then coalesce(b.total,0) - coalesce(c.qty_fg,0) >= '1'
+    //      when a.qty_isi = b.total then coalesce(b.total,0) - coalesce(c.qty_fg,0) >= '1'
+    //      end
+    //     )
+    //      group by a.no_carton
+    //      order by a.no_carton asc
+
+
+
+
     {
-        $data_no_carton = DB::select("SELECT
-concat(a.no_carton,'_',a.notes)  isi,
-concat(a.no_carton, ' ( ', coalesce(sum(b.total),0) - coalesce(sum(c.qty_fg),0), ' ) ', a.notes) tampil
- from
-(select id,po, no_carton, notes, qty_isi from packing_master_carton where po = '" . $request->cbopo . "') a
-left join (
-select count(barcode) total, po, barcode, dest, no_carton, notes from packing_packing_out_scan
-where po = '" . $request->cbopo . "'
-group by no_carton, po
-) b on a.po = b.po and a.no_carton = b.no_carton and a.notes = b.notes
-left join (
-select sum(qty) qty_fg,po, barcode, no_carton, notes from fg_fg_in where po = '" . $request->cbopo . "' and status = 'NORMAL' group by barcode, po, no_carton, notes ) c
-on a.po = c.po and a.no_carton = c.no_carton and a.notes = c.notes and b.barcode = c.barcode
-where
-(
-     case
-     when a.qty_isi is null then coalesce(b.total,0) - coalesce(c.qty_fg,0) >= '1'
-     when a.qty_isi = b.total then coalesce(b.total,0) - coalesce(c.qty_fg,0) >= '1'
-     end
-    )
-     group by a.no_carton
-     order by a.no_carton asc
+        $data_no_carton = DB::select("SELECT 
+        concat(no_carton,'_',notes)  isi,
+        concat(no_carton, ' ( ', coalesce(sum(tot_scan),0) - coalesce(sum(qty_fg),0), ' ) ', notes) tampil 
+        from (
+        select 
+        a.barcode, a.po, a.notes, a.no_carton, 
+        m.qty_isi,
+        e.tot_isi,
+        sum(tot_scan) tot_scan, 
+        sum(qty_fg) qty_fg
+        from (
+        select barcode, po, notes, no_carton, count(barcode)tot_scan, '0' qty_fg
+        from packing_packing_out_scan where po = '" . $request->cbopo . "'
+        group by barcode, po, notes, no_carton
+        union
+        select barcode, po, notes, no_carton,'0' tot_scan,sum(qty)qty_fg from fg_fg_in 
+        where po = '" . $request->cbopo . "' and status = 'NORMAL'
+        group by barcode, po, notes, no_carton
+        ) a
+        left join (select * from packing_master_carton where po = '" . $request->cbopo . "') m 
+        on a.po = m.po and a.no_carton = m.no_carton and a.notes = m.notes
+        left join (
+        select count(barcode)tot_isi, po, notes, no_carton 
+        from packing_packing_out_scan where po = '" . $request->cbopo . "'
+        group by po, notes, no_carton
+        ) e 
+        on m.po = e.po and m.no_carton = e.no_carton and m.notes = e.notes
+        group by barcode, po, notes, no_carton
+        ) d
+        where
+        (
+             case
+             when d.qty_isi is null then coalesce(d.tot_scan,0) - coalesce(d.qty_fg,0) >= '1'
+             when d.qty_isi = d.tot_isi then coalesce(d.tot_scan,0) - coalesce(d.qty_fg,0) >= '1'
+             end
+            )
+                group by po, no_carton
+     order by no_carton asc
 
 
         ");
