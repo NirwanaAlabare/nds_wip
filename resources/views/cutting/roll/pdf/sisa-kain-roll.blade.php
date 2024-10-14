@@ -97,7 +97,7 @@
         </table>
         <table style="margin-bottom: 5px;">
             @php
-                $forms = explode(',', $ndsItem->no_form);
+                $forms = explode('^', $ndsItem->no_form);
             @endphp
             <tr>
                 <td style="text-align: center;padding-top: 3px; padding-bottom: 3px; width: auto;" rowspan="{{ count($forms) > 0 ? count($forms) : 1 }}">

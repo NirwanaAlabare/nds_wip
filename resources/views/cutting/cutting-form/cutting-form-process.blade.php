@@ -3275,7 +3275,7 @@
                                     Swal.fire({
                                         icon: 'error',
                                         title: 'Gagal',
-                                        text: res 'Qty sudah habis.',
+                                        text: 'Qty sudah habis.',
                                         showCancelButton: false,
                                         showConfirmButton: true,
                                         confirmButtonText: 'Oke',

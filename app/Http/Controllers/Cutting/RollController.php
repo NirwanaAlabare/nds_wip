@@ -487,7 +487,7 @@ class RollController extends Controller
         $ndsItem = ScannedItem::selectRaw("
                 MIN(form_cut_input_detail.sisa_kain) sisa_kain,
                 scanned_item.unit,
-                GROUP_CONCAT(DISTINCT CONCAT( form_cut_input.no_form, ' | ', COALESCE(form_cut_input.operator, '-'))) AS no_form
+                GROUP_CONCAT(DISTINCT CONCAT( form_cut_input.no_form, ' | ', COALESCE(form_cut_input.operator, '-')) SEPARATOR '^') AS no_form
             ")->
             leftJoin("form_cut_input_detail", "form_cut_input_detail.id_roll", "=", "scanned_item.id_roll")->
             leftJoin("form_cut_input", "form_cut_input.no_form", "=", "form_cut_input_detail.no_form_cut_input")->
