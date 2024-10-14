@@ -97,7 +97,7 @@
         </table>
         <table style="margin-bottom: 5px;">
             @php
-                $forms = explode('^', $ndsItem->no_form);
+                $forms = explode('^', ($ndsItem ? $ndsItem->no_form : '-'));
             @endphp
             <tr>
                 <td style="text-align: center;padding-top: 3px; padding-bottom: 3px; width: auto;" rowspan="{{ count($forms) > 0 ? count($forms) : 1 }}">
@@ -105,19 +105,27 @@
                     <br>
                     <span style="font-weight: bold; font-size: 15px;">{{ $sbItem->id_roll }}</span>
                 </td>
-                <th style="width: auto;border: none;border-left: 1px solid;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 5px;padding-bottom: 0px;margin-bottom: 0px;">No. Form</th>
-                <td style="width: auto;border: none;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 5px;padding-right: 5px;padding-bottom: 0px;margin-bottom: 0px;"> : </td>
-                <th style="width: auto;border: none;border-right: 1px solid;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 5px;padding-bottom: 0px;margin-bottom: 0px;">{{ $forms[0] }}</th>
-            </tr>
-            @foreach ($forms as $form)
-                @if ($loop->index > 0)
-                    <tr>
-                        <th style="width: auto;border: none;border-left: 1px solid;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 5px;padding-bottom: 0px;margin-bottom: 0px;">No. Form</th>
-                        <td style="width: auto;border: none;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 5px;padding-right: 5px;padding-bottom: 0px;margin-bottom: 0px;"> : </td>
-                        <th style="width: auto;border: none;border-right: 1px solid;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 5px;padding-bottom: 0px;margin-bottom: 0px;">{{ $form }}</th>
-                    </tr>
+                @if (count($forms) > 0) 
+                    <th style="width: auto;border: none;border-left: 1px solid;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 5px;padding-bottom: 0px;margin-bottom: 0px;">No. Form</th>
+                    <td style="width: auto;border: none;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 5px;padding-right: 5px;padding-bottom: 0px;margin-bottom: 0px;"> : </td>
+                    <th style="width: auto;border: none;border-right: 1px solid;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 5px;padding-bottom: 0px;margin-bottom: 0px;">{{ $forms[0] }}</th>
+                @else 
+                    <th style="width: auto;border: none;border-left: 1px solid;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 5px;padding-bottom: 0px;margin-bottom: 0px;">No. Form</th>
+                    <td style="width: auto;border: none;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 5px;padding-right: 5px;padding-bottom: 0px;margin-bottom: 0px;"> : </td>
+                    <th style="width: auto;border: none;border-right: 1px solid;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 5px;padding-bottom: 0px;margin-bottom: 0px;">-</th>
                 @endif
-            @endforeach
+            </tr>
+            @if (count($forms) > 1)
+                @foreach ($forms as $form)
+                    @if ($loop->index > 0)
+                        <tr>
+                            <th style="width: auto;border: none;border-left: 1px solid;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 5px;padding-bottom: 0px;margin-bottom: 0px;">No. Form</th>
+                            <td style="width: auto;border: none;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 5px;padding-right: 5px;padding-bottom: 0px;margin-bottom: 0px;"> : </td>
+                            <th style="width: auto;border: none;border-right: 1px solid;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 5px;padding-bottom: 0px;margin-bottom: 0px;">{{ $form }}</th>
+                        </tr>
+                    @endif
+                @endforeach
+            @endif
         </table>
     </div>
 </body>

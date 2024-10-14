@@ -337,14 +337,12 @@ class RollController extends Controller
             first();
 
             if ($scannedItem) {
-                if (floatval($newItem[0]->qty - $scannedItem->qty_in + $scannedItem->qty) > 0 ) {
-                    $scannedItem->qty_stok = $newItem[0]->qty_stok;
-                    $scannedItem->qty_in = $newItem[0]->qty;
-                    $scannedItem->qty = floatval($newItem[0]->qty - $scannedItem->qty_in + $scannedItem->qty);
-                    $scannedItem->save();
+                $scannedItem->qty_stok = $newItem[0]->qty_stok;
+                $scannedItem->qty_in = $newItem[0]->qty;
+                $scannedItem->qty = floatval($newItem[0]->qty - $scannedItem->qty_in + $scannedItem->qty);
+                $scannedItem->save();
 
-                    return json_encode($scannedItem);
-                }
+                return json_encode($scannedItem);
             }
 
             return json_encode($newItem ? $newItem[0] : null);
@@ -461,7 +459,7 @@ class RollController extends Controller
                 whs_bppb_det.id_item,
                 whs_bppb_det.no_lot lot,
                 whs_bppb_det.no_roll,
-                whs_lokasi_inmaterial.no_roll_buyer no_roll_buyer,
+                COALESCE(whs_lokasi_inmaterial.no_roll_buyer, '-') no_roll_buyer,
                 whs_lokasi_inmaterial.kode_lok lokasi,
                 whs_bppb_det.satuan unit,
                 whs_bppb_det.qty_stok,
