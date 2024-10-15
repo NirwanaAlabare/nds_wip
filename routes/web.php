@@ -113,6 +113,8 @@ use App\Http\Controllers\PackingPackingInController;
 use App\Http\Controllers\PackingPackingOutController;
 use App\Http\Controllers\PackingNeedleCheckController;
 use App\Http\Controllers\PackingMasterKartonController;
+use App\Http\Controllers\PackingPackingListController;
+
 
 // FINISH GOOD
 use App\Http\Controllers\FinishGoodDashboardController;
@@ -1318,6 +1320,18 @@ Route::middleware('auth')->group(function () {
         // Route::get('/show_preview_packing_in', 'show_preview_packing_in')->name('show_preview_packing_in');
         // Route::post('/store', 'store')->name('store-packing-packing-in');
     });
+
+    // Packing List
+    Route::controller(PackingPackingListController::class)->prefix("packing-packing-list")->middleware('packing')->group(function () {
+        Route::get('/', 'index')->name('packing-list');
+        Route::post('/upload_packing_list', 'upload_packing_list')->name('upload-packing-list');
+        Route::get('/show_det_po', 'show_det_po')->name('show_det_po');
+        Route::get('/export_data_template_po_packing_list', 'export_data_template_po_packing_list')->name('export_data_template_po_packing_list');
+        Route::get('/show_datatable_upload_packing_list', 'show_datatable_upload_packing_list')->name('show_datatable_upload_packing_list');
+        Route::post('/delete_upload_packing_list', 'delete_upload_packing_list')->name('delete_upload_packing_list');
+        Route::post('/store', 'store')->name('store_upload_packing_list');
+    });
+
 
     // Finish Good
     // Dashboard Finish Good
