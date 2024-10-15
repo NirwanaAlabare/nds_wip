@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Summary\DataDetailProduksiDay;
 use App\Exports\ExportReportEfficiency;
+use App\Exports\ExportReportEfficiencySingle;
 use Yajra\DataTables\Facades\DataTables;
 use Maatwebsite\Excel\Facades\Excel;
 use DB;
@@ -125,10 +126,11 @@ class ReportEfficiencyController extends Controller
 
     public function exportData(Request $request) {
         ini_set('max_execution_time', 3600);
+        ini_set('memory_limit', '2048M');
 
         $periode = $request->periode ? $request->periode : "monthly";
         $tanggal = $request->tanggal ? $request->tanggal : date("Y-m-d");
 
-        return Excel::download(new ExportReportEfficiency($periode, $tanggal), 'efficiency_report.xlsx');
+        return Excel::download(new ExportReportEfficiencySingle($periode, $tanggal), 'efficiency_report.xlsx');
     }
 }
