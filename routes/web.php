@@ -530,6 +530,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-stocker', 'getStocker')->name('get-stocker');
         Route::get('/get-stocker-month-count', 'getStockerMonthCount')->name('get-stocker-month-count');
         Route::get('/get-stocker-year-sequence', 'getStockerYearSequence')->name('get-stocker-year-sequence');
+
+        // add
+        Route::post('/print-stocker-all-size-add', 'printStockerAllSizeAdd')->name('print-stocker-all-size-add');
+        Route::post('/submit-stocker-add', 'submitStockerAdd')->name('submit-stocker-add');
     });
 
     // DC :

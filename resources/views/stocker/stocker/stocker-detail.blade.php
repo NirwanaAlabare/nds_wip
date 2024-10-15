@@ -241,7 +241,7 @@
                                             </div>
                                         </div>
 
-                                        @include('stocker.stocker.stocker-detail-part')
+                                        @include('stocker.stocker.stocker-detail-part', ["modifySizeQtyStocker" => $modifySizeQty])
                                         @php
                                             $index += $dataRatio->count() * $dataPartDetail->count();
                                             $partIndex += $dataPartDetail->count();
@@ -306,6 +306,215 @@
                         </div>
                         <div class="d-flex justify-content-end p-3">
                             <button type="button" class="btn btn-danger btn-sm mb-3 w-auto" onclick="generateCheckedStocker()"><i class="fa fa-print"></i> Generate Checked Stocker</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-5">
+                    <h5 class="fw-bold mb-3 ps-1">Additional Stocker</h5>
+                    <div class="card">
+                        <div class="card-body">
+                            @if (!$dataAdditional)
+                                <div class="d-flex justify-content-end">
+                                    <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#additional-modal">
+                                        <i class="fa-solid fa-plus fa-sm"></i> Add Additional Stocker
+                                    </button>
+                                </div>
+                            @endif
+                            @if ($dataAdditional)
+                                <input type="hidden" value="{{ $dataAdditional->act_costing_ws }}" id="id_ws_add" readonly>
+                                <div class="row my-3">
+                                    <div class="col-md-3">
+                                        <label class="form-label">No. WS</label>
+                                        <input type="text" class="form-control" value="{{ $dataAdditional->act_costing_ws }}" id="no_ws_add" name="no_ws_add" readonly>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Style</label>
+                                        <input type="text" class="form-control" value="{{ $dataAdditional->style }}" id="style_add" name="style_add" readonly>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Color</label>
+                                        <input type="text" class="form-control" value="{{ $dataAdditional->color }}" id="color_add" name="color_add" readonly>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Panel</label>
+                                        <input type="text" class="form-control" value="{{ $dataAdditional->panel }}" id="panel_add" name="panel_add" readonly>
+                                    </div>
+                                </div>
+                                <hr>
+                                @php
+                                    $indexAdditional = 0;
+
+                                    $currentGroupAdditional = "";
+                                    $currentGroupStockerAdditional = 0;
+                                    $currentTotalAdditional = 0;
+                                    $currentBeforeAdditional = 0;
+                                @endphp
+                                @foreach ($dataSpreading->formCutInputDetails->where('status', '!=', 'not complete')->sortByDesc('group_roll')->sortByDesc('group_stocker') as $detail)
+                                    @if (!$detail->group_stocker)
+                                    {{-- Without group stocker condition --}}
+
+                                        @if ($loop->first)
+                                        {{-- Initial group --}}
+                                            @php
+                                                $currentGroupAdditional = $detail->group_roll;
+                                                $currentGroupStockerAdditional = $detail->group_stocker;
+                                            @endphp
+                                        @endif
+
+                                        @if ($detail->group_roll != $currentGroupAdditional)
+                                            {{-- Create element when switching group --}}
+                                            <div class="d-flex gap-3">
+                                                <div class="mb-3">
+                                                    <label><small>Group</small></label>
+                                                    <input type="text" class="form-control form-control-sm" value="{{ $currentGroupAdditional }}" readonly>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label><small>Qty</small></label>
+                                                    <input type="text" class="form-control form-control-sm" value="{{ $currentTotalAdditional }}" readonly>
+                                                </div>
+                                            </div>
+
+                                            @include('stocker.stocker.stocker-detail-part-additional', ["modifySizeQtyStocker" => $modifySizeQty])
+                                            @php
+                                                $indexAdditional += $dataRatioAdditional->count();
+                                            @endphp
+
+                                            {{-- Change initial group --}}
+                                            @php
+                                                $currentBeforeAdditional += $currentTotal;
+
+                                                $currentGroupAdditional = $detail->group_roll;
+                                                $currentGroupStockerAdditional = $detail->group_stocker;
+                                                $currentTotalAdditional = $detail->lembar_gelaran;
+                                            @endphp
+
+                                            @if ($loop->last)
+                                                {{-- Create last element when it comes to an end of this loop --}}
+                                                <div class="d-flex gap-3">
+                                                    <div class="mb-3">
+                                                        <label><small>Group</small></label>
+                                                        <input type="text" class="form-control form-control-sm" value="{{ $currentGroupAdditional }}" readonly>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label><small>Qty</small></label>
+                                                        <input type="text" class="form-control form-control-sm" value="{{ $currentTotalAdditional }}" readonly>
+                                                    </div>
+                                                </div>
+
+                                                @include('stocker.stocker.stocker-detail-part-additional', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                @php
+                                                    $indexAdditional += $dataRatioAdditional->count();
+                                                @endphp
+                                            @endif
+                                        @else
+                                            {{-- Accumulate when it still in the same group --}}
+                                            @php
+                                                $currentTotalAdditional += $detail->lembar_gelaran;
+                                            @endphp
+
+                                            {{-- Create last element when it comes to an end of this loop --}}
+                                            @if ($loop->last)
+                                                <div class="d-flex gap-3">
+                                                    <div class="mb-3">
+                                                        <label><small>Group</small></label>
+                                                        <input type="text" class="form-control form-control-sm" value="{{ $currentGroupAdditional }}" readonly>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label><small>Qty</small></label>
+                                                        <input type="text" class="form-control form-control-sm" value="{{ $currentTotalAdditional }}" readonly>
+                                                    </div>
+                                                </div>
+
+                                                @include('stocker.stocker.stocker-detail-part-additional', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                @php
+                                                    $indexAdditional += $dataRatioAdditional->count();
+                                                @endphp
+                                            @endif
+                                        @endif
+                                    @else
+                                    {{-- With group stocker condition --}}
+
+                                        @if ($loop->first)
+                                        {{-- Initial Group --}}
+                                            @php
+                                                $currentGroupAdditional = $detail->group_roll;
+                                                $currentGroupStockerAdditional = $detail->group_stocker;
+                                            @endphp
+                                        @endif
+
+                                        @if ($detail->group_stocker != $currentGroupStockerAdditional)
+                                            {{-- Create element when switching group --}}
+                                            <div class="d-flex gap-3">
+                                                <div class="mb-3">
+                                                    <label><small>Group</small></label>
+                                                    <input type="text" class="form-control form-control-sm" value="{{ $currentGroupAdditional }}" readonly>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label><small>Qty</small></label>
+                                                    <input type="text" class="form-control form-control-sm" value="{{ $currentTotalAdditional }}" readonly>
+                                                </div>
+                                            </div>
+
+                                            @include('stocker.stocker.stocker-detail-part-additional', ["modifySizeQtyStocker" => $modifySizeQty])
+                                            @php
+                                                $indexAdditional += $dataRatioAdditional->count();
+                                            @endphp
+
+                                            {{-- Change initial group --}}
+                                            @php
+                                                $currentBeforeAdditional += $currentTotalAdditional;
+
+                                                $currentGroupAdditional = $detail->group_roll;
+                                                $currentGroupStockerAdditional = $detail->group_stocker;
+                                                $currentTotalAdditional = $detail->lembar_gelaran;
+                                            @endphp
+
+                                            {{-- Create last element when it comes to an end of this loop --}}
+                                            @if ($loop->last)
+                                                <div class="d-flex gap-3">
+                                                    <div class="mb-3">
+                                                        <label><small>Group</small></label>
+                                                        <input type="text" class="form-control form-control-sm" value="{{ $currentGroupAdditional }}" readonly>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label><small>Qty</small></label>
+                                                        <input type="text" class="form-control form-control-sm" value="{{ $currentTotalAdditional }}" readonly>
+                                                    </div>
+                                                </div>
+
+                                                @include('stocker.stocker.stocker-detail-part-additional', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                @php
+                                                    $indexAdditional += $dataRatioAdditional->count();
+                                                @endphp
+                                            @endif
+                                        @else
+                                            {{-- Accumulate when it still in the group --}}
+                                            @php
+                                                $currentTotalAdditional += $detail->lembar_gelaran;
+                                            @endphp
+
+                                            @if ($loop->last)
+                                            {{-- Create last element when it comes to an end of this loop --}}
+                                                <div class="d-flex gap-3">
+                                                    <div class="mb-3">
+                                                        <label><small>Group</small></label>
+                                                        <input type="text" class="form-control form-control-sm" value="{{ $currentGroupAdditional }}" readonly>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label><small>Qty</small></label>
+                                                        <input type="text" class="form-control form-control-sm" value="{{ $currentTotalAdditional }}" readonly>
+                                                    </div>
+                                                </div>
+
+                                                @include('stocker.stocker.stocker-detail-part-additional', ["modifySizeQtyStocker" => $modifySizeQty])
+                                                @php
+                                                    $indexAdditional += $dataRatio->count()
+                                                @endphp
+                                            @endif
+                                        @endif
+                                    @endif
+                                @endforeach
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -487,6 +696,106 @@
             </div>
         </div>
     </div>
+
+    <div class="modal" id="additional-modal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-sb">
+                    <h5 class="modal-title"><i class="fa-solid fa-plus"></i> Add Additional Stocker</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" action="{{ route('submit-stocker-add') }}" id="add-additional-stocker-form">
+                        <input type="hidden" id="add_no_form" name="add_no_form" value="{{ $dataSpreading->no_form }}">
+                        <input type="hidden" class="form-control" id="add_ws_ws" name="add_ws_ws" readonly>
+                        <div class="row">
+                            <div class="col-6 col-md-3">
+                                <div class="mb-1">
+                                    <div class="form-group">
+                                        <label><small>No. WS</small></label>
+                                        <select class="form-control select2bs4" id="add_ws" name="add_ws" style="width: 100%;">
+                                            <option selected="selected" value="">Pilih WS</option>
+                                            @foreach ($orders as $order)
+                                                <option value="{{ $order->id }}">
+                                                    {{ $order->kpno }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="mb-1">
+                                    <label class="form-label"><small>Buyer</small></label>
+                                    <input type="text" class="form-control" id="add_buyer" name="add_buyer" readonly>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="mb-1">
+                                    <label class="form-label"><small>Style</small></label>
+                                    <input type="text" class="form-control" id="add_style" name="add_style" readonly>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="mb-1">
+                                    <div class="form-group">
+                                        <label><small>Color</small></label>
+                                        <select class="form-control select2bs4" id="add_color" name="add_color" style="width: 100%;">
+                                            <option selected="selected" value="">Pilih Color</option>
+                                            {{-- select 2 option --}}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="mb-1">
+                                    <div class="form-group">
+                                        <label><small>Panel</small></label>
+                                        <select class="form-control select2bs4" id="add_panel" name="add_panel" style="width: 100%;" >
+                                            <option selected="selected" value="">Pilih Panel</option>
+                                            {{-- select 2 option --}}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table id="orderQtyDatatable" class="table table-bordered table-striped table-sm w-100">
+                                    <thead>
+                                        <tr>
+                                            <th>WS</th>
+                                            <th>Color</th>
+                                            <th>Size</th>
+                                            <th>Size Input</th>
+                                            <th>So Det Id</th>
+                                            <th>Ratio</th>
+                                            <th>Cut Qty</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th></th>
+                                            <th></th>
+                                            <th></th>
+                                            <th></th>
+                                            <th id="total_ratio"></th>
+                                            <th id="total_cut_qty"></th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                            <input type="hidden" class="form-control" id="jumlah_so_det" name="jumlah_so_det" readonly>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa-solid fa-times fa-sm"></i> Tutup</button>
+                    <button type="button" class="btn btn-success" onclick="submitAdditionalStocker()"><i class="fa-solid fa-save fa-sm"></i> Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('custom-script')
@@ -502,7 +811,7 @@
         $('.select2').select2()
         $('.select2bs4').select2({
             theme: 'bootstrap4',
-            dropdownParent: $("#editMejaModal")
+            dropdownParent: $("#additional-modal")
         })
 
         $("#datatable").DataTable({
@@ -530,14 +839,360 @@
                 }
             }
 
-            window.onfocus = function() {
-                console.log(generating);
+            $("#add_ws").val(null).trigger("change");
+            $("#add_color").prop("disabled", true);
+            $("#add_panel").prop("disabled", true);
 
-                if (!generating) {
-                    window.location.reload();
-                }
+            // window.onfocus = function() {
+            //     console.log(generating);
+
+            //     if (!generating) {
+            //         window.location.reload();
+            //     }
+            // }
+        });
+
+        function openAdditionalModal() {
+            $("#additional-modal").modal("show");
+        }
+
+        // Step One (WS) on change event
+        $('#add_ws').on('change', function(e) {
+            if (this.value) {
+                updateColorList();
+                updateOrderInfo();
             }
         });
+
+        // Step Two (Color) on change event
+        $('#add_color').on('change', function(e) {
+            if (this.value) {
+                updatePanelList();
+                updateSizeList();
+            }
+        });
+
+        // Step Three (Panel) on change event
+        $('#add_panel').on('change', function(e) {
+            if (this.value) {
+                updateSizeList();
+            }
+        });
+
+        function updateOrderInfo() {
+            return $.ajax({
+                url: '{{ route("get-marker-order") }}',
+                type: 'get',
+                data: {
+                    act_costing_id: $('#add_ws').val(),
+                    color: $('#add_color').val(),
+                },
+                dataType: 'json',
+                success: function (res) {
+                    if (res) {
+                        document.getElementById('add_ws_ws').value = res.kpno;
+                        document.getElementById('add_buyer').value = res.buyer;
+                        document.getElementById('add_style').value = res.styleno;
+                    }
+                },
+            });
+        }
+
+        // Update Color Select Option Based on Order WS
+        function updateColorList() {
+            document.getElementById('add_color').value = null;
+
+            return $.ajax({
+                url: '{{ route("get-marker-colors") }}',
+                type: 'get',
+                data: {
+                    act_costing_id: $('#add_ws').val(),
+                },
+                success: function (res) {
+                    if (res) {
+                        // Update this step
+                        document.getElementById('add_color').innerHTML = res;
+
+                        // Reset next step
+                        document.getElementById('add_panel').innerHTML = null;
+                        document.getElementById('add_panel').value = null;
+
+                        // Open this step
+                        $("#add_color").prop("disabled", false);
+
+                        // Close next step
+                        $("#add_panel").prop("disabled", true);
+                    }
+                },
+            });
+        }
+
+        // Update Panel Select Option Based on Order WS and Color WS
+        function updatePanelList() {
+            document.getElementById('add_panel').value = null;
+            return $.ajax({
+                url: '{{ route("get-marker-panels") }}',
+                type: 'get',
+                data: {
+                    act_costing_id: $('#add_ws').val(),
+                    color: $('#add_color').val(),
+                },
+                success: function (res) {
+                    if (res) {
+                        // Update this step
+                        document.getElementById('add_panel').innerHTML = res;
+
+                        // Open this step
+                        $("#add_panel").prop("disabled", false);
+                    }
+                },
+            });
+        }
+
+        // Order Qty Datatable (Size|Ratio|Cut Qty)
+        let orderQtyDatatable = $("#orderQtyDatatable").DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            paging: false,
+            ajax: {
+                url: '{{ route("get-general-sizes") }}',
+                data: function (d) {
+                    d.act_costing_id = $('#add_ws').val();
+                    d.color = $('#add_color').val();
+                },
+            },
+            columns: [
+                {
+                    data: 'no_ws'
+                },
+                {
+                    data: 'color'
+                },
+                {
+                    data: 'size_dest'
+                },
+                {
+                    data: 'size' // size input
+                },
+                {
+                    data: 'so_det_id' // detail so input
+                },
+                {
+                    data: 'so_det_id' // ratio input
+                },
+                {
+                    data: 'so_det_id' // cut qty input
+                }
+            ],
+            columnDefs: [
+                {
+                    // Size Input
+                    targets: [3],
+                    className: "d-none",
+                    render: (data, type, row, meta) => {
+                        // Hidden Size Input
+                        return '<input type="hidden" class="form-control" id="add-size-' + meta.row + '" name="add_size['+meta.row+']" value="' + data + '" readonly />'
+                    }
+                },
+                {
+                    // SO Detail Input
+                    targets: [4],
+                    className: "d-none",
+                    render: (data, type, row, meta) => {
+                        // Hidden Detail SO Input
+                        return '<input type="hidden" id="add-so-det-id-' + meta.row + '" name="add_so_det_id['+meta.row+']" value="' + data + '" readonly />'
+                    }
+                },
+                {
+                    // Ratio Input
+                    targets: [5],
+                    render: (data, type, row, meta) => {
+                        // Hidden Ratio Input
+                        return '<input type="number" id="add-ratio-' + meta.row + '" name="add_ratio[' + meta.row + ']" onchange="calculateRatio(' + meta.row + ');" onkeyup="calculateRatio(' + meta.row + ');" />';
+                    }
+                },
+                {
+                    // Cut Qty Input
+                    targets: [6],
+                    render: (data, type, row, meta) => {
+                        // Hidden Cut Qty Input
+                        return '<input type="number" id="add-cut-qty-' + meta.row + '" name="add_cut_qty['+meta.row+']" readonly />'
+                    }
+                }
+            ],
+        });
+
+        // Update Order Qty Datatable
+        async function updateSizeList() {
+            await orderQtyDatatable.ajax.reload(() => {
+                // Get Sizes Count ( for looping over sizes input )
+                document.getElementById('jumlah_so_det').value = orderQtyDatatable.data().count();
+            });
+        }
+
+        // Calculate Cut Qty Based on Ratio and Spread Qty ( Ratio * Spread Qty )
+        function calculateRatio(id) {
+            let ratio = document.getElementById('add-ratio-'+id).value;
+            let gelarQty = $("#qty_ply_total").val();
+
+            // Cut Qty Formula
+            document.getElementById('add-cut-qty-'+id).value = ratio * gelarQty;
+
+            // Call Calculate Total Ratio Function ( for order qty datatable summary )
+            calculateTotalRatio();
+        }
+
+        // Calculate Total Ratio
+        function calculateTotalRatio() {
+            // Get Sizes Count
+            let totalSize = document.getElementById('jumlah_so_det').value;
+
+            let totalRatio = 0;
+            let totalCutQty = 0;
+
+            // Looping Over Sizes Input
+            for (let i = 0; i < totalSize; i++) {
+                // Sum Ratio and Cut Qty
+                totalRatio += Number(document.getElementById('add-ratio-'+i).value);
+                totalCutQty += Number(document.getElementById('add-cut-qty-'+i).value);
+            }
+
+            // Set Ratio and Cut Qty ( order qty datatable summary )
+            document.querySelector("table#orderQtyDatatable tfoot tr th:nth-child(4)").innerText = totalRatio;
+            document.querySelector("table#orderQtyDatatable tfoot tr th:nth-child(5)").innerText = totalCutQty;
+        }
+
+        // Calculate All Cut Qty at Once Based on Spread Qty
+        function calculateAllRatio(element) {
+            // Get Sizes Count
+            let totalSize = document.getElementById('jumlah_so_det').value;
+
+            let gelarQty = element.value;
+
+            // Looping Over Sizes Input
+            for (let i = 0; i < totalSize; i++) {
+                // Calculate Cut Qty
+                let ratio = document.getElementById('add-ratio-'+i).value;
+
+                // Cut Qty Formula
+                document.getElementById('add-cut-qty-'+i).value = ratio * gelarQty;
+            }
+
+            // Call Calculate Total Ratio Function ( for order qty datatable summary )
+            calculateTotalRatio();
+        }
+
+        function submitAdditionalStocker() {
+            let e = document.getElementById("add-additional-stocker-form");
+
+            document.getElementById("loading").classList.remove("d-none");
+
+            clearModified();
+
+            $.ajax({
+                url: e.getAttribute('action'),
+                type: e.getAttribute('method'),
+                data: new FormData(e),
+                processData: false,
+                contentType: false,
+                success: async function(res) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    // Success Response
+                    if (res.status == 200) {
+                        // When Actually Success :
+
+                        // Reset This Form
+                        e.reset();
+
+                        // Success Alert
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Data Additional berhasil disimpan',
+                            text: res.message,
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                            timer: 5000,
+                            timerProgressBar: true
+                        })
+
+                        // Call Get Total Cut Qty ( update sum cut qty variable )
+                        getTotalCutQty($("#add_ws").val(), $("#add_color").val(), $("#add_panel").val());
+
+                        // Reset Step ( back to step one )
+                        resetStep();
+                    } else {
+                        // When Actually Error :
+
+                        // Error Alert
+                        iziToast.error({
+                            title: 'Error',
+                            message: res.message,
+                            position: 'topCenter'
+                        });
+                    }
+
+                    // Reload Order Qty Datatable
+                    orderQtyDatatable.ajax.reload();
+
+                    // If There Are Some Additional Error
+                    if (Object.keys(res.additional).length > 0 ) {
+                        for (let key in res.additional) {
+                            if (document.getElementById(key)) {
+                                document.getElementById(key).classList.add('is-invalid');
+
+                                if (res.additional[key].hasOwnProperty('message')) {
+                                    document.getElementById(key+'_error').classList.remove('d-none');
+                                    document.getElementById(key+'_error').innerHTML = res.additional[key]['message'];
+                                }
+
+                                if (res.additional[key].hasOwnProperty('value')) {
+                                    document.getElementById(key).value = res.additional[key]['value'];
+                                }
+
+                                modified.push(
+                                    [key, '.classList', '.remove(', "'is-invalid')"],
+                                    [key+'_error', '.classList', '.add(', "'d-none')"],
+                                    [key+'_error', '.innerHTML = ', "''"],
+                                )
+                            }
+                        }
+                    }
+                }, error: function (jqXHR) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    // Error Response
+
+                    let res = jqXHR.responseJSON;
+                    let message = '';
+                    let i = 0;
+
+                    for (let key in res.errors) {
+                        message = res.errors[key];
+                        document.getElementById(key).classList.add('is-invalid');
+                        modified.push(
+                            [key, '.classList', '.remove(', "'is-invalid')"],
+                        )
+
+                        if (i == 0) {
+                            document.getElementById(key).focus();
+                            i++;
+                        }
+                    };
+                }
+            });
+        }
+
+        // Reset Step
+        async function resetStep() {
+            await $("#add_ws").val(null).trigger("change");
+            await $("#add_color").val(null).trigger("change");
+            await $("#add_panel").val(null).trigger("change");
+            await $("#add_color").prop("disabled", true);
+            await $("#add_panel").prop("disabled", true);
+        }
 
         function printStocker(index) {
             generating = true;
@@ -635,6 +1290,70 @@
 
             $.ajax({
                 url: '{{ route('print-stocker-all-size') }}/'+part,
+                type: 'post',
+                processData: false,
+                contentType: false,
+                data: stockerForm,
+                xhrFields:
+                {
+                    responseType: 'blob'
+                },
+                success: function(res) {
+                    if (res) {
+                        console.log(res);
+
+                        var blob = new Blob([res], {type: 'application/pdf'});
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = fileName+".pdf";
+                        link.click();
+
+                        swal.close();
+
+                        window.location.reload();
+                    }
+                    generating = false;
+                },
+                error: function(jqXHR) {
+                    console.log(jqXHR);
+
+                    generating = false;
+                }
+            });
+        }
+
+
+        function printStockerAllSizeAdd() {
+            generating = true;
+
+            let stockerForm = new FormData(document.getElementById("stocker-form"));
+
+            let no_ws = document.getElementById("no_ws_add").value;
+            let style = document.getElementById("style_add").value;
+            let color = document.getElementById("color_add").value;
+            let panel = document.getElementById("panel_add").value;
+            let no_form_cut = document.getElementById("no_form_cut").value;
+
+            let fileName = [
+                no_ws,
+                style,
+                color,
+                panel,
+                part,
+                no_form_cut
+            ].join('-');
+
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                url: '{{ route('print-stocker-all-size-add') }}',
                 type: 'post',
                 processData: false,
                 contentType: false,

@@ -14,6 +14,8 @@ use App\Models\PartDetail;
 use App\Models\ModifySizeQty;
 use App\Models\MonthCount;
 use App\Models\YearSequence;
+use App\Models\StockerAdditional;
+use App\Models\StockerAdditionalDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -311,7 +313,29 @@ class StockerController extends Controller
 
         $modifySizeQty = ModifySizeQty::where("no_form", $dataSpreading->no_form)->get();
 
-        return view("stocker.stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataPartDetail" => $dataPartDetail, "dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "dataNumbering" => $dataNumbering, "modifySizeQty" => $modifySizeQty, "page" => "dashboard-stocker", "subPageGroup" => "proses-stocker", "subPage" => "stocker"]);
+        $dataAdditional = DB::table("stocker_ws_additional")->where("no_form", $dataSpreading->no_form)->first();
+
+            // dd($dataAdditional);
+
+        $dataRatioAdditional = DB::table("stocker_ws_additional_detail")->selectRaw("
+            stocker_ws_additional_detail.id additional_detail_id,
+            stocker_ws_additional_detail.so_det_id,
+            COALESCE(master_sb_ws.size, stocker_ws_additional_detail.size) size,
+            COALESCE((CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE master_sb_ws.size END), stocker_ws_additional_detail.size) size_dest,
+            stocker_ws_additional_detail.ratio
+        ")->
+        leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_ws_additional_detail.so_det_id")->
+        leftJoin("stocker_ws_additional", "stocker_ws_additional.id", "=", "stocker_ws_additional_detail.stocker_additional_id")->
+        leftJoin("form_cut_input", "form_cut_input.no_form", "=", "stocker_ws_additional.no_form")->
+        where("stocker_ws_additional.id", ($dataAdditional ? $dataAdditional->id : ''))->
+        // where("marker_input_detail.ratio", ">", "0")->
+        orderBy("stocker_ws_additional_detail.id", "asc")->
+        groupBy("stocker_ws_additional_detail.id")->
+        get();
+
+        $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
+
+        return view("stocker.stocker.stocker-detail", ["dataSpreading" => $dataSpreading, "dataPartDetail" => $dataPartDetail, "dataRatio" => $dataRatio, "dataStocker" => $dataStocker, "dataNumbering" => $dataNumbering, "modifySizeQty" => $modifySizeQty, "dataAdditional" => $dataAdditional, "dataRatioAdditional" => $dataRatioAdditional, "orders" => $orders, "page" => "dashboard-stocker", "subPageGroup" => "proses-stocker", "subPage" => "stocker"]);
     }
 
     /**
@@ -737,6 +761,194 @@ class StockerController extends Controller
         $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
 
         return response()->download($generatedFilePath);
+    }
+
+    public function printStockerAllSizeAdd(Request $request)
+    {
+        $formData = FormCutInput::where("id", $request['form_cut_id'])->first();
+
+        $stockerCount = Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first() ? str_replace("STK-", "", Stocker::select("id_qr_stocker")->orderBy("id", "desc")->first()->id_qr_stocker) + 1 : 1;
+
+        $storeItemArr = [];
+        for ($i = 0; $i < count($request['ratio_add']); $i++) {
+            $modifySizeQty = ModifySizeQty::where("no_form", $formData->no_form)->where("so_det_id", $request['so_det_id'][$i])->first();
+
+            $rangeAwal = $request['range_awal_add'][$i];
+            $rangeAkhir = $request['range_akhir_add'][$i];
+
+            $cumRangeAwal = $rangeAwal;
+            $cumRangeAkhir = $rangeAwal - 1;
+
+            $ratio = $request['ratio_add'][$i];
+            if ($ratio < 1 && $modifySizeQty) {
+                $ratio += 1;
+            }
+
+            for ($j = 0; $j < $ratio; $j++) {
+                $checkStocker = Stocker::select("id_qr_stocker", "qty_ply", "range_awal", "range_akhir", "notes")->whereRaw("
+                    form_cut_id = '" . $request['form_cut_id'] . "' AND
+                    so_det_id = '" . $request['so_det_id_add'][$i] . "' AND
+                    color = '" . $request['color_add'] . "' AND
+                    panel = '" . $request['panel_add'] . "' AND
+                    shade = '" . $request['group_add'][$i] . "' AND
+                    " . ( $request['group_stocker_add'][$i] && $request['group_stocker_add'][$i] != "" ? "group_stocker = '" . $request['group_stocker_add'][$i] . "' AND" : "" ) . "
+                    ratio = " . ($j + 1) . "
+                ")->first();
+
+                $stockerId = $checkStocker ? $checkStocker->id_qr_stocker : "STK-" . ($stockerCount + $i + $j);
+                $cumRangeAwal = $cumRangeAkhir + 1;
+                $cumRangeAkhir = $cumRangeAkhir + ($request['ratio_add'][$i] < 1 ? 0 : $request['qty_ply_group_add'][$i]);
+
+                if (!$checkStocker) {
+                    array_push($storeItemArr, [
+                        'id_qr_stocker' => $stockerId,
+                        'act_costing_ws' => $request["no_ws_add"],
+                        'form_cut_id' => $request['form_cut_id'],
+                        'so_det_id' => $request['so_det_id_add'][$i],
+                        'color' => $request['color_add'],
+                        'panel' => $request['panel_add'],
+                        'shade' => $request['group'][$i],
+                        'group_stocker' => $request['group_stocker_add'][$i],
+                        'ratio' => ($j + 1),
+                        'size' => $request["size_add"][$i],
+                        'qty_ply' => ($request['ratio_add'][$i] < 1 ? 0 : $request['qty_ply_group_add'][$i]),
+                        'qty_ply_mod' => (($request['group_stocker_add'][$i] == min($request['group_stocker_add'])) && (($j == ($request['ratio_add'][$i] - 1) && $modifySizeQty) || ($request['ratio_add'][$i] < 1 && $modifySizeQty)) ? ($request['ratio_add'][$i] < 1 ? 0 : $request['qty_ply_group_add'][$i]) + $modifySizeQty->difference_qty : null),
+                        'qty_cut' => $request['qty_cut_add'][$i],
+                        'notes' => "ADDITIONAL ".$request['note'],
+                        'range_awal' => $cumRangeAwal,
+                        'range_akhir' => (($request['group_stocker_add'][$i] == min($request['group_stocker_add'])) && (($j == ($request['ratio_add'][$i] - 1) && $modifySizeQty) || ($request['ratio_add'][$i] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir),
+                        'created_by' => Auth::user()->id,
+                        'created_by_username' => Auth::user()->username,
+                        'created_at' => Carbon::now(),
+                        'updated_at' => Carbon::now(),
+                    ]);
+                } else if ($checkStocker && $checkStocker->qty_ply != ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i])) {
+                    $checkStocker->qty_ply = ($request['ratio'][$i] < 1 ? 0 : $request['qty_ply_group'][$i]);
+                    $checkStocker->qty_ply_mod = (($request['group_stocker_add'][$i] == min($request['group_stocker_add'])) && (($j == ($request['ratio_add'][$i] - 1) && $modifySizeQty) || ($request['ratio_add'][$i] < 1 && $modifySizeQty)) ? ($request['ratio_add'][$i] < 1 ? 0 : $request['qty_ply_group_add'][$i]) + $modifySizeQty->difference_qty : null);
+                    $checkStocker->range_awal = $cumRangeAwal;
+                    $checkStocker->range_akhir = (($request['group_stocker_add'][$i] == min($request['group_stocker_add'])) && (($j == ($request['ratio_add'][$i] - 1) && $modifySizeQty) || ($request['ratio_add'][$i] < 1 && $modifySizeQty)) ? $cumRangeAkhir + $modifySizeQty->difference_qty : $cumRangeAkhir);
+                    $checkStocker->save();
+                } else if ($checkStocker && $checkStocker->notes != $request['note']) {
+                    $checkStocker->notes = "ADDITIONAL ".$request['note'];
+                    $checkStocker->save();
+                }
+            }
+        }
+
+        if (count($storeItemArr) > 0) {
+            $storeItem = Stocker::insert($storeItemArr);
+        }
+
+        $dataStockers = Stocker::selectRaw("
+                (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) != 0 THEN (CONCAT(stocker_input.qty_ply, (CASE WHEN (stocker_input.qty_ply_mod - stocker_input.qty_ply) > 0 THEN CONCAT('+', (stocker_input.qty_ply_mod - stocker_input.qty_ply)) ELSE (stocker_input.qty_ply_mod - stocker_input.qty_ply) END))) ELSE stocker_input.qty_ply END) bundle_qty,
+                COALESCE(master_sb_ws.size, stocker_input.size) size,
+                stocker_input.range_awal,
+                stocker_input.range_akhir,
+                stocker_input.id_qr_stocker,
+                stocker_ws_additional.act_costing_ws,
+                stocker_ws_additional.buyer,
+                stocker_ws_additional.style,
+                stocker_ws_additional.color,
+                stocker_input.shade,
+                stocker_input.group_stocker,
+                stocker_input.notes,
+                form_cut_input.no_cut,
+                master_part.nama_part part,
+                master_sb_ws.dest
+            ")->
+            leftJoin("part_detail", "part_detail.id", "=", "stocker_input.part_detail_id")->
+            leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
+            leftJoin("part", "part.id", "=", "part_detail.part_id")->
+            leftJoin("part_form", "part_form.part_id", "=", "part.id")->
+            leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
+            leftJoin("stocker_ws_additional", "stocker_ws_additional.no_form", "=", "form_cut_input.no_form")->
+            leftJoin("stocker_ws_additional_detail", "stocker_ws_additional_detail.stocker_additional_id", "=", "stocker_ws_additional.id")->
+            leftJoin("master_size_new", "master_size_new.size", "=", "stocker_ws_additional_detail.size")->
+            leftJoin("master_sb_ws", "stocker_input.so_det_id", "=", "master_sb_ws.id_so_det")->
+            leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
+            where("form_cut_input.status", "SELESAI PENGERJAAN")->
+            where("stocker_ws_additional.act_costing_ws", $request['no_ws_add'])->
+            where("stocker_ws_additional.style", $request['style_add'])->
+            where("stocker_ws_additional.color", $request['color_add'])->
+            where("form_cut_input.id", $request['form_cut_id'])->
+            groupBy("form_cut_input.id", "part_detail.id", "stocker_input.size", "stocker_input.group_stocker", "stocker_input.shade", "stocker_input.ratio")->
+            orderBy("stocker_input.group_stocker", "desc")->
+            orderBy("stocker_input.shade", "desc")->
+            orderBy("stocker_input.so_det_id", "asc")->
+            orderBy("stocker_input.ratio", "asc")->
+            get();
+
+        // generate pdf
+        PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
+        $pdf = PDF::loadView('stocker.stocker.pdf.print-stocker', ["dataStockers" => $dataStockers])->setPaper('a7', 'landscape');
+
+        $path = public_path('pdf/');
+        $fileName = 'stocker-' . $request['form_cut_id'] .'.pdf';
+        $pdf->save($path . '/' . str_replace("/", "_", $fileName));
+        $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
+
+        return response()->download($generatedFilePath);
+    }
+
+    public function submitStockerAdd(Request $request) {
+        $totalQty = 0;
+
+        $validatedRequest = $request->validate([
+            "add_no_form" => "required",
+            "add_ws" => "required",
+            "add_ws_ws" => "required",
+            "add_buyer" => "required",
+            "add_style" => "required",
+            "add_color" => "required",
+            "add_panel" => "required",
+        ]);
+
+        foreach ($request["add_cut_qty"] as $qty) {
+            $totalQty += $qty;
+        }
+
+        if ($totalQty > 0) {
+            $stockerAddId = StockerAdditional::create([
+                'no_form' => $validatedRequest['add_no_form'],
+                'act_costing_id' => $validatedRequest['add_ws'],
+                'act_costing_ws' => $validatedRequest['add_ws_ws'],
+                'buyer' => $validatedRequest['add_buyer'],
+                'style' => $validatedRequest['add_style'],
+                'color' => $validatedRequest['add_color'],
+                'panel' => $validatedRequest['add_panel'],
+                'cancel' => 'N',
+            ]);
+
+            $timestamp = Carbon::now();
+            $addId = $stockerAddId->id;
+            $stockerAddDetailData = [];
+            for ($i = 0; $i < intval($request['jumlah_so_det']); $i++) {
+                array_push($stockerAddDetailData, [
+                    "stocker_additional_id" => $addId,
+                    "so_det_id" => $request["add_so_det_id"][$i],
+                    "size" => $request["add_size"][$i],
+                    "ratio" => $request["add_ratio"][$i],
+                    "cut_qty" => $request["add_cut_qty"][$i],
+                    "cancel" => 'N',
+                    "created_at" => $timestamp,
+                    "updated_at" => $timestamp,
+                ]);
+            }
+
+            $stockerAddDetailStore = StockerAdditionalDetail::insert($stockerAddDetailData);
+
+            return array(
+                "status" => 200,
+                "message" => $validatedRequest['add_ws_ws'],
+                "additional" => [],
+            );
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Total Cut Qty Kosong",
+            "additional" => [],
+        );
     }
 
     public function printNumbering(Request $request, $index)

@@ -227,7 +227,7 @@
                                         calculateEstAmpar();
                                         calculateTotalPemakaian();
                                         calculatePemakaianLembar();
-                                        calculateShortRoll();
+                                        calculateShortRoll(event);
                                         // calculateSisaKain();
                                     "
                                     onchange="
@@ -236,7 +236,7 @@
                                         calculateEstAmpar();
                                         calculateTotalPemakaian();
                                         calculatePemakaianLembar();
-                                        calculateShortRoll();
+                                        calculateShortRoll(event);
                                         // calculateSisaKain();
                                     "
                                 >
@@ -258,7 +258,7 @@
                                         calculateEstAmpar();
                                         calculateTotalPemakaian();
                                         calculatePemakaianLembar();
-                                        calculateShortRoll();
+                                        calculateShortRoll(event);
                                         // calculateSisaKain();
                                     "
                                     onchange="
@@ -267,7 +267,7 @@
                                         calculateEstAmpar();
                                         calculateTotalPemakaian();
                                         calculatePemakaianLembar();
-                                        calculateShortRoll();
+                                        calculateShortRoll(event);
                                         // calculateSisaKain();
                                     ">
                             </div>
@@ -287,7 +287,7 @@
                                         calculateEstAmpar();
                                         calculateTotalPemakaian();
                                         calculatePemakaianLembar();
-                                        calculateShortRoll();
+                                        calculateShortRoll(event);
                                         // calculateSisaKain();
                                     "
                                     onchange="
@@ -295,7 +295,7 @@
                                         calculateEstAmpar();
                                         calculateTotalPemakaian();
                                         calculatePemakaianLembar();
-                                        calculateShortRoll();
+                                        calculateShortRoll(event);
                                         // calculateSisaKain();
                                     ">
                             </div>
@@ -564,14 +564,14 @@
                                                     // restrictRemainPly();
                                                     calculatePemakaianLembar();
                                                     calculateTotalPemakaian();
-                                                    calculateShortRoll();
+                                                    calculateShortRoll(event);
                                                 "
 
                                                 onchange="
                                                     // restrictRemainPly();
                                                     calculatePemakaianLembar();
                                                     calculateTotalPemakaian();
-                                                    calculateShortRoll();
+                                                    calculateShortRoll(event);
                                                 "
                                             >
                                         </div>
@@ -590,13 +590,13 @@
                                                 onkeyup="
                                                     calculatePemakaianLembar();
                                                     calculateTotalPemakaian();
-                                                    calculateShortRoll();
+                                                    calculateShortRoll(event);
                                                     // calculateSisaKain();
                                                 "
                                                 onchange="
                                                     calculatePemakaianLembar();
                                                     calculateTotalPemakaian();
-                                                    calculateShortRoll();
+                                                    calculateShortRoll(event);
                                                     // calculateSisaKain();
                                                 "
                                             >
@@ -619,7 +619,7 @@
                                                         calculateEstAmpar();
                                                         calculatePemakaianLembar();
                                                         calculateTotalPemakaian();
-                                                        calculateShortRoll();
+                                                        calculateShortRoll(event);
                                                         // calculateSisaKain();
                                                     "
 
@@ -628,7 +628,7 @@
                                                         calculateEstAmpar();
                                                         calculatePemakaianLembar();
                                                         calculateTotalPemakaian();
-                                                        calculateShortRoll();
+                                                        calculateShortRoll(event);
                                                         // calculateSisaKain();
                                                     "
                                                 >
@@ -649,13 +649,13 @@
                                                 onkeyup="
                                                     calculateTotalPemakaian();
                                                     calculatePemakaianLembar();
-                                                    calculateShortRoll();
+                                                    calculateShortRoll(event);
                                                     // calculateSisaKain();
                                                 "
                                                 onchange="
                                                     calculateTotalPemakaian();
                                                     calculatePemakaianLembar();
-                                                    calculateShortRoll();
+                                                    calculateShortRoll(event);
                                                     // calculateSisaKain();
                                                 ">
                                         </div>
@@ -686,12 +686,12 @@
                                                 // calculateSisaKain();
                                                 calculatePemakaianLembar();
                                                 calculateTotalPemakaian();
-                                                calculateShortRoll();"
+                                                calculateShortRoll(event);"
                                             onchange="
                                                 // calculateSisaKain();
                                                 calculatePemakaianLembar();
                                                 calculateTotalPemakaian();
-                                                calculateShortRoll();"
+                                                calculateShortRoll(event);"
                                         >
                                         <span class="input-group-text input-group-unit"></span>
                                     </div>
@@ -705,13 +705,13 @@
                                             onkeyup="
                                                 calculatePemakaianLembar();
                                                 calculateTotalPemakaian();
-                                                calculateShortRoll();
+                                                calculateShortRoll(event);
                                                 // calculateSisaKain();
                                             "
                                             onchange="
                                                 calculatePemakaianLembar();
                                                 calculateTotalPemakaian();
-                                                calculateShortRoll();
+                                                calculateShortRoll(event);
                                                 // calculateSisaKain();
                                             "
                                         >
@@ -728,13 +728,13 @@
                                                 // calculateSisaKain();
                                                 calculatePemakaianLembar();
                                                 calculateTotalPemakaian();
-                                                calculateShortRoll();
+                                                calculateShortRoll(event);
                                             "
                                             onchange="
                                                 // calculateSisaKain();
                                                 calculatePemakaianLembar();
                                                 calculateTotalPemakaian();
-                                                calculateShortRoll();
+                                                calculateShortRoll(event);
                                             "
                                         >
                                         <span class="input-group-text input-group-unit"></span>
@@ -750,13 +750,13 @@
                                                 // calculateSisaKain();
                                                 calculatePemakaianLembar();
                                                 calculateTotalPemakaian();
-                                                calculateShortRoll();
+                                                calculateShortRoll(event);
                                             "
                                             onchange="
                                                 // calculateSisaKain();
                                                 calculatePemakaianLembar();
                                                 calculateTotalPemakaian();
-                                                calculateShortRoll();
+                                                calculateShortRoll(event);
                                             ">
                                         <span class="input-group-text input-group-unit"></span>
                                     </div>
@@ -805,12 +805,12 @@
                                     <div class="input-group input-group-sm mb-3">
                                         <input type="number" class="form-control form-control-sm border-input" id="current_sisa_kain" name="current_sisa_kain" step=".01"
                                             onkeyup="
-                                                calculateShortRoll();
+                                                calculateShortRoll(event);
                                                 calculatePemakaianLembar();
                                                 calculateTotalPemakaian();
                                             "
                                             onchange="
-                                                calculateShortRoll();
+                                                calculateShortRoll(event);
                                                 calculatePemakaianLembar();
                                                 calculateTotalPemakaian();
                                             "
@@ -823,7 +823,7 @@
                                 <div class="row align-items-end mb-3">
                                     <div class="col-md-6">
                                         <label class="form-label label-input"><small><b>Total Sambungan Roll</b></small></label>
-                                        <input type="number" class="form-control form-control-sm" id="current_total_sambungan_roll" name="current_total_sambungan_roll" readonly onchange="calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll();/*calculateRemark();*/">
+                                        <input type="number" class="form-control form-control-sm" id="current_total_sambungan_roll" name="current_total_sambungan_roll" readonly onchange="calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll(event);/*calculateRemark();*/">
                                     </div>
                                     <div class="col-md-6">
                                         <button type="button" class="btn btn-primary btn-sm btn-block float-end fw-bold" onclick="addNewSambungan()"><i class="fa-regular fa-square-plus"></i> SAMBUNGAN</button>
@@ -2616,7 +2616,26 @@
             }
 
             // -Calculate Short Roll-
-            function calculateShortRoll() {
+            async function calculateShortRoll(event) {
+                if (event.type == "change") {
+                    document.getElementById("loading").classList.remove("d-none");
+                }
+
+                let shortRollResult = await calculatingShortRoll();
+
+                if (shortRollResult) {
+                    document.getElementById("current_short_roll").value = isNaN(shortRollResult.shortRoll.round(2)) ? 0 : shortRollResult.shortRoll.round(2);
+                    document.getElementById("current_short_roll_percentage").value = isNaN(shortRollResult.shortRollPercentage.round(2)) ? 0 : shortRollResult.shortRollPercentage.round(2);
+
+                    if (event.type == 'change') {
+                        setTimeout(() => {
+                            document.getElementById("loading").classList.add("d-none");
+                        }, 300)
+                    }
+                }
+            }
+
+            async function calculatingShortRoll() {
                 var toast = document.querySelector('.iziToast'); // Selector of your toast
 
                 if (toast) {
@@ -2640,6 +2659,8 @@
                 let sambunganRollVar = latestStatus == "extension complete" ? Number(latestSambunganRoll) + Number(document.getElementById("current_total_sambungan_roll").value) : Number(document.getElementById("current_total_sambungan_roll").value);
                 let sisaGelaranVar = Number(document.getElementById("current_sisa_gelaran").value);
                 let sisaTidakBisaVar = latestStatus == "extension complete" ? Number(latestSisaTidakBisa) + Number(document.getElementById("current_sisa_tidak_bisa").value) : Number(document.getElementById("current_sisa_tidak_bisa").value);
+
+                let pActualConverted = 0;
 
                 if (document.getElementById("status_sambungan").value == "extension") {
                     pActualConverted = document.getElementById("current_sambungan").value;
@@ -2681,8 +2702,7 @@
                     }
                 }
 
-                document.getElementById("current_short_roll").value = isNaN(shortRoll.round(2)) ? 0 : shortRoll.round(2);
-                document.getElementById("current_short_roll_percentage").value = isNaN(shortRollPercentage.round(2)) ? 0 : shortRollPercentage.round(2);
+                return {"shortRoll" : shortRoll, "shortRollPercentage" : shortRollPercentage};
             }
 
             // -Calculate Sisa Kain-
@@ -3411,8 +3431,8 @@
                     document.getElementById("current_sisa_gelaran").removeAttribute('readonly');
 
                     document.getElementById("current_lembar_gelaran").removeAttribute('readonly');
-                    document.getElementById("current_lembar_gelaran").setAttribute('onkeyup', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll();openStopTimeRecord();");
-                    document.getElementById("current_lembar_gelaran").setAttribute('onchange', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll();openStopTimeRecord();");
+                    document.getElementById("current_lembar_gelaran").setAttribute('onkeyup', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll(event);openStopTimeRecord();");
+                    document.getElementById("current_lembar_gelaran").setAttribute('onchange', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll(event);openStopTimeRecord();");
 
                     // showSambungan();
                 }
@@ -3423,8 +3443,8 @@
                     document.getElementById("current_sisa_gelaran").setAttribute('readonly', true);
 
                     document.getElementById("current_lembar_gelaran").setAttribute('readonly', true);
-                    document.getElementById("current_lembar_gelaran").setAttribute('onkeyup', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll();openStopTimeRecord();");
-                    document.getElementById("current_lembar_gelaran").setAttribute('onchange', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll();openStopTimeRecord();");
+                    document.getElementById("current_lembar_gelaran").setAttribute('onkeyup', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll(event);openStopTimeRecord();");
+                    document.getElementById("current_lembar_gelaran").setAttribute('onchange', "calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll(event);openStopTimeRecord();");
 
                     // hideSambungan();
                 }
