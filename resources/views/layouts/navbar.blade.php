@@ -853,6 +853,12 @@
                                     Master Karton <i class="fa-solid fa-boxes fa-sm"></i>
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('packing-list') }}"
+                                    class="dropdown-item {{ $subPage == 'packing-list' ? 'active' : '' }}">
+                                    Upload Packing List <i class="fas fa-file-upload fa-sm"></i>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif
