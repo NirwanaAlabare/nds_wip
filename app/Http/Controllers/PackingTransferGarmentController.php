@@ -105,7 +105,7 @@ order by isi asc");
     public function get_po(Request $request)
     {
         $tgl_skrg = date('Y-m-d');
-        $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-60 days'));
+        $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-90 days'));
         $data_po = DB::select("SELECT
         p.po isi,
         CONCAT(p.po, ' ( ', p.styleno, ' ) ', '( ', p.styleno_prod , ' )') tampil

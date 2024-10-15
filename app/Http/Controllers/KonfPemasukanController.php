@@ -335,6 +335,107 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
                 ]);
             }
 
+            if($tipe_com == 'Buyer'){
+                $sqlcoa = DB::connection('mysql_sb')->select("select no_coa, nama_coa from mastercoa_v2 where cus_ctg like '%".$cust_ctg."%' and mattype like '%".$mattype."%' and matclass like '%".$matclass."%' and n_code_category like '%".$n_code_category."%' and inv_type like '%bpb_debit%' Limit 1");
+
+                $no_coa_cre   = $sqlcoa ? $sqlcoa[0]->no_coa : '-';
+                $nama_coa_cre   = $sqlcoa ? $sqlcoa[0]->nama_coa : '-';
+
+                $jurnalcredit = Journal::create([
+                    'no_journal' => $no_bpb,
+                    'tgl_journal' => $tgl_bpb,
+                    'type_journal' => 'AP - BPB',
+                    'no_coa' => $no_coa_cre,
+                    'nama_coa' => $nama_coa_cre,
+                    'no_costcenter' => '-',
+                    'nama_costcenter' => '-',
+                    'reff_doc' => '-',
+                    'reff_date' => '',
+                    'buyer' => '-',
+                    'no_ws' => '-',
+                    'curr' => $curr,
+                    'rate' => $rate,
+                    'debit' => '0',
+                    'credit' => $total,
+                    'debit_idr' => '0',
+                    'credit_idr' => $idr_total,
+                    'status' => 'Approved',
+                    'keterangan' => $description,
+                    'create_by' => $username,
+                    'create_date' => $dateinput_,
+                    'approve_by' => Auth::user()->name,
+                    'approve_date' => $timestamp,
+                    'cancel_by' => '',
+                    'cancel_date' => '',
+                ]);
+
+
+                $jurnaldebit = Journal::create([
+                    'no_journal' => $no_bpb,
+                    'tgl_journal' => $tgl_bpb,
+                    'type_journal' => 'AP - BPB',
+                    'no_coa' => '1.34.05',
+                    'nama_coa' => 'PIUTANG LAIN-LAIN PIHAK KETIGA - BAHAN BAKU / BAHAN PEMBANTU',
+                    'no_costcenter' => '-',
+                    'nama_costcenter' => '-',
+                    'reff_doc' => '-',
+                    'reff_date' => '',
+                    'buyer' => '-',
+                    'no_ws' => '-',
+                    'curr' => $curr,
+                    'rate' => $rate,
+                    'debit' => $dpp,
+                    'credit' => '0',
+                    'debit_idr' => $idr_dpp,
+                    'credit_idr' => '0',
+                    'status' => 'Approved',
+                    'keterangan' => $description,
+                    'create_by' => $username,
+                    'create_date' => $dateinput_,
+                    'approve_by' => Auth::user()->name,
+                    'approve_date' => $timestamp,
+                    'cancel_by' => '',
+                    'cancel_date' => '',
+                ]);
+
+                if ($tax >= 1) {
+
+                    $sqlcoa2 = DB::connection('mysql_sb')->select("select no_coa, nama_coa from mastercoa_v2 where inv_type like '%PPN MASUKAN%' Limit 1");
+
+                    $no_coa_ppn   = $sqlcoa2 ? $sqlcoa2[0]->no_coa : '-';
+                    $nama_coa_ppn   = $sqlcoa2 ? $sqlcoa2[0]->nama_coa : '-';
+
+                    $jurnalppn = Journal::create([
+                        'no_journal' => $no_bpb,
+                        'tgl_journal' => $tgl_bpb,
+                        'type_journal' => 'AP - BPB',
+                        'no_coa' => $no_coa_ppn,
+                        'nama_coa' => $nama_coa_ppn,
+                        'no_costcenter' => '-',
+                        'nama_costcenter' => '-',
+                        'reff_doc' => '-',
+                        'reff_date' => '',
+                        'buyer' => '-',
+                        'no_ws' => '-',
+                        'curr' => $curr,
+                        'rate' => $rate,
+                        'debit' => $ppn,
+                        'credit' => '0',
+                        'debit_idr' => $idr_ppn,
+                        'credit_idr' => '0',
+                        'status' => 'Approved',
+                        'keterangan' => $description,
+                        'create_by' => $username,
+                        'create_date' => $dateinput_,
+                        'approve_by' => Auth::user()->name,
+                        'approve_date' => $timestamp,
+                        'cancel_by' => '',
+                        'cancel_date' => '',
+                    ]);
+                }
+
+            }
+
 
             }
             }
