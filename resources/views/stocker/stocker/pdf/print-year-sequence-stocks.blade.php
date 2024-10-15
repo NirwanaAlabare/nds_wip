@@ -70,7 +70,7 @@
                     <p>'{{ $stockNumber['id_qr_stocker'] }}' QR Stock</p>
                 </div>
             </div>
-            <table style="margin-bottom: 5px;">
+            <table style="margin-bottom: 1px;">
                 <tr>
                     <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Buyer</th>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
@@ -88,27 +88,28 @@
                 <tr>
                     <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Color</th>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
-                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ strtoupper(substr($stockNumber['color'], 0, 7)).(strlen($stockNumber['color']) > 7 ? '...' : '') }}</td>
+                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ strtoupper(substr($stockNumber['color'], 0, 9)).(strlen($stockNumber['color']) > 9 ? '...' : '') }}</td>
 
                     <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Qty</th>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['qty'] }}</td>
                 </tr>
                 <tr>
-                    <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Size</th>
-                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
-                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ strtoupper(substr($stockNumber['size'], 0, 7)).(strlen($stockNumber['size']) > 7 ? '...' : '') }}</td>>
+                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-left: 1px solid;border-right: 1px solid;font-size: 60px;text-align: center;' colspan="3" rowspan="2">{{ strtoupper(substr($stockNumber['size'], 0, 7)).(strlen($stockNumber['size']) > 7 ? '...' : '') }}</td>>
 
                     <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Range QR</th>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['numbering_range'] }}</td>
                 </tr>
+                <tr>
+                    <td style="text-align: center;" colspan="3"><p>{{ $stockNumber['updated_at'] }}</p></td>
+                </tr>
             </table>
-            <div class="clearfix">
+            {{-- <div class="clearfix">
                 <div style="float: right;">
                     <p>{{ $stockNumber['updated_at'] }}</p>
                 </div>
-            </div>
+            </div> --}}
         </div>
     @endforeach
 </body>

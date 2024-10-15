@@ -118,14 +118,14 @@
         <div class="card-body">
             <div class="table-responsive">
                 <form action="#" method="post" id="month-count-form">
-                    <table class="table table-bordered table-sm" id="datatable">
+                    <table class="table table-bordered table-sm w-100" id="datatable">
                         <thead>
                             <th>Number</th>
                             <th>Year Sequence</th>
                             <th>Year Sequence Number</th>
                             <th>Size</th>
                             <th>Dest</th>
-                            <th>
+                            <th class="d-none">
                                 Print
                             </th>
                         </thead>
@@ -138,7 +138,7 @@
                                         <td>{{ $number->year_sequence_number }}</td>
                                         <td>{{ $number->size }}</td>
                                         <td>{{ $number->dest }}</td>
-                                        <td>
+                                        <td class="d-none">
                                             <div class="d-flex gap-3">
                                                 <button type="button" class="btn btn-sm btn-danger" onclick="printYearSequence({{ $loop->index }});">
                                                     <i class="fa fa-print fa-s"></i>

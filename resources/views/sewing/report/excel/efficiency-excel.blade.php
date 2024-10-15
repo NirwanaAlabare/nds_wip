@@ -93,6 +93,7 @@
             <th>Efficiency Line</th>
             <th>RFT Line</th>
             <th style="background: #e9ff25;">Jam Aktual</th>
+            <th>Tanggal Produksi</th>
             <th>Chief</th>
             <th>Mins. Avail Chief</th>
             <th>Mins. Prod Chief</th>
@@ -109,7 +110,7 @@
                         $sewingLine = $day->sewing_line;
                         $merge = true;
                     @endphp
-                    <td rowspan="{{ $dataDetailProduksiDay->where('sewing_line', $day->sewing_line)->count() }}" style="vertical-align: middle; text-align: center;">{{ str_replace('line_', '', $day->sewing_line) }}</td>
+                    <td rowspan="{{ $dataDetailProduksiDay->where('sewing_line', $day->sewing_line)->where('tgl_produksi', $day->tgl_produksi)->count() }}" style="vertical-align: middle; text-align: center;">{{ str_replace('line_', '', $day->sewing_line) }}</td>
                 @endif
                 <td>{{ $day->no_ws }}</td>
                 <td>{{ $day->nama_buyer }}</td>
@@ -130,14 +131,19 @@
                 <td data-format="0.00" style="background: #bccee7;text-align: right;">{{ $day->mins_prod }}</td>
                 @if ($merge)
                     @php
-                        $merge = false;
                         $efficiencyLine = $day->mins_avail_line > 0 ? round(((floatval($day->mins_prod_line)/floatval($day->mins_avail_line))*100), 2) : 0;
                         $rftLine = $day->output_line > 0 ? round(((floatval($day->output_rft_line)/floatval($day->output_line))*100), 2) : 0;
                     @endphp
-                    <td data-format="0.00%" rowspan="{{ $dataDetailProduksiDay->where('sewing_line', $day->sewing_line)->count() }}" style="text-align: right;vertical-align: middle;">{{ percentage($efficiencyLine) }} %</td>
-                    <td data-format="0.00%" rowspan="{{ $dataDetailProduksiDay->where('sewing_line', $day->sewing_line)->count() }}" style="text-align: right;vertical-align: middle;">{{ percentage($rftLine) }} %</td>
+                    <td data-format="0.00%" rowspan="{{ $dataDetailProduksiDay->where('sewing_line', $day->sewing_line)->where('tgl_produksi', $day->tgl_produksi)->count() }}" style="text-align: right;vertical-align: middle;">{{ percentage($efficiencyLine) }} %</td>
+                    <td data-format="0.00%" rowspan="{{ $dataDetailProduksiDay->where('sewing_line', $day->sewing_line)->where('tgl_produksi', $day->tgl_produksi)->count() }}" style="text-align: right;vertical-align: middle;">{{ percentage($rftLine) }} %</td>
                 @endif
                 <td style="background: #e9ff1f;text-align: right;">{{ $day->jam_aktual }}</td>
+                @if ($merge)
+                    @php
+                        $merge = false;
+                    @endphp
+                    <td style="text-align: right;vertical-align: middle;" rowspan="{{ $dataDetailProduksiDay->where('sewing_line', $day->sewing_line)->where('tgl_produksi', $day->tgl_produksi)->count() }}">{{ $day->tgl_produksi }}</td>
+                @endif
                 @foreach ($summaryChiefDay as $chief)
                     @if ($chief->id != null)
                         @php

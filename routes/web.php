@@ -280,6 +280,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-order-info', 'getOrderInfo')->name('get-spreading-data');
         Route::get('/get-cut-qty', 'getCutQty')->name('get-cut-qty-data');
         Route::delete('/destroy/{id?}', 'destroy')->name('destroy-spreading');
+        Route::post('/export', 'exportExcel')->name('export-cutting-form');
         // export excel
         // Route::get('/export_excel', 'export_excel')->name('export_excel');
         // Route::get('/export', 'export')->name('export');
@@ -469,6 +470,8 @@ Route::middleware('auth')->group(function () {
         // export excel
         Route::get('/export_excel', 'export_excel')->name('export_excel');
         Route::post('/export', 'export')->name('export');
+        // print
+        Route::post('/sisa_kain/print/{id?}', 'printSisaKain')->name('print_sisa_kain');
     });
 
     // Stocker :
