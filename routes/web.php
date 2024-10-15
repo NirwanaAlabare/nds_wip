@@ -1325,6 +1325,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/export_data_template_po_packing_list', 'export_data_template_po_packing_list')->name('export_data_template_po_packing_list');
         Route::get('/show_datatable_upload_packing_list', 'show_datatable_upload_packing_list')->name('show_datatable_upload_packing_list');
         Route::post('/delete_upload_packing_list', 'delete_upload_packing_list')->name('delete_upload_packing_list');
+        Route::post('/store', 'store')->name('store_upload_packing_list');
     });
 
 

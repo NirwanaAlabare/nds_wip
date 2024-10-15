@@ -418,40 +418,40 @@
         }, );
 
 
-        function simpan() {
-            let po = $('#cbopo').val();
-            $.ajax({
-                type: "post",
-                url: '{{ route('store_upload_packing_list') }}',
-                data: {
-                    po: po
-                },
-                success: function(response) {
-                    if (response.icon == 'salah') {
-                        iziToast.warning({
-                            message: response.msg,
-                            position: 'topCenter'
-                        });
-                        dataTableReload();
-                        dataTablePreviewReload();
-                    } else {
-                        Swal.fire({
-                            text: response.msg,
-                            icon: "success"
-                        });
-                        dataTableUploadReload();
-                    }
+        // function simpan() {
+        //     let po = $('#cbopo').val();
+        //     $.ajax({
+        //         type: "post",
+        //         url: '{{ route('store_upload_packing_list') }}',
+        //         data: {
+        //             po: po
+        //         },
+        //         success: function(response) {
+        //             if (response.icon == 'salah') {
+        //                 iziToast.warning({
+        //                     message: response.msg,
+        //                     position: 'topCenter'
+        //                 });
+        //                 dataTableReload();
+        //                 dataTablePreviewReload();
+        //             } else {
+        //                 Swal.fire({
+        //                     text: response.msg,
+        //                     icon: "success"
+        //                 });
+        //                 dataTableUploadReload();
+        //             }
 
-                },
-                error: function(request, status, error) {
-                    iziToast.warning({
-                        message: 'Silahkan cek lagi',
-                        position: 'topCenter'
-                    });
-                    dataTableUploadReload();
-                },
-            });
+        //         },
+        //         error: function(request, status, error) {
+        //             iziToast.warning({
+        //                 message: 'Silahkan cek lagi',
+        //                 position: 'topCenter'
+        //             });
+        //             dataTableUploadReload();
+        //         },
+        //     });
 
-        };
+        // };
     </script>
 @endsection
