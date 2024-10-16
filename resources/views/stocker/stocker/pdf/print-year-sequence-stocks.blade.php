@@ -95,7 +95,7 @@
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-right: 1px solid;'>{{ $stockNumber['qty'] }}</td>
                 </tr>
                 <tr>
-                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-left: 1px solid;border-right: 1px solid;{{ strlen($stockNumber["size"]) > 7 ? "font-size: 15px;" : "font-size: 60px;" }}text-align: center;' colspan="3" rowspan="2">{{ strtoupper($stockNumber['size']) }}</td>>
+                    <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;border-left: 1px solid;border-right: 1px solid;{{ strlen($stockNumber["size"]) > 5 ? "font-size: 15px;" : "font-size: 60px;" }}text-align: center;' colspan="3" rowspan="2">{{ strtoupper($stockNumber['size']) }}</td>>
 
                     <th style='border: none;border-left: 1px solid;border-top: 1px solid;border-bottom: 1px solid;'>Range QR</th>
                     <td style='border: none;border-top: 1px solid;border-bottom: 1px solid;'>:</td>
