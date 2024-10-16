@@ -1083,6 +1083,14 @@
             calculateTotalRatio();
         }
 
+        document.getElementById('additional-modal').addEventListener('shown.bs.modal', event => {
+            generating = 'true';
+        });
+
+        document.getElementById('additional-modal').addEventListener('hidden.bs.modal', event => {
+            generating = 'false';
+        });
+
         function submitAdditionalStocker() {
             let e = document.getElementById("add-additional-stocker-form");
 
@@ -1116,13 +1124,12 @@
                             confirmButtonText: 'Oke',
                             timer: 5000,
                             timerProgressBar: true
-                        })
+                        }).then(() => {
+                            // Reset Step ( back to step one )
+                            resetStep();
 
-                        // Call Get Total Cut Qty ( update sum cut qty variable )
-                        getTotalCutQty($("#add_ws").val(), $("#add_color").val(), $("#add_panel").val());
-
-                        // Reset Step ( back to step one )
-                        resetStep();
+                            window.location.reload();
+                        });
                     } else {
                         // When Actually Error :
 
