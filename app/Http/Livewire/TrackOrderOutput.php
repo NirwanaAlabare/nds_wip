@@ -95,7 +95,7 @@ class TrackOrderOutput extends Component
             groupBy('kpno')->
             get();
 
-        if ($this->selectedOrder) {
+        // if ($this->selectedOrder) {
             $orderFilterSql = MasterPlan::selectRaw("
                     master_plan.tgl_plan tanggal,
                     act_costing.kpno ws,
@@ -136,8 +136,10 @@ class TrackOrderOutput extends Component
                 if ($this->groupBy == "size" && $this->sizeFilter) {
                     $orderFilterSql->where('so_det.size', $this->sizeFilter);
                 }
+                if ($this->selectedOrder) {
+                    $orderFilterSql->where("act_costing.id", $this->selectedOrder);
+                }
                 $orderFilterSql->
-                    where("act_costing.id", $this->selectedOrder)->
                     groupByRaw("master_plan.id_ws, act_costing.styleno, master_plan.color, COALESCE(rfts.sewing_line, master_plan.sewing_line) ".($this->groupBy == "size" ? ", so_det.size" : "")."")->
                     orderBy("master_plan.id_ws", "asc")->
                     orderBy("act_costing.styleno", "asc")->
@@ -192,8 +194,10 @@ class TrackOrderOutput extends Component
                 if ($this->groupBy == "size" && $this->sizeFilter) {
                     $dailyOrderGroupSql->where('so_det.size', $this->sizeFilter);
                 }
+                if ($this->selectedOrder) {
+                    $dailyOrderGroupSql->where("act_costing.id", $this->selectedOrder);
+                }
                 $dailyOrderGroupSql->
-                    where("act_costing.id", $this->selectedOrder)->
                     groupByRaw("master_plan.id_ws, act_costing.styleno, master_plan.color, COALESCE(rfts.sewing_line, master_plan.sewing_line) ".($this->groupBy == "size" ? ", so_det.size" : "")."")->
                     orderBy("master_plan.id_ws", "asc")->
                     orderBy("act_costing.styleno", "asc")->
@@ -241,7 +245,7 @@ class TrackOrderOutput extends Component
                         WHERE
                             DATE ( rfts.updated_at ) ".$masterPlanDateFilter."
                             AND master_plan.tgl_plan ".$masterPlanDateFilter1."
-                            AND master_plan.id_ws = ".$this->selectedOrder."
+                            ". ($this->selectedOrder ? " AND master_plan.id_ws = ".$this->selectedOrder."'" : "") . "
                         GROUP BY
                             master_plan.id_ws,
                             DATE ( rfts.updated_at ),
@@ -254,9 +258,10 @@ class TrackOrderOutput extends Component
                 if ($this->groupBy == "size") {
                     $dailyOrderOutputSql->leftJoin('so_det', 'so_det.id', '=', 'rfts.so_det_id');
                 }
-
+                if ($this->selectedOrder) {
+                    $dailyOrderGroupSql->where("act_costing.id", $this->selectedOrder);
+                }
                 $dailyOrderOutputSql->
-                    where("act_costing.id", $this->selectedOrder)->
                     groupByRaw("master_plan.id_ws, act_costing.styleno, master_plan.color, COALESCE(rfts.created_by, master_plan.sewing_line) , master_plan.tgl_plan, rfts.tanggal ".($this->groupBy == 'size' ? ', so_det.size' : '')."")->
                     orderBy("master_plan.id_ws", "asc")->
                     orderBy("act_costing.styleno", "asc")->
@@ -280,7 +285,7 @@ class TrackOrderOutput extends Component
                 $this->dailyOrderOutputs = $dailyOrderOutputSql->get();
 
             \Log::info("Query Completed");
-        }
+        // }
 
         return view('livewire.track-order-output');
     }
