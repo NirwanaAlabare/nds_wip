@@ -2729,7 +2729,7 @@
 
                 let pActualConverted = 0;
 
-                if (document.getElementById("status_sambungan").value == "extension") {
+                if (document.getElementById("status_sambungan").value == "extension" && Number(document.getElementById("current_sambungan").value) > 0) {
                     pActualConverted = document.getElementById("current_sambungan").value;
                 } else {
                     if (unitQtyVar != "KGM") {
@@ -2996,7 +2996,7 @@
                 if (status == "PENGERJAAN FORM CUTTING SPREAD") {
                     document.getElementById("lost-time-card").classList.remove("d-none");
 
-                    if ($("status_sambungan").val() != "extension") {
+                    if ($("#status_sambungan").val() != "extension") {
                         document.getElementById("current_sambungan").setAttribute('readonly', true);
                         document.getElementById("current_sisa_gelaran").removeAttribute('readonly');
                     }
@@ -3405,7 +3405,7 @@
                     } else {
                         nextProcessThreeButton.classList.add("d-none");
 
-                        if ($("status_sambungan").val() != "extension") {
+                        if ($("#status_sambungan").val() != "extension") {
                             lockExtension();
                         }
                     }

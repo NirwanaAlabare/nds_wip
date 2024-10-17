@@ -2218,7 +2218,7 @@
                 // let shortRoll = pActualConverted * lembarGelaranVar + kepalaKainVar + pipingVar + sisaKainVar + rejectVar + sambunganVar - qtyVar;
                 let shortRoll = ((pActualConverted * lembarGelaranVar) + sambunganVar + sisaGelaranVar + sambunganRollVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar) - qtyVar;
 
-                if (document.getElementById("status_sambungan").value == "extension" && sambunganVar != 0) {
+                if (document.getElementById("status_sambungan").value == "extension" && Number(document.getElementById("current_sambungan").value) > 0) {
                     shortRoll = 0;
                 }
 
@@ -2490,7 +2490,7 @@
                 if (status == "PENGERJAAN FORM CUTTING SPREAD") {
                     document.getElementById("lost-time-card").classList.remove("d-none");
 
-                    if ($("status_sambungan").val() != "extension") {
+                    if ($("#status_sambungan").val() != "extension") {
                         document.getElementById("current_sambungan").setAttribute('readonly', true);
                         document.getElementById("current_sisa_gelaran").removeAttribute('readonly');
                     }
@@ -2805,24 +2805,24 @@
             }
 
             // -Set Spreading Form-
-            function setSpreadingForm(data, sisaGelaran, unitSisaGelaran) {
-                lockItemSpreading();
+            async function setSpreadingForm(data, sisaGelaran, unitSisaGelaran) {
+                await lockItemSpreading();
 
                 // if not an extension
                 if (!(sisaGelaran)) {
-                    clearSpreadingForm();
+                    await clearSpreadingForm();
                 }
 
                 // if the roll method is item
                 if (method == "item") {
-                    openItemSpreading();
+                    await openItemSpreading();
 
                     document.getElementById("current_unit").value = "METER";
                     document.getElementById("current_custom_unit").value = "METER";
                 }
 
                 // spreading form data set
-                let convertedQty = rollQtyConversion(data.qty, data.unit);
+                let convertedQty = await rollQtyConversion(data.qty, data.unit);
 
                 data.id_roll ? document.getElementById("kode_barang").value = data.id_roll : '';
                 data.id_item ? document.getElementById("id_item").value = data.id_item : '';
@@ -2901,7 +2901,7 @@
                 } else {
                     nextProcessThreeButton.classList.add("d-none");
 
-                    if ($("status_sambungan").val() != "extension") {
+                    if ($("#status_sambungan").val() != "extension") {
                         lockExtension();
                     }
                 }

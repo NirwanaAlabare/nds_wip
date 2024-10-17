@@ -2678,7 +2678,7 @@
                 // let shortRoll = pActualConverted * lembarGelaranVar + kepalaKainVar + pipingVar + sisaKainVar + rejectVar + sambunganVar - qtyVar;
                 let shortRoll = ((pActualConverted * lembarGelaranVar) + sambunganVar + sisaGelaranVar + sambunganRollVar + kepalaKainVar + sisaTidakBisaVar + rejectVar + sisaKainVar + pipingVar) - qtyVar;
 
-                if (document.getElementById("status_sambungan").value == "extension" && sambunganVar != 0) {
+                if (document.getElementById("status_sambungan").value == "extension" && Number(document.getElementById("current_sambungan").value) > 0) {
                     shortRoll = 0;
                 }
 
@@ -2929,7 +2929,7 @@
                 if (status == "PENGERJAAN FORM CUTTING SPREAD") {
                     document.getElementById("lost-time-card").classList.remove("d-none");
 
-                    if ($("status_sambungan").val() != "extension") {
+                    if ($("#status_sambungan").val() != "extension") {
                         document.getElementById("current_sambungan").setAttribute('readonly', true);
                         document.getElementById("current_sisa_gelaran").removeAttribute('readonly');
                     }
@@ -3340,7 +3340,7 @@
                     } else {
                         nextProcessThreeButton.classList.add("d-none");
 
-                        if ($("status_sambungan").val() != "extension") {
+                        if ($("#status_sambungan").val() != "extension") {
                             lockExtension();
                         }
                     }
