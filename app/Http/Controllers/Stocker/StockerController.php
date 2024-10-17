@@ -490,7 +490,7 @@ class StockerController extends Controller
         // generate pdf
         PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
         $customPaper = array(0, 0, 300, 250);
-        $pdf = PDF::loadView('stocker.stocker.pdf.print-stocker', ["dataStockers" => $dataStockers])->setPaper($customPaper);
+        $pdf = PDF::loadView('stocker.stocker.pdf.print-stocker', ["dataStockers" => $dataStockers])->setPaper('A7', 'landscape');
 
         $path = public_path('pdf/');
         $fileName = 'STOCKER_'.$request["no_ws"]."_".$request['color']."_".$request['panel']."_".$request['group'][$index]."_".$request["size"][$index] . '.pdf';
@@ -620,7 +620,7 @@ class StockerController extends Controller
         // generate pdf
         PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
         $customPaper = array(0, 0, 300, 250);
-        $pdf = PDF::loadView('stocker.stocker.pdf.print-stocker', ["dataStockers" => $dataStockers])->setPaper($customPaper);
+        $pdf = PDF::loadView('stocker.stocker.pdf.print-stocker', ["dataStockers" => $dataStockers])->setPaper('A7', 'landscape');
 
         $path = public_path('pdf/');
         $fileName = 'stocker-' . $request['form_cut_id'] . '-' . $partDetailId . '.pdf';
@@ -756,7 +756,7 @@ class StockerController extends Controller
         // generate pdf
         PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
         $customPaper = array(0, 0, 300, 250);
-        $pdf = PDF::loadView('stocker.stocker.pdf.print-stocker', ["dataStockers" => $dataStockers])->setPaper($customPaper);
+        $pdf = PDF::loadView('stocker.stocker.pdf.print-stocker', ["dataStockers" => $dataStockers])->setPaper('A7', 'landscape');
 
         $path = public_path('pdf/');
         $fileName = 'stocker-' . $request['form_cut_id'] . '-' . implode($request['generate_stocker']) . '.pdf';
@@ -884,7 +884,7 @@ class StockerController extends Controller
         // generate pdf
         PDF::setOption(['dpi' => 150, 'defaultFont' => 'Helvetica-Bold']);
         $customPaper = array(0, 0, 300, 250);
-        $pdf = PDF::loadView('stocker.stocker.pdf.print-stocker', ["dataStockers" => $dataStockers])->setPaper($customPaper);
+        $pdf = PDF::loadView('stocker.stocker.pdf.print-stocker', ["dataStockers" => $dataStockers])->setPaper('A7', 'landscape');
 
         $path = public_path('pdf/');
         $fileName = 'stocker-' . $request['form_cut_id'] .'.pdf';

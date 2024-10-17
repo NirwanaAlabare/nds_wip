@@ -3,7 +3,7 @@
 <head>
     <title>Stocker</title>
     <style>
-        @page { margin: 5px; }
+        @page { margin: 3px; }
 
         @font-face {
             font-family: 'Open Sans';
@@ -13,13 +13,13 @@
         }
 
         body {
-            margin: 5px;
+            margin: 3px;
             font-family: 'Open Sans', sans-serif;
             font-weight: bold;
         }
 
         * {
-            font-size: 11px;
+            font-size: 9px;
         }
 
         img {
@@ -112,18 +112,26 @@
                 <td style="border: none;border-left: none; border-top: 1px solid; border-bottom: 1px solid;text-align: center;width: auto;">:</td>
                 <td colspan="4" style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;{{ strlen($dataStocker->notes) > 30 ? 'font-size: 10px;' : '' }}">{{ substr($dataStocker->notes, 0, 40).(strlen($dataStocker->notes) > 40 ? '...' : '') }}</td>
             </tr>
-        </table>
-        <table>
             <tr>
-                <td style="border: none; border-left: 1px solid;">Reject Panel :</td>
-                <td style="border: none; border-right: 1px solid;">Reject/Return Print :</td>
+                <td style="border: none; border-left: 1px solid; white-space: nowrap;">Reject Panel</td>
+                <td style="border: none; text-align: center;width: auto;">:</td>
+                <td style="border: none; ">&nbsp;</td>
+                <td style="border: none; white-space: nowrap;">Reject/Return Print</td>
+                <td style="border: none; text-align: center;width: auto;">: </td>
+                <td style="border: none; border-right: 1px solid;">&nbsp;</td>
             </tr>
             <tr>
-                <td style="border: none; border-left: 1px solid;">Reject Heatseal :</td>
-                <td style="border: none; border-right: 1px solid;">Reject Embro :</td>
+                <td style="border: none; border-left: 1px solid; white-space: nowrap;">Reject Heatseal</td>
+                <td style="border: none; text-align: center;width: auto;">:</td>
+                <td style="border: none; ">&nbsp;</td>
+                <td style="border: none; white-space: nowrap;">Reject Embro</td>
+                <td style="border: none; text-align: center;width: auto;">: </td>
+                <td style="border: none; border-right: 1px solid;">&nbsp;</td>
             </tr>
             <tr>
-                <td style="border: none; border-left: 1px solid;border-right: 1px solid; border-bottom: 1px solid;" colspan="2">Qty Final Join :</td>
+                <td style="border: none;border-left: 1px solid; border-bottom: 1px solid;white-space: nowrap;">Qty Final Join</td>
+                <td style="border: none;border-left: none; border-bottom: 1px solid;text-align: center;width: auto;">:</td>
+                <td colspan="4" style="border: none;border-right: 1px solid; border-bottom: 1px solid;">&nbsp;</td>
             </tr>
         </table>
     @endforeach
