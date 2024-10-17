@@ -112,6 +112,48 @@
                 <td style="border: none;border-left: none; border-top: 1px solid; border-bottom: 1px solid;text-align: center;width: auto;">:</td>
                 <td colspan="4" style="border: none;border-right: 1px solid; border-top: 1px solid; border-bottom: 1px solid;{{ strlen($dataStocker->notes) > 30 ? 'font-size: 10px;' : '' }}">{{ substr($dataStocker->notes, 0, 40).(strlen($dataStocker->notes) > 40 ? '...' : '') }}</td>
             </tr>
+            <tr>
+                <td style="border: none; border-left: 1px solid;">Reject Panel </td>
+                <td style="border: none;">:</td>
+                <td style="border: none;">
+                    @for ($i = 0; $i < 1; $i++)
+                        &nbsp;
+                    @endfor
+                </td>
+                <td style="border: none;">Reject/Return Print </td>
+                <td style="border: none;">:</td>
+                <td style="border: none; border-right: 1px solid;">
+                    @for ($i = 0; $i < 1; $i++)
+                        &nbsp;
+                    @endfor
+                </td>
+
+            </tr>
+            <tr>
+                <td style="border: none; border-left: 1px solid;">Reject Heatseal </td>
+                <td style="border: none;">:</td>
+                <td style="border: none; border-right: 1px solid;">
+                    @for ($i = 0; $i < 1; $i++)
+                        &nbsp;
+                    @endfor
+                </td>
+                <td style="border: none; border-right: 1px solid;">Reject Embro </td>
+                <td style="border: none;">:</td>
+                <td style="border: none; border-right: 1px solid;">
+                    @for ($i = 0; $i < 1; $i++)
+                        &nbsp;
+                    @endfor
+                </td>
+            </tr>
+            <tr>
+                <td style="border: none; border-left: 1px solid; border-bottom: 1px solid;">Qty Final Join</td>
+                <td style="border: none; border-bottom: 1px solid;">:</td>
+                <td style="border: none; border-right: 1px solid; border-bottom: 1px solid;" colspan="3">
+                    @for ($i = 0; $i < 1; $i++)
+                        &nbsp;
+                    @endfor
+                </td>
+            </tr>
         </table>
     @endforeach
 </body>
