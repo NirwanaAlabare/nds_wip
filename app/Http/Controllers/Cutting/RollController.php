@@ -9,6 +9,7 @@ use App\Exports\ExportLaporanRoll;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
+use Carbon\Carbon;
 use DNS1D;
 use PDF;
 use DB;
@@ -238,7 +239,7 @@ class RollController extends Controller
     {
         ini_set("max_execution_time", 36000);
 
-        return Excel::download(new ExportLaporanRoll($request->from, $request->to), 'Laporan_pemakaian_cutting.xlsx');
+        return Excel::download(new ExportLaporanRoll($request->from, $request->to), 'Laporan pemakaian cutting '.$request->from.' - '.$request->to.' ('.Carbon::now().').xlsx');
     }
 
     public function sisaKainRoll(Request $request)

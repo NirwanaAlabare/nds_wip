@@ -224,7 +224,7 @@
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Gagal',
-                                text: jqXHR.responseText ? jqXHR.responseText : 'Roll tidak tersedia.',
+                                text: 'Roll tidak tersedia.',
                                 showCancelButton: false,
                                 showConfirmButton: true,
                                 confirmButtonText: 'Oke',
@@ -327,7 +327,7 @@
                             var blob = new Blob([res], {type: 'application/pdf'});
                             var link = document.createElement('a');
                             link.href = window.URL.createObjectURL(blob);
-                            link.download = "Stock Numbers.pdf";
+                            link.download = "Sisa Kain "+($("#id_roll").val())+".pdf";
                             link.click();
                         }
                     },
