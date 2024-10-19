@@ -2684,9 +2684,9 @@
 
             // -Calculate Short Roll-
             async function calculateShortRoll(event) {
-                if (event.type == "change") {
-                    document.getElementById("loading").classList.remove("d-none");
-                }
+                // if (event.type == "change") {
+                //     document.getElementById("loading").classList.remove("d-none");
+                // }
 
                 let shortRollResult = await calculatingShortRoll();
 
@@ -2694,11 +2694,11 @@
                     document.getElementById("current_short_roll").value = isNaN(shortRollResult.shortRoll.round(2)) ? 0 : shortRollResult.shortRoll.round(2);
                     document.getElementById("current_short_roll_percentage").value = isNaN(shortRollResult.shortRollPercentage.round(2)) ? 0 : shortRollResult.shortRollPercentage.round(2);
 
-                    if (event.type == 'change') {
-                        setTimeout(() => {
-                            document.getElementById("loading").classList.add("d-none");
-                        }, 300)
-                    }
+                    // if (event.type == 'change') {
+                    //     setTimeout(() => {
+                    //         document.getElementById("loading").classList.add("d-none");
+                    //     }, 300)
+                    // }
                 }
             }
 
