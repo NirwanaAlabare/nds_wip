@@ -371,6 +371,12 @@
                                     </a>
                                 </li>
                                 <li>
+                                    <a href="{{ route('report-cutting-daily') }}"
+                                        class="dropdown-item {{ $subPage == 'cutting-daily' ? 'active' : '' }}">
+                                        Output Cutting Daily <i class="fa fa-file"></i>
+                                    </a>
+                                </li>
+                                <li>
                                     <a href="{{ route('pemakaian-roll') }}"
                                         class="dropdown-item {{ $subPage == 'pemakaian-roll' ? 'active' : '' }}">
                                         Pemakaian Kain <i class="fa fa-file"></i>

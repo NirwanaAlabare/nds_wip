@@ -8,6 +8,7 @@ use App\Exports\ExportReportCutting;
 use App\Exports\ExportReportCuttingSinglePage;
 use App\Exports\ExportPemakaianKain;
 use App\Exports\ExportDetailPemakaianKain;
+use App\Exports\ExportReportCuttingDaily;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
@@ -551,7 +552,7 @@ class ReportCuttingController extends Controller
             $reportCutting = DB::select("
                 SELECT
                     marker_cutting.tgl_form_cut,
-                    marker_cutting.meja,
+                    UPPER(marker_cutting.meja) meja,
                     marker_cutting.act_costing_ws,
                     marker_cutting.style,
                     marker_cutting.color,
@@ -582,63 +583,70 @@ class ReportCuttingController extends Controller
                             SUM(COALESCE(form_cut.total_lembar, form_cut.detail)) form_gelar,
                             SUM(modify_size_qty.difference_qty) diff
                         FROM
-                            marker_input
-                            INNER JOIN
-                                marker_input_detail on marker_input_detail.marker_id = marker_input.id
-                            INNER JOIN
-                                master_sb_ws on master_sb_ws.id_so_det = marker_input_detail.so_det_id
-                            INNER JOIN
-                                (
-                                    SELECT
-                                        meja.id id_meja,
-                                        meja.`name` meja,
-                                        COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) tgl_form_cut,
-                                        form_cut_input.id_marker,
-                                        form_cut_input.no_form,
-                                        form_cut_input.qty_ply,
-                                        form_cut_input.total_lembar,
-                                        form_cut_input.notes,
-                                        SUM(form_cut_input_detail.lembar_gelaran) detail
-                                    FROM
-                                        form_cut_input
-                                        LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
-                                        INNER JOIN form_cut_input_detail ON form_cut_input_detail.no_form_cut_input = form_cut_input.no_form
-                                    WHERE
-                                        form_cut_input.`status` != 'SPREADING'
-                                        AND form_cut_input.waktu_mulai is not null
-                                        ".$additionalQuery."
-                                    GROUP BY
-                                        form_cut_input.no_form,
-                                        form_cut_input.no_form
-                                ) form_cut on form_cut.id_marker = marker_input.kode
-                            LEFT JOIN
-                                modify_size_qty ON modify_size_qty.no_form = form_cut.no_form AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
-                            where
-                                (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
-                                AND marker_input_detail.ratio > 0
-                            group by
-                                marker_input.id,
-                                marker_input_detail.so_det_id,
-                                form_cut.tgl_form_cut,
-                                form_cut.meja
+                        marker_input
+                        INNER JOIN
+                            marker_input_detail on marker_input_detail.marker_id = marker_input.id
+                        INNER JOIN
+                            master_sb_ws on master_sb_ws.id_so_det = marker_input_detail.so_det_id
+                        INNER JOIN
+                            (
+                                SELECT
+                                    meja.id id_meja,
+                                    meja.`name` meja,
+                                    COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) tgl_form_cut,
+                                    form_cut_input.id_marker,
+                                    form_cut_input.no_form,
+                                    form_cut_input.qty_ply,
+                                    form_cut_input.total_lembar,
+                                    form_cut_input.notes,
+                                    SUM(form_cut_input_detail.lembar_gelaran) detail
+                                FROM
+                                    form_cut_input
+                                    LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
+                                    INNER JOIN form_cut_input_detail ON form_cut_input_detail.no_form_cut_input = form_cut_input.no_form
+                                WHERE
+                                    form_cut_input.`status` != 'SPREADING'
+                                    AND form_cut_input.waktu_mulai is not null
+                                    ".$additionalQuery."
+                                GROUP BY
+                                    form_cut_input.no_form
+                            ) form_cut on form_cut.id_marker = marker_input.kode
+                        LEFT JOIN
+                            modify_size_qty ON modify_size_qty.no_form = form_cut.no_form AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
+                        where
+                            (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
+                            AND marker_input_detail.ratio > 0
+                        group by
+                            marker_input.id,
+                            marker_input_detail.so_det_id,
+                            form_cut.tgl_form_cut,
+                            form_cut.meja
                     ) marker_cutting
                 GROUP BY
-                        marker_cutting.id_meja,
-                        marker_cutting.act_costing_id,
-                        marker_cutting.color,
-                        marker_cutting.panel,
-                        marker_cutting.tgl_form_cut
+                    marker_cutting.id_meja,
+                    marker_cutting.act_costing_id,
+                    marker_cutting.color,
+                    marker_cutting.panel,
+                    marker_cutting.tgl_form_cut
                 ORDER BY
-                        marker_cutting.id_meja,
-                        marker_cutting.panel,
-                        marker_cutting.act_costing_id,
-                        marker_cutting.color,
-                        marker_cutting.tgl_form_cut
+                    marker_cutting.id_meja,
+                    marker_cutting.panel,
+                    marker_cutting.act_costing_id,
+                    marker_cutting.color,
+                    marker_cutting.tgl_form_cut
             ");
 
             return DataTables::of($reportCutting)->toJson();
         }
 
-        return view('cutting.report.report-cutting-output-daily', ['page' => 'dashboard-cutting', "subPageGroup" => "cutting-report", "subPage" => "cutting"]);
+        return view('cutting.report.report-cutting-output-daily', ['page' => 'dashboard-cutting', "subPageGroup" => "cutting-report", "subPage" => "cutting-daily"]);
+    }
+
+
+    public function cuttingDailyExport(Request $request)
+    {
+        ini_set("max_execution_time", 36000);
+
+        return Excel::download(new ExportReportCuttingDaily($request->dateFrom, $request->dateTo), 'Report Cutting Output Daily.xlsx');
     }
 }

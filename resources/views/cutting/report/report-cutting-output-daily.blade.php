@@ -14,7 +14,7 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-file fa-sm"></i> Output Cutting</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-file fa-sm"></i> Output Cutting Daily</h5>
         </div>
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-end gap-3">
@@ -22,7 +22,7 @@
                     <div class="mb-3">
                         <label class="form-label"><small>Tanggal</small></label>
                         <div class="d-flex justify-content-start align-items-end gap-3">
-                            <input type="date" class="form-control form-control-sm" id="from" name="date-from" onchange="datatableReload()">
+                            <input type="date" class="form-control form-control-sm" id="from" name="date-from" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
                             <input type="date" class="form-control form-control-sm" id="to" name="date-to" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
                         </div>
                     </div>
@@ -69,17 +69,17 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            let oneWeeksBefore = new Date(new Date().setDate(new Date().getDate() - 7));
-            let oneWeeksBeforeDate = ("0" + oneWeeksBefore.getDate()).slice(-2);
-            let oneWeeksBeforeMonth = ("0" + (oneWeeksBefore.getMonth() + 1)).slice(-2);
-            let oneWeeksBeforeYear = oneWeeksBefore.getFullYear();
-            let oneWeeksBeforeFull = oneWeeksBeforeYear + '-' + oneWeeksBeforeMonth + '-' + oneWeeksBeforeDate;
+            // let oneWeeksBefore = new Date(new Date().setDate(new Date().getDate() - 7));
+            // let oneWeeksBeforeDate = ("0" + oneWeeksBefore.getDate()).slice(-2);
+            // let oneWeeksBeforeMonth = ("0" + (oneWeeksBefore.getMonth() + 1)).slice(-2);
+            // let oneWeeksBeforeYear = oneWeeksBefore.getFullYear();
+            // let oneWeeksBeforeFull = oneWeeksBeforeYear + '-' + oneWeeksBeforeMonth + '-' + oneWeeksBeforeDate;
 
-            $("#from").val(oneWeeksBeforeFull).trigger("change");
+            // $("#from").val(oneWeeksBeforeFull).trigger("change");
 
-            window.addEventListener("focus", () => {
-                $('#datatable').DataTable().ajax.reload(null, false);
-            });
+            // window.addEventListener("focus", () => {
+            //     $('#datatable').DataTable().ajax.reload(null, false);
+            // });
         });
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
@@ -109,7 +109,7 @@
             scrollY: "500px",
             pageLength: 50,
             ajax: {
-                url: '{{ route('report-cutting') }}',
+                url: '{{ route('report-cutting-daily') }}',
                 data: function(d) {
                     d.dateFrom = $('#from').val();
                     d.dateTo = $('#to').val();
@@ -120,7 +120,7 @@
                     data: 'tgl_form_cut'
                 },
                 {
-                    data: 'buyer'
+                    data: 'meja'
                 },
                 {
                     data: 'act_costing_ws'
@@ -135,19 +135,7 @@
                     data: 'panel'
                 },
                 {
-                    data: 'size'
-                },
-                {
-                    data: 'notes'
-                },
-                {
-                    data: 'marker_gelar'
-                },
-                {
-                    data: 'form_gelar'
-                },
-                {
-                    data: 'form_diff'
+                    data: 'qty'
                 },
             ],
             columnDefs: [
@@ -185,7 +173,7 @@
             let currentDate = `${day}-${month}-${year}`;
 
             $.ajax({
-                url: "{{ route("report-cutting-export") }}",
+                url: "{{ route("report-cutting-daily-export") }}",
                 type: 'post',
                 data: {
                     dateFrom : $('#from').val(),
@@ -206,7 +194,7 @@
                     var blob = new Blob([res]);
                     var link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
-                    link.download = "Output Cutting - "+$('#from').val()+" - "+$('#to').val()+".xlsx";
+                    link.download = "Daily Output Cutting - "+$('#from').val()+" - "+$('#to').val()+".xlsx";
                     link.click();
                 }, error: function (jqXHR) {
                     elm.removeChild(loading);
