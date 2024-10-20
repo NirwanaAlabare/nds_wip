@@ -107,20 +107,28 @@ order by isi asc");
         $tgl_skrg = date('Y-m-d');
         $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-90 days'));
         $data_po = DB::select("SELECT
-        p.po isi,
-        CONCAT(p.po, ' ( ', p.styleno, ' ) ', '( ', p.styleno_prod , ' )') tampil
-        from
-        (
-        select ws,color,size,so_det_id from output_rfts_packing a
-        inner join master_sb_ws m on a.so_det_id = m.id_so_det
-        where a.created_by = '" . $request->cbo_line . "' and a.created_at >= '$tgl_skrg_min_sebulan'
-        group by so_det_id
+po isi,
+CONCAT(po, ' ( ', styleno, ' ) ', '( ', a.styleno_prod , ' )') tampil
+from
+(
+select po,ws,color,size, styleno,styleno_prod from ppic_master_so p
+inner join master_sb_ws m on p.id_so_det = m.id_so_det
+group by ws, color, size, po
+) a
+inner join
+(
+        select ws,color,size,so_det_id from (
+				select so_det_id from
+				output_rfts_packing a
+				where a.created_at >= '$tgl_skrg_min_sebulan' and a.created_by = '" . $request->cbo_line . "'
+				group by so_det_id
         ) a
-        inner join (select p.*, m.styleno, m.styleno_prod, m.ws, m.color, m.size from ppic_master_so p
-        inner join master_sb_ws m on p.id_so_det = m.id_so_det where tgl_shipment >= '$tgl_skrg_min_sebulan')
-        p on a.ws = p.ws and a.color = p.color and a.size = p.size
-        group by po, p.styleno
-        ");
+				inner join master_sb_ws m on a.so_det_id = m.id_so_det
+        group by so_det_id
+
+) b on a.ws = b.ws and a.color = b.color and a.size = b.size
+group by po, styleno
+                ");
 
         $html = "<option value=''>Pilih PO</option>";
 

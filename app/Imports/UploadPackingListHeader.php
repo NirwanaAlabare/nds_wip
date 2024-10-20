@@ -37,16 +37,16 @@ class UploadPackingListHeader implements ToModel, WithStartRow, WithLimit
         $timestamp = Carbon::now();
         $header = new Packing_list_upload_header([
             'po' => $this->po,
-            'field_1' => $row[11] ?? null,
-            'field_2' => $row[12] ?? null,
-            'field_3' => $row[13] ?? null,
-            'field_4' => $row[14] ?? null,
-            'field_5' => $row[15] ?? null,
-            'field_6' => $row[16] ?? null,
-            'field_7' => $row[17] ?? null,
-            'field_8' => $row[18] ?? null,
-            'field_9' => $row[19] ?? null,
-            'field_10' => $row[20] ?? null,
+            'field_1' => $row[7] ?? null,
+            'field_2' => $row[8] ?? null,
+            'field_3' => $row[9] ?? null,
+            'field_4' => $row[10] ?? null,
+            'field_5' => $row[11] ?? null,
+            'field_6' => $row[12] ?? null,
+            'field_7' => $row[13] ?? null,
+            'field_8' => $row[14] ?? null,
+            'field_9' => $row[15] ?? null,
+            'field_10' => $row[16] ?? null,
             'created_by' => $user,
 
         ]);

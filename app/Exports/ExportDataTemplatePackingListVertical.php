@@ -28,7 +28,7 @@ Sheet::macro('styleCells', function (Sheet $sheet, string $cellRange, array $sty
 //     }
 // }
 
-class ExportDataTemplatePackingList implements FromView, WithEvents, ShouldAutoSize, WithColumnFormatting
+class ExportDataTemplatePackingListVertical implements FromView, WithEvents, ShouldAutoSize, WithColumnFormatting
 {
     use Exportable;
 
@@ -56,7 +56,7 @@ group by po
         $this->rowCount = count($data) + 1;
 
 
-        return view('packing.export_excel_data_template_packing_list', [
+        return view('packing.export_excel_data_template_packing_list_vertical', [
             'data' => $data,
             'po' => $this->po
         ]);

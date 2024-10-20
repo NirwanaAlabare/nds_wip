@@ -68,6 +68,7 @@ use App\Http\Controllers\Sewing\ReportProductionController;
 use App\Http\Controllers\Sewing\ReportEfficiencyController;
 use App\Http\Controllers\Sewing\ReportDetailOutputController;
 
+
 // Track
 use App\Http\Controllers\TrackController;
 
@@ -1322,10 +1323,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('packing-list');
         Route::post('/upload_packing_list', 'upload_packing_list')->name('upload-packing-list');
         Route::get('/show_det_po', 'show_det_po')->name('show_det_po');
-        Route::get('/export_data_template_po_packing_list', 'export_data_template_po_packing_list')->name('export_data_template_po_packing_list');
+        Route::get('/export_data_template_po_packing_list_horizontal', 'export_data_template_po_packing_list_horizontal')->name('export_data_template_po_packing_list_horizontal');
+        Route::get('/export_data_template_po_packing_list_vertical', 'export_data_template_po_packing_list_vertical')->name('export_data_template_po_packing_list_vertical');
         Route::get('/show_datatable_upload_packing_list', 'show_datatable_upload_packing_list')->name('show_datatable_upload_packing_list');
         Route::post('/delete_upload_packing_list', 'delete_upload_packing_list')->name('delete_upload_packing_list');
         Route::post('/store', 'store')->name('store_upload_packing_list');
+        Route::get('/getPoData', 'getPoData')->name('getPoData');
     });
 
 
