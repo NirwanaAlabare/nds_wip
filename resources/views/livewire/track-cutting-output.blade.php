@@ -61,8 +61,8 @@
                     <th>No. WS</th>
                     <th>Style</th>
                     <th>Color</th>
-                    <th>Panel</th>
                     <th>Meja</th>
+                    <th>Panel</th>
                     @if ($groupBy == 'size')
                         <th>Size</th>
                     @endif
