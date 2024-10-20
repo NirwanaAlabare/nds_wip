@@ -353,7 +353,7 @@
                                 </li>
                                 <li>
                                     <a href="{{ route('sisa_kain_roll') }}"
-                                        class="dropdown-item {{ $subPage == 'sisa_kain_roll' ? 'active' : '' }}">
+                                        class="dropdown-item {{ $subPage == 'sisa-kain-roll' ? 'active' : '' }}">
                                         Sisa Kain Roll <i class="fa-solid fa-toilet-paper-slash fa-sm"></i>
                                     </a>
                                 </li>
@@ -368,6 +368,12 @@
                                     <a href="{{ route('report-cutting') }}"
                                         class="dropdown-item {{ $subPage == 'cutting' ? 'active' : '' }}">
                                         Output Cutting <i class="fa fa-file"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('report-cutting-daily') }}"
+                                        class="dropdown-item {{ $subPage == 'cutting-daily' ? 'active' : '' }}">
+                                        Output Cutting Daily <i class="fa fa-file"></i>
                                     </a>
                                 </li>
                                 <li>

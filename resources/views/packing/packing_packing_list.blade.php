@@ -42,9 +42,27 @@
                         <div class='row'>
                             <div class="col-md-6">
                                 <div class="form-group">
+                                    <label><small><b>Tipe Upload :</b></small></label>
+                                    <select class="form-control select2bs4" id="cbotipe" name="cbotipe"
+                                        style="width: 100%;" required>
+                                        <option selected="selected" value="" disabled="true">Pilih Tipe Upload
+                                        </option>
+                                        @foreach ($data_list as $datalist)
+                                            <option value="{{ $datalist->isi }}">
+                                                {{ $datalist->tampil }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='row'>
+                            <div class="col-md-6">
+                                <div class="form-group">
                                     <label><small><b>PO :</b></small></label>
                                     <select class="form-control select2bs4" id="cbopo" name="cbopo"
-                                        style="width: 100%;" onchange="getdatapo();delete_tmp_upload()" required>
+                                        style="width: 100%;"
+                                        onchange="getdatapo();delete_tmp_upload();dataTableUploadReload()" required>
                                         <option selected="selected" value="" disabled="true">Pilih PO</option>
                                         @foreach ($data_po as $datapo)
                                             <option value="{{ $datapo->isi }}">
@@ -117,6 +135,13 @@
                                     </a>
                                 </div>
                             </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label><small><b>Tidak Terdaftar :</b></small></label>
+                                    <input type='texr' id="txtnon_upload" name="txtnon_upload"
+                                        class='form-control form-control-sm' value="" readonly>
+                                </div>
+                            </div>
                         </div>
                         <div class="table-responsive">
                             <table id="datatable_upload"
@@ -126,41 +151,34 @@
                                         <th>Tgl. Shipment</th>
                                         <th>PO #</th>
                                         <th>No. Carton</th>
+                                        <th>Tipe Pack</th>
                                         <th>Color</th>
                                         <th>Size</th>
                                         <th>Qty</th>
                                     </tr>
                                 </thead>
-                                {{-- <tfoot>
+                                <tfoot>
                                     <tr>
-                                        <th colspan="7"></th>
+                                        <th colspan="5"></th>
                                         <th> <input type = 'text' class="form-control form-control-sm"
                                                 style="width:75px" readonly id = 'total_qty_carton'> </th>
-                                        <th> <input type = 'text' class="form-control form-control-sm"
-                                                style="width:75px" readonly id = 'total_qty_carton_isi'> </th>
-                                        <th> <input type = 'text' class="form-control form-control-sm"
-                                                style="width:75px" readonly id = 'total_qty_carton_kosong'> </th>
-                                        <th> <input type = 'text' class="form-control form-control-sm"
-                                                style="width:75px" readonly id = 'total_qty_po'> </th>
-                                        <th> <input type = 'text' class="form-control form-control-sm"
-                                                style="width:75px" readonly id = 'total_qty_scan'> </th>
-                                        <th></th>
                                     </tr>
-                                </tfoot> --}}
+                                </tfoot>
                             </table>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-danger btn-sm" data-bs-dismiss="modal"><i
-                                class="fas fa-times-circle"></i> Tutup</button>
-                        <a class="btn btn-outline-success btn-sm" onclick="simpan()">
-                            <i class="fas fa-check"></i>
-                            Simpan
-                        </a>
-                    </div>
-                </div>
-            </div>
         </form>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline-danger btn-sm" data-bs-dismiss="modal"><i
+                    class="fas fa-times-circle"></i> Tutup</button>
+            <a class="btn btn-outline-success btn-sm" onclick="simpan()">
+                <i class="fas fa-check"></i>
+                Simpan
+            </a>
+        </div>
+    </div>
+    </div>
+
     </div>
     <div class="card card-sb">
         <div class="card-header">
@@ -178,13 +196,26 @@
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Shipment Awal</b></small></label>
                     <input type="date" class="form-control form-control-sm " id="tgl-awal" name="tgl_awal"
-                        oninput="dataTableReload()" value="{{ date('Y-m-d') }}">
+                        oninput="dataTableReload()" value="{{ $tgl_awal_fix }}">
                 </div>
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Shipment Akhir</b></small></label>
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
                         oninput="dataTableReload()" value="{{ $tgl_akhir_fix }}">
                 </div>
+            </div>
+            <div class="table-responsive">
+                <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                    <thead class="table-primary">
+                        <tr style='text-align:center; vertical-align:middle'>
+                            <th>Tgl. Shipment</th>
+                            <th>PO</th>
+                            <th>Buyer</th>
+                            <th>Tot. Carton</th>
+                            <th>Tot. Qty</th>
+                        </tr>
+                    </thead>
+                </table>
             </div>
         </div>
     </div>
@@ -225,6 +256,7 @@
                 theme: 'bootstrap4',
                 dropdownParent: $("#exampleModal")
             })
+            reloadPoData();
         })
     </script>
     <script>
@@ -234,8 +266,10 @@
 
         function reset() {
             $("#form_upload").trigger("reset");
+            $("#cbotipe").val('HORIZONTAL').trigger('change');
             $("#cbopo").val('').trigger('change');
             dataTableUploadReload();
+            document.getElementById('file').value = "";
         }
     </script>
     <script>
@@ -244,6 +278,7 @@
         });
 
         function getdatapo() {
+            document.getElementById('file').value = "";
             let cbopo = document.form_upload.cbopo.value;
             $.ajax({
                 url: '{{ route('show_det_po') }}',
@@ -274,6 +309,13 @@
 
         function export_data_po() {
             let po = $('#cbopo').val();
+            let tipe = $('#cbotipe').val();
+            if (!tipe) {
+                iziToast.warning({
+                    message: 'Tipe masih kosong, Silahkan pilih tipe',
+                    position: 'topCenter'
+                });
+            }
 
             if (!po) {
                 iziToast.warning({
@@ -290,33 +332,65 @@
                     allowOutsideClick: false,
                 });
 
-                $.ajax({
-                    type: "get",
-                    url: '{{ route('export_data_template_po_packing_list') }}',
-                    data: {
-                        po: po
-                    },
-                    xhrFields: {
-                        responseType: 'blob'
-                    },
-                    success: function(response) {
-                        {
-                            swal.close();
-                            Swal.fire({
-                                title: 'Data Sudah Di Export!',
-                                icon: "success",
-                                showConfirmButton: true,
-                                allowOutsideClick: false
-                            });
-                            var blob = new Blob([response]);
-                            var link = document.createElement('a');
-                            link.href = window.URL.createObjectURL(blob);
-                            link.download = "PO " + po + ".xlsx";
-                            link.click();
+                if (tipe == 'HORIZONTAL') {
+                    $.ajax({
+                        type: "get",
+                        url: '{{ route('export_data_template_po_packing_list_horizontal') }}',
+                        data: {
+                            po: po
+                        },
+                        xhrFields: {
+                            responseType: 'blob'
+                        },
+                        success: function(response) {
+                            {
+                                swal.close();
+                                Swal.fire({
+                                    title: 'Data Sudah Di Export!',
+                                    icon: "success",
+                                    showConfirmButton: true,
+                                    allowOutsideClick: false
+                                });
+                                var blob = new Blob([response]);
+                                var link = document.createElement('a');
+                                link.href = window.URL.createObjectURL(blob);
+                                link.download = "PO " + po + "_H.xlsx";
+                                link.click();
 
-                        }
-                    },
-                });
+                            }
+                        },
+                    });
+                } else {
+                    $.ajax({
+                        type: "get",
+                        url: '{{ route('export_data_template_po_packing_list_vertical') }}',
+                        data: {
+                            po: po
+                        },
+                        xhrFields: {
+                            responseType: 'blob'
+                        },
+                        success: function(response) {
+                            {
+                                swal.close();
+                                Swal.fire({
+                                    title: 'Data Sudah Di Export!',
+                                    icon: "success",
+                                    showConfirmButton: true,
+                                    allowOutsideClick: false
+                                });
+                                var blob = new Blob([response]);
+                                var link = document.createElement('a');
+                                link.href = window.URL.createObjectURL(blob);
+                                link.download = "PO " + po + "_V.xlsx";
+                                link.click();
+
+                            }
+                        },
+                    });
+                }
+
+
             }
         }
 
@@ -331,6 +405,68 @@
                 async: false
             }).responseText;
         }
+
+        function dataTableReload() {
+            datatable.ajax.reload();
+        }
+
+
+        $('#datatable thead tr').clone(true).appendTo('#datatable thead');
+        $('#datatable thead tr:eq(1) th').each(function(i) {
+            var title = $(this).text();
+            $(this).html('<input type="text" class="form-control form-control-sm"/>');
+            $('input', this).on('keyup change', function() {
+                if (datatable.column(i).search() !== this.value) {
+                    datatable
+                        .column(i)
+                        .search(this.value)
+                        .draw();
+                }
+            });
+        });
+
+        let datatable = $("#datatable").DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            paging: false,
+            searching: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
+            ajax: {
+                url: '{{ route('packing-list') }}',
+                data: function(d) {
+                    d.dateFrom = $('#tgl-awal').val();
+                    d.dateTo = $('#tgl-akhir').val();
+                },
+            },
+            columns: [{
+                    data: 'tgl_shipment_fix'
+
+                },
+                {
+                    data: 'po'
+                },
+                {
+                    data: 'buyer'
+                },
+                {
+                    data: 'tot_carton'
+                },
+                {
+                    data: 'tot_qty'
+                },
+            ],
+            columnDefs: [{
+                "className": "dt-center",
+                "targets": "_all"
+            }, ]
+
+
+        }, );
+
+
 
         function dataTableUploadReload() {
             datatable_upload.ajax.reload();
@@ -351,30 +487,41 @@
         });
 
         let datatable_upload = $("#datatable_upload").DataTable({
-            // "footerCallback": function(row, data, start, end, display) {
-            //     var api = this.api(),
-            //         data;
+            "footerCallback": function(row, data, start, end, display) {
+                var api = this.api(),
+                    data;
 
-            //     // converting to interger to find total
-            //     var intVal = function(i) {
-            //         return typeof i === 'string' ?
-            //             i.replace(/[\$,]/g, '') * 1 :
-            //             typeof i === 'number' ?
-            //             i : 0;
-            //     };
+                // converting to interger to find total
+                var intVal = function(i) {
+                    return typeof i === 'string' ?
+                        i.replace(/[\$,]/g, '') * 1 :
+                        typeof i === 'number' ?
+                        i : 0;
+                };
 
-            //     // computing column Total of the complete result
-            //     var sumTotal = api
-            //         .column(8)
-            //         .data()
-            //         .reduce(function(a, b) {
-            //             return intVal(a) + intVal(b);
-            //         }, 0);
+                // computing column Total of the complete result
+                var sumTotal = api
+                    .column(5)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
 
-            //     // Update footer by showing the total with the reference of the column index
-            //     $(api.column(0).footer()).html('Total');
-            //     $(api.column(8).footer()).html(sumTotal);
-            // },
+                // Count rows with color red
+
+                var redCount = 0;
+                api.rows().every(function() {
+                    var row = this.data();
+                    if (row.id_ppic_master_so === null) {
+                        redCount++;
+                    }
+                });
+
+                // Update footer by showing the total with the reference of the column index
+                $(api.column(0).footer()).html('Total');
+                $(api.column(5).footer()).html(sumTotal);
+                $('#txtnon_upload').val(redCount);
+            },
             ordering: false,
             processing: true,
             serverSide: true,
@@ -387,6 +534,7 @@
                 url: '{{ route('show_datatable_upload_packing_list') }}',
                 data: function(d) {
                     d.po = $('#cbopo').val();
+                    d.tipe = $('#cbotipe').val();
                 },
             },
             columns: [{
@@ -400,6 +548,9 @@
                     data: 'no_carton'
                 },
                 {
+                    data: 'tipe_pack'
+                },
+                {
                     data: 'color'
                 },
                 {
@@ -410,48 +561,91 @@
                 },
             ],
             columnDefs: [{
-                "className": "dt-center",
-                "targets": "_all"
-            }, ]
+                    "className": "dt-center",
+                    "targets": "_all"
+                },
+                {
+                    targets: '_all',
+                    className: 'text-nowrap',
+                    render: (data, type, row, meta) => {
+                        if (row.id_ppic_master_so === null) {
+                            color = 'red';
+                        } else {
+                            color = '#087521';
+                        }
+                        return '<span style="font-weight: 600; color:' + color + '">' + data + '</span>';
+                    }
+                },
+            ]
 
 
         }, );
 
 
-        // function simpan() {
-        //     let po = $('#cbopo').val();
-        //     $.ajax({
-        //         type: "post",
-        //         url: '{{ route('store_upload_packing_list') }}',
-        //         data: {
-        //             po: po
-        //         },
-        //         success: function(response) {
-        //             if (response.icon == 'salah') {
-        //                 iziToast.warning({
-        //                     message: response.msg,
-        //                     position: 'topCenter'
-        //                 });
-        //                 dataTableReload();
-        //                 dataTablePreviewReload();
-        //             } else {
-        //                 Swal.fire({
-        //                     text: response.msg,
-        //                     icon: "success"
-        //                 });
-        //                 dataTableUploadReload();
-        //             }
+        function simpan() {
+            let po = $('#cbopo').val();
+            let txtnon_upload = $('#txtnon_upload').val();
+            let tipe = $('#cbotipe').val();
+            $.ajax({
+                type: "post",
+                url: '{{ route('store_upload_packing_list') }}',
+                data: {
+                    po: po,
+                    txtnon_upload: txtnon_upload,
+                    tipe: tipe
+                },
+                success: function(response) {
+                    if (response.icon == 'salah') {
+                        iziToast.warning({
+                            message: response.msg,
+                            position: 'topCenter'
+                        });
+                        dataTableReload();
+                        dataTableUploadReload();
+                    } else {
+                        Swal.fire({
+                            text: response.msg,
+                            icon: "success"
+                        });
+                        dataTableReload();
+                        dataTableUploadReload();
+                        delete_tmp_upload();
+                    }
 
-        //         },
-        //         error: function(request, status, error) {
-        //             iziToast.warning({
-        //                 message: 'Silahkan cek lagi',
-        //                 position: 'topCenter'
-        //             });
-        //             dataTableUploadReload();
-        //         },
-        //     });
+                },
+                error: function(request, status, error) {
+                    iziToast.warning({
+                        message: 'Silahkan cek lagi',
+                        position: 'topCenter'
+                    });
+                    dataTableUploadReload();
+                    delete_tmp_upload();
+                    dataTableReload();
+                },
+            });
 
-        // };
+        };
+
+        function reloadPoData() {
+            const cbopo = $('#cbopo');
+            cbopo.empty(); // Clear existing options
+            cbopo.append('<option selected="selected" value="" disabled="true">Pilih PO</option>'); // Default option
+            $.ajax({
+                type: 'GET',
+                url: '{{ route('getPoData') }}',
+                success: function(data) {
+                    console.log('Received data:', data); // Debugging statement
+                    $.each(data, function(index, item) {
+                        cbopo.append($('<option>', {
+                            value: item.isi,
+                            text: item.tampil
+                        }));
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching PO data:', error); // Debugging statement
+                }
+            });
+        }
     </script>
 @endsection
