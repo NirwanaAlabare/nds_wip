@@ -316,14 +316,16 @@ class TrackCuttingOutput extends Component
                         marker_cutting.act_costing_id,
                         marker_cutting.color,
                         marker_cutting.id_meja,
-                        marker_cutting.panel
-                        ".($this->groupBy == 'size' ? ', marker_cutting.so_det_id, marker_cutting.size ' : '')."
+                        marker_cutting.panel,
+                        ".($this->groupBy == 'size' ? ' marker_cutting.so_det_id, marker_cutting.size, ' : '')."
+                        marker_cutting.tgl_form_cut
                     ORDER BY
                         marker_cutting.act_costing_id,
                         marker_cutting.color,
                         marker_cutting.id_meja,
-                        marker_cutting.panel
-                        ".($this->groupBy == 'size' ? ', marker_cutting.so_det_id, marker_cutting.size ' : '')."
+                        marker_cutting.panel,
+                        ".($this->groupBy == 'size' ? ' marker_cutting.so_det_id, marker_cutting.size, ' : '')."
+                        marker_cutting.tgl_form_cut
                 ")
             );
 
