@@ -9,6 +9,7 @@ use App\Exports\ExportLaporanRoll;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
+use Carbon\Carbon;
 use DNS1D;
 use PDF;
 use DB;
@@ -238,7 +239,7 @@ class RollController extends Controller
     {
         ini_set("max_execution_time", 36000);
 
-        return Excel::download(new ExportLaporanRoll($request->from, $request->to), 'Laporan_pemakaian_cutting.xlsx');
+        return Excel::download(new ExportLaporanRoll($request->from, $request->to), 'Laporan pemakaian cutting '.$request->from.' - '.$request->to.' ('.Carbon::now().').xlsx');
     }
 
     public function sisaKainRoll(Request $request)
@@ -436,7 +437,7 @@ class RollController extends Controller
             leftJoin("form_cut_input", "form_cut_input.no_form", "=", "form_cut_input_detail.no_form_cut_input")->
             whereRaw("(form_cut_input.status != 'SELESAI PENGERJAAN' OR (form_cut_input.status = 'SELESAI PENGERJAAN' AND form_cut_input.status != 'not complete' AND form_cut_input.status != 'extension') )")->
             where("id_roll", $request->id)->
-            whereRaw("id_roll > 0")->
+            whereRaw("(id_roll is not null AND id_roll != '')")->
             orderBy("form_cut_input_detail.id")->
             get();
 

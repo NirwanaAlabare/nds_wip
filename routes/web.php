@@ -451,12 +451,14 @@ Route::middleware('auth')->group(function () {
     // ReportCutting
     Route::controller(ReportCuttingController::class)->prefix("report-cutting")->middleware('admin')->group(function () {
         Route::get('/cutting', 'cutting')->name('report-cutting');
+        Route::get('/cutting-daily', 'cuttingDaily')->name('report-cutting-daily');
         Route::get('/pemakaian-roll', 'pemakaianRoll')->name('pemakaian-roll');
         Route::get('/detail-pemakaian-roll', 'detailPemakaianRoll')->name('detail-pemakaian-roll');
         Route::get('/total-pemakaian-roll', 'totalPemakaianRoll')->name('total-pemakaian-roll');
 
         // export excel
         Route::post('/cutting/export', 'export')->name('report-cutting-export');
+        Route::post('/cutting-daily/export', 'cuttingDailyExport')->name('report-cutting-daily-export');
         Route::post('/pemakaian-roll/export', 'pemakaianRollExport')->name('pemakaian-roll-export');
         Route::post('/detail-pemakaian-roll/export', 'detailPemakaianRollExport')->name('detail-pemakaian-roll-export');
     });
@@ -533,6 +535,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-stocker', 'getStocker')->name('get-stocker');
         Route::get('/get-stocker-month-count', 'getStockerMonthCount')->name('get-stocker-month-count');
         Route::get('/get-stocker-year-sequence', 'getStockerYearSequence')->name('get-stocker-year-sequence');
+
+        // add
+        Route::post('/print-stocker-all-size-add', 'printStockerAllSizeAdd')->name('print-stocker-all-size-add');
+        Route::post('/submit-stocker-add', 'submitStockerAdd')->name('submit-stocker-add');
     });
 
     // DC :

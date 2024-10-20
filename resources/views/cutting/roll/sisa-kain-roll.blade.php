@@ -14,7 +14,7 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-note-sticky"></i> Sisa Kain Roll</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-toilet-paper-slash"></i> Sisa Kain Roll</h5>
         </div>
         <div class="card-body">
             <div class="row justify-content-start align-items-end g-3">
@@ -224,7 +224,7 @@
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Gagal',
-                                text: jqXHR.responseText ? jqXHR.responseText : 'Roll tidak tersedia.',
+                                text: 'Roll tidak tersedia.',
                                 showCancelButton: false,
                                 showConfirmButton: true,
                                 confirmButtonText: 'Oke',
@@ -327,7 +327,7 @@
                             var blob = new Blob([res], {type: 'application/pdf'});
                             var link = document.createElement('a');
                             link.href = window.URL.createObjectURL(blob);
-                            link.download = "Stock Numbers.pdf";
+                            link.download = "Sisa Kain "+($("#id_roll").val())+".pdf";
                             link.click();
                         }
                     },
