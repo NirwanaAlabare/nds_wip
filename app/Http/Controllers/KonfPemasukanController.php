@@ -133,14 +133,15 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
                     $sqlupdate = DB::connection('mysql_sb')->select("update bpb set qty = qty_temp where bpbno_int ='".$request['id_bpb'][$i]."' ");
                 }
 
-            $cekdata = DB::connection('mysql_sb')->select("select bpbno, bpbno_int, bpb.bpbdate, bpb.id_supplier, supplier, mattype, n_code_category, 
-        if(matclass like '%ACCESORIES%','ACCESORIES',mi.matclass) matclass, bpb.curr, COALESCE(tax,0) tax,bpb.username, bpb.dateinput, 
-        SUM(((qty - COALESCE(qty_reject,0)) * price) + (((qty - COALESCE(qty_reject,0)) * price) * (COALESCE(tax,0) /100))) as total,SUM(((qty - COALESCE(qty_reject,0)) * price)) as dpp,SUM((((qty - COALESCE(qty_reject,0)) * price) * (COALESCE(tax,0) /100))) as ppn
-        from bpb 
-        inner join masteritem mi on bpb.id_item = mi.id_item
-        inner join mastersupplier ms on bpb.id_supplier = ms.id_supplier
-        left join po_header ph on bpb.pono = ph.pono
-        where bpbno_int  = '".$request['id_bpb'][$i]."' and ph.app = 'A' group by bpbno_int");
+            $cekdata = DB::connection('mysql_sb')->select("select SUBSTR(bpbno_int,1,3) fil_wip, phd.tipe_com, mi.itemdesc,bpb.confirm,bpbno, bpbno_int, bpb.bpbdate, bpb.id_supplier, supplier, mattype, n_code_category, 
+			if(matclass like '%ACCESORIES%','ACCESORIES',mi.matclass) matclass, bpb.curr, COALESCE(ph.tax,0) tax,bpb.username, bpb.dateinput, 
+			round(SUM(((qty - COALESCE(qty_reject,0)) * price) + (((qty - COALESCE(qty_reject,0)) * price) * (COALESCE(ph.tax,0) /100))),2) as total,round(SUM(((qty - COALESCE(qty_reject,0)) * price)),2) as dpp,round(SUM((((qty - COALESCE(qty_reject,0)) * price) * (COALESCE(ph.tax,0) /100))),2) as ppn
+			from bpb 
+			inner join masteritem mi on bpb.id_item = mi.id_item
+			inner join mastersupplier ms on bpb.id_supplier = ms.id_supplier
+			left join po_header ph on bpb.pono = ph.pono
+			left join po_header_draft phd on phd.id = ph.id_draft
+			where bpbno_int = '".$request['id_bpb'][$i]."'  group by bpbno,mattype, n_code_category order by supplier");
 
             $no_bpb         = $cekdata ? $cekdata[0]->bpbno_int : '-';
             $supp           = $cekdata ? $cekdata[0]->supplier : '-';
@@ -157,6 +158,7 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
             $ppn            = $cekdata ? $cekdata[0]->ppn : 0;
             $tgl_bpb        = $cekdata ? $cekdata[0]->bpbdate : '-';
             $dateinput_     = $cekdata ? $cekdata[0]->dateinput : '-';
+            $tipe_com       = $cekdata ? $cekdata[0]->tipe_com : '-';
             $matclass       = '';
             $rate           = 0;
             $idr_dpp        = 0;
