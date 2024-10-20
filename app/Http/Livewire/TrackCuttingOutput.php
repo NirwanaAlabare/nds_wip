@@ -155,6 +155,7 @@ class TrackCuttingOutput extends Component
                 orderBy("marker_input.act_costing_id", "asc")->
                 orderBy("marker_input.style", "asc")->
                 orderBy("marker_input.color", "asc")->
+                orderBy("marker_input.panel", "asc")->
                 orderByRaw("form_cut_input.no_meja asc, marker_input_detail.so_det_id asc, marker_input_detail.size asc");
 
             $this->orderFilter = $orderFilterSql->get();
@@ -230,6 +231,7 @@ class TrackCuttingOutput extends Component
                 orderBy("marker_input.act_costing_id", "asc")->
                 orderBy("marker_input.style", "asc")->
                 orderBy("marker_input.color", "asc")->
+                orderBy("marker_input.panel", "asc")->
                 orderByRaw("form_cut_input.no_meja asc, marker_input_detail.so_det_id asc, marker_input_detail.size asc");
 
             $this->dailyOrderGroup = $dailyOrderGroupSql->get();
@@ -311,18 +313,16 @@ class TrackCuttingOutput extends Component
                                 form_cut.meja
                         ) marker_cutting
                     GROUP BY
-                        marker_cutting.id_meja,
                         marker_cutting.act_costing_id,
                         marker_cutting.color,
-                        marker_cutting.panel,
-                        marker_cutting.tgl_form_cut
+                        marker_cutting.id_meja,
+                        marker_cutting.panel
                         ".($this->groupBy == 'size' ? ', marker_cutting.so_det_id, marker_cutting.size ' : '')."
                     ORDER BY
-                        marker_cutting.id_meja,
-                        marker_cutting.panel,
                         marker_cutting.act_costing_id,
                         marker_cutting.color,
-                        marker_cutting.tgl_form_cut
+                        marker_cutting.id_meja,
+                        marker_cutting.panel
                         ".($this->groupBy == 'size' ? ', marker_cutting.so_det_id, marker_cutting.size ' : '')."
                 ")
             );

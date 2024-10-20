@@ -61,6 +61,7 @@
                     <th>No. WS</th>
                     <th>Style</th>
                     <th>Color</th>
+                    <th>Panel</th>
                     <th>Meja</th>
                     @if ($groupBy == 'size')
                         <th>Size</th>
@@ -82,6 +83,7 @@
                             $currentStyle = null;
                             $currentColor = null;
                             $currentMeja = null;
+                            $currentPanel = null;
                             $currentSize = null;
 
                             $dateOutputs = collect();
@@ -115,6 +117,7 @@
                                             @php
                                                 $currentColor = $dailyGroup->color;
                                                 $currentMeja = null;
+                                                $currentPanel = null;
                                             @endphp
                                         @endif
                                         @if ($dailyGroup->ws == $currentWs && $dailyGroup->style == $currentStyle && $dailyGroup->color == $currentColor && $dailyGroup->id_meja != $currentMeja)
@@ -122,6 +125,14 @@
 
                                             @php
                                                 $currentMeja = $dailyGroup->id_meja;
+                                                $currentPanel = null;
+                                            @endphp
+                                        @endif
+                                        @if ($dailyGroup->ws == $currentWs && $dailyGroup->style == $currentStyle && $dailyGroup->color == $currentColor && $dailyGroup->id_meja == $currentMeja && $dailyGroup->panel != $currentPanel)
+                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('id_meja', $dailyGroup->id_meja)->where('panel', $dailyGroup->panel)->count(); }}">{{ $dailyGroup->panel }}</td>
+
+                                            @php
+                                                $currentPanel = $dailyGroup->panel;
                                             @endphp
                                         @endif
                                         @if ($groupBy == "size")
@@ -136,9 +147,9 @@
                                                 $thisOutput = 0;
 
                                                 if ($groupBy == 'size') {
-                                                    $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('id_meja', $dailyGroup->id_meja)->where('tanggal', $dailyDate->first()->tanggal)->where('size', $dailyGroup->size)->sum("qty");
+                                                    $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('panel', $dailyGroup->panel)->where('id_meja', $dailyGroup->id_meja)->where('tanggal', $dailyDate->first()->tanggal)->where('size', $dailyGroup->size)->sum("qty");
                                                 } else {
-                                                    $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('id_meja', $dailyGroup->id_meja)->where('tanggal', $dailyDate->first()->tanggal)->sum("qty");
+                                                    $thisOutput = $dailyOrderOutputs->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('panel', $dailyGroup->panel)->where('id_meja', $dailyGroup->id_meja)->where('tanggal', $dailyDate->first()->tanggal)->sum("qty");
                                                 }
 
                                                 if (isset($dateOutputs[$dailyDate->first()->tanggal])) {
@@ -173,7 +184,7 @@
             </tbody>
             <tfoot>
                 <tr>
-                    <th colspan="{{ $groupBy == "size" ? '5' : '4' }}" class="text-end">
+                    <th colspan="{{ $groupBy == "size" ? '6' : '5' }}" class="text-end">
                         TOTAL
                     </th>
                     @if ($dailyOrderOutputs && $dailyOrderOutputs->count() > 0)
