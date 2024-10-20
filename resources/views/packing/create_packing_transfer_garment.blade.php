@@ -177,7 +177,7 @@
 
         function getpo() {
             let cboline = document.form_h.cboline.value;
-            let html = $.ajax({
+                let html = $.ajax({
                 type: "GET",
                 url: '{{ route('get_po') }}',
                 data: {
@@ -328,7 +328,7 @@
 
         function clear_h() {
             document.getElementById('txtqty').value = "";
-            $("#cboline").val('').trigger('change');
+            // $("#cboline").val('').trigger('change');
             $("#cbopo").val('').trigger('change');
             $("#cbogarment").val('').trigger('change');
         }
