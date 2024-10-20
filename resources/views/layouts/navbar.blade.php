@@ -377,6 +377,12 @@
                                     </a>
                                 </li>
                                 <li>
+                                    <a href="{{ route('track-cutting-output') }}"
+                                        class="dropdown-item {{ $subPage == 'cutting-track' ? 'active' : '' }}">
+                                        Track Cutting Output <i class="fa fa-file"></i>
+                                    </a>
+                                </li>
+                                <li>
                                     <a href="{{ route('pemakaian-roll') }}"
                                         class="dropdown-item {{ $subPage == 'pemakaian-roll' ? 'active' : '' }}">
                                         Pemakaian Kain <i class="fa fa-file"></i>

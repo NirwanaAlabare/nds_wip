@@ -649,4 +649,48 @@ class ReportCuttingController extends Controller
 
         return Excel::download(new ExportReportCuttingDaily($request->dateFrom, $request->dateTo), 'Report Cutting Output Daily.xlsx');
     }
+
+    public function trackCuttingOutput(Request $request) {
+        if ($request->ajax()) {
+            if ($request->type == "supplier") {
+                $suppliersQuery = DB::connection('mysql_sb')->table('mastersupplier')->
+                    selectRaw('Id_Supplier as id, Supplier as name')->
+                    leftJoin('act_costing', 'act_costing.id_buyer', '=', 'mastersupplier.Id_Supplier')->
+                    where('mastersupplier.tipe_sup', 'C')->
+                    where('status', '!=', 'CANCEL')->
+                    where('type_ws', 'STD')->
+                    where('cost_date', '>=', '2023-01-01');
+                $suppliers = $suppliersQuery->
+                    orderBy('Supplier', 'ASC')->
+                    groupBy('Id_Supplier', 'Supplier')->
+                    get();
+
+                return $suppliers;
+            }
+
+            if ($request->type == "order") {
+                $orderSql = DB::connection('mysql_sb')->
+                    table('act_costing')->
+                    selectRaw('
+                        id as id_ws,
+                        kpno as no_ws
+                    ')->
+                    where('status', '!=', 'CANCEL')->
+                    where('type_ws', 'STD')->
+                    where('cost_date', '>=', '2023-01-01');
+                if ($request->supplier) {
+                    $orderSql->where('id_buyer', $request->supplier);
+                }
+                $orders = $orderSql->
+                    orderBy('cost_date', 'desc')->
+                    orderBy('kpno', 'asc')->
+                    groupBy('kpno')->
+                    get();
+
+                return $orders;
+            }
+        }
+
+        return view('cutting.report.track-cutting-output', ["subPageGroup" => "cutting-report", "subPage" => "cutting-track", "page" => "dashboard-cutting"]);
+    }
 }
