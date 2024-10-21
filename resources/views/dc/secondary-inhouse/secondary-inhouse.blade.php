@@ -286,8 +286,10 @@
                             <th>Buyer</th>
                             <th>Style</th>
                             <th>Color</th>
-                            <th>Out</th>
                             <th>In</th>
+                            <th>Reject</th>
+                            <th>Replace</th>
+                            <th>Out</th>
                             <th>Balance</th>
                             <th>Proses</th>
                         </tr>
@@ -296,9 +298,13 @@
                         <tr>
                             <th colspan="4"></th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
-                                    id = 'total_qty_out'> </th>
-                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
                                     id = 'total_qty_int'> </th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_reject_det'> </th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_replace_det'> </th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_out'> </th>
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
                                     id = 'total_qty_balance'> </th>
                             <th></th>
@@ -493,22 +499,36 @@
                         i : 0;
                 };
 
-                var sumTotalOut = api
+                var sumTotalIn = api
                     .column(4)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
                     }, 0);
 
-                var sumTotalIn = api
+                var sumTotalReject = api
                     .column(5)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
                     }, 0);
 
-                var sumTotalBalance = api
+                var sumTotalReplace = api
                     .column(6)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalOut = api
+                    .column(7)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalBalance = api
+                    .column(8)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
@@ -516,9 +536,11 @@
 
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
-                $(api.column(4).footer()).html(sumTotalOut);
-                $(api.column(5).footer()).html(sumTotalIn);
-                $(api.column(6).footer()).html(sumTotalBalance);
+                $(api.column(4).footer()).html(sumTotalIn);
+                $(api.column(5).footer()).html(sumTotalReject);
+                $(api.column(6).footer()).html(sumTotalReplace);
+                $(api.column(7).footer()).html(sumTotalOut);
+                $(api.column(8).footer()).html(sumTotalBalance);
             },
             ordering: false,
             processing: true,
@@ -540,7 +562,8 @@
                     d.dateTo = $('#tgl-akhir').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'act_costing_ws',
                 },
                 {
@@ -553,10 +576,16 @@
                     data: 'color',
                 },
                 {
-                    data: 'qty_out',
+                    data: 'qty_in',
                 },
                 {
-                    data: 'qty_in',
+                    data: 'qty_reject',
+                },
+                {
+                    data: 'qty_replace',
+                },
+                {
+                    data: 'qty_out',
                 },
                 {
                     data: 'balance',

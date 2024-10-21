@@ -462,7 +462,8 @@
                     dataType: 'json',
                     dataSrc: 'data',
                 },
-                columns: [{
+                columns: [
+                    {
                         data: 'id_qr_stocker',
                     },
                     {
