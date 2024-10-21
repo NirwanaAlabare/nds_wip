@@ -567,7 +567,7 @@
                 $(api.column(4).footer()).html(sumTotalIn);
                 $(api.column(5).footer()).html(sumTotalReject);
                 $(api.column(6).footer()).html(sumTotalReplace);
-                $(api.column(7).footer()).html(sumTotalOutput);
+                $(api.column(7).footer()).html(sumTotalOut);
                 $(api.column(8).footer()).html(sumTotalBalance);
             },
             ordering: false,
@@ -587,7 +587,8 @@
                 dataType: 'json',
                 dataSrc: 'data',
             },
-            columns: [{
+            columns: [
+                {
                     data: 'act_costing_ws',
                 },
                 {
@@ -600,10 +601,16 @@
                     data: 'color',
                 },
                 {
-                    data: 'qty_out',
+                    data: 'qty_in',
                 },
                 {
-                    data: 'qty_in',
+                    data: 'qty_reject',
+                },
+                {
+                    data: 'qty_replace',
+                },
+                {
+                    data: 'qty_out',
                 },
                 {
                     data: 'balance',
