@@ -2194,10 +2194,7 @@ class StockerController extends Controller
                     stocker_input.ratio,
                     year_sequence_num.updated_at
                 ORDER BY
-                    stocker_input.updated_at DESC,
-                    stocker_input.created_at DESC,
-                    form_cut_input.waktu_selesai DESC,
-                    form_cut_input.waktu_mulai DESC
+                    year_sequence_num.updated_at desc
             ");
 
             return DataTables::of($stockerList)->toJson();
