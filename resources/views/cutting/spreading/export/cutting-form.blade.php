@@ -6,7 +6,7 @@
     <tr>
         <th></th>
         <th>Dari : {{ $dateFrom }}</th>
-        <th>Sampai : {{ $dateFrom }}</th>
+        <th>Sampai : {{ $dateTo }}</th>
     </tr>
     <tr></tr>
     <tr>

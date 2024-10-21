@@ -30,9 +30,7 @@
                 </div>
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div class="mb-3">
-                        <button class='btn btn-success btn-sm' onclick="exportExcel(this)">
-                            <i class="fas fa-file-excel"></i> Export
-                        </button>
+                        <button class="btn btn-success btn-sm" onclick="exportExcel(this)"><i class="fa fa-file-excel"></i> Export</button>
                     </div>
                 </div>
             </div>
@@ -166,6 +164,74 @@
             datatable.ajax.reload();
         }
 
+        // Legacy Export Excel
+            // function exportExcel (elm) {
+            //     elm.setAttribute('disabled', 'true');
+            //     elm.innerText = "";
+            //     let loading = document.createElement('div');
+            //     loading.classList.add('loading-small');
+            //     elm.appendChild(loading);
+
+            //     iziToast.info({
+            //         title: 'Exporting...',
+            //         message: 'Data sedang di export. Mohon tunggu...',
+            //         position: 'topCenter'
+            //     });
+
+            //     let date = new Date();
+
+            //     let day = date.getDate();
+            //     let month = date.getMonth() + 1;
+            //     let year = date.getFullYear();
+
+            //     // This arrangement can be altered based on how we want the date's format to appear.
+            //     let currentDate = `${day}-${month}-${year}`;
+
+            //     $.ajax({
+            //         url: "{{ route("report-cutting-export") }}",
+            //         type: 'post',
+            //         data: {
+            //             dateFrom : $('#from').val(),
+            //             dateTo : $('#to').val()
+            //         },
+            //         xhrFields: { responseType : 'blob' },
+            //         success: function(res) {
+            //             elm.removeChild(loading);
+            //             elm.removeAttribute('disabled');
+            //             elm.innerHTML += "<i class='fa fa-file-excel'></i> Export";
+
+            //             iziToast.success({
+            //                 title: 'Success',
+            //                 message: 'Success',
+            //                 position: 'topCenter'
+            //             });
+
+            //             var blob = new Blob([res]);
+            //             var link = document.createElement('a');
+            //             link.href = window.URL.createObjectURL(blob);
+            //             link.download = "Output Cutting - "+$('#from').val()+" - "+$('#to').val()+".xlsx";
+            //             link.click();
+            //         }, error: function (jqXHR) {
+            //             elm.removeChild(loading);
+            //             elm.removeAttribute('disabled');
+            //             elm.innerHTML += "<i class='fa fa-file-excel'></i> Export";
+
+            //             let res = jqXHR.responseJSON;
+            //             let message = '';
+            //             console.log(res.message);
+            //             for (let key in res.errors) {
+            //                 message += res.errors[key]+' ';
+            //                 document.getElementById(key).classList.add('is-invalid');
+            //             };
+            //             iziToast.error({
+            //                 title: 'Error',
+            //                 message: message,
+            //                 position: 'topCenter'
+            //             });
+            //         }
+            //     });
+            // }
+
         function exportExcel (elm) {
             elm.setAttribute('disabled', 'true');
             elm.innerText = "";
@@ -188,18 +254,24 @@
             // This arrangement can be altered based on how we want the date's format to appear.
             let currentDate = `${day}-${month}-${year}`;
 
+            console.log($("#tgl-awal").val(), $("#tgl-akhir").val())
+
             $.ajax({
-                url: "{{ route("report-cutting-export") }}",
+                url: "{{ route("export-cutting-form") }}",
                 type: 'post',
                 data: {
-                    dateFrom : $('#from').val(),
-                    dateTo : $('#to').val()
+                    dateFrom : $("#from").val(),
+                    dateTo : $("#to").val()
                 },
                 xhrFields: { responseType : 'blob' },
                 success: function(res) {
                     elm.removeChild(loading);
                     elm.removeAttribute('disabled');
-                    elm.innerHTML += "<i class='fa fa-file-excel'></i> Export";
+                    let icon = document.createElement('i');
+                    icon.classList.add('fa-solid');
+                    icon.classList.add('fa', 'fa-file-excel');
+                    elm.appendChild(icon);
+                    elm.innerHTML += " Export";
 
                     iziToast.success({
                         title: 'Success',
@@ -210,12 +282,15 @@
                     var blob = new Blob([res]);
                     var link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
-                    link.download = "Output Cutting - "+$('#from').val()+" - "+$('#to').val()+".xlsx";
+                    link.download = "Form Cutting "+$("#from").val()+" - "+$("#to").val()+".xlsx";
                     link.click();
                 }, error: function (jqXHR) {
                     elm.removeChild(loading);
                     elm.removeAttribute('disabled');
-                    elm.innerHTML += "<i class='fa fa-file-excel'></i> Export";
+                    let icon = document.createElement('i');
+                    icon.classList.add('fa', 'fa-file-excel');
+                    elm.appendChild(icon);
+                    elm.innerHTML += " Export";
 
                     let res = jqXHR.responseJSON;
                     let message = '';

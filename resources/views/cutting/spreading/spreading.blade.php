@@ -40,7 +40,6 @@
 
                 <div class="col-md-6">
                     <div class="d-flex justify-content-end align-items-end gap-1 mb-3">
-                        <button class="btn btn-success btn-sm" onclick="exportExcel(this)"><i class="fa fa-file-excel"></i> Export</button>
                         <a href="{{ url('manual-form-cut/create') }}" target="_blank" class="btn btn-sm btn-sb"><i class="fas fa-clipboard-list"></i> Manual</a>
                         {{-- <a href="{{ url('pilot-form-cut/create') }}" target="_blank" class="btn btn-sm btn-sb-secondary"><i class="fas fa-clipboard-list"></i> Pilot</a> --}}
                         {{-- <button type="button" onclick="updateNoCut()" class="btn btn-sm btn-sb"><i class="fas fa-sync-alt"></i> Generate No. Cut</button> --}}
@@ -557,82 +556,6 @@
                 },
                 error: function(jqXHR) {
                     console.log("error", jqXHR);
-                }
-            });
-        }
-
-        function exportExcel (elm) {
-            elm.setAttribute('disabled', 'true');
-            elm.innerText = "";
-            let loading = document.createElement('div');
-            loading.classList.add('loading-small');
-            elm.appendChild(loading);
-
-            iziToast.info({
-                title: 'Exporting...',
-                message: 'Data sedang di export. Mohon tunggu...',
-                position: 'topCenter'
-            });
-
-            let date = new Date();
-
-            let day = date.getDate();
-            let month = date.getMonth() + 1;
-            let year = date.getFullYear();
-
-            // This arrangement can be altered based on how we want the date's format to appear.
-            let currentDate = `${day}-${month}-${year}`;
-
-            console.log($("#tgl-awal").val(), $("#tgl-akhir").val())
-
-            $.ajax({
-                url: "{{ route("export-cutting-form") }}",
-                type: 'post',
-                data: {
-                    dateFrom : $("#tgl-awal").val(),
-                    dateTo : $("#tgl-akhir").val()
-                },
-                xhrFields: { responseType : 'blob' },
-                success: function(res) {
-                    elm.removeChild(loading);
-                    elm.removeAttribute('disabled');
-                    let icon = document.createElement('i');
-                    icon.classList.add('fa-solid');
-                    icon.classList.add('fa', 'fa-file-excel');
-                    elm.appendChild(icon);
-                    elm.innerHTML += " Export";
-
-                    iziToast.success({
-                        title: 'Success',
-                        message: 'Success',
-                        position: 'topCenter'
-                    });
-
-                    var blob = new Blob([res]);
-                    var link = document.createElement('a');
-                    link.href = window.URL.createObjectURL(blob);
-                    link.download = "Form Cutting "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
-                    link.click();
-                }, error: function (jqXHR) {
-                    elm.removeChild(loading);
-                    elm.removeAttribute('disabled');
-                    let icon = document.createElement('i');
-                    icon.classList.add('fa', 'fa-file-excel');
-                    elm.appendChild(icon);
-                    elm.innerHTML += " Export";
-
-                    let res = jqXHR.responseJSON;
-                    let message = '';
-                    console.log(res.message);
-                    for (let key in res.errors) {
-                        message += res.errors[key]+' ';
-                        document.getElementById(key).classList.add('is-invalid');
-                    };
-                    iziToast.error({
-                        title: 'Error',
-                        message: message,
-                        position: 'topCenter'
-                    });
                 }
             });
         }
