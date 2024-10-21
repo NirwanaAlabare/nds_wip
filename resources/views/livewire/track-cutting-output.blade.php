@@ -19,7 +19,7 @@
                 <div wire:ignore>
                     <input type="date" class="form-control form-control-sm" id="dateTo" value="{{ $dateToFilter }}">
                 </div>
-                <span class="badge bg-sb text-light">OUTPUT CUTTING</span>
+                <span class="badge bg-sb text-light">CUTTING</span>
             </div>
         </div>
         <div class="col-12 col-lg-6 col-xl-8">
