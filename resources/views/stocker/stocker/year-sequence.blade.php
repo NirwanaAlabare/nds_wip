@@ -550,7 +550,6 @@
         }
 
         function setYearSequenceNumberAct() {
-            /* Read more about isConfirmed, isDenied below */
             if (validatePrintYearSequence()) {
                 generating = true;
 
@@ -583,7 +582,7 @@
                     {
                         responseType: 'blob'
                     },
-                    success: function(res) {
+                    success: async function(res) {
                         console.log(res);
                         if (res) {
                             Swal.fire({
@@ -591,7 +590,8 @@
                                 title: 'Berhasil',
                                 html: 'Data berhasil di setting <br> <b>'+$("#stocker").val()+'</b> <br> <b>'+$("#year").val()+'_'+$("#sequence").val()+'</b>',
                                 allowOutsideClick: false,
-                            }).then(() => {
+                            }).then(async function() {
+                                await printYearSequence($('#year').val(), $('#sequence').val(), Number($('#range_awal').val()), Number($('#range_akhir').val()));
                                 yearSequenceTableReload();
                                 getRangeYearSequence();
 
@@ -627,6 +627,125 @@
                     allowOutsideClick: false,
                 });
             }
+        }
+
+        async function printYearSequence(year, yearSequence, rangeAwal, rangeAkhir) {
+            console.log("printing year sequence", year, yearSequence, rangeAwal, rangeAkhir);
+            generating = true;
+
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data... <br><br> Est. <b>0</b>s...',
+                didOpen: () => {
+                    Swal.showLoading();
+
+                    let estimatedTime = 0;
+                    const estimatedTimeElement = Swal.getPopup().querySelector("b");
+                    estimatedTimeInterval = setInterval(() => {
+                        estimatedTime++;
+                        estimatedTimeElement.textContent = estimatedTime;
+                    }, 1000);
+                },
+                allowOutsideClick: false,
+            });
+
+            let totalPrint = Number(rangeAkhir) - Number(rangeAwal) + 1;
+
+            let i = 0;
+            let qtyI = 0;
+            let rangeI = Number(rangeAwal);
+            while (i < totalPrint) {
+                if ((i + 1000) > totalPrint) {
+                    qtyI = totalPrint - i;
+                    i += qtyI;
+                } else {
+                    qtyI = 1000;
+                    i += qtyI;
+                }
+
+                console.log(i, qtyI, rangeI, totalPrint);
+
+                await $.ajax({
+                    url: '{{ route('print-year-sequence-new') }}',
+                    type: 'post',
+                    data: {
+                        year: year,
+                        yearSequence: yearSequence,
+                        rangeAwal: rangeI,
+                        rangeAkhir: rangeI + qtyI - 1,
+                    },
+                    xhrFields:
+                    {
+                        responseType: 'blob'
+                    },
+                    success: function(res) {
+                        if (res) {
+                            console.log(res);
+
+                            var blob = new Blob([res], {type: 'application/pdf'});
+                            var link = document.createElement('a');
+                            link.href = window.URL.createObjectURL(blob);
+                            link.download = "Numbers_"+rangeI+"-"+(rangeI+qtyI-1)+".pdf";
+                            link.click();
+                        }
+
+                        generating = false;
+                    },
+                    error: function(jqXHR) {
+                        console.error(jqXHR)
+
+                        generating = false;
+
+                        clearInterval(estimatedTimeInterval);
+                    }
+                    });
+
+                    rangeI += qtyI;
+                }
+
+                // window.location.reload();
+
+                swal.close();
+        }
+
+        async function printYearSequenceAjax(method, year, yearSequence, rangeAwal, rangeAkhir) {
+            return $.ajax({
+                        url: '{{ route('print-year-sequence') }}',
+                        type: 'post',
+                        data: {
+                            method: method,
+                            year: year,
+                            yearSequence: yearSequence,
+                            rangeAwal: rangeAwal,
+                            rangeAkhir: rangeAkhir,
+                        },
+                        xhrFields:
+                        {
+                            responseType: 'blob'
+                        },
+                        success: function(res) {
+                            if (res) {
+                                console.log(res);
+
+                                var blob = new Blob([res], {type: 'application/pdf'});
+                                var link = document.createElement('a');
+                                link.href = window.URL.createObjectURL(blob);
+                                link.download = "Numbers.pdf";
+                                link.click();
+                            }
+
+                            window.location.reload();
+
+                            generating = false;
+                        },
+                        error: function(jqXHR) {
+                            console.error(jqXHR)
+
+                            swal.close();
+
+                            generating = false;
+                        }
+                    });
         }
 
         let yearSequenceTable = $("#year-sequence-table").DataTable({
