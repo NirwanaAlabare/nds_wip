@@ -272,6 +272,52 @@ select 'VERTICAL' isi,'VERTICAL' tampil ");
     union
     SELECT 'field_10' AS field_name, field_10 AS field_value
     FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+    union
+    SELECT 'field_11' AS field_name, field_11 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+    union
+    SELECT 'field_12' AS field_name, field_12 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+    union
+    SELECT 'field_13' AS field_name, field_13 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+    union
+    SELECT 'field_14' AS field_name, field_14 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+    union
+    SELECT 'field_15' AS field_name, field_15 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+	union
+    SELECT 'field_16' AS field_name, field_16 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+	union
+    SELECT 'field_17' AS field_name, field_17 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+	union
+    SELECT 'field_18' AS field_name, field_18 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+	union
+    SELECT 'field_19' AS field_name, field_19 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+	union
+    SELECT 'field_20' AS field_name, field_20 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+	union
+    SELECT 'field_21' AS field_name, field_21 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+	union
+    SELECT 'field_22' AS field_name, field_22 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+	union
+    SELECT 'field_23' AS field_name, field_23 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+	union
+    SELECT 'field_24' AS field_name, field_24 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+	union
+    SELECT 'field_25' AS field_name, field_25 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+
     ) h
     left join
     (
@@ -314,6 +360,67 @@ select 'VERTICAL' isi,'VERTICAL' tampil ");
     SELECT id,'field_10' AS field_name, field_10 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
     where field_10 is not null and po = '$po'
+    union
+    SELECT id,'field_11' AS field_name, field_11 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_11 is not null and po = '$po'
+    union
+    SELECT id,'field_12' AS field_name, field_12 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_12 is not null and po = '$po'
+    union
+    SELECT id,'field_13' AS field_name, field_13 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_13 is not null and po = '$po'
+    union
+    SELECT id,'field_14' AS field_name, field_14 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_14 is not null and po = '$po'
+    union
+    SELECT id,'field_15' AS field_name, field_15 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_15 is not null and po = '$po'
+    union
+    SELECT id,'field_16' AS field_name, field_17 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_16 is not null and po = '$po'
+    union
+    SELECT id,'field_17' AS field_name, field_17 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_17 is not null and po = '$po'
+    union
+    SELECT id,'field_18' AS field_name, field_18 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_18 is not null and po = '$po'
+    union
+    SELECT id,'field_19' AS field_name, field_19 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_19 is not null and po = '$po'
+    union
+    SELECT id,'field_20' AS field_name, field_20 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_20 is not null and po = '$po'
+    union
+    SELECT id,'field_21' AS field_name, field_21 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_21 is not null and po = '$po'
+    union
+    SELECT id,'field_22' AS field_name, field_22 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_22 is not null and po = '$po'
+    union
+    SELECT id,'field_23' AS field_name, field_23 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_23 is not null and po = '$po'
+    union
+    SELECT id,'field_24' AS field_name, field_24 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_24 is not null and po = '$po'
+    union
+    SELECT id,'field_25' AS field_name, field_25 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_25 is not null and po = '$po'
+
     ) l on h.field_name = l.field_name
     left join packing_master_upload_packing_list_det_horizontal a on l.id = a.id
     left join
@@ -488,6 +595,51 @@ select 'VERTICAL' isi,'VERTICAL' tampil ");
     union
     SELECT 'field_10' AS field_name, field_10 AS field_value
     FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+    union
+    SELECT 'field_11' AS field_name, field_11 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+    union
+    SELECT 'field_12' AS field_name, field_12 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+    union
+    SELECT 'field_13' AS field_name, field_13 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+    union
+    SELECT 'field_14' AS field_name, field_14 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+    union
+    SELECT 'field_15' AS field_name, field_15 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+	union
+    SELECT 'field_16' AS field_name, field_16 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+	union
+    SELECT 'field_17' AS field_name, field_17 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+	union
+    SELECT 'field_18' AS field_name, field_18 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+	union
+    SELECT 'field_19' AS field_name, field_19 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+	union
+    SELECT 'field_20' AS field_name, field_20 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+	union
+    SELECT 'field_21' AS field_name, field_21 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+	union
+    SELECT 'field_22' AS field_name, field_22 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+	union
+    SELECT 'field_23' AS field_name, field_23 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+	union
+    SELECT 'field_24' AS field_name, field_24 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
+	union
+    SELECT 'field_25' AS field_name, field_25 AS field_value
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po'
     ) h
     left join
     (
@@ -530,6 +682,66 @@ select 'VERTICAL' isi,'VERTICAL' tampil ");
     SELECT id,'field_10' AS field_name, field_10 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
     where field_10 is not null and po = '$po'
+    union
+    SELECT id,'field_11' AS field_name, field_11 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_11 is not null and po = '$po'
+    union
+    SELECT id,'field_12' AS field_name, field_12 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_12 is not null and po = '$po'
+    union
+    SELECT id,'field_13' AS field_name, field_13 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_13 is not null and po = '$po'
+    union
+    SELECT id,'field_14' AS field_name, field_14 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_14 is not null and po = '$po'
+    union
+    SELECT id,'field_15' AS field_name, field_15 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_15 is not null and po = '$po'
+    union
+    SELECT id,'field_16' AS field_name, field_17 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_16 is not null and po = '$po'
+    union
+    SELECT id,'field_17' AS field_name, field_17 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_17 is not null and po = '$po'
+    union
+    SELECT id,'field_18' AS field_name, field_18 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_18 is not null and po = '$po'
+    union
+    SELECT id,'field_19' AS field_name, field_19 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_19 is not null and po = '$po'
+    union
+    SELECT id,'field_20' AS field_name, field_20 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_20 is not null and po = '$po'
+    union
+    SELECT id,'field_21' AS field_name, field_21 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_21 is not null and po = '$po'
+    union
+    SELECT id,'field_22' AS field_name, field_22 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_22 is not null and po = '$po'
+    union
+    SELECT id,'field_23' AS field_name, field_23 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_23 is not null and po = '$po'
+    union
+    SELECT id,'field_24' AS field_name, field_24 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_24 is not null and po = '$po'
+    union
+    SELECT id,'field_25' AS field_name, field_25 AS qty
+    FROM packing_master_upload_packing_list_det_horizontal a
+    where field_25 is not null and po = '$po'
     ) l on h.field_name = l.field_name
     left join packing_master_upload_packing_list_det_horizontal a on l.id = a.id
     left join
