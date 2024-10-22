@@ -452,6 +452,7 @@ Route::middleware('auth')->group(function () {
     Route::controller(ReportCuttingController::class)->prefix("report-cutting")->middleware('admin')->group(function () {
         Route::get('/cutting', 'cutting')->name('report-cutting');
         Route::get('/cutting-daily', 'cuttingDaily')->name('report-cutting-daily');
+        Route::get('/track-cutting-output', 'trackCuttingOutput')->name('track-cutting-output');
         Route::get('/pemakaian-roll', 'pemakaianRoll')->name('pemakaian-roll');
         Route::get('/detail-pemakaian-roll', 'detailPemakaianRoll')->name('detail-pemakaian-roll');
         Route::get('/total-pemakaian-roll', 'totalPemakaianRoll')->name('total-pemakaian-roll');
