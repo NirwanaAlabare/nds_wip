@@ -4,6 +4,7 @@
     <thead>
         <tr>
             <th style="border:1px solid black;font-weight:bold;text-align: center">PO</th>
+            <th style="border:1px solid black;font-weight:bold;text-align: center">Dest</th>
             <th colspan="3" style="border:1px solid black;font-weight:bold;text-align: center">CTN NO</th>
             <th style="border:1px solid black;font-weight:bold;text-align: center">COLOR</th>
             <th style="border:1px solid black;font-weight:bold;text-align: center">PREPACK CODE</th>
@@ -14,6 +15,7 @@
     <tbody>
         <tr>
             <td>{{ $po }}</td>
+            <td>{{ $dest }}</td>
             <td>1</td>
             <td>-</td>
             <td>1</td>

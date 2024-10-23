@@ -2,10 +2,10 @@
 <html lang="en">
 <?php
 $size = DB::select("SELECT
-distinct(m.size) size from ppic_master_so a
+distinct(m.size) size, a.dest from ppic_master_so a
 inner join master_sb_ws m on a.id_so_det = m.id_so_det
 left join master_size_new msn on m.size = msn.size
-where po = '$po'
+where po = '$po' and a.dest = '$dest'
 group by m.size
 order by urutan asc");
 $data_size = $size;
@@ -15,6 +15,8 @@ $count = count($data_size);
     <thead>
         <tr>
             <th rowspan="2" style="border:1px solid black;font-weight:bold;text-align: center">PO
+            </th>
+            <th rowspan="2" style="border:1px solid black;font-weight:bold;text-align: center">Dest
             </th>
             <th rowspan="2" colspan="3" style="border:1px solid black;font-weight:bold;text-align: center">CTN NO
             </th>
@@ -35,6 +37,7 @@ $count = count($data_size);
     <tbody>
         <tr>
             <td>{{ $po }}</td>
+            <td>{{ $dest }}</td>
             <td>1</td>
             <td>-</td>
             <td>1</td>
@@ -54,6 +57,7 @@ $count = count($data_size);
         </tr>
         <tr>
             <td>{{ $po }}</td>
+            <td>{{ $dest }}</td>
             <td>2</td>
             <td>-</td>
             <td>2</td>
@@ -73,6 +77,7 @@ $count = count($data_size);
         </tr>
         <tr>
             <td>{{ $po }}</td>
+            <td>{{ $dest }}</td>
             <td>3</td>
             <td>-</td>
             <td>7</td>
