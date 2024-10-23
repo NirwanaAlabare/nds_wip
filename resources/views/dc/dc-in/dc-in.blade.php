@@ -174,16 +174,20 @@
                         <tr>
                             <th colspan="11"></th>
                             <th>
-                                <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_awal'>
+                                {{-- <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_awal'> --}}
+                                ...
                             </th>
                             <th>
-                                <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_reject'>
+                                {{-- <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_reject'> --}}
+                                ...
                             </th>
                             <th>
-                                <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_replace'>
+                                {{-- <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_replace'> --}}
+                                ...
                             </th>
                             <th>
-                                <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_in'>
+                                {{-- <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_in'> --}}
+                                ...
                             </th>
                             <th colspan="2"></th>
                         </tr>
