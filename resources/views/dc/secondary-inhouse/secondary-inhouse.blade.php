@@ -411,7 +411,8 @@
                     d.dateTo = $('#tgl-akhir').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'tgl_trans_fix',
                 },
                 {
@@ -460,10 +461,12 @@
                     data: 'user',
                 },
             ],
-            columnDefs: [{
-                targets: "_all",
-                className: "text-nowrap"
-            }]
+            columnDefs: [
+                {
+                    targets: "_all",
+                    className: "text-nowrap"
+                },
+            ]
         });
 
 
@@ -594,10 +597,16 @@
                     data: 'lokasi',
                 },
             ],
-            columnDefs: [{
-                targets: "_all",
-                className: "text-nowrap"
-            }]
+            columnDefs: [
+                {
+                    targets: "_all",
+                    className: "text-nowrap"
+                },
+                {
+                    targets: [8],
+                    visible: false
+                }
+            ]
         });
     </script>
 

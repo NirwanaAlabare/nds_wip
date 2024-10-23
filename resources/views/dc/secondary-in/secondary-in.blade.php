@@ -619,10 +619,16 @@
                     data: 'lokasi',
                 },
             ],
-            columnDefs: [{
-                targets: "_all",
-                className: "text-nowrap"
-            }]
+            columnDefs: [
+                {
+                    targets: "_all",
+                    className: "text-nowrap"
+                },
+                {
+                    targets: [8],
+                    visible: false
+                }
+            ]
         });
     </script>
 
