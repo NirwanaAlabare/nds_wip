@@ -106,7 +106,7 @@ class SecondaryInController extends Controller
 
             $data_input = DB::select("
                 select
-                    s.act_costing_ws, m.buyer,s.color,styleno, COALESCE(dc.qty_awal - dc.qty_reject + dc.qty_replace, 0) qty_in, COALESCE(si.qty_reject, 0) qty_reject, COALESCE(si.qty_replace, 0) qty_replace, COALESCE(si.qty_in, 0) qty_out, COALESCE((dc.qty_awal - dc.qty_reject + dc.qty_replace -  si.qty_in), 0) balance, dc.tujuan,dc.lokasi
+                    s.act_costing_ws, m.buyer,s.color,styleno, COALESCE(sum(dc.qty_awal - dc.qty_reject + dc.qty_replace), 0) qty_in, COALESCE(sum(si.qty_reject), 0) qty_reject, COALESCE(sum(si.qty_replace), 0) qty_replace, COALESCE(sum(si.qty_in), 0) qty_out, COALESCE(sum(dc.qty_awal - dc.qty_reject + dc.qty_replace -  si.qty_in), 0) balance, dc.tujuan,dc.lokasi
                 from
                     dc_in_input dc
                     inner join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
@@ -114,13 +114,12 @@ class SecondaryInController extends Controller
                     left join secondary_in_input si on dc.id_qr_stocker = si.id_qr_stocker
                 where
                     dc.tujuan = 'SECONDARY LUAR'
-                    and dc.qty_awal - dc.qty_reject + dc.qty_replace -  si.qty_in != '0'
                     ".$additionalQuery."
                 group
                     by m.ws,m.buyer,m.styleno,m.color,dc.lokasi
                 union
                 select
-                    s.act_costing_ws, buyer,s.color,styleno, COALESCE(sii.qty_in, 0) qty_in, COALESCE(si.qty_reject, 0) qty_reject, COALESCE(si.qty_replace, 0) qty_replace, COALESCE(si.qty_in, 0) qty_out, COALESCE((sii.qty_in - si.qty_in), 0) balance, dc.tujuan, dc.lokasi
+                    s.act_costing_ws, buyer,s.color,styleno, COALESCE(sum(sii.qty_in), 0) qty_in, COALESCE(sum(si.qty_reject), 0) qty_reject, COALESCE(sum(si.qty_replace), 0) qty_replace, COALESCE(sum(si.qty_in), 0) qty_out, COALESCE(sum(sii.qty_in - si.qty_in), 0) balance, dc.tujuan, dc.lokasi
                 from
                     dc_in_input dc
                     inner join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
