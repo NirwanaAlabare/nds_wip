@@ -563,6 +563,8 @@ Route::middleware('auth')->group(function () {
     // DC IN
     Route::controller(DCInController::class)->prefix("dc-in")->middleware('dc')->group(function () {
         Route::get('/', 'index')->name('dc-in');
+        Route::get('/detail_dc_in', 'detail_dc_in')->name('detail_dc_in');
+        Route::get('/total_dc_in', 'total_dc_in')->name('total_dc_in');
         Route::get('/show_data_header', 'show_data_header')->name('show_data_header');
         Route::get('/create', 'create')->name('create-dc-in');
         Route::post('/store', 'store')->name('store-dc-in');
