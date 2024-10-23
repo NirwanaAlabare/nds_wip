@@ -136,7 +136,7 @@
                         value="{{ date('Y-m-d') }}" onchange="datatableReload()">
                 </div>
             </div>
-            <h5 class="card-title fw-bold mb-3">List Transaksi DC IN</h5>
+            <h5 class="card-title fw-bold mb-3" id="dc-in-title">List Transaksi DC IN</h5>
             <br>
             <ul class="nav nav-tabs mt-3">
                 <li class="nav-item">
@@ -671,6 +671,8 @@
     <script>
         function switchTable(type) {
             if (type == 'list') {
+                document.getElementById("dc-in-title").innerHTML = 'List Transaksi DC IN';
+
                 document.getElementById("list-detail").classList.remove("active");
                 document.getElementById("list").classList.add("active");
 
@@ -679,6 +681,8 @@
             }
 
             if (type == 'detail') {
+                document.getElementById("dc-in-title").innerHTML = 'Detail Transaksi DC IN';
+
                 document.getElementById("list").classList.remove("active");
                 document.getElementById("list-detail").classList.add("active");
 
