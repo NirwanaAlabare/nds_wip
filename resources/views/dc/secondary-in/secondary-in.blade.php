@@ -495,10 +495,6 @@
             ]
         });
 
-        function datatableReload() {
-            $('#datatable-input').DataTable().ajax.reload();
-        }
-
         $('#datatable-detail thead tr').clone(true).appendTo('#datatable-detail thead');
         $('#datatable-detail thead tr:eq(1) th').each(function(i) {
             var title = $(this).text();
@@ -586,6 +582,10 @@
                 url: '{{ route('detail_stocker_in') }}',
                 dataType: 'json',
                 dataSrc: 'data',
+                data: function(d) {
+                    d.dateFrom = $('#tgl-awal').val();
+                    d.dateTo = $('#tgl-akhir').val();
+                },
             },
             columns: [
                 {
@@ -630,6 +630,11 @@
                 }
             ]
         });
+
+        function datatableReload() {
+            $('#datatable-input').DataTable().ajax.reload();
+            $('#datatable-detail').DataTable().ajax.reload();
+        }
     </script>
 
     <script>
