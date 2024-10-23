@@ -33,12 +33,13 @@ class ExportDataTemplatePackingListVertical implements FromView, WithEvents, Sho
     use Exportable;
 
 
-    protected $po;
+    protected $po, $dest;
 
-    public function __construct($po)
+    public function __construct($po, $dest)
     {
 
         $this->po = $po;
+        $this->dest = $dest;
         $this->rowCount = 0;
     }
 
@@ -48,7 +49,7 @@ class ExportDataTemplatePackingListVertical implements FromView, WithEvents, Sho
     {
         $data = DB::select("SELECT * from ppic_master_so p
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
-where po = '$this->po'
+where po = '$this->po' and p.dest = '$this->dest'
 group by po
         ");
 
@@ -58,7 +59,8 @@ group by po
 
         return view('packing.export_excel_data_template_packing_list_vertical', [
             'data' => $data,
-            'po' => $this->po
+            'po' => $this->po,
+            'dest' => $this->dest
         ]);
     }
 

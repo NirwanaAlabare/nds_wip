@@ -1336,6 +1336,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/delete_upload_packing_list', 'delete_upload_packing_list')->name('delete_upload_packing_list');
         Route::post('/store', 'store')->name('store_upload_packing_list');
         Route::get('/getPoData', 'getPoData')->name('getPoData');
+        Route::get('/show_detail_packing_list', 'show_detail_packing_list')->name('show_detail_packing_list');
     });
 
 

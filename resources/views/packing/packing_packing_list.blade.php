@@ -27,6 +27,82 @@
 @endsection
 
 @section('content')
+    <div class="modal fade" id="exampleModalCheck" tabindex="-1" role="dialog" aria-labelledby="exampleModalCheckLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header bg-primary">
+                    <h3 class="modal-title fs-5">List Detail Packing List</h3>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class='row'>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label"><small><b>Buyer</b></small></label>
+                                <input type="text" class="form-control form-control-sm" id = "modal_buyer"
+                                    name = "modal_buyer" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label"><small><b>PO</b></small></label>
+                                <input type="text" class="form-control form-control-sm" id = "modal_po" name = "modal_po"
+                                    readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label"><small><b>Dest</b></small></label>
+                                <input type="text" class="form-control form-control-sm" id = "modal_dest"
+                                    name = "modal_dest" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label"><small><b>Style</b></small></label>
+                                <input type="text" class="form-control form-control-sm" id = "modal_style"
+                                    name = "modal_style" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='row'>
+                        <div class="col-md-12 table-responsive">
+                            <table id="datatable_detail_packing_list"
+                                class="table table-bordered table-hover table-sm w-100 nowrap">
+                                <thead>
+                                    <tr>
+                                        <th>PO</th>
+                                        <th>Dest</th>
+                                        <th>Style</th>
+                                        <th>WS</th>
+                                        <th>Color</th>
+                                        <th>Size</th>
+                                        <th>No.Carton</th>
+                                        <th>Tipe Pack</th>
+                                        <th>Qty</th>
+                                    </tr>
+                                </thead>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="8"></th>
+                                        <th> <input type = 'text' class="form-control form-control-sm" style="width:75px"
+                                                readonly id = 'total_qty_chk'> </th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {{-- <div class="modal-footer">
+            <button type="submit" class="btn btn-outline-success btn-sm"><i class="fas fa-check"></i> Simpan
+            </button>
+        </div> --}}
+            </div>
+        </div>
+    </div>
+
+
     <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
         <form action="{{ route('upload-packing-list') }}" enctype="multipart/form-data" method="post"
@@ -62,7 +138,7 @@
                                     <label><small><b>PO :</b></small></label>
                                     <select class="form-control select2bs4" id="cbopo" name="cbopo"
                                         style="width: 100%;"
-                                        onchange="getdatapo();delete_tmp_upload();dataTableUploadReload()" required>
+                                        onchange="delete_tmp_upload();getdatapo();dataTableUploadReload()" required>
                                         <option selected="selected" value="" disabled="true">Pilih PO</option>
                                         @foreach ($data_po as $datapo)
                                             <option value="{{ $datapo->isi }}">
@@ -90,29 +166,29 @@
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <label><small><b>Buyer :</b></small></label>
-                                    <input type='texr' id="txtbuyer" name="txtbuyer"
+                                    <input type='text' id="txtbuyer" name="txtbuyer"
                                         class='form-control form-control-sm' value="" readonly>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <label><small><b>PO :</b></small></label>
-                                    <input type='texr' id="txtpo" name="txtpo" class='form-control form-control-sm'
-                                        value="" readonly>
+                                    <input type='text' id="txtpo" name="txtpo"
+                                        class='form-control form-control-sm' value="" readonly>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <label><small><b>Style :</b></small></label>
-                                    <input type='texr' id="txtstyle" name="txtstyle"
+                                    <input type='text' id="txtstyle" name="txtstyle"
                                         class='form-control form-control-sm' value="" readonly>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <label><small><b>Dest :</b></small></label>
-                                    <input type='texr' id="txtdest" name="txtdest" class='form-control form-control-sm'
-                                        value="" readonly>
+                                    <input type='text' id="txtdest" name="txtdest"
+                                        class='form-control form-control-sm' value="" readonly>
                                 </div>
                             </div>
                         </div>
@@ -138,7 +214,7 @@
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <label><small><b>Tidak Terdaftar :</b></small></label>
-                                    <input type='texr' id="txtnon_upload" name="txtnon_upload"
+                                    <input type='text' id="txtnon_upload" name="txtnon_upload"
                                         class='form-control form-control-sm' value="" readonly>
                                 </div>
                             </div>
@@ -178,7 +254,6 @@
         </div>
     </div>
     </div>
-
     </div>
     <div class="card card-sb">
         <div class="card-header">
@@ -209,10 +284,13 @@
                     <thead class="table-primary">
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>Tgl. Shipment</th>
-                            <th>PO</th>
                             <th>Buyer</th>
+                            <th>PO</th>
+                            <th>Dest</th>
+                            <th>Style</th>
                             <th>Tot. Carton</th>
                             <th>Tot. Qty</th>
+                            <th>Act</th>
                         </tr>
                     </thead>
                 </table>
@@ -279,36 +357,50 @@
 
         function getdatapo() {
             document.getElementById('file').value = "";
-            let cbopo = document.form_upload.cbopo.value;
-            $.ajax({
-                url: '{{ route('show_det_po') }}',
-                method: 'get',
-                data: {
-                    cbopo: cbopo
-                },
-                dataType: 'json',
-                success: function(response) {
-                    if (response !== null) {
-                        document.getElementById('txtbuyer').value = response.buyer;
-                        document.getElementById('txtpo').value = response.po;
-                        document.getElementById('txtstyle').value = response.styleno;
-                        document.getElementById('txtdest').value = response.dest;
-                    } else {
-                        document.getElementById('txtbuyer').value = '';
-                        document.getElementById('txtpo').value = '';
-                        document.getElementById('txtstyle').value = '';
-                        document.getElementById('txtdest').value = '';
-                    }
+            let po = document.form_upload.cbopo.value;
+            if (!cbopo) {
+                document.getElementById('txtbuyer').value = '';
+                document.getElementById('txtpo').value = '';
+                document.getElementById('txtstyle').value = '';
+                document.getElementById('txtdest').value = '';
+            } else {
+                let cbopo = po.split('_')[0];
+                let dest = po.split('_')[1];
 
-                },
-                error: function(request, status, error) {
-                    alert(request.responseText);
-                },
-            });
+                $.ajax({
+                    url: '{{ route('show_det_po') }}',
+                    method: 'get',
+                    data: {
+                        cbopo: cbopo,
+                        dest: dest
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response !== null) {
+                            document.getElementById('txtbuyer').value = response.buyer;
+                            document.getElementById('txtpo').value = response.po;
+                            document.getElementById('txtstyle').value = response.styleno;
+                            document.getElementById('txtdest').value = response.dest;
+                        } else {
+                            document.getElementById('txtbuyer').value = '';
+                            document.getElementById('txtpo').value = '';
+                            document.getElementById('txtstyle').value = '';
+                            document.getElementById('txtdest').value = '';
+                        }
+
+                    },
+                    error: function(request, status, error) {
+                        alert(request.responseText);
+                    },
+                });
+            }
+
+
         };
 
         function export_data_po() {
-            let po = $('#cbopo').val();
+            let po = $('#txtpo').val();
+            let dest = $('#txtdest').val();
             let tipe = $('#cbotipe').val();
             if (!tipe) {
                 iziToast.warning({
@@ -337,7 +429,8 @@
                         type: "get",
                         url: '{{ route('export_data_template_po_packing_list_horizontal') }}',
                         data: {
-                            po: po
+                            po: po,
+                            dest: dest
                         },
                         xhrFields: {
                             responseType: 'blob'
@@ -354,7 +447,7 @@
                                 var blob = new Blob([response]);
                                 var link = document.createElement('a');
                                 link.href = window.URL.createObjectURL(blob);
-                                link.download = "PO " + po + "_H.xlsx";
+                                link.download = "PO " + po + "_" + dest + "_H.xlsx";
                                 link.click();
 
                             }
@@ -365,7 +458,8 @@
                         type: "get",
                         url: '{{ route('export_data_template_po_packing_list_vertical') }}',
                         data: {
-                            po: po
+                            po: po,
+                            dest: dest
                         },
                         xhrFields: {
                             responseType: 'blob'
@@ -382,7 +476,7 @@
                                 var blob = new Blob([response]);
                                 var link = document.createElement('a');
                                 link.href = window.URL.createObjectURL(blob);
-                                link.download = "PO " + po + "_V.xlsx";
+                                link.download = "PO " + po + "_" + dest + "_V.xlsx";
                                 link.click();
 
                             }
@@ -446,10 +540,16 @@
 
                 },
                 {
+                    data: 'buyer'
+                },
+                {
                     data: 'po'
                 },
                 {
-                    data: 'buyer'
+                    data: 'dest'
+                },
+                {
+                    data: 'styleno'
                 },
                 {
                     data: 'tot_carton'
@@ -457,28 +557,42 @@
                 {
                     data: 'tot_qty'
                 },
+                {
+                    data: 'po'
+                },
             ],
             columnDefs: [{
-                "className": "dt-center",
-                "targets": "_all"
-            }, ]
-
+                    "className": "dt-center",
+                    "targets": "_all"
+                },
+                {
+                    targets: [7],
+                    render: (data, type, row, meta) => {
+                        return `
+                <div class='d-flex gap-1 justify-content-center'>
+                <a class='btn btn-primary btn-sm'  data-bs-toggle="modal"
+                  data-bs-target="#exampleModalCheck"
+                onclick="show_data('` + row.po + `', '` + row.dest + `','` + row.buyer + `','` + row.styleno + `' );dataTableDetailPackingListReload();"><i class='fas fa-search'></i>
+                </a>
+                     </div>
+                    `;
+                    }
+                },
+            ]
 
         }, );
 
-
-
-        function dataTableUploadReload() {
-            datatable_upload.ajax.reload();
+        function dataTablePackingListReload() {
+            datatable_packing_list.ajax.reload();
         }
 
-        $('#datatable_upload thead tr').clone(true).appendTo('#datatable_upload thead');
-        $('#datatable_upload thead tr:eq(1) th').each(function(i) {
+        $('#datatable_packing_list thead tr').clone(true).appendTo('#datatable_packing_list thead');
+        $('#datatable_packing_list thead tr:eq(1) th').each(function(i) {
             var title = $(this).text();
             $(this).html('<input type="text" class="form-control form-control-sm"/>');
             $('input', this).on('keyup change', function() {
-                if (datatable_upload.column(i).search() !== this.value) {
-                    datatable_upload
+                if (datatable_packing_list.column(i).search() !== this.value) {
+                    datatable_packing_list
                         .column(i)
                         .search(this.value)
                         .draw();
@@ -486,7 +600,7 @@
             });
         });
 
-        let datatable_upload = $("#datatable_upload").DataTable({
+        let datatable_packing_list = $("#datatable_packing_list").DataTable({
             "footerCallback": function(row, data, start, end, display) {
                 var api = this.api(),
                     data;
@@ -582,17 +696,136 @@
         }, );
 
 
+
+        function dataTableUploadReload() {
+            datatable_upload.ajax.reload();
+        }
+
+        $('#datatable_upload thead tr').clone(true).appendTo('#datatable_upload thead');
+        $('#datatable_upload thead tr:eq(1) th').each(function(i) {
+            var title = $(this).text();
+            $(this).html('<input type="text" class="form-control form-control-sm"/>');
+            $('input', this).on('keyup change', function() {
+                if (datatable_upload.column(i).search() !== this.value) {
+                    datatable_upload
+                        .column(i)
+                        .search(this.value)
+                        .draw();
+                }
+            });
+        });
+
+        let datatable_upload = $("#datatable_upload").DataTable({
+            "footerCallback": function(row, data, start, end, display) {
+                var api = this.api(),
+                    data;
+
+                // converting to interger to find total
+                var intVal = function(i) {
+                    return typeof i === 'string' ?
+                        i.replace(/[\$,]/g, '') * 1 :
+                        typeof i === 'number' ?
+                        i : 0;
+                };
+
+                // computing column Total of the complete result
+                var sumTotal = api
+                    .column(6)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                // Count rows with color red
+
+                var redCount = 0;
+                api.rows().every(function() {
+                    var row = this.data();
+                    if (row.id_ppic_master_so === null) {
+                        redCount++;
+                    }
+                });
+
+                // Update footer by showing the total with the reference of the column index
+                $(api.column(0).footer()).html('Total');
+                $(api.column(5).footer()).html(sumTotal);
+                $('#txtnon_upload').val(redCount);
+            },
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            paging: false,
+            searching: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
+            ajax: {
+                url: '{{ route('show_datatable_upload_packing_list') }}',
+                data: function(d) {
+                    d.po = $('#txtpo').val();
+                    d.dest = $('#txtdest').val();
+                    d.tipe = $('#cbotipe').val();
+                },
+            },
+            columns: [{
+                    data: 'tgl_shipment_fix'
+
+                },
+                {
+                    data: 'po'
+                },
+                {
+                    data: 'no_carton'
+                },
+                {
+                    data: 'tipe_pack'
+                },
+                {
+                    data: 'color'
+                },
+                {
+                    data: 'size'
+                },
+                {
+                    data: 'qty'
+                },
+            ],
+            columnDefs: [{
+                    "className": "dt-center",
+                    "targets": "_all"
+                },
+                {
+                    targets: '_all',
+                    className: 'text-nowrap',
+                    render: (data, type, row, meta) => {
+                        if (row.id_ppic_master_so === null) {
+                            color = 'red';
+                        } else {
+                            color = '#087521';
+                        }
+                        return '<span style="font-weight: 600; color:' + color + '">' + data + '</span>';
+                    }
+                },
+            ]
+
+
+        }, );
+
+
         function simpan() {
-            let po = $('#cbopo').val();
+            // let po = $('#cbopo').val();
             let txtnon_upload = $('#txtnon_upload').val();
             let tipe = $('#cbotipe').val();
+            let txtpo = $('#txtpo').val();
+            let txtdest = $('#txtdest').val();
             $.ajax({
                 type: "post",
                 url: '{{ route('store_upload_packing_list') }}',
                 data: {
-                    po: po,
                     txtnon_upload: txtnon_upload,
-                    tipe: tipe
+                    tipe: tipe,
+                    txtpo: txtpo,
+                    txtdest: txtdest
                 },
                 success: function(response) {
                     if (response.icon == 'salah') {
@@ -647,5 +880,114 @@
                 }
             });
         }
+
+        function show_data(po_s, dest_s, buyer_s, style_s) {
+
+            $('#modal_po').val(po_s);
+            $('#modal_dest').val(dest_s);
+            $('#modal_buyer').val(buyer_s);
+            $('#modal_style').val(style_s);
+            dataTableDetailPackingListReload();
+        }
+
+        function dataTableDetailPackingListReload() {
+            datatable_detail_packing_list.ajax.reload();
+        }
+
+        $('#datatable_detail_packing_list thead tr').clone(true).appendTo('#datatable_detail_packing_list thead');
+        $('#datatable_detail_packing_list thead tr:eq(1) th').each(function(i) {
+            var title = $(this).text();
+            $(this).html('<input type="text" class="form-control form-control-sm"/>');
+            $('input', this).on('keyup change', function() {
+                if (datatable_detail_packing_list.column(i).search() !== this.value) {
+                    datatable_detail_packing_list
+                        .column(i)
+                        .search(this.value)
+                        .draw();
+                }
+            });
+        });
+
+        let datatable_detail_packing_list = $("#datatable_detail_packing_list").DataTable({
+            "footerCallback": function(row, data, start, end, display) {
+                var api = this.api(),
+                    data;
+
+                // converting to interger to find total
+                var intVal = function(i) {
+                    return typeof i === 'string' ?
+                        i.replace(/[\$,]/g, '') * 1 :
+                        typeof i === 'number' ?
+                        i : 0;
+                };
+
+                // computing column Total of the complete result
+                var sumTotal = api
+                    .column(8)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                // Update footer by showing the total with the reference of the column index
+                $(api.column(0).footer()).html('Total');
+                $(api.column(8).footer()).html(sumTotal);
+            },
+
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            paging: false,
+            searching: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
+            destroy: true,
+            info: true,
+            ajax: {
+                url: '{{ route('show_detail_packing_list') }}',
+                method: 'GET',
+                data: function(d) {
+                    d.po = $('#modal_po').val();
+                    d.dest = $('#modal_dest').val();
+                },
+            },
+            columns: [{
+                    data: 'po'
+
+                },
+                {
+                    data: 'dest'
+                },
+                {
+                    data: 'styleno'
+                },
+                {
+                    data: 'ws'
+                },
+                {
+                    data: 'color'
+                },
+                {
+                    data: 'size'
+                },
+                {
+                    data: 'no_carton'
+                },
+                {
+                    data: 'tipe_pack'
+                },
+                {
+                    data: 'qty'
+                },
+            ],
+            columnDefs: [{
+                "className": "align-middle",
+                "targets": "_all"
+            }, ],
+            rowsGroup: [
+                6
+            ]
+        });
     </script>
 @endsection
