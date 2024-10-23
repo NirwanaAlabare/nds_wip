@@ -302,6 +302,15 @@
                                     </a>
                                 </li>
                             @endmeja
+
+                            {{-- @admin
+                                <li>
+                                    <a href="{{ route('piping') }}"
+                                        class="dropdown-item {{ $subPage == 'spreading' ? 'active' : '' }}">
+                                        Piping <i class="fas fa-scroll fa-sm"></i>
+                                    </a>
+                                </li>
+                            @endadmin --}}
                         </ul>
                     </li>
 

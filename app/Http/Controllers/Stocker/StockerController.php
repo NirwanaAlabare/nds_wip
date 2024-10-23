@@ -2808,7 +2808,7 @@ class StockerController extends Controller
                 YearSequence::insert($insertData);
 
                 $customPaper = array(0, 0, 35.35, 110.90);
-                $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearsequence-1', ["data" => $insertData])->setPaper($customPaper);
+                $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearsequence', ["data" => $insertData])->setPaper($customPaper);
 
                 $path = public_path('pdf/');
                 $fileName = str_replace("/", "-", ('Year Sequence.pdf'));
@@ -2844,7 +2844,7 @@ class StockerController extends Controller
                 YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], ['created_at', 'updated_at']);
 
                 $customPaper = array(0, 0, 35.35, 110.90);
-                $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearsequence-1', ["data" => $upsertData])->setPaper($customPaper);
+                $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearsequence', ["data" => $upsertData])->setPaper($customPaper);
 
                 $path = public_path('pdf/');
                 $fileName = str_replace("/", "-", ('Year Sequence.pdf'));
