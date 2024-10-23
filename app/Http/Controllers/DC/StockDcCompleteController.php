@@ -20,6 +20,16 @@ class StockDcCompleteController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
+            $additionalQuery = "";
+
+            if ($request->dateFrom) {
+                $additionalQuery .= "AND dc_in_input.tgl_trans >= '".$request->dateFrom."'";
+            }
+
+            if ($request->dateTo) {
+                $additionalQuery .= "AND dc_in_input.tgl_trans <= '".$request->dateTo."'";
+            }
+
             // Get Stocker Data
             $stockDcComplete = DB::select("
                 SELECT
@@ -33,35 +43,36 @@ class StockDcCompleteController extends Controller
                     count( stk.id ) stocker
                 FROM
                     (
-                    SELECT
-                        stocker_input.id,
-                        part.id part_id,
-                        part.buyer buyer,
-                        form_cut_input.id form_cut_id,
-                        stocker_input.act_costing_ws,
-                        stocker_input.color,
-                        stocker_input.size,
-                        MIN(CAST( stocker_input.range_awal AS INTEGER )) range_awal,
-                        MAX(CAST( stocker_input.range_akhir AS INTEGER )) range_akhir,
-                        (MAX( CAST( stocker_input.range_akhir AS INTEGER )) - MIN( CAST( stocker_input.range_awal AS INTEGER )) + 1 ) qty,
-                        COUNT( dc_in_input.id ) complete,
-                        COUNT( stocker_input.id ) stocker
-                    FROM
-                        part
-                        LEFT JOIN part_form ON part_form.part_id = part.id
-                        LEFT JOIN form_cut_input ON form_cut_input.id = part_form.form_id
-                        LEFT JOIN stocker_input ON stocker_input.form_cut_id = form_cut_input.id
-                        LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
-                    GROUP BY
-                        part_form.part_id,
-                        form_cut_input.id,
-                        stocker_input.color,
-                        stocker_input.size,
-                        stocker_input.group_stocker
-                    HAVING
-                        stocker_input.id IS NOT NULL
-                    ORDER BY
-                        stocker_input.id
+                        SELECT
+                            stocker_input.id,
+                            part.id part_id,
+                            part.buyer buyer,
+                            form_cut_input.id form_cut_id,
+                            stocker_input.act_costing_ws,
+                            stocker_input.color,
+                            stocker_input.size,
+                            MIN(CAST( stocker_input.range_awal AS INTEGER )) range_awal,
+                            MAX(CAST( stocker_input.range_akhir AS INTEGER )) range_akhir,
+                            (MAX( CAST( stocker_input.range_akhir AS INTEGER )) - MIN( CAST( stocker_input.range_awal AS INTEGER )) + 1 ) qty,
+                            COUNT( dc_in_input.id ) complete,
+                            COUNT( stocker_input.id ) stocker
+                        FROM
+                            dc_in_input
+                            LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = dc_in_input.id_qr_stocker
+                            LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
+                            LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
+                            LEFT JOIN part ON part.id = part_form.part_id
+                        WHERE
+                            stocker_input.id is not null
+                            ".$additionalQuery."
+                        GROUP BY
+                            part_form.part_id,
+                            form_cut_input.id,
+                            stocker_input.color,
+                            stocker_input.size,
+                            stocker_input.group_stocker
+                        HAVING
+                            stocker_input.id IS NOT NULL
                     ) stk
                     LEFT JOIN master_size_new ON master_size_new.size = stk.size
                 GROUP BY
@@ -140,7 +151,7 @@ class StockDcCompleteController extends Controller
             WHERE
                 part_form.part_id = '".$partId."' AND
                 stocker_input.color = '".$color."' AND
-                stocker_input.size = '".$size."'
+                stocker_input.size = '".str_replace("_", "/", $size)."'
             GROUP BY
                 part_form.part_id,
                 form_cut_input.id,

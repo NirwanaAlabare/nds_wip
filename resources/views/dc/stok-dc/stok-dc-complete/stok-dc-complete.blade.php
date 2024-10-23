@@ -17,11 +17,11 @@
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div>
                     <label class="form-label"><small>Tanggal Awal</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" {{-- onchange="datatablePartReload()" --}}>
+                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="datatableCompleteStockerReload()">
                 </div>
                 <div>
                     <label class="form-label"><small>Tanggal Akhir</small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" {{-- onchange="datatablePartReload()" --}}>
+                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="datatableCompleteStockerReload()">
                 </div>
                 <div>
                     <button class="btn btn-primary btn-sm" onclick="datatableCompleteStockerReload()"><i class="fa fa-search"></i></button>
@@ -72,6 +72,12 @@
             serverSide: true,
             ajax: {
                 url: '{{ route('stock-dc-complete') }}',
+                dataType: 'json',
+                dataSrc: 'data',
+                data: function (d) {
+                    d.dateFrom = $('#tgl-awal').val();
+                    d.dateTo = $('#tgl-akhir').val();
+                }
             },
             columns: [
                 {
@@ -100,7 +106,7 @@
                     render: (data, type, row, meta) => {
                         return  `
                             <div class='d-flex gap-1 justify-content-center'>
-                                <a href='{{ route('stock-dc-complete-detail') }}/`+row.part_id+`/`+row.color+`/`+row.size+`/' class='btn btn-primary btn-sm'>
+                                <a href='{{ route('stock-dc-complete-detail') }}/`+row.part_id+`/`+row.color+`/`+(row.size).replace("/", "_")+`/' class='btn btn-primary btn-sm'>
                                     <i class='fa fa-search-plus'></i>
                                 </a>
                             </div>
