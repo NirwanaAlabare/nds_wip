@@ -87,38 +87,30 @@ class SecondaryInhouseController extends Controller
     public function detail_stocker_inhouse(Request $request)
     {
         $tgl_skrg = Carbon::now()->isoFormat('D MMMM Y hh:mm:ss');
-        $tglskrg = date('Y-m-d');
-        // dd($data_rak);
+
         if ($request->ajax()) {
             $additionalQuery = '';
 
-            // if ($request->dateFrom) {
-            //     $additionalQuery .= " and a.tgl_form_cut >= '" . $request->dateFrom . "' ";
-            // }
+            if ($request->dateFrom) {
+                $additionalQuery .= " and (sii.tgl_trans >= '" . $request->dateFrom . "') ";
+            }
 
-            // if ($request->dateTo) {
-            //     $additionalQuery .= " and a.tgl_form_cut <= '" . $request->dateTo . "' ";
-            // }
-
-            $keywordQuery = '';
-            if ($request->search['value']) {
-                $keywordQuery =
-                    "
-                     (
-                        line like '%" .
-                    $request->search['value'] .
-                    "%'
-                    )
-                ";
+            if ($request->dateTo) {
+                $additionalQuery .= " and (sii.tgl_trans <= '" . $request->dateTo . "') ";
             }
 
             $data_detail = DB::select("
-            select s.act_costing_ws, m.buyer,s.color,  styleno, COALESCE(sum(dc.qty_awal - dc.qty_reject + dc.qty_replace), 0) qty_in, COALESCE(sum(sii.qty_reject), 0) qty_reject, COALESCE(sum(sii.qty_replace), 0) qty_replace, COALESCE(sum(sii.qty_in), 0) qty_out, COALESCE((sum(sii.qty_in) - sum(dc.qty_awal - dc.qty_reject + dc.qty_replace)), 0) balance, dc.lokasi from dc_in_input dc
-            inner join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
-            inner join master_sb_ws m on s.so_det_id = m.id_so_det
-            left join secondary_inhouse_input sii on dc.id_qr_stocker = sii.id_qr_stocker
-            where dc.tujuan = 'SECONDARY DALAM' group by m.ws,m.buyer,m.styleno,m.color,dc.lokasi
-            having sum(sii.qty_in) - sum(dc.qty_awal - dc.qty_reject + dc.qty_replace) != '0'
+                select
+                    s.act_costing_ws, m.buyer,s.color,  styleno, COALESCE(sum(dc.qty_awal - dc.qty_reject + dc.qty_replace), 0) qty_in, COALESCE(sum(sii.qty_reject), 0) qty_reject, COALESCE(sum(sii.qty_replace), 0) qty_replace, COALESCE(sum(sii.qty_in), 0) qty_out, COALESCE((sum(sii.qty_in) - sum(dc.qty_awal - dc.qty_reject + dc.qty_replace)), 0) balance, dc.lokasi
+                from
+                    dc_in_input dc
+                    inner join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
+                    inner join master_sb_ws m on s.so_det_id = m.id_so_det
+                    left join secondary_inhouse_input sii on dc.id_qr_stocker = sii.id_qr_stocker
+                where
+                    dc.tujuan = 'SECONDARY DALAM' ".$additionalQuery."
+                group by
+                    m.ws,m.buyer,m.styleno,m.color,dc.lokasi
             ");
 
             return DataTables::of($data_detail)->toJson();

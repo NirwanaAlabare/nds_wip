@@ -385,6 +385,7 @@ class RollController extends Controller
                 AND cast(roll_qty AS DECIMAL ( 11, 3 )) > 0.000
                 LIMIT 1
         ");
+
         if ($item) {
             $scannedItem = ScannedItem::selectRaw("
                 marker_input.buyer,
@@ -409,8 +410,7 @@ class RollController extends Controller
             where('scanned_item.id_item', $item[0]->id_item)->
             first();
 
-            if ($scannedItem) {
-
+            if ($scannedItem && $scannedItem->buyer) {
                 return json_encode($scannedItem);
             }
 

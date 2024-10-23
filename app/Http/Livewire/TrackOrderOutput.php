@@ -245,7 +245,7 @@ class TrackOrderOutput extends Component
                         WHERE
                             DATE ( rfts.updated_at ) ".$masterPlanDateFilter."
                             AND master_plan.tgl_plan ".$masterPlanDateFilter1."
-                            ". ($this->selectedOrder ? " AND master_plan.id_ws = ".$this->selectedOrder."'" : "") . "
+                            ". ($this->selectedOrder ? " AND master_plan.id_ws = '".$this->selectedOrder."'" : "") . "
                         GROUP BY
                             master_plan.id_ws,
                             DATE ( rfts.updated_at ),

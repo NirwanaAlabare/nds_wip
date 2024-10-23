@@ -530,6 +530,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/year-sequence/get-sequence', 'getSequenceYearSequence')->name('get-sequence-year-sequence');
         Route::get('/year-sequence/get-range', 'getRangeYearSequence')->name('get-range-year-sequence');
         Route::post('/year-sequence/print', 'printYearSequence')->name('print-year-sequence');
+        Route::post('/year-sequence/print-new', 'printYearSequenceNew')->name('print-year-sequence-new');
         // Route::post('/year-sequence/print-checked', 'printYearSequenceChecked')->name('print-year-sequence-checked');
 
         // get stocker
