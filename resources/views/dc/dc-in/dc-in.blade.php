@@ -270,8 +270,14 @@
         });
 
         let datatable = $("#datatable-input").DataTable({
-            "footerCallback": function(row, data, start, end, display) {
+            "footerCallback": async function(row, data, start, end, display) {
                 var api = this.api(),data;
+
+                $(api.column(0).footer()).html('Total');
+                $(api.column(11).footer()).html("...");
+                $(api.column(12).footer()).html("...");
+                $(api.column(13).footer()).html("...");
+                $(api.column(14).footer()).html("...");
 
                 // // converting to interger to find total
                 // var intVal = function(i) {
