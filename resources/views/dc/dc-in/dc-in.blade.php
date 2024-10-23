@@ -257,7 +257,7 @@
         $('#datatable-input thead tr').clone(true).appendTo('#datatable-input thead');
         $('#datatable-input thead tr:eq(1) th').each(function(i) {
             var title = $(this).text();
-            $(this).html('<input type="text" class="form-control form-control-sm"/ id="'+listFilter[i]+'">');
+            $(this).html('<input type="text" class="form-control form-control-sm" id="'+listFilter[i]+'"/>');
 
             $('input', this).on('keyup change', function() {
                 if (datatable.column(i).search() !== this.value) {
