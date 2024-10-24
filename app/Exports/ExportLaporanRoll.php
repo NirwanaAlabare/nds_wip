@@ -61,7 +61,7 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                 cons_marker,
                 a.cons_ampar,
                 a.cons_act,
-                COALESCE(a.cons_pipping, cons_piping) cons_piping,
+                (CASE WHEN a.cons_pipping > 0 THEN a.cons_pipping ELSE mrk.cons_piping END) cons_piping,
                 panjang_marker,
                 unit_panjang_marker,
                 comma_marker,
