@@ -93,7 +93,7 @@
                 <div class="accordion-item">
                     <h2 class="accordion-header">
                         <button class="accordion-button bg-sb-secondary text-light fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                            Stockers
+                            Stocker List
                         </button>
                     </h2>
                     <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionExample">
@@ -125,6 +125,10 @@
                             <th>Year Sequence Number</th>
                             <th>Size</th>
                             <th>Dest</th>
+                            <th>Sewing Line</th>
+                            <th>Sewing Input</th>
+                            <th>Packing Line</th>
+                            <th>Packing Input</th>
                             <th class="d-none">
                                 Print
                             </th>
@@ -132,12 +136,19 @@
                         <tbody>
                             @if ($stockerListNumber->count() > 0)
                                 @foreach ($stockerListNumber as $number)
+                                    @php
+                                        $thisOutput = $output->where("kode_numbering", $number->id_year_sequence)->first();
+                                    @endphp
                                     <tr>
                                         <td>{{ $number->number }}</td>
                                         <td>{{ $number->year."_".$number->year_sequence }}</td>
                                         <td>{{ $number->year_sequence_number }}</td>
                                         <td>{{ $number->size }}</td>
                                         <td>{{ $number->dest }}</td>
+                                        <td>{{ $thisOutput ? ($thisOutput->sewing_line ? $thisOutput->sewing_line : '-') : '-' }}</td>
+                                        <td>{{ $thisOutput ? ($thisOutput->sewing_update ? $thisOutput->sewing_update : '-') : '-' }}</td>
+                                        <td>{{ $thisOutput ? ($thisOutput->packing_line ? $thisOutput->packing_line : '-') : '-' }}</td>
+                                        <td>{{ $thisOutput ? ($thisOutput->packing_update ? $thisOutput->packing_update : '-') : '-' }}</td>
                                         <td class="d-none">
                                             <div class="d-flex gap-3">
                                                 <button type="button" class="btn btn-sm btn-danger" onclick="printYearSequence({{ $loop->index }});">

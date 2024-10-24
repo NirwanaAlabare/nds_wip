@@ -42,7 +42,7 @@
 <body>
     @for ($i = 0;$i < count($data); $i++)
         <div style="{{ $i == count($data)-1 ? '' : 'page-break-after: always;' }}">
-            <hr style="margin-bottom: 25px;border-collapse: collapse;">
+            <hr style="margin-left: 15px; margin-right: 15px;margin-bottom: 25px;border-collapse: collapse; color: transparent;">
             <hr style="margin-top: 10px;margin-bottom: 10px;border-style: dashed;border-collapse: collapse;">
             <h5 style="font-size: 11px;text-align: center;margin-top: 3px;margin-bottom: 0px;">{{ substr(str_replace(" ", "", $data[$i]['size']), 0, 5).(strlen(str_replace(" ", "", $data[$i]['size'])) > 5 ? '-' : '') }}</h5>
             <h5 style="font-size: 11px;text-align: center;margin-top: 3px;margin-bottom: 1px;">{{ date('Y', strtotime($data[$i]['year']))."_".$data[$i]['year_sequence'] }}</h5>
