@@ -303,6 +303,15 @@
                                 </li>
                             @endmeja
 
+                            @meja
+                                <li>
+                                    <a href="{{ route('form-cut-piping') }}"
+                                        class="dropdown-item {{ $subPage == 'form-cut-piping' ? 'active' : '' }}">
+                                        Piping <i class="fa-solid fa-paperclip"></i>
+                                    </a>
+                                </li>
+                            @endmeja
+
                             {{-- @admin
                                 <li>
                                     <a href="{{ route('piping') }}"

@@ -25,6 +25,7 @@ use App\Http\Controllers\Cutting\SpreadingController;
 use App\Http\Controllers\Cutting\CuttingFormController;
 use App\Http\Controllers\Cutting\CuttingFormManualController;
 use App\Http\Controllers\Cutting\CuttingFormPilotController;
+use App\Http\Controllers\Cutting\PipingController;
 use App\Http\Controllers\Cutting\CuttingPlanController;
 use App\Http\Controllers\Cutting\ReportCuttingController;
 use App\Http\Controllers\Cutting\CompletedFormController;
@@ -412,6 +413,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-count', 'getCount')->name('pilot-form-cut-get-count');
         // get number
         Route::get('/get-number', 'getNumber')->name('pilot-form-cut-get-number');
+    });
+
+    Route::controller(PipingController::class)->prefix("form-cut-piping")->middleware("meja")->group(function () {
+        Route::get('/', 'index')->name('form-cut-piping');
+        Route::get('/create', 'create')->name('create-piping');
+        Route::post('/store', 'store')->name('store-piping');
+
+        Route::get('/get-marker-piping', 'getMarkerPiping')->name('get-marker-piping');
     });
 
     // Cutting Plan
