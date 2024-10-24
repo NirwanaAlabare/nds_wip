@@ -40,9 +40,9 @@
     </style>
 </head>
 <body>
-    @for ($i = count($data)-1;$i >= 0; $i--)
-        <div style="{{ $i == 0 ? '' : 'page-break-after: always;' }}">
-            <hr style="margin-left: 15px; margin-right: 15px;margin-bottom: 25px;border-collapse: collapse;">
+    @for ($i = 0;$i < count($data); $i++)
+        <div style="{{ $i == count($data)-1 ? '' : 'page-break-after: always;' }}">
+            <hr style="margin-left: 15px; margin-right: 15px;margin-bottom: 25px;border-collapse: collapse;color: transparent;">
             <hr style="margin-top: 10px;border-style: dashed;border-collapse: collapse;">
             <h5 style="font-size: 11px;text-align: center;margin-top: 30px;margin-bottom: 3px;">{{ date('Y', strtotime($data[$i]['year']))."_".$data[$i]['year_sequence'] }}</h5>
             <div style="margin-bottom: 0px;">
