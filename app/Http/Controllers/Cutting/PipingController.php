@@ -52,7 +52,9 @@ class PipingController extends Controller
             "color" => "required",
             "panel" => "required",
             "id_roll" => "required",
+            "qty_item" => "required|numeric|min:0",
             "piping" => "required|numeric|min:0",
+            "qty_sisa" => "required|numeric|min:0",
             "unit" => "required",
             "operator" => "required",
         ]);
@@ -66,7 +68,9 @@ class PipingController extends Controller
                 "color" => $validatedRequest['color'],
                 "panel" => $validatedRequest['panel'],
                 "id_roll" => $validatedRequest['id_roll'],
+                "qty" => $validatedRequest['qty_item'],
                 "piping" => $validatedRequest['piping'],
+                "qty_sisa" => $validatedRequest['qty_sisa'],
                 "unit" => $validatedRequest['unit'],
                 "operator" => $validatedRequest['operator']
             ]);
@@ -80,9 +84,9 @@ class PipingController extends Controller
                         "lot" => $request->lot,
                         "roll" => $request->roll,
                         "roll_buyer" => $request->roll_buyer,
-                        "qty" => $request->qty_sisa,
+                        "qty" => $validatedRequest['qty_sisa'],
                         "qty_pakai" => DB::raw("qty_pakai + ".$validatedRequest['piping']),
-                        "unit" => $request->unit
+                        "unit" => $validatedRequest['unit']
                     ]
                 );
 

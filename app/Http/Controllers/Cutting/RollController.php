@@ -110,7 +110,6 @@ class RollController extends Controller
                     left join form_cut_input_detail b on a.no_form = b.no_form_cut_input
                     left join users meja on meja.id = a.no_meja
                     left join marker_input mrk on a.id_marker = mrk.kode
-                    left join master_sb_ws.id_ws
                 where
                     (a.cancel = 'N'  OR a.cancel IS NULL)
 	                AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
@@ -134,21 +133,32 @@ class RollController extends Controller
     public function pemakaianRollData(Request $request)
     {
         $additionalQuery = "";
+        $additionalQuery1 = "";
 
         if ($request->dateFrom) {
             $additionalQuery .= " and DATE(b.created_at) >= '" . $request->dateFrom . "'";
+            $additionalQuery1 .= " and DATE(form_cut_piping.created_at) >= '" . $request->dateFrom . "'";
         }
 
         if ($request->dateTo) {
             $additionalQuery .= " and DATE(b.created_at) <= '" . $request->dateTo . "'";
+            $additionalQuery1 .= " and DATE(form_cut_piping.created_at) <= '" . $request->dateTo . "'";
         }
 
         $keywordQuery = "";
+        $keywordQuery1 = "";
         if ($request->search["value"]) {
             $keywordQuery = "
                 and (
                     act_costing_ws like '%" . $request->search["value"] . "%' OR
                     DATE_FORMAT(b.created_at, '%d-%m-%Y') like '%" . $request->search["value"] . "%'
+                )
+            ";
+
+            $keywordQuery1 = "
+                and (
+                    act_costing_ws like '%" . $request->search["value"] . "%' OR
+                    DATE_FORMAT(form_cut_piping.created_at, '%d-%m-%Y') like '%" . $request->search["value"] . "%'
                 )
             ";
         }
@@ -160,7 +170,7 @@ class RollController extends Controller
                 b.no_form_cut_input,
                 UPPER(meja.name) nama_meja,
                 mrk.act_costing_ws,
-                mrk.buyer,
+                master_sb_ws.buyer,
                 mrk.style,
                 mrk.color,
                 COALESCE(b.color_act, '-') color_act,
@@ -222,14 +232,78 @@ class RollController extends Controller
                 AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
                 and b.status != 'not completed'
                 and id_item is not null
-                " . $additionalQuery . "
-                " . $keywordQuery . "
+                ".$additionalQuery."
+                ".$keywordQuery."
             group by
                 b.id
-            order by
-                act_costing_ws asc,
-                a.no_form desc,
-                b.id asc
+            union
+            select
+                DATE_FORMAT(form_cut_piping.updated_at, '%M') bulan,
+                DATE_FORMAT(form_cut_piping.updated_at, '%d-%m-%Y') tgl_input,
+                'PIPING' no_form_cut_input,
+                '-' nama_meja,
+                form_cut_piping.act_costing_ws,
+                master_sb_ws.buyer,
+                form_cut_piping.style,
+                form_cut_piping.color,
+                form_cut_piping.color color_act,
+                form_cut_piping.panel,
+                master_sb_ws.qty,
+                '0' cons_ws,
+                0 cons_marker,
+                '0' cons_ampar,
+                0 cons_act,
+                '0' cons_piping,
+                0 panjang_marker,
+                '-' unit_panjang_marker,
+                0 comma_marker,
+                '-' unit_comma_marker,
+                0 lebar_marker,
+                '-' unit_lebar_marker,
+                0 panjang_actual,
+                '-' unit_panjang_actual,
+                0 comma_actual,
+                '-' unit_comma_actual,
+                0 lebar_actual,
+                '-' unit_lebar_actual,
+                form_cut_piping.id_roll,
+                scanned_item.id_item,
+                scanned_item.detail_item,
+                COALESCE(scanned_item.roll_buyer, scanned_item.roll) roll,
+                scanned_item.lot,
+                '-' group_roll,
+                form_cut_piping.qty qty_roll,
+                form_cut_piping.unit unit_roll,
+                0 berat_amparan,
+                0 est_amparan,
+                0 lembar_gelaran,
+                0 total_ratio,
+                0 qty_cut,
+                '00:00' average_time,
+                '0' sisa_gelaran,
+                0 sambungan,
+                0 sambungan_roll,
+                0 kepala_kain,
+                0 lembar_gelaran,
+                0 sisa_tidak_bisa,
+                0 reject,
+                form_cut_piping.piping piping,
+                form_cut_piping.qty_sisa sisa_kain,
+                form_cut_piping.piping pemakaian_lembar,
+                form_cut_piping.piping total_pemakaian_roll,
+                ((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty) short_roll,
+                CONCAT(ROUND(((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty)/form_cut_piping.qty * 100, 2), ' %') short_roll_percentage,
+                form_cut_piping.operator
+            from
+                form_cut_piping
+                left join master_sb_ws on master_sb_ws.id_act_cost = form_cut_piping.act_costing_id
+                left join scanned_item on scanned_item.id_roll = form_cut_piping.id_roll
+            where
+                id_item is not null
+                ".$additionalQuery1."
+                ".$keywordQuery1."
+            group by
+                form_cut_piping.id
         ");
 
         return DataTables::of($data_pemakaian)->toJson();
