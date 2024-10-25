@@ -332,6 +332,15 @@
                         }
                     },
                     error: function (jqXHR) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: 'Roll belum dapat di print.',
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                        });
+
                         document.getElementById("loading").classList.add("d-none");
 
                         console.log(jqXHR);
