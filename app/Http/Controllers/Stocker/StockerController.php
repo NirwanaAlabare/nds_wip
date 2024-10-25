@@ -2377,6 +2377,8 @@ class StockerController extends Controller
     public function setYearSequenceNumber(Request $request) {
         ini_set("max_execution_time", 36000);
 
+        $now = Carbon::now();
+
         $validatedRequest = $request->validate([
             "year" => 'required',
             "year_sequence" => 'required',
@@ -2428,8 +2430,6 @@ class StockerController extends Controller
                     }
 
                     if ($currentData->where('number', $validatedRequest['range_awal_stocker']+$n)->count() < 1 || $request->method == "add" ) {
-                        $now = Carbon::now();
-
                         $currentNumber = ($currentData->count() > 0 ? $currentData->max("number")+1+$n : $validatedRequest['range_awal_stocker']+$n);
 
                         array_push($upsertData, [

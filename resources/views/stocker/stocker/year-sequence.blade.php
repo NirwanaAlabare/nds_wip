@@ -591,7 +591,7 @@
                                 html: 'Data berhasil di setting <br> <b>'+$("#stocker").val()+'</b> <br> <b>'+$("#year").val()+'_'+$("#sequence").val()+'</b>',
                                 allowOutsideClick: false,
                             }).then(async function() {
-                                await printYearSequence($('#year').val(), $('#sequence').val(), Number($('#range_awal').val()), Number($('#range_akhir').val()));
+                                // await printYearSequence($('#year').val(), $('#sequence').val(), Number($('#range_awal').val()), Number($('#range_akhir').val()));
                                 yearSequenceTableReload();
                                 getRangeYearSequence();
 
