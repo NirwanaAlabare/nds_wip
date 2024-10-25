@@ -119,17 +119,26 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <input type="hidden" class="form-control" id="ws" name="ws" readonly>
                         <div class="mb-1">
                             <label class="form-label"><small>Buyer</small></label>
                             <input type="text" class="form-control" id="buyer" name="buyer" readonly>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="mb-1">
                             <label class="form-label"><small>Style</small></label>
                             <input type="text" class="form-control" id="style" name="style" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-1">
+                            <label class="form-label"><small>Cons. Piping</small></label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="cons_piping" name="cons_piping" readonly>
+                                <span class="input-group-text unit-text">METER</span>
+                            </div>
                         </div>
                     </div>
                     <div class="col-6 col-md-4">
@@ -338,11 +347,21 @@
                                 document.getElementById("lot").value = res.lot;
                                 document.getElementById("roll").value = res.roll ? res.roll : '-';
                                 document.getElementById("roll_buyer").value = res.roll_buyer ? res.roll_buyer : '-';
-                                document.getElementById("qty_item").value = res.qty;
-                                document.getElementById("unit").value = res.unit;
 
-                                for(let i = 0; i < document.getElementsByClassName('unit-text').length; i++) {
-                                    document.getElementsByClassName('unit-text')[i].innerHTML = res.unit;
+                                if (res.unit == 'YRD' || res.unit == 'YARD') {
+                                    document.getElementById("qty_item").value = (res.qty * 0.9144).round(2);
+                                    document.getElementById("unit").value = 'METER';
+
+                                    for(let i = 0; i < document.getElementsByClassName('unit-text').length; i++) {
+                                        document.getElementsByClassName('unit-text')[i].innerHTML = 'METER';
+                                    }
+                                } else {
+                                    document.getElementById("qty_item").value = res.qty;
+                                    document.getElementById("unit").value = res.unit;
+
+                                    for(let i = 0; i < document.getElementsByClassName('unit-text').length; i++) {
+                                        document.getElementsByClassName('unit-text')[i].innerHTML = res.unit;
+                                    }
                                 }
 
                                 calculatePipingRoll();
@@ -515,11 +534,15 @@
                 success: function (res) {
                     console.log("marker", res);
                     if (res) {
-                        document.getElementById('piping').value = res.piping;
+                        document.getElementById('cons_piping').value = res.cons_piping;
+                    } else {
+                        document.getElementById('cons_piping').value = 0;
                     }
                 },
                 error: function (jqXHR) {
                     console.error(jqXHR);
+
+                    document.getElementById('cons_piping').value = 0;
                 }
             });
         }

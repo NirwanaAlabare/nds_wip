@@ -43,8 +43,15 @@
                             <th>Style</th>
                             <th>Color</th>
                             <th>Panel</th>
+                            <th>Cons. Piping</th>
                             <th>ID Roll</th>
+                            <th>ID Item</th>
+                            <th>Detail Item</th>
+                            <th>Lot</th>
+                            <th>Roll</th>
+                            <th>Qty</th>
                             <th>Piping</th>
+                            <th>Sisa</th>
                             <th>Unit</th>
                             <th>Operator</th>
                         </tr>
@@ -142,10 +149,31 @@
                     data: 'panel'
                 },
                 {
+                    data: 'cons_piping'
+                },
+                {
                     data: 'id_roll'
                 },
                 {
+                    data: 'id_item'
+                },
+                {
+                    data: 'detail_item'
+                },
+                {
+                    data: 'lot'
+                },
+                {
+                    data: 'roll'
+                },
+                {
+                    data: 'qty'
+                },
+                {
                     data: 'piping'
+                },
+                {
+                    data: 'qty_sisa'
                 },
                 {
                     data: 'unit'
@@ -163,6 +191,10 @@
                         return `<div class='d-flex gap-1 justify-content-center'>` + btnEdit + `</div>`;
                     }
                 },
+                {
+                    targets: '_all',
+                    className: 'text-nowrap'
+                }
             ]
         });
 

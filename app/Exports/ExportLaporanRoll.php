@@ -115,7 +115,7 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                     left join users meja on meja.id = a.no_meja
                     left join (SELECT marker_input.*, SUM(marker_input_detail.ratio) total_ratio FROM marker_input LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id GROUP BY marker_input.id) mrk on a.id_marker = mrk.kode
                     left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = mrk.act_costing_id
-                    left join (SELECT * FROM form_cut_input_detail WHERE id_roll IS NOT NULL GROUP BY id) before_roll ON b.id_roll = before_roll.id_roll AND b.id > before_roll.id
+                    left join (SELECT id_roll, qty, total_pemakaian_roll, updated_at FROM form_cut_input_detail WHERE id_roll IS NOT NULL GROUP BY id union SELECT id_roll, qty, piping total_pemakaian_roll, updated_at FROM form_cut_piping WHERE id_roll IS NOT NULL GROUP BY id) before_roll ON b.id_roll = before_roll.id_roll AND b.updated_at > before_roll.updated_at
                 where
                     (a.cancel = 'N'  OR a.cancel IS NULL)
                     AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
@@ -144,7 +144,7 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                     0 cons_marker,
                     '0' cons_ampar,
                     0 cons_act,
-                    '0' cons_piping,
+                    form_cut_piping.cons_piping cons_piping,
                     0 panjang_marker,
                     '-' unit_panjang_marker,
                     0 comma_marker,
@@ -181,8 +181,8 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                     form_cut_piping.qty_sisa sisa_kain,
                     form_cut_piping.piping pemakaian_lembar,
                     form_cut_piping.piping total_pemakaian_roll,
-                    ((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty) short_roll,
-                    CONCAT(ROUND(((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty)/form_cut_piping.qty * 100, 2), ' %') short_roll_percentage,
+                    ROUND((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty, 2) short_roll,
+                    ROUND(((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty)/form_cut_piping.qty * 100, 2) short_roll_percentage,
                     null `status`,
                     form_cut_piping.operator
                 from

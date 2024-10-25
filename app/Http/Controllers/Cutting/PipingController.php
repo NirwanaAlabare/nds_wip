@@ -15,21 +15,41 @@ class PipingController extends Controller
 {
     public function index(Request $request) {
         if ($request->ajax()) {
-            $data = Piping::selectRaw("id, tanggal_piping, id_roll, act_costing_id, act_costing_ws, style, color, panel, piping, unit, operator");
+            $data = Piping::selectRaw("
+                form_cut_piping.id,
+                form_cut_piping.tanggal_piping,
+                form_cut_piping.act_costing_id,
+                form_cut_piping.act_costing_ws,
+                form_cut_piping.style,
+                form_cut_piping.color,
+                form_cut_piping.panel,
+                form_cut_piping.cons_piping,
+                form_cut_piping.id_roll,
+                scanned_item.id_item,
+                scanned_item.detail_item,
+                scanned_item.lot,
+                scanned_item.roll,
+                form_cut_piping.qty,
+                form_cut_piping.piping,
+                form_cut_piping.qty_sisa,
+                form_cut_piping.unit,
+                operator
+            ")->
+            leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_piping.id_roll");
 
             return DataTables::eloquent($data)->filter(function ($query) {
                     $tglAwal = request('tgl_awal');
                     $tglAkhir = request('tgl_akhir');
 
                     if ($tglAwal) {
-                        $query->whereRaw("tanggal_piping >= '" . $tglAwal . "'");
+                        $query->whereRaw("form_cut_piping.tanggal_piping >= '" . $tglAwal . "'");
                     }
 
                     if ($tglAkhir) {
-                        $query->whereRaw("tanggal_piping <= '" . $tglAkhir . "'");
+                        $query->whereRaw("form_cut_piping.tanggal_piping <= '" . $tglAkhir . "'");
                     }
                 }, true)->order(function ($query) {
-                    $query->orderBy('updated_at', 'asc');
+                    $query->orderBy('form_cut_piping.updated_at', 'desc');
                 })->toJson();
         }
 
@@ -52,6 +72,7 @@ class PipingController extends Controller
             "color" => "required",
             "panel" => "required",
             "id_roll" => "required",
+            "cons_piping" => "required|numeric|min:0",
             "qty_item" => "required|numeric|min:0",
             "piping" => "required|numeric|min:0",
             "qty_sisa" => "required|numeric|min:0",
@@ -68,6 +89,7 @@ class PipingController extends Controller
                 "color" => $validatedRequest['color'],
                 "panel" => $validatedRequest['panel'],
                 "id_roll" => $validatedRequest['id_roll'],
+                "cons_piping" => $validatedRequest['cons_piping'],
                 "qty" => $validatedRequest['qty_item'],
                 "piping" => $validatedRequest['piping'],
                 "qty_sisa" => $validatedRequest['qty_sisa'],
@@ -106,7 +128,7 @@ class PipingController extends Controller
     }
 
     public function getMarkerPiping(Request $request) {
-        $markerPiping = Marker::selectRaw("cons_piping")->where("act_costing_id", $request->ws_id)->where("color", $request->color)->where("panel", $request->panel)->first();
+        $markerPiping = Marker::selectRaw("cons_piping")->where("act_costing_id", $request->act_costing_id)->where("color", $request->color)->where("panel", $request->panel)->where("cons_piping", ">", DB::raw('0'))->first();
 
         return $markerPiping;
     }
