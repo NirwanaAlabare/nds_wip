@@ -73,11 +73,12 @@
                     <button type="button" class="btn btn-primary btn-sm btn-block" onclick="printSisaKain()"><i class="fa fa-print"></i> Print Sticker</button>
                 </div>
                 <div class="col-md-12">
-                    <table class="table table-bordered w-100" id="datatable">
+                    <table class="table table-bordered w-100 table-sm" id="datatable">
                         <thead>
                             <tr>
                                 <th>No.Form</th>
                                 <th>No. Cut</th>
+                                <th>ID Roll</th>
                                 <th>Qty</th>
                                 <th>Unit</th>
                                 <th>Total Pemakaian</th>
@@ -272,6 +273,9 @@
                         data: "no_form_cut_input"
                     },
                     {
+                        data: "no_cut"
+                    },
+                    {
                         data: "id_roll"
                     },
                     {
@@ -302,6 +306,53 @@
                         render: (data, type, row, meta) => {
                             return "<a href = '{{ route("process-form-cut-input") }}/"+row.id_form+"' target='_blank'>"+data+"</a>"
                         }
+                    },
+                    {
+                        targets: [8],
+                        render: (data, type, row, meta) => {
+                            switch (data) {
+                                case "need extension" :
+                                    return "butuh sambungan";
+                                    break;
+                                case "extension" :
+                                    return "sambungan";
+                                    break;
+                                case "extension complete" :
+                                    return "sambungan selesai";
+                                    break;
+                                case "complete" :
+                                    return "selesai";
+                                    break;
+                                case "not complete" :
+                                    return "belum selesai";
+                                    break;
+                                default :
+                                    return data;
+                                    break;
+                            }
+                        }
+                    },
+                    {
+                        targets: [9],
+                        render: (data, type, row, meta) => {
+                            console.log(data);
+                            let date = new Date(data);
+
+                            console.log(date);
+                            var dateString =
+                                date.getUTCFullYear() + "-" +
+                                ("0" + (date.getUTCMonth()+1)).slice(-2) + "-" +
+                                ("0" + date.getUTCDate()).slice(-2) + " " +
+                                ("0" + date.getUTCHours()).slice(-2) + ":" +
+                                ("0" + date.getUTCMinutes()).slice(-2) + ":" +
+                                ("0" + date.getUTCSeconds()).slice(-2);
+
+                            return dateString;
+                        }
+                    },
+                    {
+                        targets: '_all',
+                        className: 'text-nowrap'
                     }
                 ]
             })
