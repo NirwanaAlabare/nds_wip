@@ -140,7 +140,7 @@
                                 </div>
                                 <div class="col-sm-3">
                                     <div class="form-group">
-                                        <label><small><b>Notes :</b></small></label>
+                                        <label><small><b>Dest :</b></small></label>
                                         <select class="form-control select2bs4" id="cbonotes" name="cbonotes"
                                             onchange="getno_carton();" style="width: 100%;">
                                         </select>
@@ -568,6 +568,8 @@
                         name="curr[` + row.id_so_det + `]" value = "` + row.curr + `"/>
                         <input type="hidden" size="4" id="price[` + row.id_so_det + `]"
                         name="price[` + row.id_so_det + `]" value = "` + row.price + `"/>
+                        <input type="hidden" size="4" id="dest[` + row.id_so_det + `]"
+                        name="dest[` + row.id_so_det + `]" value = "` + row.dest + `"/>
                     `;
                     }
                 },

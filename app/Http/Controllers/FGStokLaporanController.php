@@ -125,16 +125,16 @@ class FGStokLaporanController extends Controller
     //         return DataTables::of($data_preview)->toJson();
     //     }
 
-        // api
-        public function show_fg_stok_mutasi(Request $request)
-        {
-            ini_set("max_execution_time", 3600);
-            
-            // $user = Auth::user()->name;
-            $tgl_awal = $request->tgl_awal ? $request->tgl_awal : date('Y-m-d');
-            $tgl_akhir = $request->tgl_akhir ? $request->tgl_akhir : date('Y-m-d');
+    // api
+    public function show_fg_stok_mutasi(Request $request)
+    {
+        ini_set("max_execution_time", 3600);
 
-            $data_preview = DB::select("select mt.id_so_det,
+        // $user = Auth::user()->name;
+        $tgl_awal = $request->tgl_awal ? $request->tgl_awal : date('Y-m-d');
+        $tgl_akhir = $request->tgl_akhir ? $request->tgl_akhir : date('Y-m-d');
+
+        $data_preview = DB::select("select mt.id_so_det,
                 sum(qty_awal) qty_awal,
                 sum(qty_in) qty_in,
                 sum(qty_out) qty_out,
@@ -187,7 +187,7 @@ class FGStokLaporanController extends Controller
             ");
 
         return response()->json([
-            'tanggal' => $tgl_awal." - ".$tgl_akhir,
+            'tanggal' => $tgl_awal . " - " . $tgl_akhir,
             'data' => $data_preview,
             'message' => 'Succeed'
         ], JsonResponse::HTTP_OK);

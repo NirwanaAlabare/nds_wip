@@ -140,7 +140,7 @@
                                 </div>
                                 <div class="col-sm-3">
                                     <div class="form-group">
-                                        <label><small><b>Notes :</b></small></label>
+                                        <label><small><b>Dest :</b></small></label>
                                         <select class="form-control select2bs4" id="cbonotes" name="cbonotes"
                                             onchange="getno_carton();" style="width: 100%;">
                                         </select>
@@ -231,7 +231,7 @@
                                             <th>Size</th>
                                             <th>Qty</th>
                                             <th>Dest</th>
-                                            <th style="display:none;">ID SO Det</th>
+                                            <th>ID So Det</th>
                                         </tr>
                                     </thead>
                                     <tfoot>
@@ -560,7 +560,7 @@
                     targets: [5],
                     render: (data, type, row, meta) => {
                         return `
-                        <input type="hidden" readonly size="4" id="id_so_det[` + row.id_so_det + `]"
+                        <input type="text" readonly size="4" id="id_so_det[` + row.id_so_det + `]"
                         name="id_so_det[` + row.id_so_det + `]" value = "` + row.id_so_det + `"/>
                         <input type="hidden" size="4" id="qty[` + row.id_so_det + `]"
                         name="qty[` + row.id_so_det + `]" value = "` + row.qty + `"/>
@@ -568,6 +568,8 @@
                         name="curr[` + row.id_so_det + `]" value = "` + row.curr + `"/>
                         <input type="hidden" size="4" id="price[` + row.id_so_det + `]"
                         name="price[` + row.id_so_det + `]" value = "` + row.price + `"/>
+                        <input type="hidden" size="4" id="dest[` + row.id_so_det + `]"
+                        name="dest[` + row.id_so_det + `]" value = "` + row.dest + `"/>
                     `;
                     }
                 },

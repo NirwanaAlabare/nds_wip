@@ -107,7 +107,7 @@ class PipingController extends Controller
                         "roll" => $request->roll,
                         "roll_buyer" => $request->roll_buyer,
                         "qty" => $validatedRequest['qty_sisa'],
-                        "qty_pakai" => DB::raw("qty_pakai + ".$validatedRequest['piping']),
+                        "qty_pakai" => DB::raw("COALESCE(qty_pakai, 0) + ".$validatedRequest['piping']),
                         "unit" => $validatedRequest['unit']
                     ]
                 );

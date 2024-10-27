@@ -75,6 +75,7 @@
                                         <th>PO</th>
                                         <th>Dest</th>
                                         <th>Style</th>
+                                        <th>Barcode</th>
                                         <th>WS</th>
                                         <th>Color</th>
                                         <th>Size</th>
@@ -85,7 +86,7 @@
                                 </thead>
                                 <tfoot>
                                     <tr>
-                                        <th colspan="8"></th>
+                                        <th colspan="9"></th>
                                         <th> <input type = 'text' class="form-control form-control-sm" style="width:75px"
                                                 readonly id = 'total_qty_chk'> </th>
                                     </tr>
@@ -98,6 +99,87 @@
             <button type="submit" class="btn btn-outline-success btn-sm"><i class="fas fa-check"></i> Simpan
             </button>
         </div> --}}
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="exampleModalHapus" tabindex="-1" role="dialog" aria-labelledby="exampleModalHapusLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header bg-danger">
+                    <h3 class="modal-title fs-5"><i class="far fa-edit"></i> Hapus Karton</h3>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="form_h_karton" name='form_h_karton' method='post' action="{{ route('hapus_packing_list') }}"
+                        onsubmit="submitForm(this, event)">
+                        <div class='row'>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label"><small><b>Buyer</b></small></label>
+                                    <input type="text" class="form-control form-control-sm" id = "modal_h_buyer"
+                                        name = "modal_h_buyer" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label"><small><b>PO</b></small></label>
+                                    <input type="text" class="form-control form-control-sm" id = "modal_h_po"
+                                        name = "modal_h_po" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label"><small><b>Dest</b></small></label>
+                                    <input type="text" class="form-control form-control-sm" id = "modal_h_dest"
+                                        name = "modal_h_dest" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="form-label"><small><b>Style</b></small></label>
+                                    <input type="text" class="form-control form-control-sm" id = "modal_h_style"
+                                        name = "modal_h_style" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='row'>
+                            <div class="col-md-12 table-responsive">
+                                <table id="datatable_detail_packing_list_hapus"
+                                    class="table table-bordered table-sm w-100 text-nowrap">
+                                    <thead class="table-primary">
+                                        <tr style='text-align:center; vertical-align:middle'>
+                                            <th>
+                                                <input class="form-check checkbox-xl" type="checkbox"
+                                                    onclick="toggle(this);">
+                                            </th>
+                                            <th>PO</th>
+                                            <th>Dest</th>
+                                            <th>Style</th>
+                                            <th>Barcode</th>
+                                            <th>WS</th>
+                                            <th>Color</th>
+                                            <th>Size</th>
+                                            <th>No.Carton</th>
+                                            <th>Tipe Pack</th>
+                                            <th>Qty</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <div class="p-2 bd-highlight">
+                                </div>
+                                <div class="p-2 bd-highlight">
+                                    <button type="submit" class="btn btn-outline-danger"><i class="fas fa-trash"></i>
+                                        Hapus
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -316,6 +398,15 @@
         }
     </style>
     <script>
+        function toggle(source) {
+            var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            for (var i = 0; i < checkboxes.length; i++) {
+                if (checkboxes[i] != source)
+                    checkboxes[i].checked = source.checked;
+            }
+        }
+    </script>
+    <script>
         // Select2 Autofocus
         $(document).on('select2:open', () => {
             document.querySelector('.select2-search__field').focus();
@@ -335,6 +426,16 @@
                 dropdownParent: $("#exampleModal")
             })
             reloadPoData();
+        })
+
+        $('#exampleModalHapus').on('show.bs.modal', function(e) {
+
+            $('.select2bs4').select2({
+                theme: 'bootstrap4',
+                dropdownParent: $("#exampleModalHapus"),
+                containerCssClass: 'form-control-sm rounded'
+            })
+
         })
     </script>
     <script>
@@ -573,6 +674,10 @@
                 <a class='btn btn-primary btn-sm'  data-bs-toggle="modal"
                   data-bs-target="#exampleModalCheck"
                 onclick="show_data('` + row.po + `', '` + row.dest + `','` + row.buyer + `','` + row.styleno + `' );dataTableDetailPackingListReload();"><i class='fas fa-search'></i>
+                </a>
+                <a class='btn btn-danger btn-sm'  data-bs-toggle="modal"
+                  data-bs-target="#exampleModalHapus"
+                onclick="show_data_h('` + row.po + `', '` + row.dest + `','` + row.buyer + `','` + row.styleno + `' );dataTableDetailPackingListHapusReload();"><i class='fas fa-edit'></i>
                 </a>
                      </div>
                     `;
@@ -923,7 +1028,7 @@
 
                 // computing column Total of the complete result
                 var sumTotal = api
-                    .column(8)
+                    .column(9)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
@@ -931,7 +1036,7 @@
 
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
-                $(api.column(8).footer()).html(sumTotal);
+                $(api.column(9).footer()).html(sumTotal);
             },
 
             ordering: false,
@@ -963,6 +1068,9 @@
                     data: 'styleno'
                 },
                 {
+                    data: 'barcode'
+                },
+                {
                     data: 'ws'
                 },
                 {
@@ -986,8 +1094,111 @@
                 "targets": "_all"
             }, ],
             rowsGroup: [
-                6
+                7
             ]
         });
+
+        function dataTableDetailPackingListHapusReload() {
+            datatable_detail_packing_list_hapus.ajax.reload();
+        }
+
+        let datatable_detail_packing_list_hapus = $("#datatable_detail_packing_list_hapus").DataTable({
+
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            paging: false,
+            searching: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
+            destroy: true,
+            info: true,
+            ajax: {
+                url: '{{ route('show_detail_packing_list_hapus') }}',
+                method: 'GET',
+                data: function(d) {
+                    d.po = $('#modal_h_po').val();
+                    d.dest = $('#modal_h_dest').val();
+                },
+            },
+            columns: [{
+                    data: 'id'
+
+                }, {
+                    data: 'po'
+
+                }, {
+                    data: 'dest'
+                },
+                {
+                    data: 'styleno'
+                },
+                {
+                    data: 'barcode'
+                },
+                {
+                    data: 'ws'
+                },
+                {
+                    data: 'color'
+                },
+                {
+                    data: 'size'
+                },
+                {
+                    data: 'no_carton'
+                },
+                {
+                    data: 'tipe_pack'
+                },
+                {
+                    data: 'qty'
+                },
+
+            ],
+            columnDefs: [{
+                    "className": "align-middle",
+                    "targets": "_all"
+                },
+                {
+                    targets: [0],
+                    render: (data, type, row, meta) => {
+                        if (row.qty_fg >= '1') {
+                            return ``;
+                        } else {
+                            return `
+                    <div
+                        class="form-check checkbox-xl" style="text-align:center">
+                        <input class="form-check-input" type="checkbox"
+                        value="` + row.id + `" id="cek_data"  class = "chk" onchange="ceklis(this)"
+                        name="cek_data[` + row.id + `] "/>
+                    </div>
+                    <div>
+                            <input type="hidden" size="10" id="id"
+                            name="id[` + row.id + `]" value = "` + row.id + `"/>
+                    </div>
+                    `;
+                        }
+
+                    }
+                },
+            ],
+        });
+
+
+        function show_data_h(po_s, dest_s, buyer_s, style_s) {
+
+            $('#modal_h_po').val(po_s);
+            $('#modal_h_dest').val(dest_s);
+            $('#modal_h_buyer').val(buyer_s);
+            $('#modal_h_style').val(style_s);
+            dataTableDetailPackingListHapusReload();
+        }
+
+        function ceklis(checkeds) {
+            //get id..and check if checked
+            console.log($(checkeds).attr("value"), checkeds.checked)
+        }
     </script>
 @endsection

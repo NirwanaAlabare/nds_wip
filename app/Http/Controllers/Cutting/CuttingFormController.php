@@ -293,13 +293,57 @@ class CuttingFormController extends Controller
             LIMIT 1
         ");
         if ($newItem) {
-            $scannedItem = ScannedItem::where('id_roll', $id)->where('id_item', $newItem[0]->id_item)->first();
+            $scannedItem = ScannedItem::selectRaw("
+                scanned_item.id,
+                scanned_item.id_roll,
+                scanned_item.id_item,
+                scanned_item.detail_item,
+                scanned_item.color,
+                scanned_item.lot,
+                scanned_item.roll,
+                scanned_item.roll_buyer,
+                scanned_item.qty,
+                scanned_item.qty_stok,
+                COALESCE(pemakaian.qty_awal, scanned_item.qty_in) qty_in,
+                COALESCE(pemakaian.total_pemakaian, scanned_item.qty_pakai) qty_pakai,
+                scanned_item.unit,
+                scanned_item.berat_amparan
+            ")->leftJoin(DB::raw("
+                (
+                    SELECT
+                        id_roll,
+                        max( qty ) qty_awal,
+                        sum( total_pemakaian_roll + sisa_kain ) total_pemakaian
+                    FROM
+                        form_cut_input_detail
+                    WHERE
+                        id_roll = '".$id."'
+                    GROUP BY
+                        id_roll
+                    UNION
+                    SELECT
+                        id_roll,
+                        max( qty ) qty_awal,
+                        sum( piping + qty_sisa ) total_pemakaian
+                    FROM
+                        form_cut_piping
+                    WHERE
+                        id_roll = '".$id."'
+                    GROUP BY
+                        id_roll
+                ) pemakaian
+            "), "pemakaian.id_roll", "=", "scanned_item.id_roll")->
+            where('scanned_item.id_roll', $id)->
+            where('scanned_item.id_item', $newItem[0]->id_item)->
+            first();
 
             if ($scannedItem) {
-                $scannedItem->qty_stok = $newItem[0]->qty_stok;
-                $scannedItem->qty_in = $newItem[0]->qty;
-                $scannedItem->qty = floatval($newItem[0]->qty - $scannedItem->qty_in + $scannedItem->qty);
-                $scannedItem->save();
+                $updateScannedItem = ScannedItem::where("id_roll", $id)->
+                    update([
+                        "qty_stok" => $newItem[0]->qty_stok,
+                        "qty_in" => $newItem[0]->qty,
+                        "qty" => floatval($newItem[0]->qty - $scannedItem->qty_in + $scannedItem->qty)
+                    ]);
 
                 if ($scannedItem->qty > 0) {
                     return json_encode($scannedItem);

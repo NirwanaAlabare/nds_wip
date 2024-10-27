@@ -141,7 +141,7 @@
                                 </div>
                                 <div class="col-sm-3">
                                     <div class="form-group">
-                                        <label><small><b>Notes :</b></small></label>
+                                        <label><small><b>Dest :</b></small></label>
                                         <select class="form-control select2bs4" id="cbonotes" name="cbonotes"
                                             onchange="getno_carton();" style="width: 100%;">
                                         </select>
@@ -201,12 +201,13 @@
                                             <th>WS #</th>
                                             <th>Color</th>
                                             <th>Size</th>
+                                            <th>Dest</th>
                                             <th>Qty</th>
                                         </tr>
                                     </thead>
                                     <tfoot>
                                         <tr>
-                                            <th colspan="5">Total</th>
+                                            <th colspan="6">Total</th>
                                             <th></th>
                                         </tr>
                                     </tfoot>
@@ -229,8 +230,9 @@
                                             <th>WS #</th>
                                             <th>Color</th>
                                             <th>Size</th>
+                                            <th>Dest</th>
                                             <th>Qty</th>
-                                            <th style="display:none">Data</th>
+                                            <th>Data</th>
                                         </tr>
                                     </thead>
                                     <tfoot>
@@ -239,7 +241,8 @@
                                             <th></th>
                                             <th></th>
                                             <th></th>
-                                            <th style="display:none"></th>
+                                            <th></th>
+                                            <th></th>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -267,12 +270,13 @@
                                             <th>WS #</th>
                                             <th>Color</th>
                                             <th>Size</th>
+                                            <th>Dest</th>
                                             <th>Qty</th>
                                         </tr>
                                     </thead>
                                     <tfoot>
                                         <tr>
-                                            <th colspan="5">Total</th>
+                                            <th colspan="6">Total</th>
                                             <th></th>
                                         </tr>
                                     </tfoot>
@@ -295,8 +299,9 @@
                                             <th>WS #</th>
                                             <th>Color</th>
                                             <th>Size</th>
+                                            <th>Dest</th>
                                             <th>Qty</th>
-                                            <th style="display:none">Data</th>
+                                            <th>ID So Det</th>
                                         </tr>
                                     </thead>
                                     <tfoot>
@@ -305,7 +310,8 @@
                                             <th></th>
                                             <th></th>
                                             <th></th>
-                                            <th style="display:none"></th>
+                                            <th></th>
+                                            <th></th>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -492,7 +498,7 @@
 
                 // computing column Total of the complete result
                 var sumTotal = api
-                    .column(5)
+                    .column(6)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
@@ -500,7 +506,7 @@
 
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
-                $(api.column(5).footer()).html(sumTotal);
+                $(api.column(6).footer()).html(sumTotal);
             },
             ordering: false,
             processing: true,
@@ -538,6 +544,9 @@
                 },
                 {
                     data: 'size',
+                },
+                {
+                    data: 'dest',
                 },
                 {
                     data: 'qty',
@@ -605,6 +614,9 @@
                     data: 'size',
                 },
                 {
+                    data: 'dest',
+                },
+                {
                     data: 'qty',
                 },
                 {
@@ -628,6 +640,8 @@
                         name="curr[` + row.id_so_det + `]" value = "` + row.curr + `"/>
                         <input type="hidden" size="4" id="price[` + row.id_so_det + `]"
                         name="price[` + row.id_so_det + `]" value = "` + row.price + `"/>
+                        <input type="hidden" size="4" id="dest[` + row.id_so_det + `]"
+                        name="dest[` + row.id_so_det + `]" value = "` + row.dest + `"/>
                     `;
                     }
                 },
@@ -745,7 +759,7 @@
 
                 // computing column Total of the complete result
                 var sumTotal = api
-                    .column(5)
+                    .column(6)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
@@ -753,7 +767,7 @@
 
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
-                $(api.column(5).footer()).html(sumTotal);
+                $(api.column(6).footer()).html(sumTotal);
             },
             ordering: false,
             processing: true,
@@ -787,6 +801,9 @@
                 },
                 {
                     data: 'size',
+                },
+                {
+                    data: 'dest',
                 },
                 {
                     data: 'qty',
@@ -856,6 +873,9 @@
                 },
                 {
                     data: 'size',
+                },
+                {
+                    data: 'dest',
                 },
                 {
                     data: 'qty',

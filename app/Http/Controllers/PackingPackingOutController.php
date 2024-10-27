@@ -60,15 +60,17 @@ order by o.created_at desc
     public function getno_carton(Request $request)
     {
         $cek_po = DB::select("
-        select * from ppic_master_so where id = '" . $request->cbopo . "'
+        select po, dest from ppic_master_so where id = '" . $request->cbopo . "'
         ");
 
         $po = $cek_po ? $cek_po[0]->po : null;
+        $dest = $cek_po ? $cek_po[0]->dest : null;
+
 
         $data_carton = DB::select("
-        select concat(a.no_carton,'_',a.notes) isi, concat(a.no_carton, ' ( ' , notes, ' )') tampil
-        from packing_master_carton a where a.po = '$po'
-        order by no_carton asc
+select no_carton isi, no_carton tampil from packing_master_packing_list
+where po = '$po' and dest = '$dest'
+group by no_carton
         ");
 
         $html = "<option value=''>Pilih No Carton</option>";
@@ -104,29 +106,33 @@ order by o.created_at desc
 
         $po = $request->cbopo ? $request->cbopo : null;
         $cbono_carton = $request->cbono_carton ? $request->cbono_carton : null;
+        $dest = $request->txtdest ? $request->txtdest : null;
 
-        $cekArray = explode('_', $cbono_carton);
-        $no_carton = $cekArray[0];
-        $notes = $cekArray[1];
+        // $cekArray = explode('_', $cbono_carton);
+        // $no_carton = $cekArray[0];
+        // $notes = $cekArray[1];
 
         if ($request->ajax()) {
 
 
             $data_summary = DB::select("
-            select p.barcode, p.po, m.color, m.size,coalesce(s.tot_scan,0)tot_scan
-            from ppic_master_so p
-            inner join master_sb_ws m on p.id_so_det = m.id_so_det
-            left join master_size_new msn on m.size = msn.size
-            left join
-            (
-                select count(barcode)tot_scan, barcode, po, no_carton
+select a.*, coalesce(tot_scan,0) tot_scan from
+(
+select no_carton, a.po, a.dest, id_ppic_master_so, a.id_so_det, m.size, m.color, a.barcode, a.qty
+from packing_master_packing_list a
+inner join ppic_master_so p on a.id_ppic_master_so = p.id
+inner join master_sb_ws m on a.id_so_det = m.id_so_det
+where a.po = '$po' and a.dest = '$dest' and no_carton = '$cbono_carton'
+) a
+left join
+(
+                select count(barcode)tot_scan, barcode, po, no_carton,dest
                 from packing_packing_out_scan
-                where no_carton = '$no_carton ' and po = '$po' and notes = '$notes'
+                where po = '$po'  and dest = '$dest' and no_carton = '$cbono_carton '
                 group by barcode, no_carton
-            ) s on s.barcode = p.barcode and s.po = p.po
-            where p.po = '$po' and p.barcode is not null and p.barcode != '-' and coalesce(s.tot_scan,0) != '0'
-            group by p.barcode, po, m.color, m.size
-            order by p.po asc, color asc, msn.urutan asc
+) b on a.po = b.po and a.dest = b.dest and a.no_carton = b.no_carton and a.barcode = b.barcode
+left join master_size_new msn on a.size = msn.size
+order by color asc, urutan asc
             ");
 
             return DataTables::of($data_summary)->toJson();
@@ -139,14 +145,16 @@ order by o.created_at desc
         $tgl_trans = date('Y-m-d');
 
         $cbono_carton = $request->cbono_carton ? $request->cbono_carton : null;
-        if ($cbono_carton == null) {
-            $no_carton = '-';
-            $notes = '-';
-        } else {
-            $cekArray = explode('_', $cbono_carton);
-            $no_carton = $cekArray[0];
-            $notes = $cekArray[1];
-        }
+
+        // if ($cbono_carton == null) {
+        //     $no_carton = '-';
+        //     $notes = '-';
+        // } else {
+        //     $cekArray = explode('_', $cbono_carton);
+        //     $no_carton = $cekArray[0];
+        //     $notes = $cekArray[1];
+        // }
+
 
 
         if ($request->ajax()) {
@@ -155,7 +163,7 @@ order by o.created_at desc
 select
 o.id,
 tgl_trans,
-if (o.tgl_trans = '" . $tgl_trans . "','ok','no') cek_stat,
+if (o.tgl_trans = '" . $tgl_trans . "'  and c.po is null,'ok','no') cek_stat,
 DATE_FORMAT(o.created_at, '%d-%m-%Y %H:%i:%s') created_at,
 o.po,
 o.barcode,
@@ -164,7 +172,12 @@ m.size
 from packing_packing_out_scan o
 inner join ppic_master_so p on o.barcode = p.barcode and o.po = p.po and o.po = p.po and o.dest = p.dest
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
-where o.no_carton = '$no_carton' and o.po = '" . $request->cbopo . "' and o.notes = '$notes'
+left join
+(
+select po, barcode, dest, no_carton, sum(qty)tot_fg from fg_fg_in where po = '" . $request->cbopo . "'
+and dest = '" . $request->txtdest . "' and no_carton = '" . $request->cbono_carton . "' and status = 'NORMAL') c
+on o.barcode = c.barcode and o.po = c.po and o.po = c.po and o.dest = c.dest
+where o.no_carton = '" . $request->cbono_carton . "' and o.po = '" . $request->cbopo . "' and o.dest = '" . $request->txtdest . "'
 order by o.created_at desc
             ");
             return DataTables::of($data_history)->toJson();
@@ -189,16 +202,10 @@ SELECT id, tgl_trans, barcode, po, no_carton,created_at, updated_at, created_by 
 
         $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-90 days'));
 
-        $data_po = DB::select("SELECT p.id isi, concat(p.po, ' - ', p.dest,  ' - ( ', coalesce(count(m.no_carton),0) , ' ) ') tampil
-from
-(
-select id, po, dest from ppic_master_so
-where barcode is not null and barcode != '' and barcode != '-' and tgl_shipment >= '" . $tgl_skrg_min_sebulan . "'
-group by po	, dest
-) p
-left join
-packing_master_carton m on p.po = m.po
-group by p.po, p.dest");
+        $data_po = DB::select("SELECT id_ppic_master_so isi,
+concat(po, ' - ', dest, ' ( ', count(distinct(no_carton)), ' ) ') tampil
+from packing_master_packing_list
+group by po, dest");
 
 
         // $data_po = DB::select("SELECT p.po isi, concat(p.po, ' - ( ', coalesce(max(m.no_carton),0) , ' ) ') tampil
@@ -224,26 +231,29 @@ group by p.po, p.dest");
         $timestamp  = Carbon::now();
         $user       = Auth::user()->name;
         $barcode    = $request->barcode;
-        $po    = $request->cbopo;
-        $no_carton_cek    = $request->cbono_carton;
-        $cekArray = explode('_', $no_carton_cek);
-        $no_carton = $cekArray[0];
-        $notes = $cekArray[1];
+        $cbopo    = $request->cbopo;
+        $no_carton    = $request->cbono_carton;
+        $dest    = $request->txtdest;
+        // $no_carton_cek    = $request->cbono_carton;
+        // $cekArray = explode('_', $no_carton_cek);
+        // $no_carton = $cekArray[0];
+        // $notes = $cekArray[1];
         $tgl_trans = date('Y-m-d');
 
-        $cek_dest = DB::select("
-        select * from ppic_master_so where id = '$po'
+        $cek_po = DB::select("
+        select * from ppic_master_so where id = '$cbopo'
         ");
 
-        $cek_dest_po = $cek_dest[0]->po;
-        $cek_dest_dest = $cek_dest[0]->dest;
+        $cek_dest_po = $cek_po[0]->po;
 
         $cek_data = DB::select("
         select count(barcode) cek from ppic_master_so p
-        where barcode = '$barcode' and po = '$cek_dest_po' and dest = '$cek_dest_dest'
+        where barcode = '$barcode' and po = '$cek_dest_po' and dest = '$dest'
         ");
 
         $cek_data_fix = $cek_data[0]->cek;
+        // dd("select count(barcode) cek from ppic_master_so p
+        // where barcode = '$barcode' and po = '$cek_dest_po' and dest = '$dest'");
 
         if ($cek_data_fix >= '1') {
 
@@ -253,7 +263,7 @@ group by p.po, p.dest");
             left join
             (
                 select sum(qty) tot_in, id_ppic_master_so from packing_packing_in
-                where barcode = '$barcode' and po = '$cek_dest_po' and dest = '$cek_dest_dest'
+                where barcode = '$barcode' and po = '$cek_dest_po' and dest = '$dest'
                 group by id_ppic_master_so
             ) pack_in on p.id = pack_in.id_ppic_master_so
             left join
@@ -261,23 +271,29 @@ group by p.po, p.dest");
                 select count(p.barcode) tot_out, p.id
                 from packing_packing_out_scan a
                 inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po and a.dest = p.dest
-                where p.barcode = '$barcode' and p.po = '$cek_dest_po' and p.dest = '$cek_dest_dest'
+                where p.barcode = '$barcode' and p.po = '$cek_dest_po' and p.dest = '$dest'
                 group by a.barcode, a.po
             ) pack_out on p.id = pack_out.id
-            where p.barcode = '$barcode' and p.po = '$cek_dest_po' and dest = '$cek_dest_dest'
+            where p.barcode = '$barcode' and p.po = '$cek_dest_po' and dest = '$dest'
             ");
             $cek_stok_fix = $cek_stok[0]->tot_s;
 
 
-            $cek_qty_isi_karton = DB::select("SELECT a.*, coalesce(b.tot_out,0)tot_out  from
-            (select * from packing_master_carton where po = '$cek_dest_po' and no_carton = '$no_carton' and notes = '$notes') a
-left join (select count(barcode) tot_out, po, no_carton, notes from packing_packing_out_scan where po = '$cek_dest_po'
-and no_carton = '$no_carton' and notes = '$notes' group by po , no_carton, notes) b on a.po = b.po and a.no_carton = b.no_carton");
-            $cek_qty_isi = $cek_qty_isi_karton[0]->qty_isi;
-            $tot_out = $cek_qty_isi_karton[0]->tot_out;
+            $cek_qty_isi_karton = DB::select("SELECT qty, coalesce(tot_input,0) tot_input from
+(select po, no_carton, barcode, dest ,qty from packing_master_packing_list
+where po = '$cek_dest_po' and no_carton = '$no_carton' and barcode = '$barcode' and dest = '$dest'
+)a
+left join
+(
+select po, no_carton, barcode, dest,count(barcode) tot_input
+from packing_packing_out_scan
+where po = '$cek_dest_po' and no_carton = '$no_carton' and barcode = '$barcode' and dest = '$dest'
+) b on a.po = b.po and a.dest = b.dest and a.no_carton = b.no_carton and a.barcode = b.barcode");
+            $cek_qty_isi = $cek_qty_isi_karton[0]->qty;
+            $tot_out = $cek_qty_isi_karton[0]->tot_input;
             if ($cek_stok_fix >= '1') {
 
-                if ($cek_qty_isi === null) {
+                if ($cek_qty_isi > $tot_out) {
                     $insert = DB::insert("
                 insert into packing_packing_out_scan
                 (tgl_trans,barcode,po,dest,no_carton,notes,created_by,created_at,updated_at)
@@ -286,30 +302,9 @@ and no_carton = '$no_carton' and notes = '$notes' group by po , no_carton, notes
                     '$tgl_trans',
                     '$barcode',
                     '$cek_dest_po',
-                    '$cek_dest_dest',
+                    '$dest',
                     '$no_carton',
-                    '$notes',
-                    '$user',
-                    '$timestamp',
-                    '$timestamp'
-                )
-                ");
-                    return array(
-                        'icon' => 'benar',
-                        'msg' => 'Data berhasil Disimpan',
-                    );
-                } else if ($cek_qty_isi > $tot_out) {
-                    $insert = DB::insert("
-                insert into packing_packing_out_scan
-                (tgl_trans,barcode,po,dest,no_carton,notes,created_by,created_at,updated_at)
-                values
-                (
-                    '$tgl_trans',
-                    '$barcode',
-                    '$cek_dest_po',
-                    '$cek_dest_dest',
-                    '$no_carton',
-                    '$notes',
+                    '-',
                     '$user',
                     '$timestamp',
                     '$timestamp'
@@ -327,7 +322,7 @@ and no_carton = '$no_carton' and notes = '$notes' group by po , no_carton, notes
                 } else {
                     return array(
                         'icon' => 'salah',
-                        'msg' => 'Tidak Ada Data',
+                        'msg' => 'Tidak Ada Data 1',
                     );
                 }
             } else
@@ -338,7 +333,7 @@ and no_carton = '$no_carton' and notes = '$notes' group by po , no_carton, notes
         } else
             return array(
                 'icon' => 'salah',
-                'msg' => 'Tidak Ada Data',
+                'msg' => 'Tidak Ada Data 2',
             );
     }
 
