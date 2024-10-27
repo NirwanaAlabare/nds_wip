@@ -25,6 +25,7 @@ use App\Http\Controllers\Cutting\SpreadingController;
 use App\Http\Controllers\Cutting\CuttingFormController;
 use App\Http\Controllers\Cutting\CuttingFormManualController;
 use App\Http\Controllers\Cutting\CuttingFormPilotController;
+use App\Http\Controllers\Cutting\PipingController;
 use App\Http\Controllers\Cutting\CuttingPlanController;
 use App\Http\Controllers\Cutting\ReportCuttingController;
 use App\Http\Controllers\Cutting\CompletedFormController;
@@ -414,6 +415,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-number', 'getNumber')->name('pilot-form-cut-get-number');
     });
 
+    Route::controller(PipingController::class)->prefix("form-cut-piping")->middleware("meja")->group(function () {
+        Route::get('/', 'index')->name('form-cut-piping');
+        Route::get('/create', 'create')->name('create-piping');
+        Route::post('/store', 'store')->name('store-piping');
+
+        Route::get('/get-marker-piping', 'getMarkerPiping')->name('get-marker-piping');
+    });
+
     // Cutting Plan
     Route::controller(CuttingPlanController::class)->prefix("cut-plan")->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('cut-plan');
@@ -563,6 +572,8 @@ Route::middleware('auth')->group(function () {
     // DC IN
     Route::controller(DCInController::class)->prefix("dc-in")->middleware('dc')->group(function () {
         Route::get('/', 'index')->name('dc-in');
+        Route::get('/detail_dc_in', 'detail_dc_in')->name('detail_dc_in');
+        Route::get('/total_dc_in', 'total_dc_in')->name('total_dc_in');
         Route::get('/show_data_header', 'show_data_header')->name('show_data_header');
         Route::get('/create', 'create')->name('create-dc-in');
         Route::post('/store', 'store')->name('store-dc-in');

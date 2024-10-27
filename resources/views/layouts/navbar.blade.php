@@ -302,6 +302,24 @@
                                     </a>
                                 </li>
                             @endmeja
+
+                            @meja
+                                <li>
+                                    <a href="{{ route('form-cut-piping') }}"
+                                        class="dropdown-item {{ $subPage == 'form-cut-piping' ? 'active' : '' }}">
+                                        Piping <i class="fa-solid fa-paperclip"></i>
+                                    </a>
+                                </li>
+                            @endmeja
+
+                            {{-- @admin
+                                <li>
+                                    <a href="{{ route('piping') }}"
+                                        class="dropdown-item {{ $subPage == 'spreading' ? 'active' : '' }}">
+                                        Piping <i class="fas fa-scroll fa-sm"></i>
+                                    </a>
+                                </li>
+                            @endadmin --}}
                         </ul>
                     </li>
 

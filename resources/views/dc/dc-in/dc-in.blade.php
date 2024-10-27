@@ -136,10 +136,18 @@
                         value="{{ date('Y-m-d') }}" onchange="datatableReload()">
                 </div>
             </div>
-            <h5 class="card-title fw-bold mb-0">List Transaksi DC IN</h5>
+            <h5 class="card-title fw-bold mb-3" id="dc-in-title">List Transaksi DC IN</h5>
             <br>
+            <ul class="nav nav-tabs mt-3">
+                <li class="nav-item">
+                  <a class="nav-link active" style="cursor: pointer;" id="list" onclick='switchTable("list")'><i class="fa fa-list"></i> List</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" style="cursor: pointer;" id="list-detail" onclick='switchTable("detail")'><i class="fa fa-list"></i> Detail</a>
+                </li>
+            </ul>
             <br>
-            <div class="table-responsive">
+            <div class="table-responsive" id="list-dc">
                 <table id="datatable-input" class="table table-bordered table-striped table-sm w-100 text-nowrap">
                     <thead>
                         <tr>
@@ -165,15 +173,53 @@
                     <tfoot>
                         <tr>
                             <th colspan="11"></th>
-                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
-                                    id = 'total_qty_awal'> </th>
-                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
-                                    id = 'total_qty_reject'> </th>
-                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
-                                    id = 'total_qty_replace'> </th>
-                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
-                                    id = 'total_qty_in'> </th>
+                            <th>
+                                {{-- <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_awal'> --}}
+                                ...
+                            </th>
+                            <th>
+                                {{-- <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_reject'> --}}
+                                ...
+                            </th>
+                            <th>
+                                {{-- <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_replace'> --}}
+                                ...
+                            </th>
+                            <th>
+                                {{-- <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_in'> --}}
+                                ...
+                            </th>
                             <th colspan="2"></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="table-responsive" id="detail-dc">
+                <table id="datatable-detail" class="table table-bordered table-striped table-sm w-100">
+                    <thead>
+                        <tr>
+                            <th>WS</th>
+                            <th>Buyer</th>
+                            <th>Style</th>
+                            <th>Color</th>
+                            <th>In</th>
+                            <th>Reject</th>
+                            <th>Replace</th>
+                            <th>Out</th>
+                            <th>Balance</th>
+                            <th>Proses</th>
+                        </tr>
+                    </thead>
+                    <tfoot>
+                        <tr>
+                            <th colspan="4"></th>
+                            <th><input type='text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_int'> </th>
+                            <th><input type='text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_reject_det'> </th>
+                            <th><input type='text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_replace_det'> </th>
+                            <th><input type='text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_out'> </th>
+                            <th><input type='text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_balance'> </th>
+                            <th></th>
                         </tr>
                     </tfoot>
                 </table>
@@ -192,10 +238,30 @@
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
+        var listFilter = [
+            'tgl_trans_filter',
+            'id_qr_filter',
+            'ws_filter',
+            'style_filter',
+            'color_filter',
+            'part_filter',
+            'size_filter',
+            'no_cut_filter',
+            'tujuan_filter',
+            'tempat_filter',
+            'lokasi_filter',
+            'qty_awal_filter',
+            'qty_reject_filter',
+            'qty_replace_filter',
+            'qty_in_filter',
+            'buyer_filter',
+            'user_filter'
+        ];
+
         $('#datatable-input thead tr').clone(true).appendTo('#datatable-input thead');
         $('#datatable-input thead tr:eq(1) th').each(function(i) {
             var title = $(this).text();
-            $(this).html('<input type="text" class="form-control form-control-sm"/>');
+            $(this).html('<input type="text" class="form-control form-control-sm" id="'+listFilter[i]+'"/>');
 
             $('input', this).on('keyup change', function() {
                 if (datatable.column(i).search() !== this.value) {
@@ -207,62 +273,101 @@
             });
         });
 
-
         let datatable = $("#datatable-input").DataTable({
-            "footerCallback": function(row, data, start, end, display) {
-                var api = this.api(),
-                    data;
+            "footerCallback": async function(row, data, start, end, display) {
+                var api = this.api(),data;
 
-                // converting to interger to find total
-                var intVal = function(i) {
-                    return typeof i === 'string' ?
-                        i.replace(/[\$,]/g, '') * 1 :
-                        typeof i === 'number' ?
-                        i : 0;
-                };
-
-                // computing column Total of the complete result
-                var sumTotal = api
-                    .column(11)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalAwal = api
-                    .column(11)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalReject = api
-                    .column(12)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalReplace = api
-                    .column(13)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotalIn = api
-                    .column(14)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
-                $(api.column(11).footer()).html(sumTotalAwal);
-                $(api.column(12).footer()).html(sumTotalReject);
-                $(api.column(13).footer()).html(sumTotalReplace);
-                $(api.column(14).footer()).html(sumTotalIn);
+                $(api.column(11).footer()).html("...");
+                $(api.column(12).footer()).html("...");
+                $(api.column(13).footer()).html("...");
+                $(api.column(14).footer()).html("...");
+
+                // // converting to interger to find total
+                // var intVal = function(i) {
+                //     return typeof i === 'string' ?
+                //         i.replace(/[\$,]/g, '') * 1 :
+                //         typeof i === 'number' ?
+                //         i : 0;
+                // };
+
+                // // computing column Total of the complete result
+                // var sumTotal = api
+                //     .column(11)
+                //     .data()
+                //     .reduce(function(a, b) {
+                //         return intVal(a) + intVal(b);
+                //     }, 0);
+
+                // var sumTotalAwal = api
+                //     .column(11)
+                //     .data()
+                //     .reduce(function(a, b) {
+                //         return intVal(a) + intVal(b);
+                //     }, 0);
+
+                // var sumTotalReject = api
+                //     .column(12)
+                //     .data()
+                //     .reduce(function(a, b) {
+                //         return intVal(a) + intVal(b);
+                //     }, 0);
+
+                // var sumTotalReplace = api
+                //     .column(13)
+                //     .data()
+                //     .reduce(function(a, b) {
+                //         return intVal(a) + intVal(b);
+                //     }, 0);
+
+                // var sumTotalIn = api
+                //     .column(14)
+                //     .data()
+                //     .reduce(function(a, b) {
+                //         return intVal(a) + intVal(b);
+                //     }, 0);
+
+                $.ajax({
+                    url: '{{ route('total_dc_in') }}',
+                    dataType: 'json',
+                    dataSrc: 'data',
+                    data: {
+                        'dateFrom': $('#tgl-awal').val(),
+                        'dateTo': $('#tgl-akhir').val(),
+                        'tgl_trans': $('#tgl_trans_filter').val(),
+                        'id_qr': $('#id_qr_filter').val(),
+                        'ws': $('#ws_filter').val(),
+                        'style': $('#style_filter').val(),
+                        'color': $('#color_filter').val(),
+                        'part': $('#part_filter').val(),
+                        'size': $('#size_filter').val(),
+                        'no_cut': $('#no_cut_filter').val(),
+                        'tujuan': $('#tujuan_filter').val(),
+                        'tempat': $('#tempat_filter').val(),
+                        'lokasi': $('#lokasi_filter').val(),
+                        'qty_awal': $('#qty_awal_filter').val(),
+                        'qty_reject': $('#qty_reject_filter').val(),
+                        'qty_replace': $('#qty_replace_filter').val(),
+                        'qty_in': $('#qty_in_filter').val(),
+                        'qty_buyer': $('#qty_buyer_filter').val(),
+                        'user':$('#user_filter').val()
+                    },
+                    success: function(response) {
+                        console.log(response);
+
+                        if (response && response[0]) {
+                            // Update footer by showing the total with the reference of the column index
+                            $(api.column(0).footer()).html('Total');
+                            $(api.column(11).footer()).html(response[0]['qty_awal']);
+                            $(api.column(12).footer()).html(response[0]['qty_reject']);
+                            $(api.column(13).footer()).html(response[0]['qty_replace']);
+                            $(api.column(14).footer()).html(response[0]['qty_in']);
+                        }
+                    },
+                    error: function(request, status, error) {
+                        alert('cek');
+                    },
+                })
             },
             ordering: false,
             processing: true,
@@ -342,9 +447,146 @@
             }]
         });
 
+        $('#datatable-detail thead tr').clone(true).appendTo('#datatable-detail thead');
+        $('#datatable-detail thead tr:eq(1) th').each(function(i) {
+            var title = $(this).text();
+            $(this).html('<input type="text" class="form-control form-control-sm"/>');
+
+            $('input', this).on('keyup change', function() {
+                if (datatable_detail.column(i).search() !== this.value) {
+                    datatable_detail
+                        .column(i)
+                        .search(this.value)
+                        .draw();
+                }
+            });
+        });
+
+        let datatable_detail = $("#datatable-detail").DataTable({
+            "footerCallback": function(row, data, start, end, display) {
+                var api = this.api(),
+                    data;
+
+                // converting to interger to find total
+                var intVal = function(i) {
+                    return typeof i === 'string' ?
+                        i.replace(/[\$,]/g, '') * 1 :
+                        typeof i === 'number' ?
+                        i : 0;
+                };
+
+                var sumTotalIn = api
+                    .column(4)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalReject = api
+                    .column(5)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalReplace = api
+                    .column(6)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalOut = api
+                    .column(7)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalBalance = api
+                    .column(8)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                // Update footer by showing the total with the reference of the column index
+                $(api.column(0).footer()).html('Total');
+                $(api.column(4).footer()).html(sumTotalIn);
+                $(api.column(5).footer()).html(sumTotalReject);
+                $(api.column(6).footer()).html(sumTotalReplace);
+                $(api.column(7).footer()).html(sumTotalOut);
+                $(api.column(8).footer()).html(sumTotalBalance);
+            },
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            paging: false,
+            searching: true,
+            scrollY: '300px',
+            scrollX: '300px',
+            scrollCollapse: true,
+            ajax: {
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '{{ route('detail_dc_in') }}',
+                dataType: 'json',
+                dataSrc: 'data',
+                data: function(d) {
+                    d.dateFrom = $('#tgl-awal').val();
+                    d.dateTo = $('#tgl-akhir').val();
+                },
+            },
+            columns: [
+                {
+                    data: 'act_costing_ws',
+                },
+                {
+                    data: 'buyer',
+                },
+                {
+                    data: 'styleno',
+                },
+                {
+                    data: 'color',
+                },
+                {
+                    data: 'qty_in',
+                },
+                {
+                    data: 'qty_reject',
+                },
+                {
+                    data: 'qty_replace',
+                },
+                {
+                    data: 'qty_out',
+                },
+                {
+                    data: 'balance',
+                },
+                {
+                    data: 'lokasi',
+                },
+            ],
+            columnDefs: [
+                {
+                    targets: "_all",
+                    className: "text-nowrap"
+                },
+                {
+                    targets: [8],
+                    visible: false
+                }
+            ]
+        });
+
         function datatableReload() {
             $('#datatable-input').DataTable().ajax.reload();
+            $('#datatable-detail').DataTable().ajax.reload();
         }
+
     </script>
 
 
@@ -409,6 +651,7 @@
         $(document).ready(function() {
             reset();
 
+            switchTable("list");
         })
 
         $('#exampleModal').on('show.bs.modal', function(e) {
@@ -426,6 +669,30 @@
         })
     </script>
     <script>
+        function switchTable(type) {
+            if (type == 'list') {
+                document.getElementById("dc-in-title").innerHTML = 'List Transaksi DC IN';
+
+                document.getElementById("list-detail").classList.remove("active");
+                document.getElementById("list").classList.add("active");
+
+                document.getElementById("detail-dc").classList.add("d-none");
+                document.getElementById("list-dc").classList.remove("d-none");
+            }
+
+            if (type == 'detail') {
+                document.getElementById("dc-in-title").innerHTML = 'Detail Transaksi DC IN';
+
+                document.getElementById("list").classList.remove("active");
+                document.getElementById("list-detail").classList.add("active");
+
+                document.getElementById("list-dc").classList.add("d-none");
+                document.getElementById("detail-dc").classList.remove("d-none");
+            }
+
+            datatableReload();
+        }
+
         function reset() {
             $("#form").trigger("reset");
             getdatatmp();

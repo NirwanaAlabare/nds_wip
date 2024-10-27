@@ -89,8 +89,29 @@
             $latestStatus = "";
             $latestQty = 0;
             $latestUnit = "";
+
+            $currentForm = "";
         @endphp
         @foreach ($data as $item)
+            @php
+                if ($item->no_form_cut_input != 'PIPING' && $currentForm != $item->no_form_cut_input) {
+                    $latestKepalaKain = 0;
+                    $latestSisaTidakBisa = 0;
+                    $latestReject = 0;
+                    $latestPiping = 0;
+                    $latestSambungan = 0;
+                    $latestSambunganRoll = 0;
+                    $latestPemakaianLembar = 0;
+                    $latestTotalPemakaian = 0;
+                    $latestShortRoll = 0;
+
+                    $latestStatus = "";
+                    $latestQty = 0;
+                    $latestUnit = "";
+
+                    $currentForm = $item->no_form_cut_input;
+                }
+            @endphp
             <tr>
                 <td>{{ $latestStatus != 'need extension' ? $no++ : '' }}</td>
                 <td>{{ $item->bulan }}</td>

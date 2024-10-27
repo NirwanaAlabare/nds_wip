@@ -35,13 +35,8 @@ class DCInController extends Controller
                 $additionalQuery .= " and a.tgl_trans <= '" . $request->dateTo . "' ";
             }
 
-            $keywordQuery = '';
-            if ($request->search['value']) {
-                $keywordQuery = "
-                    (
-                        line like '%" . $request->search['value'] . "%'
-                    )
-                ";
+            if ($request->dateTo) {
+                $additionalQuery .= " and a.tgl_trans <= '" . $request->dateTo . "' ";
             }
 
             $data_input = DB::select("
@@ -73,6 +68,8 @@ class DCInController extends Controller
                     inner join part_detail pd on s.part_detail_id = pd.id
                     inner join part p on pd.part_id = p.id
                     inner join master_part mp on mp.id = pd.master_part_id
+                where
+                    a.tgl_trans is not null
                     ".$additionalQuery."
                 order by
                     a.tgl_trans desc
@@ -82,6 +79,158 @@ class DCInController extends Controller
         }
 
         return view('dc.dc-in.dc-in', ['page' => 'dashboard-dc', "subPageGroup" => "dcin-dc", "subPage" => "dc-in", "data_rak" => $data_rak], ['tgl_skrg' => $tgl_skrg]);
+    }
+
+    public function total_dc_in(Request $request)
+    {
+        $additionalQuery = '';
+
+        if ($request->dateFrom) {
+            $additionalQuery .= " and a.tgl_trans >= '" . $request->dateFrom . "' ";
+        }
+
+        if ($request->dateTo) {
+            $additionalQuery .= " and a.tgl_trans <= '" . $request->dateTo . "' ";
+        }
+
+        if ($request->tgl_trans) {
+            $additionalQuery .= " and a.tgl_trans LIKE '%".$request->tgl_trans."%'";
+        }
+
+        if ($request->id_qr) {
+            $additionalQuery .= " and a.id_qr_stocker LIKE '%".$request->id_qr."%'";
+        }
+
+        if ($request->ws) {
+            $additionalQuery .= " and msb.ws LIKE '%".$request->ws."%'";
+        }
+
+        if ($request->style) {
+            $additionalQuery .= " and msb.style LIKE '%".$request->style."%'";
+        }
+
+        if ($request->color) {
+            $additionalQuery .= " and msb.color LIKE '%".$request->color."%'";
+        }
+
+        if ($request->part) {
+            $additionalQuery .= " and mp.nama_part LIKE '%".$request->part."%'";
+        }
+
+        if ($request->size) {
+            $additionalQuery .= " and msb.size LIKE '%".$request->size."%'";
+        }
+
+        if ($request->no_cut) {
+            $additionalQuery .= " and f.no_cut LIKE '%".$request->no_cut."%'";
+        }
+
+        if ($request->tujuan) {
+            $additionalQuery .= " and a.tujuan LIKE '%".$request->tujuan."%'";
+        }
+
+        if ($request->tempat) {
+            $additionalQuery .= " and a.tempat LIKE '%".$request->tempat."%'";
+        }
+
+        if ($request->lokasi) {
+            $additionalQuery .= " and a.lokasi LIKE '%".$request->lokasi."%'";
+        }
+
+        if ($request->qty_awal) {
+            $additionalQuery .= " and a.qty_awal LIKE '%".$request->qty_awal."%'";
+        }
+
+        if ($request->qty_reject) {
+            $additionalQuery .= " and a.qty_awal LIKE '%".$request->qty_reject."%'";
+        }
+
+        if ($request->qty_replace) {
+            $additionalQuery .= " and a.qty_replace LIKE '%".$request->qty_replace."%'";
+        }
+
+        if ($request->qty_in) {
+            $additionalQuery .= " and (a.qty_awal - a.qty_reject + a.qty_replace) LIKE '%".$request->qty_in."%'";
+        }
+
+        if ($request->buyer) {
+            $additionalQuery .= " and msb.buyer LIKE '%".$request->buyer."%'";
+        }
+
+        if ($request->user) {
+            $additionalQuery .= " and a.user LIKE '%".$request->user."%'";
+        }
+
+        $data_input = DB::select("
+            SELECT
+                SUM(a.qty_awal) qty_awal,
+                SUM(a.qty_reject) qty_reject,
+                SUM(a.qty_replace) qty_replace,
+                SUM(a.qty_awal - a.qty_reject + a.qty_replace) qty_in
+            from
+                dc_in_input a
+                inner join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+                left join master_sb_ws msb on msb.id_so_det = s.so_det_id
+                inner join form_cut_input f on f.id = s.form_cut_id
+                inner join part_detail pd on s.part_detail_id = pd.id
+                inner join part p on pd.part_id = p.id
+                inner join master_part mp on mp.id = pd.master_part_id
+                ".$additionalQuery."
+        ");
+
+        // dd("
+        //     SELECT
+        //         SUM(a.qty_awal) qty_awal,
+        //         SUM(a.qty_reject) qty_reject,
+        //         SUM(a.qty_replace) qty_replace,
+        //         SUM(a.qty_awal - a.qty_reject + a.qty_replace) qty_in
+        //     from
+        //         dc_in_input a
+        //         inner join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+        //         left join master_sb_ws msb on msb.id_so_det = s.so_det_id
+        //         inner join form_cut_input f on f.id = s.form_cut_id
+        //         inner join part_detail pd on s.part_detail_id = pd.id
+        //         inner join part p on pd.part_id = p.id
+        //         inner join master_part mp on mp.id = pd.master_part_id
+        //         ".$additionalQuery."
+        // ");
+
+        return $data_input;
+    }
+
+    public function detail_dc_in(Request $request)
+    {
+        $tgl_skrg = Carbon::now()->isoFormat('D MMMM Y hh:mm:ss');
+
+        if ($request->ajax()) {
+            $additionalQuery = '';
+
+            if ($request->dateFrom) {
+                $additionalQuery .= " and (dc.tgl_trans >= '" . $request->dateFrom . "') ";
+            }
+
+            if ($request->dateTo) {
+                $additionalQuery .= " and (dc.tgl_trans <= '" . $request->dateTo . "') ";
+            }
+
+            $data_detail = DB::select("
+                select
+                    s.act_costing_ws, m.buyer,s.color, styleno, COALESCE(sum(dc.qty_awal), 0) qty_in, COALESCE(sum(dc.qty_reject), 0) qty_reject, COALESCE(sum(dc.qty_replace), 0) qty_replace, COALESCE(sum(dc.qty_awal - dc.qty_reject + dc.qty_replace), 0) qty_out, COALESCE(sum(dc.qty_awal - dc.qty_reject + dc.qty_replace), 0) balance, dc.lokasi
+                from
+                    dc_in_input dc
+                    inner join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
+                    inner join master_sb_ws m on s.so_det_id = m.id_so_det
+                where
+                    dc.tgl_trans is not null
+                    ".$additionalQuery."
+                group by
+                    m.ws,m.buyer,m.styleno,m.color,dc.lokasi
+            ");
+
+            return DataTables::of($data_detail)->toJson();
+        }
+
+        return view('dc.dc-in.dc-in', ['page' => 'dashboard-dc', "subPageGroup" => "dcin-dc", "subPage" => "dc-in"], ['tgl_skrg' => $tgl_skrg]);
     }
 
     public function show_data_header(Request $request)

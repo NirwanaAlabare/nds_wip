@@ -84,14 +84,16 @@
                 <th style="padding-left: 1px;">No. Roll</th>
                 <th style="padding-left: 1px;">No. Roll Buyer</th>
                 <th style="padding-left: 1px;">Lot</th>
-                <th style="padding-left: 1px;">Qty</th>
+                <th style="padding-left: 1px;">Qty Awal</th>
+                <th style="padding-left: 1px;">Qty Sisa</th>
                 <th style="padding-left: 1px;">Unit</th>
             </tr>
             <tr>
                 <td style="padding-left: 1px">{{ $sbItem->no_roll }}</td>
                 <td style="padding-left: 1px">{{ $sbItem->no_roll_buyer }}</td>
                 <td style="padding-left: 1px">{{ $sbItem->lot }}</td>
-                <td style="padding-left: 1px">{{ $ndsItem ? ((($sbItem->unit == "YRD" || $sbItem->unit == "YARD") && $ndsItem == "METER") ?  $ndsItem->sisa_kain * 1.09361 : $ndsItem->sisa_kain) : $sbItem->qty }}</td>
+                <td style="padding-left: 1px">{{ $sbItem->qty }}</td>
+                <td style="padding-left: 1px">{{ $ndsItem ? ((($sbItem->unit == "YRD" || $sbItem->unit == "YARD") && $ndsItem->unit == "METER") ?  round($ndsItem->sisa_kain * 1.09361, 2) : $ndsItem->sisa_kain) : $sbItem->qty }}</td>
                 <td style="padding-left: 1px">{{ $sbItem->unit }}</td>
             </tr>
         </table>
@@ -105,11 +107,11 @@
                     <br>
                     <span style="font-weight: bold; font-size: 15px;">{{ $sbItem->id_roll }}</span>
                 </td>
-                @if (count($forms) > 0) 
+                @if (count($forms) > 0)
                     <th style="width: auto;border: none;border-left: 1px solid;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 5px;padding-bottom: 0px;margin-bottom: 0px;">No. Form</th>
                     <td style="width: auto;border: none;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 5px;padding-right: 5px;padding-bottom: 0px;margin-bottom: 0px;"> : </td>
                     <th style="width: auto;border: none;border-right: 1px solid;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 5px;padding-bottom: 0px;margin-bottom: 0px;">{{ $forms[0] }}</th>
-                @else 
+                @else
                     <th style="width: auto;border: none;border-left: 1px solid;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 5px;padding-bottom: 0px;margin-bottom: 0px;">No. Form</th>
                     <td style="width: auto;border: none;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 5px;padding-right: 5px;padding-bottom: 0px;margin-bottom: 0px;"> : </td>
                     <th style="width: auto;border: none;border-right: 1px solid;border-top:1px solid;border-bottom:1px solid;vertical-align: middle;padding-left: 5px;padding-bottom: 0px;margin-bottom: 0px;">-</th>

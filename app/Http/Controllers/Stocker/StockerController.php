@@ -2166,6 +2166,10 @@ class StockerController extends Controller
                             COALESCE(updated_at, created_at) updated_at
                         FROM
                             year_sequence
+                        WHERE
+                            year_sequence.so_det_id is not null
+                            AND year_sequence.updated_at >= '".$dateFrom." 00:00:00'
+                            AND year_sequence.updated_at <= '".$dateTo." 23:59:59'
                         GROUP BY
                             form_cut_id,
                             so_det_id,
@@ -2174,18 +2178,18 @@ class StockerController extends Controller
                 WHERE
                     ( form_cut_input.cancel IS NULL OR form_cut_input.cancel != 'Y' )
                     AND (
-                        DATE ( form_cut_input.waktu_mulai ) >= '".$dateFrom."'
-                        OR DATE ( form_cut_input.waktu_selesai ) >= '".$dateFrom."'
-                        OR DATE ( stocker_input.updated_at ) >= '".$dateFrom."'
-                        OR DATE ( stocker_input.created_at ) >= '".$dateFrom."'
-                        OR year_sequence_num.updated_at >= '".$dateFrom."'
+                        form_cut_input.waktu_mulai >= '".$dateFrom." 00:00:00'
+                        OR form_cut_input.waktu_selesai >= '".$dateFrom." 00:00:00'
+                        OR stocker_input.updated_at >= '".$dateFrom." 00:00:00'
+                        OR stocker_input.created_at >= '".$dateFrom." 00:00:00'
+                        OR year_sequence_num.updated_at >= '".$dateFrom." 00:00:00'
                     )
                     AND (
-                        DATE ( form_cut_input.waktu_mulai ) <= '".$dateTo."'
-                        OR DATE ( form_cut_input.waktu_selesai ) <= '".$dateTo."'
-                        OR DATE ( stocker_input.updated_at ) <= '".$dateTo."'
-                        OR DATE ( stocker_input.created_at ) <= '".$dateTo."'
-                        OR year_sequence_num.updated_at <= '".$dateTo."'
+                        form_cut_input.waktu_mulai <= '".$dateTo." 23:59:59'
+                        OR form_cut_input.waktu_selesai <= '".$dateTo." 23:59:59'
+                        OR stocker_input.updated_at <= '".$dateTo." 23:59:59'
+                        OR stocker_input.created_at <= '".$dateTo." 23:59:59'
+                        OR year_sequence_num.updated_at <= '".$dateTo." 23:59:59'
                     )
                 GROUP BY
                     stocker_input.form_cut_id,
@@ -2275,7 +2279,24 @@ class StockerController extends Controller
                 ")->
                 get();
 
-                return view("stocker.stocker.stocker-list-detail", ["page" => "dashboard-dc",  "subPageGroup" => "stocker-number", "subPage" => "stocker-list", "stockerList" => $stockerList[0], "stockerListNumber" => $stockerListNumber, "months" => $months, "years" => $years]);
+                $output = DB::connection("mysql_sb")->
+                    table("output_rfts")->
+                    selectRaw("
+                        output_rfts.kode_numbering,
+                        so_det.id,
+                        userpassword.username sewing_line,
+                        coalesce(output_rfts.updated_at) sewing_update,
+                        output_rfts_packing.created_by packing_line,
+                        coalesce(output_rfts_packing.updated_at) packing_update
+                    ")->
+                    leftJoin("output_rfts_packing", "output_rfts_packing.kode_numbering", "=", "output_rfts.kode_numbering")->
+                    leftJoin("so_det", "so_det.id", "=", "output_rfts.so_det_id")->
+                    leftJoin("user_sb_wip", "user_sb_wip.id", "=", "output_rfts.created_by")->
+                    leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")->
+                    whereIn("output_rfts.kode_numbering", $stockerListNumber->pluck("id_year_sequence"))->
+                    get();
+
+                return view("stocker.stocker.stocker-list-detail", ["page" => "dashboard-dc",  "subPageGroup" => "stocker-number", "subPage" => "stocker-list", "stockerList" => $stockerList[0], "stockerListNumber" => $stockerListNumber, "output" => $output, "months" => $months, "years" => $years]);
             }
         }
 
@@ -2356,6 +2377,8 @@ class StockerController extends Controller
     public function setYearSequenceNumber(Request $request) {
         ini_set("max_execution_time", 36000);
 
+        $now = Carbon::now();
+
         $validatedRequest = $request->validate([
             "year" => 'required',
             "year_sequence" => 'required',
@@ -2407,8 +2430,6 @@ class StockerController extends Controller
                     }
 
                     if ($currentData->where('number', $validatedRequest['range_awal_stocker']+$n)->count() < 1 || $request->method == "add" ) {
-                        $now = Carbon::now();
-
                         $currentNumber = ($currentData->count() > 0 ? $currentData->max("number")+1+$n : $validatedRequest['range_awal_stocker']+$n);
 
                         array_push($upsertData, [
@@ -2808,7 +2829,7 @@ class StockerController extends Controller
                 YearSequence::insert($insertData);
 
                 $customPaper = array(0, 0, 35.35, 110.90);
-                $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearsequence-1', ["data" => $insertData])->setPaper($customPaper);
+                $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearsequence', ["data" => $insertData])->setPaper($customPaper);
 
                 $path = public_path('pdf/');
                 $fileName = str_replace("/", "-", ('Year Sequence.pdf'));
@@ -2844,7 +2865,7 @@ class StockerController extends Controller
                 YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], ['created_at', 'updated_at']);
 
                 $customPaper = array(0, 0, 35.35, 110.90);
-                $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearsequence-1', ["data" => $upsertData])->setPaper($customPaper);
+                $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearsequence', ["data" => $upsertData])->setPaper($customPaper);
 
                 $path = public_path('pdf/');
                 $fileName = str_replace("/", "-", ('Year Sequence.pdf'));
