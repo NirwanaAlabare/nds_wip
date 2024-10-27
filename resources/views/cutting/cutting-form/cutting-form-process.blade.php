@@ -522,33 +522,50 @@
                                     <input type="text" class="form-control form-control-sm border-scan" id="current_roll_buyer" name="current_roll_buyer" readonly>
                                 </div>
                             </div>
-                            <div class="col-6">
-                                <label class="form-label label-scan" id="current_qty_real_label"><small><b>Qty</b></small></label>
-                                <div class="d-flex mb-3">
-                                    <div style="width: 60%">
-                                        <input type="number" class="form-control form-control-sm border-scan" id="current_qty_real" name="current_qty_real" readonly
-                                            onchange="setRollQtyConversion(this.value); calculateEstAmpar();"
-                                            onkeyup="setRollQtyConversion(this.value); calculateEstAmpar();">
-                                    </div>
-                                    <div style="width: 40%">
-                                        <input type="text" class="form-control form-control-sm border-scan" id="current_unit" name="current_unit" readonly>
-                                        <select class="form-select form-select-sm d-none rounded-0" name="current_custom_unit" id="current_custom_unit" onchange="setCustomUnit(this.value); setRollQtyConversion(); calculateEstAmpar()">
-                                            <option value="METER">METER</option>
-                                            <option value="KGM">KGM</option>
-                                            <option value="YARD">YARD</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="mb-3">
-                                    <label class="form-label label-calc" id="current_qty_label"><small><b>Qty Konversi</b></small></label>
-                                    <div class="d-flex mb-3">
-                                        <div style="width: 60%">
-                                            <input type="number" class="form-control form-control-sm border-calc" id="current_qty" name="current_qty" readonly>
+                            <div class="col-12">
+                                <div class="d-flex gap-3">
+                                    <div>
+                                        <div class="mb-3">
+                                            <label class="form-label label-scan" id="current_qty_awal_label"><small><b>Qty Awal</b></small></label>
+                                            <div class="d-flex mb-3">
+                                                <div style="width: 60%">
+                                                    <input type="number" class="form-control form-control-sm border-scan" id="current_qty_awal" name="current_qty_awal" readonly>
+                                                </div>
+                                                <div style="width: 40%">
+                                                    <input type="text" class="form-control form-control-sm border-scan" id="current_unit_awal" name="current_unit_awal" value="METER" readonly>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div style="width: 40%">
-                                            <input type="text" class="form-control form-control-sm border-calc" id="current_unit_convert" name="current_unit_convert" value="METER" readonly>
+                                    </div>
+                                    <div>
+                                        <label class="form-label label-scan" id="current_qty_real_label"><small><b>Qty</b></small></label>
+                                        <div class="d-flex mb-3">
+                                            <div style="width: 60%">
+                                                <input type="number" class="form-control form-control-sm border-scan" id="current_qty_real" name="current_qty_real" readonly
+                                                onchange="setRollQtyConversion(this.value); calculateEstAmpar();"
+                                                onkeyup="setRollQtyConversion(this.value); calculateEstAmpar();">
+                                            </div>
+                                            <div style="width: 40%">
+                                                <input type="text" class="form-control form-control-sm border-scan" id="current_unit" name="current_unit" readonly>
+                                                <select class="form-select form-select-sm d-none rounded-0" name="current_custom_unit" id="current_custom_unit" onchange="setCustomUnit(this.value); setRollQtyConversion()">
+                                                    <option value="METER">METER</option>
+                                                    <option value="KGM">KGM</option>
+                                                    <option value="YARD">YARD</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="mb-3">
+                                            <label class="form-label label-calc" id="current_qty_label"><small><b>Qty Konversi</b></small></label>
+                                            <div class="d-flex mb-3">
+                                                <div style="width: 60%">
+                                                    <input type="number" class="form-control form-control-sm border-calc" id="current_qty" name="current_qty" readonly>
+                                                </div>
+                                                <div style="width: 40%">
+                                                    <input type="text" class="form-control form-control-sm border-calc" id="current_unit_convert" name="current_unit_convert" value="METER" readonly>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1921,6 +1938,16 @@
                 let unitQtyVar = unitQty ? unitQty : document.getElementById("current_unit").value;
 
                 document.getElementById("current_qty").value = rollQtyConversion(rollQtyVar, unitQtyVar);
+
+                if (unitQtyVar == "KGM" || unitQtyVar == "KG") {
+                    document.getElementById("current_qty_awal").value = rollQtyVar;
+                    document.getElementById("current_unit_awal").innerHTML = unitQtyVar;
+                } else {
+                    document.getElementById("current_qty_awal").value = rollQtyConversion(rollQtyVar, unitQtyVar);
+                    document.getElementById("current_unit_awal").innerHTML = "METER";
+                }
+
+                calculateEstAmpar();
             }
 
             function conversion(qty, unit, unitBefore) {
@@ -2187,6 +2214,7 @@
                 let unitPActualVar = document.getElementById("unit_p_act").value;
                 let lActualVar = Number(document.getElementById("l_act").value);
                 let commaActualVar = Number(document.getElementById("comma_act").value);
+                let qtyAwalVar =  Number(document.getElementById("current_qty_awal").value);
                 let qtyVar =  latestStatus == "extension complete" ? Number(latestQty) : Number(document.getElementById("current_qty").value);
                 let unitQtyVar = document.getElementById("current_unit").value;
                 let gramasiVar = Number(document.getElementById("gramasi").value);
@@ -2202,7 +2230,7 @@
 
                 let pActualConverted = 0;
 
-                if (document.getElementById("status_sambungan").value == "extension") {
+                if (document.getElementById("status_sambungan").value == "extension" && Number(document.getElementById("current_sambungan").value) > 0) {
                     pActualConverted = document.getElementById("current_sambungan").value;
                 } else {
                     if (unitQtyVar != "KGM") {
@@ -2222,7 +2250,7 @@
                     shortRoll = 0;
                 }
 
-                let shortRollPercentage = qtyVar > 0 ? (shortRoll / qtyVar) * 100 : 0;
+                let shortRollPercentage = qtyAwalVar > 0 ? (shortRoll / qtyAwalVar) * 100 : 0;
 
                 if (!($('#unlocked_by').val() && $('#unlocked_by').val() > 0)) {
                     if (status == "PENGERJAAN FORM CUTTING SPREAD") {
@@ -2721,7 +2749,8 @@
                 let inputGroupUnit = document.getElementsByClassName("input-group-unit");
                 let unitSimplified = unit != "KGM" ? "M" : "KG";
 
-                if (unit == "KGM") {
+                if (unit == "KGM" || unit == "KG") {
+                    document.getElementById("current_unit_awal").value = unit;
                     document.getElementById("current_sisa_gelaran_unit").value = unit;
                     document.getElementById("current_sambungan_unit").value = unit;
 
@@ -2733,6 +2762,7 @@
                     document.getElementById("th-berat-amparan").classList.remove("d-none");
                     document.getElementById("total-berat-amparan").classList.remove("d-none");
                 } else {
+                    document.getElementById("current_unit_awal").value = "METER";
                     document.getElementById("current_sisa_gelaran_unit").value = "METER";
                     document.getElementById("current_sambungan_unit").value = "METER";
 
@@ -2835,8 +2865,10 @@
                 data.roll ? document.getElementById("current_roll").value = data.roll : '';
                 data.roll_buyer ? document.getElementById("current_roll_buyer").value = data.roll_buyer : '';
                 data.qty ? document.getElementById("current_qty").value = convertedQty : '';
+                data.qty ? document.getElementById("current_qty_awal").value = (data.qty_in ? data.qty_in : data.qty) : '';
                 data.qty ? document.getElementById("current_qty_real").value = data.qty : '';
                 data.unit ? document.getElementById("current_unit").value = data.unit : '';
+                data.unit ? document.getElementById("current_unit_awal").value = data.unit : '';
                 data.unit ? document.getElementById("current_custom_unit").value = data.unit : '';
                 data.unit ? document.getElementById("current_sisa_gelaran_unit").value = (data.unit != "KGM" ? "METER" : "KGM") : '';
                 data.unit ? document.getElementById("current_sambungan_unit").value = (data.unit != "KGM" ? "METER" : "KGM") : '';
