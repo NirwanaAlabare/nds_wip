@@ -1338,6 +1338,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/store', 'store')->name('store_upload_packing_list');
         Route::get('/getPoData', 'getPoData')->name('getPoData');
         Route::get('/show_detail_packing_list', 'show_detail_packing_list')->name('show_detail_packing_list');
+        Route::get('/show_detail_packing_list_hapus', 'show_detail_packing_list_hapus')->name('show_detail_packing_list_hapus');
+        Route::post('/hapus_packing_list', 'hapus_packing_list')->name('hapus_packing_list');
     });
 
 
@@ -1370,6 +1372,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/alokasi_hapus_tmp', 'alokasi_hapus_tmp')->name('alokasi_hapus_tmp');
         Route::post('/delete_tmp_all_alokasi_karton', 'delete_tmp_all_alokasi_karton')->name('delete_tmp_all_alokasi_karton');
         Route::post('/store', 'store')->name('store_karton_alokasi');
+        Route::get('/export_excel_fg_alokasi', 'export_excel_fg_alokasi')->name('export_excel_fg_alokasi');
     });
 
     // Penerimaan Finish Good

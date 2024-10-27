@@ -102,16 +102,17 @@ group by no_sb
     public function getcarton_notes_fg_out(Request $request)
     {
         $user = Auth::user()->name;
-        $data_notes = DB::select("SELECT a.notes isi, a.notes tampil
+        $data_notes = DB::select("
+SELECT a.dest isi, a.dest tampil
         from fg_fg_in a
         inner join ppic_master_so p on a.id_ppic_master_so = p.id
         inner join master_sb_ws m on p.id_so_det = m.id_so_det
         where buyer = '" . $request->cbobuyer . "' and a.po = '" . $request->cbopo . "'
-        group by p.po
-        order by p.po asc
+        group by a.dest
+        order by a.dest asc
         ");
 
-        $html = "<option value=''>Pilih Notes</option>";
+        $html = "<option value=''>Pilih Dest</option>";
 
         foreach ($data_notes as $datanotes) {
             $html .= " <option value='" . $datanotes->isi . "'>" . $datanotes->tampil . "</option> ";
@@ -123,8 +124,8 @@ group by no_sb
     public function show_number_carton_fg_out(Request $request)
     {
         $datanumber_carton = DB::select("SELECT
-        min(no_carton) min ,max(no_carton) max from packing_master_carton
-        where po = '$request->cbopo' and notes = '$request->cbonotes'");
+        min(no_carton) min ,max(no_carton) max from packing_master_packing_list
+        where po = '$request->cbopo' and dest = '$request->cbonotes'");
         return json_encode($datanumber_carton[0]);
     }
 
@@ -137,18 +138,44 @@ group by no_sb
 
         $buyer = $request->cbobuyer;
         $po = $request->cbopo;
-        $notes = $request->cbonotes;
+        $dest = $request->cbonotes;
         $ctn_awal = $request->txtctn_awal;
         $ctn_akhir = $request->txtctn_akhir;
-        $ins_tmp_fg =  DB::insert("INSERT into fg_fg_out_tmp (id_fg_in,buyer,po,notes,no_carton,created_at,updated_at,created_by)
-        select a.id, m.buyer, a.po, a.notes, a.no_carton, '$timestamp','$timestamp','$user' from fg_fg_in a
-        inner join ppic_master_so p on a.id_ppic_master_so = p.id
-        inner join master_sb_ws m on p.id_so_det = m.id_so_det
-        inner join packing_master_carton pc on a.po = pc.po and a.no_carton = pc.no_carton and a.notes = pc.notes
-        left join fg_fg_out_tmp b on a.id = b.id_fg_in
-        where m.buyer = '$buyer' and a.po = '$po' and a.notes = '$notes' and cast(a.no_carton as int) >= '$ctn_awal' and cast(a.no_carton as int) <= '$ctn_akhir'
-        and b.id_fg_in is null and pc.status != 'terkirim'
-        order by a.po asc, a.no_carton asc ");
+        $ins_tmp_fg =  DB::insert("INSERT into fg_fg_out_tmp
+        (id_fg_in,buyer,po,notes,no_carton,dest,created_at,updated_at,created_by)
+select
+b.id id_fg_in,
+a.buyer,
+a.po,
+b.notes,
+a.no_carton,
+a.dest,
+'$timestamp',
+'$timestamp',
+'$user'
+from
+(
+select
+m.buyer,a.po,a.barcode, a.no_carton, a.dest, a.id_so_det, a.qty
+from packing_master_packing_list	a
+inner join ppic_master_so p on a.id_ppic_master_so = p.id
+inner join master_sb_ws m on p.id_so_det = m.id_so_det
+where m.buyer = '$buyer' and a.po = '$po' and a.dest = '$dest' and cast(a.no_carton as int) >= '$ctn_awal' and cast(a.no_carton as int) <= '$ctn_akhir'
+)a
+left join
+(
+select id,po,barcode, no_carton, dest, id_so_det, sum(qty) qty_fg, notes from fg_fg_in where po = '$po' and dest = '$dest' and cast(no_carton as int) >= '$ctn_awal' and cast(no_carton as int) <= '$ctn_akhir' and status = 'NORMAL'
+group by no_carton, barcode, po, dest
+) b on a.po = b.po and a.barcode = b.barcode and a.no_carton = b.no_carton and a.id_so_det = b.id_so_det
+left join
+(
+select po,barcode, no_carton, dest, id_so_det, sum(qty) qty_fg_out from fg_fg_out where po = '$po' and dest = '$dest' and cast(no_carton as int) >= '$ctn_awal' and cast(no_carton as int) <= '$ctn_akhir' and status = 'NORMAL'
+group by no_carton, barcode, po, dest
+) c on a.po = c.po and a.barcode = c.barcode and a.no_carton = c.no_carton and a.id_so_det = c.id_so_det
+where qty = coalesce(qty_fg,0) and coalesce(qty_fg,0) - coalesce(qty_fg_out,0) != '0'
+order by po asc, no_carton asc
+
+ ");
     }
 
 
@@ -167,7 +194,7 @@ group by no_sb
         m.color,
         m.size,
         a.qty,
-        m.dest,
+        a.dest,
         tmp.id
         from fg_fg_out_tmp tmp
         inner join fg_fg_in a on tmp.id_fg_in = a.id
@@ -319,12 +346,14 @@ group by no_sb
         $qtyArray               = $_POST['qty'];
         $priceArray             = $_POST['price'];
         $currArray              = $_POST['curr'];
+        $destArray              = $_POST['dest'];
         $tgl_pengeluaran        = date('Y-m-d');
         foreach ($id_so_detArray as $key => $value) {
             $id_so_det      = $id_so_detArray[$key];
             $qty            = $qtyArray[$key];
             $price          = $priceArray[$key];
-            $curr           = $currArray[$key]; {
+            $curr           = $currArray[$key];
+            $dest          = $destArray[$key]; {
 
                 $cek_id_item = DB::connection('mysql_sb')->select("select * from masterstyle where id_so_det = '$id_so_det'");
                 $id_item = $cek_id_item ? $cek_id_item[0]->id_item : null;
@@ -340,17 +369,17 @@ group by no_sb
         }
 
         $insert_fg_out_nds = DB::insert("INSERT into fg_fg_out
-        (no_sb,tgl_pengeluaran,buyer,id_ppic_master_so,id_so_det,barcode,qty,po,no_carton,lokasi,notes,id_fg_in,jenis_dok,invno,remark,status,created_at,updated_at,created_by)
-select '$bppbno_int','$tgl_skrg',buyer,id_ppic_master_so,id_so_det,barcode,qty,a.po,a.no_carton,lokasi,a.notes,a.id_fg_in,'$jns_dok','$inv','-','NORMAL','$timestamp','$timestamp','$user'
+        (no_sb,tgl_pengeluaran,buyer,id_ppic_master_so,id_so_det,barcode,qty,po,no_carton,lokasi,notes,dest,id_fg_in,jenis_dok,invno,remark,status,created_at,updated_at,created_by)
+select '$bppbno_int','$tgl_skrg',buyer,id_ppic_master_so,id_so_det,barcode,qty,a.po,a.no_carton,lokasi,a.notes,'$dest',a.id_fg_in,'$jns_dok','$inv','-','NORMAL','$timestamp','$timestamp','$user'
 from fg_fg_out_tmp	a
 inner join fg_fg_in b on a.id_fg_in = b.id
 where a.created_by = '$user'");
 
-        $update_karton =  DB::update("
-update packing_master_carton a
-inner join fg_fg_out_tmp b on a.po = b.po and a.no_carton = b.no_carton
-set a.status = 'terkirim'
-where b.created_by = '$user'");
+        //         $update_karton =  DB::update("
+        // update packing_master_carton a
+        // inner join fg_fg_out_tmp b on a.po = b.po and a.no_carton = b.no_carton
+        // set a.status = 'terkirim'
+        // where b.created_by = '$user'");
 
         if ($insert_fg_out_sb != '') {
             return array(
@@ -414,7 +443,8 @@ no_carton,
 m.ws,
 m.color,
 m.size,
-a.qty
+a.qty,
+a.dest
 from fg_fg_out a
 inner join master_sb_ws m on a.id_so_det = m.id_so_det
 left join master_size_new msn on m.size = msn.size
@@ -442,7 +472,8 @@ order by po asc, no_carton asc, color asc, urutan asc
         m.size,
         m.price,
         sum(a.qty) qty,
-        m.curr
+        m.curr,
+        a.dest
         from fg_fg_out a
         inner join master_sb_ws m on a.id_so_det = m.id_so_det
         left join master_size_new msn on m.size = msn.size
@@ -475,12 +506,14 @@ order by po asc, no_carton asc, color asc, urutan asc
         $qtyArray               = $_POST['qty'];
         $priceArray             = $_POST['price'];
         $currArray              = $_POST['curr'];
+        $destArray              = $_POST['dest'];
         $tgl_pengeluaran        = date('Y-m-d');
         foreach ($id_so_detArray as $key => $value) {
             $id_so_det      = $id_so_detArray[$key];
             $qty            = $qtyArray[$key];
             $price          = $priceArray[$key];
-            $curr           = $currArray[$key]; {
+            $curr           = $currArray[$key];
+            $dest           = $destArray[$key]; {
 
                 $cek_id_item = DB::connection('mysql_sb')->select("select * from masterstyle where id_so_det = '$id_so_det'");
                 $id_item = $cek_id_item ? $cek_id_item[0]->id_item : null;
@@ -492,17 +525,17 @@ order by po asc, no_carton asc, color asc, urutan asc
         }
 
         $insert_fg_out_nds = DB::insert("INSERT into fg_fg_out
-        (no_sb,tgl_pengeluaran,buyer,id_ppic_master_so,id_so_det,barcode,qty,po,no_carton,lokasi,notes,id_fg_in,jenis_dok,invno,remark,created_at,updated_at,created_by)
-select '$bppbno_int_fix','$tgl_skrg',buyer,id_ppic_master_so,id_so_det,barcode,qty,a.po,a.no_carton,lokasi,a.notes,a.id_fg_in,'$jns_dok','$inv','-','$timestamp','$timestamp','$user'
+        (no_sb,tgl_pengeluaran,buyer,id_ppic_master_so,id_so_det,barcode,qty,po,no_carton,lokasi,notes,dest,id_fg_in,jenis_dok,invno,remark,created_at,updated_at,created_by)
+select '$bppbno_int_fix','$tgl_skrg',buyer,id_ppic_master_so,id_so_det,barcode,qty,a.po,a.no_carton,lokasi,a.notes,a.dest,a.id_fg_in,'$jns_dok','$inv','-','$timestamp','$timestamp','$user'
 from fg_fg_out_tmp	a
 inner join fg_fg_in b on a.id_fg_in = b.id
 where a.created_by = '$user'");
 
-        $update_karton =  DB::update("
-update packing_master_carton a
-inner join fg_fg_out_tmp b on a.po = b.po and a.no_carton = b.no_carton
-set a.status = 'terkirim'
-where b.created_by = '$user'");
+        //         $update_karton =  DB::update("
+        // update packing_master_carton a
+        // inner join fg_fg_out_tmp b on a.po = b.po and a.no_carton = b.no_carton
+        // set a.status = 'terkirim'
+        // where b.created_by = '$user'");
 
         if ($insert_fg_out_sb != '') {
             return array(

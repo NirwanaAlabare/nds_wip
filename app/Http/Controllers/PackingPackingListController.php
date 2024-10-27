@@ -15,7 +15,7 @@ use App\Imports\UploadPackingListHeader;
 use App\Imports\UploadPackingListKartonVertical;
 use App\Exports\ExportDataTemplatePackingListHorizontal;
 use App\Exports\ExportDataTemplatePackingListVertical;
-use Illuminate\Support\Str;
+
 
 class PackingPackingListController extends Controller
 {
@@ -50,13 +50,19 @@ order by tgl_shipment asc, po asc
         }
 
         $data_po = DB::select("SELECT
-concat(p.po,'_',p.dest)isi,
-concat(p.po, ' - ', buyer, ' - ', styleno, ' - ', p.dest) tampil from ppic_master_so p
-inner join master_sb_ws m on p.id_so_det = m.id_so_det
-left join (select po from packing_master_packing_list group by po) a on p.po = a.po
-where tgl_shipment >= '2024-09-01' and a.po is null
-group by p.po,p.dest
-order by buyer asc, styleno asc, p.po asc");
+concat(a.po,'_',a.dest)isi,
+concat(a.po, ' - ', buyer, ' - ', styleno, ' - ', a.dest) tampil
+from
+(
+select po,dest, id_so_det from ppic_master_so
+where tgl_shipment >= '2024-11-01'
+group by po, dest ) a
+left join
+(select po,dest from packing_master_carton group by po) b
+on a.po = b.po and a.dest = b.dest
+inner join master_sb_ws m on a.id_so_det = m.id_so_det
+where b.po is null and b.dest is null
+order by buyer asc, styleno asc, a.po asc");
 
         $data_list = DB::select("select 'HORIZONTAL' isi,'HORIZONTAL' tampil
 union
@@ -889,13 +895,19 @@ select 'VERTICAL' isi,'VERTICAL' tampil ");
 
     {
         $data_po = DB::select("SELECT
-concat(p.po,'_',p.dest)isi,
-concat(p.po, ' - ', buyer, ' - ', styleno, ' - ', p.dest) tampil from ppic_master_so p
-inner join master_sb_ws m on p.id_so_det = m.id_so_det
-left join (select po from packing_master_packing_list group by po) a on p.po = a.po
-where tgl_shipment >= '2024-05-01' and a.po is null
-group by p.po,p.dest
-order by buyer asc, styleno asc, p.po asc");
+concat(a.po,'_',a.dest)isi,
+concat(a.po, ' - ', buyer, ' - ', styleno, ' - ', a.dest) tampil
+from
+(
+select po,dest, id_so_det from ppic_master_so
+where tgl_shipment >= '2024-11-01'
+group by po, dest ) a
+left join
+(select po,dest from packing_master_carton group by po) b
+on a.po = b.po and a.dest = b.dest
+inner join master_sb_ws m on a.id_so_det = m.id_so_det
+where b.po is null and b.dest is null
+order by buyer asc, styleno asc, a.po asc");
         return response()->json($data_po);
     }
 
@@ -923,5 +935,106 @@ where a.po = '$po' and a.dest = '$dest'
 order by no_carton asc
                     ");
         return DataTables::of($data_det_poacking_list)->toJson();
+    }
+
+    public function show_detail_packing_list_hapus(Request $request)
+    {
+        $po = $request->po;
+        $dest = $request->dest;
+
+        $data_det_poacking_list = DB::select("select
+        a.id,
+a.tipe_pack,
+a.styleno,
+a.buyer,
+a.size,
+a.po,
+a.barcode,
+a.ws,
+a.color,
+b.notes,
+a.no_carton,
+a.dest,
+a.qty,
+coalesce(qty_scan,0) qty_scan,
+coalesce(qty_fg,0) qty_fg,
+coalesce(qty_fg_out,0) qty_fg_out
+from
+(
+select
+a.id,m.buyer,a.po,a.barcode, a.no_carton, a.dest, a.id_so_det, a.qty, a.tipe_pack, m.styleno, a.size, m.ws, m.color
+from packing_master_packing_list	a
+inner join ppic_master_so p on a.id_ppic_master_so = p.id
+inner join master_sb_ws m on p.id_so_det = m.id_so_det
+where a.po = '$po' and a.dest = '$dest'
+)a
+left join
+(
+select
+a.po,a.barcode, a.no_carton, a.dest, id_so_det, count(a.barcode) qty_scan
+from packing_packing_out_scan a
+inner join ppic_master_so p on a.barcode = p.barcode and a.po = p.po and a.dest = p.dest
+where a.po = '$po' and a.dest = '$dest'
+group by a.no_carton, a.barcode, a.po, a.dest
+)
+s on a.po = s.po and a.barcode = s.barcode and a.no_carton = s.no_carton and a.id_so_det = s.id_so_det
+left join
+(
+select id,po,barcode, no_carton, dest, id_so_det, sum(qty) qty_fg, notes from fg_fg_in where po = '$po' and dest = '$dest'  and status = 'NORMAL'
+group by no_carton, barcode, po, dest
+) b on a.po = b.po and a.barcode = b.barcode and a.no_carton = b.no_carton and a.id_so_det = b.id_so_det
+left join
+(
+select po,barcode, no_carton, dest, id_so_det, sum(qty) qty_fg_out from fg_fg_out where po = '$po' and dest = '$dest' and status = 'NORMAL'
+group by no_carton, barcode, po, dest
+) c on a.po = c.po and a.barcode = c.barcode and a.no_carton = c.no_carton and a.id_so_det = c.id_so_det
+order by po asc, no_carton asc
+                    ");
+        return DataTables::of($data_det_poacking_list)->toJson();
+    }
+
+
+    public function hapus_packing_list(Request $request)
+    {
+
+        $timestamp = Carbon::now();
+        $user = Auth::user()->name;
+        $JmlArray                                   = $_POST['cek_data'];
+        $po                                  = $_POST['modal_h_po'];
+        $dest                                  = $_POST['modal_h_dest'];
+        $buyer                                  = $_POST['modal_h_buyer'];
+        $style                                  = $_POST['modal_h_style'];
+        foreach ($JmlArray as $key => $value) {
+            if ($value != '') {
+                $txtid                          = $JmlArray[$key]; {
+
+                    $del_history =  DB::delete("
+                    delete from packing_master_packing_list where id = '$txtid' and po = '$po' and dest = '$dest'");
+
+                    $del_scan =  DB::delete("
+DELETE a
+FROM packing_packing_out_scan a
+inner join packing_master_packing_list b on a.po = b.po  and a.dest = b.dest and a.no_carton = b.no_carton
+WHERE b.id = '$txtid'");
+                }
+            }
+        }
+        return array(
+            "status" => 201,
+            "message" => 'Data Sudah di Hapus',
+            "additional" => [],
+            "redirect" => '',
+            "table" => 'datatable_detail_packing_list_hapus',
+            "callback" => "show_data_h(`$po`,`$dest`,`$buyer`,`$style`)"
+        );
+
+        // return array(
+        //     "status" => 202,
+        //     "message" => 'No Form Berhasil Di Update',
+        //     "additional" => [],
+        //     "redirect" => '',
+        //     "callback" => "getdetail(`$no_form_modal`,`$txtket_modal_input`)"
+
+        // );
     }
 }

@@ -8,7 +8,7 @@ use Yajra\DataTables\Facades\DataTables;
 use DB;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\ExportLaporanTrfGarment;
+use App\Exports\ExportLaporanFGAlokasi;
 
 class FinishGoodAlokasiKartonController extends Controller
 {
@@ -248,5 +248,10 @@ order by buyer asc");
                 "additional" => [],
             );
         }
+    }
+
+    public function export_excel_fg_alokasi(Request $request)
+    {
+        return Excel::download(new ExportLaporanFGAlokasi, 'Laporan_Penerimaan FG_Stok.xlsx');
     }
 }
