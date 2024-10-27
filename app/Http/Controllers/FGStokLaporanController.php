@@ -60,6 +60,7 @@ class FGStokLaporanController extends Controller
 
     public function export_excel_mutasi_fg_stok(Request $request)
     {
+        ini_set('memory_limit', '1024M');
         return Excel::download(new ExportLaporanFGStokMutasi($request->from, $request->to), 'Laporan_Mutasi FG_Stok.xlsx');
     }
 

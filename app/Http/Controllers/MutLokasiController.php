@@ -186,7 +186,7 @@ class MutLokasiController extends Controller
             <td >'.$detitem->kpno.' <input type="hidden" id="nows'.$x.'" name="nows['.$x.']" value="'.$detitem->kpno.'" / readonly></td>
             <td >'.$detitem->bpbno_int.' <input type="hidden" id="no_bpb'.$x.'" name="no_bpb['.$x.']" value="'.$detitem->bpbno_int.'" / readonly></td>
             <td >'.$detitem->lot_no.' <input type="hidden" id="lot_no'.$x.'" name="lot_no['.$x.']" value="'.$detitem->lot_no.'" / readonly></td>
-            <td >'.$detitem->roll_no.' <input type="hidden" id="roll_no'.$x.'" name="roll_no['.$x.']" value="'.$detitem->roll_no.'" / readonly></td>
+            <td >'.$detitem->roll_no.' / '.$detitem->no_roll_buyer.' <input type="hidden" id="roll_no'.$x.'" name="roll_no['.$x.']" value="'.$detitem->roll_no.'" / readonly></td>
             <td >'.$detitem->roll_qty.' <input type="hidden" id="qty_roll'.$x.'" name="qty_roll['.$x.']" value="'.$detitem->roll_qty.'" / readonly></td>
             <td><input style="width:100px;text-align:right;" class="form-control" type="text" id="qty_mut'.$x.'" name="qty_mut['.$x.']" value="'.$detitem->roll_qty.'" onkeyup="sum_qty_mut(this.value)" /></td>
             <td >'.$detitem->unit.' <input type="hidden" id="unit'.$x.'" name="unit['.$x.']" value="'.$detitem->unit.'" / readonly></td>
@@ -282,7 +282,7 @@ class MutLokasiController extends Controller
             $mutasilokasi = [];
             $lokasiMaterial = [];
             for ($i = 1; $i <= intval($request['txt_sum_roll']); $i++) {
-                if ($request["qty_mut"][$i] > 0) {
+                if ($request["selectlok"][$i] != '-') {
                     array_push($mutasilokasi, [
                         "no_mut" => $nodok,
                         "tgl_mut" => $tgldok,
