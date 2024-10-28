@@ -55,7 +55,7 @@ concat(a.po, ' - ', buyer, ' - ', styleno, ' - ', a.dest) tampil
 from
 (
 select po,dest, id_so_det from ppic_master_so
-where tgl_shipment >= '2024-10-01'
+where tgl_shipment >= '2024-09-01'
 group by po, dest ) a
 inner join master_sb_ws m on a.id_so_det = m.id_so_det
 left join packing_master_packing_list mp on a.po = mp.po and a.dest = mp.dest
@@ -99,6 +99,7 @@ select 'VERTICAL' isi,'VERTICAL' tampil ");
         // validasi
         $po = $request->cbopo;
         $tipe = $request->cbotipe;
+        $txtdest = $request->txtdest;
         $this->validate($request, [
             'file' => 'required|mimes:csv,xls,xlsx'
         ]);
@@ -122,7 +123,7 @@ select 'VERTICAL' isi,'VERTICAL' tampil ");
                 if (str_contains($nama_file_without_extension, $ponew)) {
                     $file->move('file_upload', $nama_file);
                     Excel::import(new UploadPackingListKarton, public_path('/file_upload/' . $nama_file));
-                    Excel::import(new UploadPackingListHeader($txtpo, $dest), public_path('/file_upload/' . $nama_file));
+                    Excel::import(new UploadPackingListHeader($txtpo, $txtdest), public_path('/file_upload/' . $nama_file));
                     return array(
                         "status" => 201,
                         "message" => 'Data Berhasil Di Upload',

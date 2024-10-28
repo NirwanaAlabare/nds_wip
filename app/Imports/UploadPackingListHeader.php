@@ -14,13 +14,13 @@ use Maatwebsite\Excel\Concerns\WithLimit;
 
 class UploadPackingListHeader implements ToModel, WithStartRow, WithLimit
 {
-    private $txtpo, $dest;
+    private $txtpo, $txtdest;
 
-    public function __construct($txtpo, $dest)
+    public function __construct($txtpo, $txtdest)
     {
 
         $this->txtpo = $txtpo;
-        $this->dest = $dest;
+        $this->txtdest = $txtdest;
     }
 
     public function startRow(): int
@@ -38,7 +38,7 @@ class UploadPackingListHeader implements ToModel, WithStartRow, WithLimit
         $timestamp = Carbon::now();
         $header = new Packing_list_upload_header([
             'po' => $this->txtpo,
-            'dest' => $this->dest,
+            'dest' => $this->txtdest,
             'field_1' => $row[8] ?? null,
             'field_2' => $row[9] ?? null,
             'field_3' => $row[10] ?? null,
