@@ -99,6 +99,7 @@ select 'VERTICAL' isi,'VERTICAL' tampil ");
         // validasi
         $po = $request->cbopo;
         $tipe = $request->cbotipe;
+        $txtdest = $request->txtdest;
         $this->validate($request, [
             'file' => 'required|mimes:csv,xls,xlsx'
         ]);
@@ -122,7 +123,7 @@ select 'VERTICAL' isi,'VERTICAL' tampil ");
                 if (str_contains($nama_file_without_extension, $ponew)) {
                     $file->move('file_upload', $nama_file);
                     Excel::import(new UploadPackingListKarton, public_path('/file_upload/' . $nama_file));
-                    Excel::import(new UploadPackingListHeader($txtpo, $dest), public_path('/file_upload/' . $nama_file));
+                    Excel::import(new UploadPackingListHeader($txtpo, $txtdest), public_path('/file_upload/' . $nama_file));
                     return array(
                         "status" => 201,
                         "message" => 'Data Berhasil Di Upload',
