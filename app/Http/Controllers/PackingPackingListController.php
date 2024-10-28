@@ -55,14 +55,13 @@ concat(a.po, ' - ', buyer, ' - ', styleno, ' - ', a.dest) tampil
 from
 (
 select po,dest, id_so_det from ppic_master_so
-where tgl_shipment >= '2024-11-01'
+where tgl_shipment >= '2024-10-01'
 group by po, dest ) a
-left join
-(select po,dest from packing_master_carton group by po) b
-on a.po = b.po and a.dest = b.dest
 inner join master_sb_ws m on a.id_so_det = m.id_so_det
-where b.po is null and b.dest is null
-order by buyer asc, styleno asc, a.po asc");
+left join packing_master_packing_list mp on a.po = mp.po and a.dest = mp.dest
+where mp.po is null and mp.dest is null
+order by buyer asc, styleno asc, a.po asc
+");
 
         $data_list = DB::select("select 'HORIZONTAL' isi,'HORIZONTAL' tampil
 union
