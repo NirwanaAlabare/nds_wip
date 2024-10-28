@@ -304,32 +304,41 @@ class CuttingFormController extends Controller
                 scanned_item.roll_buyer,
                 scanned_item.qty,
                 scanned_item.qty_stok,
-                COALESCE(pemakaian.qty_awal, scanned_item.qty_in) qty_in,
+                scanned_item.qty_in,
                 COALESCE(pemakaian.total_pemakaian, scanned_item.qty_pakai) qty_pakai,
                 scanned_item.unit,
                 scanned_item.berat_amparan
             ")->leftJoin(DB::raw("
                 (
-                    SELECT
+                    select
                         id_roll,
-                        max( qty ) qty_awal,
-                        sum( total_pemakaian_roll + sisa_kain ) total_pemakaian
-                    FROM
-                        form_cut_input_detail
-                    WHERE
-                        id_roll = '".$id."'
-                    GROUP BY
-                        id_roll
-                    UNION
-                    SELECT
-                        id_roll,
-                        max( qty ) qty_awal,
-                        sum( piping + qty_sisa ) total_pemakaian
-                    FROM
-                        form_cut_piping
-                    WHERE
-                        id_roll = '".$id."'
-                    GROUP BY
+                        max( qty_awal ) qty_awal,
+                        sum( total_pemakaian ) total_pemakaian
+                    from
+                        (
+                            SELECT
+                                id_roll,
+                                max( qty ) qty_awal,
+                                sum( total_pemakaian_roll + sisa_kain ) total_pemakaian
+                            FROM
+                                form_cut_input_detail
+                            WHERE
+                                id_roll = '".$id."'
+                            GROUP BY
+                                id_roll
+                            UNION
+                            SELECT
+                                id_roll,
+                                max( qty ) qty_awal,
+                                sum( piping + qty_sisa ) total_pemakaian
+                            FROM
+                                form_cut_piping
+                            WHERE
+                                id_roll = '".$id."'
+                            GROUP BY
+                                id_roll
+                        ) pemakaian
+                    group by
                         id_roll
                 ) pemakaian
             "), "pemakaian.id_roll", "=", "scanned_item.id_roll")->
@@ -338,14 +347,14 @@ class CuttingFormController extends Controller
             first();
 
             if ($scannedItem) {
-                $updateScannedItem = ScannedItem::where("id_roll", $id)->
-                    update([
-                        "qty_stok" => $newItem[0]->qty_stok,
-                        "qty_in" => $newItem[0]->qty,
-                        "qty" => floatval($newItem[0]->qty - $scannedItem->qty_in + $scannedItem->qty)
-                    ]);
+                $scannedItemUpdate = ScannedItem::where("id_roll", $id)->first();
 
-                if ($scannedItem->qty > 0) {
+                $scannedItemUpdate->qty_stok = $newItem[0]->qty_stok;
+                $scannedItemUpdate->qty_in = $newItem[0]->qty;
+                $scannedItemUpdate->qty = floatval($newItem[0]->qty - $scannedItem->qty_in + $scannedItem->qty);
+                $scannedItemUpdate->save();
+
+                if ($scannedItemUpdate->qty > 0) {
                     return json_encode($scannedItem);
                 }
 
