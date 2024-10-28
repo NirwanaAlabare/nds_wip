@@ -942,7 +942,7 @@
                         document.getElementById("loading").classList.add("d-none");
 
                         if (res) {
-                            setSpreadingForm(res);
+                            setSpreadingForm(res, true);
                         } else {
                             Swal.fire({
                                 icon: 'error',
@@ -1216,7 +1216,7 @@
 
                 this.classList.add('selected');
 
-                setSpreadingForm(data);
+                setSpreadingForm(data, false);
 
                 location.href = '#spreading-form-card';
             };
@@ -1302,13 +1302,15 @@
         }
 
         // -Set Spreading Form-
-        function setSpreadingForm(data) {
+        function setSpreadingForm(data, item) {
             openItemSpreading();
 
             // spreading form data set
             let convertedQty = rollQtyConversion(data.qty, data.unit);
-
-            data.id ? document.getElementById("current_id").value = data.id : '';
+            
+            if (!item) {
+                data.id ? document.getElementById("current_id").value = data.id : '';
+            }
             data.id_roll ? document.getElementById("current_id_roll").value = data.id_roll : '';
             data.group_roll ? document.getElementById("current_group").value = data.group_roll : '';
             data.group_stocker ? document.getElementById("current_group_stocker").value = data.group_stocker : '';
@@ -1928,12 +1930,15 @@
                 dataType: 'json',
                 data: dataObj,
                 success: async function(res) {
+                    console.log(res);
+                    document.getElementById("loading").classList.add("d-none");
+
                     if (res) {
                         await clearSpreadingForm();
 
                         await getSummary(true);
 
-                        await finishProcess()
+                        await finishProcess();
                     }
                 },
                 error: function(jqXHR) {
