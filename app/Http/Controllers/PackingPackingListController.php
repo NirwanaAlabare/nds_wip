@@ -55,7 +55,7 @@ concat(a.po, ' - ', buyer, ' - ', styleno, ' - ', a.dest) tampil
 from
 (
 select po,dest, id_so_det from ppic_master_so
-where tgl_shipment >= '2024-10-01'
+where tgl_shipment >= '2024-09-01'
 group by po, dest ) a
 inner join master_sb_ws m on a.id_so_det = m.id_so_det
 left join packing_master_packing_list mp on a.po = mp.po and a.dest = mp.dest
