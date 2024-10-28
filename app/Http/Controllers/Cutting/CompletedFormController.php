@@ -270,6 +270,11 @@ class CompletedFormController extends Controller
                 "piping" => $validatedRequest['current_piping']
             ]);
 
+        $detail = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->
+            leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->
+            where('form_cut_input.no_form', $validatedRequest['no_form_cut_input'])->
+            where('form_cut_input_detail.id', $validatedRequest['current_id'])->first();
+
         if ($updateTimeRecordSummary) {
             $itemRemain = $validatedRequest['current_sisa_kain'];
 
@@ -304,7 +309,7 @@ class CompletedFormController extends Controller
             );
         }
 
-        return $updateTimeRecordSummary;
+        return $detail;
     }
 
     public function updateFinish(Request $request, $id) {

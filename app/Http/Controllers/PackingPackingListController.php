@@ -59,7 +59,6 @@ where tgl_shipment >= '2024-09-01'
 group by po, dest ) a
 inner join master_sb_ws m on a.id_so_det = m.id_so_det
 left join packing_master_packing_list mp on a.po = mp.po and a.dest = mp.dest
-where mp.po is null and mp.dest is null
 order by buyer asc, styleno asc, a.po asc
 ");
 
@@ -275,181 +274,181 @@ select 'VERTICAL' isi,'VERTICAL' tampil ");
     from
     (
     SELECT 'field_1' AS field_name, field_1 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT 'field_2' AS field_name, field_2 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT 'field_3' AS field_name, field_3 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT 'field_4' AS field_name, field_4 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT 'field_5' AS field_name, field_5 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT 'field_6' AS field_name, field_6 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT 'field_7' AS field_name, field_7 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT 'field_8' AS field_name, field_8 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT 'field_9' AS field_name, field_9 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT 'field_10' AS field_name, field_10 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT 'field_11' AS field_name, field_11 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT 'field_12' AS field_name, field_12 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT 'field_13' AS field_name, field_13 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT 'field_14' AS field_name, field_14 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT 'field_15' AS field_name, field_15 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
 	union
     SELECT 'field_16' AS field_name, field_16 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
 	union
     SELECT 'field_17' AS field_name, field_17 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
 	union
     SELECT 'field_18' AS field_name, field_18 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
 	union
     SELECT 'field_19' AS field_name, field_19 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
 	union
     SELECT 'field_20' AS field_name, field_20 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
 	union
     SELECT 'field_21' AS field_name, field_21 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
 	union
     SELECT 'field_22' AS field_name, field_22 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
 	union
     SELECT 'field_23' AS field_name, field_23 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
 	union
     SELECT 'field_24' AS field_name, field_24 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
 	union
     SELECT 'field_25' AS field_name, field_25 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     ) h
     left join
     (
     SELECT id,'field_1' AS field_name, field_1 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_1 is not null and po = '$po' and dest = '$dest'
+    where field_1 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_2' AS field_name, field_2 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_2 is not null and po = '$po' and dest = '$dest'
+    where field_2 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_3' AS field_name, field_3 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_3 is not null and po = '$po' and dest = '$dest'
+    where field_3 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_4' AS field_name, field_4 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_4 is not null and po = '$po' and dest = '$dest'
+    where field_4 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_5' AS field_name, field_5 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_5 is not null and po = '$po' and dest = '$dest'
+    where field_5 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_6' AS field_name, field_6 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_6 is not null and po = '$po' and dest = '$dest'
+    where field_6 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_7' AS field_name, field_7 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_7 is not null and po = '$po' and dest = '$dest'
+    where field_7 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_8' AS field_name, field_8 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_8 is not null and po = '$po' and dest = '$dest'
+    where field_8 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_9' AS field_name, field_9 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_9 is not null and po = '$po' and dest = '$dest'
+    where field_9 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_10' AS field_name, field_10 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_10 is not null and po = '$po' and dest = '$dest'
+    where field_10 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_11' AS field_name, field_11 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_11 is not null and po = '$po' and dest = '$dest'
+    where field_11 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_12' AS field_name, field_12 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_12 is not null and po = '$po' and dest = '$dest'
+    where field_12 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_13' AS field_name, field_13 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_13 is not null and po = '$po' and dest = '$dest'
+    where field_13 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_14' AS field_name, field_14 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_14 is not null and po = '$po' and dest = '$dest'
+    where field_14 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_15' AS field_name, field_15 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_15 is not null and po = '$po' and dest = '$dest'
+    where field_15 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_16' AS field_name, field_17 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_16 is not null and po = '$po' and dest = '$dest'
+    where field_16 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_17' AS field_name, field_17 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_17 is not null and po = '$po' and dest = '$dest'
+    where field_17 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_18' AS field_name, field_18 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_18 is not null and po = '$po' and dest = '$dest'
+    where field_18 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_19' AS field_name, field_19 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_19 is not null and po = '$po' and dest = '$dest'
+    where field_19 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_20' AS field_name, field_20 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_20 is not null and po = '$po' and dest = '$dest'
+    where field_20 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_21' AS field_name, field_21 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_21 is not null and po = '$po' and dest = '$dest'
+    where field_21 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_22' AS field_name, field_22 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_22 is not null and po = '$po' and dest = '$dest'
+    where field_22 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_23' AS field_name, field_23 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_23 is not null and po = '$po' and dest = '$dest'
+    where field_23 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_24' AS field_name, field_24 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_24 is not null and po = '$po' and dest = '$dest'
+    where field_24 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_25' AS field_name, field_25 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_25 is not null and po = '$po' and dest = '$dest'
+    where field_25 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     ) l on h.field_name = l.field_name
     left join packing_master_upload_packing_list_det_horizontal a on l.id = a.id
     left join
@@ -602,181 +601,181 @@ select 'VERTICAL' isi,'VERTICAL' tampil ");
     from
     (
     SELECT 'field_1' AS field_name, field_1 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT 'field_2' AS field_name, field_2 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT 'field_3' AS field_name, field_3 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT 'field_4' AS field_name, field_4 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT 'field_5' AS field_name, field_5 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT 'field_6' AS field_name, field_6 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT 'field_7' AS field_name, field_7 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT 'field_8' AS field_name, field_8 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT 'field_9' AS field_name, field_9 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT 'field_10' AS field_name, field_10 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT 'field_11' AS field_name, field_11 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT 'field_12' AS field_name, field_12 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT 'field_13' AS field_name, field_13 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT 'field_14' AS field_name, field_14 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT 'field_15' AS field_name, field_15 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
 	union
     SELECT 'field_16' AS field_name, field_16 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
 	union
     SELECT 'field_17' AS field_name, field_17 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
 	union
     SELECT 'field_18' AS field_name, field_18 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
 	union
     SELECT 'field_19' AS field_name, field_19 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
 	union
     SELECT 'field_20' AS field_name, field_20 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
 	union
     SELECT 'field_21' AS field_name, field_21 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
 	union
     SELECT 'field_22' AS field_name, field_22 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
 	union
     SELECT 'field_23' AS field_name, field_23 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
 	union
     SELECT 'field_24' AS field_name, field_24 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
 	union
     SELECT 'field_25' AS field_name, field_25 AS field_value
-    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest'
+    FROM packing_master_upload_packing_list_header_horizontal a where po = '$po' and dest = '$dest' and created_by = '$user'
     ) h
     left join
     (
     SELECT id,'field_1' AS field_name, field_1 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_1 is not null and po = '$po' and dest = '$dest'
+    where field_1 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_2' AS field_name, field_2 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_2 is not null and po = '$po' and dest = '$dest'
+    where field_2 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_3' AS field_name, field_3 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_3 is not null and po = '$po' and dest = '$dest'
+    where field_3 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_4' AS field_name, field_4 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_4 is not null and po = '$po' and dest = '$dest'
+    where field_4 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_5' AS field_name, field_5 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_5 is not null and po = '$po' and dest = '$dest'
+    where field_5 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_6' AS field_name, field_6 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_6 is not null and po = '$po' and dest = '$dest'
+    where field_6 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_7' AS field_name, field_7 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_7 is not null and po = '$po' and dest = '$dest'
+    where field_7 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_8' AS field_name, field_8 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_8 is not null and po = '$po' and dest = '$dest'
+    where field_8 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_9' AS field_name, field_9 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_9 is not null and po = '$po' and dest = '$dest'
+    where field_9 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_10' AS field_name, field_10 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_10 is not null and po = '$po' and dest = '$dest'
+    where field_10 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_11' AS field_name, field_11 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_11 is not null and po = '$po' and dest = '$dest'
+    where field_11 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_12' AS field_name, field_12 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_12 is not null and po = '$po' and dest = '$dest'
+    where field_12 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_13' AS field_name, field_13 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_13 is not null and po = '$po' and dest = '$dest'
+    where field_13 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_14' AS field_name, field_14 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_14 is not null and po = '$po' and dest = '$dest'
+    where field_14 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_15' AS field_name, field_15 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_15 is not null and po = '$po' and dest = '$dest'
+    where field_15 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_16' AS field_name, field_17 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_16 is not null and po = '$po' and dest = '$dest'
+    where field_16 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_17' AS field_name, field_17 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_17 is not null and po = '$po' and dest = '$dest'
+    where field_17 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_18' AS field_name, field_18 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_18 is not null and po = '$po' and dest = '$dest'
+    where field_18 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_19' AS field_name, field_19 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_19 is not null and po = '$po' and dest = '$dest'
+    where field_19 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_20' AS field_name, field_20 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_20 is not null and po = '$po' and dest = '$dest'
+    where field_20 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_21' AS field_name, field_21 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_21 is not null and po = '$po' and dest = '$dest'
+    where field_21 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_22' AS field_name, field_22 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_22 is not null and po = '$po' and dest = '$dest'
+    where field_22 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_23' AS field_name, field_23 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_23 is not null and po = '$po' and dest = '$dest'
+    where field_23 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_24' AS field_name, field_24 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_24 is not null and po = '$po' and dest = '$dest'
+    where field_24 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
     SELECT id,'field_25' AS field_name, field_25 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
-    where field_25 is not null and po = '$po' and dest = '$dest'
+    where field_25 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     ) l on h.field_name = l.field_name
     left join packing_master_upload_packing_list_det_horizontal a on l.id = a.id
     left join
@@ -895,19 +894,17 @@ select 'VERTICAL' isi,'VERTICAL' tampil ");
 
     {
         $data_po = DB::select("SELECT
-concat(a.po,'_',a.dest)isi,
-concat(a.po, ' - ', buyer, ' - ', styleno, ' - ', a.dest) tampil
-from
-(
-select po,dest, id_so_det from ppic_master_so
-where tgl_shipment >= '2024-11-01'
-group by po, dest ) a
-left join
-(select po,dest from packing_master_carton group by po) b
-on a.po = b.po and a.dest = b.dest
-inner join master_sb_ws m on a.id_so_det = m.id_so_det
-where b.po is null and b.dest is null
-order by buyer asc, styleno asc, a.po asc");
+        concat(a.po,'_',a.dest)isi,
+        concat(a.po, ' - ', buyer, ' - ', styleno, ' - ', a.dest) tampil
+        from
+        (
+        select po,dest, id_so_det from ppic_master_so
+        where tgl_shipment >= '2024-09-01'
+        group by po, dest ) a
+        inner join master_sb_ws m on a.id_so_det = m.id_so_det
+        left join packing_master_packing_list mp on a.po = mp.po and a.dest = mp.dest
+        where mp.po is null and mp.dest is null
+        order by buyer asc, styleno asc, a.po asc");
         return response()->json($data_po);
     }
 
