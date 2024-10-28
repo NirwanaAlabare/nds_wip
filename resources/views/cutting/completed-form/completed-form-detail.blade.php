@@ -932,11 +932,15 @@
         // -Get Scanned Item Data-
         function getScannedItem(id) {
             if (isNotNull(id)) {
+                document.getElementById("loading").classList.remove("d-none");
+
                 return $.ajax({
                     url: '{{ route('get-scanned-form-cut-input') }}/' + id,
                     type: 'get',
                     dataType: 'json',
                     success: function(res) {
+                        document.getElementById("loading").classList.add("d-none");
+
                         if (res) {
                             setSpreadingForm(res);
                         } else {

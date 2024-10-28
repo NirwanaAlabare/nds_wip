@@ -551,11 +551,9 @@
                                 option.setAttribute("value", res[i].year_sequence);
                                 option.innerHTML = res[i].year_sequence;
                                 select.appendChild(option);
-
-                                latestVal = res[i].year_sequence;
                             }
 
-                            $("#year-sequence-sequence").val(latestVal).trigger("change");
+                            $("#year-sequence-sequence").val(res[0].year_sequence).trigger("change");
                         } else {
                             Swal.fire({
                                 icon: 'error',
@@ -573,6 +571,7 @@
         }
 
         function getRangeYearSequence() {
+            document.getElementById("loading").classList.remove("d-none");
             $.ajax({
                 url: '{{ route('get-range-year-sequence') }}',
                 type: 'get',
@@ -583,6 +582,8 @@
                 dataType: 'json',
                 success: function(res)
                 {
+                    document.getElementById("loading").classList.add("d-none");
+
                     console.log("range", res);
 
                     if (res) {
@@ -599,6 +600,8 @@
                 },
                 error: function(jqXHR)
                 {
+                    document.getElementById("loading").classList.add("d-none");
+
                     console.error(jqXHR)
                 }
             })
@@ -691,19 +694,19 @@
                             rangeAwal: rangeI,
                             rangeAkhir: rangeI + qtyI - 1,
                         },
-                        xhrFields:
-                        {
-                            responseType: 'blob'
-                        },
+                        // xhrFields:
+                        // {
+                        //     responseType: 'blob'
+                        // },
                         success: function(res) {
                             if (res) {
                                 console.log(res);
 
-                                var blob = new Blob([res], {type: 'application/pdf'});
-                                var link = document.createElement('a');
-                                link.href = window.URL.createObjectURL(blob);
-                                link.download = methodYear == "range" ? "Numbers_"+rangeI+"-"+(rangeI+qtyI-1)+".pdf" : "Numbers.pdf";
-                                link.click();
+                                // var blob = new Blob([res], {type: 'application/pdf'});
+                                // var link = document.createElement('a');
+                                // link.href = window.URL.createObjectURL(blob);
+                                // link.download = methodYear == "range" ? "Numbers_"+rangeI+"-"+(rangeI+qtyI-1)+".pdf" : "Numbers.pdf";
+                                // link.click();
                             }
 
                             generating = false;
@@ -745,19 +748,19 @@
                             rangeAwal: rangeAwal ? rangeAwal : $("#print-range-awal-year"),
                             rangeAkhir: rangeAkhir ? rangeAkhir : $("#print-range-akhir-year"),
                         },
-                        xhrFields:
-                        {
-                            responseType: 'blob'
-                        },
+                        // xhrFields:
+                        // {
+                        //     responseType: 'blob'
+                        // },
                         success: function(res) {
                             if (res) {
                                 console.log(res);
 
-                                var blob = new Blob([res], {type: 'application/pdf'});
-                                var link = document.createElement('a');
-                                link.href = window.URL.createObjectURL(blob);
-                                link.download = "Numbers.pdf";
-                                link.click();
+                                // var blob = new Blob([res], {type: 'application/pdf'});
+                                // var link = document.createElement('a');
+                                // link.href = window.URL.createObjectURL(blob);
+                                // link.download = "Numbers.pdf";
+                                // link.click();
                             }
 
                             window.location.reload();

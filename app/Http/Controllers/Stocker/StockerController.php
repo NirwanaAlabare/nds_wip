@@ -2828,15 +2828,15 @@ class StockerController extends Controller
             if (count($insertData) > 0) {
                 YearSequence::insert($insertData);
 
-                $customPaper = array(0, 0, 35.35, 110.90);
-                $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearsequence', ["data" => $insertData])->setPaper($customPaper);
+                // $customPaper = array(0, 0, 35.35, 110.90);
+                // $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearsequence', ["data" => $insertData])->setPaper($customPaper);
 
-                $path = public_path('pdf/');
-                $fileName = str_replace("/", "-", ('Year Sequence.pdf'));
-                $pdf->save($path . '/' . str_replace("/", "_", $fileName));
-                $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
+                // $path = public_path('pdf/');
+                // $fileName = str_replace("/", "-", ('Year Sequence.pdf'));
+                // $pdf->save($path . '/' . str_replace("/", "_", $fileName));
+                // $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
 
-                return response()->download($generatedFilePath);
+                // return response()->download($generatedFilePath);
             }
 
             return array(
@@ -2864,15 +2864,15 @@ class StockerController extends Controller
             if (count($upsertData) > 0) {
                 YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], ['created_at', 'updated_at']);
 
-                $customPaper = array(0, 0, 35.35, 110.90);
-                $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearsequence', ["data" => $upsertData])->setPaper($customPaper);
+                // $customPaper = array(0, 0, 35.35, 110.90);
+                // $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearsequence', ["data" => $upsertData])->setPaper($customPaper);
 
-                $path = public_path('pdf/');
-                $fileName = str_replace("/", "-", ('Year Sequence.pdf'));
-                $pdf->save($path . '/' . str_replace("/", "_", $fileName));
-                $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
+                // $path = public_path('pdf/');
+                // $fileName = str_replace("/", "-", ('Year Sequence.pdf'));
+                // $pdf->save($path . '/' . str_replace("/", "_", $fileName));
+                // $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
 
-                return response()->download($generatedFilePath);
+                // return response()->download($generatedFilePath);
             }
         }
 
