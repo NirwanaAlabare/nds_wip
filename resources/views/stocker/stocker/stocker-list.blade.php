@@ -694,19 +694,19 @@
                             rangeAwal: rangeI,
                             rangeAkhir: rangeI + qtyI - 1,
                         },
-                        // xhrFields:
-                        // {
-                        //     responseType: 'blob'
-                        // },
+                        xhrFields:
+                        {
+                            responseType: 'blob'
+                        },
                         success: function(res) {
                             if (res) {
                                 console.log(res);
 
-                                // var blob = new Blob([res], {type: 'application/pdf'});
-                                // var link = document.createElement('a');
-                                // link.href = window.URL.createObjectURL(blob);
-                                // link.download = methodYear == "range" ? "Numbers_"+rangeI+"-"+(rangeI+qtyI-1)+".pdf" : "Numbers.pdf";
-                                // link.click();
+                                var blob = new Blob([res], {type: 'application/pdf'});
+                                var link = document.createElement('a');
+                                link.href = window.URL.createObjectURL(blob);
+                                link.download = methodYear == "range" ? "Numbers_"+rangeI+"-"+(rangeI+qtyI-1)+".pdf" : "Numbers.pdf";
+                                link.click();
                             }
 
                             generating = false;
@@ -748,19 +748,19 @@
                             rangeAwal: rangeAwal ? rangeAwal : $("#print-range-awal-year"),
                             rangeAkhir: rangeAkhir ? rangeAkhir : $("#print-range-akhir-year"),
                         },
-                        // xhrFields:
-                        // {
-                        //     responseType: 'blob'
-                        // },
+                        xhrFields:
+                        {
+                            responseType: 'blob'
+                        },
                         success: function(res) {
                             if (res) {
                                 console.log(res);
 
-                                // var blob = new Blob([res], {type: 'application/pdf'});
-                                // var link = document.createElement('a');
-                                // link.href = window.URL.createObjectURL(blob);
-                                // link.download = "Numbers.pdf";
-                                // link.click();
+                                var blob = new Blob([res], {type: 'application/pdf'});
+                                var link = document.createElement('a');
+                                link.href = window.URL.createObjectURL(blob);
+                                link.download = "Numbers.pdf";
+                                link.click();
                             }
 
                             window.location.reload();
