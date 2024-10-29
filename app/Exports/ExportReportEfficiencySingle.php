@@ -46,130 +46,80 @@
         public function view(): View
         {
             $dateFilter = "";
-            $dateFilter2 = "";
             if ($this->periode == "monthly") {
-                $dateFilter = "DATE_PART('month', data_detail_produksi_day.tgl_produksi) = '".$this->bulan."' AND DATE_PART('year', data_detail_produksi_day.tgl_produksi) = '".$this->tahun."'";
-                $dateFilter2 = "DATE_PART('month', summary_line.tgl_produksi_line) = '".$this->bulan."' AND DATE_PART('year', summary_line.tgl_produksi_line) = '".$this->tahun."'";
+                $dateFilter = "date(a.updated_at) >= '".$this->tahun."-".$this->bulan."-01' AND date(a.updated_at) <= '".$this->tahun."-".$this->bulan."-31'";
             } else {
-                $dateFilter = "data_detail_produksi_day.tgl_produksi = '".$this->tanggal."' ";
-                $dateFilter2 = "summary_line.tgl_produksi_line = '".$this->tanggal."' ";
+                $dateFilter = "date(a.updated_at) = '".$this->tanggal."' ";
             }
 
-            $dataDetailProduksiDay =  DataDetailProduksiDay::selectRaw("
-                    data_detail_produksi_day.chief_enroll_id,
-                    data_detail_produksi.sewing_line,
-                    data_produksi.no_ws,
-                    master_buyer.nama_buyer,
-                    data_produksi.no_style,
-                    data_detail_produksi_day.smv,
-                    data_detail_produksi_day.man_power,
-                    data_detail_produksi_day.mins_avail,
-                    data_detail_produksi_day.target,
-                    data_detail_produksi_day.output,
-                    data_detail_produksi_day.output_rft,
-                    data_produksi.kode_mata_uang,
-                    data_produksi.order_cfm_price,
-                    data_produksi.order_cfm_price_dollar,
-                    data_produksi.order_cfm_price_rupiah,
-                    data_detail_produksi_day.earning,
-                    data_detail_produksi_day.efficiency,
-                    data_detail_produksi_day.mins_prod,
-                    (summary_line.mins_prod_line/summary_line.mins_avail_line * 100) line_efficiency,
-                    data_detail_produksi_day.jam_aktual,
-                    data_detail_produksi_day.tgl_produksi,
-                    summary_line.tgl_produksi_line,
-                    summary_line.mins_avail_line,
-                    summary_line.mins_prod_line,
-                    summary_line.output_line,
-                    summary_line.output_rft_line
+            $dataDetailProduksiDay = collect(
+                DB::connection("mysql_sb")->select("
+                    select
+                    u.name sewing_line,
+                    ac.kpno no_ws,
+                    ms.Supplier nama_buyer,
+                    ac.styleno no_style,
+                    date(a.updated_at) tgl_produksi,
+                    mp.smv,
+                    mp.man_power,
+                    mp.man_power * mp.jam_kerja * 60 mins_avail,
+                    mp.plan_target target,
+                    count(so_det_id) output,
+                    acm.price order_cfm_price,
+                    ac.curr kode_mata_uang,
+                    round(count(so_det_id) * acm.price,2) earning,
+                    (CASE WHEN ac.curr = 'USD' THEN round(count(so_det_id) * acm.price * mk.kurs_tengah, 2) ELSE round(count(so_det_id) * acm.price,2) END) earning_rupiah,
+                    (CASE WHEN ac.curr = 'USD' THEN round(count(so_det_id) * acm.price,2) ELSE 0 END) earning_dollar,
+                    round(count(so_det_id) * mp.smv,2) mins_prod,
+                    round(round(tot.tot_output * mp.smv,2) / (mp.man_power * 8 * 60) * 100,2) efficiency,
+                    mp.jam_kerja jam_aktual,
+                    mk.kurs_tengah,
+                    created_by,
+                    master_plan_id,
+                    so_det_id
+                    from output_rfts a
+                    inner join user_sb_wip u on a.created_by = u.id
+                    inner join master_plan mp on a.master_plan_id = mp.id
+                    inner join so_det sd on a.so_det_id = sd.id
+                    inner join so on sd.id_so = so.id
+                    inner join act_costing ac on so.id_cost = ac.id
+                    left join (
+                    select * from act_costing_mfg where id_item = '8'
+                    ) acm on ac.id = acm.id_act_cost
+                    inner join mastersupplier ms on ac.id_buyer = ms.Id_Supplier
+                    left join master_kurs_bi mk on DATE(a.updated_at) = mk.tanggal_kurs_bi and ac.curr = mk.mata_uang
+                    left join (
+                    select count(so_det_id) tot_output, u.name from output_rfts a
+                    inner join user_sb_wip u on a.created_by = u.id
+                    where a.updated_at >= '".$this->tanggal." 00:00:00' and a.updated_at <= '".$this->tanggal." 23:59:59'
+                    group by u.name, date(a.updated_at)
+                    ) tot on u.name = tot.name
+                    where a.updated_at >= '".$this->tanggal." 00:00:00' and a.updated_at <= '".$this->tanggal." 23:59:59'
+                    group by u.name, ac.styleno, date(updated_at)
+                    order by u.name asc
                 ")
-                ->leftJoin("data_detail_produksi", "data_detail_produksi.id", "=", "data_detail_produksi_day.data_detail_produksi_id")
-                ->leftJoin("data_produksi","data_produksi.id","=","data_detail_produksi.data_produksi_id")
-                ->leftJoin("master_buyer","master_buyer.id","=","data_produksi.buyer_id")
-                ->leftJoin(
-                    DB::raw("
-                        (
-                            SELECT
-                                data_detail_produksi.sewing_line,
-                                data_detail_produksi_day.tgl_produksi as tgl_produksi_line,
-                                SUM(data_detail_produksi_day.mins_prod) as mins_prod_line,
-                                SUM(data_detail_produksi_day.mins_avail) as mins_avail_line,
-                                SUM(data_detail_produksi_day.output) as output_line,
-                                SUM(data_detail_produksi_day.output_rft) as output_rft_line
-                            FROM
-                                data_detail_produksi_day
-                            LEFT JOIN
-                                data_detail_produksi
-                            ON
-                                data_detail_produksi.id = data_detail_produksi_day.data_detail_produksi_id
-                            GROUP BY
-                                data_detail_produksi.sewing_line, data_detail_produksi_day.tgl_produksi
-                        ) summary_line
-                    "),
-                    function ($join) {
-                        $join->on("summary_line.sewing_line", "=", "data_detail_produksi.sewing_line");
-                        $join->on("summary_line.tgl_produksi_line", "=", "data_detail_produksi_day.tgl_produksi");
-                    }
-                )
-                ->whereRaw($dateFilter)
-                ->whereRaw($dateFilter2)
-                ->orderBy('data_detail_produksi_day.tgl_produksi', 'desc')
-                ->orderBy('data_detail_produksi.sewing_line', 'asc')
-                ->orderBy('data_produksi.no_ws', 'asc')
-                ->get();
+            );
 
-            $totalDataDetailProduksiDay = DataDetailProduksiDay::selectRaw("
-                    SUM(data_detail_produksi_day.mins_avail) total_mins_avail,
-                    SUM(data_detail_produksi_day.target) total_target,
-                    SUM(data_detail_produksi_day.output) total_output,
-                    SUM(data_detail_produksi_day.output_rft) total_output_rft,
-                    SUM(CASE WHEN data_produksi.kode_mata_uang = 'IDR' THEN data_detail_produksi_day.earning ELSE 0 END) total_earning_rupiah,
-                    SUM(CASE WHEN data_produksi.kode_mata_uang != 'IDR' THEN data_detail_produksi_day.earning ELSE 0 END) total_earning_dollar,
-                    SUM(data_detail_produksi_day.mins_prod) total_mins_prod
-                ")
-                ->leftJoin("data_detail_produksi", "data_detail_produksi.id", "=", "data_detail_produksi_day.data_detail_produksi_id")
-                ->leftJoin("data_produksi", "data_produksi.id", "=", "data_detail_produksi.data_produksi_id")
-                ->whereRaw($dateFilter)
-                ->groupBy('data_detail_produksi_day.tgl_produksi')
-                ->first();
+            $totalDataDetailProduksiDay = collect([
+                "total_mins_avail" => $dataDetailProduksiDay->sum("mins_avail"),
+                "total_target" => $dataDetailProduksiDay->sum("target"),
+                "total_output" => $dataDetailProduksiDay->sum("output"),
+                "total_earning" => $dataDetailProduksiDay->sum("earning"),
+                "total_earning_rupiah" => $dataDetailProduksiDay->sum("earning_rupiah"),
+                "total_earning_dollar" => $dataDetailProduksiDay->sum("earning_dollar"),
+                "total_mins_prod" => $dataDetailProduksiDay->sum("mins_prod"),
+                "total_mp" => $dataDetailProduksiDay->groupBy("sewing_line")->map(function ($row) { return $row->avg('man_power'); })->sum()
+            ]);
 
-            $allMp = DataDetailProduksiDay::selectRaw("
-                    MAX(data_detail_produksi_day.man_power) mp
-                ")
-                ->leftJoin("data_detail_produksi", "data_detail_produksi.id", "=" ,"data_detail_produksi_day.data_detail_produksi_id")
-                ->whereRaw($dateFilter)
-                ->groupBy('data_detail_produksi_day.tgl_produksi', 'data_detail_produksi.sewing_line')
-                ->get();
-
-            $totalDataDetailProduksiDay->total_mp = $allMp->sum('mp');
-
-            $summaryChiefDay = DataDetailProduksiDay::selectRaw("
-                    master_karyawan.id,
-                    master_karyawan.nama,
-                    data_detail_produksi_day.chief_enroll_id,
-                    SUM(data_detail_produksi_day.mins_avail) total_mins_avail,
-                    SUM(data_detail_produksi_day.mins_prod) total_mins_prod
-                ")
-                ->leftJoin("data_detail_produksi", "data_detail_produksi.id", "=", "data_detail_produksi_day.data_detail_produksi_id")
-                ->leftJoin("master_karyawan", "master_karyawan.id", "=", "data_detail_produksi_day.chief_enroll_id")
-                ->whereRaw($dateFilter)
-                ->groupBy('data_detail_produksi_day.tgl_produksi', 'data_detail_produksi_day.chief_enroll_id', "master_karyawan.id")
-                ->get();
-
-            $kurs = MasterKursBI::select("kurs_tengah")->
-            whereRaw("
-                DATE_PART('month', tanggal_kurs_bi) = '".$this->bulan."'
-                AND DATE_PART('year', tanggal_kurs_bi) = '".$this->tahun."'
-            ")->first();
+            $kurs = DB::connection("mysql_sb")->table("master_kurs_bi")->select("kurs_tengah")->where("tanggal_kurs_bi", $this->tanggal)->first();
 
             $this->rowCount = $dataDetailProduksiDay->count()+5;
 
             return view('sewing.report.excel.efficiency-excel', [
                 'dataDetailProduksiDay' => $dataDetailProduksiDay,
                 'totalDataDetailProduksiDay' => $totalDataDetailProduksiDay,
-                'summaryChiefDay' => $summaryChiefDay,
                 'kurs' => $kurs,
-                'tanggal' => $this->periode == 'monthly' ? $this->tahun." - ".$this->bulan : $this->tanggal
+                'tanggal' => $this->tanggal
             ]);
         }
 
