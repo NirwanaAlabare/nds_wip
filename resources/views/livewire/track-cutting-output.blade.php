@@ -19,7 +19,7 @@
                 <div wire:ignore>
                     <input type="date" class="form-control form-control-sm" id="dateTo" value="{{ $dateToFilter }}">
                 </div>
-                <span class="badge bg-sb text-light">CUTTING</span>
+                <span class="badge bg-sb text-light">CUT</span>
             </div>
         </div>
         <div class="col-12 col-lg-6 col-xl-8">
@@ -42,7 +42,7 @@
                     </select>
                 </div>
                 <div>
-                    <button class="btn btn-success" onclick="exportExcel(this, '{{ $selectedOrder }}', '{{ $selectedSupplier }}')" disabled>
+                    <button class="btn btn-success" onclick="exportExcel(this, '{{ $selectedOrder }}', '{{ $selectedSupplier }}')">
                         <i class="fa fa-file-excel fa-sm"></i>
                         Export
                     </button>
@@ -460,7 +460,7 @@
             });
         }
 
-        function exportExcel(elm, order, buyer) {
+        function exportExcel(elm, order, buyer) {o
             elm.setAttribute('disabled', 'true');
             elm.innerText = "";
             let loading = document.createElement('div');
@@ -483,7 +483,7 @@
             let currentDate = `${day}-${month}-${year}`;
 
             $.ajax({
-                url: "{{ url("/report/track-order-output/export") }}",
+                url: "{{ url("/report/track-cutting-output/export") }}",
                 type: 'post',
                 data: {
                     dateFrom:$("#dateFrom").val(),
