@@ -227,6 +227,7 @@ select 'VERTICAL' isi,'VERTICAL' tampil ");
 
     public function show_datatable_upload_packing_list(Request $request)
     {
+        ini_set("memory_limit", '2048M');
 
         $user = Auth::user()->name;
         $po = $request->po;
