@@ -3051,37 +3051,22 @@ class StockerController extends Controller
     public function getRangeYearSequence(Request $request) {
         if ($request->year && $request->sequence) {
 
-            // $availableYearSequence = YearSequence::selectRaw("
-            //         year,
-            //         year_sequence,
-            //         year_sequence_number
-            //     ")->
-            //     where("year_sequence.year",  $request->year)->
-            //     where("year_sequence.year_sequence",  $request->sequence)->
-            //     whereRaw('number IS NOT NULL')->
-            //     whereRaw('form_cut_id IS NOT NULL')->
-            //     whereRaw('so_det_id IS NOT NULL')->
-            //     orderBy('year_sequence_number', 'desc')->
-            //     first();
-
-            $availableYearSequence = DB::select("
-                select
+            $availableYearSequence = YearSequence::selectRaw("
                     year,
                     year_sequence,
-                    MAX(year_sequence_number) year_sequence_number
-                from
-                    `year_sequence`
-                where
-                    `year_sequence`.`year` = '".$request->year."'
-                    and `year_sequence`.`year_sequence` = '".$request->sequence."'
-                    and so_det_id IS NOT NULL
-                GROUP BY
-                    year,
-                    year_sequence
-            ");
+                    year_sequence_number
+                ")->
+                where("year_sequence.year",  $request->year)->
+                where("year_sequence.year_sequence",  $request->sequence)->
+                whereRaw('number IS NOT NULL')->
+                whereRaw('form_cut_id IS NOT NULL')->
+                whereRaw('so_det_id IS NOT NULL')->
+                orderBy('year_sequence_number', 'desc')->
+                limit(1)->
+                first();
 
-            if ($availableYearSequence && $availableYearSequence[0]) {
-                return json_encode($availableYearSequence[0]);
+            if ($availableYearSequence) {
+                return json_encode($availableYearSequence);
             } else {
                 return json_encode(["year" => $request->year, "year_sequence" => $request->year_sequence, "year_sequence_number" => 1]);
             }
