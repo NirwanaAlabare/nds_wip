@@ -27,6 +27,7 @@
                     <label class="form-label fw-bold"><small><b>ID Roll</b></small></label>
                     <div class="input-group input-group-sm">
                         <input type="text" class="form-control" id="id_roll" name="id_roll">
+                        <button class="btn btn-success" class="input-group-text" id="getScannedItem" onclick="fetchScan()">Get</button>
                         <button class="btn btn-primary" class="input-group-text" id="openScan" onclick="initScan()">Scan</button>
                     </div>
                 </div>
