@@ -15,7 +15,7 @@
                 <th style="font-weight: 800;">Size</th>
             @endif
             <?php
-                if ( ($order || $buyer) && $orderOutputs && $orderOutputs->count() > 0 ) {
+                if ( $orderOutputs && $orderOutputs->count() > 0 ) {
                     foreach ($orderOutputs->sortBy("tanggal")->groupBy("tanggal") as $dailyDate) {
                         ?>
                             <th style="font-weight: 800;">{{ date_format(date_create($dailyDate->first()->tanggal), "d-m-Y") }}</th>
@@ -40,7 +40,7 @@
                         ?>
                             <tr>
                                 @if ($group->ws != $currentWs)
-                                    <td style="vertical-align: top;" rowspan="{{ $orderGroup->where('ws', $group->ws)->count(); }}">{{ $group->ws }}</td>
+                                    <td style="text-align: left;vertical-align: top;" rowspan="{{ $orderGroup->where('ws', $group->ws)->count(); }}">{{ $group->ws }}</td>
 
                                     @php
                                         $currentWs = $group->ws;
@@ -50,7 +50,7 @@
                                     @endphp
                                 @endif
                                 @if ($group->ws == $currentWs && $group->style != $currentStyle)
-                                    <td style="vertical-align: top;" rowspan="{{ $orderGroup->where('ws', $group->ws)->where('style', $group->style)->count(); }}">{{ $group->style }}</td>
+                                    <td style="text-align: left;vertical-align: top;" rowspan="{{ $orderGroup->where('ws', $group->ws)->where('style', $group->style)->count(); }}">{{ $group->style }}</td>
 
                                     @php
                                         $currentStyle = $group->style;
@@ -59,7 +59,7 @@
                                     @endphp
                                 @endif
                                 @if ($group->ws == $currentWs && $group->style == $currentStyle && $group->color != $currentColor)
-                                    <td style="vertical-align: top;" rowspan="{{ $orderGroup->where('ws', $group->ws)->where('style', $group->style)->where('color', $group->color)->count(); }}">{{ $group->color }}</td>
+                                    <td style="text-align: left;vertical-align: top;" rowspan="{{ $orderGroup->where('ws', $group->ws)->where('style', $group->style)->where('color', $group->color)->count(); }}">{{ $group->color }}</td>
 
                                     @php
                                         $currentColor = $group->color;
@@ -67,14 +67,14 @@
                                     @endphp
                                 @endif
                                 @if ($group->ws == $currentWs && $group->style == $currentStyle && $group->color == $currentColor && $group->sewing_line != $currentLine)
-                                    <td style="vertical-align: top;" rowspan="{{ $orderGroup->where('ws', $group->ws)->where('style', $group->style)->where('color', $group->color)->where('sewing_line', $group->sewing_line)->count(); }}">{{ strtoupper(str_replace('_', ' ', $group->sewing_line)) }}</td>
+                                    <td style="text-align: left;vertical-align: top;" rowspan="{{ $orderGroup->where('ws', $group->ws)->where('style', $group->style)->where('color', $group->color)->where('sewing_line', $group->sewing_line)->count(); }}">{{ strtoupper(str_replace('_', ' ', $group->sewing_line)) }}</td>
 
                                     @php
                                         $currentLine = $group->sewing_line;
                                     @endphp
                                 @endif
                                 @if ($groupBy == "size")
-                                    <td style="vertical-align: top;">{{ $group->size }}</td>
+                                    <td style="text-align: left;vertical-align: top;">{{ $group->size }}</td>
                                 @endif
 
                                 @php
@@ -131,7 +131,7 @@
         <th colspan="{{ $groupBy == "size" ? '5' : '4' }}" style="font-weight: 800;">
             TOTAL
         </th>
-        @if (($order || $buyer) && $orderOutputs && $orderOutputs->count() > 0)
+        @if ($orderOutputs && $orderOutputs->count() > 0)
             @foreach ($dateOutputs as $dateOutput)
                 <td style="font-weight: 800;">
                     {{ $dateOutput }}

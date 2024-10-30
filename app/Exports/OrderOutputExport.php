@@ -39,7 +39,7 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
 
     public function view(): View
     {
-        $masterPlanDateFilter = " between '".$this->dateFrom."' and '".$this->dateTo."'";
+        $masterPlanDateFilter = " between '".$this->dateFrom." 00:00:00' and '".$this->dateTo." 23:59:59'";
         $masterPlanDateFilter1 = " between '".date('Y-m-d', strtotime('-1 days', strtotime($this->dateFrom)))."' and '".$this->dateTo."'";
 
         $supplier = DB::connection('mysql_sb')->table('mastersupplier')->
@@ -76,6 +76,8 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                     LEFT JOIN master_plan on master_plan.id = output_rfts".($this->outputType).".master_plan_id
                 WHERE
                     output_rfts".($this->outputType).".created_by IS NOT NULL
+                    AND output_rfts".($this->outputType).".updated_at >= '".$this->dateFrom." 00:00:00'
+                    AND output_rfts".($this->outputType).".updated_at <= '".$this->dateTo." 23:59:59'
                 GROUP BY
                     output_rfts".($this->outputType).".master_plan_id,
                     output_rfts".($this->outputType).".created_by
@@ -146,7 +148,7 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                         )."
                         INNER JOIN act_costing on act_costing.id = master_plan.id_ws
                     WHERE
-                        DATE( rfts.updated_at ) ".$masterPlanDateFilter."
+                        rfts.updated_at ".$masterPlanDateFilter."
                         AND master_plan.tgl_plan ".$masterPlanDateFilter1."
                         ".($this->order ? " AND master_plan.id_ws = '".$this->order."'" : "")."
                         ".($this->buyer ? " AND act_costing.id_buyer = '".$this->buyer."'" : "")."
