@@ -2,7 +2,7 @@
 
 namespace App\Exports\Cutting;
 
-use App\Models\SignalBit\MasterPlan;
+use App\Models\FormCutInput;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Sheet;
 use Maatwebsite\Excel\Concerns\FromView;
@@ -131,7 +131,7 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                 orderBy("marker_input.panel", "asc")->
                 orderByRaw("form_cut_input.no_meja asc, marker_input_detail.so_det_id asc, marker_input_detail.size asc");
 
-            $this->orderGroup = $orderGroupSql->get();
+            $orderGroup = $orderGroupSql->get();
 
         $orderOutputSql = collect(
                 DB::select("
@@ -225,11 +225,11 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                         marker_cutting.tgl_form_cut
                 ")
             );
-            $this->orderOutputs = $orderOutputSql;
+            $orderOutputs = $orderOutputSql;
 
-        $this->rowCount = $this->orderGroup->count() + 4;
+        $this->rowCount = $orderGroup->count() + 4;
         $alphabets = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
-        $colCount = $this->orderOutputs->groupBy("tanggal")->count() + ($this->groupBy == "size" ? 5 : 4);
+        $colCount = $orderOutputs->groupBy("tanggal")->count() + ($this->groupBy == "size" ? 6 : 5);
         if ($colCount > (count($alphabets)-1)) {
             $colStack = floor($colCount/(count($alphabets)-1));
             $colStackModulo = $colCount%(count($alphabets)-1);

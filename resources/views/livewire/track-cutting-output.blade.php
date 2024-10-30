@@ -460,7 +460,7 @@
             });
         }
 
-        function exportExcel(elm, order, buyer) {o
+        function exportExcel(elm, order, buyer) {
             elm.setAttribute('disabled', 'true');
             elm.innerText = "";
             let loading = document.createElement('div');
@@ -483,8 +483,8 @@
             let currentDate = `${day}-${month}-${year}`;
 
             $.ajax({
-                url: "{{ url("/report/track-cutting-output/export") }}",
-                type: 'post',
+                url: "{{ url("/report-cutting/track-cutting-output/export") }}",
+                type: 'get',
                 data: {
                     dateFrom:$("#dateFrom").val(),
                     dateTo:$("#dateTo").val(),
@@ -511,7 +511,7 @@
                     var blob = new Blob([res]);
                     var link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
-                    link.download = currentDate+" - "+($('#supplier').val() ? "'"+$('#supplier').find(":selected").text()+"'" : "")+" "+($('#order').val() ? "'"+$('#order').find(":selected").text()+"'" : "-")+" - '"+( $("#output-type").val() ? $("#output-type").val().replace(/_/g, "").toUpperCase() : "SEWING" )+"' Output.xlsx";
+                    link.download = currentDate+" - "+($('#supplier').val() ? "'"+$('#supplier').find(":selected").text()+"'" : " All Supplier ")+" - "+($('#order').val() ? "'"+$('#order').find(":selected").text()+"'" : " All WS ")+" - Cutting Output.xlsx";
                     link.click();
                 }, error: function (jqXHR) {
                     let res = jqXHR.responseJSON;
