@@ -81,29 +81,31 @@
         </table>
         <table style="width: 100%;margin-bottom: 5px;">
             <tr>
-                <th style="padding-left: 1px;">No. Roll</th>
-                <th style="padding-left: 1px;">No. Roll Buyer</th>
-                <th style="padding-left: 1px;">Lot</th>
-                <th style="padding-left: 1px;">Qty Awal</th>
-                <th style="padding-left: 1px;">Qty Sisa</th>
-                <th style="padding-left: 1px;">Unit</th>
+                <th style="padding-left: 1px;font-size: 7.5px;">Group</th>
+                <th style="padding-left: 1px;font-size: 7.5px;">No. Roll</th>
+                <th style="padding-left: 1px;font-size: 7.5px;">No. Roll Buyer</th>
+                <th style="padding-left: 1px;font-size: 7.5px;">Lot</th>
+                <th style="padding-left: 1px;font-size: 7.5px;">Qty Awal</th>
+                <th style="padding-left: 1px;font-size: 7.5px;">Qty Sisa</th>
+                <th style="padding-left: 1px;font-size: 7.5px;">Unit</th>
                 @if ($sbItem->unit == "YRD" || $sbItem->unit == "YARD")
-                    <th style="padding-left: 1px;font-size: 8px;">Konv. Awal</th>
-                    <th style="padding-left: 1px;font-size: 8px;">Konv. Sisa</th>
-                    <th style="padding-left: 1px;font-size: 8px;">Konv. Unit</th>
+                    <th style="padding-left: 1px;font-size: 7.5px;">Konv.Awal</th>
+                    <th style="padding-left: 1px;font-size: 7.5px;">Konv.Sisa</th>
+                    <th style="padding-left: 1px;font-size: 7.5px;">Konv.Unit</th>
                 @endif
             </tr>
             <tr>
-                <td style="padding-left: 1px;">{{ $sbItem->no_roll }}</td>
-                <td style="padding-left: 1px;">{{ $sbItem->no_roll_buyer }}</td>
-                <td style="padding-left: 1px;">{{ $sbItem->lot }}</td>
-                <td style="padding-left: 1px;">{{ $sbItem->qty }}</td>
-                <td style="padding-left: 1px;">{{ $ndsItem ? ((($sbItem->unit == "YRD" || $sbItem->unit == "YARD") && $ndsItem->unit == "METER") ?  round($ndsItem->sisa_kain * 1.09361, 2) : $ndsItem->sisa_kain) : $sbItem->qty }}</td>
-                <td style="padding-left: 1px;">{{ $sbItem->unit }}</td>
+                <td style="padding-left: 1px;font-size: 7.5px;">{{ $ndsItem ? $ndsItem->group_roll : "-" }}</td>
+                <td style="padding-left: 1px;font-size: 7.5px;">{{ $sbItem->no_roll }}</td>
+                <td style="padding-left: 1px;font-size: 7.5px;">{{ $sbItem->no_roll_buyer }}</td>
+                <td style="padding-left: 1px;font-size: 7.5px;">{{ $sbItem->lot }}</td>
+                <td style="padding-left: 1px;font-size: 7.5px;">{{ $sbItem->qty }}</td>
+                <td style="padding-left: 1px;font-size: 7.5px;">{{ $ndsItem ? ((($sbItem->unit == "YRD" || $sbItem->unit == "YARD") && $ndsItem->unit == "METER") ?  round($ndsItem->sisa_kain * 1.09361, 2) : $ndsItem->sisa_kain) : $sbItem->qty }}</td>
+                <td style="padding-left: 1px;font-size: 7.5px;">{{ $sbItem->unit }}</td>
                 @if ($sbItem->unit == "YRD" || $sbItem->unit == "YARD")
-                    <td style="padding-left: 1px;font-size: 8px;">{{ ($sbItem->unit == "YRD" || $sbItem->unit == "YARD" ? round($sbItem->qty * 0.9144, 2) : $sbItem->qty) }}</td>
-                    <td style="padding-left: 1px;font-size: 8px;">{{ $ndsItem ? ($ndsItem->unit == "YRD" || $ndsItem->unit == "YARD" ? round($ndsItem->sisa_kain * 0.9144, 2) : $ndsItem->sisa_kain) : ($sbItem->unit == "YRD" || $sbItem->unit == "YARD" ? round($sbItem->qty * 0.9144, 2) : $sbItem->qty) }}</td>
-                    <td style="padding-left: 1px;font-size: 8px;">{{ $ndsItem ? ($ndsItem->unit == "YRD" || $ndsItem->unit == "YARD" ? "METER" : $ndsItem->unit) : ($sbItem->unit == "YRD" || $sbItem->unit == "YARD" ? "METER" : $sbItem->unit) }}</td>
+                    <td style="padding-left: 1px;font-size: 7.5px;">{{ ($sbItem->unit == "YRD" || $sbItem->unit == "YARD" ? round($sbItem->qty * 0.9144, 2) : $sbItem->qty) }}</td>
+                    <td style="padding-left: 1px;font-size: 7.5px;">{{ $ndsItem ? ($ndsItem->unit == "YRD" || $ndsItem->unit == "YARD" ? round($ndsItem->sisa_kain * 0.9144, 2) : $ndsItem->sisa_kain) : ($sbItem->unit == "YRD" || $sbItem->unit == "YARD" ? round($sbItem->qty * 0.9144, 2) : $sbItem->qty) }}</td>
+                    <td style="padding-left: 1px;font-size: 7.5px;">{{ $ndsItem ? ($ndsItem->unit == "YRD" || $ndsItem->unit == "YARD" ? "METER" : $ndsItem->unit) : ($sbItem->unit == "YRD" || $sbItem->unit == "YARD" ? "METER" : $sbItem->unit) }}</td>
                 @endif
             </tr>
         </table>

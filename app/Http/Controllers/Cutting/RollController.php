@@ -570,6 +570,7 @@ class RollController extends Controller
         ");
 
         $ndsItem = ScannedItem::selectRaw("
+                GROUP_CONCAT(DISTINCT form_cut_input_detail.group_roll) group_roll,
                 MIN(form_cut_input_detail.sisa_kain) sisa_kain,
                 scanned_item.unit,
                 GROUP_CONCAT(DISTINCT CONCAT( form_cut_input.no_form, ' | ', COALESCE(form_cut_input.operator, '-')) SEPARATOR '^') AS no_form
