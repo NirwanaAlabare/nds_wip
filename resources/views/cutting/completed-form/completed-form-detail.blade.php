@@ -953,6 +953,17 @@
                                 confirmButtonText: 'Oke',
                             });
                         }
+                    }, error: function(jqXHR) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: 'Roll tidak tersedia atau sudah habis.',
+                            showCancelButton: false,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                        });
+
+                        document.getElementById("loading").classList.add("d-none");
                     }
                 });
             }
