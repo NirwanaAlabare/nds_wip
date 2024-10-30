@@ -9,6 +9,7 @@ use App\Exports\ExportReportCuttingSinglePage;
 use App\Exports\ExportPemakaianKain;
 use App\Exports\ExportDetailPemakaianKain;
 use App\Exports\ExportReportCuttingDaily;
+use App\Exports\Cutting\CuttingOrderOutputExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
@@ -692,5 +693,17 @@ class ReportCuttingController extends Controller
         }
 
         return view('cutting.report.track-cutting-output', ["subPageGroup" => "cutting-report", "subPage" => "cutting-track", "page" => "dashboard-cutting"]);
+    }
+
+    public function cuttingOrderOutputExport (Request $request) {
+        ini_set("max_execution_time", 36000);
+
+        $dateFrom = $request->dateFrom;
+        $dateTo = $request->dateTo;
+        $groupBy = $request->groupBy;
+        $order = $request->order;
+        $buyer = $request->buyer;
+
+        return Excel::download(new CuttingOrderOutputExport($dateFrom, $dateTo, $groupBy, $order, $buyer), 'order_output.xlsx');
     }
 }

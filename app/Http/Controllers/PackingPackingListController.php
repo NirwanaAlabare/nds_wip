@@ -738,7 +738,7 @@ select 'VERTICAL' isi,'VERTICAL' tampil ");
     FROM packing_master_upload_packing_list_det_horizontal a
     where field_15 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
-    SELECT id,'field_16' AS field_name, field_17 AS qty
+    SELECT id,'field_16' AS field_name, field_16 AS qty
     FROM packing_master_upload_packing_list_det_horizontal a
     where field_16 is not null and po = '$po' and dest = '$dest' and created_by = '$user'
     union
