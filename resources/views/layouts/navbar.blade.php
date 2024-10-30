@@ -995,7 +995,7 @@
                             <li>
                                 <a href="{{ route('report-hourly') }}"
                                     class="dropdown-item {{ $subPage == 'report-hourly' ? 'active' : '' }}">
-                                    Laporan Tracking <i class="fa-solid fa-list-ul fa-sm"></i>
+                                    Laporan Report Hourly <i class="fa-solid fa-list-ul fa-sm"></i>
                                 </a>
                             </li>
                         </ul>

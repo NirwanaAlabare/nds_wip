@@ -1,10 +1,17 @@
 @extends('layouts.index')
 
 @section('custom-link')
-    <!-- DataTables -->
-    <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
+    <!-- DataTables CSS -->
+
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/3.3.2/css/fixedColumns.dataTables.min.css">
+
+
+    <!-- jQuery -->
+
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
 
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
@@ -18,22 +25,6 @@
         </div>
         <div class="card-body">
             <div class="d-flex align-items-end gap-3 mb-3">
-                <div class="col-md-7">
-                    <div class="form-group">
-                        <label>Buyer</label>
-                        <div class="input-group">
-                            <select class="form-control select2bs4 form-control-sm rounded" id="cbobuyer" name="cbobuyer"
-                                style="width: 100%;">
-                                <option selected="selected" value="" disabled="true">Pilih Buyer</option>
-                                @foreach ($data_buyer as $databuyer)
-                                    <option value="{{ $databuyer->isi }}">
-                                        {{ $databuyer->tampil }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                </div>
                 <div class="mb-3">
                     <a onclick="dataTableReload()" class="btn btn-outline-primary position-relative btn-sm">
                         <i class="fas fa-search fa-sm"></i>
@@ -51,32 +42,39 @@
                 <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
                     <thead class="table-success">
                         <tr style='text-align:center; vertical-align:middle'>
-                            <th>Buyer</th>
-                            <th>WS</th>
-                            <th>Color</th>
-                            <th>Size</th>
-                            <th>Qc Output</th>
-                            <th>Packing Line Output</th>
-                            <th>Qty Trf Garment</th>
-                            <th>Qty Packing In</th>
-                            <th>Qty Packing Out</th>
+                            <th>Line</th>
+                            <th>Style</th>
+                            <th>Jumlah OP</th>
+                            <th>SMV</th>
+                            <th>Target Eff</th>
+                            <th>PCS</th>
+                            <th>100 % Target</th>
+                            <th>100% Target / Jam</th>
+                            <th>Perjam</th>
+                            <th>Perhari</th>
+                            <th>1</th>
+                            <th>2</th>
+                            <th>3</th>
+                            <th>4</th>
+                            <th>5</th>
+                            <th>6</th>
+                            <th>7</th>
+                            <th>8</th>
+                            <th>9</th>
+                            <th>10</th>
+                            <th>11</th>
+                            <th>12</th>
+                            <th>13</th>
+                            <th>Total</th>
+                            <th>Earned Minutes</th>
+                            <th>Eff</th>
                         </tr>
                     </thead>
-                    <tfoot>
-                        <tr>
-                            <th colspan="4"></th>
-                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
-                                    id = 'total_qc'> </th>
-                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
-                                    id = 'total_p_line'> </th>
-                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
-                                    id = 'total_trf_garment'> </th>
-                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
-                                    id = 'total_p_in'> </th>
-                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
-                                    id = 'total_p_out'> </th>
-                        </tr>
-                    </tfoot>
+                    <tbody>
+
+                        <!-- Data will be populated here by DataTables -->
+
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -84,12 +82,25 @@
 @endsection
 
 @section('custom-script')
-    <!-- DataTables & Plugins -->
-    <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
-    <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
-    <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+    <!-- jQuery -->
+
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+
+    <!-- Bootstrap JS -->
+
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+
+    <!-- DataTables JS -->
+
+    <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+
+    <!-- DataTables FixedColumns JS -->
+
+    <script src="https://cdn.datatables.net/fixedcolumns/3.3.2/js/dataTables.fixedColumns.min.js"></script>
+
+
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+
     <script>
         // Select2 Autofocus
         $(document).on('select2:open', () => {
@@ -107,7 +118,6 @@
     </script>
     <script>
         $(document).ready(() => {
-            $('#cbobuyer').val('').trigger('change');
             dataTableReload();
         });
 
@@ -115,128 +125,110 @@
             alert("Maaf, Fitur belum tersedia!");
         }
 
-        $('#datatable thead tr').clone(true).appendTo('#datatable thead');
-        $('#datatable thead tr:eq(1) th').each(function(i) {
-            var title = $(this).text();
-            $(this).html('<input type="text" class="form-control form-control-sm"/>');
-            $('input', this).on('keyup change', function() {
-                if (datatable.column(i).search() !== this.value) {
-                    datatable
-                        .column(i)
-                        .search(this.value)
-                        .draw();
-                }
-            });
-        });
-
         let datatable = $("#datatable").DataTable({
-            "footerCallback": function(row, data, start, end, display) {
-                var api = this.api(),
-                    data;
-
-                // converting to interger to find total
-                var intVal = function(i) {
-                    return typeof i === 'string' ?
-                        i.replace(/[\$,]/g, '') * 1 :
-                        typeof i === 'number' ?
-                        i : 0;
-                };
-
-                // computing column Total of the complete result
-                var sumTotQc = api
-                    .column(4)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotPLine = api
-                    .column(5)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotTrfGarment = api
-                    .column(6)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotPIn = api
-                    .column(7)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                var sumTotPOut = api
-                    .column(8)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
-
-                // Update footer by showing the total with the reference of the column index
-                $(api.column(0).footer()).html('Total');
-                $(api.column(4).footer()).html(sumTotQc);
-                $(api.column(5).footer()).html(sumTotPLine);
-                $(api.column(6).footer()).html(sumTotTrfGarment);
-                $(api.column(7).footer()).html(sumTotPIn);
-                $(api.column(8).footer()).html(sumTotPOut);
-            },
-
-            ordering: false,
-            processing: true,
-            serverSide: true,
-            paging: false,
-            searching: true,
-            scrollY: '300px',
-            scrollX: '300px',
+            scrollY: "300px",
+            scrollX: true,
             scrollCollapse: true,
-            destroy: true,
+            paging: false,
+            ordering: false,
+            fixedColumns: {
+
+                leftColumns: 2 // Fix the first two columns
+
+            },
             ajax: {
-                url: '{{ route('show_lap_tracking_ppic') }}',
+                url: '{{ route('report-hourly') }}',
                 dataType: 'json',
                 dataSrc: 'data',
-                data: function(d) {
-                    d.buyer = $('#cbobuyer').val();
-                },
+                // data: function(d) {
+                //     d.buyer = $('#cbobuyer').val();
+                // },
             },
             columns: [{
-                    data: 'buyer'
+                    data: 'sewing_line'
 
                 },
                 {
-                    data: 'ws'
+                    data: 'styleno'
                 },
                 {
-                    data: 'color'
+                    data: 'man_power'
                 },
                 {
-                    data: 'size'
+                    data: 'smv'
                 },
                 {
-                    data: 'tot_qc'
+                    data: 'target_effy'
                 },
                 {
-                    data: 'tot_p_line'
+                    data: 'pcs'
                 },
                 {
-                    data: 'qty_trf_garment'
+                    data: 'target_100'
                 },
                 {
-                    data: 'qty_packing_in'
+                    data: 'target_100_per_jam'
                 },
                 {
-                    data: 'qty_packing_out'
+                    data: 'perjam'
+                },
+                {
+                    data: 'perhari'
+                },
+                {
+                    data: 'jam_1'
+                },
+                {
+                    data: 'jam_2'
+                },
+                {
+                    data: 'jam_3'
+                },
+                {
+                    data: 'jam_4'
+                },
+                {
+                    data: 'jam_5'
+                },
+                {
+                    data: 'jam_6'
+                },
+                {
+                    data: 'jam_7'
+                },
+                {
+                    data: 'jam_8'
+                },
+                {
+                    data: 'jam_9'
+                },
+                {
+                    data: 'jam_10'
+                },
+                {
+                    data: 'jam_11'
+                },
+                {
+                    data: 'jam_12'
+                },
+                {
+                    data: 'jam_13'
+                },
+                {
+                    data: 'tot_input'
+                },
+                {
+                    data: 'earned_minutes'
+                },
+                {
+                    data: 'eff'
                 },
             ],
             columnDefs: [{
                 "className": "align-left",
                 "targets": "_all"
-            }, ]
+            }, ],
+
         });
 
 

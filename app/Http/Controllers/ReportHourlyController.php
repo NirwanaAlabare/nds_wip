@@ -21,13 +21,88 @@ class ReportHourlyController extends Controller
     {
 
         $tgl_skrg = date('Y-m-d');
+        $start_date = $tgl_skrg . ' 00:00:00';
+        $end_date = $tgl_skrg . ' 23:59:59';
         $user = Auth::user()->name;
-        $buyer = $request->buyer;
-
-        $data_buyer = DB::select("select buyer isi, buyer tampil from master_sb_ws
-where tgl_kirim >= '2024-01-01'
-group by buyer
-order by buyer asc");
+        if ($request->ajax()) {
+            $data_tracking = DB::connection('mysql_sb')->select("select
+sewing_line,
+styleno,
+max(man_power) man_power,
+max(smv) smv,
+'' effy_kmrn_2,
+'' effy_kmrn_1,
+max(target_effy) target_effy,
+'' pcs,
+round((MAX(man_power) * 60 * b.jam) / MAX(smv),0) AS target_100,
+round((MAX(man_power) * 60 * 8) / MAX(smv) / 8,0) AS target_100_per_jam,
+max(last_updated) input_terakhir,
+b.jam jam_kerja,
+'' jumlah_hari,
+round(set_target / b.jam,1) perjam,
+set_target perhari,
+sum(jam_1) jam_1,
+sum(jam_2) jam_2,
+sum(jam_3) jam_3,
+sum(jam_4) jam_4,
+sum(jam_5) jam_5,
+sum(jam_6) jam_6,
+sum(jam_7) jam_7,
+sum(jam_8) jam_8,
+sum(jam_9) jam_9,
+sum(jam_10) jam_10,
+sum(jam_11) jam_11,
+sum(jam_12) jam_12,
+sum(jam_13) jam_13,
+sum(tot_input) tot_input,
+round(sum(tot_input) * max(smv),1) earned_minutes,
+concat(round(round(sum(tot_input) * max(smv),1) / (max(man_power) * b.jam * 60) * 100,2), ' %') eff
+from
+(
+select
+u.name sewing_line,
+ac.styleno,
+mpr.product_item,
+mp.man_power,
+mp.smv,
+mp.target_effy,
+master_plan_id,
+count(so_det_id) tot_input,
+created_by,
+mp.plan_target,
+mp.set_target,
+jam,
+max(time(a.updated_at)) last_updated,
+COUNT(CASE WHEN jam = 1 THEN 1 END) AS jam_1,
+COUNT(CASE WHEN jam = 2 THEN 1 END) AS jam_2,
+COUNT(CASE WHEN jam = 3 THEN 1 END) AS jam_3,
+COUNT(CASE WHEN jam = 4 THEN 1 END) AS jam_4,
+COUNT(CASE WHEN jam = 5 THEN 1 END) AS jam_5,
+COUNT(CASE WHEN jam = 6 THEN 1 END) AS jam_6,
+COUNT(CASE WHEN jam = 7 THEN 1 END) AS jam_7,
+COUNT(CASE WHEN jam = 8 THEN 1 END) AS jam_8,
+COUNT(CASE WHEN jam = 9 THEN 1 END) AS jam_9,
+COUNT(CASE WHEN jam = 10 THEN 1 END) AS jam_10,
+COUNT(CASE WHEN jam = 11 THEN 1 END) AS jam_11,
+COUNT(CASE WHEN jam = 12 THEN 1 END) AS jam_12,
+COUNT(CASE WHEN jam = 13 THEN 1 END) AS jam_13
+from output_rfts a
+left join dim_jam_kerja_sewing b on time(a.updated_at) >= b.jam_kerja_awal and time(a.updated_at) <= b.jam_kerja_akhir
+inner join master_plan mp on a.master_plan_id = mp.id
+inner join user_sb_wip u on a.created_by = u.id
+inner join so_det sd on a.so_det_id = sd.id
+inner join so on sd.id_so = so.id
+inner join act_costing ac on so.id_cost = ac.id
+inner join masterproduct mpr on ac.id_product = mpr.id
+where a.updated_at >= '$start_date' and a.updated_at <= '$end_date' and a.status = 'NORMAL'
+group by created_by, master_plan_id, ac.styleno
+) a
+left join dim_jam_kerja_sewing b on a.last_updated >= b.jam_kerja_awal and a.last_updated <= b.jam_kerja_akhir
+group by sewing_line, styleno
+order by sewing_line asc
+");
+            return DataTables::of($data_tracking)->toJson();
+        }
 
         return view(
             'ppic.report_hourly',
@@ -35,7 +110,6 @@ order by buyer asc");
                 'page' => 'dashboard-ppic',
                 "subPageGroup" => "ppic-laporan",
                 "subPage" => "report-hourly",
-                'data_buyer' => $data_buyer,
                 "user" => $user
             ]
         );

@@ -1489,10 +1489,10 @@ Route::middleware('auth')->group(function () {
     });
 
     // PPIC Laporan Tracking
-    Route::controller(ReportHourlyController::class)->prefix("laporan-ppic")->middleware('packing')->group(function () {
+    Route::controller(ReportHourlyController::class)->prefix("laporan-report-hourly")->middleware('packing')->group(function () {
         Route::get('/', 'index')->name('report-hourly');
-        Route::get('/show_lap_tracking_ppic', 'show_lap_tracking_ppic')->name('show_lap_tracking_ppic');
-        Route::get('/export_excel_tracking', 'export_excel_tracking')->name('export_excel_tracking');
+        // Route::get('/show_lap_tracking_ppic', 'show_lap_tracking_ppic')->name('show_lap_tracking_ppic');
+        // Route::get('/export_excel_tracking', 'export_excel_tracking')->name('export_excel_tracking');
     });
 
 
