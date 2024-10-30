@@ -266,7 +266,7 @@
                     document.getElementById('tot_karton').innerHTML = response.tot_karton;
                 },
                 error: function(request, status, error) {
-                    alert(request.responseText);
+                    // alert(request.responseText);
                 },
             });
         };

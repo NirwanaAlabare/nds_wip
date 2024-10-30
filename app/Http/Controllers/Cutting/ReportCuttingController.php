@@ -358,11 +358,11 @@ class ReportCuttingController extends Controller
                 COALESCE(roll_buyer, roll) roll,
                 MAX(qty) qty,
                 unit,
-                ROUND(SUM(total_pemakaian_roll + sisa_gelaran + kepala_kain + sisa_tidak_bisa + reject + piping), 2) total_pemakaian_roll,
-                ROUND(MAX(qty) - SUM(total_pemakaian_roll + sisa_gelaran + kepala_kain + sisa_tidak_bisa + reject + piping), 2) total_sisa_kain_1,
+                ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
+                ROUND(MAX(qty) - SUM(total_pemakaian_roll), 2) total_sisa_kain_1,
                 ROUND(MIN(sisa_kain), 2) total_sisa_kain,
-                ROUND(SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END), 2) total_short_roll,
-                CONCAT(ROUND((SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END) / SUM(total_pemakaian_roll) * 100), 2), ' %') total_short_roll_percentage,
+                ROUND(SUM(short_roll), 2) total_short_roll,
+                CONCAT(ROUND((SUM(short_roll) / SUM(total_pemakaian_roll) * 100), 2), ' %') total_short_roll_percentage,
                 '".$rollId->tgl_dok."' tanggal_return
             ")->
             whereNotNull("id_roll")->
