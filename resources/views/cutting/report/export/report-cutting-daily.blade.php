@@ -19,6 +19,7 @@
     </tr>
     <tr></tr>
     <tr>
+        <th style="font-weight: 800;text-align: center;vertical-align: middle;">TANGGAL</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;">MEJA</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;">WORKSHEET</th>
         <th style="font-weight: 800;text-align: center;vertical-align: middle;">STYLE</th>
@@ -28,6 +29,7 @@
     </tr>
     @foreach ($reportCutting as $cutting)
         <tr>
+            <td>{{ $cutting->tgl_form_cut }}</td>
             @if ($currentMeja != $cutting->meja)
                 @php
                     $currentMeja = $cutting->meja;
@@ -45,7 +47,7 @@
         </tr>
     @endforeach
     <tr>
-        <th colspan="5">TOTAL</th>
+        <th colspan="6">TOTAL</th>
         <th>{{ $totalOutput }}</th>
     </tr>
 </table>

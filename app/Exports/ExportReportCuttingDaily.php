@@ -159,7 +159,7 @@ class ExportReportCuttingDaily implements FromView, WithEvents, ShouldAutoSize /
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A5:F' . ($event->getConcernable()->rowCount),
+            'A5:G' . ($event->getConcernable()->rowCount),
             [
                 'borders' => [
                     'allBorders' => [
