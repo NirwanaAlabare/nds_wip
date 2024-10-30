@@ -992,6 +992,12 @@
                                     Laporan Tracking <i class="fa-solid fa-list-ul fa-sm"></i>
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('report-hourly') }}"
+                                    class="dropdown-item {{ $subPage == 'report-hourly' ? 'active' : '' }}">
+                                    Laporan Tracking <i class="fa-solid fa-list-ul fa-sm"></i>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif
