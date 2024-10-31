@@ -117,11 +117,10 @@
                                             @php
                                                 $currentColor = $dailyGroup->color;
                                                 $currentMeja = null;
-                                                $currentPanel = null;
                                             @endphp
                                         @endif
                                         @if ($dailyGroup->ws == $currentWs && $dailyGroup->style == $currentStyle && $dailyGroup->color == $currentColor && $dailyGroup->id_meja != $currentMeja)
-                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('id_meja', $dailyGroup->id_meja)->count(); }}">{{ strtoupper(str_replace('_', ' ', $dailyGroup->meja)) }}</td>
+                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('id_meja', $dailyGroup->id_meja)->where('panel', $dailyGroup->panel)->count(); }}">{{ strtoupper(str_replace('_', ' ', $dailyGroup->meja)) }}</td>
 
                                             @php
                                                 $currentMeja = $dailyGroup->id_meja;
