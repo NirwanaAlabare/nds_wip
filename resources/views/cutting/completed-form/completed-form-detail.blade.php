@@ -543,7 +543,11 @@
                             <div class="col-3">
                                 <div class="mb-3">
                                     <label class="form-label" id="current_id_roll_label"><small><b>Id Roll</b></small></label>
-                                    <input type="text" class="form-control form-control-sm" id="current_id_roll" name="current_id_roll" onchange="fetchScan()">
+                                    <div class="input-group input-group-sm">
+                                        <input type="hidden" class="form-control" id="current_id_roll_real" name="current_id_roll_real">
+                                        <input type="text" class="form-control" id="current_id_roll" name="current_id_roll">
+                                        <button class="btn btn-success text-light" type="button" id="get_scanned_item" onclick="fetchScan()">Get</button>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-3">
@@ -808,6 +812,13 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="col-4" id="total-sambungan-section">
+                                <label class="form-label label-input"><small><b>Sambungan Roll</b></small></label>
+                                <div class="input-group input-group-sm mb-3">
+                                    <input type="number" class="form-control form-control-sm" id="current_total_sambungan_roll" name="current_total_sambungan_roll" onkeyup="calculatePemakaianLembar();calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll();" onchange="calculatePemakaianLembar();calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll();">
+                                    <span class="input-group-text input-group-unit"></span>
+                                </div>
+                            </div>
                             <div class="col-4">
                                 <div class="mb-3">
                                     <label class="form-label label-input"><small><b>Sisa Kain</b></small></label>
@@ -822,10 +833,6 @@
                                         <span class="input-group-text input-group-unit"></span>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-4" id="total-sambungan-section">
-                                <label class="form-label label-input"><small><b>Sambungan Roll</b></small></label>
-                                <input type="number" class="form-control form-control-sm" id="current_total_sambungan_roll" name="current_total_sambungan_roll" onkeyup="calculatePemakaianLembar();calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll();" onchange="calculatePemakaianLembar();calculatePemakaianLembar();calculateTotalPemakaian();calculateShortRoll();">
                             </div>
                             <div class="col-4">
                                 <div class="row align-items-end">
@@ -929,6 +936,14 @@
             getScannedItem(idRoll);
         }
 
+        document.getElementById("current_id_roll").addEventListener("keyup", (event) => {
+            if (event.keyCode === 13) {
+                if (document.getElementById("current_id_roll").value.length > 0 && document.getElementById("current_id_roll").value != '-') {
+                    fetchScan();
+                }
+            }
+        });
+
         // -Get Scanned Item Data-
         function getScannedItem(id) {
             if (isNotNull(id)) {
@@ -941,7 +956,7 @@
                     success: function(res) {
                         document.getElementById("loading").classList.add("d-none");
 
-                        if (res) {
+                        if (res && res.qty > 0) {
                             setSpreadingForm(res, true);
                         } else {
                             Swal.fire({
@@ -952,6 +967,8 @@
                                 showConfirmButton: true,
                                 confirmButtonText: 'Oke',
                             });
+
+                            document.getElementById("current_id_roll").value = document.getElementById("current_id_roll_real").value;
                         }
                     }, error: function(jqXHR) {
                         Swal.fire({
@@ -962,6 +979,8 @@
                             showConfirmButton: true,
                             confirmButtonText: 'Oke',
                         });
+
+                        document.getElementById("current_id_roll").value = document.getElementById("current_id_roll_real").value;
 
                         document.getElementById("loading").classList.add("d-none");
                     }
@@ -1318,11 +1337,12 @@
 
             // spreading form data set
             let convertedQty = rollQtyConversion(data.qty, data.unit);
-            
+
             if (!item) {
                 data.id ? document.getElementById("current_id").value = data.id : '';
             }
             data.id_roll ? document.getElementById("current_id_roll").value = data.id_roll : '';
+            data.id_roll ? document.getElementById("current_id_roll_real").value = data.id_roll : '';
             data.group_roll ? document.getElementById("current_group").value = data.group_roll : '';
             data.group_stocker ? document.getElementById("current_group_stocker").value = data.group_stocker : '';
             data.id_item ? document.getElementById("current_id_item").value = data.id_item : '';
@@ -1375,6 +1395,12 @@
             calculateShortRoll();
 
             updatePlyProgress();
+
+            // lock extension
+            checkLockExtension();
+
+            // lock qty input
+            checkLockQtyInput();
         }
 
         // -Clear Spreading Form-
@@ -1383,6 +1409,7 @@
 
             document.getElementById("current_group").value = "";
             document.getElementById("current_group_stocker").value = "";
+            document.getElementById("current_id_roll_real").value = "";
             document.getElementById("current_id_roll").value = "";
             document.getElementById("current_id_item").value = "";
             document.getElementById("current_lot").value = "";
@@ -1395,6 +1422,7 @@
             document.getElementById("current_sisa_gelaran_unit").value = "";
             document.getElementById("current_sambungan").value = 0;
             document.getElementById("current_sambungan_unit").value = "";
+            document.getElementById("current_total_sambungan_roll").value = 0;
             document.getElementById("current_est_amparan").value = 0;
             document.getElementById("current_lembar_gelaran").value = 0;
             document.getElementById("current_kepala_kain").value = 0;
@@ -1941,15 +1969,14 @@
                 dataType: 'json',
                 data: dataObj,
                 success: async function(res) {
-                    console.log(res);
-                    document.getElementById("loading").classList.add("d-none");
-
                     if (res) {
                         await clearSpreadingForm();
 
                         await getSummary(true);
 
                         await finishProcess();
+                    } else {
+                        document.getElementById("loading").classList.add("d-none");
                     }
                 },
                 error: function(jqXHR) {
@@ -1957,24 +1984,63 @@
 
                     console.log(jqXHR);
 
-                    // let res = jqXHR.responseJSON;
-                    // let message = '';
-                    // let i = 0;
+                    let res = jqXHR.responseJSON;
+                    let message = '';
+                    let i = 0;
 
-                    // for (let key in res.errors) {
-                    //     message = res.errors[key];
-                    //     document.getElementById(key).classList.add('is-invalid');
-                    //     modified.push(
-                    //         [key, '.classList', '.remove(', "'is-invalid')"],
-                    //     )
+                    for (let key in res.errors) {
+                        message = res.errors[key];
+                        document.getElementById(key).classList.add('is-invalid');
+                        modified.push(
+                            [key, '.classList', '.remove(', "'is-invalid')"],
+                        )
 
-                    //     if (i == 0) {
-                    //         document.getElementById(key).focus();
-                    //         i++;
-                    //     }
-                    // };
+                        if (i == 0) {
+                            document.getElementById(key).focus();
+                            i++;
+                        }
+                    };
                 }
             });
+        }
+
+        function checkLockExtension() {
+            let sambunganElement = document.getElementById("current_sambungan");
+            let sisaGelaranElement = document.getElementById("current_sisa_gelaran");
+            let lembarGelaranElement = document.getElementById("current_lembar_gelaran");
+
+            if (sambunganElement.value > 0) {
+                sambunganElement.removeAttribute("readonly");
+                sisaGelaranElement.setAttribute("readonly", true);
+                lembarGelaranElement.setAttribute("readonly", true);
+            } else {
+                sisaGelaranElement.removeAttribute("readonly");
+                lembarGelaranElement.removeAttribute("readonly");
+                sambunganElement.setAttribute("readonly", true);
+            }
+        }
+
+        function checkLockQtyInput() {
+            let idRollElement = document.getElementById("current_id_roll");
+            let idItemElement = document.getElementById("current_id_item");
+            let lotElement = document.getElementById("current_lot");
+            let rollBuyerElement = document.getElementById("current_roll_buyer");
+            let qtyElement = document.getElementById("current_qty");
+            let qtyRealElement = document.getElementById("current_qty_real");
+
+            if (idRollElement.value.length > 0 && idRollElement.value != '-') {
+                idItemElement.setAttribute("readonly", true);
+                lotElement.setAttribute("readonly", true);
+                rollBuyerElement.setAttribute("readonly", true);
+                qtyElement.setAttribute("readonly", true);
+                qtyRealElement.setAttribute("readonly", true);
+            } else {
+                idItemElement.removeAttribute("readonly");
+                lotElement.removeAttribute("readonly");
+                rollBuyerElement.removeAttribute("readonly");
+                qtyElement.removeAttribute("readonly");
+                qtyRealElement.removeAttribute("readonly");
+            }
         }
 
         // -Lock Item input on Spreading Form-
@@ -2050,6 +2116,8 @@
         // -Finish Process-
         function finishProcess() {
             if ($("#operator").val() == "" || $("#cons_actual_gelaran").val() == "") {
+                document.getElementById("loading").classList.add("d-none");
+
                 return Swal.fire({
                     icon: 'error',
                     title: 'Tidak Dapat Menyelesaikan Proses',
@@ -2092,7 +2160,7 @@
                             showCancelButton: false,
                             showConfirmButton: true,
                             confirmButtonText: 'Oke',
-                            timer: 3000,
+                            timer: 5000,
                             timerProgressBar: true
                         }).then((result) => {
                             location.reload();
