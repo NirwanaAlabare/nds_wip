@@ -544,8 +544,8 @@
                                 <div class="mb-3">
                                     <label class="form-label" id="current_id_roll_label"><small><b>Id Roll</b></small></label>
                                     <div class="input-group input-group-sm">
-                                        <input type="hidden" class="form-control" id="current_id_roll_real" name="current_id_roll_real">
-                                        <input type="text" class="form-control" id="current_id_roll" name="current_id_roll">
+                                        <input type="hidden" class="form-control" id="current_id_roll_ori" name="current_id_roll_ori">
+                                        <input type="text" class="form-control" id="current_id_roll" name="current_id_roll" onchange="fetchScan()">
                                         <button class="btn btn-success text-light" type="button" id="get_scanned_item" onclick="fetchScan()">Get</button>
                                     </div>
                                 </div>
@@ -576,6 +576,8 @@
                             </div>
                             <div class="col-6">
                                 <label class="form-label" id="current_qty_real_label"><small><b>Qty</b></small></label>
+                                <input type="hidden" id="current_qty_ori" name="current_qty_ori">
+                                <input type="hidden" id="current_unit_ori" name="current_unit_ori">
                                 <div class="d-flex mb-3">
                                     <div style="width: 60%;">
                                         <input type="number" class="form-control form-control-sm" style="border-radius: 3px 0 0 3px" id="current_qty_real" name="current_qty_real" onchange="setRollQtyConversion(this.value); calculateEstAmpar(); calculateShortRoll()" onkeyup="setRollQtyConversion(this.value); calculateEstAmpar(); calculateShortRoll()">
@@ -931,16 +933,22 @@
         });
 
         function fetchScan() {
-            let idRoll = document.getElementById('current_id_roll').value;
+            let idRollElement = document.getElementById('current_id_roll');
+            let idRollOriElement = document.getElementById('current_id_roll_ori');
 
-            getScannedItem(idRoll);
+            if (idRollElement.value.length > 0 && idRollElement.value != '-') {
+                if (idRollElement.value != idRollOriElement.value) {
+                    getScannedItem(idRollElement.value);
+                } else {
+                    $("#current_unit").val($("#current_unit_ori").val()).trigger("change");
+                    $("#current_qty_real").val($("#current_qty_ori").val()).trigger("change");
+                }
+            }
         }
 
         document.getElementById("current_id_roll").addEventListener("keyup", (event) => {
             if (event.keyCode === 13) {
-                if (document.getElementById("current_id_roll").value.length > 0 && document.getElementById("current_id_roll").value != '-') {
-                    fetchScan();
-                }
+                fetchScan();
             }
         });
 
@@ -968,7 +976,7 @@
                                 confirmButtonText: 'Oke',
                             });
 
-                            document.getElementById("current_id_roll").value = document.getElementById("current_id_roll_real").value;
+                            document.getElementById("current_id_roll").value = document.getElementById("current_id_roll_ori").value;
                         }
                     }, error: function(jqXHR) {
                         Swal.fire({
@@ -980,7 +988,7 @@
                             confirmButtonText: 'Oke',
                         });
 
-                        document.getElementById("current_id_roll").value = document.getElementById("current_id_roll_real").value;
+                        document.getElementById("current_id_roll").value = document.getElementById("current_id_roll_ori").value;
 
                         document.getElementById("loading").classList.add("d-none");
                     }
@@ -1340,9 +1348,11 @@
 
             if (!item) {
                 data.id ? document.getElementById("current_id").value = data.id : '';
+                data.id_roll ? document.getElementById("current_id_roll_ori").value = data.id_roll : '';
+                data.qty ? document.getElementById("current_qty_ori").value = data.qty : '';
+                data.unit ? document.getElementById("current_unit_ori").value = data.unit : '';
             }
             data.id_roll ? document.getElementById("current_id_roll").value = data.id_roll : '';
-            data.id_roll ? document.getElementById("current_id_roll_real").value = data.id_roll : '';
             data.group_roll ? document.getElementById("current_group").value = data.group_roll : '';
             data.group_stocker ? document.getElementById("current_group_stocker").value = data.group_stocker : '';
             data.id_item ? document.getElementById("current_id_item").value = data.id_item : '';
@@ -1409,7 +1419,7 @@
 
             document.getElementById("current_group").value = "";
             document.getElementById("current_group_stocker").value = "";
-            document.getElementById("current_id_roll_real").value = "";
+            document.getElementById("current_id_roll_ori").value = "";
             document.getElementById("current_id_roll").value = "";
             document.getElementById("current_id_item").value = "";
             document.getElementById("current_lot").value = "";

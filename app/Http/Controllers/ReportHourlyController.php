@@ -368,6 +368,7 @@ order by sewing_line asc
                 'page' => 'dashboard-ppic',
                 "subPageGroup" => "ppic-laporan",
                 "subPage" => "report-hourly",
+                "containerFluid" => true,
                 "user" => $user
             ]
         );

@@ -912,8 +912,8 @@ class CuttingFormPilotController extends Controller
                         "status" => 200,
                         "message" => "alright",
                         "additional" => [
-                            FormCutInputDetail::where('id', $storeTimeRecordSummary->id)->first(),
-                            FormCutInputDetail::where('id', $storeTimeRecordSummaryExt->id)->first()
+                            FormCutInputDetail::selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->where('form_cut_input_detail.id', $storeTimeRecordSummary->id)->first(),
+                            FormCutInputDetail::selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->where('form_cut_input_detail.id', $storeTimeRecordSummaryExt->id)->first()
                         ],
                     );
                 }
@@ -939,7 +939,7 @@ class CuttingFormPilotController extends Controller
                 "status" => 200,
                 "message" => "alright",
                 "additional" => [
-                    FormCutInputDetail::where('id', $storeTimeRecordSummary->id)->first(),
+                    FormCutInputDetail::selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->where('form_cut_input_detail.id', $storeTimeRecordSummary->id)->first(),
                     null
                 ],
             );
@@ -1179,8 +1179,8 @@ class CuttingFormPilotController extends Controller
                         "status" => 200,
                         "message" => "alright",
                         "additional" => [
-                            FormCutInputDetail::where('id', $storeTimeRecordSummary->id)->first(),
-                            FormCutInputDetail::where('id', $storeTimeRecordSummaryNext->id)->first(),
+                            FormCutInputDetail::selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->where('form_cut_input_detail.id', $storeTimeRecordSummary->id)->first(),
+                            FormCutInputDetail::selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->where('form_cut_input_detail.id', $storeTimeRecordSummaryNext->id)->first(),
                         ],
                     );
                 }
@@ -1190,7 +1190,7 @@ class CuttingFormPilotController extends Controller
                 "status" => 200,
                 "message" => "alright",
                 "additional" => [
-                    FormCutInputDetail::where('id', $storeTimeRecordSummary->id)->first()
+                    FormCutInputDetail::selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->where('form_cut_input_detail.id', $storeTimeRecordSummary->id)->first()
                 ],
             );
         }
