@@ -28,6 +28,12 @@
     @endphp
 @endif
 
+@if (!isset($containerFluid))
+    @php
+        $containerFluid = false;
+    @endphp
+@endif
+
 @if (!isset($footer))
     @php
         $footer = true;
@@ -85,7 +91,7 @@
 
             <!-- Main content -->
             <div class="content">
-                <div class="container">
+                <div class="{{ $containerFluid ? "container-fluid" : "container" }}">
                     @yield('content')
                 </div>
             </div>
