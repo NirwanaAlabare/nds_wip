@@ -34,22 +34,21 @@
             </div>
 
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
+                <table id="datatable" class="table table-bordered table-sm w-100 text-nowrap">
                     <thead class="table-primary">
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>Line</th>
                             <th>Style</th>
                             <th>Jumlah OP</th>
                             <th>SMV</th>
-                            <th>Kemarin 1</th>
-                            <th>Kemarin 2</th>
-                            <th>Target Eff</th>
-                            <th>PCS</th>
-                            <th>100 % Target</th>
-                            <th>100% Target / Jam</th>
                             <th>Jumlah Hari</th>
-                            <th>Perjam</th>
-                            <th>Perhari</th>
+                            <th>Eff Kemarin (1)</th>
+                            <th>Eff Kemarin (2)</th>
+                            <th>Jam Kerja Act</th>
+                            <th>Target Eff 100 %</th>
+                            <th>Target Eff</th>
+                            <th>Target Output Eff</th>
+                            <th>Target PerHari</th>
                             <th>1</th>
                             <th>2</th>
                             <th>3</th>
@@ -63,7 +62,7 @@
                             <th>11</th>
                             <th>12</th>
                             <th>13</th>
-                            <th>Total</th>
+                            <th>Total Output</th>
                             <th>Earned Minutes</th>
                             <th>Eff</th>
                         </tr>
@@ -140,28 +139,25 @@
                     data: 'smv'
                 },
                 {
+                    data: 'tot_days'
+                },
+                {
                     data: 'kemarin_1'
                 },
                 {
                     data: 'kemarin_2'
                 },
                 {
+                    data: 'jam_kerja_act'
+                },
+                {
+                    data: 'target_100_eff'
+                },
+                {
                     data: 'target_effy'
                 },
                 {
-                    data: 'pcs'
-                },
-                {
-                    data: 'target_100'
-                },
-                {
-                    data: 'target_100_per_jam'
-                },
-                {
-                    data: 'tot_days'
-                },
-                {
-                    data: 'perjam'
+                    data: 'target_output_eff'
                 },
                 {
                     data: 'perhari'

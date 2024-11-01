@@ -64,14 +64,23 @@ max(man_power) man_power,
 max(smv) smv,
 max(target_effy) target_effy,
 coalesce(sum(tot_days),0) tot_days,
-set_target perhari,
 '' kemarin_1,
 '' kemarin_2,
-'' pcs,
-'' target_100,
-'' target_100_per_jam,
-'' perjam,
-'' perhari,
+round(
+round(
+max(man_power) * round(sum(tot_input) / tot_input_line *
+ROUND(HOUR(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) +
+MINUTE(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 60 +
+SECOND(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 3600,2),2) * 60 / max(smv),0)
+* target_effy / 100,0) target_output_eff,
+set_target perhari,
+target_effy,
+round(
+max(man_power) * round(sum(tot_input) / tot_input_line *
+ROUND(HOUR(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) +
+MINUTE(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 60 +
+SECOND(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 3600,2),2) * 60 / max(smv),0)
+target_100_eff,
 min(jam_kerja_awal) jam_kerja_awal,
 jam_kerja_akhir,
 istirahat,
