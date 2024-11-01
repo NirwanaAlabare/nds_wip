@@ -631,10 +631,10 @@ class ReportCuttingController extends Controller
                     marker_cutting.tgl_form_cut
                 ORDER BY
                     marker_cutting.id_meja,
+                    marker_cutting.tgl_form_cut,
                     marker_cutting.panel,
                     marker_cutting.act_costing_id,
-                    marker_cutting.color,
-                    marker_cutting.tgl_form_cut
+                    marker_cutting.color
             ");
 
             return DataTables::of($reportCutting)->toJson();

@@ -117,7 +117,6 @@
                                             @php
                                                 $currentColor = $dailyGroup->color;
                                                 $currentMeja = null;
-                                                $currentPanel = null;
                                             @endphp
                                         @endif
                                         @if ($dailyGroup->ws == $currentWs && $dailyGroup->style == $currentStyle && $dailyGroup->color == $currentColor && $dailyGroup->id_meja != $currentMeja)

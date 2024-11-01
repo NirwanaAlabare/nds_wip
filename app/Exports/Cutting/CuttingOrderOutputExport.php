@@ -128,8 +128,7 @@ class CuttingOrderOutputExport implements FromView, WithEvents, ShouldAutoSize
                 orderBy("marker_input.act_costing_id", "asc")->
                 orderBy("marker_input.style", "asc")->
                 orderBy("marker_input.color", "asc")->
-                orderBy("marker_input.panel", "asc")->
-                orderByRaw("form_cut_input.no_meja asc, marker_input_detail.so_det_id asc, marker_input_detail.size asc");
+                orderByRaw("form_cut_input.no_meja asc, marker_input.panel asc, marker_input_detail.so_det_id asc, marker_input_detail.size asc");
 
             $orderGroup = $orderGroupSql->get();
 
