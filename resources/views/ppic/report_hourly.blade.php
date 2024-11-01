@@ -16,27 +16,33 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-chart-area"></i> Summary Transaksi</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-chart-area"></i> Hourly Output</h5>
         </div>
         <div class="card-body">
             <div class="d-flex align-items-end gap-3 mb-3">
+                <div class="mb-3">
+                    <label class="form-label"><small><b>Tgl Filter</b></small></label>
+                    <input type="date" class="form-control form-control-sm " id="tgl-filter" name="tgl_filter"
+                        value="{{ date('Y-m-d') }}">
+                </div>
                 <div class="mb-3">
                     <a onclick="dataTableReload()" class="btn btn-outline-primary position-relative btn-sm">
                         <i class="fas fa-search fa-sm"></i>
                     </a>
                 </div>
-                <div class="mb-3">
+                {{-- <div class="mb-3">
                     <a onclick="export_excel_tracking()" class="btn btn-outline-success position-relative btn-sm">
                         <i class="fas fa-file-excel fa-sm"></i>
                         Export Excel
                     </a>
-                </div>
+                </div> --}}
             </div>
 
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-sm w-100 text-nowrap">
+                <table id="datatable" class="table table-bordered table-hover table-sm w-100 text-nowrap">
                     <thead class="table-primary">
                         <tr style='text-align:center; vertical-align:middle'>
+                            <th>Tgl. Input</th>
                             <th>Line</th>
                             <th>Style</th>
                             <th>Jumlah OP</th>
@@ -63,8 +69,8 @@
                             <th>12</th>
                             <th>13</th>
                             <th>Total Output</th>
-                            <th>Earned Minutes</th>
                             <th>Eff</th>
+                            <th>Eff Line</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -83,6 +89,7 @@
     <script src="https://cdn.datatables.net/2.0.3/js/dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/2.0.3/js/dataTables.bootstrap4.min.js"></script>
     <script src="https://cdn.datatables.net/fixedcolumns/5.0.0/js/dataTables.fixedColumns.min.js"></script>
+    <script src="{{ asset('plugins/datatables-rowsgroup/dataTables.rowsGroup.js') }}"></script>
 
     <script>
         // Select2 Autofocus
@@ -109,23 +116,27 @@
         }
 
         let datatable = $("#datatable").DataTable({
-            scrollY: "500px",
+            scrollY: "450px",
             scrollX: true,
             scrollCollapse: true,
             paging: false,
             ordering: false,
             fixedColumns: {
-                leftColumns: 2 // Fix the first two columns
+                leftColumns: 3 // Fix the first two columns
             },
             ajax: {
                 url: '{{ route('report-hourly') }}',
                 dataType: 'json',
                 dataSrc: 'data',
-                // data: function(d) {
-                //     d.buyer = $('#cbobuyer').val();
-                // },
+                data: function(d) {
+                    d.tgl_filter = $('#tgl-filter').val();
+                },
             },
             columns: [{
+                    data: 'tgl_input'
+
+                },
+                {
                     data: 'sewing_line'
 
                 },
@@ -205,16 +216,19 @@
                     data: 'tot_input'
                 },
                 {
-                    data: 'earned_minutes'
+                    data: 'eff'
                 },
                 {
-                    data: 'eff'
+                    data: 'eff_line'
                 },
             ],
             columnDefs: [{
-                "className": "align-left",
+                "className": "align-middle",
                 "targets": "_all"
             }, ],
+            rowsGroup: [
+                28
+            ]
 
         });
 
