@@ -349,9 +349,12 @@ class CuttingFormController extends Controller
             if ($scannedItem) {
                 $scannedItemUpdate = ScannedItem::where("id_roll", $id)->first();
 
-                $scannedItemUpdate->qty_stok = $newItem[0]->qty_stok;
-                $scannedItemUpdate->qty_in = $newItem[0]->qty;
-                $scannedItemUpdate->qty = floatval($newItem[0]->qty - $scannedItem->qty_in + $scannedItem->qty);
+                $newItemQtyStok = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? $newItem[0]->qty_stok * 0.9144 : $newItem[0]->qty_stok;
+                $newItemQty = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? $newItem[0]->qty * 0.9144 : $newItem[0]->qty;
+
+                $scannedItemUpdate->qty_stok = $newItemQtyStok;
+                $scannedItemUpdate->qty_in = $newItemQty;
+                $scannedItemUpdate->qty = floatval($newItemQty - $scannedItem->qty_in + $scannedItem->qty);
                 $scannedItemUpdate->save();
 
                 if ($scannedItemUpdate->qty > 0) {
@@ -670,8 +673,8 @@ class CuttingFormController extends Controller
                         "status" => 200,
                         "message" => "alright",
                         "additional" => [
-                            FormCutInputDetail::where('id', $storeTimeRecordSummary->id)->first(),
-                            FormCutInputDetail::where('id', $storeTimeRecordSummaryExt->id)->first()
+                            FormCutInputDetail::selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->where('form_cut_input_detail.id', $storeTimeRecordSummary->id)->first(),
+                            FormCutInputDetail::selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->where('form_cut_input_detail.id', $storeTimeRecordSummaryExt->id)->first()
                         ],
                     );
                 }
@@ -697,7 +700,7 @@ class CuttingFormController extends Controller
                 "status" => 200,
                 "message" => "alright",
                 "additional" => [
-                    FormCutInputDetail::where('id', $storeTimeRecordSummary->id)->first(),
+                    FormCutInputDetail::selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->where('form_cut_input_detail.id', $storeTimeRecordSummary->id)->first(),
                     null
                 ],
             );
@@ -936,8 +939,8 @@ class CuttingFormController extends Controller
                         "status" => 200,
                         "message" => "alright",
                         "additional" => [
-                            FormCutInputDetail::where('id', $storeTimeRecordSummary->id)->first(),
-                            FormCutInputDetail::where('id', $storeTimeRecordSummaryNext->id)->first(),
+                            FormCutInputDetail::selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->where('form_cut_input_detail.id', $storeTimeRecordSummary->id)->first(),
+                            FormCutInputDetail::selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->where('form_cut_input_detail.id', $storeTimeRecordSummaryNext->id)->first(),
                         ],
                     );
                 }
@@ -947,7 +950,7 @@ class CuttingFormController extends Controller
                 "status" => 200,
                 "message" => "alright",
                 "additional" => [
-                    FormCutInputDetail::where('id', $storeTimeRecordSummary->id)->first()
+                    FormCutInputDetail::selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->where('form_cut_input_detail.id', $storeTimeRecordSummary->id)->first()
                 ],
             );
         }

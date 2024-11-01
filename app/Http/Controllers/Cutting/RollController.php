@@ -511,11 +511,11 @@ class RollController extends Controller
                 no_form_cut_input,
                 form_cut_input.no_cut,
                 id_roll,
-                qty,
+                MAX(qty) qty,
                 unit,
-                total_pemakaian_roll,
-                short_roll,
-                sisa_kain,
+                SUM(total_pemakaian_roll) total_pemakaian_roll,
+                SUM(short_roll) short_roll,
+                MIN(sisa_kain) sisa_kain,
                 form_cut_input.status status_form,
                 form_cut_input_detail.status,
                 COALESCE(form_cut_input_detail.updated_at, form_cut_input_detail.created_at) updated_at
@@ -524,6 +524,7 @@ class RollController extends Controller
             whereRaw("(form_cut_input.status != 'SELESAI PENGERJAAN' OR (form_cut_input.status = 'SELESAI PENGERJAAN' AND form_cut_input.status != 'not complete' AND form_cut_input.status != 'extension') )")->
             where("id_roll", $request->id)->
             whereRaw("(id_roll is not null AND id_roll != '')")->
+            groupBy("form_cut_input.no_form")->
             orderBy("form_cut_input_detail.id")->
             get();
 
@@ -569,9 +570,47 @@ class RollController extends Controller
             LIMIT 1
         ");
 
+        if (!$sbItem) {
+            $sbItem = DB::connection("mysql_sb")->select("
+                SELECT
+                    mi.itemdesc detail_item,
+                    mi.goods_code,
+                    mi.id_item,
+                    CONCAT(bpb.bpbno_int, ' | ', bpb.bpbdate) bppb,
+                    '-' no_req,
+                    ac.kpno no_ws,
+                    ac.styleno style,
+                    mi.color,
+                    br.id id_roll,
+                    brh.id_item,
+                    br.lot_no lot,
+                    br.roll_no no_roll,
+                    '-' no_roll_buyer,
+                    '-' lokasi,
+                    br.unit,
+                    br.roll_qty qty
+                FROM
+                    bpb_roll br
+                    INNER JOIN bpb_roll_h brh ON br.id_h = brh.id
+                    INNER JOIN masteritem mi ON brh.id_item = mi.id_item
+                    INNER JOIN bpb ON brh.bpbno = bpb.bpbno
+                    AND brh.id_jo = bpb.id_jo
+                    AND brh.id_item = bpb.id_item
+                    INNER JOIN mastersupplier ms ON bpb.id_supplier = ms.Id_Supplier
+                    INNER JOIN jo_det jd ON brh.id_jo = jd.id_jo
+                    INNER JOIN so ON jd.id_so = so.id
+                    INNER JOIN act_costing ac ON so.id_cost = ac.id
+                    INNER JOIN master_rak mr ON br.id_rak_loc = mr.id
+                WHERE
+                    br.id = '" . $id . "'
+                    AND cast(roll_qty AS DECIMAL ( 11, 3 )) > 0.000
+                    LIMIT 1
+            ");
+        }
+
         $ndsItem = ScannedItem::selectRaw("
                 GROUP_CONCAT(DISTINCT form_cut_input_detail.group_roll) group_roll,
-                MIN(form_cut_input_detail.sisa_kain) sisa_kain,
+                COALESCE(scanned_item.qty, MIN(form_cut_input_detail.sisa_kain)) sisa_kain,
                 scanned_item.unit,
                 GROUP_CONCAT(DISTINCT CONCAT( form_cut_input.no_form, ' | ', COALESCE(form_cut_input.operator, '-')) SEPARATOR '^') AS no_form
             ")->
