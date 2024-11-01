@@ -2,16 +2,11 @@
 
 @section('custom-link')
     <!-- DataTables CSS -->
-
-
     <link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
-
-    <link rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/3.3.2/css/fixedColumns.dataTables.min.css">
-
-
+    <link href="https://cdn.datatables.net/2.0.3/css/dataTables.bootstrap4.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/fixedcolumns/5.0.0/css/fixedColumns.bootstrap4.min.css" rel="stylesheet">
     <!-- jQuery -->
-
-    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
 
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
@@ -40,16 +35,19 @@
 
             <div class="table-responsive">
                 <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
-                    <thead class="table-success">
+                    <thead class="table-primary">
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>Line</th>
                             <th>Style</th>
                             <th>Jumlah OP</th>
                             <th>SMV</th>
+                            <th>Kemarin 1</th>
+                            <th>Kemarin 2</th>
                             <th>Target Eff</th>
                             <th>PCS</th>
                             <th>100 % Target</th>
                             <th>100% Target / Jam</th>
+                            <th>Jumlah Hari</th>
                             <th>Perjam</th>
                             <th>Perhari</th>
                             <th>1</th>
@@ -82,24 +80,10 @@
 @endsection
 
 @section('custom-script')
-    <!-- jQuery -->
-
-    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
-
-    <!-- Bootstrap JS -->
-
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
-
-    <!-- DataTables JS -->
-
-    <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
-
-    <!-- DataTables FixedColumns JS -->
-
-    <script src="https://cdn.datatables.net/fixedcolumns/3.3.2/js/dataTables.fixedColumns.min.js"></script>
-
-
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+    <script src="https://cdn.datatables.net/2.0.3/js/dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/2.0.3/js/dataTables.bootstrap4.min.js"></script>
+    <script src="https://cdn.datatables.net/fixedcolumns/5.0.0/js/dataTables.fixedColumns.min.js"></script>
 
     <script>
         // Select2 Autofocus
@@ -126,15 +110,13 @@
         }
 
         let datatable = $("#datatable").DataTable({
-            scrollY: "300px",
+            scrollY: "500px",
             scrollX: true,
             scrollCollapse: true,
             paging: false,
             ordering: false,
             fixedColumns: {
-
                 leftColumns: 2 // Fix the first two columns
-
             },
             ajax: {
                 url: '{{ route('report-hourly') }}',
@@ -158,6 +140,12 @@
                     data: 'smv'
                 },
                 {
+                    data: 'kemarin_1'
+                },
+                {
+                    data: 'kemarin_2'
+                },
+                {
                     data: 'target_effy'
                 },
                 {
@@ -168,6 +156,9 @@
                 },
                 {
                     data: 'target_100_per_jam'
+                },
+                {
+                    data: 'tot_days'
                 },
                 {
                     data: 'perjam'

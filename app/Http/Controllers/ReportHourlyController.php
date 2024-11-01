@@ -21,26 +21,75 @@ class ReportHourlyController extends Controller
     {
 
         $tgl_skrg = date('Y-m-d');
-        $start_date = $tgl_skrg . ' 00:00:00';
-        $end_date = $tgl_skrg . ' 23:59:59';
+        // $start_date = $tgl_skrg . ' 00:00:00';
+        $start_date = '2024-10-29 00:00:00';
+        // $end_date = $tgl_skrg . ' 23:59:59';
+        $end_date = '2024-10-29 23:59:59';
         $user = Auth::user()->name;
         if ($request->ajax()) {
-            $data_tracking = DB::connection('mysql_sb')->select("select
+
+            $cek_trans = DB::connection('mysql_sb')->select("
+            SELECT tgl_update from rep_hourly_output_hist_trans where tgl_update = '$tgl_skrg'");
+            $cek_trans_input = $cek_trans[0]->tgl_update ?? null;
+
+            if ($cek_trans_input === null) {
+
+                $del_data = DB::connection('mysql_sb')->delete("
+                DELETE FROM rep_hourly_output_hist_trans");
+
+                $ins_data = DB::connection('mysql_sb')->insert("
+                INSERT INTO rep_hourly_output_hist_trans (created_by, sewing_line, styleno, tot_days, tgl_update)
+                SELECT
+created_by,
+u.name sewing_line,
+ac.styleno,
+COUNT(DISTINCT DATE(a.updated_at)) AS tot_days,
+curdate() tgl_update
+from output_rfts a
+inner join so_det sd on a.so_det_id = sd.id
+inner join so on sd.id_so = so.id
+inner join act_costing ac on so.id_cost = ac.id
+inner join user_sb_wip u on a.created_by = u.id
+where a.updated_at >= '2024-08-01' and a.updated_at <= curdate() -1
+group by  ac.styleno, created_by
+order by sewing_line asc
+                ");
+            }
+
+            $data_tracking = DB::connection('mysql_sb')->select("SELECT
+a.created_by,
 sewing_line,
 styleno,
 max(man_power) man_power,
 max(smv) smv,
-'' effy_kmrn_2,
-'' effy_kmrn_1,
 max(target_effy) target_effy,
-'' pcs,
-round((MAX(man_power) * 60 * b.jam) / MAX(smv),0) AS target_100,
-round((MAX(man_power) * 60 * 8) / MAX(smv) / 8,0) AS target_100_per_jam,
-max(last_updated) input_terakhir,
-b.jam jam_kerja,
-'' jumlah_hari,
-round(set_target / b.jam,1) perjam,
+coalesce(sum(tot_days),0) tot_days,
 set_target perhari,
+'' kemarin_1,
+'' kemarin_2,
+'' pcs,
+'' target_100,
+'' target_100_per_jam,
+'' perjam,
+'' perhari,
+min(jam_kerja_awal) jam_kerja_awal,
+jam_kerja_akhir,
+istirahat,
+TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE AS waktu_kerja,
+ROUND(HOUR(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) +
+MINUTE(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 60 +
+SECOND(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 3600,2) AS kerja_total,
+round(sum(tot_input) / tot_input_line *
+ROUND(HOUR(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) +
+MINUTE(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 60 +
+SECOND(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 3600,2),2) as jam_kerja_act,
+round(
+max(man_power) *
+sum(tot_input) / tot_input_line *
+ROUND(HOUR(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) +
+MINUTE(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 60 +
+SECOND(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 3600,2) * 60,0) as min_avl,
+round(sum(tot_input) * max(smv),0) min_produce,
 sum(jam_1) jam_1,
 sum(jam_2) jam_2,
 sum(jam_3) jam_3,
@@ -55,11 +104,23 @@ sum(jam_11) jam_11,
 sum(jam_12) jam_12,
 sum(jam_13) jam_13,
 sum(tot_input) tot_input,
-round(sum(tot_input) * max(smv),1) earned_minutes,
-concat(round(round(sum(tot_input) * max(smv),1) / (max(man_power) * b.jam * 60) * 100,2), ' %') eff
+tot_input_line,
+round(sum(tot_input) * max(smv),0) earned_minutes,
+concat(
+round(
+round(sum(tot_input) * max(smv),0) /
+round(
+max(man_power) *
+sum(tot_input) / tot_input_line *
+ROUND(HOUR(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) +
+MINUTE(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 60 +
+SECOND(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 3600,2) * 60,0) * 100,2), ' %' )
+as eff,
+'' eff_line
 from
 (
 select
+a.created_by,
 u.name sewing_line,
 ac.styleno,
 mpr.product_item,
@@ -67,12 +128,18 @@ mp.man_power,
 mp.smv,
 mp.target_effy,
 master_plan_id,
+d.tot_days,
 count(so_det_id) tot_input,
-created_by,
+c.tot_input_line,
 mp.plan_target,
 mp.set_target,
-jam,
-max(time(a.updated_at)) last_updated,
+mp.jam_kerja_awal,
+last_input jam_kerja_akhir,
+CASE
+        WHEN last_input >= '16:00:00' AND last_input <= '18:30:00' THEN '01:00:00'
+        WHEN last_input >= '18:30:00' THEN '01:30:00'
+        ELSE '00:00:00'
+END AS istirahat,
 COUNT(CASE WHEN jam = 1 THEN 1 END) AS jam_1,
 COUNT(CASE WHEN jam = 2 THEN 1 END) AS jam_2,
 COUNT(CASE WHEN jam = 3 THEN 1 END) AS jam_3,
@@ -94,10 +161,18 @@ inner join so_det sd on a.so_det_id = sd.id
 inner join so on sd.id_so = so.id
 inner join act_costing ac on so.id_cost = ac.id
 inner join masterproduct mpr on ac.id_product = mpr.id
+left join (
+select created_by,COUNT(so_det_id)tot_input_line, max(time(updated_at)) last_input from output_rfts a
+where a.updated_at >= '$start_date' and a.updated_at <= '$end_date' and status = 'NORMAL'
+group by created_by
+) c on a.created_by = c.created_by
+left join (
+select * from rep_hourly_output_hist_trans
+) d on a.created_by = d.created_by and ac.styleno = d.styleno
 where a.updated_at >= '$start_date' and a.updated_at <= '$end_date' and a.status = 'NORMAL'
-group by created_by, master_plan_id, ac.styleno
+group by a.created_by, master_plan_id, ac.styleno
+order by u.name asc
 ) a
-left join dim_jam_kerja_sewing b on a.last_updated >= b.jam_kerja_awal and a.last_updated <= b.jam_kerja_akhir
 group by sewing_line, styleno
 order by sewing_line asc
 ");
