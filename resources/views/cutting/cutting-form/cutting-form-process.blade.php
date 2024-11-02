@@ -1538,6 +1538,7 @@
                     });
                 } else {
                     // An Extension :
+                    await calculateTotalPemakaian();
 
                     return $.ajax({
                         url: '{{ route('store-time-ext-form-cut-input') }}',
