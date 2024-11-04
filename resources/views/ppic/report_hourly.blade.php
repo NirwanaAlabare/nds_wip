@@ -115,7 +115,7 @@
             alert("Maaf, Fitur belum tersedia!");
         }
 
-        let datatable = $("#datatable").DataTable({
+        var datatable = $("#datatable").DataTable({
             scrollY: "450px",
             scrollX: true,
             scrollCollapse: true,
@@ -132,7 +132,8 @@
                     d.tgl_filter = $('#tgl-filter').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'tgl_input'
 
                 },
@@ -229,12 +230,128 @@
             rowsGroup: [
                 28
             ]
-
         });
 
 
-        function dataTableReload() {
-            datatable.ajax.reload();
+        async function dataTableReload() {
+            datatable = $("#datatable").DataTable(
+                {
+                    destroy: true,
+                    scrollY: "450px",
+                    scrollX: true,
+                    scrollCollapse: true,
+                    paging: false,
+                    ordering: false,
+                    fixedColumns: {
+                        leftColumns: 3 // Fix the first two columns
+                    },
+                    ajax: {
+                        url: '{{ route('report-hourly') }}',
+                        dataType: 'json',
+                        dataSrc: 'data',
+                        data: function(d) {
+                            d.tgl_filter = $('#tgl-filter').val();
+                        },
+                    },
+                    columns: [{
+                            data: 'tgl_input'
+
+                        },
+                        {
+                            data: 'sewing_line'
+
+                        },
+                        {
+                            data: 'styleno'
+                        },
+                        {
+                            data: 'man_power'
+                        },
+                        {
+                            data: 'smv'
+                        },
+                        {
+                            data: 'tot_days'
+                        },
+                        {
+                            data: 'kemarin_1'
+                        },
+                        {
+                            data: 'kemarin_2'
+                        },
+                        {
+                            data: 'jam_kerja_act'
+                        },
+                        {
+                            data: 'target_100_eff'
+                        },
+                        {
+                            data: 'target_effy'
+                        },
+                        {
+                            data: 'target_output_eff'
+                        },
+                        {
+                            data: 'perhari'
+                        },
+                        {
+                            data: 'jam_1'
+                        },
+                        {
+                            data: 'jam_2'
+                        },
+                        {
+                            data: 'jam_3'
+                        },
+                        {
+                            data: 'jam_4'
+                        },
+                        {
+                            data: 'jam_5'
+                        },
+                        {
+                            data: 'jam_6'
+                        },
+                        {
+                            data: 'jam_7'
+                        },
+                        {
+                            data: 'jam_8'
+                        },
+                        {
+                            data: 'jam_9'
+                        },
+                        {
+                            data: 'jam_10'
+                        },
+                        {
+                            data: 'jam_11'
+                        },
+                        {
+                            data: 'jam_12'
+                        },
+                        {
+                            data: 'jam_13'
+                        },
+                        {
+                            data: 'tot_input'
+                        },
+                        {
+                            data: 'eff'
+                        },
+                        {
+                            data: 'eff_line'
+                        },
+                    ],
+                    columnDefs: [{
+                        "className": "align-middle",
+                        "targets": "_all"
+                    }, ],
+                    rowsGroup: [
+                        28
+                    ]
+                }
+            );
         }
 
         function export_excel_tracking() {
