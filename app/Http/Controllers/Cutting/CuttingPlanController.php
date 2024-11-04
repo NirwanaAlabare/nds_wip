@@ -989,7 +989,7 @@ class CuttingPlanController extends Controller
             leftJoin('mastersupplier', 'mastersupplier.Id_Supplier', '=', 'act_costing.id_buyer')->
             leftJoin('so', 'so.id_cost', '=', 'act_costing.id')->
             leftJoin('so_det', 'so_det.id_so', '=', 'so.id')->
-            where('act_costing.cost_date', '>=', date('Y-m-d', strtotime(date('Y-m-d').' -1 year')))->
+            where('act_costing.cost_date', '>=', '2023-01-01')->
             where('act_costing.type_ws', 'STD')->
             groupBy('act_costing.id')->
             get();
@@ -1148,7 +1148,7 @@ class CuttingPlanController extends Controller
 
     public function addCuttingPlanOutputForm(Request $request) {
         $id = $request->id;
-        $tglPlan = $request->tgl_plan;
+        $tglPlan = $request->tanggal;
         $noMeja = $request->no_meja;
         $forms = $request->forms;
 
