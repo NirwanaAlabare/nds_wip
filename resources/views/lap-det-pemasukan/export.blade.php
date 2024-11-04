@@ -16,6 +16,7 @@
             <th>Tgl BPB</th>
             <th>No Inv</th>
             <th>Jenis Dok</th>
+            <th>Tipe Pembelian</th>
             <th>No Aju</th>
             <th>Tgl AJu</th>
             <th>No Daftar</th>
@@ -60,6 +61,7 @@
                 <td>{{ $item->bpbdate }}</td>
                 <td>{{ $item->invno }}</td>
                 <td>{{ $item->jenis_dok }}</td>
+                <td>{{ $item->tipe_pembelian }}</td>
                 <td>{{ $item->no_aju }}</td>
                 <td>{{ $item->tgl_aju }}</td>
                 <td>{{ $item->bcno }}</td>
