@@ -186,8 +186,10 @@ group by po , barcode, dest, no_carton
 ) b on a.po = b.po and a.barcode = b.barcode and a.dest = b.dest and a.no_carton = b.no_carton
 left join
 (
-select po, barcode, dest, no_carton, sum(qty)tot_fg from fg_fg_in where po = '$po' and dest = '$dest' and status = 'NORMAL'
-) c on a.po = b.po and a.barcode = b.barcode and a.dest = b.dest and a.no_carton = b.no_carton
+select po, barcode, dest, no_carton, sum(qty)tot_fg from fg_fg_in
+where po = '$po' and dest = '$dest' and status = 'NORMAL'
+GROUP BY po, barcode, dest, no_carton
+) c on a.po = c.po and a.barcode = c.barcode and a.dest = c.dest and a.no_carton = c.no_carton
 group by a.no_carton
 having coalesce(sum(qty),0) = coalesce(sum(tot_scan),0) and coalesce(sum(tot_scan),0) - coalesce(sum(tot_fg),0) != '0'
         ");
