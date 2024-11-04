@@ -26,106 +26,106 @@ class RollController extends Controller
         ini_set("memory_limit", "1024M");
         ini_set("max_execution_time", 36000);
 
-        if ($request->ajax()) {
-            $additionalQuery = "";
+        // if ($request->ajax()) {
+        //     $additionalQuery = "";
 
-            if ($request->dateFrom) {
-                $additionalQuery .= " and DATE(b.created_at) >= '" . $request->dateFrom . "'";
-            }
+        //     if ($request->dateFrom) {
+        //         $additionalQuery .= " and DATE(b.created_at) >= '" . $request->dateFrom . "'";
+        //     }
 
-            if ($request->dateTo) {
-                $additionalQuery .= " and DATE(b.created_at) <= '" . $request->dateTo . "'";
-            }
+        //     if ($request->dateTo) {
+        //         $additionalQuery .= " and DATE(b.created_at) <= '" . $request->dateTo . "'";
+        //     }
 
-            $keywordQuery = "";
-            if ($request->search["value"]) {
-                $keywordQuery = "
-                    and (
-                        act_costing_ws like '%" . $request->search["value"] . "%' OR
-                        DATE_FORMAT(b.created_at, '%d-%m-%Y') like '%" . $request->search["value"] . "%'
-                    )
-                ";
-            }
+        //     $keywordQuery = "";
+        //     if ($request->search["value"]) {
+        //         $keywordQuery = "
+        //             and (
+        //                 act_costing_ws like '%" . $request->search["value"] . "%' OR
+        //                 DATE_FORMAT(b.created_at, '%d-%m-%Y') like '%" . $request->search["value"] . "%'
+        //             )
+        //         ";
+        //     }
 
-            $data_pemakaian = DB::select("
-                select
-                    DATE_FORMAT(b.updated_at, '%M) bulan,
-                    DATE_FORMAT(b.updated_at, '%d-%m-%Y) tgl_input,
-                    b.no_form_cut_input,
-                    UPPER(meja.name) nama_meja,
-                    act_costing_ws,
-                    buyer,
-                    style,
-                    color,
-                    b.color_act,
-                    panel,
-                    master_sb_ws.qty,
-                    cons_ws,
-                    cons_marker,
-                    a.cons_ampar,
-                    a.cons_act,
-                    COALESCE(a.cons_pipping, cons_piping) cons_piping,
-                    panjang_marker,
-                    unit_panjang_marker,
-                    comma_marker,
-                    unit_comma_marker,
-                    lebar_marker,
-                    unit_lebar_marker,
-                    a.p_act panjang_actual,
-                    a.unit_p_act unit_panjang_actual,
-                    a.comma_p_act comma_actual,
-                    a.unit_comma_p_act unit_comma_actual,
-                    a.l_act lebar_actual,
-                    a.unit_l_actual unit_lebar_actual,
-                    COALESCE(id_roll, '-') id_roll,
-                    id_item,
-                    detail_item,
-                    COALESCE(b.roll_buyer, b.roll) roll,
-                    COALESCE(b.lot, '-') lot,
-                    COALESCE(b.group_roll, '-') group_roll,
-                    b.qty qty_roll,
-                    b.unit unit_roll,
-                    COALESCE(b.berat_amparan, '-') berat_amparan,
-                    b.est_amparan,
-                    b.lembar_gelaran,
-                    mrk.total_ratio,
-                    (mrk.total_ratio * b.lembar_gelaran) qty_cut,
-                    b.average_time,
-                    b.sisa_gelaran,
-                    b.sambungan,
-                    b.sambungan_roll,
-                    b.kepala_kain,
-                    b.lembar_gelaran,
-                    b.sisa_tidak_bisa,
-                    b.reject,
-                    b.piping,
-                    COALESCE(b.sisa_kain, 0) sisa_kain,
-                    b.pemakaian_lembar,
-                    b.total_pemakaian_roll,
-                    b.short_roll,
-                    CONCAT(ROUND(((b.short_roll / b.qty) * 100), 2), ' %') short_roll_percentage,
-                    a.operator
-                from
-                    form_cut_input a
-                    left join form_cut_input_detail b on a.no_form = b.no_form_cut_input
-                    left join users meja on meja.id = a.no_meja
-                    left join marker_input mrk on a.id_marker = mrk.kode
-                where
-                    (a.cancel = 'N'  OR a.cancel IS NULL)
-	                AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
-                    and b.status != 'not completed'
-                    and id_item is not null
-                    " . $additionalQuery . "
-                    " . $keywordQuery . "
-                group by
-                    b.id
-                order by
-                    a.waktu_mulai asc,
-                    b.id asc
-            ");
+        //     $data_pemakaian = DB::select("
+        //         select
+        //             DATE_FORMAT(b.updated_at, '%M) bulan,
+        //             DATE_FORMAT(b.updated_at, '%d-%m-%Y) tgl_input,
+        //             b.no_form_cut_input,
+        //             UPPER(meja.name) nama_meja,
+        //             act_costing_ws,
+        //             buyer,
+        //             style,
+        //             color,
+        //             b.color_act,
+        //             panel,
+        //             master_sb_ws.qty,
+        //             cons_ws,
+        //             cons_marker,
+        //             a.cons_ampar,
+        //             a.cons_act,
+        //             COALESCE(a.cons_pipping, cons_piping) cons_piping,
+        //             panjang_marker,
+        //             unit_panjang_marker,
+        //             comma_marker,
+        //             unit_comma_marker,
+        //             lebar_marker,
+        //             unit_lebar_marker,
+        //             a.p_act panjang_actual,
+        //             a.unit_p_act unit_panjang_actual,
+        //             a.comma_p_act comma_actual,
+        //             a.unit_comma_p_act unit_comma_actual,
+        //             a.l_act lebar_actual,
+        //             a.unit_l_actual unit_lebar_actual,
+        //             COALESCE(id_roll, '-') id_roll,
+        //             id_item,
+        //             detail_item,
+        //             COALESCE(b.roll_buyer, b.roll) roll,
+        //             COALESCE(b.lot, '-') lot,
+        //             COALESCE(b.group_roll, '-') group_roll,
+        //             b.qty qty_roll,
+        //             b.unit unit_roll,
+        //             COALESCE(b.berat_amparan, '-') berat_amparan,
+        //             b.est_amparan,
+        //             b.lembar_gelaran,
+        //             mrk.total_ratio,
+        //             (mrk.total_ratio * b.lembar_gelaran) qty_cut,
+        //             b.average_time,
+        //             b.sisa_gelaran,
+        //             b.sambungan,
+        //             b.sambungan_roll,
+        //             b.kepala_kain,
+        //             b.lembar_gelaran,
+        //             b.sisa_tidak_bisa,
+        //             b.reject,
+        //             b.piping,
+        //             COALESCE(b.sisa_kain, 0) sisa_kain,
+        //             b.pemakaian_lembar,
+        //             b.total_pemakaian_roll,
+        //             b.short_roll,
+        //             CONCAT(ROUND(((b.short_roll / b.qty) * 100), 2), ' %') short_roll_percentage,
+        //             a.operator
+        //         from
+        //             form_cut_input a
+        //             left join form_cut_input_detail b on a.no_form = b.no_form_cut_input
+        //             left join users meja on meja.id = a.no_meja
+        //             left join marker_input mrk on a.id_marker = mrk.kode
+        //         where
+        //             (a.cancel = 'N'  OR a.cancel IS NULL)
+	    //             AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
+        //             and b.status != 'not completed'
+        //             and id_item is not null
+        //             " . $additionalQuery . "
+        //             " . $keywordQuery . "
+        //         group by
+        //             b.id
+        //         order by
+        //             a.waktu_mulai asc,
+        //             b.id asc
+        //     ");
 
-            return DataTables::of($data_pemakaian)->toJson();
-        }
+        //     return DataTables::of($data_pemakaian)->toJson();
+        // }
 
         return view('cutting.roll.roll', ['page' => 'dashboard-cutting', "subPageGroup" => "laporan-cutting", "subPage" => "lap-pemakaian"]);
     }
@@ -136,13 +136,23 @@ class RollController extends Controller
         $additionalQuery1 = "";
 
         if ($request->dateFrom) {
-            $additionalQuery .= " and DATE(b.created_at) >= '" . $request->dateFrom . "'";
-            $additionalQuery1 .= " and DATE(form_cut_piping.created_at) >= '" . $request->dateFrom . "'";
+            $additionalQuery .= " and b.created_at >= '" . $request->dateFrom . " 00:00:00'";
+            $additionalQuery1 .= " and form_cut_piping.created_at >= '" . $request->dateFrom . " 00:00:00'";
         }
 
         if ($request->dateTo) {
-            $additionalQuery .= " and DATE(b.created_at) <= '" . $request->dateTo . "'";
-            $additionalQuery1 .= " and DATE(form_cut_piping.created_at) <= '" . $request->dateTo . "'";
+            $additionalQuery .= " and b.created_at <= '" . $request->dateTo . " 23:59:59'";
+            $additionalQuery1 .= " and form_cut_piping.created_at <= '" . $request->dateTo . " 23:59:59'";
+        }
+
+        if ($request->supplier) {
+            $additionalQuery .= " and master_sb_ws.buyer LIKE '%" . $request->supplier . "%'";
+            $additionalQuery1 .= " and master_sb_ws.buyer LIKE '%" . $request->supplier . "%'";
+        }
+
+        if ($request->id_ws) {
+            $additionalQuery .= " and mrk.act_costing_id = " . $request->id_ws . "";
+            $additionalQuery1 .= " and form_cut_piping.act_costing_id = " . $request->id_ws . "";
         }
 
         $keywordQuery = "";
@@ -320,11 +330,50 @@ class RollController extends Controller
         return DataTables::of($data_pemakaian)->toJson();
     }
 
+    public function getSupplier(Request $request)
+    {
+        $suppliers = DB::connection('mysql_sb')->table('mastersupplier')->
+            selectRaw('Id_Supplier as id, Supplier as name')->
+            leftJoin('act_costing', 'act_costing.id_buyer', '=', 'mastersupplier.Id_Supplier')->
+            where('mastersupplier.tipe_sup', 'C')->
+            where('status', '!=', 'CANCEL')->
+            where('type_ws', 'STD')->
+            where('cost_date', '>=', '2023-01-01')->
+            orderBy('Supplier', 'ASC')->
+            groupBy('Id_Supplier', 'Supplier')->
+            get();
+
+        return $suppliers;
+    }
+
+    public function getOrder(Request $request)
+    {
+        $orderSql = DB::connection('mysql_sb')->
+            table('act_costing')->
+            selectRaw('
+                id as id_ws,
+                kpno as no_ws
+            ')->
+            where('status', '!=', 'CANCEL')->
+            where('cost_date', '>=', '2023-01-01')->
+            where('type_ws', 'STD');
+            if ($request->supplier) {
+                $orderSql->where('id_buyer', $request->supplier);
+            }
+            $orders = $orderSql->
+                orderBy('cost_date', 'desc')->
+                orderBy('kpno', 'asc')->
+                groupBy('kpno')->
+                get();
+
+        return $orders;
+    }
+
     public function export_excel(Request $request)
     {
         ini_set("max_execution_time", 36000);
 
-        return Excel::download(new ExportLaporanRoll($request->from, $request->to), 'Laporan pemakaian cutting '.$request->from.' - '.$request->to.' ('.Carbon::now().').xlsx');
+        return Excel::download(new ExportLaporanRoll($request->dateFrom, $request->dateTo, $request->supplier, $request->id_ws), 'Laporan pemakaian cutting '.$request->from.' - '.$request->to.' ('.Carbon::now().').xlsx');
     }
 
     public function sisaKainRoll(Request $request)

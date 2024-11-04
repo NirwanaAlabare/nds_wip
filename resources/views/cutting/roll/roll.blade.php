@@ -12,29 +12,44 @@
 @endsection
 
 @section('content')
-    <form action="{{ route('export_excel') }}" method="get">
+    {{-- <form action="{{ route('export_excel') }}" method="get"> --}}
         <div class="card card-sb">
             <div class="card-header">
-                <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-toilet-paper fa-sm"></i> Pemakaian Roll</h5>
+                <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-toilet-paper fa-sm"></i> Manajemen Roll</h5>
             </div>
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-end gap-3">
-                    <div class="d-flex align-items-end gap-3 mb-3">
-                        <div class="mb-3">
-                            <label class="form-label"><small>Tanggal Awal</small></label>
-                            <input type="date" class="form-control form-control-sm" id="from" name="from" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
+                <div class="row justify-content-between align-items-end">
+                    <div class="col-12 col-md-6">
+                        <div class="d-flex align-items-end gap-3 mb-3">
+                            <div class="mb-3">
+                                <label class="form-label"><small>Tanggal Awal</small></label>
+                                <input type="date" class="form-control form-control-sm" id="from" name="from" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label"><small>Tanggal Akhir</small></label>
+                                <input type="date" class="form-control form-control-sm" id="to" name="to" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
+                            </div>
+                            <button type="button" class="btn btn-primary btn-sm mb-3"><i class="fa fa-search fa-sm"></i></button>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label"><small>Tanggal Akhir</small></label>
-                            <input type="date" class="form-control form-control-sm" id="to" name="to" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
-                        </div>
-                        <button type="button" class="btn btn-primary btn-sm mb-3"><i class="fa fa-search fa-sm"></i></button>
                     </div>
-                    <div class="d-flex align-items-end gap-3 mb-3">
-                        <div class="mb-3">
-                            <button type='submit' name='submit' class='btn btn-success btn-sm'>
-                                <i class="fas fa-file-excel"></i> Export
-                            </button>
+                    <div class="col-12 col-md-6">
+                        <div class="d-flex justify-content-end align-items-end gap-3 mb-3">
+                            <div class="mb-3">
+                                <select class="form-select form-select-sm select2bs4" style="min-width:200px;" name="supplier" id="supplier">
+                                    <option value="">Pilih Buyer</option>
+                                </select>
+
+                            </div>
+                            <div class="mb-3">
+                                <select class="form-select form-select-sm select2bs4" style="min-width:150px;" name="order" id="order">
+                                    <option value="">Pilih WS</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <button type='button' id="export_excel" name='export_excel' class='btn btn-success' onclick="exportExcel(this)">
+                                    <i class="fas fa-file-excel"></i> Export
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -105,7 +120,7 @@
                 </div>
             </div>
         </div>
-    </form>
+    {{-- </form> --}}
 @endsection
 
 @section('custom-script')
@@ -119,7 +134,7 @@
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
+        document.addEventListener("DOMContentLoaded", async function () {
             let oneWeeksBefore = new Date(new Date().setDate(new Date().getDate() - 7));
             let oneWeeksBeforeDate = ("0" + oneWeeksBefore.getDate()).slice(-2);
             let oneWeeksBeforeMonth = ("0" + (oneWeeksBefore.getMonth() + 1)).slice(-2);
@@ -131,7 +146,178 @@
             // window.addEventListener("focus", () => {
             //     datatableReload();
             // });
+            await getSupplierList();
+
+            await getOrderList();
         });
+
+        // Select2 Autofocus
+        $(document).on('select2:open', () => {
+            document.querySelector('.select2-search__field').focus();
+        });
+
+        $('.select2').select2();
+
+        $('.select2bs4').select2({
+            theme: 'bootstrap4',
+        });
+
+        // Select Supplier
+        $('#supplier').on('change', function (e) {
+            getOrderList();
+
+            datatableReload();
+        });
+
+        // Select Order
+        $('#order').on('change', function (e) {
+            datatableReload();
+        });
+
+        // Option Supplier
+        function getSupplierList() {
+            return $.ajax({
+                url: '{{ route('roll-get-supplier') }}',
+                method: 'GET',
+                dataType: 'json',
+                success: function (res) {
+                    let select = document.getElementById("supplier");
+
+                    select.innerHTML = null;
+                    let initOpt = document.createElement('option');
+                    initOpt.setAttribute("value", "");
+                    initOpt.innerHTML = "Pilih Buyer";
+                    select.appendChild(initOpt);
+
+                    if (res && res.length > 0) {
+                        for (let i = 0; i < res.length; i++) {
+                            let opt = document.createElement('option');
+                            opt.setAttribute("value", res[i]['id']);
+                            opt.innerHTML = res[i]['name'];
+
+                            select.appendChild(opt);
+                        }
+                    }
+                },
+                error: function (jqXHR) {
+                    console.log(res);
+                }
+            });
+        }
+
+        // Order Option
+        function getOrderList() {
+            return $.ajax({
+                url: '{{ route('roll-get-order') }}',
+                method: 'GET',
+                dataType: 'json',
+                data: {
+                    supplier: $("#supplier").val()
+                },
+                success: function (res) {
+                    let select = document.getElementById("order");
+
+                    select.innerHTML = null;
+                    let initOpt = document.createElement('option');
+                    initOpt.setAttribute("value", "");
+                    initOpt.innerHTML = "Pilih WS";
+                    select.appendChild(initOpt);
+
+                    if (res && res.length > 0) {
+                        for (let i = 0; i < res.length; i++) {
+                            let opt = document.createElement('option');
+                            opt.setAttribute("value", res[i]['id_ws']);
+                            opt.innerHTML = res[i]['no_ws'];
+
+                            select.appendChild(opt);
+                        }
+                    }
+                },
+                error: function (jqXHR) {
+                    console.log(res);
+                }
+            });
+        }
+
+        function exportExcel(elm, order, buyer) {
+            order ? order : order = $("#order").val();
+            buyer ? buyer : buyer = $("#supplier").val();
+
+            elm.setAttribute('disabled', 'true');
+            elm.innerText = "";
+            let loading = document.createElement('div');
+            loading.classList.add('loading-small');
+            elm.appendChild(loading);
+
+            iziToast.info({
+                title: 'Exporting...',
+                message: 'Data sedang di export. Mohon tunggu...',
+                position: 'topCenter'
+            });
+
+            let date = new Date();
+
+            let day = date.getDate();
+            let month = date.getMonth() + 1;
+            let year = date.getFullYear();
+
+            // This arrangement can be altered based on how we want the date's format to appear.
+            let currentDate = `${day}-${month}-${year}`;
+
+            console.log(elm, order, buyer);
+
+            $.ajax({
+                url: "{{ route("export_excel_manajemen_roll") }}",
+                type: 'post',
+                data: {
+                    dateFrom: $("#from").val(),
+                    dateTo: $("#to").val(),
+                    id_ws:order,
+                    buyer:buyer,
+                },
+                xhrFields: { responseType : 'blob' },
+                success: function(res) {
+                    elm.removeAttribute('disabled');
+                    elm.innerText = "Export ";
+                    let icon = document.createElement('i');
+                    icon.classList.add('fa-solid');
+                    icon.classList.add('fa-file-excel');
+                    elm.appendChild(icon);
+
+                    iziToast.success({
+                        title: 'Success',
+                        message: 'Success',
+                        position: 'topCenter'
+                    });
+
+                    var blob = new Blob([res]);
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = currentDate+" - "+($('#supplier').val() ? "'"+$('#supplier').find(":selected").text()+"'" : "All Supplier")+" - "+($('#order').val() ? "'"+$('#order').find(":selected").text()+"'" : "All WS")+" - '"+"' Manajemen Roll.xlsx";
+                    link.click();
+                }, error: function (jqXHR) {
+                    elm.removeAttribute('disabled');
+                    elm.innerText = "Export ";
+                    let icon = document.createElement('i');
+                    icon.classList.add('fa-solid');
+                    icon.classList.add('fa-file-excel');
+                    elm.appendChild(icon);
+
+                    let res = jqXHR.responseJSON;
+                    let message = '';
+                    console.log(res.message);
+                    for (let key in res.errors) {
+                        message += res.errors[key]+' ';
+                        document.getElementById(key).classList.add('is-invalid');
+                    };
+                    iziToast.error({
+                        title: 'Error',
+                        message: message,
+                        position: 'topCenter'
+                    });
+                }
+            });
+        }
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
@@ -163,6 +349,8 @@
                 url: '{{ route('lap_pemakaian_data') }}',
                 method: "POST",
                 data: function(d) {
+                    d.supplier = $('#supplier').val() ? $('#supplier').find(":selected").text() : null;
+                    d.id_ws = $('#order').val();
                     d.dateFrom = $('#from').val();
                     d.dateTo = $('#to').val();
                 },
