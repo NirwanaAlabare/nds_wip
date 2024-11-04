@@ -349,16 +349,19 @@ class CuttingFormController extends Controller
             if ($scannedItem) {
                 $scannedItemUpdate = ScannedItem::where("id_roll", $id)->first();
 
-                $newItemQtyStok = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? $newItem[0]->qty_stok * 0.9144 : $newItem[0]->qty_stok;
-                $newItemQty = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? $newItem[0]->qty * 0.9144 : $newItem[0]->qty;
+                $newItemQtyStok = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? round($newItem[0]->qty_stok * 0.9144, 2) : $newItem[0]->qty_stok;
+                $newItemQty = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? round($newItem[0]->qty * 0.9144, 2) : $newItem[0]->qty;
+                $newItemUnit = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD") && $scannedItemUpdate->unit == "METER") ? 'METER' : $newItem[0]->unit;
 
-                $scannedItemUpdate->qty_stok = $newItemQtyStok;
-                $scannedItemUpdate->qty_in = $newItemQty;
-                $scannedItemUpdate->qty = floatval($newItemQty - $scannedItem->qty_in + $scannedItem->qty);
-                $scannedItemUpdate->save();
+                if ($scannedItemUpdate) {
+                    $scannedItemUpdate->qty_stok = $newItemQtyStok;
+                    $scannedItemUpdate->qty_in = $newItemQty;
+                    $scannedItemUpdate->qty = floatval($newItemQty - $scannedItem->qty_in + $scannedItem->qty);
+                    $scannedItemUpdate->save();
 
-                if ($scannedItemUpdate->qty > 0) {
-                    return json_encode($scannedItem);
+                    if ($scannedItemUpdate->qty > 0) {
+                        return json_encode($scannedItem);
+                    }
                 }
 
                 $formCutInputDetail = FormCutInputDetail::where("id_roll", $id)->orderBy("updated_at", "desc")->first();
@@ -366,6 +369,27 @@ class CuttingFormController extends Controller
                 if ($formCutInputDetail) {
                     return "Roll sudah terpakai di form '".$formCutInputDetail->no_form_cut_input."'";
                 }
+            } else {
+                $newItemQtyStok = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD")) ? round($newItem[0]->qty_stok * 0.9144, 2) : $newItem[0]->qty_stok;
+                $newItemQty = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD")) ? round($newItem[0]->qty * 0.9144, 2) : $newItem[0]->qty;
+                $newItemUnit = (($newItem[0]->unit == "YARD" || $newItem[0]->unit == "YRD")) ? 'METER' : $newItem[0]->unit;
+
+                ScannedItem::create(
+                    [
+                        "id_roll" => $id,
+                        "id_item" => $newItem[0]->id_item,
+                        "color" => '-',
+                        "detail_item" => $newItem[0]->detail_item,
+                        "lot" => $newItem[0]->lot,
+                        "roll" => $newItem[0]->roll,
+                        "roll_buyer" => $newItem[0]->roll_buyer,
+                        "qty" => $newItemQty > 0 ? $newItemQty : 0,
+                        "qty_stok" => $newItemQtyStok > 0 ? $newItemQtyStok : 0,
+                        "qty_in" => $newItemQty > 0 ? $newItemQty : 0,
+                        "qty_pakai" => 0,
+                        "unit" => $newItemUnit
+                    ]
+                );
             }
 
             return json_encode($newItem ? $newItem[0] : null);
@@ -417,6 +441,24 @@ class CuttingFormController extends Controller
                 if ($formCutInputDetail) {
                     return "Roll sudah terpakai di form '".$formCutInputDetail->no_form_cut_input."'";
                 }
+            } else {
+                $itemQty = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD")) ? $item[0]->qty * 0.9144 : $item[0]->qty;
+                $itemUnit = (($item[0]->unit == "YARD" || $item[0]->unit == "YRD")) ? 'METER' : $item[0]->unit;
+
+                ScannedItem::create(
+                    [
+                        "id_roll" => $id,
+                        "id_item" => $item[0]->id_item,
+                        "color" => '-',
+                        "detail_item" => $item[0]->detail_item,
+                        "lot" => $item[0]->lot,
+                        "roll" => $item[0]->roll,
+                        "roll_buyer" => "-",
+                        "qty" => $itemQty > 0 ? $itemQty : 0,
+                        "qty_pakai" => 0,
+                        "unit" => $itemUnit
+                    ]
+                );
             }
 
             return json_encode($item ? $item[0] : null);
