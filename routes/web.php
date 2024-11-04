@@ -481,8 +481,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/sisa_kain_roll', 'sisaKainRoll')->name('sisa_kain_roll');
         Route::get('/sisa_kain_roll/get_scanned_item/{id?}', 'getScannedItem')->name('sisa_kain_scan_item');
         Route::get('/sisa_kain_roll/forms', 'getSisaKainForm')->name('sisa_kain_form');
+        // supplier
+        Route::get('/get-supplier', 'getSupplier')->name('roll-get-supplier');
+        Route::get('/get-order', 'getOrder')->name('roll-get-order');
         // export excel
-        Route::get('/export_excel', 'export_excel')->name('export_excel');
+        Route::post('/export_excel', 'export_excel')->name('export_excel_manajemen_roll');
         Route::post('/export', 'export')->name('export');
         // print
         Route::post('/sisa_kain/print/{id?}', 'printSisaKain')->name('print_sisa_kain');

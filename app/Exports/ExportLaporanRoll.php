@@ -25,10 +25,13 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
 
     protected $from, $to;
 
-    public function __construct($from, $to)
+    public function __construct($from, $to, $supplier, $id_ws)
     {
         $this->from = $from;
         $this->to = $to;
+        $this->supplier = $supplier;
+        $this->id_ws = $id_ws;
+
         $this->rowCount = 0;
     }
 
@@ -38,13 +41,23 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
         $additionalQuery1 = "";
 
         if ($this->from) {
-            $additionalQuery .= " and DATE(b.created_at) >= '" . $this->from . "'";
-            $additionalQuery1 .= " and DATE(form_cut_piping.created_at) >= '" . $this->from . "'";
+            $additionalQuery .= " and b.created_at >= '" . $this->from . " 00:00:00'";
+            $additionalQuery1 .= " and form_cut_piping.created_at >= '" . $this->from . " 00:00:00'";
         }
 
         if ($this->to) {
-            $additionalQuery .= " and DATE(b.created_at) <= '" . $this->to . "'";
-            $additionalQuery1 .= " and DATE(form_cut_piping.created_at) <= '" . $this->to . "'";
+            $additionalQuery .= " and b.created_at <= '" . $this->to . " 23:59:59'";
+            $additionalQuery1 .= " and form_cut_piping.created_at <= '" . $this->to . " 23:59:59'";
+        }
+
+        if ($this->supplier) {
+            $additionalQuery .= " and master_sb_ws.buyer LIKE '%" . $this->supplier . "%'";
+            $additionalQuery1 .= " and master_sb_ws.buyer LIKE '%" . $this->supplier . "%'";
+        }
+
+        if ($this->id_ws) {
+            $additionalQuery .= " and mrk.act_costing_id = " . $this->id_ws . "";
+            $additionalQuery1 .= " and form_cut_piping.act_costing_id = " . $this->id_ws . "";
         }
 
         $data = DB::select("
