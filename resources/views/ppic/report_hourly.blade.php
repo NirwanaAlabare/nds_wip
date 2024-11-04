@@ -234,6 +234,7 @@
 
 
         async function dataTableReload() {
+            // reinitialise datatable
             datatable = $("#datatable").DataTable(
                 {
                     destroy: true,
