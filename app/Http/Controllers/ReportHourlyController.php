@@ -365,8 +365,8 @@ order by sewing_line asc
         return view(
             'ppic.report_hourly',
             [
-                'page' => 'dashboard-ppic',
-                "subPageGroup" => "ppic-laporan",
+                'page' => 'dashboard-sewing-eff',
+                "subPageGroup" => "sewing-sewing",
                 "subPage" => "report-hourly",
                 "containerFluid" => true,
                 "user" => $user

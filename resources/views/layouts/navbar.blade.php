@@ -670,6 +670,12 @@
                                     </a>
                                 </li>
                                 <li>
+                                    <a href="{{ route('report-hourly') }}"
+                                        class="dropdown-item {{ $subPage == 'report-hourly' ? 'active' : '' }}">
+                                        Hourly Output <i class="fa-solid fa-clock fa-sm"></i>
+                                    </a>
+                                </li>
+                                <li>
                                     <a href="{{ route('daily-sewing', ['type' => 'line-user']) }}"
                                         class="dropdown-item {{ $subPage == 'sewing-line-user' ? 'active' : '' }}">
                                         User Line Output <i class="fa-solid fa-user"></i>
@@ -990,12 +996,6 @@
                                 <a href="{{ route('ppic-laporan-tracking') }}"
                                     class="dropdown-item {{ $subPage == 'ppic-laporan-tracking' ? 'active' : '' }}">
                                     Laporan Tracking <i class="fa-solid fa-list-ul fa-sm"></i>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('report-hourly') }}"
-                                    class="dropdown-item {{ $subPage == 'report-hourly' ? 'active' : '' }}">
-                                    Laporan Report Hourly <i class="fa-solid fa-list-ul fa-sm"></i>
                                 </a>
                             </li>
                         </ul>
