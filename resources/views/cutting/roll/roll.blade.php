@@ -18,33 +18,38 @@
                 <h5 class="card-title fw-bold mb-0"><i class="fa-solid fa-toilet-paper fa-sm"></i> Manajemen Roll</h5>
             </div>
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-end gap-3">
-                    <div class="d-flex align-items-end gap-3 mb-3">
-                        <div class="mb-3">
-                            <label class="form-label"><small>Tanggal Awal</small></label>
-                            <input type="date" class="form-control form-control-sm" id="from" name="from" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
+                <div class="row justify-content-between align-items-end">
+                    <div class="col-12 col-md-6">
+                        <div class="d-flex align-items-end gap-3 mb-3">
+                            <div class="mb-3">
+                                <label class="form-label"><small>Tanggal Awal</small></label>
+                                <input type="date" class="form-control form-control-sm" id="from" name="from" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label"><small>Tanggal Akhir</small></label>
+                                <input type="date" class="form-control form-control-sm" id="to" name="to" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
+                            </div>
+                            <button type="button" class="btn btn-primary btn-sm mb-3"><i class="fa fa-search fa-sm"></i></button>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label"><small>Tanggal Akhir</small></label>
-                            <input type="date" class="form-control form-control-sm" id="to" name="to" value="{{ date('Y-m-d') }}" onchange="datatableReload()">
-                        </div>
-                        <button type="button" class="btn btn-primary btn-sm mb-3"><i class="fa fa-search fa-sm"></i></button>
                     </div>
-                    <div class="d-flex align-items-end gap-3 mb-3">
-                        <div class="mb-3">
-                            <select class="form-select form-select-sm select2bs4" style="min-width:200px;" name="supplier" id="supplier">
-                                <option value="">Pilih Buyer</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <select class="form-select form-select-sm select2bs4" style="min-width:200px;" name="order" id="order">
-                                <option value="">Pilih WS</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <button type='button' id="export_excel" name='export_excel' class='btn btn-success' onclick="exportExcel(this)">
-                                <i class="fas fa-file-excel"></i> Export
-                            </button>
+                    <div class="col-12 col-md-6">
+                        <div class="d-flex justify-content-end align-items-end gap-3 mb-3">
+                            <div class="mb-3">
+                                <select class="form-select form-select-sm select2bs4" style="min-width:200px;" name="supplier" id="supplier">
+                                    <option value="">Pilih Buyer</option>
+                                </select>
+
+                            </div>
+                            <div class="mb-3">
+                                <select class="form-select form-select-sm select2bs4" style="min-width:150px;" name="order" id="order">
+                                    <option value="">Pilih WS</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <button type='button' id="export_excel" name='export_excel' class='btn btn-success' onclick="exportExcel(this)">
+                                    <i class="fas fa-file-excel"></i> Export
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
