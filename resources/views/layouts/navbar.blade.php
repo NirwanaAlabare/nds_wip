@@ -363,12 +363,12 @@
                                 aria-expanded="false"
                                 class="nav-link dropdown-toggle {{ $subPageGroup == 'laporan-cutting' ? 'active' : '' }}">Roll</a>
                             <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
-                                <!-- <li>
+                                <li>
                                     <a href="{{ route('lap_pemakaian') }}"
                                         class="dropdown-item {{ $subPage == 'lap-pemakaian' ? 'active' : '' }}">
                                         Manajemen Roll <i class="fa-solid fa-toilet-paper fa-sm"></i>
                                     </a>
-                                </li> -->
+                                </li>
                                 <li>
                                     <a href="{{ route('sisa_kain_roll') }}"
                                         class="dropdown-item {{ $subPage == 'sisa-kain-roll' ? 'active' : '' }}">

@@ -128,8 +128,6 @@ class RollController extends Controller
         //     return DataTables::of($data_pemakaian)->toJson();
         // }
 
-        return Redirect::to('/home');
-
         return view('cutting.roll.roll', ['page' => 'dashboard-cutting', "subPageGroup" => "laporan-cutting", "subPage" => "lap-pemakaian"]);
     }
 
