@@ -22,11 +22,11 @@
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Filter</b></small></label>
-                    <input type="date" class="form-control form-control-sm " id="tgl-filter" name="tgl_filter"
+                    <input type="date" class="form-control form-control " id="tgl-filter" name="tgl_filter"
                         value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
-                    <a onclick="dataTableReload()" class="btn btn-outline-primary position-relative btn-sm">
+                    <a onclick="dataTableReload()" class="btn btn-outline-primary position-relative">
                         <i class="fas fa-search fa-sm"></i>
                     </a>
                 </div>
@@ -132,8 +132,7 @@
                     d.tgl_filter = $('#tgl-filter').val();
                 },
             },
-            columns: [
-                {
+            columns: [{
                     data: 'tgl_input'
 
                 },
@@ -235,124 +234,122 @@
 
         async function dataTableReload() {
             // reinitialise datatable
-            datatable = $("#datatable").DataTable(
-                {
-                    destroy: true,
-                    scrollY: "450px",
-                    scrollX: true,
-                    scrollCollapse: true,
-                    paging: false,
-                    ordering: false,
-                    fixedColumns: {
-                        leftColumns: 3 // Fix the first two columns
+            datatable = $("#datatable").DataTable({
+                destroy: true,
+                scrollY: "450px",
+                scrollX: true,
+                scrollCollapse: true,
+                paging: false,
+                ordering: false,
+                fixedColumns: {
+                    leftColumns: 3 // Fix the first two columns
+                },
+                ajax: {
+                    url: '{{ route('report-hourly') }}',
+                    dataType: 'json',
+                    dataSrc: 'data',
+                    data: function(d) {
+                        d.tgl_filter = $('#tgl-filter').val();
                     },
-                    ajax: {
-                        url: '{{ route('report-hourly') }}',
-                        dataType: 'json',
-                        dataSrc: 'data',
-                        data: function(d) {
-                            d.tgl_filter = $('#tgl-filter').val();
-                        },
+                },
+                columns: [{
+                        data: 'tgl_input'
+
                     },
-                    columns: [{
-                            data: 'tgl_input'
+                    {
+                        data: 'sewing_line'
 
-                        },
-                        {
-                            data: 'sewing_line'
-
-                        },
-                        {
-                            data: 'styleno'
-                        },
-                        {
-                            data: 'man_power'
-                        },
-                        {
-                            data: 'smv'
-                        },
-                        {
-                            data: 'tot_days'
-                        },
-                        {
-                            data: 'kemarin_1'
-                        },
-                        {
-                            data: 'kemarin_2'
-                        },
-                        {
-                            data: 'jam_kerja_act'
-                        },
-                        {
-                            data: 'target_100_eff'
-                        },
-                        {
-                            data: 'target_effy'
-                        },
-                        {
-                            data: 'target_output_eff'
-                        },
-                        {
-                            data: 'perhari'
-                        },
-                        {
-                            data: 'jam_1'
-                        },
-                        {
-                            data: 'jam_2'
-                        },
-                        {
-                            data: 'jam_3'
-                        },
-                        {
-                            data: 'jam_4'
-                        },
-                        {
-                            data: 'jam_5'
-                        },
-                        {
-                            data: 'jam_6'
-                        },
-                        {
-                            data: 'jam_7'
-                        },
-                        {
-                            data: 'jam_8'
-                        },
-                        {
-                            data: 'jam_9'
-                        },
-                        {
-                            data: 'jam_10'
-                        },
-                        {
-                            data: 'jam_11'
-                        },
-                        {
-                            data: 'jam_12'
-                        },
-                        {
-                            data: 'jam_13'
-                        },
-                        {
-                            data: 'tot_input'
-                        },
-                        {
-                            data: 'eff'
-                        },
-                        {
-                            data: 'eff_line'
-                        },
-                    ],
-                    columnDefs: [{
-                        "className": "align-middle",
-                        "targets": "_all"
-                    }, ],
-                    rowsGroup: [
-                        28
-                    ]
-                }
-            );
+                    },
+                    {
+                        data: 'styleno'
+                    },
+                    {
+                        data: 'man_power'
+                    },
+                    {
+                        data: 'smv'
+                    },
+                    {
+                        data: 'tot_days'
+                    },
+                    {
+                        data: 'kemarin_1'
+                    },
+                    {
+                        data: 'kemarin_2'
+                    },
+                    {
+                        data: 'jam_kerja_act'
+                    },
+                    {
+                        data: 'target_100_eff'
+                    },
+                    {
+                        data: 'target_effy'
+                    },
+                    {
+                        data: 'target_output_eff'
+                    },
+                    {
+                        data: 'perhari'
+                    },
+                    {
+                        data: 'jam_1'
+                    },
+                    {
+                        data: 'jam_2'
+                    },
+                    {
+                        data: 'jam_3'
+                    },
+                    {
+                        data: 'jam_4'
+                    },
+                    {
+                        data: 'jam_5'
+                    },
+                    {
+                        data: 'jam_6'
+                    },
+                    {
+                        data: 'jam_7'
+                    },
+                    {
+                        data: 'jam_8'
+                    },
+                    {
+                        data: 'jam_9'
+                    },
+                    {
+                        data: 'jam_10'
+                    },
+                    {
+                        data: 'jam_11'
+                    },
+                    {
+                        data: 'jam_12'
+                    },
+                    {
+                        data: 'jam_13'
+                    },
+                    {
+                        data: 'tot_input'
+                    },
+                    {
+                        data: 'eff'
+                    },
+                    {
+                        data: 'eff_line'
+                    },
+                ],
+                columnDefs: [{
+                    "className": "align-middle",
+                    "targets": "_all"
+                }, ],
+                rowsGroup: [
+                    28
+                ]
+            });
         }
 
         function export_excel_tracking() {

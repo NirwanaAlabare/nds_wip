@@ -187,13 +187,13 @@ from
             inner join masterproduct mpr on ac.id_product = mpr.id
             left join (
             select created_by,COUNT(so_det_id)tot_input_line, max(time(updated_at)) last_input from output_rfts a
-            where a.updated_at >= '$start_date' and a.updated_at <= '$end_date' and status = 'NORMAL'
+            where a.updated_at >= '$start_date' and a.updated_at <= '$end_date'
             group by created_by
             ) c on a.created_by = c.created_by
             left join (
             select * from rep_hourly_output_hist_trans
             ) d on a.created_by = d.created_by and ac.styleno = d.styleno
-            where a.updated_at >= '$start_date' and a.updated_at <= '$end_date' and a.status = 'NORMAL'
+            where a.updated_at >= '$start_date' and a.updated_at <= '$end_date'
             group by a.created_by, master_plan_id, ac.styleno
             order by u.name asc
             ) a
@@ -237,10 +237,10 @@ from
                             inner join act_costing ac on so.id_cost = ac.id
                             left join (
                             select created_by,COUNT(so_det_id)tot_input_line, max(time(updated_at)) last_input from output_rfts a
-                            where a.updated_at >= '$start_date' and a.updated_at <= '$end_date' and status = 'NORMAL'
+                            where a.updated_at >= '$start_date' and a.updated_at <= '$end_date'
                             group by created_by
                             ) c on a.created_by = c.created_by
-                            where a.updated_at >= '$start_date' and a.updated_at <= '$end_date' and a.status = 'NORMAL'
+                            where a.updated_at >= '$start_date' and a.updated_at <= '$end_date'
                             group by a.created_by, master_plan_id, ac.styleno
                             order by u.name asc
                             ) a
@@ -291,10 +291,10 @@ from
                             inner join act_costing ac on so.id_cost = ac.id
                             left join (
                             select created_by,COUNT(so_det_id)tot_input_line, max(time(updated_at)) last_input from output_rfts a
-                            where a.updated_at >= '$start_date_min_1' and a.updated_at <= '$end_date_min_1' and status = 'NORMAL'
+                            where a.updated_at >= '$start_date_min_1' and a.updated_at <= '$end_date_min_1'
                             group by created_by
                             ) c on a.created_by = c.created_by
-                            where a.updated_at >= '$start_date_min_1' and a.updated_at <= '$end_date_min_1' and a.status = 'NORMAL'
+                            where a.updated_at >= '$start_date_min_1' and a.updated_at <= '$end_date_min_1'
                             group by a.created_by, master_plan_id, ac.styleno
                             order by u.name asc
                             ) a
@@ -344,10 +344,10 @@ from
                             inner join act_costing ac on so.id_cost = ac.id
                             left join (
                             select created_by,COUNT(so_det_id)tot_input_line, max(time(updated_at)) last_input from output_rfts a
-                            where a.updated_at >= '$start_date_min_2' and a.updated_at <= '$end_date_min_2' and status = 'NORMAL'
+                            where a.updated_at >= '$start_date_min_2' and a.updated_at <= '$end_date_min_2'
                             group by created_by
                             ) c on a.created_by = c.created_by
-                            where a.updated_at >= '$start_date_min_2' and a.updated_at <= '$end_date_min_2' and a.status = 'NORMAL'
+                            where a.updated_at >= '$start_date_min_2' and a.updated_at <= '$end_date_min_2'
                             group by a.created_by, master_plan_id, ac.styleno
                             order by u.name asc
                             ) a
