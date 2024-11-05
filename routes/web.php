@@ -67,6 +67,7 @@ use App\Http\Controllers\Sewing\DataDetailProduksiDayController;
 use App\Http\Controllers\Sewing\ReportOutputController;
 use App\Http\Controllers\Sewing\ReportProductionController;
 use App\Http\Controllers\Sewing\ReportEfficiencyController;
+use App\Http\Controllers\Sewing\ReportEfficiencyNewController;
 use App\Http\Controllers\Sewing\ReportDetailOutputController;
 
 
@@ -843,6 +844,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/transfer-data', 'transfer')->name('reportEfficiency.transferData');
     });
 
+    // Report Efficiency New
+    Route::controller(ReportEfficiencyNewController::class)->prefix("report-efficiency-new")->middleware('sewing')->group(function () {
+        Route::get('/', 'index')->name('reportEfficiencynew');
+        Route::get('/export_excel_rep_eff_new', 'export_excel_rep_eff_new')->name('export_excel_rep_eff_new');
+    });
+
+
     Route::controller(ReportDetailOutputController::class)->prefix('report-detail-output')->middleware('sewing')->group(function () {
         Route::get('/', 'index')->name('reportDetailOutput');
         Route::get('/packing', 'packing')->name('reportDetailOutputPacking');
@@ -1491,7 +1499,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/export_excel_tracking', 'export_excel_tracking')->name('export_excel_tracking');
     });
 
-    // PPIC Laporan Tracking
+    // Report Hourly Output
     Route::controller(ReportHourlyController::class)->prefix("laporan-report-hourly")->middleware('packing')->group(function () {
         Route::get('/', 'index')->name('report-hourly');
         // Route::get('/show_lap_tracking_ppic', 'show_lap_tracking_ppic')->name('show_lap_tracking_ppic');

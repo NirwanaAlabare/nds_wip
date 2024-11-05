@@ -726,9 +726,15 @@
                                         Report Production <i class="fa-solid fa-file"></i>
                                     </a>
                                 </li>
-                                <li>
+                                {{-- <li>
                                     <a href="{{ route('reportEfficiency') }}"
                                         class="dropdown-item {{ $subPage == 'reportEfficiency' ? 'active' : '' }}">
+                                        Report Efficiency <i class="fa-solid fa-file"></i>
+                                    </a>
+                                </li> --}}
+                                <li>
+                                    <a href="{{ route('reportEfficiencynew') }}"
+                                        class="dropdown-item {{ $subPage == 'reportEfficiencynew' ? 'active' : '' }}">
                                         Report Efficiency <i class="fa-solid fa-file"></i>
                                     </a>
                                 </li>
