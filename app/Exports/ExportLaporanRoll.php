@@ -37,6 +37,9 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
 
     public function view(): View
     {
+        ini_set("memory_limit", "2048M");
+        ini_set("max_execution_time", 36000);
+
         $additionalQuery = "";
         $additionalQuery1 = "";
 
@@ -51,8 +54,8 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
         }
 
         if ($this->supplier) {
-            $additionalQuery .= " and master_sb_ws.buyer LIKE '%" . $this->supplier . "%'";
-            $additionalQuery1 .= " and master_sb_ws.buyer LIKE '%" . $this->supplier . "%'";
+            $additionalQuery .= " and msb.buyer LIKE '%" . $this->supplier . "%'";
+            $additionalQuery1 .= " and msb.buyer LIKE '%" . $this->supplier . "%'";
         }
 
         if ($this->id_ws) {
@@ -63,6 +66,7 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
         $data = DB::select("
             select * from (
                 select
+                    COALESCE(scanned_item.qty_in, b.qty) qty_in,
                     b.created_at waktu_mulai,
                     b.updated_at waktu_selesai,
                     b.id,
@@ -118,8 +122,8 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                     COALESCE(b.sisa_kain, 0) sisa_kain,
                     b.pemakaian_lembar,
                     b.total_pemakaian_roll,
-                    ROUND((CASE WHEN MAX(before_roll.qty) > 0 AND (b.status != 'extension' AND b.status != 'extension complete') THEN (SUM(before_roll.total_pemakaian_roll)+b.total_pemakaian_roll+b.sisa_kain) - MAX(before_roll.qty) ELSE b.short_roll END), 2) short_roll,
-                    ROUND((CASE WHEN MAX(before_roll.qty) > 0 AND (b.status != 'extension' AND b.status != 'extension complete') THEN ((SUM(before_roll.total_pemakaian_roll)+b.total_pemakaian_roll+b.sisa_kain) - MAX(before_roll.qty))/MAX(before_roll.qty)*100 ELSE (b.short_roll / b.qty)*100 END), 2) short_roll_percentage,
+                    b.short_roll,
+                    ROUND((CASE WHEN (b.status != 'extension' AND b.status != 'extension complete') THEN ((b.total_pemakaian_roll+b.sisa_kain) - b.qty)/COALESCE(scanned_item.qty_in, b.qty)*100 ELSE (b.short_roll / b.qty)*100 END), 2) short_roll_percentage,
                     b.status,
                     a.operator
                 from
@@ -128,17 +132,18 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                     left join users meja on meja.id = a.no_meja
                     left join (SELECT marker_input.*, SUM(marker_input_detail.ratio) total_ratio FROM marker_input LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id GROUP BY marker_input.id) mrk on a.id_marker = mrk.kode
                     left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = mrk.act_costing_id
-                    left join (SELECT id_roll, qty, total_pemakaian_roll, updated_at FROM form_cut_input_detail WHERE id_roll IS NOT NULL GROUP BY id union SELECT id_roll, qty, piping total_pemakaian_roll, updated_at FROM form_cut_piping WHERE id_roll IS NOT NULL GROUP BY id) before_roll ON b.id_roll = before_roll.id_roll AND b.updated_at > before_roll.updated_at
+                    left join scanned_item on scanned_item.id_roll = b.id_roll
                 where
                     (a.cancel = 'N'  OR a.cancel IS NULL)
                     AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
-                    and b.status != 'not completed'
+                    and b.status != 'not complete'
                     and b.id_item is not null
                     ".$additionalQuery."
                 group by
                     b.id
                 union
                 select
+                    COALESCE(scanned_item.qty_in, form_cut_piping.qty) qty_in,
                     form_cut_piping.created_at waktu_mulai,
                     form_cut_piping.updated_at waktu_selesai,
                     form_cut_piping.id,
@@ -195,12 +200,12 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
                     form_cut_piping.piping pemakaian_lembar,
                     form_cut_piping.piping total_pemakaian_roll,
                     ROUND((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty, 2) short_roll,
-                    ROUND(((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty)/form_cut_piping.qty * 100, 2) short_roll_percentage,
+                    ROUND(((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty)/coalesce(scanned_item.qty_in, form_cut_piping.qty) * 100, 2) short_roll_percentage,
                     null `status`,
                     form_cut_piping.operator
                 from
                     form_cut_piping
-                    left join master_sb_ws on master_sb_ws.id_act_cost = form_cut_piping.act_costing_id
+                    left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = form_cut_piping.act_costing_id
                     left join scanned_item on scanned_item.id_roll = form_cut_piping.id_roll
                 where
                     id_item is not null

@@ -240,6 +240,35 @@
         }
 
         function exportExcel(elm, order, buyer) {
+            if (Math.abs(new Date($("#to").val()) - new Date($("#from").val())) > 7889400000) {
+                return Swal.fire({
+                    icon: 'warning',
+                    title: 'Gagal',
+                    text: 'Maksimal 3 bulan.',
+                    showCancelButton: false,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Oke',
+                });
+            }
+
+            if ((!$("#from").val() || !$("#to").val()) && (!$("#order").val() && !$("#supplier").val())) {
+                elm.removeAttribute('disabled');
+                elm.innerText = "Export ";
+                let icon = document.createElement('i');
+                icon.classList.add('fa-solid');
+                icon.classList.add('fa-file-excel');
+                elm.appendChild(icon);
+
+                return Swal.fire({
+                    icon: 'warning',
+                    title: 'Gagal',
+                    text: 'Harap tentukan tanggal awal/akhir atau pilih ws/buyer.',
+                    showCancelButton: false,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Oke',
+                });
+            }
+
             order ? order : order = $("#order").val();
             buyer ? buyer : buyer = $("#supplier").val();
 
@@ -263,8 +292,6 @@
 
             // This arrangement can be altered based on how we want the date's format to appear.
             let currentDate = `${day}-${month}-${year}`;
-
-            console.log(elm, order, buyer);
 
             $.ajax({
                 url: "{{ route("export_excel_manajemen_roll") }}",
