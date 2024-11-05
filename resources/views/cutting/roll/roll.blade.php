@@ -240,8 +240,6 @@
         }
 
         function exportExcel(elm, order, buyer) {
-            console.log(new Date($("#to").val()) - new Date($("#from").val()));
-
             if (Math.abs(new Date($("#to").val()) - new Date($("#from").val())) > 7889400000) {
                 return Swal.fire({
                     icon: 'warning',
