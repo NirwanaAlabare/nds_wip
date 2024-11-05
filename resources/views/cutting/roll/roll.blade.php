@@ -240,6 +240,19 @@
         }
 
         function exportExcel(elm, order, buyer) {
+            console.log(new Date($("#to").val()) - new Date($("#from").val()));
+
+            if (Math.abs(new Date($("#to").val()) - new Date($("#from").val())) > 7889400000) {
+                return Swal.fire({
+                    icon: 'warning',
+                    title: 'Gagal',
+                    text: 'Maksimal 3 bulan.',
+                    showCancelButton: false,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Oke',
+                });
+            }
+
             if ((!$("#from").val() || !$("#to").val()) && (!$("#order").val() && !$("#supplier").val())) {
                 elm.removeAttribute('disabled');
                 elm.innerText = "Export ";
