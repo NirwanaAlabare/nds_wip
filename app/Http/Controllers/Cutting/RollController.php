@@ -132,6 +132,9 @@ class RollController extends Controller
 
     public function pemakaianRollData(Request $request)
     {
+        ini_set("memory_limit", "2048M");
+        ini_set("max_execution_time", 36000);
+
         $additionalQuery = "";
         $additionalQuery1 = "";
 
@@ -146,8 +149,8 @@ class RollController extends Controller
         }
 
         if ($request->supplier) {
-            $additionalQuery .= " and master_sb_ws.buyer LIKE '%" . $request->supplier . "%'";
-            $additionalQuery1 .= " and master_sb_ws.buyer LIKE '%" . $request->supplier . "%'";
+            $additionalQuery .= " and msb.buyer LIKE '%" . $request->supplier . "%'";
+            $additionalQuery1 .= " and msb.buyer LIKE '%" . $request->supplier . "%'";
         }
 
         if ($request->id_ws) {
@@ -174,29 +177,30 @@ class RollController extends Controller
         }
 
         $data_pemakaian = DB::select("
-            select
+            SELECT
                 *
-            from (
-                select
+            FROM
+                (
+                SELECT
                     b.created_at waktu_mulai,
                     b.updated_at waktu_selesai,
                     b.id,
-                    DATE_FORMAT(b.updated_at, '%M') bulan,
-                    DATE_FORMAT(b.updated_at, '%d-%m-%Y') tgl_input,
+                    DATE_FORMAT( b.updated_at, '%M' ) bulan,
+                    DATE_FORMAT( b.updated_at, '%d-%m-%Y' ) tgl_input,
                     b.no_form_cut_input,
-                    UPPER(meja.name) nama_meja,
+                    UPPER( meja.NAME ) nama_meja,
                     mrk.act_costing_ws,
-                    master_sb_ws.buyer,
+                    msb.buyer,
                     mrk.style,
                     mrk.color,
-                    COALESCE(b.color_act, '-') color_act,
+                    COALESCE ( b.color_act, '-' ) color_act,
                     mrk.panel,
-                    master_sb_ws.qty,
+                    msb.qty,
                     cons_ws,
                     cons_marker,
                     a.cons_ampar,
                     a.cons_act,
-                    COALESCE(a.cons_pipping, cons_piping) cons_piping,
+                    COALESCE ( a.cons_pipping, cons_piping ) cons_piping,
                     panjang_marker,
                     unit_panjang_marker,
                     comma_marker,
@@ -209,19 +213,19 @@ class RollController extends Controller
                     a.unit_comma_p_act unit_comma_actual,
                     a.l_act lebar_actual,
                     a.unit_l_act unit_lebar_actual,
-                    COALESCE(id_roll, '-') id_roll,
+                    COALESCE ( id_roll, '-' ) id_roll,
                     id_item,
                     detail_item,
-                    COALESCE(b.roll_buyer, b.roll) roll,
-                    COALESCE(b.lot, '-') lot,
-                    COALESCE(b.group_roll, '-') group_roll,
+                    COALESCE ( b.roll_buyer, b.roll ) roll,
+                    COALESCE ( b.lot, '-' ) lot,
+                    COALESCE ( b.group_roll, '-' ) group_roll,
                     b.qty qty_roll,
                     b.unit unit_roll,
-                    COALESCE(b.berat_amparan, '-') berat_amparan,
+                    COALESCE ( b.berat_amparan, '-' ) berat_amparan,
                     b.est_amparan,
                     b.lembar_gelaran,
                     mrk.total_ratio,
-                    (mrk.total_ratio * b.lembar_gelaran) qty_cut,
+                    ( mrk.total_ratio * b.lembar_gelaran ) qty_cut,
                     b.average_time,
                     b.sisa_gelaran,
                     b.sambungan,
@@ -230,43 +234,52 @@ class RollController extends Controller
                     b.sisa_tidak_bisa,
                     b.reject,
                     b.piping,
-                    COALESCE(b.sisa_kain, 0) sisa_kain,
+                    COALESCE ( b.sisa_kain, 0 ) sisa_kain,
                     b.pemakaian_lembar,
                     b.total_pemakaian_roll,
                     b.short_roll,
-                    CONCAT(ROUND(((b.short_roll / b.qty) * 100), 2), ' %') short_roll_percentage,
+                    CONCAT( ROUND((( b.short_roll / b.qty ) * 100 ), 2 ), ' %' ) short_roll_percentage,
                     a.operator
-                from
+                FROM
                     form_cut_input a
-                    left join form_cut_input_detail b on a.no_form = b.no_form_cut_input
-                    left join users meja on meja.id = a.no_meja
-                    left join (SELECT marker_input.*, SUM(marker_input_detail.ratio) total_ratio FROM marker_input LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id GROUP BY marker_input.id) mrk on a.id_marker = mrk.kode
-                    left join master_sb_ws on master_sb_ws.id_act_cost = mrk.act_costing_id
-                where
-                    (a.cancel = 'N'  OR a.cancel IS NULL)
-                    AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
-                    and b.status != 'not completed'
-                    and id_item is not null
+                    LEFT JOIN form_cut_input_detail b ON a.no_form = b.no_form_cut_input
+                    LEFT JOIN users meja ON meja.id = a.no_meja
+                    LEFT JOIN (
+                        SELECT
+                            marker_input.*,
+                            SUM( marker_input_detail.ratio ) total_ratio
+                        FROM
+                            marker_input
+                            LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id
+                        GROUP BY
+                            marker_input.id
+                    ) mrk ON a.id_marker = mrk.kode
+                    LEFT JOIN (select id_act_cost, buyer, qty from master_sb_ws group by id_act_cost) msb ON msb.id_act_cost = mrk.act_costing_id
+                WHERE
+                    ( a.cancel = 'N' OR a.cancel IS NULL )
+                    AND ( mrk.cancel = 'N' OR mrk.cancel IS NULL )
+                    AND b.STATUS != 'not completed'
+                    AND id_item IS NOT NULL
                     ".$additionalQuery."
                     ".$keywordQuery."
-                group by
+                GROUP BY
                     b.id
-                union
-                select
+            UNION
+                SELECT
                     form_cut_piping.created_at waktu_mulai,
                     form_cut_piping.updated_at waktu_selesai,
                     form_cut_piping.id,
-                    DATE_FORMAT(form_cut_piping.updated_at, '%M') bulan,
-                    DATE_FORMAT(form_cut_piping.updated_at, '%d-%m-%Y') tgl_input,
+                    DATE_FORMAT( form_cut_piping.updated_at, '%M' ) bulan,
+                    DATE_FORMAT( form_cut_piping.updated_at, '%d-%m-%Y' ) tgl_input,
                     'PIPING' no_form_cut_input,
                     '-' nama_meja,
                     form_cut_piping.act_costing_ws,
-                    master_sb_ws.buyer,
+                    msb.buyer,
                     form_cut_piping.style,
                     form_cut_piping.color,
                     form_cut_piping.color color_act,
                     form_cut_piping.panel,
-                    master_sb_ws.qty,
+                    msb.qty,
                     '0' cons_ws,
                     0 cons_marker,
                     '0' cons_ampar,
@@ -287,7 +300,7 @@ class RollController extends Controller
                     form_cut_piping.id_roll,
                     scanned_item.id_item,
                     scanned_item.detail_item,
-                    COALESCE(scanned_item.roll_buyer, scanned_item.roll) roll,
+                    COALESCE ( scanned_item.roll_buyer, scanned_item.roll ) roll,
                     scanned_item.lot,
                     '-' group_roll,
                     form_cut_piping.qty qty_roll,
@@ -308,21 +321,21 @@ class RollController extends Controller
                     form_cut_piping.qty_sisa sisa_kain,
                     form_cut_piping.piping pemakaian_lembar,
                     form_cut_piping.piping total_pemakaian_roll,
-                    ROUND((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty, 2) short_roll,
-                    CONCAT(ROUND(((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty)/form_cut_piping.qty * 100, 2), ' %') short_roll_percentage,
+                    ROUND(( form_cut_piping.piping + form_cut_piping.qty_sisa ) - form_cut_piping.qty, 2 ) short_roll,
+                    CONCAT( ROUND((( form_cut_piping.piping + form_cut_piping.qty_sisa ) - form_cut_piping.qty )/ form_cut_piping.qty * 100, 2 ), ' %' ) short_roll_percentage,
                     form_cut_piping.operator
-                from
+                FROM
                     form_cut_piping
-                    left join master_sb_ws on master_sb_ws.id_act_cost = form_cut_piping.act_costing_id
-                    left join scanned_item on scanned_item.id_roll = form_cut_piping.id_roll
-                where
-                    id_item is not null
+                    LEFT JOIN (select id_act_cost, buyer, qty from master_sb_ws group by id_act_cost) msb ON msb.id_act_cost = form_cut_piping.act_costing_id
+                    LEFT JOIN scanned_item ON scanned_item.id_roll = form_cut_piping.id_roll
+                WHERE
+                    id_item IS NOT NULL
                     ".$additionalQuery1."
                     ".$keywordQuery1."
-                group by
+                GROUP BY
                     form_cut_piping.id
-            ) roll_consumption
-            order by
+                ) roll_consumption
+            ORDER BY
                 waktu_mulai,
                 waktu_selesai
         ");
@@ -371,9 +384,10 @@ class RollController extends Controller
 
     public function export_excel(Request $request)
     {
+        ini_set("memory_limit", "2048M");
         ini_set("max_execution_time", 36000);
 
-        return Excel::download(new ExportLaporanRoll($request->dateFrom, $request->dateTo, $request->supplier, $request->id_ws), 'Laporan pemakaian cutting '.$request->from.' - '.$request->to.' ('.Carbon::now().').xlsx');
+        return Excel::download(new ExportLaporanRoll($request->dateFrom, $request->dateTo, $request->supplier, $request->id_ws), 'Laporan pemakaian cutting '.$request->dateFrom.' - '.$request->dateTo.' ('.Carbon::now().').xlsx');
     }
 
     public function sisaKainRoll(Request $request)
