@@ -77,7 +77,9 @@ a.styleno,
 max(jam_kerja) jam_kerja,
 max(man_power) man_power,
 max(smv) smv,
+round(max(man_power) * max(jam_kerja) * 60 / max(smv),0) target_100_eff,
 max(target_effy) target_effy,
+round(round(max(man_power) * max(jam_kerja) * 60 / max(smv),0) * max(target_effy) /100,0) target_output_eff,
 coalesce(sum(tot_days),0) tot_days,
 concat(coalesce(f.eff_line,0),' %') kemarin_1,
 concat(coalesce(g.eff_line,0),' %') kemarin_2,
@@ -87,7 +89,7 @@ max(man_power) * round(sum(tot_input) / tot_input_line *
 ROUND(HOUR(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) +
 MINUTE(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 60 +
 SECOND(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 3600,2),2) * 60 / max(smv),0)
-* target_effy / 100,0) target_output_eff,
+* target_effy / 100,0) target_output_eff_old,
 set_target perhari,
 target_effy,
 round(
@@ -95,7 +97,7 @@ max(man_power) * round(sum(tot_input) / tot_input_line *
 ROUND(HOUR(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) +
 MINUTE(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 60 +
 SECOND(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 3600,2),2) * 60 / max(smv),0)
-target_100_eff,
+target_100_eff_old,
 min(jam_kerja_awal) jam_kerja_awal,
 jam_kerja_akhir,
 istirahat,

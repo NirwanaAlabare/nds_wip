@@ -50,11 +50,12 @@
                             <th>Jumlah Hari</th>
                             <th>Eff Kemarin (1)</th>
                             <th>Eff Kemarin (2)</th>
-                            <th>Jam Kerja Act</th>
+                            <th>Jam Kerja</th>
                             <th>Target Eff 100 %</th>
                             <th>Target Eff</th>
                             <th>Target Output Eff</th>
                             <th>Target PerHari</th>
+                            <th>Jam Kerja Act</th>
                             <th>1</th>
                             <th>2</th>
                             <th>3</th>
@@ -159,7 +160,7 @@
                     data: 'kemarin_2'
                 },
                 {
-                    data: 'jam_kerja_act'
+                    data: 'jam_kerja'
                 },
                 {
                     data: 'target_100_eff'
@@ -172,6 +173,9 @@
                 },
                 {
                     data: 'perhari'
+                },
+                {
+                    data: 'jam_kerja_act'
                 },
                 {
                     data: 'jam_1'
@@ -279,7 +283,7 @@
                         data: 'kemarin_2'
                     },
                     {
-                        data: 'jam_kerja_act'
+                        data: 'jam_kerja'
                     },
                     {
                         data: 'target_100_eff'
@@ -292,6 +296,9 @@
                     },
                     {
                         data: 'perhari'
+                    },
+                    {
+                        data: 'jam_kerja_act'
                     },
                     {
                         data: 'jam_1'
