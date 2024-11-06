@@ -2042,14 +2042,14 @@
                 idItemElement.setAttribute("readonly", true);
                 lotElement.setAttribute("readonly", true);
                 rollBuyerElement.setAttribute("readonly", true);
-                qtyElement.setAttribute("readonly", true);
-                qtyRealElement.setAttribute("readonly", true);
+                // qtyElement.setAttribute("readonly", true);
+                // qtyRealElement.setAttribute("readonly", true);
             } else {
                 idItemElement.removeAttribute("readonly");
                 lotElement.removeAttribute("readonly");
                 rollBuyerElement.removeAttribute("readonly");
-                qtyElement.removeAttribute("readonly");
-                qtyRealElement.removeAttribute("readonly");
+                // qtyElement.removeAttribute("readonly");
+                // qtyRealElement.removeAttribute("readonly");
             }
         }
 
