@@ -904,11 +904,11 @@ select 'VERTICAL' isi,'VERTICAL' tampil ");
         group by po, dest ) a
         inner join master_sb_ws m on a.id_so_det = m.id_so_det
         left join packing_master_packing_list mp on a.po = mp.po and a.dest = mp.dest
-        where mp.po is null and mp.dest is null
+        group by a.po, a.dest
         order by buyer asc, styleno asc, a.po asc");
         return response()->json($data_po);
     }
-
+    // -- where mp.po is null and mp.dest is null
 
     public function show_detail_packing_list(Request $request)
     {
