@@ -46,8 +46,8 @@
                             <th>Panel</th>
                             <th>Size</th>
                             <th>Notes</th>
-                            <th>Marker Ply</th>
-                            <th>Cutting Ply</th>
+                            <th>Marker Pcs</th>
+                            <th>Cutting Pcs</th>
                             <th>Cutting Diff</th>
                         </tr>
                     </thead>
