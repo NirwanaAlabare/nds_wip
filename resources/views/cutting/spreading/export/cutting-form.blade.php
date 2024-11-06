@@ -23,7 +23,6 @@
         <th style="background: #505154; color: #FBFBFB;padding:10px;font-weight:bold;">NO FORM</th>
         <th style="background: #505154; color: #FBFBFB;padding:10px;font-weight:bold;">NO MARKER</th>
         <th style="background: #505154; color: #FBFBFB;padding:10px;font-weight:bold;">PANEL</th>
-        <th style="background: #505154; color: #FBFBFB;padding:10px;font-weight:bold;">PART</th>
         <th style="background: #505154; color: #FBFBFB;padding:10px;font-weight:bold;">QTY</th>
     </tr>
     @foreach ($data as $d)
@@ -41,7 +40,6 @@
             <td style="text-align: left;">{{ $d->no_form }}</td>
             <td style="text-align: left;">{{ $d->no_marker }}</td>
             <td style="text-align: left;">{{ $d->panel }}</td>
-            <td style="text-align: left;">{{ $d->part }}</td>
             <td>{{ $d->qty }}</td>
         </tr>
     @endforeach
