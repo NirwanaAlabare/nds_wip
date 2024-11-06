@@ -28,11 +28,11 @@ class ReportCuttingController extends Controller
             $additionalQuery = "";
 
             if ($request->dateFrom) {
-                $additionalQuery .= " and form_cut_input.tgl_form_cut >= '".$request->dateFrom."'";
+                $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) >= '".$request->dateFrom."'";
             }
 
             if ($request->dateTo) {
-                $additionalQuery .= " and form_cut_input.tgl_form_cut <= '".$request->dateTo."'";
+                $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) <= '".$request->dateTo."'";
             }
 
             $keywordQuery = "";
@@ -101,7 +101,7 @@ class ReportCuttingController extends Controller
                                 (
                                     SELECT
                                         meja.`name` meja,
-                                        DATE(form_cut_input.waktu_mulai) tgl_form_cut,
+                                        COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) tgl_form_cut,
                                         form_cut_input.id_marker,
                                         form_cut_input.no_form,
                                         form_cut_input.qty_ply,
