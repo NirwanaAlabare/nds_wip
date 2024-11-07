@@ -524,7 +524,7 @@
         }
 
         function validatePrintYearSequence() {
-            if (Number($('#range_awal').val()) > 0 && Number($('#range_awal').val()) <= Number($('#range_akhir').val())) {
+            if (Number($('#add_qty').val() > 0) && Number($('#range_awal').val()) > 0 && Number($('#range_awal').val()) <= Number($('#range_akhir').val())) {
                 return true;
             }
 
@@ -549,7 +549,21 @@
                     }
                 });
             } else {
-                setYearSequenceNumberAct();
+                Swal.fire({
+                    icon: "info",
+                    title: "Konfirmasi",
+                    html: "Range <b>"+$('#range_awal').val()+" - "+$('#range_akhir').val()+"</b> dengan Total QTY <b>"+((Number($('#range_akhir').val()) - Number($('#range_awal').val())) + 1)+"</b>",
+                    showDenyButton: true,
+                    showCancelButton: false,
+                    confirmButtonText: "Lanjut",
+                    denyButtonText: "Batal"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        setYearSequenceNumberAct();
+                    } else if (result.isDenied) {
+                        Swal.fire("Input dibatalkan", "", "info");
+                    }
+                })
             }
         }
 
