@@ -81,14 +81,14 @@ class Report_eff_new_export implements FromView, WithEvents, ShouldAutoSize
     count(so_det_id) tot_output,
     time(max(a.updated_at)) jam_akhir_input,
     case
-    when time(max(a.updated_at)) >= '13:00:00'  and time(max(a.updated_at)) <= '18:30:00' THEN '01:00:00'
-    when time(max(a.updated_at)) > '18:30:00'  THEN '00:00:00'
+    when time(max(a.updated_at)) >= '12:00:00' and time(max(a.updated_at)) <= '18:44:59' THEN '01:00:00'
+    when time(max(a.updated_at)) <= '12:00:00'  THEN '00:00:00'
     when time(max(a.updated_at)) >= '18:45:00'  THEN '01:30:00'
     END as istirahat,
     created_by
     from output_rfts a
     where updated_at >= '$this->tgl_awal' and updated_at <= '$this->tgl_akhir'
-    group by master_plan_id, created_by
+    group by master_plan_id, created_by, date(updated_at)
     ) a
     inner join master_plan mp on a.master_plan_id = mp.id
     inner join so_det sd on a.so_det_id = sd.id
@@ -102,12 +102,11 @@ class Report_eff_new_export implements FromView, WithEvents, ShouldAutoSize
     ) acm on ac.id = acm.id_act_cost
     left join
     (
-    select created_by,max(time(a.updated_at)) jam_akhir_input, count(so_det_id) tot_output_line
-    from output_rfts a where updated_at >= '$this->tgl_awal' and updated_at <= '$this->tgl_akhir' group by created_by
-    ) b on a.created_by = b.created_by
+    select date(updated_at) tgl_b,created_by,max(time(a.updated_at)) jam_akhir_input, count(so_det_id) tot_output_line
+    from output_rfts a where updated_at >= '$this->tgl_awal' and updated_at <= '$this->tgl_akhir' group by created_by, date(updated_at)
+    ) b on a.created_by = b.created_by and a.tgl_trans = b.tgl_b
     group by ac.kpno, ac.styleno,u.name, a.tgl_trans
     order by tgl_trans asc, name asc, kpno asc
-
         ");
 
 
