@@ -48,7 +48,6 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
                 form_cut_input.no_form,
                 marker_input.kode no_marker,
                 marker_input.panel,
-                COALESCE(master_part.nama_part, '-') part,
                 (marker_input_detail.ratio * form_cut_input_detail.total_lembar) qty
             FROM
                 form_cut_input
@@ -67,9 +66,6 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
                 LEFT JOIN users as meja on meja.id = form_cut_input.no_meja
                 LEFT JOIN marker_input ON marker_input.kode = form_cut_input.id_marker
                 LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id and marker_input_detail.ratio > 0
-                LEFT JOIN part on part.act_costing_id = marker_input.act_costing_id and part.color = marker_input.color and part.panel = marker_input.panel
-                LEFT JOIN part_detail on part_detail.part_id = part.id
-                LEFT JOIN master_part on master_part.id = part_detail.master_part_id
             WHERE
                 form_cut_input.`status` = 'SELESAI PENGERJAAN' and
                 COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), form_cut_input.tgl_input) between '".$this->dateFrom."' and '".$this->dateTo."'
@@ -84,7 +80,6 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
                 marker_input.style,
                 marker_input.color,
                 marker_input.panel,
-                master_part.id,
                 marker_input_detail.id
         ");
 
@@ -119,7 +114,7 @@ class ExportCuttingForm implements FromView, WithEvents, ShouldAutoSize
         );
 
         $event->sheet->styleCells(
-            'A4:O' . ($event->getConcernable()->rowCount+4),
+            'A4:N' . ($event->getConcernable()->rowCount+4),
             [
                 'borders' => [
                     'allBorders' => [
