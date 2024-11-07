@@ -81,8 +81,8 @@ class Report_eff_new_export implements FromView, WithEvents, ShouldAutoSize
     count(so_det_id) tot_output,
     time(max(a.updated_at)) jam_akhir_input,
     case
-    when time(max(a.updated_at)) >= '12:00:00' and time(max(a.updated_at)) <= '18:44:59' THEN '01:00:00'
-    when time(max(a.updated_at)) <= '12:00:00'  THEN '00:00:00'
+    when time(max(a.updated_at)) >= '13:00:00'  and time(max(a.updated_at)) <= '18:30:00' THEN '01:00:00'
+    when time(max(a.updated_at)) > '18:30:00'  THEN '00:00:00'
     when time(max(a.updated_at)) >= '18:45:00'  THEN '01:30:00'
     END as istirahat,
     created_by

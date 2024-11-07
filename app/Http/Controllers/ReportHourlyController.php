@@ -164,9 +164,9 @@ from
             mp.jam_kerja_awal,
             last_input jam_kerja_akhir,
             CASE
-                    WHEN last_input >= '16:00:00' AND last_input <= '18:30:00' THEN '01:00:00'
-                    WHEN last_input >= '18:30:00' THEN '01:30:00'
-                    ELSE '00:00:00'
+            WHEN last_input >= '13:00:00' AND last_input <= '18:30:00' THEN '01:00:00'
+            WHEN last_input > '18:30:00' THEN '01:30:00'
+            ELSE '00:00:00'
             END AS istirahat,
             COUNT(CASE WHEN jam = 1 THEN 1 END) AS jam_1,
             COUNT(CASE WHEN jam = 2 THEN 1 END) AS jam_2,
@@ -228,9 +228,9 @@ from
                             mp.jam_kerja_awal,
                             last_input jam_kerja_akhir,
                             CASE
-                                WHEN last_input >= '16:00:00' AND last_input <= '18:30:00' THEN '01:00:00'
-                                WHEN last_input >= '18:30:00' THEN '01:30:00'
-                                ELSE '00:00:00'
+            WHEN last_input >= '13:00:00' AND last_input <= '18:30:00' THEN '01:00:00'
+            WHEN last_input > '18:30:00' THEN '01:30:00'
+            ELSE '00:00:00'
                             END AS istirahat
                             from output_rfts a
                             left join dim_jam_kerja_sewing b on time(a.updated_at) >= b.jam_kerja_awal and time(a.updated_at) <= b.jam_kerja_akhir
@@ -282,9 +282,9 @@ from
                             mp.jam_kerja_awal,
                             last_input jam_kerja_akhir,
                             CASE
-                                WHEN last_input >= '16:00:00' AND last_input <= '18:30:00' THEN '01:00:00'
-                                WHEN last_input >= '18:30:00' THEN '01:30:00'
-                                ELSE '00:00:00'
+            WHEN last_input >= '13:00:00' AND last_input <= '18:30:00' THEN '01:00:00'
+            WHEN last_input > '18:30:00' THEN '01:30:00'
+            ELSE '00:00:00'
                             END AS istirahat
                             from output_rfts a
                             left join dim_jam_kerja_sewing b on time(a.updated_at) >= b.jam_kerja_awal and time(a.updated_at) <= b.jam_kerja_akhir
@@ -335,9 +335,9 @@ from
                             mp.jam_kerja_awal,
                             last_input jam_kerja_akhir,
                             CASE
-                                WHEN last_input >= '16:00:00' AND last_input <= '18:30:00' THEN '01:00:00'
-                                WHEN last_input >= '18:30:00' THEN '01:30:00'
-                                ELSE '00:00:00'
+            WHEN last_input >= '13:00:00' AND last_input <= '18:30:00' THEN '01:00:00'
+            WHEN last_input > '18:30:00' THEN '01:30:00'
+            ELSE '00:00:00'
                             END AS istirahat
                             from output_rfts a
                             left join dim_jam_kerja_sewing b on time(a.updated_at) >= b.jam_kerja_awal and time(a.updated_at) <= b.jam_kerja_akhir
