@@ -53,6 +53,28 @@
                     </thead>
                     <tbody>
                     </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="11"></th>
+                            <th>
+                                {{-- <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_awal'> --}}
+                                ...
+                            </th>
+                            <th>
+                                {{-- <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_reject'> --}}
+                                ...
+                            </th>
+                            <th>
+                                {{-- <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_replace'> --}}
+                                ...
+                            </th>
+                            <th>
+                                {{-- <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_in'> --}}
+                                ...
+                            </th>
+                            <th colspan="2"></th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -84,11 +106,22 @@
             });
         });
 
+        var listFilter = [
+            'tanggal_filter',
+            'buyer_filter',
+            'ws_filter',
+            'style_filter',
+            'color_filter',
+            'panel_filter',
+            'size_filter',
+            'notes_filter'
+        ];
+
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
             if (i <= 7) {
                 var title = $(this).text();
-                $(this).html('<input type="text" class="form-control form-control-sm" />');
+                $(this).html('<input type="text" class="form-control form-control-sm" '+listFilter[i]+'/>');
 
                 $('input', this).on('keyup change', function() {
                     if (datatable.column(i).search() !== this.value) {
@@ -157,7 +190,48 @@
                     targets: "_all",
                     className: "text-nowrap"
                 }
-            ]
+            ],
+            footerCallback: async function(row, data, start, end, display) {
+                var api = this.api(),data;
+
+                $(api.column(0).footer()).html('Total');
+                $(api.column(11).footer()).html("...");
+                $(api.column(12).footer()).html("...");
+                $(api.column(13).footer()).html("...");
+                $(api.column(14).footer()).html("...");
+
+                $.ajax({
+                    url: '',
+                    dataType: 'json',
+                    dataSrc: 'data',
+                    data: {
+                        'dateFrom' : $('#from').val(),
+                        'dateTo' : $('#to').val(),
+                        'tgl_form_cut': $('#tanggal_filter').val(),
+                        'buyer': $('#buyer_filter').val(),
+                        'ws': $('#ws_filter').val(),
+                        'style': $('#style_filter').val(),
+                        'color': $('#color_filter').val(),
+                        'panel': $('#panel_filter').val(),
+                        'size': $('#size_filter').val(),
+                        'notes': $('#notes_filter').val()
+                    },
+                    success: function(response) {
+                        console.log(response);
+
+                        if (response && response[0]) {
+                            // Update footer by showing the total with the reference of the column index
+                            $(api.column(0).footer()).html('Total');
+                            $(api.column(8).footer()).html(response[0]['qty']);
+                            $(api.column(9).footer()).html(response[0]['qty_reject']);
+                            $(api.column(10).footer()).html(response[0]['qty_replace']);
+                        }
+                    },
+                    error: function(request, status, error) {
+                        alert('cek');
+                    },
+                })
+            },
         });
 
         function datatableReload() {
@@ -253,8 +327,6 @@
 
             // This arrangement can be altered based on how we want the date's format to appear.
             let currentDate = `${day}-${month}-${year}`;
-
-            console.log($("#tgl-awal").val(), $("#tgl-akhir").val())
 
             $.ajax({
                 url: "{{ route("export-cutting-form") }}",

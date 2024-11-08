@@ -356,7 +356,7 @@ class CuttingFormController extends Controller
                 if ($scannedItemUpdate) {
                     $scannedItemUpdate->qty_stok = $newItemQtyStok;
                     $scannedItemUpdate->qty_in = $newItemQty;
-                    $scannedItemUpdate->qty = floatval($newItemQty - $scannedItem->qty_in + $scannedItem->qty);
+                    $scannedItemUpdate->qty = floatval(($newItemQty - $scannedItem->qty_in) + $scannedItem->qty);
                     $scannedItemUpdate->save();
 
                     if ($scannedItemUpdate->qty > 0) {
@@ -383,9 +383,9 @@ class CuttingFormController extends Controller
                         "lot" => $newItem[0]->lot,
                         "roll" => $newItem[0]->roll,
                         "roll_buyer" => $newItem[0]->roll_buyer,
-                        "qty" => $newItemQty > 0 ? $newItemQty : 0,
-                        "qty_stok" => $newItemQtyStok > 0 ? $newItemQtyStok : 0,
-                        "qty_in" => $newItemQty > 0 ? $newItemQty : 0,
+                        "qty" => $newItemQty,
+                        "qty_stok" => $newItemQtyStok,
+                        "qty_in" => $newItemQty,
                         "qty_pakai" => 0,
                         "unit" => $newItemUnit
                     ]
@@ -696,7 +696,7 @@ class CuttingFormController extends Controller
                         "roll" => $validatedRequest['current_roll'],
                         "roll_buyer" => $validatedRequest['current_roll_buyer'],
                         "qty" => $itemRemain > 0 ? 0 : $itemRemain,
-                        "qty_pakai" => $validatedRequest['current_total_pemakaian_roll'],
+                        "qty_pakai" => DB::raw("COALESCE(qty_pakai, 0) + ".$validatedRequest['current_total_pemakaian_roll']),
                         "unit" => $itemUnit,
                         "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
                     ]
@@ -731,7 +731,7 @@ class CuttingFormController extends Controller
                         "roll" => $validatedRequest['current_roll'],
                         "roll_buyer" => $validatedRequest['current_roll_buyer'],
                         "qty" => $itemRemain,
-                        "qty_pakai" => $validatedRequest['current_total_pemakaian_roll'],
+                        "qty_pakai" => DB::raw("COALESCE(qty_pakai, 0) + ".$validatedRequest['current_total_pemakaian_roll']),
                         "unit" => $itemUnit,
                         "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
                     ]
@@ -942,7 +942,7 @@ class CuttingFormController extends Controller
                     "roll" => $validatedRequest['current_roll'],
                     "roll_buyer" => $validatedRequest['current_roll_buyer'],
                     "qty" => $itemRemain,
-                    "qty_pakai" => $validatedRequest['current_total_pemakaian_roll'],
+                    "qty_pakai" => DB::raw("COALESCE(qty_pakai, 0) + ".$validatedRequest['current_total_pemakaian_roll']),
                     "unit" => $itemUnit,
                     "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
                 ]
