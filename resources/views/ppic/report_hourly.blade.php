@@ -11,6 +11,25 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+
+    <style>
+        /* Custom styles for the table */
+
+        .table-bordered {
+
+            border: 1px solid black;
+            /* Change thickness of the outer border */
+
+        }
+
+        .table-bordered th,
+        .table-bordered td {
+
+            border: 1px solid black;
+            /* Change thickness of inner borders */
+
+        }
+    </style>
 @endsection
 
 @section('content')
@@ -39,7 +58,7 @@
             </div>
 
             <div class="table-responsive">
-                <table id="datatable" class="table table-bordered table-hover table-sm w-100 text-nowrap">
+                <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
                     <thead class="table-primary">
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>Tgl. Input</th>
