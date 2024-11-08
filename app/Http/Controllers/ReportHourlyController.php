@@ -70,117 +70,85 @@ order by sewing_line asc
             }
 
             $data_tracking = DB::connection('mysql_sb')->select("SELECT
-a.created_by,
-tgl_input,
-sewing_line,
-a.styleno,
-max(jam_kerja) jam_kerja,
-max(man_power) man_power,
-max(smv) smv,
-round(max(man_power) * max(jam_kerja) * 60 / max(smv),0) target_100_eff,
-max(target_effy) target_effy,
-round(round(max(man_power) * max(jam_kerja) * 60 / max(smv),0) * max(target_effy) /100,0) target_output_eff,
-coalesce(sum(tot_days),0) tot_days,
-concat(coalesce(f.eff_line,0),' %') kemarin_1,
-concat(coalesce(g.eff_line,0),' %') kemarin_2,
-round(
-round(
-max(man_power) * round(sum(tot_input) / tot_input_line *
-ROUND(HOUR(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) +
-MINUTE(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 60 +
-SECOND(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 3600,2),2) * 60 / max(smv),0)
-* target_effy / 100,0) target_output_eff_old,
-set_target perhari,
-target_effy,
-round(
-max(man_power) * round(sum(tot_input) / tot_input_line *
-ROUND(HOUR(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) +
-MINUTE(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 60 +
-SECOND(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 3600,2),2) * 60 / max(smv),0)
-target_100_eff_old,
-min(jam_kerja_awal) jam_kerja_awal,
-jam_kerja_akhir,
-istirahat,
-TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE AS waktu_kerja,
-ROUND(HOUR(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) +
-MINUTE(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 60 +
-SECOND(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 3600,2) AS kerja_total,
-round(sum(tot_input) / tot_input_line *
-ROUND(HOUR(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) +
-MINUTE(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 60 +
-SECOND(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 3600,2),2) as jam_kerja_act,
-round(
-max(man_power) *
-sum(tot_input) / tot_input_line *
-ROUND(HOUR(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) +
-MINUTE(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 60 +
-SECOND(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 3600,2) * 60,0) as min_avl,
-round(sum(tot_input) * max(smv),0) min_produce,
-sum(jam_1) jam_1,
-sum(jam_2) jam_2,
-sum(jam_3) jam_3,
-sum(jam_4) jam_4,
-sum(jam_5) jam_5,
-sum(jam_6) jam_6,
-sum(jam_7) jam_7,
-sum(jam_8) jam_8,
-sum(jam_9) jam_9,
-sum(jam_10) jam_10,
-sum(jam_11) jam_11,
-sum(jam_12) jam_12,
-sum(jam_13) jam_13,
-sum(tot_input) tot_input,
-tot_input_line,
-round(sum(tot_input) * max(smv),0) earned_minutes,
-concat(
-round(
-round(sum(tot_input) * max(smv),0) /
-round(
-max(man_power) *
-sum(tot_input) / tot_input_line *
-ROUND(HOUR(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) +
-MINUTE(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 60 +
-SECOND(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 3600,2) * 60,0) * 100,2), ' %' )
-as eff,
-concat(e.eff_line,' %') eff_line
-from
-(
-            select
-            a.created_by,
+concat((DATE_FORMAT(a.tgl_input,  '%d')), '-', left(DATE_FORMAT(a.tgl_input,  '%M'),3),'-',DATE_FORMAT(a.tgl_input,  '%Y')) tgl_input_fix,
+a.*,
+if(eff_kmrn_1 is null, '-',eff_kmrn_1) kemarin_1 ,
+if(eff_kmrn_2 is null, '-',eff_kmrn_2) kemarin_2,
+e.eff_skrg
+from (
+select
             date(a.updated_at) tgl_input,
+						a.created_by,
             u.name sewing_line,
+						master_plan_id,
             ac.styleno,
+						ac.kpno,
             mpr.product_item,
             mp.man_power,
             mp.jam_kerja,
             mp.smv,
+						round(mp.man_power * mp.jam_kerja * 60 / mp.smv) target_eff100,
             mp.target_effy,
-            master_plan_id,
             d.tot_days,
-            count(so_det_id) tot_input,
-            c.tot_input_line,
-            mp.plan_target,
-            mp.set_target,
+						round((mp.plan_target * mp.target_effy) / 100) target_output_eff,
             mp.jam_kerja_awal,
             last_input jam_kerja_akhir,
-            CASE
+						CASE
+                    WHEN last_input >= '13:00:00' AND last_input <= '18:30:00' THEN '01:00:00'
+                    WHEN last_input >= '18:30:00' THEN '01:30:00'
+                    ELSE '00:00:00'
+            END AS istirahat,
+						TIMEDIFF(last_input,mp.jam_kerja_awal) - INTERVAL CASE
+						WHEN last_input >= '13:00:00' AND last_input <= '18:30:00' THEN '01:00:00'
+						WHEN last_input > '18:30:00' THEN '01:30:00'
+						ELSE '00:00:00'
+						END HOUR_SECOND AS waktu_kerja,
+						ROUND(
+						(TIME_TO_SEC(TIMEDIFF(last_input, mp.jam_kerja_awal)) - TIME_TO_SEC
+						(CASE
             WHEN last_input >= '13:00:00' AND last_input <= '18:30:00' THEN '01:00:00'
             WHEN last_input > '18:30:00' THEN '01:30:00'
             ELSE '00:00:00'
-            END AS istirahat,
-            COUNT(CASE WHEN jam = 1 THEN 1 END) AS jam_1,
-            COUNT(CASE WHEN jam = 2 THEN 1 END) AS jam_2,
-            COUNT(CASE WHEN jam = 3 THEN 1 END) AS jam_3,
-            COUNT(CASE WHEN jam = 4 THEN 1 END) AS jam_4,
-            COUNT(CASE WHEN jam = 5 THEN 1 END) AS jam_5,
-            COUNT(CASE WHEN jam = 6 THEN 1 END) AS jam_6,
-            COUNT(CASE WHEN jam = 7 THEN 1 END) AS jam_7,
-            COUNT(CASE WHEN jam = 8 THEN 1 END) AS jam_8,
-            COUNT(CASE WHEN jam = 9 THEN 1 END) AS jam_9,
-            COUNT(CASE WHEN jam = 10 THEN 1 END) AS jam_10,
-            COUNT(CASE WHEN jam = 11 THEN 1 END) AS jam_11,
-            COUNT(CASE WHEN jam = 12 THEN 1 END) AS jam_12,
-            COUNT(CASE WHEN jam = 13 THEN 1 END) AS jam_13
+						END)) / 3600, 2) AS kerja_total,
+						mp.set_target perhari,
+						round(if (mp.jam_kerja < 1,mp.set_target, mp.set_target / mp.jam_kerja)) plan_target_perjam,
+COUNT(DISTINCT CASE WHEN jam = 1 THEN a.id END) AS jam_1,
+COUNT(DISTINCT CASE WHEN jam = 2 THEN a.id END) AS jam_2,
+COUNT(DISTINCT CASE WHEN jam = 3 THEN a.id END) AS jam_3,
+COUNT(DISTINCT CASE WHEN jam = 4 THEN a.id END) AS jam_4,
+COUNT(DISTINCT CASE WHEN jam = 5 THEN a.id END) AS jam_5,
+COUNT(DISTINCT CASE WHEN jam = 6 THEN a.id END) AS jam_6,
+COUNT(DISTINCT CASE WHEN jam = 7 THEN a.id END) AS jam_7,
+COUNT(DISTINCT CASE WHEN jam = 8 THEN a.id END) AS jam_8,
+COUNT(DISTINCT CASE WHEN jam = 9 THEN a.id END) AS jam_9,
+COUNT(DISTINCT CASE WHEN jam = 10 THEN a.id END) AS jam_10,
+COUNT(DISTINCT CASE WHEN jam = 11 THEN a.id END) AS jam_11,
+COUNT(DISTINCT CASE WHEN jam = 12 THEN a.id END) AS jam_12,
+COUNT(DISTINCT CASE WHEN jam = 13 THEN a.id END) AS jam_13,
+            t.tot_input,
+            c.tot_input_line,
+						ROUND((t.tot_input / c.tot_input_line) * ROUND(
+						(TIME_TO_SEC(TIMEDIFF(last_input, mp.jam_kerja_awal)) - TIME_TO_SEC
+						(CASE
+            WHEN last_input >= '12:00:00' AND last_input <= '18:30:00' THEN '01:00:00'
+            WHEN last_input > '18:30:00' THEN '01:30:00'
+            ELSE '00:00:00'
+						END)) / 3600, 2),2) jam_kerja_act,
+						round((mp.man_power * ROUND((t.tot_input / c.tot_input_line) * ROUND(
+						(TIME_TO_SEC(TIMEDIFF(last_input, mp.jam_kerja_awal)) - TIME_TO_SEC
+						(CASE
+            WHEN last_input >= '13:00:00' AND last_input <= '18:30:00' THEN '01:00:00'
+            WHEN last_input > '18:30:00' THEN '01:30:00'
+            ELSE '00:00:00'
+						END)) / 3600, 2),2)) * 60,2) min_avail,
+						round(t.tot_input * mp.smv,2) min_prod,
+						round(round(t.tot_input * mp.smv,2) / round((mp.man_power * ROUND((t.tot_input / c.tot_input_line) * ROUND(
+						(TIME_TO_SEC(TIMEDIFF(last_input, mp.jam_kerja_awal)) - TIME_TO_SEC
+						(CASE
+            WHEN last_input >= '13:00:00' AND last_input <= '18:30:00' THEN '01:00:00'
+            WHEN last_input > '18:30:00' THEN '01:30:00'
+            ELSE '00:00:00'
+						END)) / 3600, 2),2)) * 60,2) * 100,2) eff
             from output_rfts a
             left join dim_jam_kerja_sewing b on time(a.updated_at) >= b.jam_kerja_awal and time(a.updated_at) <= b.jam_kerja_akhir
             inner join master_plan mp on a.master_plan_id = mp.id
@@ -194,174 +162,165 @@ from
             where a.updated_at >= '$start_date' and a.updated_at <= '$end_date'
             group by created_by
             ) c on a.created_by = c.created_by
-            left join (
-            select * from rep_hourly_output_hist_trans
-            ) d on a.created_by = d.created_by and ac.styleno = d.styleno
-            where a.updated_at >= '$start_date' and a.updated_at <= '$end_date'
-            group by a.created_by, master_plan_id, ac.styleno
+            left join (select * from rep_hourly_output_hist_trans ) d on a.created_by = d.created_by
+						and ac.styleno = d.styleno
+	          left join (
+						select created_by,count(so_det_id) tot_input,ac.styleno from output_rfts a
+						inner join so_det sd on a.so_det_id = sd.id
+						inner join so on sd.id_so = so.id
+						inner join act_costing ac on so.id_cost = ac.id
+						where a.updated_at >= '$start_date' and a.updated_at <= '$end_date'
+						group by ac.styleno, a.created_by ) t on a.created_by = t.created_by and ac.styleno = t.styleno
+						where a.updated_at >= '$start_date' and a.updated_at <= '$end_date'
+            group by a.created_by, ac.styleno
             order by u.name asc
-            ) a
-    left join (
-                select created_by,
-                round(sum(min_produce) / sum(min_avl) * 100,2) eff_line
-                from (SELECT
-                        a.created_by,
-                        sewing_line,
-                        round(
-                        max(man_power) *
-                        sum(tot_input) / tot_input_line *
-                        ROUND(HOUR(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) +
-                        MINUTE(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 60 +
-                        SECOND(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 3600,2) * 60,0) as min_avl,
-                        round(sum(tot_input) * max(smv),0) min_produce
-                        from
-                            (
-                            select
-                            date(a.updated_at) tgl_input,
-                            a.created_by,
-                            u.name sewing_line,
-                            ac.styleno,
-                            mp.man_power,
-                            mp.smv,
-                            count(so_det_id) tot_input,
-                            c.tot_input_line,
-                            mp.jam_kerja_awal,
-                            last_input jam_kerja_akhir,
-                            CASE
+) a
+left join
+(
+select
+created_by,
+sewing_line,
+tgl_input,
+round((sum(min_prod) / sum(min_avail)) * 100,2) eff_skrg
+from (
+select
+            date(a.updated_at) tgl_input,
+						a.created_by,
+            u.name sewing_line,
+						round((mp.man_power * ROUND((t.tot_input/ c.tot_input_line) * ROUND(
+						(TIME_TO_SEC(TIMEDIFF(last_input, mp.jam_kerja_awal)) - TIME_TO_SEC
+						(CASE
             WHEN last_input >= '13:00:00' AND last_input <= '18:30:00' THEN '01:00:00'
             WHEN last_input > '18:30:00' THEN '01:30:00'
             ELSE '00:00:00'
-                            END AS istirahat
-                            from output_rfts a
-                            left join dim_jam_kerja_sewing b on time(a.updated_at) >= b.jam_kerja_awal and time(a.updated_at) <= b.jam_kerja_akhir
-                            inner join master_plan mp on a.master_plan_id = mp.id
-                            inner join user_sb_wip u on a.created_by = u.id
-                            inner join so_det sd on a.so_det_id = sd.id
-                            inner join so on sd.id_so = so.id
-                            inner join act_costing ac on so.id_cost = ac.id
-                            left join (
-                            select created_by,COUNT(so_det_id)tot_input_line, max(time(updated_at)) last_input from output_rfts a
-                            where a.updated_at >= '$start_date' and a.updated_at <= '$end_date'
-                            group by created_by
-                            ) c on a.created_by = c.created_by
-                            where a.updated_at >= '$start_date' and a.updated_at <= '$end_date'
-                            group by a.created_by, master_plan_id, ac.styleno
-                            order by u.name asc
-                            ) a
-                            group by sewing_line, styleno
-                            ) x
-                            group by sewing_line
-                            ) e on a.created_by = e.created_by
+						END)) / 3600, 2),2)) * 60,2) min_avail,
+						round(t.tot_input * mp.smv,2) min_prod
+            from output_rfts a
+            left join dim_jam_kerja_sewing b on time(a.updated_at) >= b.jam_kerja_awal
+						and time(a.updated_at) <= b.jam_kerja_akhir
+            inner join master_plan mp on a.master_plan_id = mp.id
+            inner join user_sb_wip u on a.created_by = u.id
+            inner join so_det sd on a.so_det_id = sd.id
+            inner join so on sd.id_so = so.id
+            inner join act_costing ac on so.id_cost = ac.id
+            inner join masterproduct mpr on ac.id_product = mpr.id
+            left join (
+            select date(a.updated_at) tgl_input,created_by,COUNT(so_det_id)tot_input_line, max(time(updated_at)) last_input 						from output_rfts a
+            where a.updated_at >= '$start_date' and a.updated_at <= '$end_date'
+            group by created_by, date(a.updated_at)
+            ) c on a.created_by = c.created_by	and date(a.updated_at) = c.tgl_input
+	          left join (
+						select created_by,count(so_det_id) tot_input,ac.styleno from output_rfts a
+						inner join so_det sd on a.so_det_id = sd.id
+						inner join so on sd.id_so = so.id
+						inner join act_costing ac on so.id_cost = ac.id
+						where a.updated_at >= '$start_date' and a.updated_at <= '$end_date'
+						group by ac.styleno, a.created_by ) t on a.created_by = t.created_by and ac.styleno = t.styleno
+						where a.updated_at >= '$start_date' and a.updated_at <= '$end_date'
+            group by a.created_by, master_plan_id, ac.styleno, tgl_input
+            order by u.name asc
+) eff_hr_ini
+group by created_by, tgl_input
+) e on a.created_by = e.created_by
+left join
+(
+select
+created_by,
+sewing_line,
+styleno,
+tgl_input,
+round((sum(min_prod) / sum(min_avail)) * 100,2) eff_kmrn_1
+from (
+select
+            date(a.updated_at) tgl_input,
+						a.created_by,
+            u.name sewing_line,
+						ac.styleno,
+						round((mp.man_power * ROUND((t.tot_input/ c.tot_input_line) * ROUND(
+						(TIME_TO_SEC(TIMEDIFF(last_input, mp.jam_kerja_awal)) - TIME_TO_SEC
+						(CASE
+            WHEN last_input >= '13:00:00' AND last_input <= '18:30:00' THEN '01:00:00'
+            WHEN last_input > '18:30:00' THEN '01:30:00'
+            ELSE '00:00:00'
+						END)) / 3600, 2),2)) * 60,2) min_avail,
+						round(t.tot_input * mp.smv,2) min_prod
+            from output_rfts a
+            left join dim_jam_kerja_sewing b on time(a.updated_at) >= b.jam_kerja_awal
+						and time(a.updated_at) <= b.jam_kerja_akhir
+            inner join master_plan mp on a.master_plan_id = mp.id
+            inner join user_sb_wip u on a.created_by = u.id
+            inner join so_det sd on a.so_det_id = sd.id
+            inner join so on sd.id_so = so.id
+            inner join act_costing ac on so.id_cost = ac.id
+            inner join masterproduct mpr on ac.id_product = mpr.id
+            left join (
+            select date(a.updated_at) tgl_input,created_by,COUNT(so_det_id)tot_input_line, max(time(updated_at)) last_input 						from output_rfts a
+            where a.updated_at >= '$start_date_min_1' and a.updated_at <= '$end_date_min_1'
+            group by created_by, date(a.updated_at)
+            ) c on a.created_by = c.created_by	and date(a.updated_at) = c.tgl_input
+	          left join (
+						select created_by,count(so_det_id) tot_input,ac.styleno from output_rfts a
+						inner join so_det sd on a.so_det_id = sd.id
+						inner join so on sd.id_so = so.id
+						inner join act_costing ac on so.id_cost = ac.id
+						where a.updated_at >= '$start_date_min_1' and a.updated_at <= '$end_date_min_1'
+						group by ac.styleno, a.created_by ) t on a.created_by = t.created_by and ac.styleno = t.styleno
+						where a.updated_at >= '$start_date_min_1' and a.updated_at <= '$end_date_min_1'
+            group by a.created_by, master_plan_id, ac.styleno, tgl_input
+            order by u.name asc
+						) eff_kmrn_1
+group by created_by, tgl_input, styleno
+)	e_1 on a.created_by = e_1.created_by	and a.styleno = e_1.styleno
+left join
+(
+select
+created_by,
+sewing_line,
+styleno,
+tgl_input,
+round((sum(min_prod) / sum(min_avail)) * 100,2) eff_kmrn_2
+from (
+select
+            date(a.updated_at) tgl_input,
+						a.created_by,
+            u.name sewing_line,
+						ac.styleno,
+						round((mp.man_power * ROUND((t.tot_input/ c.tot_input_line) * ROUND(
+						(TIME_TO_SEC(TIMEDIFF(last_input, mp.jam_kerja_awal)) - TIME_TO_SEC
+						(CASE
+            WHEN last_input >= '13:00:00' AND last_input <= '18:30:00' THEN '01:00:00'
+            WHEN last_input > '18:30:00' THEN '01:30:00'
+            ELSE '00:00:00'
+						END)) / 3600, 2),2)) * 60,2) min_avail,
+						round(t.tot_input * mp.smv,2) min_prod
+            from output_rfts a
+            left join dim_jam_kerja_sewing b on time(a.updated_at) >= b.jam_kerja_awal
+						and time(a.updated_at) <= b.jam_kerja_akhir
+            inner join master_plan mp on a.master_plan_id = mp.id
+            inner join user_sb_wip u on a.created_by = u.id
+            inner join so_det sd on a.so_det_id = sd.id
+            inner join so on sd.id_so = so.id
+            inner join act_costing ac on so.id_cost = ac.id
+            inner join masterproduct mpr on ac.id_product = mpr.id
+            left join (
+            select date(a.updated_at) tgl_input,created_by,COUNT(so_det_id)tot_input_line, max(time(updated_at)) last_input 						from output_rfts a
+            where a.updated_at >= '$start_date_min_2' and a.updated_at <= '$end_date_min_2'
+            group by created_by, date(a.updated_at)
+            ) c on a.created_by = c.created_by	and date(a.updated_at) = c.tgl_input
+	          left join (
+						select created_by,count(so_det_id) tot_input,ac.styleno from output_rfts a
+						inner join so_det sd on a.so_det_id = sd.id
+						inner join so on sd.id_so = so.id
+						inner join act_costing ac on so.id_cost = ac.id
+						where a.updated_at >= '$start_date_min_2' and a.updated_at <= '$end_date_min_2'
+						group by ac.styleno, a.created_by ) t on a.created_by = t.created_by and ac.styleno = t.styleno
+						where a.updated_at >= '$start_date_min_2' and a.updated_at <= '$end_date_min_2'
+            group by a.created_by, master_plan_id, ac.styleno, tgl_input
+            order by u.name asc
+						) eff_kmrn_1
+group by created_by, tgl_input, styleno
+)	e_2 on a.created_by = e_2.created_by	and a.styleno = e_2.styleno
 
-     left join (
-                select created_by,
-                styleno,
-                round(sum(min_produce) / sum(min_avl) * 100,2) eff_line
-                from (SELECT
-                        a.created_by,
-                        sewing_line,
-                        styleno,
-                        round(
-                        max(man_power) *
-                        sum(tot_input) / tot_input_line *
-                        ROUND(HOUR(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) +
-                        MINUTE(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 60 +
-                        SECOND(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 3600,2) * 60,0) as min_avl,
-                        round(sum(tot_input) * max(smv),0) min_produce
-                        from
-                            (
-                            select
-                            date(a.updated_at) tgl_input,
-                            a.created_by,
-                            u.name sewing_line,
-                            ac.styleno,
-                            mp.man_power,
-                            mp.smv,
-                            count(so_det_id) tot_input,
-                            c.tot_input_line,
-                            mp.jam_kerja_awal,
-                            last_input jam_kerja_akhir,
-                            CASE
-            WHEN last_input >= '13:00:00' AND last_input <= '18:30:00' THEN '01:00:00'
-            WHEN last_input > '18:30:00' THEN '01:30:00'
-            ELSE '00:00:00'
-                            END AS istirahat
-                            from output_rfts a
-                            left join dim_jam_kerja_sewing b on time(a.updated_at) >= b.jam_kerja_awal and time(a.updated_at) <= b.jam_kerja_akhir
-                            inner join master_plan mp on a.master_plan_id = mp.id
-                            inner join user_sb_wip u on a.created_by = u.id
-                            inner join so_det sd on a.so_det_id = sd.id
-                            inner join so on sd.id_so = so.id
-                            inner join act_costing ac on so.id_cost = ac.id
-                            left join (
-                            select created_by,COUNT(so_det_id)tot_input_line, max(time(updated_at)) last_input from output_rfts a
-                            where a.updated_at >= '$start_date_min_1' and a.updated_at <= '$end_date_min_1'
-                            group by created_by
-                            ) c on a.created_by = c.created_by
-                            where a.updated_at >= '$start_date_min_1' and a.updated_at <= '$end_date_min_1'
-                            group by a.created_by, master_plan_id, ac.styleno
-                            order by u.name asc
-                            ) a
-                            group by sewing_line, styleno
-                            ) x
-                            group by sewing_line
-                            ) f on a.created_by = f.created_by and a.styleno = f.styleno
-         left join (
-                select created_by,
-                styleno,
-                round(sum(min_produce) / sum(min_avl) * 100,2) eff_line
-                from (SELECT
-                        a.created_by,
-                        sewing_line,
-                        styleno,
-                        round(
-                        max(man_power) *
-                        sum(tot_input) / tot_input_line *
-                        ROUND(HOUR(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) +
-                        MINUTE(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 60 +
-                        SECOND(TIMEDIFF(jam_kerja_akhir, jam_kerja_awal) - INTERVAL (istirahat * 60) MINUTE) / 3600,2) * 60,0) as min_avl,
-                        round(sum(tot_input) * max(smv),0) min_produce
-                        from
-                            (
-                            select
-                            date(a.updated_at) tgl_input,
-                            a.created_by,
-                            u.name sewing_line,
-                            ac.styleno,
-                            mp.man_power,
-                            mp.smv,
-                            count(so_det_id) tot_input,
-                            c.tot_input_line,
-                            mp.jam_kerja_awal,
-                            last_input jam_kerja_akhir,
-                            CASE
-            WHEN last_input >= '13:00:00' AND last_input <= '18:30:00' THEN '01:00:00'
-            WHEN last_input > '18:30:00' THEN '01:30:00'
-            ELSE '00:00:00'
-                            END AS istirahat
-                            from output_rfts a
-                            left join dim_jam_kerja_sewing b on time(a.updated_at) >= b.jam_kerja_awal and time(a.updated_at) <= b.jam_kerja_akhir
-                            inner join master_plan mp on a.master_plan_id = mp.id
-                            inner join user_sb_wip u on a.created_by = u.id
-                            inner join so_det sd on a.so_det_id = sd.id
-                            inner join so on sd.id_so = so.id
-                            inner join act_costing ac on so.id_cost = ac.id
-                            left join (
-                            select created_by,COUNT(so_det_id)tot_input_line, max(time(updated_at)) last_input from output_rfts a
-                            where a.updated_at >= '$start_date_min_2' and a.updated_at <= '$end_date_min_2'
-                            group by created_by
-                            ) c on a.created_by = c.created_by
-                            where a.updated_at >= '$start_date_min_2' and a.updated_at <= '$end_date_min_2'
-                            group by a.created_by, master_plan_id, ac.styleno
-                            order by u.name asc
-                            ) a
-                            group by sewing_line, styleno
-                            ) x
-                            group by sewing_line
-                            ) g on a.created_by = f.created_by and a.styleno = g.styleno
-
-group by sewing_line, styleno
-order by sewing_line asc
 ");
             return DataTables::of($data_tracking)->toJson();
         }

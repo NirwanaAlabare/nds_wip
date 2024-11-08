@@ -55,6 +55,7 @@
                             <th>Target Eff</th>
                             <th>Target Output Eff</th>
                             <th>Target PerHari</th>
+                            <th>Target Perjam</th>
                             <th>Jam Kerja Act</th>
                             <th>1</th>
                             <th>2</th>
@@ -134,7 +135,7 @@
                 },
             },
             columns: [{
-                    data: 'tgl_input'
+                    data: 'tgl_input_fix'
 
                 },
                 {
@@ -163,7 +164,7 @@
                     data: 'jam_kerja'
                 },
                 {
-                    data: 'target_100_eff'
+                    data: 'target_eff100'
                 },
                 {
                     data: 'target_effy'
@@ -173,6 +174,9 @@
                 },
                 {
                     data: 'perhari'
+                },
+                {
+                    data: 'plan_target_perjam'
                 },
                 {
                     data: 'jam_kerja_act'
@@ -223,7 +227,7 @@
                     data: 'eff'
                 },
                 {
-                    data: 'eff_line'
+                    data: 'eff_skrg'
                 },
             ],
             columnDefs: [{
@@ -231,7 +235,7 @@
                 "targets": "_all"
             }, ],
             rowsGroup: [
-                28
+                30
             ]
         });
 
@@ -257,7 +261,7 @@
                     },
                 },
                 columns: [{
-                        data: 'tgl_input'
+                        data: 'tgl_input_fix'
 
                     },
                     {
@@ -286,7 +290,7 @@
                         data: 'jam_kerja'
                     },
                     {
-                        data: 'target_100_eff'
+                        data: 'target_eff100'
                     },
                     {
                         data: 'target_effy'
@@ -296,6 +300,9 @@
                     },
                     {
                         data: 'perhari'
+                    },
+                    {
+                        data: 'plan_target_perjam'
                     },
                     {
                         data: 'jam_kerja_act'
@@ -346,7 +353,7 @@
                         data: 'eff'
                     },
                     {
-                        data: 'eff_line'
+                        data: 'eff_skrg'
                     },
                 ],
                 columnDefs: [{
@@ -354,7 +361,7 @@
                     "targets": "_all"
                 }, ],
                 rowsGroup: [
-                    28
+                    30
                 ]
             });
         }
