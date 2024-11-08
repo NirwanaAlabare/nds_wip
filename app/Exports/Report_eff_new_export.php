@@ -88,7 +88,7 @@ class Report_eff_new_export implements FromView, WithEvents, ShouldAutoSize
     created_by
     from output_rfts a
     where updated_at >= '$this->tgl_awal' and updated_at <= '$this->tgl_akhir'
-    group by master_plan_id, created_by
+    group by master_plan_id, created_by, date(updated_at)
     ) a
     inner join master_plan mp on a.master_plan_id = mp.id
     inner join so_det sd on a.so_det_id = sd.id
@@ -102,12 +102,11 @@ class Report_eff_new_export implements FromView, WithEvents, ShouldAutoSize
     ) acm on ac.id = acm.id_act_cost
     left join
     (
-    select created_by,max(time(a.updated_at)) jam_akhir_input, count(so_det_id) tot_output_line
-    from output_rfts a where updated_at >= '$this->tgl_awal' and updated_at <= '$this->tgl_akhir' group by created_by
-    ) b on a.created_by = b.created_by
+    select date(updated_at) tgl_b,created_by,max(time(a.updated_at)) jam_akhir_input, count(so_det_id) tot_output_line
+    from output_rfts a where updated_at >= '$this->tgl_awal' and updated_at <= '$this->tgl_akhir' group by created_by, date(updated_at)
+    ) b on a.created_by = b.created_by and a.tgl_trans = b.tgl_b
     group by ac.kpno, ac.styleno,u.name, a.tgl_trans
     order by tgl_trans asc, name asc, kpno asc
-
         ");
 
 
