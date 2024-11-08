@@ -968,7 +968,7 @@ class CuttingFormManualController extends Controller
                         "roll" => $validatedRequest['current_roll'],
                         "roll_buyer" => $validatedRequest['current_roll_buyer'],
                         "qty" => $itemRemain > 0 ? 0 : $itemRemain,
-                        "qty_pakai" => $validatedRequest['current_total_pemakaian_roll'],
+                        "qty_pakai" => DB::raw("COALESCE(qty_pakai, 0) + ".$validatedRequest['current_total_pemakaian_roll']),
                         "unit" => $itemUnit,
                         "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
                     ]
@@ -1003,7 +1003,7 @@ class CuttingFormManualController extends Controller
                         "roll" => $validatedRequest['current_roll'],
                         "roll_buyer" => $validatedRequest['current_roll_buyer'],
                         "qty" => $itemRemain,
-                        "qty_pakai" => $validatedRequest['current_total_pemakaian_roll'],
+                        "qty_pakai" => DB::raw("COALESCE(qty_pakai, 0) + ".$validatedRequest['current_total_pemakaian_roll']),
                         "unit" => $itemUnit,
                         "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
                     ]
@@ -1220,7 +1220,7 @@ class CuttingFormManualController extends Controller
                     "roll" => $validatedRequest['current_roll'],
                     "roll_buyer" => $validatedRequest['current_roll_buyer'],
                     "qty" => $itemRemain,
-                    "qty_pakai" => $validatedRequest['current_total_pemakaian_roll'],
+                    "qty_pakai" => DB::raw("COALESCE(qty_pakai, 0) + ".$validatedRequest['current_total_pemakaian_roll']),
                     "unit" => $itemUnit,
                     "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
                 ]
