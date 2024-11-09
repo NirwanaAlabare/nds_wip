@@ -9,7 +9,7 @@
                 <br>
                 <div class="row g-3 mt-3">
                     @admin
-                        <div class="col-lg-2 col-md-3 col-sm-6">
+                        {{-- <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('track-ws') }}" class="home-item">
                                 <div class="card h-100">
                                     <div class="card-body">
@@ -34,7 +34,7 @@
                                     </div>
                                 </div>
                             </a>
-                        </div>
+                        </div> --}}
                     @endadmin
 
                     @if (auth()->user()->type == 'admin' ||

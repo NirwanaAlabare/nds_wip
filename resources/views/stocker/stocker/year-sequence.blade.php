@@ -532,39 +532,39 @@
         }
 
         function setYearSequenceNumber() {
-            if (Number($('#'+method+'_qty').val()) > Number($('#qty').val())) {
-                Swal.fire({
-                    icon: "info",
-                    title: "Konfirmasi",
-                    html: "Qty Number melebihi Qty Stocker. Lanjut ?",
-                    showDenyButton: true,
-                    showCancelButton: false,
-                    confirmButtonText: "Lanjut",
-                    denyButtonText: "Batal"
-                }).then((result) => {
-                    if (result.isConfirmed) {
+            Swal.fire({
+                icon: "info",
+                title: "Konfirmasi",
+                html: "Range <b>"+$('#range_awal').val()+" - "+$('#range_akhir').val()+"</b> dengan Total QTY <b>"+((Number($('#range_akhir').val()) - Number($('#range_awal').val())) + 1)+"</b>",
+                showDenyButton: true,
+                showCancelButton: false,
+                confirmButtonText: "Lanjut",
+                denyButtonText: "Batal"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if (Number(((Number($('#range_akhir').val()) - Number($('#range_awal').val())) + 1)) > Number($('#qty').val())) {
+                        Swal.fire({
+                            icon: "info",
+                            title: "Konfirmasi",
+                            html: "Qty <b>"+((Number($('#range_akhir').val()) - Number($('#range_awal').val())) + 1)+"</b> Number melebihi Qty Stocker. Lanjut ?",
+                            showDenyButton: true,
+                            showCancelButton: false,
+                            confirmButtonText: "Lanjut",
+                            denyButtonText: "Batal"
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                setYearSequenceNumberAct();
+                            } else if (result.isDenied) {
+                                Swal.fire("Input dibatalkan", "", "info");
+                            }
+                        });
+                    } else {
                         setYearSequenceNumberAct();
-                    } else if (result.isDenied) {
-                        Swal.fire("Input dibatalkan", "", "info");
                     }
-                });
-            } else {
-                Swal.fire({
-                    icon: "info",
-                    title: "Konfirmasi",
-                    html: "Range <b>"+$('#range_awal').val()+" - "+$('#range_akhir').val()+"</b> dengan Total QTY <b>"+((Number($('#range_akhir').val()) - Number($('#range_awal').val())) + 1)+"</b>",
-                    showDenyButton: true,
-                    showCancelButton: false,
-                    confirmButtonText: "Lanjut",
-                    denyButtonText: "Batal"
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        setYearSequenceNumberAct();
-                    } else if (result.isDenied) {
-                        Swal.fire("Input dibatalkan", "", "info");
-                    }
-                })
-            }
+                } else if (result.isDenied) {
+                    Swal.fire("Input dibatalkan", "", "info");
+                }
+            })
         }
 
         function setYearSequenceNumberAct() {
