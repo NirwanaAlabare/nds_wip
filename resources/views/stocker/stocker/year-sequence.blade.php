@@ -546,7 +546,7 @@
                         Swal.fire({
                             icon: "info",
                             title: "Konfirmasi",
-                            html: "Qty <b>"+((Number($('#range_akhir').val()) - Number($('#range_awal').val())) + 1)+"</b> Number melebihi Qty Stocker. Lanjut ?",
+                            html: "Qty Number <b>"+((Number($('#range_akhir').val()) - Number($('#range_awal').val())) + 1)+"</b> melebihi Qty Stocker <b>"+$('#qty').val()+"</b>. Lanjut ?",
                             showDenyButton: true,
                             showCancelButton: false,
                             confirmButtonText: "Lanjut",
@@ -632,7 +632,7 @@
                     },
                     error: function(jqXHR) {
                         console.error(jqXHR);
-                        Swal.fire("Nomor stocker sudah mencapai "+$("#print_qty").val()+".", "", "info");
+                        Swal.fire("Gagal Input", "", "info");
 
                         generating = false;
                     }
