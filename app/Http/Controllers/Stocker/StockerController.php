@@ -2392,15 +2392,15 @@ class StockerController extends Controller
         ]);
 
         if ($validatedRequest) {
-            if ($request->replace) {
-                $deleteYearSequence = YearSequence::where("year", $validatedRequest['year'])->
-                    where("year_sequence", $validatedRequest['year_sequence'])->
-                    where("form_cut_id", $validatedRequest['form_cut_id'])->
-                    where("so_det_id", $validatedRequest['so_det_id'])->
-                    where("number", ">=", $validatedRequest['range_awal_stocker'])->
-                    where("number", "<=", $validatedRequest['range_akhir_stocker'])->
-                    delete();
-            }
+            // if ($request->replace) {
+            //     $deleteYearSequence = YearSequence::where("year", $validatedRequest['year'])->
+            //         where("year_sequence", $validatedRequest['year_sequence'])->
+            //         where("form_cut_id", $validatedRequest['form_cut_id'])->
+            //         where("so_det_id", $validatedRequest['so_det_id'])->
+            //         where("number", ">=", $validatedRequest['range_awal_stocker'])->
+            //         where("number", "<=", $validatedRequest['range_akhir_stocker'])->
+            //         delete();
+            // }
 
             $currentData = YearSequence::selectRaw("
                     number
@@ -2441,12 +2441,13 @@ class StockerController extends Controller
                             "so_det_id" => $validatedRequest['so_det_id'],
                             "size" => $validatedRequest['size'],
                             "number" => ($currentNumber > $validatedRequest['range_akhir_stocker'] ? $validatedRequest['range_akhir_stocker'] : ($currentNumber)),
+                            "id_qr_stocker" => $request["id_qr_stocker"],
                             "created_at" => $now,
                             "updated_at" => $now,
                         ]);
 
                         if (count($upsertData) % 5000 == 0) {
-                            YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], ['form_cut_id', 'so_det_id', 'size', 'number', 'created_at', 'updated_at']);
+                            YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], ['form_cut_id', 'so_det_id', 'size', 'number', 'id_qr_stocker', 'created_at', 'updated_at']);
 
                             $upsertData = [];
 
@@ -2461,7 +2462,7 @@ class StockerController extends Controller
 
                 if (count($upsertData) > 0 || $largeCount > 0) {
                     if (count($upsertData) > 0) {
-                        YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], ['form_cut_id', 'so_det_id', 'size', 'number', 'created_at', 'updated_at']);
+                        YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], ['form_cut_id', 'so_det_id', 'size', 'number', 'id_qr_stocker', 'created_at', 'updated_at']);
                     }
 
                     $stockerData = Stocker::where("id_qr_stocker", $request->id_qr_stocker)->first();
