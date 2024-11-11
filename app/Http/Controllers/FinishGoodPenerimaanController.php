@@ -255,6 +255,7 @@ group by po , barcode, dest, no_carton
 left join
 (
 select po, barcode, dest, no_carton, sum(qty)tot_fg from fg_fg_in where po = '$po' and dest = '$dest' and no_carton = '$no_carton' and status = 'NORMAL'
+group by po , barcode, dest, no_carton
 ) c on a.po = c.po and a.barcode = c.barcode and a.dest = c.dest and a.no_carton = c.no_carton
 inner join master_sb_ws m on a.id_so_det = m.id_so_det
 group by a.id_so_det
