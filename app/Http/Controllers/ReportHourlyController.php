@@ -72,8 +72,8 @@ order by sewing_line asc
             $data_tracking = DB::connection('mysql_sb')->select("SELECT
 concat((DATE_FORMAT(a.tgl_input,  '%d')), '-', left(DATE_FORMAT(a.tgl_input,  '%M'),3),'-',DATE_FORMAT(a.tgl_input,  '%Y')) tgl_input_fix,
 a.*,
-if(eff_kmrn_1 is null, '-',eff_kmrn_1) kemarin_1 ,
-if(eff_kmrn_2 is null, '-',eff_kmrn_2) kemarin_2,
+if(eff_kmrn_1 is null, '-',concat(eff_kmrn_1, ' %')) kemarin_1 ,
+if(eff_kmrn_2 is null, '-',concat(eff_kmrn_2, ' %')) kemarin_2,
 e.eff_skrg
 from (
 select
@@ -142,13 +142,14 @@ COUNT(DISTINCT CASE WHEN jam = 13 THEN a.id END) AS jam_13,
             ELSE '00:00:00'
 						END)) / 3600, 2),2)) * 60,2) min_avail,
 						round(t.tot_input * mp.smv,2) min_prod,
+                        concat(
 						round(round(t.tot_input * mp.smv,2) / round((mp.man_power * ROUND((t.tot_input / c.tot_input_line) * ROUND(
 						(TIME_TO_SEC(TIMEDIFF(last_input, mp.jam_kerja_awal)) - TIME_TO_SEC
 						(CASE
             WHEN last_input >= '13:00:00' AND last_input <= '18:30:00' THEN '01:00:00'
             WHEN last_input > '18:30:00' THEN '01:30:00'
             ELSE '00:00:00'
-						END)) / 3600, 2),2)) * 60,2) * 100,2) eff
+						END)) / 3600, 2),2)) * 60,2) * 100,2), ' %') eff
             from output_rfts a
             left join dim_jam_kerja_sewing b on time(a.updated_at) >= b.jam_kerja_awal and time(a.updated_at) <= b.jam_kerja_akhir
             inner join master_plan mp on a.master_plan_id = mp.id
@@ -181,7 +182,7 @@ select
 created_by,
 sewing_line,
 tgl_input,
-round((sum(min_prod) / sum(min_avail)) * 100,2) eff_skrg
+concat(round((sum(min_prod) / sum(min_avail)) * 100,2),' %') eff_skrg
 from (
 select
             date(a.updated_at) tgl_input,

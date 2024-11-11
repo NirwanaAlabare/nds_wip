@@ -47,10 +47,10 @@ class ReportEfficiencyNewController extends Controller
     concat(ROUND(ROUND(sum(tot_output) * mp.smv,0) / ROUND(mp.man_power * ROUND(((sum(tot_output)/b.tot_output_line) * ROUND(TIME_TO_SEC(TIMEDIFF(TIMEDIFF(MAX(b.jam_akhir_input), MIN(jam_kerja_awal)), MAX(a.istirahat))) / 3600,2)),2) *60,0) * 100,2), ' %') eff,
     sum(tot_output) output,
     b.tot_output_line,
-    sd.price,
+    round(sd.price,2) price,
     ac.curr,
-    acm.price cm_price,
-    round(sum(tot_output) * acm.price,2) earning
+    round(acm.price,2) cm_price,
+    format(round(sum(tot_output) * round(acm.price,2)),2) earning
     from
     (
     select
