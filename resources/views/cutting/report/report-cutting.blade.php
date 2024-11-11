@@ -55,24 +55,10 @@
                     </tbody>
                     <tfoot>
                         <tr>
-                            <th colspan="11"></th>
-                            <th>
-                                {{-- <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_awal'> --}}
-                                ...
-                            </th>
-                            <th>
-                                {{-- <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_reject'> --}}
-                                ...
-                            </th>
-                            <th>
-                                {{-- <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_replace'> --}}
-                                ...
-                            </th>
-                            <th>
-                                {{-- <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_in'> --}}
-                                ...
-                            </th>
-                            <th colspan="2"></th>
+                            <th colspan="8">Total</th>
+                            <th>Marker Pcs</th>
+                            <th>Cutting Pcs</th>
+                            <th>Cutting Diff</th>
                         </tr>
                     </tfoot>
                 </table>
@@ -121,7 +107,7 @@
         $('#datatable thead tr:eq(1) th').each(function(i) {
             if (i <= 7) {
                 var title = $(this).text();
-                $(this).html('<input type="text" class="form-control form-control-sm" '+listFilter[i]+'/>');
+                $(this).html('<input type="text" class="form-control form-control-sm" id="'+listFilter[i]+'"/>');
 
                 $('input', this).on('keyup change', function() {
                     if (datatable.column(i).search() !== this.value) {
@@ -195,13 +181,12 @@
                 var api = this.api(),data;
 
                 $(api.column(0).footer()).html('Total');
-                $(api.column(11).footer()).html("...");
-                $(api.column(12).footer()).html("...");
-                $(api.column(13).footer()).html("...");
-                $(api.column(14).footer()).html("...");
+                $(api.column(8).footer()).html("...");
+                $(api.column(9).footer()).html("...");
+                $(api.column(10).footer()).html("...");
 
                 $.ajax({
-                    url: '',
+                    url: 'total-cutting',
                     dataType: 'json',
                     dataSrc: 'data',
                     data: {
@@ -222,13 +207,13 @@
                         if (response && response[0]) {
                             // Update footer by showing the total with the reference of the column index
                             $(api.column(0).footer()).html('Total');
-                            $(api.column(8).footer()).html(response[0]['qty']);
-                            $(api.column(9).footer()).html(response[0]['qty_reject']);
-                            $(api.column(10).footer()).html(response[0]['qty_replace']);
+                            $(api.column(8).footer()).html(response[0]['marker_gelar']);
+                            $(api.column(9).footer()).html(response[0]['form_gelar']);
+                            $(api.column(10).footer()).html(response[0]['form_diff']);
                         }
                     },
-                    error: function(request, status, error) {
-                        alert('cek');
+                    error: function(jqXHR) {
+                        console.log(jqXHR);
                     },
                 })
             },
