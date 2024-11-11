@@ -579,7 +579,7 @@ class RollController extends Controller
                 unit,
                 SUM(total_pemakaian_roll) total_pemakaian_roll,
                 SUM(short_roll) short_roll,
-                MIN(CASE WHEN form_cut_input_detail.status LIKE '%extension%' THEN form_cut_input_detail.qty - form_cut_input_detail.total_pemakaian_roll ELSE form_cut_input_detail.sisa_kain END) sisa_kain,
+                MIN( CASE WHEN form_cut_input_detail.STATUS = 'extension' OR form_cut_input_detail.STATUS = 'extension complete' THEN form_cut_input_detail.qty - form_cut_input_detail.total_pemakaian_roll ELSE form_cut_input_detail.sisa_kain END ) sisa_kain,
                 form_cut_input.status status_form,
                 form_cut_input_detail.status,
                 COALESCE(form_cut_input_detail.updated_at, form_cut_input_detail.created_at) updated_at
@@ -589,8 +589,7 @@ class RollController extends Controller
             where("id_roll", $request->id)->
             whereRaw("(id_roll is not null AND id_roll != '')")->
             groupBy("form_cut_input.no_form")->
-            orderBy("form_cut_input_detail.id")->
-            get();
+            orderBy("form_cut_input_detail.id");
 
         return DataTables::of($forms)->toJson();
     }
