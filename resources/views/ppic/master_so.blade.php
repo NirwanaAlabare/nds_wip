@@ -1382,7 +1382,7 @@
                     targets: [5],
                     render: (data, type, row, meta) => {
 
-                        if (row.qty_packing_out == '0') {
+                        if (row.qty_packing_out == '0' && row.id_pl === null) {
                             return `
                                <div class='d-flex gap-1 justify-content-center'>
 							<input type ='text' style='width:120px' class='form-control form-control-sm'
@@ -1441,7 +1441,7 @@
                 {
                     targets: [7],
                     render: (data, type, row, meta) => {
-                        if (row.qty_trf == '0') {
+                        if (row.qty_trf == '0' && row.id_pl === null) {
                             return `
                             <div class='d-flex gap-1 justify-content-center'>
 							<input type ='text' style='width:100px' class='form-control form-control-sm'
