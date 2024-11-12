@@ -152,6 +152,7 @@ class ReportCuttingController extends Controller
     public function totalCutting(Request $request)
     {
         $additionalQuery = "";
+        $additionalQuery1 = "";
 
         if ($request->dateFrom) {
             $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) >= '".$request->dateFrom."'";
@@ -161,19 +162,36 @@ class ReportCuttingController extends Controller
             $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) <= '".$request->dateTo."'";
         }
 
-        $keywordQuery = "";
-        if ($request->search["value"]) {
-            $keywordQuery = "
-                and (
-                    marker_cutting.tgl_form_cut like '%" . $request->search["value"] . "%' OR
-                    marker_cutting.meja like '%" . $request->search["value"] . "%' OR
-                    marker_cutting.buyer like '%" . $request->search["value"] . "%' OR
-                    marker_cutting.act_costing_ws like '%" . $request->search["value"] . "%' OR
-                    marker_cutting.style like '%" . $request->search["value"] . "%' OR
-                    marker_cutting.color like '%" . $request->search["value"] . "%' OR
-                    marker_cutting.notes like '%" . $request->search["value"] . "%'
-                )
-            ";
+        if ($request->tgl_form_cut) {
+            $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) LIKE '%".$request->tgl_form_cut."%'";
+        }
+
+        if ($request->buyer) {
+            $additionalQuery1 .= " and marker_input.buyer LIKE '%".$request->buyer."%'";
+        }
+
+        if ($request->ws) {
+            $additionalQuery1 .= " and marker_input.act_costing_ws LIKE '%".$request->ws."%'";
+        }
+
+        if ($request->style) {
+            $additionalQuery1 .= " and marker_input.style LIKE '%".$request->style."%'";
+        }
+
+        if ($request->color) {
+            $additionalQuery1 .= " and marker_input.color LIKE '%".$request->color."%'";
+        }
+
+        if ($request->panel) {
+            $additionalQuery1 .= " and marker_input.panel LIKE '%".$request->panel."%'";
+        }
+
+        if ($request->size) {
+            $additionalQuery1 .= " and marker_input_detail.buyer LIKE '%".$request->size."%'";
+        }
+
+        if ($request->notes) {
+            $additionalQuery1 .= " and (form_cut.notes LIKE '%".$request->notes."%' or marker_input.notes LIKE '%".$request->notes."%')";
         }
 
         $reportCutting = DB::select("
@@ -238,6 +256,7 @@ class ReportCuttingController extends Controller
                         where
                             (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
                             AND marker_input_detail.ratio > 0
+                            ".$additionalQuery1."
                         group by
                             marker_input.id,
                             marker_input_detail.so_det_id,
