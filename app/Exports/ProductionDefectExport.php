@@ -21,7 +21,7 @@ use PhpOffice\PhpSpreadsheet\Chart\PlotArea;
 use PhpOffice\PhpSpreadsheet\Chart\Title;
 use DB;
 
-class ProductionDefectExport implements FromView, ShouldAutoSize, WithCharts
+class ProductionDefectExport implements FromView, ShouldAutoSize /*, WithCharts*/
 {
     protected $date;
     protected $selectedLine;
@@ -87,19 +87,19 @@ class ProductionDefectExport implements FromView, ShouldAutoSize, WithCharts
         ]);
     }
 
-    public function charts()
-    {
+    // public function charts()
+    // {
 
-        $label      = [new DataSeriesValues('String', 'Worksheet!$B$'.($event->getConcernable()->defectRowCount+6), null, 1)];
-        $categories = [new DataSeriesValues('String', 'Worksheet!$B$'.($event->getConcernable()->defectRowCount+7).':$B$'.($event->getConcernable()->defectRowCount+7+$event->getConcernable()->topDefectRowCount), null, 4)];
-        $values     = [new DataSeriesValues('Number', 'Worksheet!$C$'.($event->getConcernable()->defectRowCount+7).':$C$'.($event->getConcernable()->defectRowCount+7+$event->getConcernable()->topDefectRowCount), null, 4)];
+    //     $label      = [new DataSeriesValues('String', 'Worksheet!$B$'.($event->getConcernable()->defectRowCount+6), null, 1)];
+    //     $categories = [new DataSeriesValues('String', 'Worksheet!$B$'.($event->getConcernable()->defectRowCount+7).':$B$'.($event->getConcernable()->defectRowCount+7+$event->getConcernable()->topDefectRowCount), null, 4)];
+    //     $values     = [new DataSeriesValues('Number', 'Worksheet!$C$'.($event->getConcernable()->defectRowCount+7).':$C$'.($event->getConcernable()->defectRowCount+7+$event->getConcernable()->topDefectRowCount), null, 4)];
 
-        $series = new DataSeries(DataSeries::TYPE_PIECHART, DataSeries::GROUPING_STANDARD, range(0, \count($values) - 1), $label, $categories, $values);
-        $plot   = new PlotArea(null, [$series]);
+    //     $series = new DataSeries(DataSeries::TYPE_PIECHART, DataSeries::GROUPING_STANDARD, range(0, \count($values) - 1), $label, $categories, $values);
+    //     $plot   = new PlotArea(null, [$series]);
 
-        $legend = new Legend();
-        $chart  = new Chart('Defect Chart', new Title('Defect Chart'), $legend, $plot);
+    //     $legend = new Legend();
+    //     $chart  = new Chart('Defect Chart', new Title('Defect Chart'), $legend, $plot);
 
-        return $chart;
-    }
+    //     return $chart;
+    // }
 }
