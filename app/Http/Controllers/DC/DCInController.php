@@ -62,12 +62,12 @@ class DCInController extends Controller
                     mp.nama_part
                 from
                     dc_in_input a
-                    inner join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+                    left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
                     left join master_sb_ws msb on msb.id_so_det = s.so_det_id
-                    inner join form_cut_input f on f.id = s.form_cut_id
-                    inner join part_detail pd on s.part_detail_id = pd.id
-                    inner join part p on pd.part_id = p.id
-                    inner join master_part mp on mp.id = pd.master_part_id
+                    left join form_cut_input f on f.id = s.form_cut_id
+                    left join part_detail pd on s.part_detail_id = pd.id
+                    left join part p on pd.part_id = p.id
+                    left join master_part mp on mp.id = pd.master_part_id
                 where
                     a.tgl_trans is not null
                     ".$additionalQuery."
@@ -169,12 +169,12 @@ class DCInController extends Controller
                 SUM(a.qty_awal - a.qty_reject + a.qty_replace) qty_in
             from
                 dc_in_input a
-                inner join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+                left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
                 left join master_sb_ws msb on msb.id_so_det = s.so_det_id
-                inner join form_cut_input f on f.id = s.form_cut_id
-                inner join part_detail pd on s.part_detail_id = pd.id
-                inner join part p on pd.part_id = p.id
-                inner join master_part mp on mp.id = pd.master_part_id
+                left join form_cut_input f on f.id = s.form_cut_id
+                left join part_detail pd on s.part_detail_id = pd.id
+                left join part p on pd.part_id = p.id
+                left join master_part mp on mp.id = pd.master_part_id
                 ".$additionalQuery."
         ");
 
@@ -186,12 +186,12 @@ class DCInController extends Controller
         //         SUM(a.qty_awal - a.qty_reject + a.qty_replace) qty_in
         //     from
         //         dc_in_input a
-        //         inner join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+        //         left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
         //         left join master_sb_ws msb on msb.id_so_det = s.so_det_id
-        //         inner join form_cut_input f on f.id = s.form_cut_id
-        //         inner join part_detail pd on s.part_detail_id = pd.id
-        //         inner join part p on pd.part_id = p.id
-        //         inner join master_part mp on mp.id = pd.master_part_id
+        //         left join form_cut_input f on f.id = s.form_cut_id
+        //         left join part_detail pd on s.part_detail_id = pd.id
+        //         left join part p on pd.part_id = p.id
+        //         left join master_part mp on mp.id = pd.master_part_id
         //         ".$additionalQuery."
         // ");
 
@@ -218,8 +218,8 @@ class DCInController extends Controller
                     s.act_costing_ws, m.buyer,s.color, styleno, COALESCE(sum(dc.qty_awal), 0) qty_in, COALESCE(sum(dc.qty_reject), 0) qty_reject, COALESCE(sum(dc.qty_replace), 0) qty_replace, COALESCE(sum(dc.qty_awal - dc.qty_reject + dc.qty_replace), 0) qty_out, COALESCE(sum(dc.qty_awal - dc.qty_reject + dc.qty_replace), 0) balance, dc.lokasi
                 from
                     dc_in_input dc
-                    inner join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
-                    inner join master_sb_ws m on s.so_det_id = m.id_so_det
+                    left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
+                    left join master_sb_ws m on s.so_det_id = m.id_so_det
                 where
                     dc.tgl_trans is not null
                     ".$additionalQuery."
@@ -256,10 +256,10 @@ class DCInController extends Controller
             FROM
                 `stocker_input` a
                 left join master_sb_ws msb on msb.id_so_det = a.so_det_id
-                inner join form_cut_input f on a.form_cut_id = f.id
-                INNER JOIN marker_input m ON m.kode = f.id_marker
-                inner join part_detail pd on a.part_detail_id = pd.id
-                inner join master_secondary ms on pd.master_secondary_id = ms.id
+                left join form_cut_input f on a.form_cut_id = f.id
+                left JOIN marker_input m ON m.kode = f.id_marker
+                left join part_detail pd on a.part_detail_id = pd.id
+                left join master_secondary ms on pd.master_secondary_id = ms.id
             WHERE
                 a.id_qr_stocker = '$request->txtqrstocker'
         ");
@@ -346,21 +346,21 @@ class DCInController extends Controller
         //             from
         //                 stocker_input
         //         ) ms
-        //         inner join
+        //         left join
         //             (
         //                 select
         //                     concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade) kode
         //                 from
         //                     tmp_dc_in_input_new x
-        //                     inner join stocker_input y on x.id_qr_stocker = y.id_qr_stocker
+        //                     left join stocker_input y on x.id_qr_stocker = y.id_qr_stocker
         //                 where
         //                     user = '$user'
         //                 group by
         //                     concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade)
         //             )
         //         a on ms.kode = a.kode
-        //         inner join part_detail pd on ms.part_detail_id = pd.id
-        //         inner join master_part mp  on pd.master_part_id = mp.id
+        //         left join part_detail pd on ms.part_detail_id = pd.id
+        //         left join master_part mp  on pd.master_part_id = mp.id
         //         left join master_secondary s on pd.master_secondary_id = s.id
         //         left join tmp_dc_in_input_new tmp on ms.id_qr_stocker = tmp.id_qr_stocker
         //     order by
@@ -386,12 +386,12 @@ class DCInController extends Controller
                 ifnull( tmp.id_qr_stocker, 'x' ) cek_stat
             FROM
                 tmp_dc_in_input_new x
-                INNER JOIN stocker_input y ON x.id_qr_stocker = y.id_qr_stocker
+                left JOIN stocker_input y ON x.id_qr_stocker = y.id_qr_stocker
                 LEFT JOIN stocker_input ms ON ms.form_cut_id = y.form_cut_id AND ms.so_det_id = y.so_det_id AND ms.group_stocker = y.group_stocker AND ms.ratio = y.ratio
                 LEFT JOIN master_sb_ws msb ON msb.id_so_det = ms.so_det_id
                 LEFT JOIN tmp_dc_in_input_new tmp ON tmp.id_qr_stocker = ms.id_qr_stocker
-                INNER JOIN part_detail pd ON ms.part_detail_id = pd.id
-                INNER JOIN master_part mp ON pd.master_part_id = mp.id
+                left JOIN part_detail pd ON ms.part_detail_id = pd.id
+                left JOIN master_part mp ON pd.master_part_id = mp.id
                 LEFT JOIN master_secondary s ON pd.master_secondary_id = s.id
             WHERE
                 x.`user` = '".$user."'
@@ -492,10 +492,10 @@ class DCInController extends Controller
                 FROM
                     `stocker_input` a
                     left join master_sb_ws msb on msb.id_so_det = a.so_det_id
-                    inner join form_cut_input f on a.form_cut_id = f.id
-                    INNER JOIN marker_input m ON m.kode = f.id_marker
-                    inner join part_detail pd on a.part_detail_id = pd.id
-                    inner join master_secondary ms on pd.master_secondary_id = ms.id
+                    left join form_cut_input f on a.form_cut_id = f.id
+                    left JOIN marker_input m ON m.kode = f.id_marker
+                    left join part_detail pd on a.part_detail_id = pd.id
+                    left join master_secondary ms on pd.master_secondary_id = ms.id
                 WHERE
                     a.act_costing_ws = '".$thisStocker->act_costing_ws."' AND
                     a.color = '".$thisStocker->color."' AND
@@ -596,8 +596,8 @@ class DCInController extends Controller
                 concat(so_det_id,'_',range_awal,'_',range_akhir,'_',shade)kode
             from
                 stocker_input s
-                inner join part_detail pd on s.part_detail_id = pd.id
-                inner join master_part mp  on pd.master_part_id = mp.id
+                left join part_detail pd on s.part_detail_id = pd.id
+                left join master_part mp  on pd.master_part_id = mp.id
                 left join master_secondary ms on pd.master_secondary_id = ms.id
                 left join tmp_dc_in_input_new tmp on s.id_qr_stocker = tmp.id_qr_stocker
             where
@@ -826,7 +826,7 @@ class DCInController extends Controller
                 '$timestamp'
             from
                 tmp_dc_in_input_new tmp
-                inner join stocker_input ms on tmp.id_qr_stocker = ms.id_qr_stocker
+                left join stocker_input ms on tmp.id_qr_stocker = ms.id_qr_stocker
             where
                 tmp.tujuan > '' and
                 tmp.lokasi > '' and
@@ -852,8 +852,8 @@ class DCInController extends Controller
                 '$timestamp'
             from
                 tmp_dc_in_input_new tmp
-                inner join rack_detail r on tmp.lokasi = r.nama_detail_rak
-                inner join stocker_input s on tmp.id_qr_stocker = s.id_qr_stocker
+                left join rack_detail r on tmp.lokasi = r.nama_detail_rak
+                left join stocker_input s on tmp.id_qr_stocker = s.id_qr_stocker
             where
                 tmp.tujuan = 'NON SECONDARY' and
                 tmp.tujuan > '' and

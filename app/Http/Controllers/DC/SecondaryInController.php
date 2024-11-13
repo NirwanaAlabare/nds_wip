@@ -70,12 +70,12 @@ class SecondaryInController extends Controller
                 a.user,
                 mp.nama_part
                 from secondary_in_input a
-                inner join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
+                left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
                 left join master_sb_ws msb on msb.id_so_det = s.so_det_id
                 left join form_cut_input f on f.id = s.form_cut_id
-                inner join part_detail pd on s.part_detail_id = pd.id
-                inner join part p on pd.part_id = p.id
-                inner join master_part mp on mp.id = pd.master_part_id
+                left join part_detail pd on s.part_detail_id = pd.id
+                left join part p on pd.part_id = p.id
+                left join master_part mp on mp.id = pd.master_part_id
                 left join dc_in_input dc on a.id_qr_stocker = dc.id_qr_stocker
                 left join secondary_inhouse_input sii on a.id_qr_stocker = sii.id_qr_stocker
                 where
@@ -109,8 +109,8 @@ class SecondaryInController extends Controller
                     s.act_costing_ws, m.buyer,s.color,styleno, COALESCE(sum(dc.qty_awal - dc.qty_reject + dc.qty_replace), 0) qty_in, COALESCE(sum(si.qty_reject), 0) qty_reject, COALESCE(sum(si.qty_replace), 0) qty_replace, COALESCE(sum(si.qty_in), 0) qty_out, COALESCE(sum(dc.qty_awal - dc.qty_reject + dc.qty_replace -  si.qty_in), 0) balance, dc.tujuan,dc.lokasi
                 from
                     dc_in_input dc
-                    inner join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
-                    inner join master_sb_ws m on s.so_det_id = m.id_so_det
+                    left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
+                    left join master_sb_ws m on s.so_det_id = m.id_so_det
                     left join secondary_in_input si on dc.id_qr_stocker = si.id_qr_stocker
                 where
                     dc.tujuan = 'SECONDARY LUAR'
@@ -122,8 +122,8 @@ class SecondaryInController extends Controller
                     s.act_costing_ws, buyer,s.color,styleno, COALESCE(sum(sii.qty_in), 0) qty_in, COALESCE(sum(si.qty_reject), 0) qty_reject, COALESCE(sum(si.qty_replace), 0) qty_replace, COALESCE(sum(si.qty_in), 0) qty_out, COALESCE(sum(sii.qty_in - si.qty_in), 0) balance, dc.tujuan, dc.lokasi
                 from
                     dc_in_input dc
-                    inner join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
-                    inner join master_sb_ws m on s.so_det_id = m.id_so_det
+                    left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
+                    left join master_sb_ws m on s.so_det_id = m.id_so_det
                     left join secondary_inhouse_input sii on dc.id_qr_stocker = sii.id_qr_stocker
                     left join secondary_in_input si on dc.id_qr_stocker = si.id_qr_stocker
                 where
@@ -168,12 +168,12 @@ class SecondaryInController extends Controller
         left join secondary_in_input sii on dc.id_qr_stocker = sii.id_qr_stocker
         where dc.tujuan = 'SECONDARY LUAR'	and	if(sii.id_qr_stocker is null ,dc.id_qr_stocker,'x') != 'x'
         ) md
-        inner join stocker_input s on md.id_qr_stocker = s.id_qr_stocker
+        left join stocker_input s on md.id_qr_stocker = s.id_qr_stocker
         left join master_sb_ws msb on msb.id_so_det = s.so_det_id
-        inner join form_cut_input a on s.form_cut_id = a.id
-        inner join part_detail p on s.part_detail_id = p.id
-        inner join master_part mp on p.master_part_id = mp.id
-        inner join marker_input mi on a.id_marker = mi.kode
+        left join form_cut_input a on s.form_cut_id = a.id
+        left join part_detail p on s.part_detail_id = p.id
+        left join master_part mp on p.master_part_id = mp.id
+        left join marker_input mi on a.id_marker = mi.kode
         left join dc_in_input dc on s.id_qr_stocker = dc.id_qr_stocker
         left join secondary_inhouse_input si on s.id_qr_stocker = si.id_qr_stocker
         where s.id_qr_stocker =     '" . $request->txtqrstocker . "'
