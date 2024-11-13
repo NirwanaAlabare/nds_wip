@@ -469,13 +469,12 @@ class StockerController extends Controller
             leftJoin("part_form", "part_form.part_id", "=", "part.id")->
             leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
             leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
-            leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
-            leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->
+            leftJoin("master_size_new", "master_size_new.size", "=", "stocker_input.size")->
             leftJoin("master_sb_ws", "stocker_input.so_det_id", "=", "master_sb_ws.id_so_det")->
             leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
             where("form_cut_input.status", "SELESAI PENGERJAAN")->
             where("part_detail.id", $request['part_detail_id'][$index])->
-            where("form_cut_input.id", $request['form_cut_id'])->
+            where("stocker_input.form_cut_id", $request['form_cut_id'])->
             where("marker_input_detail.so_det_id", $request['so_det_id'][$index])->
             where("stocker_input.so_det_id", $request['so_det_id'][$index])->
             where("stocker_input.shade", $request['group'][$index])->
@@ -603,13 +602,12 @@ class StockerController extends Controller
             leftJoin("part_form", "part_form.part_id", "=", "part.id")->
             leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
             leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
-            leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
-            leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->
+            leftJoin("master_size_new", "master_size_new.size", "=", "stocker_input.size")->
             leftJoin("master_sb_ws", "stocker_input.so_det_id", "=", "master_sb_ws.id_so_det")->
             leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
             where("form_cut_input.status", "SELESAI PENGERJAAN")->
             where("part_detail.id", $partDetailId)->
-            where("form_cut_input.id", $request['form_cut_id'])->
+            where("stocker_input.form_cut_id", $request['form_cut_id'])->
             groupBy("form_cut_input.id", "part_detail.id", "stocker_input.size", "stocker_input.group_stocker", "stocker_input.shade", "stocker_input.ratio")->
             orderBy("stocker_input.group_stocker", "desc")->
             orderBy("stocker_input.shade", "desc")->
@@ -739,13 +737,12 @@ class StockerController extends Controller
             leftJoin("part_form", "part_form.part_id", "=", "part.id")->
             leftJoin("form_cut_input", "form_cut_input.id", "=", "stocker_input.form_cut_id")->
             leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
-            leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
-            leftJoin("master_size_new", "master_size_new.size", "=", "marker_input_detail.size")->
+            leftJoin("master_size_new", "master_size_new.size", "=", "stocker_input.size")->
             leftJoin("master_sb_ws", "stocker_input.so_det_id", "=", "master_sb_ws.id_so_det")->
             leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
             where("form_cut_input.status", "SELESAI PENGERJAAN")->
             whereIn("part_detail.id", $request['generate_stocker'])->
-            where("form_cut_input.id", $request['form_cut_id'])->
+            where("stocker_input.form_cut_id", $request['form_cut_id'])->
             groupBy("form_cut_input.id", "part_detail.id", "stocker_input.size", "stocker_input.group_stocker", "stocker_input.shade", "stocker_input.ratio")->
             orderBy("stocker_input.group_stocker", "desc")->
             orderBy("stocker_input.shade", "desc")->
