@@ -3076,6 +3076,62 @@ class StockerController extends Controller
         );
     }
 
+    public function modifyYearSequence(Request $request) {
+        $years = array_reverse(range(1999, date('Y')));
+
+        $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno', 'styleno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
+
+        return view("stocker.stocker.modify-year-sequence", ["page" => "dashboard-dc",  "subPageGroup" => "stocker-number", "subPage" => "year-sequence", "years" => $years, "orders" => $orders]);
+    }
+
+    public function modifyYearSequenceList(Request $request) {
+        $data = YearSequence::selectRaw("
+                year_sequence.id_year_sequence,
+                master_sb_ws.ws,
+                master_sb_ws.styleno,
+                master_sb_ws.color,
+                master_sb_ws.size,
+                master_sb_ws.dest
+            ")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "year_sequence.so_det_id")->
+            where("year", $request->year)->
+            where("year_sequence", $request->sequence)->
+            whereBetween("year_sequence_number", [$request->range_awal, $request->range_akhir]);
+
+        return Datatables::eloquent($data)->toJson();
+    }
+
+    public function modifyYearSequenceUpdate(Request $request) {
+        $request->validate([
+            "year" => "required",
+            "sequence" => "required",
+            "range_awal" => "required|numeric|gt:0",
+            "range_akhir" => "required|numeric|gte:range_awal",
+            "size" => "required",
+            "size_text" => "required",
+        ]);
+
+        $update = YearSequence::where("year", $request->year)->
+            where("year_sequence", $request->sequence)->
+            whereBetween("year_sequence_number", [$request->range_awal, $request->range_akhir])->
+            update([
+                "so_det_id" => $request->size,
+                "size" => $request->size_text,
+            ]);
+
+        if ($update) {
+            return array(
+                "status" => 200,
+                "message" => "Year '".$request->year."' <br> Sequence '".$request->sequence."' <br> Range '".$request->range_awal." - ".$request->range_akhir."'. <br> <b>Berhasil di Update</b>"
+            );
+        }
+
+        return array(
+            "status" => 400,
+            "message" => "Year '".$request->year."' <br> Sequence '".$request->sequence."' <br> Range '".$request->range_awal." - ".$request->range_akhir."'. <br> <b>Gagal di Update</b>"
+        );
+    }
+
     // public function printMonthCountChecked(Request $request) {
     //     $checkedSize = collect($request['generate_num']);
 

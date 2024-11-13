@@ -624,6 +624,11 @@
                                         class="dropdown-item {{ $subPage == 'year-sequence' ? 'active' : '' }}"> Year
                                         Sequence <i class="fa-solid fa-list-ol"></i></a>
                                 </li>
+                                <li>
+                                    <a href="{{ route('modify-year-sequence') }}"
+                                        class="dropdown-item {{ $subPage == 'modify-year-sequence' ? 'active' : '' }}"> Modify Year
+                                        Sequence <i class="fa-solid fa-pen-to-square"></i></a>
+                                </li>
                             @enddc
                         </ul>
                     <li>
