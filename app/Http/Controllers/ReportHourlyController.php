@@ -28,9 +28,11 @@ class ReportHourlyController extends Controller
 
         $start_date_min_1 = date('Y-m-d', strtotime($tgl_filter . ' -1 day')) . ' 00:00:00';
         $end_date_min_1 = date('Y-m-d', strtotime($tgl_filter . ' -1 day')) . ' 23:59:59';
+        $tgl_min_1 = date('Y-m-d', strtotime($tgl_filter . ' -1 day'));
 
         $start_date_min_2 = date('Y-m-d', strtotime($tgl_filter . ' -2 day')) . ' 00:00:00';
         $end_date_min_2 = date('Y-m-d', strtotime($tgl_filter . ' -2 day')) . ' 23:59:59';
+        $tgl_min_2 = date('Y-m-d', strtotime($tgl_filter . ' -2 day'));
 
         // $start_date = '2024-10-29 00:00:00';
         // $end_date = '2024-10-29 23:59:59';
@@ -181,14 +183,15 @@ left join
 select
 created_by,
 sewing_line,
-tgl_input,
 concat(round((sum(min_prod) / sum(min_avail)) * 100,2),' %') eff_skrg
 from (
 select
             date(a.updated_at) tgl_input,
 						a.created_by,
             u.name sewing_line,
-						round((mp.man_power * ROUND((t.tot_input/ c.tot_input_line) * ROUND(
+						mp.man_power,
+						mp_l.mp_lastest,
+						round((if(mp.tgl_input != '$tgl_filter',mp_l.mp_lastest,mp.man_power) * ROUND((t.tot_input/ c.tot_input_line) * ROUND(
 						(TIME_TO_SEC(TIMEDIFF(last_input, mp.jam_kerja_awal)) - TIME_TO_SEC
 						(CASE
             WHEN last_input >= '13:00:00' AND last_input <= '18:30:00' THEN '01:00:00'
@@ -200,6 +203,7 @@ select
             left join dim_jam_kerja_sewing b on time(a.updated_at) >= b.jam_kerja_awal
 						and time(a.updated_at) <= b.jam_kerja_akhir
             inner join master_plan mp on a.master_plan_id = mp.id
+						left join (select sewing_line, max(man_power) mp_lastest from master_plan where tgl_plan = '$tgl_filter' group by sewing_line)mp_l on mp.sewing_line = mp_l.sewing_line
             inner join user_sb_wip u on a.created_by = u.id
             inner join so_det sd on a.so_det_id = sd.id
             inner join so on sd.id_so = so.id
@@ -222,6 +226,7 @@ select
             order by u.name asc
 ) eff_hr_ini
 group by created_by, tgl_input
+order by sewing_line asc
 ) e on a.created_by = e.created_by
 left join
 (
@@ -234,21 +239,23 @@ round((sum(min_prod) / sum(min_avail)) * 100,2) eff_kmrn_1
 from (
 select
             date(a.updated_at) tgl_input,
-						a.created_by,
+			a.created_by,
             u.name sewing_line,
-						ac.styleno,
-						round((mp.man_power * ROUND((t.tot_input/ c.tot_input_line) * ROUND(
-						(TIME_TO_SEC(TIMEDIFF(last_input, mp.jam_kerja_awal)) - TIME_TO_SEC
-						(CASE
+			ac.styleno,
+			round((if(mp.tgl_input != '$tgl_min_1',mp_l.mp_lastest,mp.man_power) * ROUND((t.tot_input/ c.tot_input_line) * ROUND(
+			(TIME_TO_SEC(TIMEDIFF(last_input, mp.jam_kerja_awal)) - TIME_TO_SEC
+			(CASE
             WHEN last_input >= '13:00:00' AND last_input <= '18:30:00' THEN '01:00:00'
             WHEN last_input > '18:30:00' THEN '01:30:00'
             ELSE '00:00:00'
-						END)) / 3600, 2),2)) * 60,2) min_avail,
-						round(t.tot_input * mp.smv,2) min_prod
+			END)) / 3600, 2),2)) * 60,2) min_avail,
+			round(t.tot_input * mp.smv,2) min_prod
             from output_rfts a
             left join dim_jam_kerja_sewing b on time(a.updated_at) >= b.jam_kerja_awal
-						and time(a.updated_at) <= b.jam_kerja_akhir
+			and time(a.updated_at) <= b.jam_kerja_akhir
             inner join master_plan mp on a.master_plan_id = mp.id
+            left join (select sewing_line, max(man_power) mp_lastest from master_plan
+             where tgl_plan = '$tgl_min_1' group by sewing_line) mp_l on mp.sewing_line = mp_l.sewing_line
             inner join user_sb_wip u on a.created_by = u.id
             inner join so_det sd on a.so_det_id = sd.id
             inner join so on sd.id_so = so.id
@@ -286,9 +293,9 @@ select
 						a.created_by,
             u.name sewing_line,
 						ac.styleno,
-						round((mp.man_power * ROUND((t.tot_input/ c.tot_input_line) * ROUND(
-						(TIME_TO_SEC(TIMEDIFF(last_input, mp.jam_kerja_awal)) - TIME_TO_SEC
-						(CASE
+			round((if(mp.tgl_input != '$tgl_min_2',mp_l.mp_lastest,mp.man_power) * ROUND((t.tot_input/ c.tot_input_line) * ROUND(
+			(TIME_TO_SEC(TIMEDIFF(last_input, mp.jam_kerja_awal)) - TIME_TO_SEC
+			(CASE
             WHEN last_input >= '13:00:00' AND last_input <= '18:30:00' THEN '01:00:00'
             WHEN last_input > '18:30:00' THEN '01:30:00'
             ELSE '00:00:00'
@@ -298,6 +305,8 @@ select
             left join dim_jam_kerja_sewing b on time(a.updated_at) >= b.jam_kerja_awal
 						and time(a.updated_at) <= b.jam_kerja_akhir
             inner join master_plan mp on a.master_plan_id = mp.id
+            left join (select sewing_line, max(man_power) mp_lastest from master_plan
+             where tgl_plan = '$tgl_min_2' group by sewing_line)mp_l on mp.sewing_line = mp_l.sewing_line
             inner join user_sb_wip u on a.created_by = u.id
             inner join so_det sd on a.so_det_id = sd.id
             inner join so on sd.id_so = so.id
