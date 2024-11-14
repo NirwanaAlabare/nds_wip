@@ -66,7 +66,7 @@ class OutputExport implements FromView, ShouldAutoSize
                     LEFT JOIN master_plan on master_plan.id = output_rfts".($this->subtype).".master_plan_id
                 WHERE
                     output_rfts".($this->subtype).".created_by IS NOT NULL
-                    AND output_rfts.updated_at ".$outputFilter."
+                    AND output_rfts".($this->subtype).".updated_at ".$outputFilter."
                 GROUP BY
                     output_rfts".($this->subtype).".master_plan_id,
                     COALESCE(userpassword.username, master_plan.sewing_line)
