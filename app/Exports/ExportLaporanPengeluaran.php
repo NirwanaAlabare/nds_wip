@@ -89,7 +89,7 @@ class ExportLaporanPengeluaran implements FromView, WithEvents, ShouldAutoSize
         inner join whs_mut_lokasi_h mut on mut.no_mut = a.no_mut
         left join whs_inmaterial_fabric c on c.no_dok = a.no_bpb
         left join (select no_dok,id_jo,id_item,'-' curr, '0' price,satuan unit FROM whs_lokasi_inmaterial GROUP BY no_dok,id_item UNION
-        select no_bpb,id_jo,id_item,'-' curr, '0' price,unit FROM whs_sa_fabric GROUP BY no_bpb,id_item) b on b.no_dok = a.no_bpb and a.id_item = b.id_item where a.status = 'Y' GROUP BY a.no_mut,id_item) a
+        select no_bpb,id_jo,id_item,'-' curr, '0' price,unit FROM whs_sa_fabric GROUP BY no_bpb,id_item) b on b.no_dok = a.no_mut and a.id_item = b.id_item where a.status = 'Y' GROUP BY a.no_mut,id_item) a
         inner join masteritem s on a.id_item=s.id_item 
         left join (select no_dok no_mut,id_jo,id_item, GROUP_CONCAT(DISTINCT CONCAT(kode_lok,' FABRIC WAREHOUSE RACK')) rak from whs_lokasi_inmaterial  where status = 'Y' and no_mut is not null group by no_dok) lr on a.no_mut = lr.no_mut
         left join po_header po on po.pono = a.no_po

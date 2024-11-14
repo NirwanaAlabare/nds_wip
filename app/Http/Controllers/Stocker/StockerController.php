@@ -3165,22 +3165,27 @@ class StockerController extends Controller
             }
         }
 
+        $failMessage = "";
+        for ($i = 0; $i < count($yearSequenceFailArr); $i++) {
+            $failMessage .= "<small>'".$yearSequenceFailArr[$i]." sudah ada output'</small><br>";
+        }
+
         if (count($yearSequenceArr) > 0 && count($yearSequenceArr) <= 5000) {
             $yearSequence = YearSequence::whereIn("id_year_sequence", $yearSequenceArr)->update([
                 "so_det_id" => $request->size,
                 "size" => $request->size_text,
             ]);
 
-            $failMessage = "";
-            for ($i = 0; $i < count($yearSequenceFailArr); $i++) {
-                $failMessage .= "<small>'".$yearSequenceFailArr[$i]." sudah ada output'</small><br>";
-            }
-
             return array(
                 "status" => 200,
                 "message" => "Year '".$request->year."' <br> Sequence '".$request->sequence."' <br> Range '".$request->range_awal." - ".$request->range_akhir."'. <br> <b>Berhasil di Update</b>".(strlen($failMessage) > 0 ? "<br> Kecuali: <br>".$failMessage : "")
             );
-        } else if (count($yearSequenceArr) <= 5000) {
+        } else if (count($yearSequenceArr) < 1) {
+            return array(
+                "status" => 400,
+                "message" => "Gagal di ubah ".(strlen($failMessage) > 0 ? "<br> Info : <br>".$failMessage : "")
+            );
+        } else if (count($yearSequenceArr) > 5000) {
             return array(
                 "status" => 400,
                 "message" => "Maksimal QTY '5000'"
