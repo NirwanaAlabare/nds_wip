@@ -3082,7 +3082,7 @@ class StockerController extends Controller
 
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno', 'styleno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
-        return view("stocker.stocker.modify-year-sequence", ["page" => "dashboard-dc",  "subPageGroup" => "stocker-number", "subPage" => "year-sequence", "years" => $years, "orders" => $orders]);
+        return view("stocker.stocker.modify-year-sequence", ["page" => "dashboard-dc",  "subPageGroup" => "stocker-number", "subPage" => "modify-year-sequence", "years" => $years, "orders" => $orders]);
     }
 
     public function modifyYearSequenceList(Request $request) {
@@ -3119,7 +3119,22 @@ class StockerController extends Controller
                 ")
             );
 
-        return Datatables::eloquent($data)->
+        return Datatables::of($data)->
+            filterColumn('ws', function($query, $keyword) {
+                $query->whereRaw("master_sb_ws.ws LIKE '%".$keyword."%'" );
+            })->
+            filterColumn('styleno', function($query, $keyword) {
+                $query->whereRaw("master_sb_ws.styleno LIKE '%".$keyword."%'" );
+            })->
+            filterColumn('color', function($query, $keyword) {
+                $query->whereRaw("master_sb_ws.color LIKE '%".$keyword."%'" );
+            })->
+            filterColumn('size', function($query, $keyword) {
+                $query->whereRaw("master_sb_ws.size LIKE '%".$keyword."%'" );
+            })->
+            filterColumn('dest', function($query, $keyword) {
+                $query->whereRaw("master_sb_ws.dest LIKE '%".$keyword."%'" );
+            })->
             addColumn('qc', function($data) use ($dataOutput) {
                 return $dataOutput->where("kode_numbering", $data->id_year_sequence)->first() ? $dataOutput->where("kode_numbering", $data->id_year_sequence)->first()->sewing_line : null;
             })->
