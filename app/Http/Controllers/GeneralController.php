@@ -33,6 +33,31 @@ class GeneralController extends Controller
         //
     }
 
+    public function getColors(Request $request)
+    {
+        $colors = DB::select("select color from master_sb_ws where master_sb_ws.id_act_cost = '" . $request->act_costing_id . "'group by color");
+
+        return $colors ? $colors : null;
+    }
+
+    public function getSizes(Request $request) {
+        $sizes = DB::table("master_sb_ws")->selectRaw("
+                master_sb_ws.id_so_det so_det_id,
+                master_sb_ws.ws no_ws,
+                master_sb_ws.color,
+                master_sb_ws.size,
+                master_sb_ws.dest,
+                (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest) ELSE master_sb_ws.size END) size_dest
+            ")->
+            where("master_sb_ws.id_act_cost", $request->act_costing_id)->
+            where("master_sb_ws.color", $request->color)->
+            leftJoin("master_size_new", "master_size_new.size", "=", "master_sb_ws.size")->
+            orderBy("master_size_new.urutan")->
+            get();
+
+        return $sizes ? $sizes : null;
+    }
+
     public function getOrderInfo(Request $request)
     {
         $order = DB::connection('mysql_sb')->

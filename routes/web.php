@@ -174,6 +174,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-count', 'getCount')->name('get-general-count');
         // get number
         Route::get('/get-number', 'getNumber')->name('get-general-number');
+
+        // new general
+        // get colors
+        Route::get('/get-colors-new', 'getColors')->name('get-colors');
+        // get sizes
+        Route::get('/get-sizes-new', 'getSizes')->name('get-sizes');
     });
 
     // Worksheet
@@ -547,6 +553,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/year-sequence/print', 'printYearSequence')->name('print-year-sequence');
         Route::post('/year-sequence/print-new', 'printYearSequenceNew')->name('print-year-sequence-new');
         // Route::post('/year-sequence/print-checked', 'printYearSequenceChecked')->name('print-year-sequence-checked');
+
+        // modify year sequence
+        Route::get('/modify-year-sequence', 'modifyYearSequence')->name('modify-year-sequence');
+        Route::get('/modify-year-sequence-list', 'modifyYearSequenceList')->name('modify-year-sequence-list');
+        Route::post('/modify-year-sequence-update', 'modifyYearSequenceUpdate')->name('update-year-sequence');
 
         // get stocker
         Route::get('/get-stocker', 'getStocker')->name('get-stocker');

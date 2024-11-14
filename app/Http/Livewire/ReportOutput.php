@@ -466,7 +466,7 @@ class ReportOutput extends Component
                         LEFT JOIN master_plan on master_plan.id = output_rfts".($this->qcType).".master_plan_id
                     WHERE
                         output_rfts".($this->qcType).".created_by IS NOT NULL
-                        AND output_rfts.updated_at ".$outputFilter."
+                        AND output_rfts".($this->qcType).".updated_at ".$outputFilter."
                     GROUP BY
                         output_rfts".($this->qcType).".master_plan_id,
                         COALESCE(userpassword.username, master_plan.sewing_line)
@@ -531,7 +531,7 @@ class ReportOutput extends Component
                         LEFT JOIN master_plan on master_plan.id = output_rfts".($this->qcType).".master_plan_id
                     WHERE
                         output_rfts".($this->qcType).".created_by IS NOT NULL
-                        AND output_rfts.updated_at ".$outputFilter."
+                        AND output_rfts".($this->qcType).".updated_at ".$outputFilter."
                     GROUP BY
                         output_rfts".($this->qcType).".master_plan_id,
                         COALESCE(userpassword.username, master_plan.sewing_line)
@@ -589,7 +589,7 @@ class ReportOutput extends Component
                         LEFT JOIN master_plan on master_plan.id = output_rfts".($this->qcType).".master_plan_id
                     WHERE
                         output_rfts".($this->qcType).".created_by IS NOT NULL
-                        AND output_rfts.updated_at ".$outputFilter."
+                        AND output_rfts".($this->qcType).".updated_at ".$outputFilter."
                     GROUP BY
                         output_rfts".($this->qcType).".master_plan_id,
                         COALESCE(userpassword.username, master_plan.sewing_line)
