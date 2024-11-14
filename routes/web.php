@@ -55,6 +55,7 @@ use App\Http\Controllers\Sewing\OrderDefectController;
 use App\Http\Controllers\Sewing\TrackOrderOutputController;
 use App\Http\Controllers\Sewing\TransferOutputController;
 use App\Http\Controllers\Sewing\LineDashboardController;
+use App\Http\Controllers\Sewing\LineWipController;
 
 // Production
 use App\Http\Controllers\Sewing\MasterKursBiController;
@@ -875,6 +876,11 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/symlink', function () {
         Artisan::call('storage:link');
+    });
+
+    // Line WIP
+    Route::controller(LineWipController::class)->prefix("line-wip")->middleware('admin')->group(function () {
+        Route::get('/index', 'index')->name('line-wip');
     });
 
     // Track
