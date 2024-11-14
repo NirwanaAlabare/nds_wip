@@ -67,12 +67,15 @@
                             <th>Jam Kerja Aktual</th>
                         </tr>
                     </thead>
-                    <tbody>
-
-                        <!-- Data will be populated here by DataTables -->
-
-                    </tbody>
-
+                    <tfoot>
+                        <tr>
+                            <th colspan="3"> Total </th>
+                            <th colspan="7"></th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_po'> </th>
+                            <th colspan="7"></th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -189,7 +192,30 @@
             columnDefs: [{
                 "className": "align-left",
                 "targets": "_all"
-            }, ]
+            }, ],
+            drawCallback: function(settings) {
+                var api = this.api();
+                var intVal = function(i) {
+                    return typeof i === 'string' ?
+                        i.replace(/[\$,]/g, '') * 1 :
+                        typeof i === 'number' ?
+                        i : 0;
+                };
+                // Compute column Total of the complete result
+                var sumTotal = api
+                    .column(10, {
+                        search: 'applied'
+                    }) // Use search: 'applied' to only sum visible rows
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                // Update footer by showing the total with the reference of the column index
+
+                $(api.column(10).footer()).html(sumTotal);
+
+            }
         });
 
 
