@@ -334,10 +334,12 @@
                     data: 'dest'
                 },
                 {
-                    data: 'qc'
+                    data: 'qc',
+                    searchable: false
                 },
                 {
-                    data: 'packing'
+                    data: 'packing',
+                    searchable: false
                 }
             ],
             columnDefs: [
@@ -353,7 +355,7 @@
                 Swal.fire({
                     icon: "info",
                     title: "Konfirmasi",
-                    html: "Range <b>"+$('#range_awal').val()+" - "+$('#range_akhir').val()+"</b> dengan Total QTY <b>"+((Number($('#range_akhir').val()) - Number($('#range_awal').val())) + 1)+"</b>",
+                    html: "Range <b>"+$('#range_awal').val()+" - "+$('#range_akhir').val()+"</b> dengan Total QTY <b>"+($("#total_qty").val())+"</b>",
                     showDenyButton: true,
                     showCancelButton: false,
                     confirmButtonText: "Lanjut",
