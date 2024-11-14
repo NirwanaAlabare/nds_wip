@@ -3082,7 +3082,7 @@ class StockerController extends Controller
 
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno', 'styleno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
-        return view("stocker.stocker.modify-year-sequence", ["page" => "dashboard-dc",  "subPageGroup" => "stocker-number", "subPage" => "year-sequence", "years" => $years, "orders" => $orders]);
+        return view("stocker.stocker.modify-year-sequence", ["page" => "dashboard-dc",  "subPageGroup" => "stocker-number", "subPage" => "modify-year-sequence", "years" => $years, "orders" => $orders]);
     }
 
     public function modifyYearSequenceList(Request $request) {
