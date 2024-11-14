@@ -47,6 +47,7 @@
                 <table id="datatable" class="table table-bordered table-striped table-sm w-100 text-nowrap">
                     <thead class="table-success">
                         <tr style='text-align:center; vertical-align:middle'>
+                            <th>Tgl. Plan</th>
                             <th>Tgl. Trans</th>
                             <th>Line</th>
                             <th>WS</th>
@@ -62,6 +63,7 @@
                             <th>Earning</th>
                             <th>Mins. Prod</th>
                             <th>Efficiency</th>
+                            <th>RFT</th>
                             <th>Jam Kerja Aktual</th>
                         </tr>
                     </thead>
@@ -127,6 +129,10 @@
                 },
             },
             columns: [{
+                    data: 'tgl_plan_fix'
+
+                },
+                {
                     data: 'tgl_trans_fix'
 
                 },
@@ -150,13 +156,13 @@
                     data: 'man_power'
                 },
                 {
-                    data: 'min_available'
+                    data: 'mins_avail'
                 },
                 {
-                    data: 'set_target'
+                    data: 'target'
                 },
                 {
-                    data: 'output'
+                    data: 'tot_output'
                 },
                 {
                     data: 'curr'
@@ -168,10 +174,13 @@
                     data: 'earning'
                 },
                 {
-                    data: 'min_prod'
+                    data: 'mins_prod'
                 },
                 {
-                    data: 'eff'
+                    data: 'eff_line'
+                },
+                {
+                    data: 'rfts'
                 },
                 {
                     data: 'jam_kerja_act'
