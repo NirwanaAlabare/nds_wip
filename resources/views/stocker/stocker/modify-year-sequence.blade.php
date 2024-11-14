@@ -32,7 +32,6 @@
                 <div class="col-md-6">
                     <label class="form-label"><small><b>Sequence</b></small></label>
                     <select class="form-select" name="sequence" id="sequence">
-
                     </select>
                 </div>
                 <div class="col-md-5">
@@ -57,6 +56,8 @@
                             <th>Color</th>
                             <th>Size</th>
                             <th>Destination</th>
+                            <th>QC</th>
+                            <th>Packing</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -146,6 +147,8 @@
             getSequence();
 
             $("#id_ws").val("").trigger("change");
+
+            $("#total_update").val(currentRangeTable.page.info().recordsTotal);
         });
 
         // Get Sequence
@@ -329,6 +332,12 @@
                 },
                 {
                     data: 'dest'
+                },
+                {
+                    data: 'qc'
+                },
+                {
+                    data: 'packing'
                 }
             ],
             columnDefs: [
@@ -340,78 +349,82 @@
         });
 
         function updateYearSequence() {
-            Swal.fire({
-                icon: "info",
-                title: "Konfirmasi",
-                html: "Range <b>"+$('#range_awal').val()+" - "+$('#range_akhir').val()+"</b> dengan Total QTY <b>"+((Number($('#range_akhir').val()) - Number($('#range_awal').val())) + 1)+"</b>",
-                showDenyButton: true,
-                showCancelButton: false,
-                confirmButtonText: "Lanjut",
-                denyButtonText: "Batal"
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    document.getElementById("loading").classList.remove("d-none");
+            if ($("#total_update").val() > 0) {
+                Swal.fire({
+                    icon: "info",
+                    title: "Konfirmasi",
+                    html: "Range <b>"+$('#range_awal').val()+" - "+$('#range_akhir').val()+"</b> dengan Total QTY <b>"+((Number($('#range_akhir').val()) - Number($('#range_awal').val())) + 1)+"</b>",
+                    showDenyButton: true,
+                    showCancelButton: false,
+                    confirmButtonText: "Lanjut",
+                    denyButtonText: "Batal"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById("loading").classList.remove("d-none");
 
-                    $.ajax({
-                        url: '{{ route('update-year-sequence') }}',
-                        method: "POST",
-                        data: {
-                            "year": $("#year").val(),
-                            "sequence": $("#sequence").val(),
-                            "range_awal": $("#range_awal").val(),
-                            "range_akhir": $("#range_akhir").val(),
-                            "size": $("#size").val(),
-                            "size_text": $("#size").find(":selected").attr("size"),
-                        },
-                        success: function (res) {
-                            document.getElementById("loading").classList.add("d-none");
+                        $.ajax({
+                            url: '{{ route('update-year-sequence') }}',
+                            method: "POST",
+                            data: {
+                                "year": $("#year").val(),
+                                "sequence": $("#sequence").val(),
+                                "range_awal": $("#range_awal").val(),
+                                "range_akhir": $("#range_akhir").val(),
+                                "size": $("#size").val(),
+                                "size_text": $("#size").find(":selected").attr("size"),
+                            },
+                            success: function (res) {
+                                document.getElementById("loading").classList.add("d-none");
 
-                            if (res.status == 200) {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Berhasil',
-                                    html: res.message,
-                                }).then(() => {
-                                    location.reload();
-                                });
-                            } else {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Gagal',
-                                    html: res.message,
+                                if (res.status == 200) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Berhasil',
+                                        html: res.message,
+                                    }).then(() => {
+                                        location.reload();
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Gagal',
+                                        html: res.message,
+                                    });
+                                }
+                            },
+                            error: function (jqXHR) {
+                                document.getElementById("loading").classList.add("d-none");
+
+                                let res = jqXHR.responseJSON;
+                                let message = '';
+
+                                for (let key in res.errors) {
+                                    message = res.errors[key];
+                                    document.getElementById(key).classList.add('is-invalid');
+                                    document.getElementById(key + '_error').classList.remove('d-none');
+                                    document.getElementById(key + '_error').innerHTML = res.errors[key];
+
+                                    modified.push(
+                                        [key, '.classList', '.remove(', "'is-invalid')"],
+                                        [key + '_error', '.classList', '.add(', "'d-none')"],
+                                        [key + '_error', '.innerHTML = ', "''"],
+                                    )
+                                };
+
+                                iziToast.error({
+                                    title: 'Error',
+                                    message: 'Terjadi kesalahan.',
+                                    position: 'topCenter'
                                 });
                             }
-                        },
-                        error: function (jqXHR) {
-                            document.getElementById("loading").classList.add("d-none");
-
-                            let res = jqXHR.responseJSON;
-                            let message = '';
-
-                            for (let key in res.errors) {
-                                message = res.errors[key];
-                                document.getElementById(key).classList.add('is-invalid');
-                                document.getElementById(key + '_error').classList.remove('d-none');
-                                document.getElementById(key + '_error').innerHTML = res.errors[key];
-
-                                modified.push(
-                                    [key, '.classList', '.remove(', "'is-invalid')"],
-                                    [key + '_error', '.classList', '.add(', "'d-none')"],
-                                    [key + '_error', '.innerHTML = ', "''"],
-                                )
-                            };
-
-                            iziToast.error({
-                                title: 'Error',
-                                message: 'Terjadi kesalahan.',
-                                position: 'topCenter'
-                            });
-                        }
-                    })
-                } else {
-                    Swal.fire("Update dibatalkan", "", "info");
-                }
-            });
+                        })
+                    } else {
+                        Swal.fire("Update dibatalkan", "", "info");
+                    }
+                });
+            } else {
+                Swal.fire("Harap cek range QR", "", "info");
+            }
         }
     </script>
 @endsection
