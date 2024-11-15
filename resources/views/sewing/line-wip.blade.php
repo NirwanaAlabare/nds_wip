@@ -9,6 +9,17 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+
+    <style>
+        .dataTables_wrapper .dataTables_processing {
+            position: absolute;
+            top: 15% !important;
+            /* background: #FFFFCC;
+            border: 1px solid black; */
+            border-radius: 3px;
+            font-weight: bold;
+        }
+    </style>
 @endsection
 
 @section('content')
@@ -16,20 +27,31 @@
         <h3 class="my-3 text-sb text-start fw-bold">Sewing Line WIP</h3>
         <div class="card">
             <div class="card-body">
-                <div class="d-flex gap-3 align-items-end mb-3">
-                    <div>
-                        <label class="form-label">Tanggal Awal</label>
-                        <input type="date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}">
+                <div class="d-flex justify-content-between align-items-end">
+                    <div class="d-flex gap-3 align-items-end mb-3">
+                        <div>
+                            <label class="form-label">Tanggal Awal</label>
+                            <input type="date" class="form-control form-control-sm" id="tanggal_awal" value="{{ date('Y-m-d') }}" onchange="lineWipTableReload()">
+                        </div>
+                        <span> - </span>
+                        <div>
+                            <label class="form-label">Tanggal Akhir</label>
+                            <input type="date" class="form-control form-control-sm" id="tanggal_akhir" value="{{ date('Y-m-d') }}" onchange="lineWipTableReload()">
+                        </div>
+                        <button class="btn btn-sm btn-primary"><i class="fa fa-search"></i></button>
                     </div>
-                    <span> - </span>
-                    <div>
-                        <label class="form-label">Tanggal Akhir</label>
-                        <input type="date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}">
+                    <div class="mb-3">
+                        <select class="form-select select2bs4" name="line_id" id="line_id">
+                            <option value="">Pilih Line</option>
+                            @foreach ($lines as $line)
+                                <option value="{{ $line->line_id }}" data-line="{{ $line->username }}">{{ $line->FullName }}</option>
+                            @endforeach
+                        </select>
                     </div>
-                    <button class="btn btn-sm btn-primary"><i class="fa fa-search"></i></button>
                 </div>
+
                 <div class="table-responsive">
-                    <table class="table table-sm">
+                    <table class="table table-sm table-bordered" id="line_wip_table">
                         <thead>
                             <tr>
                                 <th>Line</th>
@@ -38,6 +60,7 @@
                                 <th>Style</th>
                                 <th>Color</th>
                                 <th>Size</th>
+                                <th>Dest</th>
                                 <th>Qty Loading</th>
                                 <th>WIP Sewing Line</th>
                                 <th>Reject</th>
@@ -68,8 +91,7 @@
     <script>
         $('.select2').select2()
         $('.select2bs4').select2({
-            theme: 'bootstrap4',
-            dropdownParent: $("#editMejaModal")
+            theme: 'bootstrap4'
         })
     </script>
 
@@ -86,12 +108,37 @@
             $("#tgl-awal").val(oneWeeksBeforeFull).trigger("change");
         });
 
-        let lineWipTable = $("#line-wip-table").DataTable({
+        $("#line_id").on("change", () => {
+            lineWipTableReload();
+        });
+
+        function lineWipTableReload() {
+            $("#line_wip_table").DataTable().ajax.reload();
+        }
+
+        $('#line_wip_table thead tr').clone(true).appendTo('#line_wip_table thead');
+        $('#line_wip_table thead tr:eq(1) th').each(function(i) {
+            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7) {
+                var title = $(this).text();
+                $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%"/>');
+
+                $('input', this).on('keyup change', function() {
+                    if (lineWipTable.column(i).search() !== this.value) {
+                        lineWipTable
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            } else {
+                $(this).empty();
+            }
+        });
+
+        let lineWipTable = $("#line_wip_table").DataTable({
             ordering: false,
             processing: true,
             serverSide: true,
-            scrollX: '500px',
-            scrollY: '400px',
             pageLength: 100,
             ajax: {
                 headers: {
@@ -103,40 +150,102 @@
                 data: function(d) {
                     d.tanggal_awal = $('#tanggal_awal').val();
                     d.tanggal_akhir = $('#tanggal_akhir').val();
+                    d.line_id = $('#line_id').val();
+                    d.line = $('#line_id').find(":selected").attr("data-line");
                 },
             },
             columns: [
                 {
-                    data: 'number',
+                    data: 'nama_line'
                 },
                 {
-                    data: 'id_year_sequence'
+                    data: 'tanggal',
                 },
                 {
-                    data: 'year_sequence_number'
+                    data: 'ws'
+                },
+                {
+                    data: 'styleno'
+                },
+                {
+                    data: 'color'
                 },
                 {
                     data: 'size'
                 },
                 {
-                    data: 'dest',
+                    data: 'dest'
+                },
+                {
+                    data: 'loading_qty'
+                },
+                {
+                    data: null
+                },
+                {
+                    data: 'reject'
+                },
+                {
+                    data: 'defect'
+                },
+                {
+                    data: 'output'
+                },
+                {
+                    data: null
+                },
+                {
+                    data: 'output_packing'
+                },
+                {
+                    data: null
+                },
+                {
+                    data: 'total_transfer_garment'
                 },
             ],
             columnDefs: [
+                {
+                    targets: [0],
+                    className: "text-nowrap",
+                    render: (data, type, row, meta) => {
+                        return data ? data.replace("_", " ").toUpperCase() : '-';
+                    }
+                },
+                {
+                    targets: [7, 9, 10, 11, 13, 15],
+                    className: "text-nowrap",
+                    render: (data, type, row, meta) => {
+                        return data ? data : 0;
+                    }
+                },
+                {
+                    targets: [8],
+                    className: "text-nowrap",
+                    render: (data, type, row, meta) => {
+                        return (row.loading_qty ? row.loading_qty : 0) -  ((row.reject ? row.reject : 0) + (row.defect ? row.defect : 0) + (row.output));
+                    }
+                },
+                {
+                    targets: [12],
+                    className: "text-nowrap",
+                    render: (data, type, row, meta) => {
+                        return (row.output ? row.output : 0) -  (row.output_packing ? row.output_packing : 0);
+                    }
+                },
+                {
+                    targets: [14],
+                    className: "text-nowrap",
+                    render: (data, type, row, meta) => {
+                        return (row.output_packing ? row.output_packing : 0) - (row.total_transfer_garment ? row.total_transfer_garment : 0);
+                    }
+                },
                 // Text No Wrap
                 {
                     targets: "_all",
                     className: "text-nowrap"
                 }
             ],
-            "rowCallback": function( row, data, index ) {
-                let yearSequence = data['year_sequence'], //data numbering month
-                    $node = this.api().row(row).nodes().to$();
-
-                if (yearSequence && yearSequence != "-") {
-                    $node.addClass('red');
-                }
-            }
         });
     </script>
 @endsection
