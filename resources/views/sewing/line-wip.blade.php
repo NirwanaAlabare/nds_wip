@@ -31,22 +31,23 @@
                     <div class="d-flex gap-3 align-items-end mb-3">
                         <div>
                             <label class="form-label">Tanggal Awal</label>
-                            <input type="date" class="form-control form-control-sm" id="tanggal_awal" value="{{ date('Y-m-d') }}" onchange="lineWipTableReload()">
+                            <input type="date" class="form-control form-control-sm" id="tanggal_awal" value="{{ date('Y-m-d') }}">
                         </div>
                         <span> - </span>
                         <div>
                             <label class="form-label">Tanggal Akhir</label>
-                            <input type="date" class="form-control form-control-sm" id="tanggal_akhir" value="{{ date('Y-m-d') }}" onchange="lineWipTableReload()">
+                            <input type="date" class="form-control form-control-sm" id="tanggal_akhir" value="{{ date('Y-m-d') }}">
                         </div>
-                        <button class="btn btn-sm btn-primary"><i class="fa fa-search"></i></button>
+                        <button class="btn btn-sm btn-primary" onclick="lineWipTableReload()"><i class="fa fa-search"></i></button>
                     </div>
-                    <div class="mb-3">
+                    <div class="d-flex gap-3 align-items-end mb-3">
                         <select class="form-select select2bs4" name="line_id" id="line_id">
                             <option value="">Pilih Line</option>
                             @foreach ($lines as $line)
                                 <option value="{{ $line->line_id }}" data-line="{{ $line->username }}">{{ $line->FullName }}</option>
                             @endforeach
                         </select>
+                        <button class="btn btn-sm btn-success" onclick="exportLineWipExcel()"><i class="fa fa-excel"></i></button>
                     </div>
                 </div>
 
