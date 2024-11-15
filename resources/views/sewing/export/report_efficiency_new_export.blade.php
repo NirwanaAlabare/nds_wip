@@ -10,7 +10,15 @@
         </td> --}}
     </tr>
     <tr>
-        <td></td>
+        <td colspan="6"></td>
+        <td style="font-weight: bold;">Jumlah </td>
+        <td style="font-weight: bold;">{{ $totalManPower }}</td>
+        <td style="font-weight: bold;">{{ $totalMinsAvail }}</td>
+        <td style="font-weight: bold;">{{ $totalTarget }}</td>
+        <td style="font-weight: bold;">{{ $totalOutput }}</td>
+        <td colspan="4"></td>
+        <td style="font-weight: bold;">{{ $totalEarningRupiah }}</td>
+        <td style="font-weight: bold;">{{ $totalMinsProd }}</td>
     </tr>
     <thead>
         <tr>
@@ -28,6 +36,8 @@
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Currency</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">CM Price</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Earning</th>
+            <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Kurs Tengah BI</th>
+            <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Earning Rupiah</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Mins. Prod</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">Efficiency</th>
             <th style="background-color: lightblue;border:1px solid black;font-weight:bold">RFT</th>
@@ -53,7 +63,9 @@
                 <td>{{ $item->tot_output }}</td>
                 <td>{{ $item->curr }}</td>
                 <td>{{ $item->cm_price }}</td>
-                <td>{{ $item->earning }}</td>
+                <td>{{ number_format((float) $item->earning, 2, ',', '.') }}</td>
+                <td>{{ 'Rp. ' . number_format((float) $item->kurs_tengah, 2, ',', '.') }}</td>
+                <td>{{ 'Rp. ' . number_format((float) $item->tot_earning_rupiah, 2, ',', '.') }}</td>
                 <td>{{ $item->mins_prod }}</td>
                 <td>{{ $item->eff_line }}</td>
                 <td>{{ $item->rfts }}</td>

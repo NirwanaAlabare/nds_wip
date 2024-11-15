@@ -59,20 +59,21 @@ ac.styleno,
 mp.color,
 mp.id,
 mp.smv,
-mp.man_power,
+mp.man_power man_power_ori,
 cmp.man_power,
 mp.jam_kerja_awal,
 istirahat,
 op.jam_akhir_input_line,
 round(TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600,2) AS jam_kerja_act_line,
-u.name sewing_line,
 round(((((sum(a.tot_output) / op.tot_output_line) * (TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600)) * 60) * cmp.man_power) / mp.smv) target,
 sum(a.tot_output) tot_output,
 sum(d_rfts.tot_rfts) tot_rfts,
 op.tot_output_line,
 so.curr,
 acm.price cm_price,
-REPLACE(FORMAT(sum(a.tot_output) * acm.price, 2), '.', ',') AS earning,
+sum(a.tot_output) * acm.price earning,
+mkb.kurs_tengah,
+if(so.curr = 'IDR', sum(a.tot_output) * acm.price, sum(a.tot_output) * (acm.price * mkb.kurs_tengah)) tot_earning_rupiah,
 round((cmp.man_power * (sum(a.tot_output) / op.tot_output_line) * (TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600) * 60),2) mins_avail,
 round(sum(a.tot_output) * mp.smv,2) mins_prod,
 round((((sum(a.tot_output) * mp.smv) / ( (cmp.man_power * (sum(a.tot_output) / op.tot_output_line) * (TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600) * 60)))*100),2) eff_line,
@@ -134,20 +135,33 @@ left join
 (
 select min(id), man_power, sewing_line, tgl_plan from master_plan where date(tgl_plan) >= '$this->tgl_awal' and  date(tgl_plan) <= '$this->tgl_akhir' and cancel = 'N' group by sewing_line, tgl_plan
 ) cmp on a.tgl_trans = cmp.tgl_plan and u.username = cmp.sewing_line
+left join master_kurs_bi mkb on a.tgl_trans = mkb.tanggal_kurs_bi
 group by u.name, ac.kpno, ac.Styleno, a.tgl_trans
-order by a.tgl_trans asc, u.name asc
+order by a.tgl_trans asc, u.name asc, ac.kpno asc
         ");
 
 
         $this->rowCount = count($data) + 4;
 
+        $totalManPower = collect($data)->sum('man_power');
+        $totalTarget = collect($data)->sum('target');
+        $totalOutput = collect($data)->sum('tot_output');
+        $totalMinsAvail = collect($data)->sum('mins_avail');
+        $totalEarningRupiah = collect($data)->sum('tot_earning_rupiah');
+        $totalMinsProd = collect($data)->sum('mins_prod');
 
         return view(
             'sewing.export.report_efficiency_new_export',
             [
                 'data' => $data,
                 'tgl_awal_n' => $this->tgl_awal,
-                'tgl_akhir_n' => $this->tgl_akhir
+                'tgl_akhir_n' => $this->tgl_akhir,
+                'totalManPower' => $totalManPower,
+                'totalTarget' => $totalTarget,
+                'totalOutput' => $totalOutput,
+                'totalMinsAvail' => $totalMinsAvail,
+                'totalEarningRupiah' => $totalEarningRupiah,
+                'totalMinsProd' => $totalMinsProd
             ]
         );
     }
@@ -165,7 +179,7 @@ order by a.tgl_trans asc, u.name asc
     {
 
         $event->sheet->styleCells(
-            'A4:R' . $event->getConcernable()->rowCount,
+            'A4:T' . $event->getConcernable()->rowCount,
             [
                 'borders' => [
                     'allBorders' => [
