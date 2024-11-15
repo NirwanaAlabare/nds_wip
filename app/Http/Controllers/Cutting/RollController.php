@@ -472,7 +472,7 @@ class RollController extends Controller
                 scanned_item.id_item,
                 scanned_item.detail_item,
                 scanned_item.lot,
-                COALESCE(scanned_item.roll, scanned_item.roll_buyer) no_roll,
+                COALESCE(scanned_item.roll_buyer, scanned_item.roll) no_roll,
                 scanned_item.qty,
                 scanned_item.qty_in,
                 scanned_item.qty_stok,
