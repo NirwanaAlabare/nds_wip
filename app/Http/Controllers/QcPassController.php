@@ -85,15 +85,13 @@ class QcPassController extends Controller
 //             ");
 
          $data = DB::connection('mysql_sb')->select("
-                select DISTINCT mi.id_item,mi.color,mi.itemdesc,ac.styleno,lot_no,supplier from bpb_roll_h a
-inner join bpb_roll b on a.id = b.id_h
-inner join (select bpbno,bpbno_int,bpbdate,b.supplier from bpb a INNER JOIN mastersupplier b on b.id_supplier = a.id_supplier where b.tipe_sup = 'S' group by bpbno) bpb on a.bpbno = bpb.bpbno
-inner join masteritem mi on a.id_item = mi.id_item
-inner join jo_det jd on a.id_jo = jd.id_jo
-inner join so on jd.id_so = so.id
-inner join act_costing ac on so.id_cost = ac.id
-where b.id = '" . $request->id_item . "'
-order by bpbdate asc limit 1");
+         select DISTINCT mi.id_item,mi.color,mi.itemdesc,ac.styleno,no_lot lot_no,supplier from whs_inmaterial_fabric b INNER JOIN whs_lokasi_inmaterial a on a.no_dok = b.no_dok
+         inner join masteritem mi on a.id_item = mi.id_item
+         inner join jo_det jd on a.id_jo = jd.id_jo
+         inner join so on jd.id_so = so.id
+         inner join act_costing ac on so.id_cost = ac.id
+         where a.no_barcode = '" . $request->id_item . "'
+         order by tgl_dok asc limit 1");
 
         return $data;
     }

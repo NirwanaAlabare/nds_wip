@@ -234,6 +234,7 @@
                 async: false
             }).responseText;
             // console.log(html != "");
+            console.log(cbopo);
             if (html != "") {
                 $("#cbono_carton").html(html);
             }

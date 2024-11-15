@@ -67,12 +67,23 @@
                             <th>Jam Kerja Aktual</th>
                         </tr>
                     </thead>
-                    <tbody>
-
-                        <!-- Data will be populated here by DataTables -->
-
-                    </tbody>
-
+                    <tfoot>
+                        <tr>
+                            <th colspan="3"> Total </th>
+                            <th colspan="4"></th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_mp'> </th>
+                            <th></th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_target'> </th>
+                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
+                                    id = 'total_qty_output'> </th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th colspan="4"></th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -189,7 +200,70 @@
             columnDefs: [{
                 "className": "align-left",
                 "targets": "_all"
-            }, ]
+            }, ],
+            drawCallback: function(settings) {
+                var api = this.api();
+                var intVal = function(i) {
+                    return typeof i === 'string' ?
+                        i.replace(/[\$,]/g, '') * 1 :
+                        typeof i === 'number' ?
+                        i : 0;
+                };
+                // Compute column Total of the complete result
+
+                var sumTotalMP = api
+                    .column(7, {
+                        search: 'applied'
+                    })
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalMinsAvail = api
+                    .column(8, {
+                        search: 'applied'
+                    })
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalTarget = api
+                    .column(9, {
+                        search: 'applied'
+                    })
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalOutput = api
+                    .column(10, {
+                        search: 'applied'
+                    })
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalMinProd = api
+                    .column(14, {
+                        search: 'applied'
+                    })
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                // Update footer for the "MP" column
+
+                $(api.column(7).footer()).html(sumTotalMP);
+                $(api.column(8).footer()).html(sumTotalMinsAvail.toFixed(2));
+                $(api.column(9).footer()).html(sumTotalTarget);
+                $(api.column(10).footer()).html(sumTotalOutput);
+                $(api.column(14).footer()).html(sumTotalMinProd.toFixed(2));
+            }
         });
 
 
