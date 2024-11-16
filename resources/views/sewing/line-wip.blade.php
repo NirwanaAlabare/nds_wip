@@ -47,7 +47,7 @@
                                 <option value="{{ $line->line_id }}" data-line="{{ $line->username }}">{{ $line->FullName }}</option>
                             @endforeach
                         </select>
-                        <button class="btn btn-sm btn-success" onclick="exportLineWipExcel()"><i class="fa fa-excel"></i></button>
+                        <button class="btn btn-success" onclick="exportExcel()"><i class="fa fa-file-excel"></i></button>
                     </div>
                 </div>
 
@@ -160,7 +160,7 @@
                     data: 'nama_line'
                 },
                 {
-                    data: 'tanggal',
+                    data: 'tanggal'
                 },
                 {
                     data: 'ws'
@@ -248,5 +248,47 @@
                 }
             ],
         });
+
+        function exportExcel() {
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                url: "{{ route("export-excel-line-wip") }}",
+                type: "get",
+                data: {
+                    tanggal_awal : $('#tanggal_awal').val(),
+                    tanggal_akhir : $('#tanggal_akhir').val(),
+                    line_id : $('#line_id').val(),
+                    line : $('#line_id').find(":selected").attr("data-line")
+                },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function (response) {
+                    swal.close();
+                    Swal.fire({
+                        title: 'Data Sudah Di Export!',
+                        icon: "success",
+                        showConfirmButton: true,
+                        allowOutsideClick: false
+                    });
+                    var blob = new Blob([response]);
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = "Sewing Line WIP " + $('#tanggal_awal').val() + " - " + $('#tanggal_akhir').val() + " "+ ($('#line').val() ? $('#line').val() : '') +".xlsx";
+                    link.click();
+                },
+                error: function (jqXHR) {
+                    console.error(jqXHR);
+                }
+            });
+        }
     </script>
 @endsection

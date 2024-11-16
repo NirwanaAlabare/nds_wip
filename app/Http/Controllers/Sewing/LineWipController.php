@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Sewing;
 
 use App\Http\Controllers\Controller;
 use App\Models\SignalBit\UserLine;
+use App\Exports\Sewing\LineWipExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
+use Maatwebsite\Excel\Facades\Excel;
 use DB;
 
 class LineWipController extends Controller
@@ -228,6 +230,22 @@ class LineWipController extends Controller
         $lines = UserLine::where("Groupp", "SEWING")->whereRaw("(Locked is null OR Locked != 1)")->orderBy("line_id", 'asc')->get();
 
         return view("sewing.line-wip", ["page" => "dashboard-sewing-eff",  "subPageGroup" => "sewing-wip", "subPage" => "line-wip"], ["lines" => $lines]);
+    }
+
+    /**
+     * Export Excel.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function exportExcel(Request $request) {
+        ini_set("max_execution_time", 36000);
+
+        $tanggalAwal = $request->tanggal_awal ? $request->tanggal_awal : date('Y-m-d');
+        $tanggalAkhir = $request->tanggal_akhir ? $request->tanggal_akhir : date('Y-m-d');
+        $lineIdFilter = $request->line_id ? $request->line_id : null;
+        $lineFilter = $request->line ? $request->line : null;
+
+        return Excel::download(new LineWipExport($tanggalAwal, $tanggalAkhir, $lineIdFilter, $lineFilter), 'production_excel.xlsx');
     }
 
     /**
