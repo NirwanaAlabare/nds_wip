@@ -39,13 +39,13 @@
             <td>{{ $d->size }}</td>
             <td>{{ $d->dest }}</td>
             <td>{{ ($d->loading_qty ? $d->loading_qty : 0) }}</td>
-            <td>{{ ($d->loading_qty ? $d->loading_qty : 0) - (($reject ? $reject->output : 0) + ($defect ? $defect->output : 0) + ($output ? $output->output : 0)) }}</td>
-            <td>{{ ($reject ? $reject->output : 0) }}</td>
-            <td>{{ ($defect ? $defect->output : 0) }}</td>
-            <td>{{ ($output ? $output->output : 0) }}</td>
-            <td>{{ ($output ? $output->output : 0) - ($outputPacking ? $outputPacking->output : 0) }}</td>
-            <td>{{ ($outputPacking ? $outputPacking->output : 0) }}</td>
-            <td>{{ ($outputPacking ? $outputPacking->output : 0) - ($d->total_transfer_garment ? $d->total_transfer_garment : 0) }}</td>
+            <td>{{ ($d->loading_qty ? $d->loading_qty : 0) - (($reject ? ($reject->total_output ? $reject->total_output : 0) : 0) + ($defect ? ($defect->total_output ? $defect->total_output : 0) : 0) + ($output ? ($output->total_output ? $output->total_output : 0) : 0)) }}</td>
+            <td>{{ ($reject ? ($reject->total_output ? $reject->total_output : 0) : 0) }}</td>
+            <td>{{ ($defect ? ($defect->total_output ? $defect->total_output : 0) : 0) }}</td>
+            <td>{{ ($output ? ($output->total_output ? $output->total_output : 0) : 0) }}</td>
+            <td>{{ ($output ? ($output->total_output ? $output->total_output : 0) : 0) - ($outputPacking ? ($outputPacking->total_output ? $outputPacking->total_output : 0) : 0) }}</td>
+            <td>{{ ($outputPacking ? ($outputPacking->total_output ? $outputPacking->total_output : 0) : 0) }}</td>
+            <td>{{ ($outputPacking ? ($outputPacking->total_output ? $outputPacking->total_output : 0) : 0) - ($d->total_transfer_garment ? $d->total_transfer_garment : 0) }}</td>
             <td>{{ ($d->total_transfer_garment ? $d->total_transfer_garment : 0) }}</td>
         </tr>
     @endforeach
