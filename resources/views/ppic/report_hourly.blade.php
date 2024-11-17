@@ -154,7 +154,7 @@
                 },
             },
             columns: [{
-                    data: 'tgl_input_fix'
+                    data: 'tgl_trans_fix'
 
                 },
                 {
@@ -183,7 +183,7 @@
                     data: 'jam_kerja'
                 },
                 {
-                    data: 'target_eff100'
+                    data: 'target_100'
                 },
                 {
                     data: 'target_effy'
@@ -192,7 +192,7 @@
                     data: 'target_output_eff'
                 },
                 {
-                    data: 'perhari'
+                    data: 'set_target_perhari'
                 },
                 {
                     data: 'plan_target_perjam'
@@ -201,49 +201,49 @@
                     data: 'jam_kerja_act'
                 },
                 {
-                    data: 'jam_1'
+                    data: 'o_jam_1'
                 },
                 {
-                    data: 'jam_2'
+                    data: 'o_jam_2'
                 },
                 {
-                    data: 'jam_3'
+                    data: 'o_jam_3'
                 },
                 {
-                    data: 'jam_4'
+                    data: 'o_jam_4'
                 },
                 {
-                    data: 'jam_5'
+                    data: 'o_jam_5'
                 },
                 {
-                    data: 'jam_6'
+                    data: 'o_jam_6'
                 },
                 {
-                    data: 'jam_7'
+                    data: 'o_jam_7'
                 },
                 {
-                    data: 'jam_8'
+                    data: 'o_jam_8'
                 },
                 {
-                    data: 'jam_9'
+                    data: 'o_jam_9'
                 },
                 {
-                    data: 'jam_10'
+                    data: 'o_jam_10'
                 },
                 {
-                    data: 'jam_11'
+                    data: 'o_jam_11'
                 },
                 {
-                    data: 'jam_12'
+                    data: 'o_jam_12'
                 },
                 {
-                    data: 'jam_13'
+                    data: 'o_jam_13'
                 },
                 {
-                    data: 'tot_input'
+                    data: 'tot_output'
                 },
                 {
-                    data: 'eff'
+                    data: 'eff_line'
                 },
                 {
                     data: 'eff_skrg'
@@ -280,7 +280,7 @@
                     },
                 },
                 columns: [{
-                        data: 'tgl_input_fix'
+                        data: 'tgl_trans_fix'
 
                     },
                     {
@@ -309,7 +309,7 @@
                         data: 'jam_kerja'
                     },
                     {
-                        data: 'target_eff100'
+                        data: 'target_100'
                     },
                     {
                         data: 'target_effy'
@@ -318,7 +318,7 @@
                         data: 'target_output_eff'
                     },
                     {
-                        data: 'perhari'
+                        data: 'set_target_perhari'
                     },
                     {
                         data: 'plan_target_perjam'
@@ -327,49 +327,49 @@
                         data: 'jam_kerja_act'
                     },
                     {
-                        data: 'jam_1'
+                        data: 'o_jam_1'
                     },
                     {
-                        data: 'jam_2'
+                        data: 'o_jam_2'
                     },
                     {
-                        data: 'jam_3'
+                        data: 'o_jam_3'
                     },
                     {
-                        data: 'jam_4'
+                        data: 'o_jam_4'
                     },
                     {
-                        data: 'jam_5'
+                        data: 'o_jam_5'
                     },
                     {
-                        data: 'jam_6'
+                        data: 'o_jam_6'
                     },
                     {
-                        data: 'jam_7'
+                        data: 'o_jam_7'
                     },
                     {
-                        data: 'jam_8'
+                        data: 'o_jam_8'
                     },
                     {
-                        data: 'jam_9'
+                        data: 'o_jam_9'
                     },
                     {
-                        data: 'jam_10'
+                        data: 'o_jam_10'
                     },
                     {
-                        data: 'jam_11'
+                        data: 'o_jam_11'
                     },
                     {
-                        data: 'jam_12'
+                        data: 'o_jam_12'
                     },
                     {
-                        data: 'jam_13'
+                        data: 'o_jam_13'
                     },
                     {
-                        data: 'tot_input'
+                        data: 'tot_output'
                     },
                     {
-                        data: 'eff'
+                        data: 'eff_line'
                     },
                     {
                         data: 'eff_skrg'
