@@ -46,6 +46,7 @@ use App\Http\Controllers\DC\RackStockerController;
 use App\Http\Controllers\DC\TrolleyController;
 use App\Http\Controllers\DC\TrolleyStockerController;
 use App\Http\Controllers\DC\LoadingLineController;
+use App\Http\Controllers\DC\BonLoadingController;
 
 // Sewing
 use App\Http\Controllers\Sewing\MasterPlanController;
@@ -693,6 +694,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/summary', 'summary')->name('summary-loading');
         Route::get('/get-total-summary', 'getTotalSummary')->name('total-summary-loading');
         Route::post('/export-excel', 'exportExcel')->name('export-excel-loading');
+    });
+
+    // Bon Loading
+    Route::controller(BonLoadingController::class)->prefix("bon-loading")->middleware('dc')->group(function () {
+        Route::get('/', 'index')->name('bon-loading-line');
+        Route::post('/store', 'store')->name('store-bon-loading-line');
     });
 
     // Stock DC Complete
