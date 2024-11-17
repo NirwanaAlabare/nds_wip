@@ -760,7 +760,7 @@
                             @sewing
                                 <li>
                                     <a href="{{ route('line-wip') }}"
-                                        class="dropdown-item {{ $subPage == 'wip' ? 'active' : '' }}">
+                                        class="dropdown-item {{ $subPage == 'line-wip' ? 'active' : '' }}">
                                         Line WIP <i class="fa-solid fa-bars-progress"></i>
                                     </a>
                                 </li>
