@@ -58,8 +58,8 @@
                             <th>Tgl. Input</th>
                             <th>Line</th>
                             <th>WS</th>
-                            <th>Buyer</th>
                             <th>Style</th>
+                            <th>Buyer</th>
                             <th>SMV</th>
                             <th>MP</th>
                             <th>Jumlah Hari</th>
@@ -92,8 +92,8 @@
                     </thead>
                     <tfoot>
                         <tr>
-                            <th colspan="5"> Total </th>
-                            <th></th>
+                            <th colspan="4"> Total </th>
+                            <th colspan="2"></th>
                             <th></th>
                             <th colspan="4"></th>
                             <th>2</th>
@@ -171,7 +171,7 @@
                 paging: false,
                 ordering: false,
                 fixedColumns: {
-                    leftColumns: 5 // Fix the first three columns
+                    leftColumns: 4 // Fix the first three columns
                 },
                 ajax: {
                     url: '{{ route('report-hourly') }}',
@@ -190,10 +190,10 @@
                         data: 'kpno'
                     },
                     {
-                        data: 'buyer'
+                        data: 'styleno'
                     },
                     {
-                        data: 'styleno'
+                        data: 'buyer'
                     },
                     {
                         data: 'smv'
@@ -287,6 +287,7 @@
 
                 drawCallback: function(settings) {
                     var api = this.api();
+
                     var intVal = function(i) {
                         return typeof i === 'string' ?
                             i.replace(/[\$,]/g, '') * 1 :
@@ -295,14 +296,70 @@
                     };
                     // Compute column Total of the complete result
 
+
+                    // Create an object to store unique man_power for each sewing_line
+
+                    let uniqueManPower = {};
+
+
+                    // Loop through the data to populate the uniqueManPower object
+
+                    api.rows({
+                        search: 'applied'
+                    }).every(function() {
+
+                        var data = this.data();
+
+                        // Get the sewing_line and man_power
+
+                        let line = data.sewing_line;
+
+                        let power = intVal(data.man_power);
+
+
+                        // If the line does not exist in the object, add it
+
+                        if (!uniqueManPower[line]) {
+
+                            uniqueManPower[line] = power;
+
+                        }
+
+                    });
+
+
+                    // Calculate the total of unique man_power values
+
+                    var totalUniqueManPower = Object.values(uniqueManPower).reduce((a, b) => a + b, 0);
+
+
+                    // Update footer for the total unique man_power
+
+                    $(api.column(6).footer()).html(
+                        totalUniqueManPower); // Assuming man_power is in the 7th column (zero-based index 6)
+
+
+                    // Your existing sum calculations...
+
                     var sumTotalA = api
+
                         .column(11, {
                             search: 'applied'
                         })
+
                         .data()
+
                         .reduce(function(a, b) {
+
                             return intVal(a) + intVal(b);
+
                         }, 0);
+
+
+                    // Update other footer calculations as needed...
+
+                    $(api.column(11).footer()).html(sumTotalA);
+
 
                     var sumTotalB = api
                         .column(13, {
