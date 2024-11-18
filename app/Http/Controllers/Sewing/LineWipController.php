@@ -56,7 +56,6 @@ class LineWipController extends Controller
                         output_rfts
                         LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rfts.created_by
                     WHERE
-                        output_rfts.status = 'NORMAL' AND
                         output_rfts.so_det_id in (".$soDetList.")
                         ".$lineIdFilter."
                     GROUP BY
