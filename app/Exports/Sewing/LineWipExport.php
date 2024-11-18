@@ -70,7 +70,6 @@ class LineWipExport implements FromView, WithEvents, ShouldAutoSize
                     output_rfts
                     LEFT JOIN user_sb_wip ON user_sb_wip.id = output_rfts.created_by
                 WHERE
-                    output_rfts.status = 'NORMAL' AND
                     output_rfts.so_det_id in (".$soDetList.")
                     ".$lineIdFilter."
                 GROUP BY
@@ -192,6 +191,7 @@ class LineWipExport implements FromView, WithEvents, ShouldAutoSize
                 ) loading_stock on loading_stock.so_det_id = ppic_master.id_so_det
                 LEFT JOIN (
                     SELECT
+                        line,
                         id_so_det,
                         sum(qty) total_transfer_garment
                     FROM
@@ -200,8 +200,9 @@ class LineWipExport implements FromView, WithEvents, ShouldAutoSize
                         id_so_det in (".$soDetList.")
                         ".$lineFilter."
                     GROUP BY
-                        packing_trf_garment.id_so_det
-                ) transfer_garment ON transfer_garment.id_so_det = ppic_master.id_so_det
+                        line,
+                        id_so_det
+                ) transfer_garment ON transfer_garment.id_so_det = ppic_master.id_so_det and transfer_garment.line = loading_stock.nama_line
                 GROUP BY
                     ppic_master.id_so_det,
                     loading_stock.line_id
@@ -241,7 +242,7 @@ class LineWipExport implements FromView, WithEvents, ShouldAutoSize
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A3:P' . ($event->getConcernable()->rowCount+3),
+            'A3:P' . ($event->getConcernable()->rowCount+4),
             [
                 'borders' => [
                     'allBorders' => [

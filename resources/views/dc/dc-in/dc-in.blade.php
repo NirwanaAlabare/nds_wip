@@ -283,49 +283,50 @@
                 $(api.column(13).footer()).html("...");
                 $(api.column(14).footer()).html("...");
 
-                // // converting to interger to find total
-                // var intVal = function(i) {
-                //     return typeof i === 'string' ?
-                //         i.replace(/[\$,]/g, '') * 1 :
-                //         typeof i === 'number' ?
-                //         i : 0;
-                // };
+                // Legacy
+                    // // converting to interger to find total
+                    // var intVal = function(i) {
+                    //     return typeof i === 'string' ?
+                    //         i.replace(/[\$,]/g, '') * 1 :
+                    //         typeof i === 'number' ?
+                    //         i : 0;
+                    // };
 
-                // // computing column Total of the complete result
-                // var sumTotal = api
-                //     .column(11)
-                //     .data()
-                //     .reduce(function(a, b) {
-                //         return intVal(a) + intVal(b);
-                //     }, 0);
+                    // // computing column Total of the complete result
+                    // var sumTotal = api
+                    //     .column(11)
+                    //     .data()
+                    //     .reduce(function(a, b) {
+                    //         return intVal(a) + intVal(b);
+                    //     }, 0);
 
-                // var sumTotalAwal = api
-                //     .column(11)
-                //     .data()
-                //     .reduce(function(a, b) {
-                //         return intVal(a) + intVal(b);
-                //     }, 0);
+                    // var sumTotalAwal = api
+                    //     .column(11)
+                    //     .data()
+                    //     .reduce(function(a, b) {
+                    //         return intVal(a) + intVal(b);
+                    //     }, 0);
 
-                // var sumTotalReject = api
-                //     .column(12)
-                //     .data()
-                //     .reduce(function(a, b) {
-                //         return intVal(a) + intVal(b);
-                //     }, 0);
+                    // var sumTotalReject = api
+                    //     .column(12)
+                    //     .data()
+                    //     .reduce(function(a, b) {
+                    //         return intVal(a) + intVal(b);
+                    //     }, 0);
 
-                // var sumTotalReplace = api
-                //     .column(13)
-                //     .data()
-                //     .reduce(function(a, b) {
-                //         return intVal(a) + intVal(b);
-                //     }, 0);
+                    // var sumTotalReplace = api
+                    //     .column(13)
+                    //     .data()
+                    //     .reduce(function(a, b) {
+                    //         return intVal(a) + intVal(b);
+                    //     }, 0);
 
-                // var sumTotalIn = api
-                //     .column(14)
-                //     .data()
-                //     .reduce(function(a, b) {
-                //         return intVal(a) + intVal(b);
-                //     }, 0);
+                    // var sumTotalIn = api
+                    //     .column(14)
+                    //     .data()
+                    //     .reduce(function(a, b) {
+                    //         return intVal(a) + intVal(b);
+                    //     }, 0);
 
                 $.ajax({
                     url: '{{ route('total_dc_in') }}',

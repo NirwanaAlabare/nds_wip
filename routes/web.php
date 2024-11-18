@@ -888,6 +888,7 @@ Route::middleware('auth')->group(function () {
     // Line WIP
     Route::controller(LineWipController::class)->prefix("line-wip")->middleware('admin')->group(function () {
         Route::get('/index', 'index')->name('line-wip');
+        Route::get('/total', 'total')->name('total-line-wip');
         Route::get('/export-excel', 'exportExcel')->name('export-excel-line-wip');
     });
 

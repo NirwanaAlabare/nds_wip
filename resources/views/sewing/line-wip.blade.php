@@ -73,6 +73,22 @@
                                 <th>Qty Transfer Garment</th>
                             </tr>
                         </thead>
+                        <tbody>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="7">Total</td>
+                                <th>...</th>
+                                <th>...</th>
+                                <th>...</th>
+                                <th>...</th>
+                                <th>...</th>
+                                <th>...</th>
+                                <th>...</th>
+                                <th>...</th>
+                                <th>...</th>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -117,11 +133,13 @@
             $("#line_wip_table").DataTable().ajax.reload();
         }
 
+        // Filter
+        const filters = ["line_filter", "tanggal_filter", "ws_filter", "style_filter", "color_filter", "size_filter", "dest_filter"];
         $('#line_wip_table thead tr').clone(true).appendTo('#line_wip_table thead');
         $('#line_wip_table thead tr:eq(1) th').each(function(i) {
-            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7) {
+            if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6) {
                 var title = $(this).text();
-                $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%"/>');
+                $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%" id="'+filters[i]+'"/>');
 
                 $('input', this).on('keyup change', function() {
                     if (lineWipTable.column(i).search() !== this.value) {
@@ -217,28 +235,28 @@
                     targets: [7, 9, 10, 11, 13, 15],
                     className: "text-nowrap",
                     render: (data, type, row, meta) => {
-                        return data ? data : 0;
+                        return data ? data.toLocaleString("ID-id") : 0;
                     }
                 },
                 {
                     targets: [8],
                     className: "text-nowrap",
                     render: (data, type, row, meta) => {
-                        return (row.loading_qty ? row.loading_qty : 0) -  ((row.reject ? row.reject : 0) + (row.defect ? row.defect : 0) + (row.output));
+                        return ((row.loading_qty ? Number(row.loading_qty) : 0) -  ((row.reject ? Number(row.reject) : 0) + (row.defect ? Number(row.defect) : 0) + (row.output ? Number(row.output) : 0))).toLocaleString("ID-id");
                     }
                 },
                 {
                     targets: [12],
                     className: "text-nowrap",
                     render: (data, type, row, meta) => {
-                        return (row.output ? row.output : 0) -  (row.output_packing ? row.output_packing : 0);
+                        return ((row.output ? Number(row.output) : 0) -  (row.output_packing ? Number(row.output_packing) : 0)).toLocaleString("ID-id");
                     }
                 },
                 {
                     targets: [14],
                     className: "text-nowrap",
                     render: (data, type, row, meta) => {
-                        return (row.output_packing ? row.output_packing : 0) - (row.total_transfer_garment ? row.total_transfer_garment : 0);
+                        return ((row.output_packing ? Number(row.output_packing) : 0) - (row.total_transfer_garment ? Number(row.total_transfer_garment) : 0)).toLocaleString("ID-id");
                     }
                 },
                 // Text No Wrap
@@ -247,6 +265,59 @@
                     className: "text-nowrap"
                 }
             ],
+            footerCallback: async function(row, data, start, end, display) {
+                var api = this.api(),data;
+
+                $(api.column(0).footer()).html('Total');
+                $(api.column(7).footer()).html("...");
+                $(api.column(8).footer()).html("...");
+                $(api.column(9).footer()).html("...");
+                $(api.column(10).footer()).html("...");
+                $(api.column(11).footer()).html("...");
+                $(api.column(12).footer()).html("...");
+                $(api.column(13).footer()).html("...");
+                $(api.column(14).footer()).html("...");
+                $(api.column(15).footer()).html("...");
+
+                $.ajax({
+                    url: '{{ route('total-line-wip') }}',
+                    dataType: 'json',
+                    dataSrc: 'data',
+                    data: {
+                        'tanggal_awal': $('#tanggal_awal').val(),
+                        'tanggal_akhir': $('#tanggal_akhir').val(),
+                        'line_id': $('#line_id').val(),
+                        'line': $('#line_id').find(":selected").attr("data-line"),
+                        'lineNameFilter': $('#line_filter').val(),
+                        'tanggalFilter': $('#tanggal_filter').val(),
+                        'wsFilter': $('#ws_filter').val(),
+                        'styleFilter': $('#style_filter').val(),
+                        'colorFilter': $('#color_filter').val(),
+                        'sizeFilter': $('#size_filter').val(),
+                        'destFilter': $('#dest_filter').val()
+                    },
+                    success: function(response) {
+                        console.log(response);
+
+                        if (response) {
+                            // Update footer by showing the total with the reference of the column index
+                            $(api.column(0).footer()).html('Total');
+                            $(api.column(7).footer()).html((response['total_loading']).toLocaleString("ID-id"));
+                            $(api.column(8).footer()).html((Number(response['total_loading']) - (Number(response['total_reject']) + Number(response['total_defect']) + Number(response['total_output']))).toLocaleString("ID-id"));
+                            $(api.column(9).footer()).html((response['total_reject']).toLocaleString("ID-id"));
+                            $(api.column(10).footer()).html((response['total_defect']).toLocaleString("ID-id"));
+                            $(api.column(11).footer()).html((response['total_output']).toLocaleString("ID-id"));
+                            $(api.column(12).footer()).html((Number(response['total_output']) - Number(response['total_output_packing'])).toLocaleString("ID-id"));
+                            $(api.column(13).footer()).html((response['total_output_packing']).toLocaleString("ID-id"));
+                            $(api.column(14).footer()).html((Number(response['total_output_packing']) - Number(response['total_transfer_garment'])).toLocaleString("ID-id"));
+                            $(api.column(15).footer()).html((response['total_transfer_garment']).toLocaleString("ID-id"));
+                        }
+                    },
+                    error: function(request, status, error) {
+                        console.error(error);
+                    },
+                })
+            },
         });
 
         function exportExcel() {
