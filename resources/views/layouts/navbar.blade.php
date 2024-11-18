@@ -587,6 +587,12 @@
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'loading-dc' ? 'active' : '' }}">Loading</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @dc
+                                {{-- <li>
+                                    <a href="{{ route('bon-loading-line') }}"
+                                        class="dropdown-item {{ $subPage == 'bon-loading-line' ? 'active' : '' }}">
+                                        Bon Loading <i class="fa-solid fa-note-sticky"></i>
+                                    </a>
+                                </li> --}}
                                 <li>
                                     <a href="{{ route('loading-line') }}"
                                         class="dropdown-item {{ $subPage == 'loading-line' ? 'active' : '' }}">
