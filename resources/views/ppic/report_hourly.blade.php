@@ -41,7 +41,7 @@
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Filter</b></small></label>
-                    <input type="date" class="form-control form-control " id="tgl-filter" name="tgl_filter"
+                    <input type="date" class="form-control form-control " id="tgl_filter" name="tgl_filter"
                         value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
@@ -49,12 +49,6 @@
                         <i class="fas fa-search fa-sm"></i>
                     </a>
                 </div>
-                {{-- <div class="mb-3">
-                    <a onclick="export_excel_tracking()" class="btn btn-outline-success position-relative btn-sm">
-                        <i class="fas fa-file-excel fa-sm"></i>
-                        Export Excel
-                    </a>
-                </div> --}}
             </div>
 
             <div class="table-responsive">
@@ -63,9 +57,11 @@
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>Tgl. Input</th>
                             <th>Line</th>
+                            <th>WS</th>
+                            <th>Buyer</th>
                             <th>Style</th>
-                            <th>Jumlah OP</th>
                             <th>SMV</th>
+                            <th>MP</th>
                             <th>Jumlah Hari</th>
                             <th>Eff Kemarin (1)</th>
                             <th>Eff Kemarin (2)</th>
@@ -136,156 +132,41 @@
             alert("Maaf, Fitur belum tersedia!");
         }
 
-        var datatable = $("#datatable").DataTable({
-            scrollY: "450px",
-            scrollX: true,
-            scrollCollapse: true,
-            paging: false,
-            ordering: false,
-            fixedColumns: {
-                leftColumns: 3 // Fix the first two columns
-            },
-            ajax: {
-                url: '{{ route('report-hourly') }}',
-                dataType: 'json',
-                dataSrc: 'data',
-                data: function(d) {
-                    d.tgl_filter = $('#tgl-filter').val();
-                },
-            },
-            columns: [{
-                    data: 'tgl_trans_fix'
+        function dataTableReload() {
+            // Check if DataTable is already initialized
+            if ($.fn.DataTable.isDataTable('#datatable')) {
+                // Destroy the existing DataTable
+                $('#datatable').DataTable().destroy();
+            }
 
-                },
-                {
-                    data: 'sewing_line'
-
-                },
-                {
-                    data: 'styleno'
-                },
-                {
-                    data: 'man_power'
-                },
-                {
-                    data: 'smv'
-                },
-                {
-                    data: 'tot_days'
-                },
-                {
-                    data: 'kemarin_1'
-                },
-                {
-                    data: 'kemarin_2'
-                },
-                {
-                    data: 'jam_kerja'
-                },
-                {
-                    data: 'target_100'
-                },
-                {
-                    data: 'target_effy'
-                },
-                {
-                    data: 'target_output_eff'
-                },
-                {
-                    data: 'set_target_perhari'
-                },
-                {
-                    data: 'plan_target_perjam'
-                },
-                {
-                    data: 'jam_kerja_act'
-                },
-                {
-                    data: 'o_jam_1'
-                },
-                {
-                    data: 'o_jam_2'
-                },
-                {
-                    data: 'o_jam_3'
-                },
-                {
-                    data: 'o_jam_4'
-                },
-                {
-                    data: 'o_jam_5'
-                },
-                {
-                    data: 'o_jam_6'
-                },
-                {
-                    data: 'o_jam_7'
-                },
-                {
-                    data: 'o_jam_8'
-                },
-                {
-                    data: 'o_jam_9'
-                },
-                {
-                    data: 'o_jam_10'
-                },
-                {
-                    data: 'o_jam_11'
-                },
-                {
-                    data: 'o_jam_12'
-                },
-                {
-                    data: 'o_jam_13'
-                },
-                {
-                    data: 'tot_output'
-                },
-                {
-                    data: 'eff_line'
-                },
-                {
-                    data: 'eff_skrg'
-                },
-            ],
-            columnDefs: [{
-                "className": "align-middle",
-                "targets": "_all"
-            }, ],
-            rowsGroup: [
-                30
-            ]
-        });
-
-
-        async function dataTableReload() {
-            // reinitialise datatable
+            // Re-initialize the DataTable
             datatable = $("#datatable").DataTable({
-                destroy: true,
                 scrollY: "450px",
                 scrollX: true,
                 scrollCollapse: true,
                 paging: false,
                 ordering: false,
                 fixedColumns: {
-                    leftColumns: 3 // Fix the first two columns
+                    leftColumns: 3 // Fix the first three columns
                 },
                 ajax: {
                     url: '{{ route('report-hourly') }}',
-                    dataType: 'json',
-                    dataSrc: 'data',
                     data: function(d) {
-                        d.tgl_filter = $('#tgl-filter').val();
+                        d.tgl_filter = $('#tgl_filter').val(); // Send the selected date to the server
+                        console.log(d.tgl_filter); // Debugging: log the filter date
                     },
                 },
                 columns: [{
                         data: 'tgl_trans_fix'
-
                     },
                     {
                         data: 'sewing_line'
-
+                    },
+                    {
+                        data: 'kpno'
+                    },
+                    {
+                        data: 'buyer'
                     },
                     {
                         data: 'styleno'
@@ -373,17 +254,19 @@
                     },
                     {
                         data: 'eff_skrg'
-                    },
+                    }
                 ],
                 columnDefs: [{
                     "className": "align-middle",
                     "targets": "_all"
-                }, ],
+                }],
                 rowsGroup: [
-                    30
+                    32 // Adjust this index to the correct column (zero-based)
                 ]
             });
         }
+
+
 
         function export_excel_tracking() {
             let buyer = document.getElementById("cbobuyer").value;
