@@ -40,6 +40,8 @@ class ReportHourlyController extends Controller
         // $end_date_min_2 = '2024-10-27 23:59:59';
         // $start_date_min_2 = '2024-10-27 00:00:00';
 
+        // dd($tgl_filter, $start_date, $end_date);
+
         $user = Auth::user()->name;
         if ($request->ajax()) {
 
@@ -80,8 +82,8 @@ ms.supplier buyer,
 ac.kpno,
 ac.styleno,
 mp.color,
+'-' tot_days,
 mp.id,
-rep_h.tot_days,
 mp.smv,
 mp.man_power man_power_ori,
 cmp.man_power,
@@ -95,7 +97,8 @@ sum(d_rfts.tot_rfts) tot_rfts,
 op.tot_output_line,
 round((cmp.man_power * (sum(a.tot_output) / op.tot_output_line) * (TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600) * 60),2) mins_avail,
 round(sum(a.tot_output) * mp.smv,2) mins_prod,
-round((((sum(a.tot_output) * mp.smv) / ( (cmp.man_power * (sum(a.tot_output) / op.tot_output_line) * (TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600) * 60)))*100),2) eff_line,
+concat(round((((sum(a.tot_output) * mp.smv) / ( (cmp.man_power * (sum(a.tot_output) / op.tot_output_line) * (TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600) * 60)))*100),2), ' %') eff_line,
+round((((sum(a.tot_output) * mp.smv) / ( (cmp.man_power * (sum(a.tot_output) / op.tot_output_line) * (TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600) * 60)))*100),2) eff_line_angka,
 round(((sum(a.tot_output) / op.tot_output_line) * (TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600)),2) jam_kerja_act,
 round((sum(d_rfts.tot_rfts) / sum(a.tot_output)) * 100,2) rfts,
 sum(jam_1) o_jam_1,
@@ -119,7 +122,8 @@ round(((((mp.jam_kerja * 60) * cmp.man_power) / mp.smv) * mp.target_effy) / 100,
 round(if (mp.jam_kerja < 1,mp.set_target, mp.set_target / mp.jam_kerja)) plan_target_perjam,
 concat(coalesce(e_kmrn_1.eff_kmrn_1,0), ' %') kemarin_1,
 concat(coalesce(e_kmrn_2.eff_kmrn_2,0), ' %') kemarin_2,
-e_skrg.eff_skrg eff_skrg
+concat(coalesce(e_skrg.eff_skrg,0), ' %') eff_skrg,
+coalesce(e_skrg.eff_skrg,0) eff_skrg_angka
  from
 (
     select
@@ -190,10 +194,6 @@ left join
 (
 select min(id), man_power, sewing_line, tgl_plan from master_plan where date(tgl_plan) >= '$start_date' and  date(tgl_plan) <= '$end_date' and cancel = 'N' group by sewing_line, tgl_plan
 ) cmp on a.tgl_trans = cmp.tgl_plan and u.username = cmp.sewing_line
-left join
-(
-select * from rep_hourly_output_hist_trans
-) rep_h on a.created_by = rep_h.created_by and ac.styleno = rep_h.styleno
 left join
 (
             select
@@ -349,10 +349,8 @@ left join
             ) eff_hr_ini
             group by sewing_line, styleno
 ) e_kmrn_2 on u.name = e_kmrn_2.sewing_line and ac.styleno = e_kmrn_2.styleno
-
 group by u.name, ac.kpno, ac.Styleno, a.tgl_trans
 order by a.tgl_trans asc, u.name asc, ac.kpno asc
-
 ");
             return DataTables::of($data_tracking)->toJson();
         }

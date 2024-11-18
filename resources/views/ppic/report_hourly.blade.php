@@ -41,7 +41,7 @@
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
                     <label class="form-label"><small><b>Tgl Filter</b></small></label>
-                    <input type="date" class="form-control form-control " id="tgl-filter" name="tgl_filter"
+                    <input type="date" class="form-control form-control " id="tgl_filter" name="tgl_filter"
                         value="{{ date('Y-m-d') }}">
                 </div>
                 <div class="mb-3">
@@ -49,12 +49,6 @@
                         <i class="fas fa-search fa-sm"></i>
                     </a>
                 </div>
-                {{-- <div class="mb-3">
-                    <a onclick="export_excel_tracking()" class="btn btn-outline-success position-relative btn-sm">
-                        <i class="fas fa-file-excel fa-sm"></i>
-                        Export Excel
-                    </a>
-                </div> --}}
             </div>
 
             <div class="table-responsive">
@@ -63,9 +57,11 @@
                         <tr style='text-align:center; vertical-align:middle'>
                             <th>Tgl. Input</th>
                             <th>Line</th>
+                            <th>WS</th>
+                            <th>Buyer</th>
                             <th>Style</th>
-                            <th>Jumlah OP</th>
                             <th>SMV</th>
+                            <th>MP</th>
                             <th>Jumlah Hari</th>
                             <th>Eff Kemarin (1)</th>
                             <th>Eff Kemarin (2)</th>
@@ -94,11 +90,35 @@
                             <th>Eff Line</th>
                         </tr>
                     </thead>
-                    <tbody>
-
-                        <!-- Data will be populated here by DataTables -->
-
-                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="5"> Total </th>
+                            <th></th>
+                            <th></th>
+                            <th colspan="4"></th>
+                            <th>2</th>
+                            <th></th>
+                            <th>4</th>
+                            <th>5</th>
+                            <th></th>
+                            <th></th>
+                            <th>8</th>
+                            <th>9</th>
+                            <th>10</th>
+                            <th>11</th>
+                            <th>12</th>
+                            <th>13</th>
+                            <th>14</th>
+                            <th>15</th>
+                            <th>16</th>
+                            <th>17</th>
+                            <th>18</th>
+                            <th>19</th>
+                            <th>20</th>
+                            <th>21</th>
+                            <th colspan = '2'></th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -136,165 +156,50 @@
             alert("Maaf, Fitur belum tersedia!");
         }
 
-        var datatable = $("#datatable").DataTable({
-            scrollY: "450px",
-            scrollX: true,
-            scrollCollapse: true,
-            paging: false,
-            ordering: false,
-            fixedColumns: {
-                leftColumns: 3 // Fix the first two columns
-            },
-            ajax: {
-                url: '{{ route('report-hourly') }}',
-                dataType: 'json',
-                dataSrc: 'data',
-                data: function(d) {
-                    d.tgl_filter = $('#tgl-filter').val();
-                },
-            },
-            columns: [{
-                    data: 'tgl_trans_fix'
+        function dataTableReload() {
+            // Check if DataTable is already initialized
+            if ($.fn.DataTable.isDataTable('#datatable')) {
+                // Destroy the existing DataTable
+                $('#datatable').DataTable().destroy();
+            }
 
-                },
-                {
-                    data: 'sewing_line'
-
-                },
-                {
-                    data: 'styleno'
-                },
-                {
-                    data: 'man_power'
-                },
-                {
-                    data: 'smv'
-                },
-                {
-                    data: 'tot_days'
-                },
-                {
-                    data: 'kemarin_1'
-                },
-                {
-                    data: 'kemarin_2'
-                },
-                {
-                    data: 'jam_kerja'
-                },
-                {
-                    data: 'target_100'
-                },
-                {
-                    data: 'target_effy'
-                },
-                {
-                    data: 'target_output_eff'
-                },
-                {
-                    data: 'set_target_perhari'
-                },
-                {
-                    data: 'plan_target_perjam'
-                },
-                {
-                    data: 'jam_kerja_act'
-                },
-                {
-                    data: 'o_jam_1'
-                },
-                {
-                    data: 'o_jam_2'
-                },
-                {
-                    data: 'o_jam_3'
-                },
-                {
-                    data: 'o_jam_4'
-                },
-                {
-                    data: 'o_jam_5'
-                },
-                {
-                    data: 'o_jam_6'
-                },
-                {
-                    data: 'o_jam_7'
-                },
-                {
-                    data: 'o_jam_8'
-                },
-                {
-                    data: 'o_jam_9'
-                },
-                {
-                    data: 'o_jam_10'
-                },
-                {
-                    data: 'o_jam_11'
-                },
-                {
-                    data: 'o_jam_12'
-                },
-                {
-                    data: 'o_jam_13'
-                },
-                {
-                    data: 'tot_output'
-                },
-                {
-                    data: 'eff_line'
-                },
-                {
-                    data: 'eff_skrg'
-                },
-            ],
-            columnDefs: [{
-                "className": "align-middle",
-                "targets": "_all"
-            }, ],
-            rowsGroup: [
-                30
-            ]
-        });
-
-
-        async function dataTableReload() {
-            // reinitialise datatable
+            // Re-initialize the DataTable
             datatable = $("#datatable").DataTable({
-                destroy: true,
                 scrollY: "450px",
                 scrollX: true,
                 scrollCollapse: true,
                 paging: false,
                 ordering: false,
                 fixedColumns: {
-                    leftColumns: 3 // Fix the first two columns
+                    leftColumns: 5 // Fix the first three columns
                 },
                 ajax: {
                     url: '{{ route('report-hourly') }}',
-                    dataType: 'json',
-                    dataSrc: 'data',
                     data: function(d) {
-                        d.tgl_filter = $('#tgl-filter').val();
+                        d.tgl_filter = $('#tgl_filter').val(); // Send the selected date to the server
+                        console.log(d.tgl_filter); // Debugging: log the filter date
                     },
                 },
                 columns: [{
                         data: 'tgl_trans_fix'
-
                     },
                     {
                         data: 'sewing_line'
-
+                    },
+                    {
+                        data: 'kpno'
+                    },
+                    {
+                        data: 'buyer'
                     },
                     {
                         data: 'styleno'
                     },
                     {
-                        data: 'man_power'
+                        data: 'smv'
                     },
                     {
-                        data: 'smv'
+                        data: 'man_power'
                     },
                     {
                         data: 'tot_days'
@@ -373,17 +278,258 @@
                     },
                     {
                         data: 'eff_skrg'
-                    },
+                    }
                 ],
                 columnDefs: [{
                     "className": "align-middle",
                     "targets": "_all"
-                }, ],
+                }],
+
+                drawCallback: function(settings) {
+                    var api = this.api();
+                    var intVal = function(i) {
+                        return typeof i === 'string' ?
+                            i.replace(/[\$,]/g, '') * 1 :
+                            typeof i === 'number' ?
+                            i : 0;
+                    };
+                    // Compute column Total of the complete result
+
+                    var sumTotalA = api
+                        .column(11, {
+                            search: 'applied'
+                        })
+                        .data()
+                        .reduce(function(a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+
+                    var sumTotalB = api
+                        .column(13, {
+                            search: 'applied'
+                        })
+                        .data()
+                        .reduce(function(a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+
+                    var sumTotalC = api
+                        .column(14, {
+                            search: 'applied'
+                        })
+                        .data()
+                        .reduce(function(a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+
+                    var sumTotal_1 = api
+                        .column(17, {
+                            search: 'applied'
+                        })
+                        .data()
+                        .reduce(function(a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+
+                    var sumTotal_2 = api
+                        .column(18, {
+                            search: 'applied'
+                        })
+                        .data()
+                        .reduce(function(a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+
+                    var sumTotal_3 = api
+                        .column(19, {
+                            search: 'applied'
+                        })
+                        .data()
+                        .reduce(function(a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+
+                    var sumTotal_4 = api
+                        .column(20, {
+                            search: 'applied'
+                        })
+                        .data()
+                        .reduce(function(a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+
+                    var sumTotal_5 = api
+                        .column(21, {
+                            search: 'applied'
+                        })
+                        .data()
+                        .reduce(function(a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+
+                    var sumTotal_6 = api
+                        .column(22, {
+                            search: 'applied'
+                        })
+                        .data()
+                        .reduce(function(a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+
+                    var sumTotal_7 = api
+                        .column(23, {
+                            search: 'applied'
+                        })
+                        .data()
+                        .reduce(function(a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+
+                    var sumTotal_8 = api
+                        .column(24, {
+                            search: 'applied'
+                        })
+                        .data()
+                        .reduce(function(a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+
+                    var sumTotal_9 = api
+                        .column(25, {
+                            search: 'applied'
+                        })
+                        .data()
+                        .reduce(function(a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+
+                    var sumTotal_10 = api
+                        .column(26, {
+                            search: 'applied'
+                        })
+                        .data()
+                        .reduce(function(a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+
+                    var sumTotal_11 = api
+                        .column(27, {
+                            search: 'applied'
+                        })
+                        .data()
+                        .reduce(function(a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+
+                    var sumTotal_12 = api
+                        .column(28, {
+                            search: 'applied'
+                        })
+                        .data()
+                        .reduce(function(a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+
+                    var sumTotal_13 = api
+                        .column(29, {
+                            search: 'applied'
+                        })
+                        .data()
+                        .reduce(function(a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+
+                    var sumTotal_tot_out = api
+                        .column(30, {
+                            search: 'applied'
+                        })
+                        .data()
+                        .reduce(function(a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+
+                    // Update footer for the "MP" column
+
+                    $(api.column(11).footer()).html(sumTotalA);
+                    $(api.column(13).footer()).html(sumTotalB);
+                    $(api.column(14).footer()).html(sumTotalC);
+                    $(api.column(17).footer()).html(sumTotal_1);
+                    $(api.column(18).footer()).html(sumTotal_2);
+                    $(api.column(19).footer()).html(sumTotal_3);
+                    $(api.column(20).footer()).html(sumTotal_4);
+                    $(api.column(21).footer()).html(sumTotal_5);
+                    $(api.column(22).footer()).html(sumTotal_6);
+                    $(api.column(23).footer()).html(sumTotal_7);
+                    $(api.column(24).footer()).html(sumTotal_8);
+                    $(api.column(25).footer()).html(sumTotal_9);
+                    $(api.column(26).footer()).html(sumTotal_10);
+                    $(api.column(27).footer()).html(sumTotal_11);
+                    $(api.column(28).footer()).html(sumTotal_12);
+                    $(api.column(29).footer()).html(sumTotal_13);
+                    $(api.column(30).footer()).html(sumTotal_tot_out);
+
+                },
+
+
+                createdRow: function(row, data, dataIndex) {
+
+                    $(row).find('td').css('font-weight', 'bold');
+
+                    // Check the value of eff_skrg
+
+                    if (data.eff_skrg_angka < 85) {
+
+                        // Apply a class to change the font color
+
+                        $('td:eq(32)', row).css({
+
+                            'color': 'red',
+
+                            'font-weight': 'bold'
+
+                        });
+
+                    } else {
+                        $('td:eq(32)', row).css({
+
+                            'color': 'green',
+
+                            'font-weight': 'bold'
+
+                        });
+                    }
+
+                    if (data.eff_line_angka < 85) {
+
+                        // Apply a class to change the font color
+
+                        $('td:eq(31)', row).css({
+
+                            'color': 'red',
+
+                            'font-weight': 'bold'
+
+                        });
+
+                    } else {
+                        $('td:eq(31)', row).css({
+
+                            'color': 'green',
+
+                            'font-weight': 'bold'
+
+                        });
+                    }
+
+
+                },
                 rowsGroup: [
-                    30
+                    32 // Adjust this index to the correct column (zero-based)
                 ]
             });
         }
+
+
 
         function export_excel_tracking() {
             let buyer = document.getElementById("cbobuyer").value;
