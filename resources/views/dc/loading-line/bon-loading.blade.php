@@ -18,21 +18,13 @@
         </div>
         <div class="card-body">
             <form action="{{ route("store-bon-loading-line") }}" method="post" onsubmit="storeBonLoading(this, event)" id="bon-loading-form">
-                <div class="d-flex align-items-end justify-content-between">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
+                <div class="d-flex align-items-end justify-content-between gap-3">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-12">
                             <input type="date" class="form-control" name="tanggal_loading" id="tanggal_loading" value="{{ date('Y-m-d') }}">
                         </div>
-                        <div class="col-md-6">
-                            <select class="form-select select2bs4" name="line_id" id="line_id">
-                                <option value="">Pilih Line</option>
-                                @foreach ($lines as $line)
-                                    <option value="{{ $line->line_id }}">{{ $line->FullName }}</option>
-                                @endforeach
-                            </select>
-                        </div>
                     </div>
-                    <div class="row mb-3">
+                    <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <select class="form-select select2bs4" name="year" id="year">
                                 @foreach ($years as $year)
@@ -48,7 +40,16 @@
                 </div>
 
                 <div class="d-flex justify-content-between mb-3">
-                    <button type="button" class="btn btn-primary btn-sm" id="addRow"><i class="fa fa-plus"></i></button>
+                    <div class="d-flex gap-3">
+                        <button type="button" class="btn btn-primary btn-sm" id="addRow"><i class="fa fa-plus"></i></button>
+                        <input type="text" class="form-control" id="no_bon_loading" name="no_bon_loading" placeholder="Nomor...">
+                        <select class="form-select select2bs4" name="line_id" id="line_id">
+                            <option value="">Pilih Line</option>
+                            @foreach ($lines as $line)
+                                <option value="{{ $line->line_id }}">{{ $line->FullName }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <button type="submit" class="btn btn-success btn-sm"><i class="fa fa-save"></i> SIMPAN</button>
                 </div>
 
@@ -463,7 +464,7 @@
         function storeBonLoading(e, event) {
             event.preventDefault();
 
-            if (document.getElementById("line_id").value) {
+            if (document.getElementById("line_id").value && document.getElementById("no_bon_loading").value) {
                 Swal.fire({
                     icon: "info",
                     title: "Konfirmasi",
@@ -480,7 +481,13 @@
                     }
                 })
             } else {
-                Swal.fire("Harap Pilih Line", "", "error");
+                if (document.getElementById("line_id").value) {
+                    Swal.fire("Harap Pilih Line", "", "error");
+                }
+
+                if (document.getElementById("no_bon_loading").value) {
+                    Swal.fire("Harap Isi Nomor", "", "error");
+                }
             }
         }
     </script>

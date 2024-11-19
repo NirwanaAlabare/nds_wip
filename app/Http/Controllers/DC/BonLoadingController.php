@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 use App\Models\LoadingLinePlan;
 use App\Models\LoadingLine;
+use App\Models\LoadingLineHistory;
 use App\Models\Trolley;
 use App\Models\TrolleyStocker;
 use App\Models\Stocker;
@@ -219,6 +220,9 @@ class BonLoadingController extends Controller
                             YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], ['form_cut_id', 'so_det_id', 'size', 'number', 'id_qr_stocker', 'created_at', 'updated_at']);
                         }
                     }
+
+                    // Bon Loading
+
                 }
             }
         }
