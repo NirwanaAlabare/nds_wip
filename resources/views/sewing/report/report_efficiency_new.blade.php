@@ -209,16 +209,33 @@
                         typeof i === 'number' ?
                         i : 0;
                 };
-                // Compute column Total of the complete result
 
-                var sumTotalMP = api
-                    .column(7, {
-                        search: 'applied'
-                    })
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
+
+                // Create a map to hold unique lines and their corresponding man_power
+                var lineManPower = {};
+                var uniqueLines = new Set();
+
+                // Loop through the rows and sum man_power by unique line
+                api.rows({
+                    search: 'applied'
+                }).every(function(rowIdx) {
+                    var data = this.data();
+                    var line = data.sewing_line; // Get the sewing line
+                    var manPower = intVal(data.man_power); // Get the man_power
+
+                    // If the line hasn't been counted yet, add it to the set and sum the man_power
+                    if (!uniqueLines.has(line)) {
+                        uniqueLines.add(line);
+                        lineManPower[line] = manPower; // Initialize the man_power for this line
+                    }
+                });
+
+                // Calculate the total man_power by summing the values in the lineManPower object
+                var totalManPower = Object.values(lineManPower).reduce((a, b) => a + b, 0);
+
+                // Update footer for the "MP" column
+                $(api.column(7).footer()).html(totalManPower);
+
 
                 var sumTotalMinsAvail = api
                     .column(8, {
@@ -258,7 +275,7 @@
 
                 // Update footer for the "MP" column
 
-                $(api.column(7).footer()).html(sumTotalMP);
+                // $(api.column(7).footer()).html(sumTotalMP);
                 $(api.column(8).footer()).html(sumTotalMinsAvail.toFixed(2));
                 $(api.column(9).footer()).html(sumTotalTarget);
                 $(api.column(10).footer()).html(sumTotalOutput);

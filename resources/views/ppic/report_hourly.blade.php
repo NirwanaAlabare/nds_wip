@@ -295,69 +295,36 @@
                             i : 0;
                     };
                     // Compute column Total of the complete result
-
-
                     // Create an object to store unique man_power for each sewing_line
-
                     let uniqueManPower = {};
-
-
                     // Loop through the data to populate the uniqueManPower object
-
                     api.rows({
                         search: 'applied'
                     }).every(function() {
-
                         var data = this.data();
-
                         // Get the sewing_line and man_power
-
                         let line = data.sewing_line;
-
                         let power = intVal(data.man_power);
-
-
                         // If the line does not exist in the object, add it
-
                         if (!uniqueManPower[line]) {
-
                             uniqueManPower[line] = power;
-
                         }
-
                     });
-
-
                     // Calculate the total of unique man_power values
-
                     var totalUniqueManPower = Object.values(uniqueManPower).reduce((a, b) => a + b, 0);
-
-
                     // Update footer for the total unique man_power
-
                     $(api.column(6).footer()).html(
                         totalUniqueManPower); // Assuming man_power is in the 7th column (zero-based index 6)
-
-
                     // Your existing sum calculations...
-
                     var sumTotalA = api
-
                         .column(11, {
                             search: 'applied'
                         })
-
                         .data()
-
                         .reduce(function(a, b) {
-
                             return intVal(a) + intVal(b);
-
                         }, 0);
-
-
                     // Update other footer calculations as needed...
-
                     $(api.column(11).footer()).html(sumTotalA);
 
 

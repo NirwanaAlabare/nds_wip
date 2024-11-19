@@ -143,7 +143,12 @@ order by a.tgl_trans asc, u.name asc, ac.kpno asc
 
         $this->rowCount = count($data) + 4;
 
-        $totalManPower = collect($data)->sum('man_power');
+        $totalManPower = collect($data)->groupBy('sewing_line')->flatMap(function ($group) {
+
+            return $group->pluck('man_power')->unique();
+        })->sum();
+
+        // $totalManPower = collect($data)->sum('man_power');
         $totalTarget = collect($data)->sum('target');
         $totalOutput = collect($data)->sum('tot_output');
         $totalMinsAvail = collect($data)->sum('mins_avail');
