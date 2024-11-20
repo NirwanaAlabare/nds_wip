@@ -35,6 +35,7 @@
                     {{-- <button class="btn btn-sb btn-sm" data-bs-toggle="modal" data-bs-target="#printModal"><i class="fa-regular fa-file-lines fa-sm"></i> Print Month Count</button> --}}
                     <button class="btn btn-sb btn-sm" id="print-stock-number" onclick="printStockNumber()"><i class="fa-regular fa-file-lines fa-sm"></i> Print Stock Number</button>
                     <button class="btn btn-sb-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#printYearModal"><i class="fa-regular fa-file-lines fa-sm"></i> Print Year Sequence</button>
+                    <button class="btn btn-primary btn-sm d-none" data-bs-toggle="modal" data-bs-target="#printNewYearModal"><i class="fa-regular fa-file-lines fa-sm"></i> Print New Year Sequence</button>
                 </div>
                 {{-- <div class="d-none">
                     <div class="d-flex gap-1">
@@ -162,6 +163,42 @@
             </div>
         </div>
     </div>
+
+    {{-- Print New Year Numbers Modal --}}
+    <div class="modal fade" id="printNewYearModal" tabindex="-1" aria-labelledby="printNewYearModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-light">
+                    <h1 class="modal-title fs-5" id="printNewYearModalLabel">Print New Year Sequence</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label">Tahun : </label>
+                    <div class="d-flex gap-3 mb-3">
+                        <select class="form-select select2bs4newyearseq" name="new-year-sequence-year" id="new-year-sequence-year" onchange="getSequenceYearSequence('new');">
+                            @foreach ($years as $year)
+                                <option value="{{ $year }}">{{ $year }}</option>
+                            @endforeach
+                        </select>
+                        <select class="form-select select2bs4newyearseq" name="new-year-sequence-sequence" id="new-year-sequence-sequence" onchange="getRangeYearSequence('new');">
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Print Range : </label>
+                        <div class="d-flex gap-3 mb-3">
+                            <input class="form-control form-control-sm" type="number" name="number" id="new-print-range-awal-year" />
+                            <span> - </span>
+                            <input class="form-control form-control-sm" type="number" name="number" id="new-print-range-akhir-year" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa-solid fa-times fa-sm"></i> Batal</button>
+                    <button class="btn btn-success" onclick="printNewYearSequence()"><i class="fa-solid fa-file-export fa-sm"></i> Export</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('custom-script')
@@ -182,6 +219,10 @@
             theme: 'bootstrap4',
             dropdownParent: $("#printYearModal")
         })
+        $('.select2bs4newyearseq').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $("#printNewYearModal")
+        })
     </script>
 
     <script>
@@ -200,6 +241,7 @@
             // $("#tgl-awal").val(oneWeeksBeforeFull).trigger("change");
 
             $("#year-sequence-year").val(new Date().getFullYear()).trigger("change");
+            $("#new-year-sequence-year").val(new Date().getFullYear()).trigger("change");
         });
 
         var method = 'qty';
@@ -528,12 +570,12 @@
             }
         }
 
-        function getSequenceYearSequence() {
+        function getSequenceYearSequence(type) {
             $.ajax({
                 url: '{{ route('get-sequence-year-sequence') }}',
                 type: 'get',
                 data: {
-                    year: $("#year-sequence-year").val()
+                    year: type == 'new' ? $("#new-year-sequence-year").val() : $("#year-sequence-year").val()
                 },
                 dataType: 'json',
                 success: async function(res)
@@ -542,18 +584,33 @@
 
                     if (res) {
                         if (res.status != "400") {
-                            let select = document.getElementById('year-sequence-sequence');
-                            select.innerHTML = "";
+                            if (type == 'new') {
+                                let select = document.getElementById('new-year-sequence-sequence');
+                                select.innerHTML = "";
 
-                            let latestVal = null;
-                            for(let i = 0; i < res.length; i++) {
-                                let option = document.createElement("option");
-                                option.setAttribute("value", res[i].year_sequence);
-                                option.innerHTML = res[i].year_sequence;
-                                select.appendChild(option);
+                                let latestVal = null;
+                                for(let i = 0; i < res.length; i++) {
+                                    let option = document.createElement("option");
+                                    option.setAttribute("value", res[i].year_sequence);
+                                    option.innerHTML = res[i].year_sequence;
+                                    select.appendChild(option);
+                                }
+
+                                $("#new-year-sequence-sequence").val(res[0].year_sequence).trigger("change");
+                            } else {
+                                let select = document.getElementById('year-sequence-sequence');
+                                select.innerHTML = "";
+
+                                let latestVal = null;
+                                for(let i = 0; i < res.length; i++) {
+                                    let option = document.createElement("option");
+                                    option.setAttribute("value", res[i].year_sequence);
+                                    option.innerHTML = res[i].year_sequence;
+                                    select.appendChild(option);
+                                }
+
+                                $("#year-sequence-sequence").val(res[0].year_sequence).trigger("change");
                             }
-
-                            $("#year-sequence-sequence").val(res[0].year_sequence).trigger("change");
                         } else {
                             Swal.fire({
                                 icon: 'error',
@@ -570,14 +627,14 @@
             })
         }
 
-        function getRangeYearSequence() {
+        function getRangeYearSequence(type) {
             document.getElementById("loading").classList.remove("d-none");
             $.ajax({
                 url: '{{ route('get-range-year-sequence') }}',
                 type: 'get',
                 data: {
-                    year: $("#year-sequence-year").val(),
-                    sequence: $("#year-sequence-sequence").val()
+                    year: type == 'new' ? $("#new-year-sequence-year").val() : $("#year-sequence-year").val(),
+                    sequence: type == 'new' ? $("#new-year-sequence-sequence").val() : $("#year-sequence-sequence").val()
                 },
                 dataType: 'json',
                 success: function(res)
@@ -588,7 +645,11 @@
 
                     if (res) {
                         if (res.status != "400") {
-                            $('#print-range-awal-year').val(res.year_sequence_number);
+                            if (type == 'new') {
+                                $('#new-print-range-awal-year').val(res.year_sequence_number);
+                            } else {
+                                $('#print-range-awal-year').val(res.year_sequence_number);
+                            }
                         } else {
                             Swal.fire({
                                 icon: 'error',
@@ -691,6 +752,103 @@
                             qty: qtyI,
                             year: $("#year-sequence-year").val(),
                             yearSequence: $("#year-sequence-sequence").val(),
+                            rangeAwal: rangeI,
+                            rangeAkhir: rangeI + qtyI - 1,
+                        },
+                        xhrFields:
+                        {
+                            responseType: 'blob'
+                        },
+                        success: function(res) {
+                            if (res) {
+                                console.log(res);
+
+                                var blob = new Blob([res], {type: 'application/pdf'});
+                                var link = document.createElement('a');
+                                link.href = window.URL.createObjectURL(blob);
+                                link.download = methodYear == "range" ? "Numbers_"+rangeI+"-"+(rangeI+qtyI-1)+".pdf" : "Numbers.pdf";
+                                link.click();
+                            }
+
+                            generating = false;
+                        },
+                        error: function(jqXHR) {
+                            console.error(jqXHR)
+
+                            generating = false;
+
+                            clearInterval(estimatedTimeInterval);
+                        }
+                    });
+
+                    rangeI += qtyI;
+                }
+
+                // window.location.reload();
+
+                swal.close();
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal',
+                    html: 'Qty/Range tidak valid.',
+                    allowOutsideClick: false,
+                });
+            }
+        }
+
+        function validatePrintNewYearSequence() {
+            if (Number($('#new-print-range-awal-year').val()) > 0 && Number($('#new-print-range-awal-year').val()) <= Number($('#new-print-range-akhir-year').val())) {
+                return true;
+            }
+
+            return false
+        }
+
+        async function printNewYearSequence() {
+            if (validatePrintNewYearSequence()) {
+                generating = true;
+
+                Swal.fire({
+                    title: 'Please Wait...',
+                    html: 'Exporting Data... <br><br> Est. <b>0</b>s...',
+                    didOpen: () => {
+                        Swal.showLoading();
+
+                        let estimatedTime = 0;
+                        const estimatedTimeElement = Swal.getPopup().querySelector("b");
+                        estimatedTimeInterval = setInterval(() => {
+                            estimatedTime++;
+                            estimatedTimeElement.textContent = estimatedTime;
+                        }, 1000);
+                    },
+                    allowOutsideClick: false,
+                });
+
+                let totalPrint = Number($("#new-print-range-akhir-year").val()) - Number($("#new-print-range-awal-year").val()) + 1;
+
+                let i = 0;
+                let qtyI = 0;
+                let rangeI = Number($("#new-print-range-awal-year").val());
+                while (i < totalPrint) {
+                    if ((i + 1000) > totalPrint) {
+                        qtyI = totalPrint - i;
+                        i += qtyI;
+                    } else {
+                        qtyI = 1000;
+                        i += qtyI;
+                    }
+
+                    console.log(i, qtyI, rangeI, totalPrint);
+
+                    await $.ajax({
+                        url: '{{ route('print-year-sequence-new-format') }}',
+                        type: 'post',
+                        data: {
+                            method: methodYear,
+                            qty: qtyI,
+                            year: $("#new-year-sequence-year").val(),
+                            yearSequence: $("#new-year-sequence-sequence").val(),
                             rangeAwal: rangeI,
                             rangeAkhir: rangeI + qtyI - 1,
                         },

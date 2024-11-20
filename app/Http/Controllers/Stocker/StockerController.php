@@ -2901,6 +2901,29 @@ class StockerController extends Controller
         return response()->download($generatedFilePath);
     }
 
+    public function printYearSequenceNewFormat(Request $request) {
+        $yearSequence = YearSequence::selectRaw("master_sb_ws.reff_no style, master_sb_ws.color, master_sb_ws.size, id_year_sequence, year, year_sequence, year_sequence_number")->
+            leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "year_sequence.so_det_id")->
+            where("year", $request->year)->
+            where("year_sequence", $request->yearSequence)->
+            where("year_sequence_number", ">=", $request->rangeAwal)->
+            where("year_sequence_number", "<=", $request->rangeAkhir)->
+            orderBy("year_sequence", "asc")->
+            orderBy("year_sequence_number", "asc")->
+            get()->
+            toArray();
+
+        $customPaper = array(0, 0, 35.35, 110.90);
+        $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearsequence-1-new', ["data" => $yearSequence])->setPaper($customPaper);
+
+        $path = public_path('pdf/');
+        $fileName = str_replace("/", "-", ('Year Sequence.pdf'));
+        $pdf->save($path . '/' . str_replace("/", "_", $fileName));
+        $generatedFilePath = public_path('pdf/' . str_replace("/", "_", $fileName));
+
+        return response()->download($generatedFilePath);
+    }
+
     public function getStocker(Request $request) {
         if ($request->stocker) {
             $stockerData = Stocker::selectRaw("
@@ -3097,21 +3120,25 @@ class StockerController extends Controller
             leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "year_sequence.so_det_id")->
             where("year", $request->year)->
             where("year_sequence", $request->sequence)->
-            whereBetween("year_sequence_number", [$request->range_awal, $request->range_akhir]);
+            whereBetween("year_sequence_number", [($request->range_awal ? $request->range_awal : 0), ($request->range_akhir ? $request->range_akhir : 0)]);
 
-        $dataOutput = collect(
-                DB::connection("mysql_sb")->select("
-                    SELECT output.*, userpassword.username as sewing_line FROM (
-                        select created_by, kode_numbering, id, created_at, updated_at from output_rfts WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
-                        UNION
-                        select created_by, kode_numbering, id, created_at, updated_at from output_defects WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
-                        UNION
-                        select created_by, kode_numbering, id, created_at, updated_at from output_rejects WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
-                    ) output
-                    left join user_sb_wip on user_sb_wip.id = output.created_by
-                    left join userpassword on userpassword.line_id = user_sb_wip.line_id
-                ")
-            );
+        if ($request->range_awal && $request->range_akhir) {
+            $dataOutput = collect(
+                    DB::connection("mysql_sb")->select("
+                        SELECT output.*, userpassword.username as sewing_line FROM (
+                            select created_by, kode_numbering, id, created_at, updated_at from output_rfts WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
+                            UNION
+                            select created_by, kode_numbering, id, created_at, updated_at from output_defects WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
+                            UNION
+                            select created_by, kode_numbering, id, created_at, updated_at from output_rejects WHERE SUBSTR(kode_numbering, 1, ".strlen($request->year."_".$request->sequence).") = '".$request->year."_".$request->sequence."' and SUBSTR(kode_numbering, ".(strlen($request->year."_".$request->sequence)+2).") BETWEEN ".($request->range_awal ? $request->range_awal : 0)." and ".($request->range_akhir ? $request->range_akhir : 0)."
+                        ) output
+                        left join user_sb_wip on user_sb_wip.id = output.created_by
+                        left join userpassword on userpassword.line_id = user_sb_wip.line_id
+                    ")
+                );
+        } else {
+            $dataOutput = collect([]);
+        }
 
         $dataOutputPacking = collect(
                 DB::connection("mysql_sb")->select("
