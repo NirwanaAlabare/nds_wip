@@ -774,27 +774,27 @@ class ReportCuttingController extends Controller
 
         $tanggalFilter = "";
         if ($request->tanggal) {
-            $tanggalFilter = " and form_cut.tgl_form_cut = '".$request->tanggal."'";
+            $tanggalFilter = " and form_cut.tgl_form_cut LIKE '%".$request->tanggal."%'";
         }
         $noMejaFilter = "";
         if ($request->noMeja) {
-            $noMejaFilter = " and form_cut.meja = '".$request->noMeja."'";
+            $noMejaFilter = " and form_cut.meja LIKE '%".$request->noMeja."%'";
         }
         $wsFilter = "";
         if ($request->ws) {
-            $wsFilter = " and marker_input.act_costing_ws = '".$request->ws."'";
+            $wsFilter = " and marker_input.act_costing_ws LIKE '%".$request->ws."%'";
         }
         $styleFilter = "";
         if ($request->style) {
-            $styleFilter = " and marker_input.style = '".$request->style."'";
+            $styleFilter = " and marker_input.style LIKE '%".$request->style."%'";
         }
         $colorFilter = "";
         if ($request->color) {
-            $colorFilter = " and marker_input.color = '".$request->color."'";
+            $colorFilter = " and marker_input.color LIKE '%".$request->color."%'";
         }
         $panelFilter = "";
         if ($request->panel) {
-            $panelFilter = " and marker_input.panel = '".$request->panel."'";
+            $panelFilter = " and marker_input.panel LIKE '%".$request->panel."%'";
         }
 
         $reportCutting = collect(
