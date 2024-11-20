@@ -51,6 +51,12 @@
                     </thead>
                     <tbody>
                     </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="6" class="fw-bold">Total</td>
+                            <td class="fw-bold"></td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -82,11 +88,21 @@
             // });
         });
 
+        var listFilter = [
+            "tanggal_filter",
+            "no_meja_filter",
+            "ws_filter",
+            "style_filter",
+            "color_filter",
+            "panel_filter",
+            "output_filter"
+        ];
+
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i <= 7) {
+            if (i <= 5) {
                 var title = $(this).text();
-                $(this).html('<input type="text" class="form-control form-control-sm" />');
+                $(this).html('<input type="text" class="form-control form-control-sm" id="'+listFilter[i]+'"/>');
 
                 $('input', this).on('keyup change', function() {
                     if (datatable.column(i).search() !== this.value) {
@@ -143,7 +159,42 @@
                     targets: "_all",
                     className: "text-nowrap"
                 }
-            ]
+            ],
+            footerCallback: async function(row, data, start, end, display) {
+                var api = this.api(),data;
+
+                $(api.column(0).footer()).html('Total');
+                $(api.column(6).footer()).html("...");
+
+                $.ajax({
+                    url: 'total-cutting-daily',
+                    dataType: 'json',
+                    dataSrc: 'data',
+                    data: {
+                        'dateFrom' : $('#from').val(),
+                        'dateTo' : $('#to').val(),
+                        'tanggal': $('#tanggal_filter').val(),
+                        'noMeja': $('#no_meja_filter').val(),
+                        'ws': $('#ws_filter').val(),
+                        'style': $('#style_filter').val(),
+                        'color': $('#color_filter').val(),
+                        'panel': $('#panel_filter').val(),
+                        'output': $('#output_filter').val(),
+                    },
+                    success: function(response) {
+                        console.log(response);
+
+                        if (response) {
+                            // Update footer by showing the total with the reference of the column index
+                            $(api.column(0).footer()).html('Total');
+                            $(api.column(6).footer()).html(response['totalCuttingDaily']);
+                        }
+                    },
+                    error: function(jqXHR) {
+                        console.log(jqXHR);
+                    },
+                })
+            },
         });
 
         function datatableReload() {

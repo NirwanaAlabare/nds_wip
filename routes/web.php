@@ -471,6 +471,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/cutting', 'cutting')->name('report-cutting');
         Route::get('/total-cutting', 'totalCutting')->name('total-cutting');
         Route::get('/cutting-daily', 'cuttingDaily')->name('report-cutting-daily');
+        Route::get('/total-cutting-daily', 'totalCuttingDaily')->name('total-cutting-daily');
         Route::get('/track-cutting-output', 'trackCuttingOutput')->name('track-cutting-output');
         Route::get('/track-cutting-output/export', 'cuttingOrderOutputExport')->name('track-cutting-output-export');
         Route::get('/pemakaian-roll', 'pemakaianRoll')->name('pemakaian-roll');
