@@ -67,7 +67,7 @@ class BonLoadingController extends Controller
             if ($request['stocker'][$i]) {
                 $thisStockerData = Stocker::where('id_qr_stocker', $request['stocker'][$i])->first();
 
-                if ($thisStockerData) {
+                if ($thisStockerData && $request['qty'][$i] > 0 && ($request['range_awal'][$i] > 0 && $request['range_akhir'][$i] > 0 && $request['range_akhir'][$i] >= $request['range_awal'][$i])) {
                     // Loading Line
                     $loadingStockArr = [];
                     $stockerIds = [];
@@ -91,7 +91,7 @@ class BonLoadingController extends Controller
                                     "loading_plan_id" => $loadingLinePlan->id,
                                     "nama_line" => $line->username,
                                     "stocker_id" => $stocker->id,
-                                    "qty" => ($stocker->qty_ply_mod > 0 ? $stocker->qty_ply_mod : $stocker->qty_ply) + ($stocker->dcIn ? ((0 - $stocker->dcIn->qty_reject) + $stocker->dcIn->qty_replace) : 0) + ($stocker->secondaryInHouse ? ((0 - $stocker->secondaryInHouse->qty_reject) + $stocker->secondaryInHouse->qty_replace) : 0) + ($stocker->secondaryIn ? ((0 - $stocker->secondaryIn->qty_reject) + $stocker->secondaryIn->qty_replace) : 0),
+                                    "qty" => $request['qty'][$i],
                                     "status" => "active",
                                     "tanggal_loading" => $request->tanggal_loading,
                                     "created_at" => Carbon::now(),
@@ -121,7 +121,7 @@ class BonLoadingController extends Controller
                                     "loading_plan_id" => $storeLoadingPlan->id,
                                     "nama_line" => $line->username,
                                     "stocker_id" => $stocker->id,
-                                    "qty" => ($stocker->qty_ply_mod > 0 ? $stocker->qty_ply_mod : $stocker->qty_ply) + ($stocker->dcIn ? ((0 - $stocker->dcIn->qty_reject) + $stocker->dcIn->qty_replace) : 0) + ($stocker->secondaryInHouse ? ((0 - $stocker->secondaryInHouse->qty_reject) + $stocker->secondaryInHouse->qty_replace) : 0) + ($stocker->secondaryIn ? ((0 - $stocker->secondaryIn->qty_reject) + $stocker->secondaryIn->qty_replace) : 0),
+                                    "qty" => $request['qty'][$i],
                                     "status" => "active",
                                     "tanggal_loading" => $request['tanggal_loading'],
                                     "created_at" => Carbon::now(),
@@ -131,7 +131,7 @@ class BonLoadingController extends Controller
                                 array_push($stockerIds, $stocker->id);
                             }
                         } else {
-                            array_push($exist, ['stocker' => $stocker->id]);
+                            array_push($exist, $stocker->id);
                         }
                     }
 
@@ -141,7 +141,7 @@ class BonLoadingController extends Controller
                         $updateStocker = Stocker::whereIn("id", $stockerIds)->
                             update([
                                 "status" => "line",
-                                "latest_alokasi" => Carbon::now()
+                                "latest_alokasi" => $now
                             ]);
 
                         $updateTrolleyStocker = TrolleyStocker::whereIn("stocker_id", $stockerIds)->
@@ -150,86 +150,100 @@ class BonLoadingController extends Controller
                             ]);
 
                         if ($updateStocker) {
-                            array_push($success, ['stocker' => $stockerIds]);
+                            array_push($success, $request['stocker'][$i]);
                         } else {
-                            array_push($fail, ['stocker' => $stockerIds]);
+                            array_push($fail, $request['stocker'][$i]);
                         }
                     }
 
-                    // Year Sequence
-                    $currentData = YearSequence::selectRaw("
-                        number
-                    ")->
-                    where('form_cut_id', $thisStockerData['form_cut_id'])->
-                    where('so_det_id', $thisStockerData['so_det_id'])->
-                    where("number", ">=", $thisStockerData['range_awal'])->
-                    where("number", "<=", $thisStockerData['range_akhir'])->
-                    orderBy('number')->
-                    get();
+                    if (in_array($request['stocker'][$i], $success)) {
+                        // Year Sequence
+                        $currentData = YearSequence::selectRaw("
+                            number
+                        ")->
+                        where('form_cut_id', $thisStockerData['form_cut_id'])->
+                        where('so_det_id', $thisStockerData['so_det_id'])->
+                        where("number", ">=", $thisStockerData['range_awal'])->
+                        where("number", "<=", $thisStockerData['range_akhir'])->
+                        orderBy('number')->
+                        get();
 
-                    if ($request['range_awal'][$i] > 0 && $request['range_awal'][$i] <= $request['range_akhir'][$i] && $request['range_akhir'][$i] <= 999999 && $request['sequence'] > 0) {
-                        $yearSequence = YearSequence::selectRaw("year_sequence, year_sequence_number")->where("year", $request['year'])->where("year_sequence", $request['sequence'])->orderBy("year_sequence", "desc")->orderBy("year_sequence_number", "desc")->first();
-                        $yearSequenceSequence = $yearSequence ? $yearSequence->year_sequence : $request['sequence'];
-                        $yearSequenceNumber = $yearSequence ? $yearSequence->year_sequence_number + 1 : 1;
+                        if ($request['range_awal'][$i] > 0 && $request['range_awal'][$i] <= $request['range_akhir'][$i] && $request['range_akhir'][$i] <= 999999 && $request['sequence'] > 0) {
+                            $yearSequence = YearSequence::selectRaw("year_sequence, year_sequence_number")->where("year", $request['year'])->where("year_sequence", $request['sequence'])->orderBy("year_sequence", "desc")->orderBy("year_sequence_number", "desc")->first();
+                            $yearSequenceSequence = $yearSequence ? $yearSequence->year_sequence : $request['sequence'];
+                            $yearSequenceNumber = $yearSequence ? $yearSequence->year_sequence_number + 1 : 1;
 
-                        $upsertData = [];
+                            $upsertData = [];
 
-                        $n = 0;
-                        $n1 = 0;
-                        $largeCount = 0;
+                            $n = 0;
+                            $n1 = 0;
+                            $largeCount = 0;
 
-                        for ($j = $request['range_awal'][$i]; $j <= $request['range_akhir'][$i]; $j++) {
+                            for ($j = $request['range_awal'][$i]; $j <= $request['range_akhir'][$i]; $j++) {
 
-                            if ($j > 999999) {
-                                $yearSequenceSequence = $yearSequenceSequence + 1;
-                                $yearSequenceNumber = 1;
-                            }
-
-                            if ($currentData->where('number', $thisStockerData['range_awal']+$n)->count() < 1) {
-                                $currentNumber = ($currentData->count() > 0 ? $currentData->max("number")+1+$n : $thisStockerData['range_awal']+$n);
-
-                                array_push($upsertData, [
-                                    "id_year_sequence" => $request['year']."_".($yearSequenceSequence)."_".($request['range_awal'][$i]+$n1),
-                                    "year" => $request['year'],
-                                    "year_sequence" => $yearSequenceSequence,
-                                    "year_sequence_number" => ($request['range_awal'][$i]+$n1),
-                                    "form_cut_id" => $thisStockerData['form_cut_id'],
-                                    "so_det_id" => $thisStockerData['so_det_id'],
-                                    "size" => $thisStockerData['size'],
-                                    "number" => ($currentNumber > $thisStockerData['range_akhir'] ? $thisStockerData['range_akhir'] : ($currentNumber)),
-                                    "id_qr_stocker" => $thisStockerData["id_qr_stocker"],
-                                    "created_at" => $now,
-                                    "updated_at" => $now,
-                                ]);
-
-                                if (count($upsertData) % 5000 == 0) {
-                                    YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], ['form_cut_id', 'so_det_id', 'size', 'number', 'id_qr_stocker', 'created_at', 'updated_at']);
-
-                                    $upsertData = [];
-
-                                    $largeCount++;
+                                if ($j > 999999) {
+                                    $yearSequenceSequence = $yearSequenceSequence + 1;
+                                    $yearSequenceNumber = 1;
                                 }
 
-                                $n1++;
+                                if ($currentData->where('number', $thisStockerData['range_awal']+$n)->count() < 1) {
+                                    $currentNumber = ($currentData->count() > 0 ? $currentData->max("number")+1+$n : $thisStockerData['range_awal']+$n);
+
+                                    array_push($upsertData, [
+                                        "id_year_sequence" => $request['year']."_".($yearSequenceSequence)."_".($request['range_awal'][$i]+$n1),
+                                        "year" => $request['year'],
+                                        "year_sequence" => $yearSequenceSequence,
+                                        "year_sequence_number" => ($request['range_awal'][$i]+$n1),
+                                        "form_cut_id" => $thisStockerData['form_cut_id'],
+                                        "so_det_id" => $thisStockerData['so_det_id'],
+                                        "size" => $thisStockerData['size'],
+                                        "number" => ($currentNumber > $thisStockerData['range_akhir'] ? $thisStockerData['range_akhir'] : ($currentNumber)),
+                                        "id_qr_stocker" => $thisStockerData["id_qr_stocker"],
+                                        "created_at" => $now,
+                                        "updated_at" => $now,
+                                    ]);
+
+                                    if (count($upsertData) % 5000 == 0) {
+                                        YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], ['form_cut_id', 'so_det_id', 'size', 'number', 'id_qr_stocker', 'created_at', 'updated_at']);
+
+                                        $upsertData = [];
+
+                                        $largeCount++;
+                                    }
+
+                                    $n1++;
+                                }
+
+                                $n++;
                             }
 
-                            $n++;
+                            if (count($upsertData) > 0) {
+                                YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], ['form_cut_id', 'so_det_id', 'size', 'number', 'id_qr_stocker', 'created_at', 'updated_at']);
+                            }
                         }
 
-                        if (count($upsertData) > 0) {
-                            YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], ['form_cut_id', 'so_det_id', 'size', 'number', 'id_qr_stocker', 'created_at', 'updated_at']);
-                        }
+                        // Bon Loading
+                        LoadingLineHistory::create([
+                            "tanggal" => $request['tanggal_loading'],
+                            "no_bon_loading" => $request['no_bon_loading'],
+                            "id_qr_stocker" => $request['stocker'][$i],
+                            "line_id" => $request['line_id'],
+                            "qty" => $request['qty'][$i],
+                            "year" => $request['year'],
+                            "year_sequence" => $request['sequence'],
+                            "range_awal" => $request['range_awal'][$i],
+                            "range_akhir" => $request['range_akhir'][$i],
+                        ]);
                     }
-
-                    // Bon Loading
-
+                } else {
+                    array_push($fail, $request['stocker'][$i]);
                 }
             }
         }
 
         if (count($success) > 0) {
             return array(
-                'status' => 201,
+                'status' => 203,
                 'message' => 'Stocker berhasil di loading',
                 'redirect' => 'reload',
                 'additional' => ["success" => $success, "fail" => $fail, "exist" => $exist],
@@ -238,10 +252,37 @@ class BonLoadingController extends Controller
 
         return array(
             'status' => 400,
-            'message' => 'Data tidak ditemukan',
+            'message' => 'Data sudah terdaftar',
             'redirect' => 'reload',
             'additional' => ["success" => $success, "fail" => $fail, "exist" => $exist],
         );
+    }
+
+    public function history(Request $request) {
+        $tanggal = $request->tanggal ? $request->tanggal : date("Y-m-d");
+
+        $data = LoadingLineHistory::selectRaw("
+            loading_line_history.tanggal,
+            loading_line_history.no_bon_loading,
+            loading_line_history.line_id,
+            master_sb_ws.ws,
+            master_sb_ws.styleno,
+            master_sb_ws.color,
+            master_sb_ws.size,
+            master_sb_ws.dest,
+            loading_line_history.id_qr_stocker,
+            loading_line_history.qty,
+            loading_line_history.year,
+            loading_line_history.year_sequence,
+            CONCAT(loading_line_history.range_awal, ' - ', loading_line_history.range_akhir) year_sequence_range,
+            loading_line_history.updated_at
+        ")->
+        leftJoin("stocker_input", "stocker_input.id_qr_stocker", "=", "loading_line_history.id_qr_stocker")->
+        leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->
+        where("tanggal", $tanggal)->
+        get();
+
+        return DataTables::of($data)->toJson();
     }
 
     /**
