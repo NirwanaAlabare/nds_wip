@@ -554,6 +554,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/year-sequence/get-range', 'getRangeYearSequence')->name('get-range-year-sequence');
         Route::post('/year-sequence/print', 'printYearSequence')->name('print-year-sequence');
         Route::post('/year-sequence/print-new', 'printYearSequenceNew')->name('print-year-sequence-new');
+        Route::post('/year-sequence/print-new-format', 'printYearSequenceNewFormat')->name('print-year-sequence-new-format');
         // Route::post('/year-sequence/print-checked', 'printYearSequenceChecked')->name('print-year-sequence-checked');
 
         // modify year sequence
@@ -700,6 +701,7 @@ Route::middleware('auth')->group(function () {
     Route::controller(BonLoadingController::class)->prefix("bon-loading")->middleware('dc')->group(function () {
         Route::get('/', 'index')->name('bon-loading-line');
         Route::post('/store', 'store')->name('store-bon-loading-line');
+        Route::get('/history', 'history')->name('bon-loading-line-history');
     });
 
     // Stock DC Complete
