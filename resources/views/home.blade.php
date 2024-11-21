@@ -9,7 +9,7 @@
                 <br>
                 <div class="row g-3 mt-3">
                     @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'stock_opname')
-                        <div class="col-lg-2 col-md-3 col-sm-6">
+                        <div class="col-lg-2 col-md-3 col-sm-6 d-none">
                             <a href="{{ route('procurement') }}" class="home-item">
                                 <div class="card h-100">
                                     <div class="card-body">

@@ -80,7 +80,7 @@ order by o.created_at desc
         from packing_packing_out_scan where po = '$po' and dest = '$dest'
         group by po, no_carton, dest, barcode
         ) b on a.po = b.po and a.no_carton = b.no_carton and a.dest = b.dest and a.barcode = b.barcode
-        where a.qty_pl - b.qty_scan != '0'
+        -- where a.qty_pl - b.qty_scan != '0'
         group by a.no_carton
         ");
 
