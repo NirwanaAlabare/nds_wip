@@ -86,12 +86,12 @@
             <div class="col-md-12">
             <div class="mb-1">
                 <div class="form-group">
-                <label><small>Jenis Return</small></label>
-                <select class="form-control select2bs4" id="txt_stat_rtn" name="txt_stat_rtn" style="width: 100%;">
-                    <option selected="selected" value="">Pilih Status Retur</option>
-                        @foreach ($status_replac as $replac)
-                    <option value="{{ $replac->nama_pilihan }}">
-                                {{ $replac->nama_pilihan }}
+                <label><small>Jenis Pengeluaran</small></label>
+                <select class="form-control select2bs4" id="txt_jns_klr" name="txt_jns_klr" style="width: 100%;">
+                    <option selected="selected" value="">Pilih Pengeluaran</option>
+                        @foreach ($jns_klr as $jnsklr)
+                    <option value="{{ $jnsklr->isi }}">
+                                {{ $jnsklr->tampil }}
                     </option>
                         @endforeach
                 </select>
@@ -146,6 +146,22 @@
                 <div class="form-group">
                 <label><small>Tujuan Pemasukan</small></label>
                 <select class="form-control select2bs4" id="txt_tujuan" name="txt_tujuan" style="width: 100%;">
+                </select>
+                </div>
+            </div>
+            </div>
+
+            <div class="col-md-12">
+            <div class="mb-1">
+                <div class="form-group">
+                <label><small>Jenis Return</small></label>
+                <select class="form-control select2bs4" id="txt_stat_rtn" name="txt_stat_rtn" style="width: 100%;">
+                    <option selected="selected" value="">Pilih Status Retur</option>
+                        @foreach ($status_replac as $replac)
+                    <option value="{{ $replac->nama_pilihan }}">
+                                {{ $replac->nama_pilihan }}
+                    </option>
+                        @endforeach
                 </select>
                 </div>
             </div>
