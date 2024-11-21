@@ -178,6 +178,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-number', 'getNumber')->name('get-general-number');
 
         // new general
+        // get orders
+        Route::get('/get-orders-new', 'getOrders')->name('get-orders');
         // get colors
         Route::get('/get-colors-new', 'getColors')->name('get-colors');
         // get sizes

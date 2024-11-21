@@ -33,9 +33,16 @@ class GeneralController extends Controller
         //
     }
 
+    public function getOrders(Request $request)
+    {
+        $orders = DB::select("select id_act_cost, ws from master_sb_ws where buyer = '" . $request->buyer . "' and tgl_kirim >= '2023-01-01' group by id_act_cost");
+
+        return $orders ? $orders : null;
+    }
+
     public function getColors(Request $request)
     {
-        $colors = DB::select("select color from master_sb_ws where master_sb_ws.id_act_cost = '" . $request->act_costing_id . "'group by color");
+        $colors = DB::select("select color from master_sb_ws where id_act_cost = '" . $request->act_costing_id . "'group by color");
 
         return $colors ? $colors : null;
     }
