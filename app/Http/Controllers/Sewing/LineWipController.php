@@ -462,6 +462,11 @@ class LineWipController extends Controller
                         line,
                         id_so_det
                 ) transfer_garment ON transfer_garment.id_so_det = ppic_master.id_so_det and transfer_garment.line = loading_stock.nama_line
+                WHERE
+                    loading_stock.line_id is not null
+                    ".$lineIdFilter."
+                    ".$lineNameFilter2."
+                    ".$lineNameFilter3."
                 GROUP BY
                     ppic_master.id_so_det,
                     loading_stock.line_id
