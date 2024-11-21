@@ -33,7 +33,9 @@
                 </div>
                 <div class="d-flex justify-content-end align-items-end gap-3">
                     {{-- <button class="btn btn-sb btn-sm" data-bs-toggle="modal" data-bs-target="#printModal"><i class="fa-regular fa-file-lines fa-sm"></i> Print Month Count</button> --}}
+                    <button class="btn btn-sb btn-sm" id="print-stock-number" onclick="printStockNumber()"><i class="fa-regular fa-file-lines fa-sm"></i> Print Stock Number</button>
                     <button class="btn btn-sb-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#printYearModal"><i class="fa-regular fa-file-lines fa-sm"></i> Print Year Sequence</button>
+                    <button class="btn btn-primary btn-sm d-none" data-bs-toggle="modal" data-bs-target="#printNewYearModal"><i class="fa-regular fa-file-lines fa-sm"></i> Print New Year Sequence</button>
                 </div>
                 {{-- <div class="d-none">
                     <div class="d-flex gap-1">
@@ -41,7 +43,6 @@
                         <button class="btn btn-primary btn-sm" onclick="fixRedundantNumbering()"><i class="fa fa-cog"></i> Numbering Redundant</button>
                     </div>
                 </div> --}}
-
             </div>
             <div class="table-responsive">
                 <table id="datatable" class="table table-bordered table-sm w-100">
@@ -49,22 +50,23 @@
                         <tr>
                             <th>Act</th>
                             <th>Tanggal</th>
-                            <th>Stocker</th>
-                            <th>Part</th>
-                            <th>No. WS</th>
-                            <th>Style</th>
                             <th>No. Form</th>
                             <th>No. Cut</th>
                             <th>Color</th>
                             <th>Size</th>
                             <th>Dest</th>
+                            <th>Qty</th>
+                            <th>Year Sequence</th>
+                            <th>Year Sequence Range</th>
+                            <th>Buyer</th>
+                            <th>No. WS</th>
+                            <th>Style</th>
+                            <th>Stocker</th>
+                            <th>Part</th>
                             <th>Group</th>
                             <th>Shade</th>
                             <th>Ratio</th>
                             <th>Stocker Range</th>
-                            <th>Qty</th>
-                            <th>Year Sequence</th>
-                            <th>Year Sequence Range</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -161,6 +163,42 @@
             </div>
         </div>
     </div>
+
+    {{-- Print New Year Numbers Modal --}}
+    <div class="modal fade" id="printNewYearModal" tabindex="-1" aria-labelledby="printNewYearModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-light">
+                    <h1 class="modal-title fs-5" id="printNewYearModalLabel">Print New Year Sequence</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label">Tahun : </label>
+                    <div class="d-flex gap-3 mb-3">
+                        <select class="form-select select2bs4newyearseq" name="new-year-sequence-year" id="new-year-sequence-year" onchange="getSequenceYearSequence('new');">
+                            @foreach ($years as $year)
+                                <option value="{{ $year }}">{{ $year }}</option>
+                            @endforeach
+                        </select>
+                        <select class="form-select select2bs4newyearseq" name="new-year-sequence-sequence" id="new-year-sequence-sequence" onchange="getRangeYearSequence('new');">
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Print Range : </label>
+                        <div class="d-flex gap-3 mb-3">
+                            <input class="form-control form-control-sm" type="number" name="number" id="new-print-range-awal-year" />
+                            <span> - </span>
+                            <input class="form-control form-control-sm" type="number" name="number" id="new-print-range-akhir-year" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa-solid fa-times fa-sm"></i> Batal</button>
+                    <button class="btn btn-success" onclick="printNewYearSequence()"><i class="fa-solid fa-file-export fa-sm"></i> Export</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('custom-script')
@@ -181,24 +219,29 @@
             theme: 'bootstrap4',
             dropdownParent: $("#printYearModal")
         })
+        $('.select2bs4newyearseq').select2({
+            theme: 'bootstrap4',
+            dropdownParent: $("#printNewYearModal")
+        })
     </script>
 
     <script>
         // Initial Function
         $(document).ready(() => {
             // Set Filter to 1 Week Ago
-            let oneWeeksBefore = new Date(new Date().setDate(new Date().getDate() - 7));
-            let oneWeeksBeforeDate = ("0" + oneWeeksBefore.getDate()).slice(-2);
-            let oneWeeksBeforeMonth = ("0" + (oneWeeksBefore.getMonth() + 1)).slice(-2);
-            let oneWeeksBeforeYear = oneWeeksBefore.getFullYear();
-            let oneWeeksBeforeFull = oneWeeksBeforeYear + '-' + oneWeeksBeforeMonth + '-' + oneWeeksBeforeDate;
+            // let oneWeeksBefore = new Date(new Date().setDate(new Date().getDate() - 7));
+            // let oneWeeksBeforeDate = ("0" + oneWeeksBefore.getDate()).slice(-2);
+            // let oneWeeksBeforeMonth = ("0" + (oneWeeksBefore.getMonth() + 1)).slice(-2);
+            // let oneWeeksBeforeYear = oneWeeksBefore.getFullYear();
+            // let oneWeeksBeforeFull = oneWeeksBeforeYear + '-' + oneWeeksBeforeMonth + '-' + oneWeeksBeforeDate;
 
             $("#switch-method").prop("checked", false);
             $("#switch-method-year").prop("checked", false);
 
-            $("#tgl-awal").val(oneWeeksBeforeFull).trigger("change");
+            // $("#tgl-awal").val(oneWeeksBeforeFull).trigger("change");
 
             $("#year-sequence-year").val(new Date().getFullYear()).trigger("change");
+            $("#new-year-sequence-year").val(new Date().getFullYear()).trigger("change");
         });
 
         var method = 'qty';
@@ -210,11 +253,13 @@
             $("#switch-method").prop("checked", false);
         });
 
+        var stockListFilter = ['action', 'tanggal_filter', 'no_form_filter', 'no_cut_filter', 'color_filter', 'size_filter', 'dest_filter', 'qty_filter', 'year_sequence_filter', 'numbering_range_filter', 'buyer_filter', 'ws_filter', 'style_filter', 'stocker_filter', 'part_filter', 'group_filter', 'shade_filter', 'ratio_filter', 'stocker_range_filter'];
+
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i != 0 && i != 17) {
+            if (i != 0) {
                 var title = $(this).text();
-                $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%"/>');
+                $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%" id="'+stockListFilter[i]+'" />');
 
                 $('input', this).on('keyup change', function() {
                     if (datatable.column(i).search() !== this.value) {
@@ -225,7 +270,15 @@
                     }
                 });
             } else {
-                $(this).empty();
+                if (i == 0) {
+                    $(this).html(`
+                        <div class="form-check" style="scale: 1.5;translate: 50%;">
+                            <input class="form-check-input" type="checkbox" value="" id="checkAllStockNumber">
+                        </div>
+                    `);
+                } else {
+                    $(this).empty();
+                }
             }
         });
 
@@ -235,7 +288,7 @@
             processing: true,
             serverSide: true,
             scrollX: "500px",
-            scrollY: "500px",
+            scrollY: "400px",
             ajax: {
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -257,18 +310,6 @@
                     data: 'updated_at'
                 },
                 {
-                    data: 'id_qr_stocker'
-                },
-                {
-                    data: 'part'
-                },
-                {
-                    data: 'act_costing_ws'
-                },
-                {
-                    data: 'style',
-                },
-                {
                     data: 'no_form'
                 },
                 {
@@ -284,6 +325,30 @@
                     data: 'dest'
                 },
                 {
+                    data: 'qty'
+                },
+                {
+                    data: 'year_sequence'
+                },
+                {
+                    data: 'numbering_range'
+                },
+                {
+                    data: 'buyer'
+                },
+                {
+                    data: 'act_costing_ws'
+                },
+                {
+                    data: 'style',
+                },
+                {
+                    data: 'id_qr_stocker'
+                },
+                {
+                    data: 'part'
+                },
+                {
                     data: 'group_stocker',
                 },
                 {
@@ -295,36 +360,34 @@
                 {
                     data: 'stocker_range',
                 },
-                {
-                    data: 'qty'
-                },
-                {
-                    data: 'year_sequence'
-                },
-                {
-                    data: 'numbering_range'
-                },
             ],
             columnDefs: [
                 // Act Column
                 {
                     targets: [0],
                     render: (data, type, row, meta) => {
-                        return "<div class='d-flex gap-1 justify-content-center'><a class='btn btn-primary btn-sm' href='{{ route('stocker-list-detail') }}/"+row.form_cut_id+"/"+row.so_det_id+"' target='_blank'><i class='fa fa-search-plus'></i></a></div>";
-                    }
-                },
-                // Stocker List
-                {
-                    targets: [2],
-                    render: (data, type, row, meta) => {
-                        return `<div style='width: 300px; overflow-x: auto;'>`+data+`</div>`;
+                        return `
+                            <div class='d-flex gap-1 justify-content-center'>
+                                <a class='btn btn-primary btn-sm' href='{{ route("stocker-list-detail") }}/`+row.form_cut_id+`/`+row.so_det_id+`' target='_blank'><i class='fa fa-search-plus'></i></a>
+                                <div class="form-check">
+                                    <input class="form-check-input check-stock-number" type="checkbox" onchange="checkStockNumber(this)" id="stock_number_`+meta.row+`">
+                                </div>
+                            </div>
+                        `;
                     }
                 },
                 // Form Hyperlink
                 {
-                    targets: [6],
+                    targets: [2],
                     render: (data, type, row, meta) => {
                         return data ? `<a class='fw-bold' href='{{ route("show-stocker") }}/`+row.form_cut_id+`' target='_blank'><u>`+data+`</u></a>` : "-";
+                    }
+                },
+                // Stocker List
+                {
+                    targets: [13],
+                    render: (data, type, row, meta) => {
+                        return `<div style='width: 200px; overflow-x: auto;'>`+data+`</div>`;
                     }
                 },
                 // Text No Wrap
@@ -333,18 +396,35 @@
                     className: "text-nowrap"
                 }
             ],
-            "rowCallback": function( row, data, index ) {
+            rowCallback: function( row, data, index ) {
                 let numberingMonth = data['numbering_month'], //data numbering month
                     $node = this.api().row(row).nodes().to$();
 
                 if (numberingMonth && numberingMonth != "-") {
                     $node.addClass('red');
                 }
+
+                if (stockNumberArr.filter(item => item.updated_at == data['updated_at'] && item.id_qr_stocker == data['id_qr_stocker']).length > 0) {
+                    currentPageCheck++;
+
+                    $(row).find('input[type="checkbox"]').prop('checked', true);
+                }
+            },
+            drawCallback: function (settings) {
+                if (currentPageCheck == 0) {
+                    $('#checkAllStockNumber').prop("checked", false);
+                } else {
+                    $('#checkAllStockNumber').prop("checked", true);
+                }
+
+                currentPageCheck = 0;
             }
         });
 
         function dataTableReload() {
-            $('#datatable').DataTable().ajax.reload();
+            $('#datatable').DataTable().ajax.reload(function () {
+                document.getElementById("loading").classList.add("d-none");
+            }, false);
         }
 
         function fixRedundantStocker() {
@@ -430,7 +510,7 @@
                 return true;
             }
 
-            return false
+            return false;
         }
 
         function printMonthCount() {
@@ -490,12 +570,12 @@
             }
         }
 
-        function getSequenceYearSequence() {
+        function getSequenceYearSequence(type) {
             $.ajax({
                 url: '{{ route('get-sequence-year-sequence') }}',
                 type: 'get',
                 data: {
-                    year: $("#year-sequence-year").val()
+                    year: type == 'new' ? $("#new-year-sequence-year").val() : $("#year-sequence-year").val()
                 },
                 dataType: 'json',
                 success: async function(res)
@@ -504,20 +584,33 @@
 
                     if (res) {
                         if (res.status != "400") {
-                            let select = document.getElementById('year-sequence-sequence');
-                            select.innerHTML = "";
+                            if (type == 'new') {
+                                let select = document.getElementById('new-year-sequence-sequence');
+                                select.innerHTML = "";
 
-                            let latestVal = null;
-                            for(let i = 0; i < res.length; i++) {
-                                let option = document.createElement("option");
-                                option.setAttribute("value", res[i].year_sequence);
-                                option.innerHTML = res[i].year_sequence;
-                                select.appendChild(option);
+                                let latestVal = null;
+                                for(let i = 0; i < res.length; i++) {
+                                    let option = document.createElement("option");
+                                    option.setAttribute("value", res[i].year_sequence);
+                                    option.innerHTML = res[i].year_sequence;
+                                    select.appendChild(option);
+                                }
 
-                                latestVal = res[i].year_sequence;
+                                $("#new-year-sequence-sequence").val(res[0].year_sequence).trigger("change");
+                            } else {
+                                let select = document.getElementById('year-sequence-sequence');
+                                select.innerHTML = "";
+
+                                let latestVal = null;
+                                for(let i = 0; i < res.length; i++) {
+                                    let option = document.createElement("option");
+                                    option.setAttribute("value", res[i].year_sequence);
+                                    option.innerHTML = res[i].year_sequence;
+                                    select.appendChild(option);
+                                }
+
+                                $("#year-sequence-sequence").val(res[0].year_sequence).trigger("change");
                             }
-
-                            $("#year-sequence-sequence").val(latestVal).trigger("change");
                         } else {
                             Swal.fire({
                                 icon: 'error',
@@ -534,22 +627,29 @@
             })
         }
 
-        function getRangeYearSequence() {
+        function getRangeYearSequence(type) {
+            document.getElementById("loading").classList.remove("d-none");
             $.ajax({
                 url: '{{ route('get-range-year-sequence') }}',
                 type: 'get',
                 data: {
-                    year: $("#year-sequence-year").val(),
-                    sequence: $("#year-sequence-sequence").val()
+                    year: type == 'new' ? $("#new-year-sequence-year").val() : $("#year-sequence-year").val(),
+                    sequence: type == 'new' ? $("#new-year-sequence-sequence").val() : $("#year-sequence-sequence").val()
                 },
                 dataType: 'json',
                 success: function(res)
                 {
+                    document.getElementById("loading").classList.add("d-none");
+
                     console.log("range", res);
 
                     if (res) {
                         if (res.status != "400") {
-                            $('#print-range-awal-year').val(res.year_sequence_number);
+                            if (type == 'new') {
+                                $('#new-print-range-awal-year').val(res.year_sequence_number);
+                            } else {
+                                $('#print-range-awal-year').val(res.year_sequence_number);
+                            }
                         } else {
                             Swal.fire({
                                 icon: 'error',
@@ -561,6 +661,8 @@
                 },
                 error: function(jqXHR)
                 {
+                    document.getElementById("loading").classList.add("d-none");
+
                     console.error(jqXHR)
                 }
             })
@@ -695,6 +797,103 @@
             }
         }
 
+        function validatePrintNewYearSequence() {
+            if (Number($('#new-print-range-awal-year').val()) > 0 && Number($('#new-print-range-awal-year').val()) <= Number($('#new-print-range-akhir-year').val())) {
+                return true;
+            }
+
+            return false
+        }
+
+        async function printNewYearSequence() {
+            if (validatePrintNewYearSequence()) {
+                generating = true;
+
+                Swal.fire({
+                    title: 'Please Wait...',
+                    html: 'Exporting Data... <br><br> Est. <b>0</b>s...',
+                    didOpen: () => {
+                        Swal.showLoading();
+
+                        let estimatedTime = 0;
+                        const estimatedTimeElement = Swal.getPopup().querySelector("b");
+                        estimatedTimeInterval = setInterval(() => {
+                            estimatedTime++;
+                            estimatedTimeElement.textContent = estimatedTime;
+                        }, 1000);
+                    },
+                    allowOutsideClick: false,
+                });
+
+                let totalPrint = Number($("#new-print-range-akhir-year").val()) - Number($("#new-print-range-awal-year").val()) + 1;
+
+                let i = 0;
+                let qtyI = 0;
+                let rangeI = Number($("#new-print-range-awal-year").val());
+                while (i < totalPrint) {
+                    if ((i + 1000) > totalPrint) {
+                        qtyI = totalPrint - i;
+                        i += qtyI;
+                    } else {
+                        qtyI = 1000;
+                        i += qtyI;
+                    }
+
+                    console.log(i, qtyI, rangeI, totalPrint);
+
+                    await $.ajax({
+                        url: '{{ route('print-year-sequence-new-format') }}',
+                        type: 'post',
+                        data: {
+                            method: methodYear,
+                            qty: qtyI,
+                            year: $("#new-year-sequence-year").val(),
+                            yearSequence: $("#new-year-sequence-sequence").val(),
+                            rangeAwal: rangeI,
+                            rangeAkhir: rangeI + qtyI - 1,
+                        },
+                        xhrFields:
+                        {
+                            responseType: 'blob'
+                        },
+                        success: function(res) {
+                            if (res) {
+                                console.log(res);
+
+                                var blob = new Blob([res], {type: 'application/pdf'});
+                                var link = document.createElement('a');
+                                link.href = window.URL.createObjectURL(blob);
+                                link.download = methodYear == "range" ? "Numbers_"+rangeI+"-"+(rangeI+qtyI-1)+".pdf" : "Numbers.pdf";
+                                link.click();
+                            }
+
+                            generating = false;
+                        },
+                        error: function(jqXHR) {
+                            console.error(jqXHR)
+
+                            generating = false;
+
+                            clearInterval(estimatedTimeInterval);
+                        }
+                    });
+
+                    rangeI += qtyI;
+                }
+
+                // window.location.reload();
+
+                swal.close();
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal',
+                    html: 'Qty/Range tidak valid.',
+                    allowOutsideClick: false,
+                });
+            }
+        }
+
         async function printYearSequenceAjax(method, qty, year, yearSequence, rangeAwal, rangeAkhir) {
             return $.ajax({
                         url: '{{ route('print-year-sequence') }}',
@@ -734,6 +933,129 @@
                             generating = false;
                         }
                     });
+        }
+
+        var currentPageCheck = 0;
+        var stockNumberArr = [];
+
+        $("#checkAllStockNumber").on("change", function () {
+            document.getElementById("loading").classList.remove("d-none");
+
+            if (this.checked) {
+                $.ajax({
+                    url: '{{ route('check-all-stock-number') }}',
+                    method: 'post',
+                    data: {
+                        dateFrom: $("#tgl-awal").val(),
+                        dateTo: $("#tgl-akhir").val(),
+                        tanggalFilter: $('#tanggal_filter').val(),
+                        stockerFilter: $('#stocker_filter').val(),
+                        partFilter: $('#part_filter').val(),
+                        buyerFilter: $('#buyer_filter').val(),
+                        wsFilter: $('#ws_filter').val(),
+                        styleFilter: $('#style_filter').val(),
+                        noFormFilter: $('#no_form_filter').val(),
+                        noCutFilter: $('#no_cut_filter').val(),
+                        colorFilter: $('#color_filter').val(),
+                        sizeFilter: $('#size_filter').val(),
+                        destFilter: $('#dest_filter').val(),
+                        groupFilter: $('#group_filter').val(),
+                        shadeFilter: $('#shade_filter').val(),
+                        ratioFilter: $('#ratio_filter').val(),
+                        stockerRangeFilter: $('#stocker_range_filter').val(),
+                        qtyFilter: $('#qty_filter').val(),
+                        yearSequenceFilter: $('#year_sequence_filter').val(),
+                        numberingRangeFilter: $('#numbering_range_filter').val()
+                    },
+                    success: function (res) {
+                        if (res) {
+                            stockNumberArr = res;
+
+                            dataTableReload();
+                        } else {
+                            document.getElementById("loading").classList.add("d-none");
+                        }
+                    },
+                    error: function (jqXHR) {
+                        console.log(jqXHR);
+
+                        document.getElementById("loading").classList.add("d-none");
+                    }
+                })
+            } else {
+                stockNumberArr = [];
+
+                dataTableReload();
+
+                document.getElementById("loading").classList.add("d-none");
+            }
+        })
+
+        function checkStockNumber(element) {
+            let data = $('#datatable').DataTable().row(element.closest('tr')).data();
+
+            if (data) {
+                if (element.checked) {
+                    stockNumberArr.push(data);
+                } else {
+                    stockNumberArr = stockNumberArr.filter(item => item.updated_at != data.updated_at && item.id_qr_stocker != data.id_qr_stocker);
+                }
+            }
+        }
+
+        async function printStockNumber() {
+            document.getElementById('loading').classList.remove('d-none');
+
+            if (stockNumberArr.length > 0) {
+                let chunkSize = 50;
+
+                let i = 0;
+                do {
+                    let stockNumberArrChunk = stockNumberArr.slice(i, i + chunkSize);
+
+                    if (stockNumberArrChunk) {
+                        await $.ajax({
+                            url: '{{ route('print-stock-number') }}',
+                            method: 'post',
+                            data: {
+                                stockNumbers: stockNumberArrChunk,
+                            },
+                            xhrFields:
+                            {
+                                responseType: 'blob'
+                            },
+                            success: function (res) {
+                                if (res) {
+                                    var blob = new Blob([res], {type: 'application/pdf'});
+                                    var link = document.createElement('a');
+                                    link.href = window.URL.createObjectURL(blob);
+                                    link.download = "Stock Numbers.pdf";
+                                    link.click();
+                                }
+                            },
+                            error: function (jqXHR) {
+                                console.log(jqXHR);
+                            }
+                        })
+
+                        i += chunkSize;
+
+                        if (i >= stockNumberArr.length) {
+                            document.getElementById('loading').classList.add('d-none');
+                        }
+                    }
+                }
+                while (i < stockNumberArr.length);
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal',
+                    html: 'Harap pilih stocker',
+                    allowOutsideClick: false,
+                });
+
+                document.getElementById('loading').classList.add('d-none');
+            }
         }
     </script>
 @endsection

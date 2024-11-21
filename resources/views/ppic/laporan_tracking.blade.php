@@ -18,7 +18,7 @@
         </div>
         <div class="card-body">
             <div class="d-flex align-items-end gap-3 mb-3">
-                <div class="col-md-7">
+                <div class="col-md-5">
                     <div class="form-group">
                         <label>Buyer</label>
                         <div class="input-group">
@@ -34,6 +34,17 @@
                         </div>
                     </div>
                 </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>WS</label>
+                        <div class="input-group">
+                            <select class="form-control select2bs4 form-control-sm rounded" id="cbows" name="cbows"
+                                style="width: 100%;">
+                                <option selected="selected" value="" disabled="true">Pilih WS</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
                 <div class="mb-3">
                     <a onclick="dataTableReload()" class="btn btn-outline-primary position-relative btn-sm">
                         <i class="fas fa-search fa-sm"></i>
@@ -42,7 +53,7 @@
                 <div class="mb-3">
                     <a onclick="export_excel_tracking()" class="btn btn-outline-success position-relative btn-sm">
                         <i class="fas fa-file-excel fa-sm"></i>
-                        Export Excel
+                        Export
                     </a>
                 </div>
             </div>
@@ -114,6 +125,47 @@
         function notif() {
             alert("Maaf, Fitur belum tersedia!");
         }
+
+        $("#cbobuyer").on("change", () => {
+            document.getElementById("loading").classList.remove('d-none');
+
+            let selectWsElement = document.getElementById('cbows');
+
+            $.ajax({
+                url: "{{ route("get-orders") }}",
+                method: "get",
+                data: {
+                    buyer: $("#cbobuyer").val()
+                },
+                dataType: "json",
+                success: function (response) {
+                    document.getElementById("loading").classList.add('d-none');
+
+                    if (response.length > 0) {
+                        selectWsElement.innerHTML = '';
+
+                        let initOption = document.createElement("option");
+                        initOption.setAttribute("value", "");
+                        initOption.innerHTML = "Pilih WS";
+
+                        selectWsElement.append(initOption);
+
+                        for (let i = 0; i < response.length; i++) {
+                            let newOption = document.createElement("option");
+                            newOption.setAttribute("value", response[i].ws);
+                            newOption.innerHTML = response[i].ws;
+
+                            selectWsElement.append(newOption);
+                        }
+                    }
+                },
+                error: function (jqXHR) {
+                    document.getElementById("loading").classList.add('d-none');
+
+                    console.log(jqXHR);
+                }
+            });
+        });
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
@@ -202,6 +254,7 @@
                 dataSrc: 'data',
                 data: function(d) {
                     d.buyer = $('#cbobuyer').val();
+                    d.ws = $('#cbows').val();
                 },
             },
             columns: [{

@@ -29,7 +29,7 @@
             <td></td>
             <td></td>
             <td>Total Earning</td>
-            <td data-format="0" style="text-align: right;">{{ $kurs != null ? "Rp. ".curr(floatval($totalDataDetailProduksiDay->total_earning_rupiah) + (floatval($totalDataDetailProduksiDay->total_earning_dollar) * $kurs->kurs_tengah)) : "Rp. ".curr(floatval($totalDataDetailProduksiDay->total_earning_rupiah))." + $ ". curr(floatval($totalDataDetailProduksiDay->total_earning_dollar)) }}</td>
+            <td data-format="0" style="text-align: right;">{{ $kurs != null ? "Rp. ".curr(floatval($totalDataDetailProduksiDay['total_earning_rupiah']) + (floatval($totalDataDetailProduksiDay['total_earning_dollar']) * $kurs->kurs_tengah)) : "Rp. ".curr(floatval($totalDataDetailProduksiDay['total_earning_rupiah']))." + $ ". curr(floatval($totalDataDetailProduksiDay['total_earning_dollar'])) }}</td>
             <td></td>
             <td></td>
         </tr>
@@ -55,24 +55,25 @@
             <td></td>
             <td></td>
             <td>Jml OP</td>
-            <td data-format="0" style="text-align: right;">{{ $totalDataDetailProduksiDay->total_mp }}</td>
-            <td data-format="0.00" style="text-align: right;">{{ $totalDataDetailProduksiDay->total_mins_avail }}</td>
-            <td data-format="0" style="text-align: right;">{{ $totalDataDetailProduksiDay->total_target }}</td>
-            <td data-format="0" style="text-align: right;">{{ $totalDataDetailProduksiDay->total_output }}</td>
+            <td data-format="0" style="text-align: right;">{{ $totalDataDetailProduksiDay['total_mp'] }}</td>
+            <td data-format="0.00" style="text-align: right;">{{ $totalDataDetailProduksiDay['total_mins_avail'] }}</td>
+            <td data-format="0" style="text-align: right;">{{ $totalDataDetailProduksiDay['total_target'] }}</td>
+            <td data-format="0" style="text-align: right;">{{ $totalDataDetailProduksiDay['total_output'] }}</td>
             <td></td>
-            <td data-format="0.00" style="text-align: right;">{{ $totalDataDetailProduksiDay->total_earning_rupiah }}</td>
-            <td data-format="0.00" style="text-align: right;">{{ $totalDataDetailProduksiDay->total_earning_dollar }}</td>
+            <td data-format="0.00" style="text-align: right;">{{ $totalDataDetailProduksiDay['total_earning_rupiah'] }}</td>
+            <td data-format="0.00" style="text-align: right;">{{ $totalDataDetailProduksiDay['total_earning_dollar'] }}</td>
             <td></td>
             <td></td>
-            <td data-format="0.00" style="text-align: right;">{{ $totalDataDetailProduksiDay->total_mins_prod }}</td>
+            <td data-format="0.00" style="text-align: right;">{{ $totalDataDetailProduksiDay['total_mins_prod'] }}</td>
             @php
-                $efficiencyAll = ($totalDataDetailProduksiDay->total_mins_avail > 0 ? round(((floatval($totalDataDetailProduksiDay->total_mins_prod)/floatval($totalDataDetailProduksiDay->total_mins_avail))*100), 2) : 0);
+                $efficiencyAll = ($totalDataDetailProduksiDay['total_mins_avail'] > 0 ? round(((floatval($totalDataDetailProduksiDay['total_mins_prod'])/floatval($totalDataDetailProduksiDay['total_mins_avail']))*100), 2) : 0);
             @endphp
             <td data-format="0.00%" style="text-align: right;">{{ percentage($efficiencyAll) }} %</td>
-            @php
-                $rftAll = ($totalDataDetailProduksiDay->total_output_rft > 0 ? round(((floatval($totalDataDetailProduksiDay->total_output_rft)/floatval($totalDataDetailProduksiDay->total_output))*100), 2) : 0);
-            @endphp
-            <td data-format="0.00%" style="text-align: right;">{{ percentage($rftAll) }} %</td>
+            {{-- @php
+                $rftAll = ($totalDataDetailProduksiDay['total_output_rft'] > 0 ? round(((floatval($totalDataDetailProduksiDay['total_output_rft'])/floatval($totalDataDetailProduksiDay['total_output']))*100), 2) : 0);
+            @endphp --}}
+            {{-- <td data-format="0.00%" style="text-align: right;">{{ percentage($rftAll) }} %</td> --}}
+            <td data-format="0.00%" style="text-align: right;"> - </td>
         </tr>
         <tr>
             <th>Line</th>
@@ -93,6 +94,7 @@
             <th>Efficiency Line</th>
             <th>RFT Line</th>
             <th style="background: #e9ff25;">Jam Aktual</th>
+            <th>Tanggal Produksi</th>
             <th>Chief</th>
             <th>Mins. Avail Chief</th>
             <th>Mins. Prod Chief</th>
@@ -109,7 +111,7 @@
                         $sewingLine = $day->sewing_line;
                         $merge = true;
                     @endphp
-                    <td rowspan="{{ $dataDetailProduksiDay->where('sewing_line', $day->sewing_line)->count() }}" style="vertical-align: middle; text-align: center;">{{ str_replace('line_', '', $day->sewing_line) }}</td>
+                    <td rowspan="{{ $dataDetailProduksiDay->where('sewing_line', $day->sewing_line)->where('tgl_produksi', $day->tgl_produksi)->count() }}" style="vertical-align: middle; text-align: center;">{{ str_replace('line_', '', $day->sewing_line) }}</td>
                 @endif
                 <td>{{ $day->no_ws }}</td>
                 <td>{{ $day->nama_buyer }}</td>
@@ -124,21 +126,28 @@
                 <td data-format="0.00" style="text-align: right;">{{ $day->earning }}</td>
                 <td data-format="0.00%" style="text-align: right;">{{ percentage($day->efficiency)." %" }}</td>
                 @php
-                    $rftRate = $day->output > 0 ? round(((floatval($day->output_rft)/floatval($day->output))*100), 2): 0;
+                    // $rftRate = $day->output > 0 ? round(((floatval($day->output_rft)/floatval($day->output))*100), 2): 0;
                 @endphp
-                <td data-format="0.00%" style="text-align: right;">{{ percentage($rftRate) }} %</td>
+                <td data-format="0.00%" style="text-align: right;"> - </td>
                 <td data-format="0.00" style="background: #bccee7;text-align: right;">{{ $day->mins_prod }}</td>
                 @if ($merge)
                     @php
-                        $merge = false;
-                        $efficiencyLine = $day->mins_avail_line > 0 ? round(((floatval($day->mins_prod_line)/floatval($day->mins_avail_line))*100), 2) : 0;
-                        $rftLine = $day->output_line > 0 ? round(((floatval($day->output_rft_line)/floatval($day->output_line))*100), 2) : 0;
+                        $minsAvail = $dataDetailProduksiDay->where('sewing_line', $day->sewing_line)->sum("mins_avail");
+                        $minsProd = $dataDetailProduksiDay->where('sewing_line', $day->sewing_line)->sum("mins_prod");
+                        $efficiencyLine = $minsAvail > 0 ? round(((floatval($minsProd)/floatval($minsAvail))*100), 2) : 0;
+                        // $rftLine = $day->output_line > 0 ? round(((floatval($day->output_rft_line)/floatval($day->output_line))*100), 2) : 0;
                     @endphp
-                    <td data-format="0.00%" rowspan="{{ $dataDetailProduksiDay->where('sewing_line', $day->sewing_line)->count() }}" style="text-align: right;vertical-align: middle;">{{ percentage($efficiencyLine) }} %</td>
-                    <td data-format="0.00%" rowspan="{{ $dataDetailProduksiDay->where('sewing_line', $day->sewing_line)->count() }}" style="text-align: right;vertical-align: middle;">{{ percentage($rftLine) }} %</td>
+                    <td data-format="0.00%" rowspan="{{ $dataDetailProduksiDay->where('sewing_line', $day->sewing_line)->where('tgl_produksi', $day->tgl_produksi)->count() }}" style="text-align: right;vertical-align: middle;">{{ percentage($efficiencyLine) }} %</td>
+                    <td data-format="0.00%" rowspan="{{ $dataDetailProduksiDay->where('sewing_line', $day->sewing_line)->where('tgl_produksi', $day->tgl_produksi)->count() }}" style="text-align: right;vertical-align: middle;"> - </td>
                 @endif
                 <td style="background: #e9ff1f;text-align: right;">{{ $day->jam_aktual }}</td>
-                @foreach ($summaryChiefDay as $chief)
+                @if ($merge)
+                    @php
+                        $merge = false;
+                    @endphp
+                    <td style="text-align: right;vertical-align: middle;" rowspan="{{ $dataDetailProduksiDay->where('sewing_line', $day->sewing_line)->where('tgl_produksi', $day->tgl_produksi)->count() }}">{{ $day->tgl_produksi }}</td>
+                @endif
+                {{-- @foreach ($summaryChiefDay as $chief)
                     @if ($chief->id != null)
                         @php
                             $chiefEfficiency = $chief->total_mins_avail > 0 ? round(((floatval($chief->total_mins_prod)/floatval($chief->total_mins_avail))) * 100, 2) : 0;
@@ -155,7 +164,11 @@
                         <td>-</td>
                         <td>-</td>
                     @endif
-                @endforeach
+                @endforeach --}}
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
             </tr>
         @endforeach
     </table>

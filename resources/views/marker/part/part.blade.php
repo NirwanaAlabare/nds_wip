@@ -94,12 +94,13 @@
                         </div>
                         <div class="col-md-6 col-lg-4">
                             <div class="row">
-                                <div class="col-md-6">
+                                {{-- <div class="col-md-6"> --}}
+                                <div class="col-md-12">
                                     <div class="mb-3">
                                         <button class="btn btn-primary btn-block fw-bold" onclick="reorderStockerNumbering()"><i class="fa-solid fa-arrow-up-wide-short"></i> URUTKAN ULANG</button>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-6 d-none">
                                     <div class="mb-3">
                                         <button class="btn btn-info btn-block fw-bold" onclick="generateFullStockerNumbering()"><i class="fa-solid fa-list-check"></i> GENERATE SEMUA</button>
                                     </div>

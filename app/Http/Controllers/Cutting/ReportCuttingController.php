@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Cutting;
 use App\Http\Controllers\Controller;
 use App\Models\FormCutInputDetail;
 use App\Exports\ExportReportCutting;
+use App\Exports\ExportReportCuttingSinglePage;
 use App\Exports\ExportPemakaianKain;
 use App\Exports\ExportDetailPemakaianKain;
+use App\Exports\ExportReportCuttingDaily;
+use App\Exports\Cutting\CuttingOrderOutputExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
@@ -25,11 +28,11 @@ class ReportCuttingController extends Controller
             $additionalQuery = "";
 
             if ($request->dateFrom) {
-                $additionalQuery .= " and form_cut_input.tgl_form_cut >= '".$request->dateFrom."'";
+                $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) >= '".$request->dateFrom."'";
             }
 
             if ($request->dateTo) {
-                $additionalQuery .= " and form_cut_input.tgl_form_cut <= '".$request->dateTo."'";
+                $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) <= '".$request->dateTo."'";
             }
 
             $keywordQuery = "";
@@ -98,7 +101,7 @@ class ReportCuttingController extends Controller
                                 (
                                     SELECT
                                         meja.`name` meja,
-                                        DATE(form_cut_input.waktu_mulai) tgl_form_cut,
+                                        COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) tgl_form_cut,
                                         form_cut_input.id_marker,
                                         form_cut_input.no_form,
                                         form_cut_input.qty_ply,
@@ -144,6 +147,124 @@ class ReportCuttingController extends Controller
         }
 
         return view('cutting.report.report-cutting', ['page' => 'dashboard-cutting', "subPageGroup" => "cutting-report", "subPage" => "cutting"]);
+    }
+
+    public function totalCutting(Request $request)
+    {
+        $additionalQuery = "";
+        $additionalQuery1 = "";
+
+        if ($request->dateFrom) {
+            $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) >= '".$request->dateFrom."'";
+        }
+
+        if ($request->dateTo) {
+            $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) <= '".$request->dateTo."'";
+        }
+
+        if ($request->tgl_form_cut) {
+            $additionalQuery .= " and COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) LIKE '%".$request->tgl_form_cut."%'";
+        }
+
+        if ($request->buyer) {
+            $additionalQuery1 .= " and marker_input.buyer LIKE '%".$request->buyer."%'";
+        }
+
+        if ($request->ws) {
+            $additionalQuery1 .= " and marker_input.act_costing_ws LIKE '%".$request->ws."%'";
+        }
+
+        if ($request->style) {
+            $additionalQuery1 .= " and marker_input.style LIKE '%".$request->style."%'";
+        }
+
+        if ($request->color) {
+            $additionalQuery1 .= " and marker_input.color LIKE '%".$request->color."%'";
+        }
+
+        if ($request->panel) {
+            $additionalQuery1 .= " and marker_input.panel LIKE '%".$request->panel."%'";
+        }
+
+        if ($request->size) {
+            $additionalQuery1 .= " and marker_input_detail.buyer LIKE '%".$request->size."%'";
+        }
+
+        if ($request->notes) {
+            $additionalQuery1 .= " and (form_cut.notes LIKE '%".$request->notes."%' or marker_input.notes LIKE '%".$request->notes."%')";
+        }
+
+        $reportCutting = DB::select("
+            SELECT
+                SUM(marker_cutting.marker_gelar * marker_cutting.ratio) marker_gelar,
+                SUM(marker_cutting.spreading_gelar  * marker_cutting.ratio) spreading_gelar,
+                SUM((marker_cutting.form_gelar * marker_cutting.ratio) + COALESCE(marker_cutting.diff, 0)) form_gelar,
+                SUM(COALESCE(marker_cutting.diff, 0)) form_diff
+            FROM
+                (
+                    SELECT
+                        marker_input.kode,
+                        form_cut.no_form,
+                        form_cut.meja,
+                        form_cut.tgl_form_cut,
+                        marker_input.buyer,
+                        marker_input.act_costing_id,
+                        marker_input.act_costing_ws,
+                        marker_input.style,
+                        marker_input.color,
+                        marker_input.panel,
+                        marker_input.cons_ws,
+                        marker_input.unit_panjang_marker unit,
+                        marker_input_detail.so_det_id,
+                        CONCAT(master_sb_ws.size, CASE WHEN master_sb_ws.dest != '-' AND master_sb_ws.dest IS NOT NULL THEN CONCAT(' - ', master_sb_ws.dest) ELSE '' END) size,
+                        marker_input_detail.ratio,
+                        COALESCE(marker_input.notes, form_cut.notes) notes,
+                        marker_input.gelar_qty marker_gelar,
+                        SUM(form_cut.qty_ply) spreading_gelar,
+                        SUM(COALESCE(form_cut.total_lembar, form_cut.detail)) form_gelar,
+                        SUM(modify_size_qty.difference_qty) diff
+                    FROM
+                        marker_input
+                        INNER JOIN
+                            marker_input_detail on marker_input_detail.marker_id = marker_input.id
+                        INNER JOIN
+                            master_sb_ws on master_sb_ws.id_so_det = marker_input_detail.so_det_id
+                        INNER JOIN
+                            (
+                                SELECT
+                                    meja.`name` meja,
+                                    COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) tgl_form_cut,
+                                    form_cut_input.id_marker,
+                                    form_cut_input.no_form,
+                                    form_cut_input.qty_ply,
+                                    form_cut_input.total_lembar,
+                                    form_cut_input.notes,
+                                    SUM(form_cut_input_detail.lembar_gelaran) detail
+                                FROM
+                                    form_cut_input
+                                    LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
+                                    INNER JOIN form_cut_input_detail ON form_cut_input_detail.no_form_cut_input = form_cut_input.no_form
+                                WHERE
+                                    form_cut_input.`status` != 'SPREADING'
+                                    AND form_cut_input.waktu_mulai is not null
+                                    ".$additionalQuery."
+                                GROUP BY
+                                    form_cut_input.no_form
+                            ) form_cut on form_cut.id_marker = marker_input.kode
+                        LEFT JOIN
+                            modify_size_qty ON modify_size_qty.no_form = form_cut.no_form AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
+                        where
+                            (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
+                            AND marker_input_detail.ratio > 0
+                            ".$additionalQuery1."
+                        group by
+                            marker_input.id,
+                            marker_input_detail.so_det_id,
+                            form_cut.tgl_form_cut
+                ) marker_cutting
+            ");
+
+        return $reportCutting;
     }
 
     public function pemakaianRoll(Request $request) {
@@ -356,11 +477,11 @@ class ReportCuttingController extends Controller
                 COALESCE(roll_buyer, roll) roll,
                 MAX(qty) qty,
                 unit,
-                ROUND(SUM(total_pemakaian_roll + sisa_gelaran + kepala_kain + sisa_tidak_bisa + reject + piping), 2) total_pemakaian_roll,
-                ROUND(MAX(qty) - SUM(total_pemakaian_roll + sisa_gelaran + kepala_kain + sisa_tidak_bisa + reject + piping), 2) total_sisa_kain_1,
+                ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
+                ROUND(MAX(qty) - SUM(total_pemakaian_roll), 2) total_sisa_kain_1,
                 ROUND(MIN(sisa_kain), 2) total_sisa_kain,
-                ROUND(SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END), 2) total_short_roll,
-                CONCAT(ROUND((SUM(CASE WHEN short_roll < 0 THEN short_roll ELSE 0 END) / SUM(total_pemakaian_roll) * 100), 2), ' %') total_short_roll_percentage,
+                ROUND(SUM(short_roll), 2) total_short_roll,
+                CONCAT(ROUND((SUM(short_roll) / SUM(total_pemakaian_roll) * 100), 2), ' %') total_short_roll_percentage,
                 '".$rollId->tgl_dok."' tanggal_return
             ")->
             whereNotNull("id_roll")->
@@ -503,7 +624,7 @@ class ReportCuttingController extends Controller
     {
         ini_set("max_execution_time", 36000);
 
-        return Excel::download(new ExportReportCutting($request->dateFrom, $request->dateTo), 'Report Cutting.xlsx');
+        return Excel::download(new ExportReportCuttingSinglePage($request->dateFrom, $request->dateTo), 'Report Cutting.xlsx');
     }
 
     public function pemakaianRollExport(Request $request)
@@ -520,64 +641,321 @@ class ReportCuttingController extends Controller
         return Excel::download(new ExportDetailPemakaianKain($request->no_req, $request->id_item), 'Report Detail Pemakaian Kain.xlsx');
     }
 
-    public function create()
-    {
-        //
+    public function cuttingDaily(Request $request) {
+        if ($request->ajax()) {
+            $additionalQuery = "";
+
+            if ($request->dateFrom) {
+                $additionalQuery .= " and COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) >= '".$request->dateFrom."'";
+            }
+
+            if ($request->dateTo) {
+                $additionalQuery .= " and COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) <= '".$request->dateTo."'";
+            }
+
+            $keywordQuery = "";
+            if ($request->search["value"]) {
+                $keywordQuery = "
+                    and (
+                        marker_cutting.tgl_form_cut like '%" . $request->search["value"] . "%' OR
+                        marker_cutting.meja like '%" . $request->search["value"] . "%' OR
+                        marker_cutting.buyer like '%" . $request->search["value"] . "%' OR
+                        marker_cutting.act_costing_ws like '%" . $request->search["value"] . "%' OR
+                        marker_cutting.style like '%" . $request->search["value"] . "%' OR
+                        marker_cutting.color like '%" . $request->search["value"] . "%' OR
+                        marker_cutting.notes like '%" . $request->search["value"] . "%'
+                    )
+                ";
+            }
+
+            $reportCutting = DB::select("
+                SELECT
+                    marker_cutting.tgl_form_cut,
+                    UPPER(marker_cutting.meja) meja,
+                    marker_cutting.act_costing_ws,
+                    marker_cutting.style,
+                    marker_cutting.color,
+                    marker_cutting.panel,
+                    SUM((marker_cutting.form_gelar * marker_cutting.ratio) + COALESCE(marker_cutting.diff, 0)) qty
+                FROM
+                    (
+                        SELECT
+                            marker_input.kode,
+                            GROUP_CONCAT(form_cut.no_form, form_cut.meja) no_form_meja,
+                            form_cut.id_meja,
+                            form_cut.meja,
+                            form_cut.tgl_form_cut,
+                            marker_input.buyer,
+                            marker_input.act_costing_id,
+                            marker_input.act_costing_ws,
+                            marker_input.style,
+                            marker_input.color,
+                            marker_input.panel,
+                            marker_input.cons_ws,
+                            marker_input.unit_panjang_marker unit,
+                            marker_input_detail.so_det_id,
+                            CONCAT(master_sb_ws.size, CASE WHEN master_sb_ws.dest != '-' AND master_sb_ws.dest IS NOT NULL THEN CONCAT(' - ', master_sb_ws.dest) ELSE '' END) size,
+                            marker_input_detail.ratio,
+                            COALESCE(marker_input.notes, form_cut.notes) notes,
+                            marker_input.gelar_qty marker_gelar,
+                            SUM(form_cut.qty_ply) spreading_gelar,
+                            SUM(COALESCE(form_cut.total_lembar, form_cut.detail)) form_gelar,
+                            SUM(modify_size_qty.difference_qty) diff
+                        FROM
+                        marker_input
+                        INNER JOIN
+                            marker_input_detail on marker_input_detail.marker_id = marker_input.id
+                        INNER JOIN
+                            master_sb_ws on master_sb_ws.id_so_det = marker_input_detail.so_det_id
+                        INNER JOIN
+                            (
+                                SELECT
+                                    meja.id id_meja,
+                                    meja.`name` meja,
+                                    COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) tgl_form_cut,
+                                    form_cut_input.id_marker,
+                                    form_cut_input.no_form,
+                                    form_cut_input.qty_ply,
+                                    form_cut_input.total_lembar,
+                                    form_cut_input.notes,
+                                    SUM(form_cut_input_detail.lembar_gelaran) detail
+                                FROM
+                                    form_cut_input
+                                    LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
+                                    INNER JOIN form_cut_input_detail ON form_cut_input_detail.no_form_cut_input = form_cut_input.no_form
+                                WHERE
+                                    form_cut_input.`status` != 'SPREADING'
+                                    AND form_cut_input.waktu_mulai is not null
+                                    ".$additionalQuery."
+                                GROUP BY
+                                    form_cut_input.no_form
+                            ) form_cut on form_cut.id_marker = marker_input.kode
+                        LEFT JOIN
+                            modify_size_qty ON modify_size_qty.no_form = form_cut.no_form AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
+                        where
+                            (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
+                            AND marker_input_detail.ratio > 0
+                        group by
+                            marker_input.id,
+                            marker_input_detail.so_det_id,
+                            form_cut.tgl_form_cut,
+                            form_cut.meja
+                    ) marker_cutting
+                GROUP BY
+                    marker_cutting.id_meja,
+                    marker_cutting.act_costing_id,
+                    marker_cutting.color,
+                    marker_cutting.panel,
+                    marker_cutting.tgl_form_cut
+                ORDER BY
+                    marker_cutting.id_meja,
+                    marker_cutting.tgl_form_cut,
+                    marker_cutting.panel,
+                    marker_cutting.act_costing_id,
+                    marker_cutting.color
+            ");
+
+            return DataTables::of($reportCutting)->toJson();
+        }
+
+        return view('cutting.report.report-cutting-output-daily', ['page' => 'dashboard-cutting', "subPageGroup" => "cutting-report", "subPage" => "cutting-daily"]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
+    public function totalCuttingDaily(Request $request) {
+        $additionalQuery = "";
+
+        if ($request->dateFrom) {
+            $additionalQuery .= " and COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) >= '".$request->dateFrom."'";
+        }
+
+        if ($request->dateTo) {
+            $additionalQuery .= " and COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) <= '".$request->dateTo."'";
+        }
+
+        $tanggalFilter = "";
+        if ($request->tanggal) {
+            $tanggalFilter = " and form_cut.tgl_form_cut LIKE '%".$request->tanggal."%'";
+        }
+        $noMejaFilter = "";
+        if ($request->noMeja) {
+            $noMejaFilter = " and form_cut.meja LIKE '%".$request->noMeja."%'";
+        }
+        $wsFilter = "";
+        if ($request->ws) {
+            $wsFilter = " and marker_input.act_costing_ws LIKE '%".$request->ws."%'";
+        }
+        $styleFilter = "";
+        if ($request->style) {
+            $styleFilter = " and marker_input.style LIKE '%".$request->style."%'";
+        }
+        $colorFilter = "";
+        if ($request->color) {
+            $colorFilter = " and marker_input.color LIKE '%".$request->color."%'";
+        }
+        $panelFilter = "";
+        if ($request->panel) {
+            $panelFilter = " and marker_input.panel LIKE '%".$request->panel."%'";
+        }
+
+        $reportCutting = collect(
+            DB::select("
+                SELECT
+                    marker_cutting.tgl_form_cut,
+                    UPPER(marker_cutting.meja) meja,
+                    marker_cutting.act_costing_ws,
+                    marker_cutting.style,
+                    marker_cutting.color,
+                    marker_cutting.panel,
+                    SUM((marker_cutting.form_gelar * marker_cutting.ratio) + COALESCE(marker_cutting.diff, 0)) qty
+                FROM
+                    (
+                        SELECT
+                            marker_input.kode,
+                            GROUP_CONCAT(form_cut.no_form, form_cut.meja) no_form_meja,
+                            form_cut.id_meja,
+                            form_cut.meja,
+                            form_cut.tgl_form_cut,
+                            marker_input.buyer,
+                            marker_input.act_costing_id,
+                            marker_input.act_costing_ws,
+                            marker_input.style,
+                            marker_input.color,
+                            marker_input.panel,
+                            marker_input.cons_ws,
+                            marker_input.unit_panjang_marker unit,
+                            marker_input_detail.so_det_id,
+                            CONCAT(master_sb_ws.size, CASE WHEN master_sb_ws.dest != '-' AND master_sb_ws.dest IS NOT NULL THEN CONCAT(' - ', master_sb_ws.dest) ELSE '' END) size,
+                            marker_input_detail.ratio,
+                            COALESCE(marker_input.notes, form_cut.notes) notes,
+                            marker_input.gelar_qty marker_gelar,
+                            SUM(form_cut.qty_ply) spreading_gelar,
+                            SUM(COALESCE(form_cut.total_lembar, form_cut.detail)) form_gelar,
+                            SUM(modify_size_qty.difference_qty) diff
+                        FROM
+                        marker_input
+                        INNER JOIN
+                            marker_input_detail on marker_input_detail.marker_id = marker_input.id
+                        INNER JOIN
+                            master_sb_ws on master_sb_ws.id_so_det = marker_input_detail.so_det_id
+                        INNER JOIN
+                            (
+                                SELECT
+                                    meja.id id_meja,
+                                    meja.`name` meja,
+                                    COALESCE(DATE(waktu_selesai), DATE(waktu_mulai), tgl_form_cut) tgl_form_cut,
+                                    form_cut_input.id_marker,
+                                    form_cut_input.no_form,
+                                    form_cut_input.qty_ply,
+                                    form_cut_input.total_lembar,
+                                    form_cut_input.notes,
+                                    SUM(form_cut_input_detail.lembar_gelaran) detail
+                                FROM
+                                    form_cut_input
+                                    LEFT JOIN users meja ON meja.id = form_cut_input.no_meja
+                                    INNER JOIN form_cut_input_detail ON form_cut_input_detail.no_form_cut_input = form_cut_input.no_form
+                                WHERE
+                                    form_cut_input.`status` != 'SPREADING'
+                                    AND form_cut_input.waktu_mulai is not null
+                                    ".$additionalQuery."
+                                GROUP BY
+                                    form_cut_input.no_form
+                            ) form_cut on form_cut.id_marker = marker_input.kode
+                        LEFT JOIN
+                            modify_size_qty ON modify_size_qty.no_form = form_cut.no_form AND modify_size_qty.so_det_id = marker_input_detail.so_det_id
+                        where
+                            (marker_input.cancel IS NULL OR marker_input.cancel != 'Y')
+                            AND marker_input_detail.ratio > 0
+                            ".$noMejaFilter."
+                            ".$wsFilter."
+                            ".$styleFilter."
+                            ".$colorFilter."
+                            ".$panelFilter."
+                        group by
+                            marker_input.id,
+                            marker_input_detail.so_det_id,
+                            form_cut.tgl_form_cut,
+                            form_cut.meja
+                    ) marker_cutting
+                GROUP BY
+                    marker_cutting.id_meja,
+                    marker_cutting.act_costing_id,
+                    marker_cutting.color,
+                    marker_cutting.panel,
+                    marker_cutting.tgl_form_cut
+                ORDER BY
+                    marker_cutting.id_meja,
+                    marker_cutting.tgl_form_cut,
+                    marker_cutting.panel,
+                    marker_cutting.act_costing_id,
+                    marker_cutting.color
+            ")
+        );
+
+        return array(
+            "totalCuttingDaily" => $reportCutting->sum("qty")
+        );
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
+    public function cuttingDailyExport(Request $request)
     {
-        //
+        ini_set("max_execution_time", 36000);
+
+        return Excel::download(new ExportReportCuttingDaily($request->dateFrom, $request->dateTo), 'Report Cutting Output Daily.xlsx');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
+    public function trackCuttingOutput(Request $request) {
+        if ($request->ajax()) {
+            if ($request->type == "supplier") {
+                $suppliersQuery = DB::connection('mysql_sb')->table('mastersupplier')->
+                    selectRaw('Id_Supplier as id, Supplier as name')->
+                    leftJoin('act_costing', 'act_costing.id_buyer', '=', 'mastersupplier.Id_Supplier')->
+                    where('mastersupplier.tipe_sup', 'C')->
+                    where('status', '!=', 'CANCEL')->
+                    where('type_ws', 'STD')->
+                    where('cost_date', '>=', '2023-01-01');
+                $suppliers = $suppliersQuery->
+                    orderBy('Supplier', 'ASC')->
+                    groupBy('Id_Supplier', 'Supplier')->
+                    get();
+
+                return $suppliers;
+            }
+
+            if ($request->type == "order") {
+                $orderSql = DB::connection('mysql_sb')->
+                    table('act_costing')->
+                    selectRaw('
+                        id as id_ws,
+                        kpno as no_ws
+                    ')->
+                    where('status', '!=', 'CANCEL')->
+                    where('type_ws', 'STD')->
+                    where('cost_date', '>=', '2023-01-01');
+                if ($request->supplier) {
+                    $orderSql->where('id_buyer', $request->supplier);
+                }
+                $orders = $orderSql->
+                    orderBy('cost_date', 'desc')->
+                    orderBy('kpno', 'asc')->
+                    groupBy('kpno')->
+                    get();
+
+                return $orders;
+            }
+        }
+
+        return view('cutting.report.track-cutting-output', ["subPageGroup" => "cutting-report", "subPage" => "cutting-track", "page" => "dashboard-cutting"]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
+    public function cuttingOrderOutputExport (Request $request) {
+        ini_set("max_execution_time", 36000);
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
+        $dateFrom = $request->dateFrom;
+        $dateTo = $request->dateTo;
+        $groupBy = $request->groupBy;
+        $order = $request->order;
+        $buyer = $request->buyer;
+
+        return Excel::download(new CuttingOrderOutputExport($dateFrom, $dateTo, $groupBy, $order, $buyer), 'order_output.xlsx');
     }
 }

@@ -536,7 +536,8 @@ sum(qty_packing_in) qty_packing_in,
 sum(qty_packing_out) qty_packing_out,
 m.ws,
 a.created_by,
-a.created_at
+a.created_at,
+pl.id id_pl
 from (
 select id id_ppic_master_so, qty_po , '0' qty_trf, '0' qty_packing_in, '0' qty_packing_out from ppic_master_so a
 where po = '$po'
@@ -562,6 +563,7 @@ group by p.id
 inner join ppic_master_so a on mut.id_ppic_master_so = a.id
 inner join master_sb_ws m on a.id_so_det = m.id_so_det
 left join master_size_new msn on m.size = msn.size
+left join (select id,barcode, po, dest from packing_master_packing_list where po = '$po' group by barcode, po, dest) pl on  a.barcode = pl.barcode and a.po = pl.po and a.dest = pl.dest
 group by id_ppic_master_so
 order by tgl_shipment desc, buyer asc, ws asc, dest asc, color asc, msn.urutan asc, dest asc
             ");

@@ -317,6 +317,24 @@
                                     </a>
                                 </li>
                             @endmeja
+
+                            @meja
+                                <li>
+                                    <a href="{{ route('form-cut-piping') }}"
+                                        class="dropdown-item {{ $subPage == 'form-cut-piping' ? 'active' : '' }}">
+                                        Piping <i class="fa-solid fa-paperclip"></i>
+                                    </a>
+                                </li>
+                            @endmeja
+
+                            {{-- @admin
+                                <li>
+                                    <a href="{{ route('piping') }}"
+                                        class="dropdown-item {{ $subPage == 'spreading' ? 'active' : '' }}">
+                                        Piping <i class="fas fa-scroll fa-sm"></i>
+                                    </a>
+                                </li>
+                            @endadmin --}}
                         </ul>
                     </li>
 
@@ -358,6 +376,25 @@
                         <li class="nav-item dropdown">
                             <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
                                 aria-expanded="false"
+                                class="nav-link dropdown-toggle {{ $subPageGroup == 'laporan-cutting' ? 'active' : '' }}">Roll</a>
+                            <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
+                                <li>
+                                    <a href="{{ route('lap_pemakaian') }}"
+                                        class="dropdown-item {{ $subPage == 'lap-pemakaian' ? 'active' : '' }}">
+                                        Manajemen Roll <i class="fa-solid fa-toilet-paper fa-sm"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('sisa_kain_roll') }}"
+                                        class="dropdown-item {{ $subPage == 'sisa-kain-roll' ? 'active' : '' }}">
+                                        Sisa Kain Roll <i class="fa-solid fa-toilet-paper-slash fa-sm"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                                aria-expanded="false"
                                 class="nav-link dropdown-toggle {{ $subPageGroup == 'cutting-report' ? 'active' : '' }}">Report</a>
                             <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
                                 <li>
@@ -367,22 +404,21 @@
                                     </a>
                                 </li>
                                 <li>
+                                    <a href="{{ route('report-cutting-daily') }}"
+                                        class="dropdown-item {{ $subPage == 'cutting-daily' ? 'active' : '' }}">
+                                        Output Cutting Daily <i class="fa fa-file"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('track-cutting-output') }}"
+                                        class="dropdown-item {{ $subPage == 'cutting-track' ? 'active' : '' }}">
+                                        Order Cutting Output <i class="fa fa-file"></i>
+                                    </a>
+                                </li>
+                                <li>
                                     <a href="{{ route('pemakaian-roll') }}"
                                         class="dropdown-item {{ $subPage == 'pemakaian-roll' ? 'active' : '' }}">
                                         Pemakaian Kain <i class="fa fa-file"></i>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a id="dropdownSubMenu2" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
-                                aria-expanded="false"
-                                class="nav-link dropdown-toggle {{ $subPageGroup == 'laporan-cutting' ? 'active' : '' }}">Roll</a>
-                            <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
-                                <li>
-                                    <a href="{{ route('lap_pemakaian') }}"
-                                        class="dropdown-item {{ $subPage == 'lap-pemakaian' ? 'active' : '' }}">
-                                        Roll Consumption <i class="fa-solid fa-toilet-paper fa-sm"></i>
                                     </a>
                                 </li>
                             </ul>
@@ -567,6 +603,12 @@
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             @dc
                                 <li>
+                                    <a href="{{ route('bon-loading-line') }}"
+                                        class="dropdown-item {{ $subPage == 'bon-loading-line' ? 'active' : '' }}">
+                                        Bon Loading <i class="fa-solid fa-note-sticky"></i>
+                                    </a>
+                                </li>
+                                <li>
                                     <a href="{{ route('loading-line') }}"
                                         class="dropdown-item {{ $subPage == 'loading-line' ? 'active' : '' }}">
                                         Line <i class="fa-solid fa-users-line"></i>
@@ -602,6 +644,11 @@
                                     <a href="{{ route('year-sequence') }}"
                                         class="dropdown-item {{ $subPage == 'year-sequence' ? 'active' : '' }}"> Year
                                         Sequence <i class="fa-solid fa-list-ol"></i></a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('modify-year-sequence') }}"
+                                        class="dropdown-item {{ $subPage == 'modify-year-sequence' ? 'active' : '' }}"> Modify Year
+                                        Sequence <i class="fa-solid fa-pen-to-square"></i></a>
                                 </li>
                             @enddc
                         </ul>
@@ -646,6 +693,12 @@
                                     <a href="{{ route('daily-sewing', ['type' => 'production']) }}"
                                         class="dropdown-item {{ $subPage == 'sewing-production' ? 'active' : '' }}">
                                         Daily Sewing Line Output <i class="fa-solid fa-people-line"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('report-hourly') }}"
+                                        class="dropdown-item {{ $subPage == 'report-hourly' ? 'active' : '' }}">
+                                        Hourly Output <i class="fa-solid fa-clock fa-sm"></i>
                                     </a>
                                 </li>
                                 <li>
@@ -699,9 +752,15 @@
                                         Report Production <i class="fa-solid fa-file"></i>
                                     </a>
                                 </li>
-                                <li>
+                                {{-- <li>
                                     <a href="{{ route('reportEfficiency') }}"
                                         class="dropdown-item {{ $subPage == 'reportEfficiency' ? 'active' : '' }}">
+                                        Report Efficiency <i class="fa-solid fa-file"></i>
+                                    </a>
+                                </li> --}}
+                                <li>
+                                    <a href="{{ route('reportEfficiencynew') }}"
+                                        class="dropdown-item {{ $subPage == 'reportEfficiencynew' ? 'active' : '' }}">
                                         Report Efficiency <i class="fa-solid fa-file"></i>
                                     </a>
                                 </li>
@@ -709,6 +768,21 @@
                                     <a href="{{ route('reportDetailOutput') }}"
                                         class="dropdown-item {{ $subPage == 'reportDetailOutput' ? 'active' : '' }}">
                                         Report Detail Output <i class="fa-solid fa-file"></i>
+                                    </a>
+                                </li>
+                            @endsewing
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing-wip' ? 'active' : '' }}">WIP</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            @sewing
+                                <li>
+                                    <a href="{{ route('line-wip') }}"
+                                        class="dropdown-item {{ $subPage == 'line-wip' ? 'active' : '' }}">
+                                        Line WIP <i class="fa-solid fa-bars-progress"></i>
                                     </a>
                                 </li>
                             @endsewing
@@ -862,11 +936,17 @@
                                     Master Karton <i class="fa-solid fa-boxes fa-sm"></i>
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('packing-list') }}"
+                                    class="dropdown-item {{ $subPage == 'packing-list' ? 'active' : '' }}">
+                                    Upload Packing List <i class="fas fa-file-upload fa-sm"></i>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif
 
-                @if ($page == 'dashboard-finish-good')
+                @if ($page == 'dashboard_finish_good')
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown"
                             aria-haspopup="true"aria-expanded="false"
@@ -889,8 +969,14 @@
                             <li>
                                 <a href="{{ route('finish_good_penerimaan') }}"
                                     class="dropdown-item {{ $subPage == 'finish_good_penerimaan' ? 'active' : '' }}">
-                                    Penerimaan Finish Good <i class="fas fa-arrow-circle-left fa-sm"
-                                        style="color: green;"></i>
+                                    <i class="fas fa-arrow-circle-left fa-sm" style="color: green;"></i> Penerimaan
+                                    Finish Good
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('finish_good_alokasi_karton') }}"
+                                    class="dropdown-item {{ $subPage == 'finish_good_alokasi_karton' ? 'active' : '' }}">
+                                    <i class="fas fa-boxes-packing fa-sm"></i> Alokasi Karton
                                 </a>
                             </li>
                         </ul>
@@ -903,15 +989,15 @@
                             <li>
                                 <a href="{{ route('finish_good_pengeluaran') }}"
                                     class="dropdown-item {{ $subPage == 'finish_good_pengeluaran' ? 'active' : '' }}">
-                                    Pengeluaran Finish Good <i class="fas fa-arrow-circle-right fa-sm"
-                                        style="color: blue;"></i>
+                                    <i class="fas fa-arrow-circle-right fa-sm" style="color: blue;"></i> Pengeluaran
+                                    Finish Good
                                 </a>
                             </li>
                             <li>
                                 <a href="{{ route('finish_good_retur') }}"
                                     class="dropdown-item {{ $subPage == 'finish_good_retur' ? 'active' : '' }}">
-                                    Retur Finish Good Ekspedisi <i class="fas fa-arrow-circle-left fa-sm"
-                                        style="color:red;"></i>
+                                    <i class="fas fa-arrow-circle-left fa-sm" style="color:red;"></i> Retur Finish
+                                    Good Ekspedisi
                                 </a>
                             </li>
                         </ul>

@@ -52,7 +52,7 @@ class CompletedFormController extends Controller
                         a.id_marker like '%" . $request->search["value"] . "%' OR
                         a.no_meja like '%" . $request->search["value"] . "%' OR
                         a.no_form like '%" . $request->search["value"] . "%' OR
-                        a.tgl_form_cut like '%" . $request->search["value"] . "%' OR
+                        COALESCE(DATE(a.waktu_selesai), DATE(a.waktu_mulai), a.tgl_form_cut) like '%" . $request->search["value"] . "%' OR
                         b.act_costing_ws like '%" . $request->search["value"] . "%' OR
                         panel like '%" . $request->search["value"] . "%' OR
                         b.color like '%" . $request->search["value"] . "%' OR
@@ -69,7 +69,7 @@ class CompletedFormController extends Controller
                     a.id_marker,
                     a.no_form,
                     a.no_cut,
-                    a.tgl_form_cut,
+                    COALESCE(DATE(a.waktu_selesai), DATE(a.waktu_mulai), a.tgl_form_cut) tgl_form_cut,
                     b.id marker_id,
                     b.act_costing_ws ws,
                     b.style,
@@ -270,6 +270,11 @@ class CompletedFormController extends Controller
                 "piping" => $validatedRequest['current_piping']
             ]);
 
+        $detail = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->
+            leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->
+            where('form_cut_input.no_form', $validatedRequest['no_form_cut_input'])->
+            where('form_cut_input_detail.id', $validatedRequest['current_id'])->first();
+
         if ($updateTimeRecordSummary) {
             $itemRemain = $validatedRequest['current_sisa_kain'];
 
@@ -304,7 +309,7 @@ class CompletedFormController extends Controller
             );
         }
 
-        return $updateTimeRecordSummary;
+        return $detail;
     }
 
     public function updateFinish(Request $request, $id) {
@@ -442,22 +447,22 @@ class CompletedFormController extends Controller
                                 }
                             }
 
-                            if (isset($sizeRangeAkhir[$stocker->size]) && ($currentStockerSize != $stocker->size || $currentStockerGroup != $stocker->group_stocker || $currentStockerRatio != $stocker->ratio)) {
-                                $rangeAwal = $sizeRangeAkhir[$stocker->size] + 1;
-                                $sizeRangeAkhir[$stocker->size] = ($sizeRangeAkhir[$stocker->size] + $lembarGelaran);
+                            if (isset($sizeRangeAkhir[$stocker->so_det_id]) && ($currentStockerSize != $stocker->so_det_id || $currentStockerGroup != $stocker->group_stocker || $currentStockerRatio != $stocker->ratio)) {
+                                $rangeAwal = $sizeRangeAkhir[$stocker->so_det_id] + 1;
+                                $sizeRangeAkhir[$stocker->so_det_id] = ($sizeRangeAkhir[$stocker->so_det_id] + $lembarGelaran);
 
-                                $currentStockerSize = $stocker->size;
+                                $currentStockerSize = $stocker->so_det_id;
                                 $currentStockerGroup = $stocker->group_stocker;
                                 $currentStockerRatio = $stocker->ratio;
-                            } else if (!isset($sizeRangeAkhir[$stocker->size])) {
+                            } else if (!isset($sizeRangeAkhir[$stocker->so_det_id])) {
                                 $rangeAwal =  1;
-                                $sizeRangeAkhir->put($stocker->size, $lembarGelaran);
+                                $sizeRangeAkhir->put($stocker->so_det_id, $lembarGelaran);
                             }
                         }
 
-                        $stocker->size && (($sizeRangeAkhir[$stocker->size] - ($rangeAwal-1)) != $stocker->qty || $stocker->qty_ply < 1) ? ($stocker->qty_ply_mod = ($sizeRangeAkhir[$stocker->size] - ($rangeAwal-1))) : $stocker->qty_ply_mod = 0;
+                        $stocker->so_det_id && (($sizeRangeAkhir[$stocker->so_det_id] - ($rangeAwal-1)) != $stocker->qty || $stocker->qty_ply < 1) ? ($stocker->qty_ply_mod = ($sizeRangeAkhir[$stocker->so_det_id] - ($rangeAwal-1))) : $stocker->qty_ply_mod = 0;
                         $stocker->range_awal = $rangeAwal;
-                        $stocker->range_akhir = $stocker->size ? $sizeRangeAkhir[$stocker->size] : 0;
+                        $stocker->range_akhir = $stocker->so_det_id ? $sizeRangeAkhir[$stocker->so_det_id] : 0;
                         $stocker->save();
 
                         if ($stocker->qty_ply < 1 && $stocker->qty_ply_mod < 1) {
@@ -466,63 +471,63 @@ class CompletedFormController extends Controller
                     }
 
                     // Adjust numbering data
-                    $numbers = StockerDetail::selectRaw("
-                            form_cut_id,
-                            act_costing_ws,
-                            color,
-                            panel,
-                            so_det_id,
-                            size,
-                            no_cut_size,
-                            MAX(number) number
-                        ")->
-                        where("form_cut_id", $formCut->id_form)->
-                        whereRaw("(cancel is null OR cancel = 'N')")->
-                        groupBy("form_cut_id", "size")->
-                        get();
+                    // $numbers = StockerDetail::selectRaw("
+                    //         form_cut_id,
+                    //         act_costing_ws,
+                    //         color,
+                    //         panel,
+                    //         so_det_id,
+                    //         size,
+                    //         no_cut_size,
+                    //         MAX(number) number
+                    //     ")->
+                    //     where("form_cut_id", $formCut->id_form)->
+                    //     whereRaw("(cancel is null OR cancel = 'N')")->
+                    //     groupBy("form_cut_id", "size")->
+                    //     get();
 
-                    foreach ($numbers as $number) {
-                        if (isset($sizeRangeAkhir[$number->size])) {
-                            if ($number->number > $sizeRangeAkhir[$number->size]) {
-                                StockerDetail::where("form_cut_id", $number->form_cut_id)->
-                                    where("size", $number->size)->
-                                    where("number", ">", $sizeRangeAkhir[$number->size])->
-                                    update([
-                                        "cancel" => "Y"
-                                    ]);
-                            } else {
-                                StockerDetail::where("form_cut_id", $number->form_cut_id)->
-                                    where("size", $number->size)->
-                                    where("number", "<=", $sizeRangeAkhir[$number->size])->
-                                    where("cancel", "Y")->
-                                    update([
-                                        "cancel" => "N"
-                                    ]);
-                            }
+                    // foreach ($numbers as $number) {
+                    //     if (isset($sizeRangeAkhir[$number->so_det_id])) {
+                    //         if ($number->number > $sizeRangeAkhir[$number->so_det_id]) {
+                    //             StockerDetail::where("form_cut_id", $number->form_cut_id)->
+                    //                 where("size", $number->size)->
+                    //                 where("number", ">", $sizeRangeAkhir[$number->so_det_id])->
+                    //                 update([
+                    //                     "cancel" => "Y"
+                    //                 ]);
+                    //         } else {
+                    //             StockerDetail::where("form_cut_id", $number->form_cut_id)->
+                    //                 where("size", $number->size)->
+                    //                 where("number", "<=", $sizeRangeAkhir[$number->so_det_id])->
+                    //                 where("cancel", "Y")->
+                    //                 update([
+                    //                     "cancel" => "N"
+                    //                 ]);
+                    //         }
 
-                            if ($number->number < $sizeRangeAkhir[$number->size]) {
-                                $stockerDetailCount = StockerDetail::select("kode")->orderBy("id", "desc")->first() ? str_replace("WIP-", "", StockerDetail::select("kode")->orderBy("id", "desc")->first()->kode) + 1 : 1;
-                                $noCutSize = substr($number->no_cut_size, 0, strlen($number->size)+2);
+                    //         if ($number->number < $sizeRangeAkhir[$number->so_det_id]) {
+                    //             $stockerDetailCount = StockerDetail::select("kode")->orderBy("id", "desc")->first() ? str_replace("WIP-", "", StockerDetail::select("kode")->orderBy("id", "desc")->first()->kode) + 1 : 1;
+                    //             $noCutSize = substr($number->no_cut_size, 0, strlen($number->size)+2);
 
-                                $no = 0;
-                                for ($i = $number->number; $i < $sizeRangeAkhir[$number->size]; $i++) {
-                                    StockerDetail::create([
-                                        "kode" => "WIP-".($stockerDetailCount+$no),
-                                        "form_cut_id" => $number->form_cut_id,
-                                        "act_costing_ws" => $number->act_costing_ws,
-                                        "color" => $number->color,
-                                        "panel" => $number->panel,
-                                        "so_det_id" => $number->so_det_id,
-                                        "size" => $number->size,
-                                        "no_cut_size" => $noCutSize. sprintf('%04s', ($i+1)),
-                                        "number" => $i+1
-                                    ]);
+                    //             $no = 0;
+                    //             for ($i = $number->number; $i < $sizeRangeAkhir[$number->so_det_id]; $i++) {
+                    //                 StockerDetail::create([
+                    //                     "kode" => "WIP-".($stockerDetailCount+$no),
+                    //                     "form_cut_id" => $number->form_cut_id,
+                    //                     "act_costing_ws" => $number->act_costing_ws,
+                    //                     "color" => $number->color,
+                    //                     "panel" => $number->panel,
+                    //                     "so_det_id" => $number->so_det_id,
+                    //                     "size" => $number->size,
+                    //                     "no_cut_size" => $noCutSize. sprintf('%04s', ($i+1)),
+                    //                     "number" => $i+1
+                    //                 ]);
 
-                                    $no++;
-                                }
-                            }
-                        }
-                    }
+                    //                 $no++;
+                    //             }
+                    //         }
+                    //     }
+                    // }
                 }
             }
 
@@ -557,6 +562,7 @@ class CompletedFormController extends Controller
                 $formCutDetailRoll = ScannedItem::where("id_roll", $formCutDetail->id_roll)->first();
 
                 if ($formCutDetailRoll) {
+                    $formCutDetailRoll->qty_pakai -= ($formCutDetail->qty - $formCutDetail->sisa_kain);
                     $formCutDetailRoll->qty += ($formCutDetail->qty - $formCutDetail->sisa_kain);
                     $formCutDetailRoll->save();
                 }
@@ -575,6 +581,7 @@ class CompletedFormController extends Controller
                 "unit" => $formCutDetail['unit'],
                 "sisa_gelaran" => $formCutDetail['sisa_gelaran'],
                 "sambungan" => $formCutDetail['sambungan'],
+                "sambungan_roll" => $formCutDetail['sambungan_roll'],
                 "est_amparan" => $formCutDetail['est_amparan'],
                 "lembar_gelaran" => $formCutDetail['lembar_gelaran'],
                 "average_time" => $formCutDetail['average_time'],
@@ -582,10 +589,10 @@ class CompletedFormController extends Controller
                 "sisa_tidak_bisa" => $formCutDetail['sisa_tidak_bisa'],
                 "reject" => $formCutDetail['reject'],
                 "sisa_kain" => ($formCutDetail['sisa_kain'] ? $formCutDetail['sisa_kain'] : 0),
+                "pemakaian_lembar" => $formCutDetail['pemakaian_lembar'],
                 "total_pemakaian_roll" => $formCutDetail['total_pemakaian_roll'],
                 "short_roll" => $formCutDetail['short_roll'],
                 "piping" => $formCutDetail['piping'],
-                "remark" => $formCutDetail['remark'],
                 "status" => $formCutDetail['status'],
                 "metode" => $formCutDetail['metode'],
                 "group_stocker" => $formCutDetail['group_stocker'],

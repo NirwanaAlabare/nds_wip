@@ -12,10 +12,12 @@ use App\Models\Marker;
 use App\Models\Stocker;
 use App\Models\StockerDetail;
 use App\Models\User;
+use App\Exports\Cutting\ExportCuttingForm;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
-use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Auth;
+use Yajra\DataTables\Facades\DataTables;
+use Maatwebsite\Excel\Facades\Excel;
+use Carbon\Carbon;
 use DB;
 
 class SpreadingController extends Controller
@@ -31,11 +33,11 @@ class SpreadingController extends Controller
             $additionalQuery = "";
 
             if ($request->dateFrom) {
-                $additionalQuery .= " and a.tgl_form_cut >= '" . $request->dateFrom . "' ";
+                $additionalQuery .= " and COALESCE(DATE(a.waktu_selesai), DATE(a.waktu_mulai), a.tgl_form_cut) >= '" . $request->dateFrom . "' ";
             }
 
             if ($request->dateTo) {
-                $additionalQuery .= " and a.tgl_form_cut <= '" . $request->dateTo . "' ";
+                $additionalQuery .= " and COALESCE(DATE(a.waktu_selesai), DATE(a.waktu_mulai), a.tgl_form_cut) <= '" . $request->dateTo . "' ";
             }
 
             $keywordQuery = "";
@@ -45,7 +47,7 @@ class SpreadingController extends Controller
                         a.id_marker like '%" . $request->search["value"] . "%' OR
                         a.no_meja like '%" . $request->search["value"] . "%' OR
                         a.no_form like '%" . $request->search["value"] . "%' OR
-                        a.tgl_form_cut like '%" . $request->search["value"] . "%' OR
+                        COALESCE(DATE(a.waktu_selesai), DATE(a.waktu_mulai), a.tgl_form_cut) like '%" . $request->search["value"] . "%' OR
                         b.act_costing_ws like '%" . $request->search["value"] . "%' OR
                         panel like '%" . $request->search["value"] . "%' OR
                         b.color like '%" . $request->search["value"] . "%' OR
@@ -62,7 +64,7 @@ class SpreadingController extends Controller
                     a.id_marker,
                     a.no_form,
                     a.no_cut,
-                    a.tgl_form_cut,
+                    COALESCE(DATE(a.waktu_selesai), DATE(a.waktu_mulai), a.tgl_form_cut) tgl_form_cut,
                     b.id marker_id,
                     b.act_costing_ws ws,
                     b.style,
@@ -239,6 +241,7 @@ class SpreadingController extends Controller
             $now = Carbon::now();
 
             $lastForm = FormCutInput::select("no_form")->whereRaw("no_form LIKE '".$hari."-".$bulan."%'")->orderBy("id", "desc")->first();
+
             $urutan =  $lastForm ? (str_replace($hari."-".$bulan."-", "", $lastForm->no_form) + $i) : $i;
 
             $no_form = "$hari-$bulan-$urutan";
@@ -480,5 +483,12 @@ class SpreadingController extends Controller
             "message" => "Form tidak berhasil dihapus",
             "table" => "datatable"
         );
+    }
+
+    public function exportExcel(Request $request)
+    {
+        ini_set("max_execution_time", 36000);
+
+        return Excel::download(new ExportCuttingForm($request->dateFrom, $request->dateTo), 'Laporan_pemakaian_cutting.xlsx');
     }
 }

@@ -11,10 +11,17 @@ use App\Models\SignalBit\Reject;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use Illuminate\Contracts\Queue\ShouldQueue;
+use Maatwebsite\Excel\Concerns\ShouldQueue;
+use Maatwebsite\Excel\Concerns\WithCharts;
+use PhpOffice\PhpSpreadsheet\Chart\Chart;
+use PhpOffice\PhpSpreadsheet\Chart\DataSeries;
+use PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues;
+use PhpOffice\PhpSpreadsheet\Chart\Legend;
+use PhpOffice\PhpSpreadsheet\Chart\PlotArea;
+use PhpOffice\PhpSpreadsheet\Chart\Title;
 use DB;
 
-class ProductionDefectExport implements FromView, ShouldAutoSize, ShouldQueue
+class ProductionDefectExport implements FromView, ShouldAutoSize /*, WithCharts*/
 {
     protected $date;
     protected $selectedLine;
@@ -22,6 +29,8 @@ class ProductionDefectExport implements FromView, ShouldAutoSize, ShouldQueue
     function __construct($date, $selectedLine) {
         $this->date = $date;
         $this->selectedLine = $selectedLine;
+        $this->defectRowCount = 0;
+        $this->topDefectRowCount = 0;
     }
 
     public function view(): View
@@ -60,6 +69,15 @@ class ProductionDefectExport implements FromView, ShouldAutoSize, ShouldQueue
             groupBy("defect_type_id", "defect_area_id")->
             orderByRaw("defect_area_count desc")->get();
 
+        $this->defectRowCount = $defects->count();
+        foreach ($defectTypes as $type) {
+            $defectAreasFiltered = $defectAreas->where("defect_type_id", $type->defect_type_id)->take(5);
+            $firstDefectAreasFiltered = $defectAreasFiltered->first();
+
+            $this->topDefectRowCount = $defectAreasFiltered->count();
+        }
+
+
         return view('sewing.export.production-export-defect', [
             'defects' => $defects,
             'defectTypes' => $defectTypes,
@@ -68,4 +86,20 @@ class ProductionDefectExport implements FromView, ShouldAutoSize, ShouldQueue
             'selectedLine' => $this->selectedLine
         ]);
     }
+
+    // public function charts()
+    // {
+
+    //     $label      = [new DataSeriesValues('String', 'Worksheet!$B$'.($event->getConcernable()->defectRowCount+6), null, 1)];
+    //     $categories = [new DataSeriesValues('String', 'Worksheet!$B$'.($event->getConcernable()->defectRowCount+7).':$B$'.($event->getConcernable()->defectRowCount+7+$event->getConcernable()->topDefectRowCount), null, 4)];
+    //     $values     = [new DataSeriesValues('Number', 'Worksheet!$C$'.($event->getConcernable()->defectRowCount+7).':$C$'.($event->getConcernable()->defectRowCount+7+$event->getConcernable()->topDefectRowCount), null, 4)];
+
+    //     $series = new DataSeries(DataSeries::TYPE_PIECHART, DataSeries::GROUPING_STANDARD, range(0, \count($values) - 1), $label, $categories, $values);
+    //     $plot   = new PlotArea(null, [$series]);
+
+    //     $legend = new Legend();
+    //     $chart  = new Chart('Defect Chart', new Title('Defect Chart'), $legend, $plot);
+
+    //     return $chart;
+    // }
 }

@@ -48,6 +48,7 @@
             <th style="background-color: #f5dda9">Detail Item</th>
             <th style="background-color: #f5dda9">No. Roll</th>
             <th style="background-color: #f5dda9">Lot</th>
+            <th style="background-color: #f5dda9">Group</th>
             <th style="background-color: #f5dda9">Qty Roll</th>
             <th style="background-color: #f5dda9">Unit Roll</th>
             <th style="background-color: #f5dda9">Berat Amparan (KGM)</th>
@@ -88,8 +89,29 @@
             $latestStatus = "";
             $latestQty = 0;
             $latestUnit = "";
+
+            $currentForm = "";
         @endphp
         @foreach ($data as $item)
+            @php
+                if ($item->no_form_cut_input != 'PIPING' && $currentForm != $item->no_form_cut_input) {
+                    $latestKepalaKain = 0;
+                    $latestSisaTidakBisa = 0;
+                    $latestReject = 0;
+                    $latestPiping = 0;
+                    $latestSambungan = 0;
+                    $latestSambunganRoll = 0;
+                    $latestPemakaianLembar = 0;
+                    $latestTotalPemakaian = 0;
+                    $latestShortRoll = 0;
+
+                    $latestStatus = "";
+                    $latestQty = 0;
+                    $latestUnit = "";
+
+                    $currentForm = $item->no_form_cut_input;
+                }
+            @endphp
             <tr>
                 <td>{{ $latestStatus != 'need extension' ? $no++ : '' }}</td>
                 <td>{{ $item->bulan }}</td>
@@ -125,6 +147,7 @@
                 <td>{{ $item->detail_item }}</td>
                 <td>{{ $item->status == "extension complete" ? "SAMBUNGAN" : $item->roll }}</td>
                 <td>{{ $item->lot }}</td>
+                <td>{{ $item->group_roll }}</td>
                 @if ($latestStatus != 'need extension')
                     <td>{{ $latestStatus != 'extension complete' ? $item->qty_roll : $latestQty }}</td>
                     <td>{{ $item->unit_roll }}</td>

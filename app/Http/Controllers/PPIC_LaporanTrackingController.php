@@ -62,12 +62,18 @@ order by buyer asc");
         $user = Auth::user()->name;
         $tgl_skrg = date('Y-m-d');
         $buyer = $request->buyer;
+        $ws = $request->ws;
 
-        $delete_tmp_qc =  DB::delete("
-        delete from ppic_laporan_tracking_tmp_qc_output where created_by = '$user' and buyer = '$buyer'");
+        $filterWs = "";
+        $filterKpno = "";
+        if ($ws) {
+            $filterWs .= " and ws = '".$ws."'";
+            $filterKpno = " and ac.kpno = '".$ws."'";
+        }
 
-        $delete_tmp_p_line =  DB::delete("
-        delete from ppic_laporan_tracking_tmp_packing_line where created_by = '$user' and buyer = '$buyer'");
+        $delete_tmp_qc =  DB::delete("delete from ppic_laporan_tracking_tmp_qc_output where created_by = '$user' and buyer = '$buyer' ".$filterWs);
+
+        $delete_tmp_p_line =  DB::delete("delete from ppic_laporan_tracking_tmp_packing_line where created_by = '$user' and buyer = '$buyer' ".$filterWs);
 
         $data_qc = DB::connection('mysql_sb')->select("SELECT
 ms.supplier buyer, ac.kpno ws, sd.color, sd.size, dest, sum(a.tot) tot_qc from
@@ -77,7 +83,7 @@ inner join so on sd.id_so = so.id
 inner join act_costing ac on so.id_cost = ac.id
 inner join mastersupplier ms on ac.id_buyer = ms.id_supplier
 left join master_size_new msn on sd.size = msn.size
-where ms.supplier = '$buyer'
+where ms.supplier = '$buyer' ".$filterKpno."
 group by ac.kpno, sd.color, sd.size, ac.styleno
 order by ac.kpno asc, sd.color asc, msn.urutan asc
             ");
@@ -99,7 +105,7 @@ order by ac.kpno asc, sd.color asc, msn.urutan asc
         (select so_det_id,count(so_det_id) tot_p_line from output_rfts_packing a group by so_det_id) a
         inner join master_sb_ws m on a.so_det_id = m.id_so_det
         left join master_size_new msn on m.size = msn.size
-        where m.buyer = '$buyer'
+        where m.buyer = '$buyer' ".$filterWs."
         group by ws, color, m.size, m.styleno
         order by ws asc, color asc, msn.urutan asc
                             ");
@@ -138,7 +144,7 @@ size,
 '0' qty_trf_garment,
 '0' qty_packing_in,
 '0' qty_packing_out
-from master_sb_ws where buyer = '$buyer'
+from master_sb_ws where buyer = '$buyer' ".$filterWs."
 group by ws, color, size, styleno
 union
 select
@@ -152,7 +158,7 @@ tot_qc,
 '0' qty_packing_in,
 '0' qty_packing_out
 from ppic_laporan_tracking_tmp_qc_output
-where buyer = '$buyer' and created_by = '$user'
+where buyer = '$buyer' and created_by = '$user' ".$filterWs."
 union
 select
 buyer,
@@ -165,7 +171,7 @@ tot_p_line,
 '0' qty_packing_in,
 '0' qty_packing_out
 from ppic_laporan_tracking_tmp_packing_line
-where buyer = '$buyer' and created_by = '$user'
+where buyer = '$buyer' and created_by = '$user' ".$filterWs."
 union
 select
 buyer,
@@ -180,7 +186,7 @@ sum(t.qty) as qty_trf_garment,
 from packing_trf_garment t
 inner join ppic_master_so p on t.id_ppic_master_so = p.id
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
-where buyer = '$buyer'
+where buyer = '$buyer' ".$filterWs."
 group by ws, color, size
 union
 select
@@ -196,7 +202,7 @@ sum(pi.qty) qty_packing_in,
 from packing_packing_in pi
 inner join ppic_master_so p on pi.id_ppic_master_so = p.id
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
-where m.buyer = '$buyer'
+where m.buyer = '$buyer' ".$filterWs."
 group by ws, color, size
 union
 select
@@ -216,7 +222,7 @@ from
     ) o
 inner join ppic_master_so p on o.barcode = p.barcode and o.po = p.po and o.dest = p.dest
 inner join master_sb_ws m on p.id_so_det = m.id_so_det
-where m.buyer = '$buyer'
+where m.buyer = '$buyer' ".$filterWs."
 group by ws, color, size
 ) a
 left join master_size_new msn on a.size = msn.size

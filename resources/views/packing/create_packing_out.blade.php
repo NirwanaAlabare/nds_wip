@@ -52,7 +52,7 @@
                                     <label><small><b>No. Carton # :</b></small></label>
                                     <select class='form-control select2bs4 form-control-sm' style='width: 100%;'
                                         name='cbono_carton' id='cbono_carton'
-                                        onchange = "dataTableSummaryReload();dataTableHistoryReload();get_sum_carton();"></select>
+                                        onchange = "dataTableSummaryReload();dataTableHistoryReload();"></select>
                                 </div>
                             </div>
                             <div class="mb-3">
@@ -74,7 +74,7 @@
                             <h5 class="card-title"><i class="fas fa-list"></i> Summary </h5>
                         </div>
                         <div class="card-body">
-                            <div class='row'>
+                            {{-- <div class='row'>
                                 <div class="col-md-3">
                                     <div class="form-group">
                                         <label class="form-label"><small><b>Qty Max Karton</b></small></label>
@@ -89,7 +89,7 @@
                                             name = "qty_terisi_carton" readonly>
                                     </div>
                                 </div>
-                            </div>
+                            </div> --}}
                             <div class="table-responsive">
                                 <table id="datatable_summary" class="table table-bordered table-sm w-100 text-nowrap">
                                     <thead>
@@ -97,12 +97,14 @@
                                             <th>PO #</th>
                                             <th>Color</th>
                                             <th>Size</th>
+                                            <th>Qty Packing List</th>
                                             <th>Qty Input</th>
                                         </tr>
                                     </thead>
                                     <tfoot>
                                         <tr>
                                             <th>Total</th>
+                                            <th></th>
                                             <th></th>
                                             <th></th>
                                             <th></th>
@@ -222,6 +224,7 @@
 
         function getno_carton() {
             let cbopo = document.form_h.cbopo.value;
+
             let html = $.ajax({
                 type: "GET",
                 url: '{{ route('getno_carton') }}',
@@ -231,6 +234,7 @@
                 async: false
             }).responseText;
             // console.log(html != "");
+            console.log(cbopo);
             if (html != "") {
                 $("#cbono_carton").html(html);
             }
@@ -280,9 +284,17 @@
                             return intVal(a) + intVal(b);
                         }, 0);
 
+                    var sumTotalA = api
+                        .column(4)
+                        .data()
+                        .reduce(function(a, b) {
+                            return intVal(a) + intVal(b);
+                        }, 0);
+
                     // Update footer by showing the total with the reference of the column index
                     $(api.column(0).footer()).html('Total');
                     $(api.column(3).footer()).html(sumTotal);
+                    $(api.column(4).footer()).html(sumTotalA);
                 },
 
                 ordering: false,
@@ -302,6 +314,7 @@
                     data: function(d) {
                         d.cbopo = $('#cbopo_det').val();
                         d.cbono_carton = $('#cbono_carton').val();
+                        d.txtdest = $('#txtdest').val();
                     },
                 },
                 columns: [{
@@ -314,9 +327,38 @@
                         data: 'size',
                     },
                     {
+                        data: 'qty',
+                    },
+                    {
                         data: 'tot_scan',
                     },
                 ],
+
+                // Add createdRow callback
+
+                createdRow: function(row, data, dataIndex) {
+
+                    // Check if qty and tot_scan are equal
+
+                    if (data.qty == data.tot_scan) {
+                        $(row).css({
+                            'color': 'green',
+                            'font-weight': 'bold'
+                        });
+                    } else if (data.qty <= data.tot_scan) {
+                        $(row).css({
+                            'color': 'blue',
+                            'font-weight': 'bold'
+                        });
+                    } else {
+                        $(row).css({
+                            'color': 'black',
+                            'font-weight': 'bold'
+                        });
+                    }
+
+                },
+
             });
         }
 
@@ -339,6 +381,7 @@
                     data: function(d) {
                         d.cbopo = $('#cbopo_det').val();
                         d.cbono_carton = $('#cbono_carton').val();
+                        d.txtdest = $('#txtdest').val();
                     },
                 },
                 columns: [{
@@ -414,6 +457,7 @@
         function scan_barcode() {
             let cbopo = document.form_h.cbopo.value;
             let cbono_carton = document.form_h.cbono_carton.value;
+            let txtdest = document.form_h.txtdest.value;
             let barcode = document.form_h.barcode.value;
 
             if (cbopo == '') {
@@ -439,7 +483,8 @@
                     data: {
                         cbopo: cbopo,
                         cbono_carton: cbono_carton,
-                        barcode: barcode
+                        barcode: barcode,
+                        txtdest: txtdest
                     },
                     success: function(response) {
                         console.log(response);
@@ -469,7 +514,7 @@
                         document.getElementById('barcode').value = "";
                         document.getElementById("barcode").focus();
                         gettotal_input();
-                        get_sum_carton();
+                        // get_sum_carton();
                     },
                     // error: function(request, status, error) {
                     //     alert(request.responseText);
@@ -481,25 +526,25 @@
         };
 
 
-        function get_sum_carton() {
-            let po_data = $('#cbopo_det').val();
-            let no_carton_data = document.form_h.cbono_carton.value;
-            $.ajax({
-                url: '{{ route('show_sum_max_carton') }}',
-                method: 'get',
-                data: {
-                    po_data: po_data,
-                    no_carton_data: no_carton_data
-                },
-                dataType: 'json',
-                success: function(response) {
-                    document.getElementById('qty_max_carton').value = response.qty_isi;
-                    document.getElementById('qty_terisi_carton').value = response.tot_out;
-                },
-                error: function(request, status, error) {
-                    alert(request.responseText);
-                },
-            });
-        };
+        // function get_sum_carton() {
+        //     let po_data = $('#cbopo_det').val();
+        //     let no_carton_data = document.form_h.cbono_carton.value;
+        //     $.ajax({
+        //         url: '{{ route('show_sum_max_carton') }}',
+        //         method: 'get',
+        //         data: {
+        //             po_data: po_data,
+        //             no_carton_data: no_carton_data
+        //         },
+        //         dataType: 'json',
+        //         success: function(response) {
+        //             document.getElementById('qty_max_carton').value = response.qty_isi;
+        //             document.getElementById('qty_terisi_carton').value = response.tot_out;
+        //         },
+        //         error: function(request, status, error) {
+        //             alert(request.responseText);
+        //         },
+        //     });
+        // };
     </script>
 @endsection

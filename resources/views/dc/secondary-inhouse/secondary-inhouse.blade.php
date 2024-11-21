@@ -12,10 +12,8 @@
 @endsection
 
 @section('content')
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <form action="{{ route('store-secondary-inhouse') }}" method="post" onsubmit="submitForm(this, event)"
-            name='form' id='form'>
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <form action="{{ route('store-secondary-inhouse') }}" method="post" onsubmit="submitForm(this, event)" name='form' id='form'>
             @method('POST')
             <div class="modal-dialog modal-xl modal-dialog-scrollable">
                 <div class="modal-content">
@@ -29,15 +27,10 @@
                                 <div class="mb-3">
                                     <label class="form-label label-input">Scan QR Stocker</label>
                                     <div class="input-group">
-                                        <input type="text" class="form-control form-control-sm border-input"
-                                            name="txtqrstocker" id="txtqrstocker" autocomplete="off" enterkeyhint="go"
-                                            onkeyup="if (event.keyCode == 13)
-                                        document.getElementById('scanqr').click()"
-                                            autofocus>
+                                        <input type="text" class="form-control form-control-sm border-input" name="txtqrstocker" id="txtqrstocker" autocomplete="off" enterkeyhint="go" onkeyup="if (event.keyCode == 13) document.getElementById('scanqr').click()" autofocus>
                                         {{-- <input type="button" class="btn btn-sm btn-primary" value="Scan Line" /> --}}
                                         {{-- style="display: none;" --}}
-                                        <button class="btn btn-sm btn-primary" type="button" id="scanqr"
-                                            onclick="scan_qr()">Scan</button>
+                                        <button class="btn btn-sm btn-primary" type="button" id="scanqr" onclick="scan_qr()">Scan</button>
                                     </div>
                                 </div>
                             </div>
@@ -286,8 +279,10 @@
                             <th>Buyer</th>
                             <th>Style</th>
                             <th>Color</th>
-                            <th>Out</th>
                             <th>In</th>
+                            <th>Reject</th>
+                            <th>Replace</th>
+                            <th>Out</th>
                             <th>Balance</th>
                             <th>Proses</th>
                         </tr>
@@ -295,18 +290,16 @@
                     <tfoot>
                         <tr>
                             <th colspan="4"></th>
-                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
-                                    id = 'total_qty_out'> </th>
-                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
-                                    id = 'total_qty_int'> </th>
-                            <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
-                                    id = 'total_qty_balance'> </th>
+                            <th><input type='text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_int'> </th>
+                            <th><input type='text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_reject_det'> </th>
+                            <th><input type='text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_replace_det'> </th>
+                            <th><input type='text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_out'> </th>
+                            <th><input type='text' class="form-control form-control-sm" style="width:75px" readonly id='total_qty_balance'> </th>
                             <th></th>
                         </tr>
                     </tfoot>
                 </table>
             </div>
-
         </div>
     </div>
 @endsection
@@ -405,7 +398,8 @@
                     d.dateTo = $('#tgl-akhir').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'tgl_trans_fix',
                 },
                 {
@@ -454,16 +448,13 @@
                     data: 'user',
                 },
             ],
-            columnDefs: [{
-                targets: "_all",
-                className: "text-nowrap"
-            }]
+            columnDefs: [
+                {
+                    targets: "_all",
+                    className: "text-nowrap"
+                },
+            ]
         });
-
-
-        function datatableReload() {
-            $('#datatable-input').DataTable().ajax.reload();
-        }
 
         $('#datatable-detail thead tr').clone(true).appendTo('#datatable-detail thead');
         $('#datatable-detail thead tr:eq(1) th').each(function(i) {
@@ -493,22 +484,36 @@
                         i : 0;
                 };
 
-                var sumTotalOut = api
+                var sumTotalIn = api
                     .column(4)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
                     }, 0);
 
-                var sumTotalIn = api
+                var sumTotalReject = api
                     .column(5)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
                     }, 0);
 
-                var sumTotalBalance = api
+                var sumTotalReplace = api
                     .column(6)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalOut = api
+                    .column(7)
+                    .data()
+                    .reduce(function(a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+
+                var sumTotalBalance = api
+                    .column(8)
                     .data()
                     .reduce(function(a, b) {
                         return intVal(a) + intVal(b);
@@ -516,9 +521,11 @@
 
                 // Update footer by showing the total with the reference of the column index
                 $(api.column(0).footer()).html('Total');
-                $(api.column(4).footer()).html(sumTotalOut);
-                $(api.column(5).footer()).html(sumTotalIn);
-                $(api.column(6).footer()).html(sumTotalBalance);
+                $(api.column(4).footer()).html(sumTotalIn);
+                $(api.column(5).footer()).html(sumTotalReject);
+                $(api.column(6).footer()).html(sumTotalReplace);
+                $(api.column(7).footer()).html(sumTotalOut);
+                $(api.column(8).footer()).html(sumTotalBalance);
             },
             ordering: false,
             processing: true,
@@ -540,7 +547,8 @@
                     d.dateTo = $('#tgl-akhir').val();
                 },
             },
-            columns: [{
+            columns: [
+                {
                     data: 'act_costing_ws',
                 },
                 {
@@ -553,10 +561,16 @@
                     data: 'color',
                 },
                 {
-                    data: 'qty_out',
+                    data: 'qty_in',
                 },
                 {
-                    data: 'qty_in',
+                    data: 'qty_reject',
+                },
+                {
+                    data: 'qty_replace',
+                },
+                {
+                    data: 'qty_out',
                 },
                 {
                     data: 'balance',
@@ -565,11 +579,22 @@
                     data: 'lokasi',
                 },
             ],
-            columnDefs: [{
-                targets: "_all",
-                className: "text-nowrap"
-            }]
+            columnDefs: [
+                {
+                    targets: "_all",
+                    className: "text-nowrap"
+                },
+                {
+                    targets: [8],
+                    visible: false
+                }
+            ]
         });
+
+        function datatableReload() {
+            $('#datatable-input').DataTable().ajax.reload();
+            $('#datatable-detail').DataTable().ajax.reload();
+        }
     </script>
 
 

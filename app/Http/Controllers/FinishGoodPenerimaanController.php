@@ -8,7 +8,8 @@ use Yajra\DataTables\Facades\DataTables;
 use DB;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\ExportLaporanTrfGarment;
+use App\Exports\ExportLaporanFGINList;
+use App\Exports\ExportLaporanFGINSummary;
 
 class FinishGoodPenerimaanController extends Controller
 {
@@ -33,6 +34,7 @@ ws,
 color,
 size,
 a.qty,
+m.dest,
 a.no_carton,
 a.notes,
 a.created_at,
@@ -47,24 +49,19 @@ order by a.created_at desc
             return DataTables::of($data_input)->toJson();
         }
 
-        $data_po = DB::select("SELECT a.po isi, concat(a.po, ' - ', p.buyer) tampil from
-(select * from packing_master_carton group by po) a
-inner join
-(
-select a.po, m.buyer , tgl_shipment from ppic_master_so a
+        $data_po = DB::select("SELECT
+concat(a.po,'_',a.dest) isi,
+concat(a.po, ' - ',a.dest,' - ', m.buyer) tampil
+from packing_master_packing_list a
 inner join master_sb_ws m on a.id_so_det = m.id_so_det
-group by po, buyer
- ) p on a.po = p.po
- where p.tgl_shipment >= '$tgl_skrg_min_sebulan'
- group by a.po
- order by p.buyer asc, a.po asc
+group by po
         ");
 
 
         return view(
             'finish_good.finish_good_penerimaan',
             [
-                'page' => 'dashboard-finish-good',
+                'page' => 'dashboard_finish_good',
                 "subPageGroup" => "finish_good_penerimaan",
                 "subPage" => "finish_good_penerimaan",
                 "data_po" => $data_po
@@ -96,31 +93,105 @@ group by po, buyer
     // group by a.no_carton
     // order by a.no_carton asc
 
+
+    // NEW
+    // SELECT
+    // concat(a.no_carton,'_',a.notes)  isi,
+    // concat(a.no_carton, ' ( ', coalesce(sum(b.total),0) - coalesce(sum(c.qty_fg),0), ' ) ', a.notes) tampil
+    //  from
+    // (select id,po, no_carton, notes, qty_isi from packing_master_carton where po = '" . $request->cbopo . "') a
+    // left join (
+    // select count(barcode) total, po, barcode, dest, no_carton, notes from packing_packing_out_scan
+    // where po = '" . $request->cbopo . "'
+    // group by no_carton, po
+    // ) b on a.po = b.po and a.no_carton = b.no_carton and a.notes = b.notes
+    // left join (
+    // select sum(qty) qty_fg,po, barcode, no_carton, notes from fg_fg_in where po = '" . $request->cbopo . "' and status = 'NORMAL' group by barcode, po, no_carton, notes ) c
+    // on a.po = c.po and a.no_carton = c.no_carton and a.notes = c.notes and b.barcode = c.barcode
+    // where
+    // (
+    //      case
+    //      when a.qty_isi is null then coalesce(b.total,0) - coalesce(c.qty_fg,0) >= '1'
+    //      when a.qty_isi = b.total then coalesce(b.total,0) - coalesce(c.qty_fg,0) >= '1'
+    //      end
+    //     )
+    //      group by a.no_carton
+    //      order by a.no_carton asc
+
+    //     SELECT
+    //     concat(no_carton,'_',notes)  isi,
+    //     concat(no_carton, ' ( ', coalesce(sum(tot_scan),0) - coalesce(sum(qty_fg),0), ' ) ', notes) tampil
+    //     from (
+    //     select
+    //     a.barcode, a.po, a.notes, a.no_carton,
+    //     m.qty_isi,
+    //     e.tot_isi,
+    //     sum(tot_scan) tot_scan,
+    //     sum(qty_fg) qty_fg
+    //     from (
+    //     select barcode, po, notes, no_carton, count(barcode)tot_scan, '0' qty_fg
+    //     from packing_packing_out_scan where po = '" . $request->cbopo . "'
+    //     group by barcode, po, notes, no_carton
+    //     union
+    //     select barcode, po, notes, no_carton,'0' tot_scan,sum(qty)qty_fg from fg_fg_in
+    //     where po = '" . $request->cbopo . "' and status = 'NORMAL'
+    //     group by barcode, po, notes, no_carton
+    //     ) a
+    //     left join (select * from packing_master_carton where po = '" . $request->cbopo . "') m
+    //     on a.po = m.po and a.no_carton = m.no_carton and a.notes = m.notes
+    //     left join (
+    //     select count(barcode)tot_isi, po, notes, no_carton
+    //     from packing_packing_out_scan where po = '" . $request->cbopo . "'
+    //     group by po, notes, no_carton
+    //     ) e
+    //     on m.po = e.po and m.no_carton = e.no_carton and m.notes = e.notes
+    //     group by barcode, po, notes, no_carton
+    //     ) d
+    //     where
+    //     (
+    //          case
+    //          when d.qty_isi is null then coalesce(d.tot_scan,0) - coalesce(d.qty_fg,0) >= '1'
+    //          when d.qty_isi = d.tot_isi then coalesce(d.tot_scan,0) - coalesce(d.qty_fg,0) >= '1'
+    //          end
+    //         )
+    //             group by po, no_carton
+    //  order by no_carton asc
+
+
     {
+        $po_data_arr = $request->cbopo ? $request->cbopo : null;
+        if ($po_data_arr) {
+            $cekArray = explode('_', $po_data_arr);
+            // Use null coalescing operator to safely assign values
+            $po = isset($cekArray[0]) ? $cekArray[0] : null;
+            $dest = isset($cekArray[1]) ? $cekArray[1] : null;
+        } else {
+            // Handle the case where $po_data_arr is null
+            $po = null; // or set a default value
+            $dest = null; // or set a default value
+        }
+
         $data_no_carton = DB::select("SELECT
-concat(a.no_carton,'_',a.notes)  isi,
-concat(a.no_carton, ' ( ', coalesce(sum(b.total),0) - coalesce(sum(c.qty_fg),0), ' ) ', a.notes) tampil
- from
-(select id,po, no_carton, notes, qty_isi from packing_master_carton where po = '" . $request->cbopo . "') a
-left join (
-select count(barcode) total, po, barcode, dest, no_carton, notes from packing_packing_out_scan
-where po = '" . $request->cbopo . "'
-group by no_carton, po, barcode, dest
-) b on a.po = b.po and a.no_carton = b.no_carton and a.notes = b.notes
-left join (
-select sum(qty) qty_fg,po, barcode, no_carton, notes from fg_fg_in where po = '" . $request->cbopo . "' and status = 'NORMAL' group by barcode, po, no_carton, notes ) c
-on a.po = c.po and a.no_carton = c.no_carton and a.notes = c.notes and b.barcode = c.barcode
-where
+a.no_carton isi,
+concat(a.no_carton,' (', sum(a.qty), ') ') tampil
+FROM
 (
-     case
-     when a.qty_isi is null then coalesce(b.total,0) - coalesce(c.qty_fg,0) >= '1'
-     when a.qty_isi = b.total then coalesce(b.total,0) - coalesce(c.qty_fg,0) >= '1'
-     end
-    )
-     group by a.no_carton
-     order by a.no_carton asc
-
-
+select * from packing_master_packing_list where  po = '$po' and dest = '$dest'
+) a
+left join
+(
+select po, barcode, dest, no_carton, count(barcode)tot_scan from packing_packing_out_scan a
+where po = '$po' and dest = '$dest'
+group by po , barcode, dest, no_carton
+) b on a.po = b.po and a.barcode = b.barcode and a.dest = b.dest and a.no_carton = b.no_carton
+left join
+(
+select po, barcode, dest, no_carton, sum(qty)tot_fg from fg_fg_in
+where po = '$po' and dest = '$dest' and status = 'NORMAL'
+GROUP BY po, barcode, dest, no_carton
+) c on a.po = c.po and a.barcode = c.barcode and a.dest = c.dest and a.no_carton = c.no_carton
+group by a.no_carton
+having coalesce(sum(qty),0) = coalesce(sum(tot_scan),0) and coalesce(sum(tot_scan),0) - coalesce(sum(tot_fg),0) != '0'
         ");
 
         // where coalesce(b.total,0) - coalesce(c.qty_fg,0) >= '1'
@@ -137,47 +208,58 @@ where
     public function show_preview_fg_in(Request $request)
     {
         $user = Auth::user()->name;
-        $po = $request->cbopo;
 
-        $no_carton_cek = $request->cbo_no_carton;
+        $po_data_arr = $request->cbopo ? $request->cbopo : null;
 
-        if ($no_carton_cek == '') {
-            $cbo_no_carton = '-';
-            $notes = '-';
+        if ($po_data_arr) {
+            $cekArray = explode('_', $po_data_arr);
+            // Use null coalescing operator to safely assign values
+            $po = isset($cekArray[0]) ? $cekArray[0] : null;
+            $dest = isset($cekArray[1]) ? $cekArray[1] : null;
         } else {
-            $cekArray = explode('_', $no_carton_cek);
-            $cbo_no_carton = $cekArray[0];
-            $notes = $cekArray[1];
+            // Handle the case where $po_data_arr is null
+            $po = null; // or set a default value
+            $dest = null; // or set a default value
         }
 
+
+        $no_carton = $request->cbo_no_carton;
 
         if ($request->ajax()) {
 
             $data_preview = DB::select("SELECT
-        m.id_so_det,
-        a.no_carton,
-        p.barcode,
-        p.po,
-        p.dest,
-        m.color,
-        m.size,
-        m.ws,
-        coalesce(a.qty,0) - coalesce(c.qty_fg,0) qty,
-        'PCS' unit,
-        price,
-        m.curr,
-        p.id id_ppic_master_so
-        from
-        (
-        select count(barcode)qty, barcode, po, dest, no_carton, notes from packing_packing_out_scan
-        where po = '$po' and no_carton = '$cbo_no_carton' and notes = '$notes'
-        group by po, barcode, dest, notes
-        ) a
-        inner join ppic_master_so p on a.po = p.po and  a.barcode = p.barcode and a.po = p.po and a.dest = p.dest
-        inner join master_sb_ws m on p.id_so_det = m.id_so_det
-        left join (
-				select sum(qty) qty_fg,po, barcode, no_carton, notes from fg_fg_in where po = '$po' and no_carton = '$cbo_no_carton' and notes = '$notes' and status = 'NORMAL' group by barcode, po, no_carton, notes ) c on
-				a.po = c.po and a.no_carton = c.no_carton and a.notes = c.notes and a.barcode = c.barcode
+a.id_so_det,
+a.no_carton,
+a.barcode,
+a.po,
+a.dest,
+m.color,
+m.size,
+m.ws,
+coalesce(b.tot_scan,0) - coalesce(tot_fg,0) qty,
+'PCS' unit,
+m.dest,
+price,
+m.curr,
+a.id_ppic_master_so
+FROM
+(
+select * from packing_master_packing_list where  po = '$po' and dest = '$dest' and no_carton = '$no_carton'
+) a
+left join
+(
+select po, barcode, dest, no_carton, count(barcode)tot_scan from packing_packing_out_scan a
+where po = '$po' and dest = '$dest' and no_carton = '$no_carton'
+group by po , barcode, dest, no_carton
+) b on a.po = b.po and a.barcode = b.barcode and a.dest = b.dest and a.no_carton = b.no_carton
+left join
+(
+select po, barcode, dest, no_carton, sum(qty)tot_fg from fg_fg_in where po = '$po' and dest = '$dest' and no_carton = '$no_carton' and status = 'NORMAL'
+group by po , barcode, dest, no_carton
+) c on a.po = c.po and a.barcode = c.barcode and a.dest = c.dest and a.no_carton = c.no_carton
+inner join master_sb_ws m on a.id_so_det = m.id_so_det
+group by a.id_so_det
+having coalesce(sum(a.qty),0) = coalesce(sum(tot_scan),0) and coalesce(sum(tot_scan),0) - coalesce(sum(tot_fg),0) != '0'
             ");
 
             return DataTables::of($data_preview)->toJson();
@@ -189,11 +271,11 @@ where
         $timestamp = Carbon::now();
         $user = Auth::user()->name;
         $tgl_skrg = date('Y-m-d');
-        $po                     = $_POST['cbopo'];
+        $no_carton = $request->cbo_no_carton;
 
-        $cekArray = explode('_', $_POST['cbo_no_carton']);
-        $no_carton = $cekArray[0];
-        $notes = $cekArray[1];
+        $poArray = explode('_', $_POST['cbopo']);
+        $po = $poArray[0];
+        $dest = $poArray[1];
 
         $cek_sb = DB::connection('mysql_sb')->select("select count(id) tot from bpb where bpbdate = '$tgl_skrg'
         and po_fg = '$po' and status_input = 'nds'");
@@ -268,8 +350,8 @@ where
                     update packing_master_carton set status = 'transfer' where po = '$po' and no_carton = '$no_carton' ");
 
                     $insert_fg_in_nds =  DB::insert("
-                    insert into fg_fg_in (no_sb,tgl_penerimaan,id_ppic_master_so,id_so_det,barcode,qty,po,no_carton,lokasi,notes,status,created_by,updated_at,created_at)
-                    values('$bpbno_int','$tgl_skrg','$id_ppic_master_so','$id_so_det','$barcode','$txtqty','$po','$no_carton','-','$notes','NORMAL','$user','$timestamp','$timestamp')
+                    insert into fg_fg_in (no_sb,tgl_penerimaan,id_ppic_master_so,id_so_det,barcode,qty,po,no_carton,lokasi,notes,dest,status,created_by,updated_at,created_at)
+                    values('$bpbno_int','$tgl_skrg','$id_ppic_master_so','$id_so_det','$barcode','$txtqty','$po','$no_carton','-','-','$dest','NORMAL','$user','$timestamp','$timestamp')
                     ");
                 }
             }
@@ -292,5 +374,14 @@ where
                 "additional" => [],
             );
         }
+    }
+
+    public function export_excel_fg_in_list(Request $request)
+    {
+        return Excel::download(new ExportLaporanFGINList($request->from, $request->to), 'Laporan_Penerimaan FG_Stok.xlsx');
+    }
+    public function export_excel_fg_in_summary(Request $request)
+    {
+        return Excel::download(new ExportLaporanFGINSummary($request->from, $request->to), 'Laporan_Penerimaan FG_Stok.xlsx');
     }
 }

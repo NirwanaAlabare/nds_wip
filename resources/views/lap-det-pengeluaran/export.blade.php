@@ -17,6 +17,7 @@
             <th>Tgl. Trans</th>
             <th>Inv #</th>
             <th>Jenis Dok</th>
+            <th>Jenis Pengeluaran</th>
             <th>Nomor Aju</th>
             <th>Tgl Aju</th>
             <th>Nomor Daftar</th>
@@ -57,6 +58,7 @@
                 <td>{{ $item->bppbdate }}</td>
                 <td>{{ $item->invno }}</td>
                 <td>{{ $item->jenis_dok }}</td>
+                <td>{{ $item->jenis_pengeluaran }}</td>
                 <td>{{ $item->no_aju }}</td>
                 <td>{{ $item->tanggal_aju }}</td>
                 <td>{{ $item->bcno }}</td>

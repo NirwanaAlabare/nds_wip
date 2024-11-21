@@ -425,11 +425,9 @@
                                 option.setAttribute("value", res[i].year_sequence);
                                 option.innerHTML = res[i].year_sequence;
                                 select.appendChild(option);
-
-                                latestVal = res[i].year_sequence;
                             }
 
-                            $("#sequence").val(latestVal).trigger("change");
+                            $("#sequence").val(res[0].year_sequence).trigger("change");
                         } else {
                             Swal.fire({
                                 icon: 'error',
@@ -447,6 +445,8 @@
         }
 
         function getRangeYearSequence() {
+            document.getElementById("loading").classList.remove("d-none");
+
             $.ajax({
                 url: '{{ route('get-range-year-sequence') }}',
                 type: 'get',
@@ -457,6 +457,8 @@
                 dataType: 'json',
                 success: function(res)
                 {
+                    document.getElementById("loading").classList.add("d-none");
+
                     console.log("range",res);
 
                     if (res) {
@@ -473,6 +475,8 @@
                 },
                 error: function(jqXHR)
                 {
+                    document.getElementById("loading").classList.add("d-none");
+
                     console.error(jqXHR)
                 }
             })
@@ -520,7 +524,7 @@
         }
 
         function validatePrintYearSequence() {
-            if (Number($('#range_awal').val()) > 0 && Number($('#range_awal').val()) <= Number($('#range_akhir').val())) {
+            if (Number($('#add_qty').val() > 0) && Number($('#range_awal').val()) > 0 && Number($('#range_awal').val()) <= Number($('#range_akhir').val())) {
                 return true;
             }
 
@@ -528,29 +532,42 @@
         }
 
         function setYearSequenceNumber() {
-            if (Number($('#'+method+'_qty').val()) > Number($('#qty').val())) {
-                Swal.fire({
-                    icon: "info",
-                    title: "Konfirmasi",
-                    html: "Qty Number melebihi Qty Stocker. Lanjut ?",
-                    showDenyButton: true,
-                    showCancelButton: false,
-                    confirmButtonText: "Lanjut",
-                    denyButtonText: "Batal"
-                }).then((result) => {
-                    if (result.isConfirmed) {
+            Swal.fire({
+                icon: "info",
+                title: "Konfirmasi",
+                html: "Range <b>"+$('#range_awal').val()+" - "+$('#range_akhir').val()+"</b> dengan Total QTY <b>"+((Number($('#range_akhir').val()) - Number($('#range_awal').val())) + 1)+"</b>",
+                showDenyButton: true,
+                showCancelButton: false,
+                confirmButtonText: "Lanjut",
+                denyButtonText: "Batal"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if (Number(((Number($('#range_akhir').val()) - Number($('#range_awal').val())) + 1)) > Number($('#qty').val())) {
+                        Swal.fire({
+                            icon: "info",
+                            title: "Konfirmasi",
+                            html: "Qty Number <b>"+((Number($('#range_akhir').val()) - Number($('#range_awal').val())) + 1)+"</b> melebihi Qty Stocker <b>"+$('#qty').val()+"</b>. Lanjut ?",
+                            showDenyButton: true,
+                            showCancelButton: false,
+                            confirmButtonText: "Lanjut",
+                            denyButtonText: "Batal"
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                setYearSequenceNumberAct();
+                            } else if (result.isDenied) {
+                                Swal.fire("Input dibatalkan", "", "info");
+                            }
+                        });
+                    } else {
                         setYearSequenceNumberAct();
-                    } else if (result.isDenied) {
-                        Swal.fire("Input dibatalkan", "", "info");
                     }
-                });
-            } else {
-                setYearSequenceNumberAct();
-            }
+                } else if (result.isDenied) {
+                    Swal.fire("Input dibatalkan", "", "info");
+                }
+            })
         }
 
         function setYearSequenceNumberAct() {
-            /* Read more about isConfirmed, isDenied below */
             if (validatePrintYearSequence()) {
                 generating = true;
 
@@ -583,7 +600,7 @@
                     {
                         responseType: 'blob'
                     },
-                    success: function(res) {
+                    success: async function(res) {
                         console.log(res);
                         if (res) {
                             Swal.fire({
@@ -591,7 +608,8 @@
                                 title: 'Berhasil',
                                 html: 'Data berhasil di setting <br> <b>'+$("#stocker").val()+'</b> <br> <b>'+$("#year").val()+'_'+$("#sequence").val()+'</b>',
                                 allowOutsideClick: false,
-                            }).then(() => {
+                            }).then(async function() {
+                                // await printYearSequence($('#year').val(), $('#sequence').val(), Number($('#range_awal').val()), Number($('#range_akhir').val()));
                                 yearSequenceTableReload();
                                 getRangeYearSequence();
 
@@ -614,7 +632,7 @@
                     },
                     error: function(jqXHR) {
                         console.error(jqXHR);
-                        Swal.fire("Nomor stocker sudah mencapai "+$("#print_qty").val()+".", "", "info");
+                        Swal.fire("Gagal Input", "", "info");
 
                         generating = false;
                     }
@@ -627,6 +645,125 @@
                     allowOutsideClick: false,
                 });
             }
+        }
+
+        async function printYearSequence(year, yearSequence, rangeAwal, rangeAkhir) {
+            console.log("printing year sequence", year, yearSequence, rangeAwal, rangeAkhir);
+            generating = true;
+
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data... <br><br> Est. <b>0</b>s...',
+                didOpen: () => {
+                    Swal.showLoading();
+
+                    let estimatedTime = 0;
+                    const estimatedTimeElement = Swal.getPopup().querySelector("b");
+                    estimatedTimeInterval = setInterval(() => {
+                        estimatedTime++;
+                        estimatedTimeElement.textContent = estimatedTime;
+                    }, 1000);
+                },
+                allowOutsideClick: false,
+            });
+
+            let totalPrint = Number(rangeAkhir) - Number(rangeAwal) + 1;
+
+            let i = 0;
+            let qtyI = 0;
+            let rangeI = Number(rangeAwal);
+            while (i < totalPrint) {
+                if ((i + 1000) > totalPrint) {
+                    qtyI = totalPrint - i;
+                    i += qtyI;
+                } else {
+                    qtyI = 1000;
+                    i += qtyI;
+                }
+
+                console.log(i, qtyI, rangeI, totalPrint);
+
+                await $.ajax({
+                    url: '{{ route('print-year-sequence-new') }}',
+                    type: 'post',
+                    data: {
+                        year: year,
+                        yearSequence: yearSequence,
+                        rangeAwal: rangeI,
+                        rangeAkhir: rangeI + qtyI - 1,
+                    },
+                    xhrFields:
+                    {
+                        responseType: 'blob'
+                    },
+                    success: function(res) {
+                        if (res) {
+                            console.log(res);
+
+                            var blob = new Blob([res], {type: 'application/pdf'});
+                            var link = document.createElement('a');
+                            link.href = window.URL.createObjectURL(blob);
+                            link.download = "Numbers_"+rangeI+"-"+(rangeI+qtyI-1)+".pdf";
+                            link.click();
+                        }
+
+                        generating = false;
+                    },
+                    error: function(jqXHR) {
+                        console.error(jqXHR)
+
+                        generating = false;
+
+                        clearInterval(estimatedTimeInterval);
+                    }
+                    });
+
+                    rangeI += qtyI;
+                }
+
+                // window.location.reload();
+
+                swal.close();
+        }
+
+        async function printYearSequenceAjax(method, year, yearSequence, rangeAwal, rangeAkhir) {
+            return $.ajax({
+                        url: '{{ route('print-year-sequence') }}',
+                        type: 'post',
+                        data: {
+                            method: method,
+                            year: year,
+                            yearSequence: yearSequence,
+                            rangeAwal: rangeAwal,
+                            rangeAkhir: rangeAkhir,
+                        },
+                        xhrFields:
+                        {
+                            responseType: 'blob'
+                        },
+                        success: function(res) {
+                            if (res) {
+                                console.log(res);
+
+                                var blob = new Blob([res], {type: 'application/pdf'});
+                                var link = document.createElement('a');
+                                link.href = window.URL.createObjectURL(blob);
+                                link.download = "Numbers.pdf";
+                                link.click();
+                            }
+
+                            window.location.reload();
+
+                            generating = false;
+                        },
+                        error: function(jqXHR) {
+                            console.error(jqXHR)
+
+                            swal.close();
+
+                            generating = false;
+                        }
+                    });
         }
 
         let yearSequenceTable = $("#year-sequence-table").DataTable({

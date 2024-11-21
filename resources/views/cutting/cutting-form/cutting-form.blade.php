@@ -312,7 +312,7 @@
                     data: 'marker_details'
                 },
                 {
-                    data: undefined
+                    data: 'total_lembar'
                 },
                 {
                     data: 'notes'

@@ -425,7 +425,7 @@ class CuttingFormManualController extends Controller
             FROM
                 whs_bppb_det
                 LEFT JOIN whs_bppb_h ON whs_bppb_h.no_bppb = whs_bppb_det.no_bppb
-                LEFT JOIN whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
+                LEFT JOIN (SELECT * FROM whs_lokasi_inmaterial GROUP BY no_barcode, no_roll_buyer) whs_lokasi_inmaterial ON whs_lokasi_inmaterial.no_barcode = whs_bppb_det.id_roll
             WHERE
                 whs_bppb_det.id_roll = '".$id."'
                 AND whs_bppb_h.tujuan = 'Production - Cutting'
@@ -850,7 +850,7 @@ class CuttingFormManualController extends Controller
 
     public function getTimeRecord($noForm = 0)
     {
-        $timeRecordSummary = FormCutInputDetail::where("no_form_cut_input", $noForm)->where('status', '!=', 'not complete')->where('status', '!=', 'extension')->orderBy("id", "asc")->get();
+        $timeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->where("no_form_cut_input", $noForm)->where('status', '!=', 'not complete')->where('status', '!=', 'extension')->orderBy("form_cut_input_detail.id", "asc")->get();
 
         return json_encode($timeRecordSummary);
     }
@@ -968,7 +968,7 @@ class CuttingFormManualController extends Controller
                         "roll" => $validatedRequest['current_roll'],
                         "roll_buyer" => $validatedRequest['current_roll_buyer'],
                         "qty" => $itemRemain > 0 ? 0 : $itemRemain,
-                        "qty_pakai" => $validatedRequest['current_total_pemakaian_roll'],
+                        "qty_pakai" => DB::raw("COALESCE(qty_pakai, 0) + ".$validatedRequest['current_total_pemakaian_roll']),
                         "unit" => $itemUnit,
                         "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
                     ]
@@ -987,8 +987,8 @@ class CuttingFormManualController extends Controller
                         "status" => 200,
                         "message" => "alright",
                         "additional" => [
-                            FormCutInputDetail::where('id', $storeTimeRecordSummary->id)->first(),
-                            FormCutInputDetail::where('id', $storeTimeRecordSummaryExt->id)->first()
+                            FormCutInputDetail::selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->where('form_cut_input_detail.id', $storeTimeRecordSummary->id)->first(),
+                            FormCutInputDetail::selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->where('form_cut_input_detail.id', $storeTimeRecordSummaryExt->id)->first()
                         ],
                     );
                 }
@@ -1003,7 +1003,7 @@ class CuttingFormManualController extends Controller
                         "roll" => $validatedRequest['current_roll'],
                         "roll_buyer" => $validatedRequest['current_roll_buyer'],
                         "qty" => $itemRemain,
-                        "qty_pakai" => $validatedRequest['current_total_pemakaian_roll'],
+                        "qty_pakai" => DB::raw("COALESCE(qty_pakai, 0) + ".$validatedRequest['current_total_pemakaian_roll']),
                         "unit" => $itemUnit,
                         "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
                     ]
@@ -1014,7 +1014,7 @@ class CuttingFormManualController extends Controller
                 "status" => 200,
                 "message" => "alright",
                 "additional" => [
-                    FormCutInputDetail::where('id', $storeTimeRecordSummary->id)->first(),
+                    FormCutInputDetail::selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->where('form_cut_input_detail.id', $storeTimeRecordSummary->id)->first(),
                     null
                 ],
             );
@@ -1037,9 +1037,8 @@ class CuttingFormManualController extends Controller
         $storeTimeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->
             leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->
             where('form_cut_input.no_meja', $request->no_meja)->
-            where('form_cut_input_detail.status', 'not complete')->
             updateOrCreate(
-                ["no_form_cut_input" => $request->no_form_cut_input],
+                ["no_form_cut_input" => $request->no_form_cut_input, 'form_cut_input_detail.status' => 'not complete'],
                 [
                     "id_roll" => $request->current_id_roll,
                     "id_item" => $request->current_id_item,
@@ -1148,39 +1147,42 @@ class CuttingFormManualController extends Controller
         $itemQty = ($validatedRequest["current_unit"] != "KGM" ? floatval($validatedRequest['current_qty']) : floatval($validatedRequest['current_qty_real']));
         $itemUnit = ($validatedRequest["current_unit"] != "KGM" ? "METER" : $validatedRequest['current_unit']);
 
-        $storeTimeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->where('form_cut_input.no_meja', $validatedRequest['no_meja'])->where('form_cut_input_detail.status', 'extension')->updateOrCreate(
-            ['form_cut_input_detail.no_form_cut_input' => $validatedRequest['no_form_cut_input']],
-            [
-                "id_roll" => $validatedRequest['current_id_roll'],
-                "id_item" => $validatedRequest['current_id_item'],
-                "color_act" => $validatedRequest['color_act'],
-                "detail_item" => $validatedRequest['detail_item'],
-                "group_roll" => $validatedRequest['current_group'],
-                "lot" => $request['current_lot'],
-                "roll" => $validatedRequest['current_roll'],
-                "roll_buyer" => $validatedRequest['current_roll_buyer'],
-                "qty" => $itemQty,
-                "unit" => $itemUnit,
-                "sisa_gelaran" => $validatedRequest['current_sisa_gelaran'],
-                "sambungan" => $validatedRequest['current_sambungan'],
-                "sambungan_roll" => $request->current_total_sambungan_roll ? $request->current_total_sambungan_roll : 0,
-                "est_amparan" => $validatedRequest['current_est_amparan'],
-                "lembar_gelaran" => $validatedRequest['current_lembar_gelaran'],
-                "average_time" => $validatedRequest['current_average_time'],
-                "kepala_kain" => $validatedRequest['current_kepala_kain'],
-                "sisa_tidak_bisa" => $validatedRequest['current_sisa_tidak_bisa'],
-                "reject" => $validatedRequest['current_reject'],
-                "sisa_kain" => ($validatedRequest['current_sisa_kain'] ? $validatedRequest['current_sisa_kain'] : 0),
-                "pemakaian_lembar" => $validatedRequest['current_pemakaian_lembar'],
-                "total_pemakaian_roll" => $validatedRequest['current_total_pemakaian_roll'],
-                "short_roll" => $validatedRequest['current_short_roll'],
-                "piping" => $validatedRequest['current_piping'],
-                "status" => "extension complete",
-                "group_stocker" => $groupStocker,
-                "metode" => $request->metode ? $request->metode : "scan",
-                "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
-            ]
-        );
+        $storeTimeRecordSummary = FormCutInputDetail::selectRaw("form_cut_input_detail.*")->
+            leftJoin('form_cut_input', 'form_cut_input.no_form', '=', 'form_cut_input_detail.no_form_cut_input')->
+            where('form_cut_input.no_meja', $validatedRequest['no_meja'])->
+            updateOrCreate(
+                ['form_cut_input_detail.no_form_cut_input' => $validatedRequest['no_form_cut_input'], 'form_cut_input_detail.status' => 'extension'],
+                [
+                    "id_roll" => $validatedRequest['current_id_roll'],
+                    "id_item" => $validatedRequest['current_id_item'],
+                    "color_act" => $validatedRequest['color_act'],
+                    "detail_item" => $validatedRequest['detail_item'],
+                    "group_roll" => $validatedRequest['current_group'],
+                    "lot" => $request['current_lot'],
+                    "roll" => $validatedRequest['current_roll'],
+                    "roll_buyer" => $validatedRequest['current_roll_buyer'],
+                    "qty" => $itemQty,
+                    "unit" => $itemUnit,
+                    "sisa_gelaran" => $validatedRequest['current_sisa_gelaran'],
+                    "sambungan" => $validatedRequest['current_sambungan'],
+                    "sambungan_roll" => $request->current_total_sambungan_roll ? $request->current_total_sambungan_roll : 0,
+                    "est_amparan" => $validatedRequest['current_est_amparan'],
+                    "lembar_gelaran" => $validatedRequest['current_lembar_gelaran'],
+                    "average_time" => $validatedRequest['current_average_time'],
+                    "kepala_kain" => $validatedRequest['current_kepala_kain'],
+                    "sisa_tidak_bisa" => $validatedRequest['current_sisa_tidak_bisa'],
+                    "reject" => $validatedRequest['current_reject'],
+                    "sisa_kain" => ($validatedRequest['current_sisa_kain'] ? $validatedRequest['current_sisa_kain'] : 0),
+                    "pemakaian_lembar" => $validatedRequest['current_pemakaian_lembar'],
+                    "total_pemakaian_roll" => $validatedRequest['current_total_pemakaian_roll'],
+                    "short_roll" => $validatedRequest['current_short_roll'],
+                    "piping" => $validatedRequest['current_piping'],
+                    "status" => "extension complete",
+                    "group_stocker" => $groupStocker,
+                    "metode" => $request->metode ? $request->metode : "scan",
+                    "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
+                ]
+            );
 
         if ($storeTimeRecordSummary) {
             FormCutInput::where("no_form", $validatedRequest["no_form_cut_input"])->update([
@@ -1205,7 +1207,7 @@ class CuttingFormManualController extends Controller
                 }
             }
 
-            $itemRemain = $itemQty - floatval($validatedRequest['current_total_pemakaian_roll']) - floatval($validatedRequest['current_kepala_kain']) - floatval($validatedRequest['current_sisa_tidak_bisa']) - floatval($validatedRequest['current_reject']) - floatval($validatedRequest['current_piping']);
+            $itemRemain = $itemQty - floatval($validatedRequest['current_total_pemakaian_roll']);
             // $itemRemain = $validatedRequest['current_sisa_kain'];
 
             ScannedItem::updateOrCreate(
@@ -1218,7 +1220,7 @@ class CuttingFormManualController extends Controller
                     "roll" => $validatedRequest['current_roll'],
                     "roll_buyer" => $validatedRequest['current_roll_buyer'],
                     "qty" => $itemRemain,
-                    "qty_pakai" => $validatedRequest['current_total_pemakaian_roll'],
+                    "qty_pakai" => DB::raw("COALESCE(qty_pakai, 0) + ".$validatedRequest['current_total_pemakaian_roll']),
                     "unit" => $itemUnit,
                     "berat_amparan" => $itemUnit == 'KGM' ? ($request['current_berat_amparan'] ? $request['current_berat_amparan'] : 0) : 0,
                 ]
@@ -1257,8 +1259,8 @@ class CuttingFormManualController extends Controller
                         "status" => 200,
                         "message" => "alright",
                         "additional" => [
-                            FormCutInputDetail::where('id', $storeTimeRecordSummary->id)->first(),
-                            FormCutInputDetail::where('id', $storeTimeRecordSummaryNext->id)->first(),
+                            FormCutInputDetail::selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->where('form_cut_input_detail.id', $storeTimeRecordSummary->id)->first(),
+                            FormCutInputDetail::selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->where('form_cut_input_detail.id', $storeTimeRecordSummaryNext->id)->first(),
                         ],
                     );
                 }
@@ -1268,7 +1270,7 @@ class CuttingFormManualController extends Controller
                 "status" => 200,
                 "message" => "alright",
                 "additional" => [
-                    FormCutInputDetail::where('id', $storeTimeRecordSummary->id)->first()
+                    FormCutInputDetail::selectRaw("form_cut_input_detail.*, scanned_item.qty_in qty_awal")->leftJoin("scanned_item", "scanned_item.id_roll", "=", "form_cut_input_detail.id_roll")->where('form_cut_input_detail.id', $storeTimeRecordSummary->id)->first()
                 ],
             );
         }
@@ -1423,9 +1425,9 @@ class CuttingFormManualController extends Controller
 
                 FormCutInputDetailLap::where("form_cut_input_detail_id", $notCompletedDetail->id)->delete();
             }
-
-            FormCutInputDetail::where("no_form_cut_input", $formCutInputData->no_form)->whereRaw("(status = 'not complete' OR status = 'extension')")->delete();
         }
+
+        FormCutInputDetail::where("no_form_cut_input", $formCutInputData->no_form)->whereRaw("(status = 'not complete' OR status = 'extension')")->delete();
 
         // store to part form
         $partData = Part::select('part.id')->

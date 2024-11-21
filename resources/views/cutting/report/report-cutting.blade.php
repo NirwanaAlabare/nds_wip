@@ -30,9 +30,7 @@
                 </div>
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div class="mb-3">
-                        <button class='btn btn-success btn-sm' onclick="exportExcel(this)">
-                            <i class="fas fa-file-excel"></i> Export
-                        </button>
+                        <button class="btn btn-success btn-sm" onclick="exportExcel(this)"><i class="fa fa-file-excel"></i> Export</button>
                     </div>
                 </div>
             </div>
@@ -48,13 +46,21 @@
                             <th>Panel</th>
                             <th>Size</th>
                             <th>Notes</th>
-                            <th>Marker Ply</th>
-                            <th>Cutting Ply</th>
+                            <th>Marker Pcs</th>
+                            <th>Cutting Pcs</th>
                             <th>Cutting Diff</th>
                         </tr>
                     </thead>
                     <tbody>
                     </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="8">Total</th>
+                            <th>Marker Pcs</th>
+                            <th>Cutting Pcs</th>
+                            <th>Cutting Diff</th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -86,11 +92,22 @@
             });
         });
 
+        var listFilter = [
+            'tanggal_filter',
+            'buyer_filter',
+            'ws_filter',
+            'style_filter',
+            'color_filter',
+            'panel_filter',
+            'size_filter',
+            'notes_filter'
+        ];
+
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
             if (i <= 7) {
                 var title = $(this).text();
-                $(this).html('<input type="text" class="form-control form-control-sm" />');
+                $(this).html('<input type="text" class="form-control form-control-sm" id="'+listFilter[i]+'"/>');
 
                 $('input', this).on('keyup change', function() {
                     if (datatable.column(i).search() !== this.value) {
@@ -159,12 +176,120 @@
                     targets: "_all",
                     className: "text-nowrap"
                 }
-            ]
+            ],
+            footerCallback: async function(row, data, start, end, display) {
+                var api = this.api(),data;
+
+                $(api.column(0).footer()).html('Total');
+                $(api.column(8).footer()).html("...");
+                $(api.column(9).footer()).html("...");
+                $(api.column(10).footer()).html("...");
+
+                $.ajax({
+                    url: 'total-cutting',
+                    dataType: 'json',
+                    dataSrc: 'data',
+                    data: {
+                        'dateFrom' : $('#from').val(),
+                        'dateTo' : $('#to').val(),
+                        'tgl_form_cut': $('#tanggal_filter').val(),
+                        'buyer': $('#buyer_filter').val(),
+                        'ws': $('#ws_filter').val(),
+                        'style': $('#style_filter').val(),
+                        'color': $('#color_filter').val(),
+                        'panel': $('#panel_filter').val(),
+                        'size': $('#size_filter').val(),
+                        'notes': $('#notes_filter').val()
+                    },
+                    success: function(response) {
+                        console.log(response);
+
+                        if (response && response[0]) {
+                            // Update footer by showing the total with the reference of the column index
+                            $(api.column(0).footer()).html('Total');
+                            $(api.column(8).footer()).html(response[0]['marker_gelar']);
+                            $(api.column(9).footer()).html(response[0]['form_gelar']);
+                            $(api.column(10).footer()).html(response[0]['form_diff']);
+                        }
+                    },
+                    error: function(jqXHR) {
+                        console.log(jqXHR);
+                    },
+                })
+            },
         });
 
         function datatableReload() {
             datatable.ajax.reload();
         }
+
+        // Legacy Export Excel
+            // function exportExcel (elm) {
+            //     elm.setAttribute('disabled', 'true');
+            //     elm.innerText = "";
+            //     let loading = document.createElement('div');
+            //     loading.classList.add('loading-small');
+            //     elm.appendChild(loading);
+
+            //     iziToast.info({
+            //         title: 'Exporting...',
+            //         message: 'Data sedang di export. Mohon tunggu...',
+            //         position: 'topCenter'
+            //     });
+
+            //     let date = new Date();
+
+            //     let day = date.getDate();
+            //     let month = date.getMonth() + 1;
+            //     let year = date.getFullYear();
+
+            //     // This arrangement can be altered based on how we want the date's format to appear.
+            //     let currentDate = `${day}-${month}-${year}`;
+
+            //     $.ajax({
+            //         url: "{{ route("report-cutting-export") }}",
+            //         type: 'post',
+            //         data: {
+            //             dateFrom : $('#from').val(),
+            //             dateTo : $('#to').val()
+            //         },
+            //         xhrFields: { responseType : 'blob' },
+            //         success: function(res) {
+            //             elm.removeChild(loading);
+            //             elm.removeAttribute('disabled');
+            //             elm.innerHTML += "<i class='fa fa-file-excel'></i> Export";
+
+            //             iziToast.success({
+            //                 title: 'Success',
+            //                 message: 'Success',
+            //                 position: 'topCenter'
+            //             });
+
+            //             var blob = new Blob([res]);
+            //             var link = document.createElement('a');
+            //             link.href = window.URL.createObjectURL(blob);
+            //             link.download = "Output Cutting - "+$('#from').val()+" - "+$('#to').val()+".xlsx";
+            //             link.click();
+            //         }, error: function (jqXHR) {
+            //             elm.removeChild(loading);
+            //             elm.removeAttribute('disabled');
+            //             elm.innerHTML += "<i class='fa fa-file-excel'></i> Export";
+
+            //             let res = jqXHR.responseJSON;
+            //             let message = '';
+            //             console.log(res.message);
+            //             for (let key in res.errors) {
+            //                 message += res.errors[key]+' ';
+            //                 document.getElementById(key).classList.add('is-invalid');
+            //             };
+            //             iziToast.error({
+            //                 title: 'Error',
+            //                 message: message,
+            //                 position: 'topCenter'
+            //             });
+            //         }
+            //     });
+            // }
 
         function exportExcel (elm) {
             elm.setAttribute('disabled', 'true');
@@ -189,17 +314,21 @@
             let currentDate = `${day}-${month}-${year}`;
 
             $.ajax({
-                url: "{{ route("report-cutting-export") }}",
+                url: "{{ route("export-cutting-form") }}",
                 type: 'post',
                 data: {
-                    dateFrom : $('#from').val(),
-                    dateTo : $('#to').val()
+                    dateFrom : $("#from").val(),
+                    dateTo : $("#to").val()
                 },
                 xhrFields: { responseType : 'blob' },
                 success: function(res) {
                     elm.removeChild(loading);
                     elm.removeAttribute('disabled');
-                    elm.innerHTML += "<i class='fa fa-file-excel'></i> Export";
+                    let icon = document.createElement('i');
+                    icon.classList.add('fa-solid');
+                    icon.classList.add('fa', 'fa-file-excel');
+                    elm.appendChild(icon);
+                    elm.innerHTML += " Export";
 
                     iziToast.success({
                         title: 'Success',
@@ -210,12 +339,15 @@
                     var blob = new Blob([res]);
                     var link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
-                    link.download = "Output Cutting - "+$('#from').val()+" - "+$('#to').val()+".xlsx";
+                    link.download = "Form Cutting "+$("#from").val()+" - "+$("#to").val()+".xlsx";
                     link.click();
                 }, error: function (jqXHR) {
                     elm.removeChild(loading);
                     elm.removeAttribute('disabled');
-                    elm.innerHTML += "<i class='fa fa-file-excel'></i> Export";
+                    let icon = document.createElement('i');
+                    icon.classList.add('fa', 'fa-file-excel');
+                    elm.appendChild(icon);
+                    elm.innerHTML += " Export";
 
                     let res = jqXHR.responseJSON;
                     let message = '';

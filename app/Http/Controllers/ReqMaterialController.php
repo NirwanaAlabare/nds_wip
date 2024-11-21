@@ -303,7 +303,7 @@ select 'OUT' id,b.id_item,b.goods_code,a.id_jo,b.mattype, b.matclass, b.itemdesc
             if ($qty_sekarang > 0) {
                 $status = '';
             }else{
-                $status = 'readonly';
+                $status = '';
             }
             $html .= ' <tr>
                         <td >'.$detitem->jo_no.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="jo_no'.$x.'" name="jo_no['.$x.']" value="'.$detitem->jo_no.'" / readonly></td>

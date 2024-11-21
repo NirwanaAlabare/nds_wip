@@ -20,6 +20,16 @@ class StockDcIncompleteController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
+            $additionalQuery = "";
+
+            if ($request->dateFrom) {
+                $additionalQuery .= "AND stocker_input.updated_at >= '".$request->dateFrom." 00:00:00'";
+            }
+
+            if ($request->dateTo) {
+                $additionalQuery .= "AND stocker_input.updated_at <= '".$request->dateTo." 23:59:59'";
+            }
+
             // Get Stocker Data
             $stockDcIncomplete = DB::select("
                 SELECT
@@ -50,11 +60,14 @@ class StockDcIncompleteController extends Controller
                             (CASE WHEN dc_in_input.id is null THEN 1 ELSE 0 END) counting,
                             MAX(dc_in_input.updated_at) last_update
                         FROM
-                            part
-                            LEFT JOIN part_form ON part_form.part_id = part.id
-                            LEFT JOIN form_cut_input ON form_cut_input.id = part_form.form_id
-                            LEFT JOIN stocker_input ON stocker_input.form_cut_id = form_cut_input.id
+                            stocker_input
                             LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+                            LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
+                            LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
+                            LEFT JOIN part ON part.id = part_form.part_id
+                        WHERE
+                            stocker_input.id is not null
+                            ".$additionalQuery."
                         GROUP BY
                             part_form.part_id,
                             form_cut_input.id,
