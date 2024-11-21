@@ -45,8 +45,7 @@ class MasterLokasiController extends Controller
                         a.no_lok like '%" . $request->search["value"] . "%' OR
                         f.unit like '%" . $request->search["value"] . "%' OR
                         a.kapasitas like '%" . $request->search["value"] . "%' OR
-                        a.status like '%" . $request->search["value"] . "%' OR
-                        a.create_by like '%" . $request->search["value"] . "%'
+                        a.status like '%" . $request->search["value"] . "%'
                     )
                 ";
             }
@@ -63,8 +62,7 @@ class MasterLokasiController extends Controller
                             a.no_lok like '%" . $request->search["value"] . "%' OR
                             f.unit like '%" . $request->search["value"] . "%' OR
                             a.kapasitas like '%" . $request->search["value"] . "%' OR
-                            a.status like '%" . $request->search["value"] . "%' OR
-                            a.create_by like '%" . $request->search["value"] . "%'
+                            a.status like '%" . $request->search["value"] . "%'
                         )
                     ";
                 }

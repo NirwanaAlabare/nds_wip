@@ -8,6 +8,21 @@
                 <h3 class="card-title fw-bold text-sb">Halo, {{ strtoupper(auth()->user()->name) }}</h3>
                 <br>
                 <div class="row g-3 mt-3">
+                    @if (auth()->user()->type == 'admin' || auth()->user()->type == 'superadmin' || auth()->user()->type == 'stock_opname')
+                        <div class="col-lg-2 col-md-3 col-sm-6 d-none">
+                            <a href="{{ route('procurement') }}" class="home-item">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex h-100 flex-column justify-content-between">
+                                            <img src="{{ asset('dist/img/procurement.png') }}" class="img-fluid p-3"
+                                                alt="qr code image">
+                                            <p class="text-center fw-bold text-uppercase text-dark">Procurement</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    @endif
                     @admin
                         {{-- <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('track-ws') }}" class="home-item">

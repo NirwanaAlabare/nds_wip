@@ -355,7 +355,7 @@
                 Swal.fire({
                     icon: "info",
                     title: "Konfirmasi",
-                    html: "Range <b>"+$('#range_awal').val()+" - "+$('#range_akhir').val()+"</b> dengan Total QTY <b>"+($("#total_qty").val())+"</b>",
+                    html: "Range <b>"+$('#range_awal').val()+" - "+$('#range_akhir').val()+"</b> dengan Total QTY <b>"+($("#total_update").val())+"</b>",
                     showDenyButton: true,
                     showCancelButton: false,
                     confirmButtonText: "Lanjut",

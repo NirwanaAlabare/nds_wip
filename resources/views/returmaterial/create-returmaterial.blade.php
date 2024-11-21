@@ -83,6 +83,22 @@
             </div>
             </div>
 
+            <div class="col-md-12">
+            <div class="mb-1">
+                <div class="form-group">
+                <label><small>Jenis Return</small></label>
+                <select class="form-control select2bs4" id="txt_stat_rtn" name="txt_stat_rtn" style="width: 100%;">
+                    <option selected="selected" value="">Pilih Status Retur</option>
+                        @foreach ($status_replac as $replac)
+                    <option value="{{ $replac->nama_pilihan }}">
+                                {{ $replac->nama_pilihan }}
+                    </option>
+                        @endforeach
+                </select>
+                </div>
+            </div>
+            </div>
+
         </div>
     </div>
 
@@ -802,7 +818,7 @@ function submitFormScan(e, evt) {
                 {
                     targets: [6],
                     // className: "d-none",
-                    render: (data, type, row, meta) => '<input style="width:80px;text-align:center;" type="text" id="input_qty' + meta.row + '" name="input_qty['+meta.row+']" value="" />'
+                    render: (data, type, row, meta) => '<input style="width:150px;text-align:right;" type="text" id="input_qty' + meta.row + '" name="input_qty['+meta.row+']" value="" />'
                 },
                 {
                     targets: [7],
