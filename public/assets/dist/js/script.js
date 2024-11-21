@@ -134,41 +134,7 @@ function submitForm(e, evt) {
                 if (res.callback != '') {
                     eval(res.callback);
                 }
-            }
-            // else if (res.status == 201) {
-            //     $('.modal').modal('hide');
-
-            //     Swal.fire({
-            //         icon: 'warning',
-            //         title: res.message,
-            //         showCancelButton: false,
-            //         showConfirmButton: true,
-            //         confirmButtonText: 'Oke',
-            //         timer: (res.status == 201 ? 5000 : 3000),
-            //         timerProgressBar: true
-            //     }).then(() => {
-            //         if (isNotNull(res.redirect)) {
-            //             if (res.redirect != 'reload') {
-            //                 location.href = res.redirect;
-            //             } else {
-            //                 location.reload();
-            //             }
-            //         } else {
-            //             location.reload();
-            //         }
-            //     });
-
-            //     e.reset();
-            //     if (document.getElementsByClassName('select2')) {
-            //         $(".select2").val('').trigger('change');
-            //         $(".select2bs4").val('').trigger('change');
-            //     }
-
-            //     if (res.callback != '') {
-            //         eval(res.callback);
-            //     }
-            // }
-            else if (res.status == 300) {
+            } else if (res.status == 300) {
                 $('.modal').modal('hide');
 
                 iziToast.success({
@@ -210,38 +176,6 @@ function submitForm(e, evt) {
                 if (res.callback != '') {
                     eval(res.callback);
                 }
-            } else if (res.status == 202) {
-                // $('.modal').modal('hide');
-
-                Swal.fire({
-                    icon: 'error',
-                    title: res.message,
-                    showCancelButton: false,
-                    showConfirmButton: true,
-                    confirmButtonText: 'Oke',
-                    timer: 2000,
-                    timerProgressBar: true
-                }).then(() => {
-                    if (isNotNull(res.redirect)) {
-                        if (res.redirect != 'reload') {
-                            location.href = res.redirect;
-                        } else {
-                            location.reload();
-                        }
-                    } else {
-                        // location.reload();
-                    }
-                });
-
-                // e.reset();
-                // if (document.getElementsByClassName('select2')) {
-                //     $(".select2").val('').trigger('change');
-                //     $(".select2bs4").val('').trigger('change');
-                // }
-
-                if (res.callback != '') {
-                    eval(res.callback);
-                }
             } else if (res.status == 201) {
                 // $('.modal').modal('hide');
 
@@ -274,6 +208,81 @@ function submitForm(e, evt) {
                 if (res.callback != '') {
                     eval(res.callback);
                 }
+            } else if (res.status == 202) {
+                // $('.modal').modal('hide');
+
+                Swal.fire({
+                    icon: 'error',
+                    title: res.message,
+                    showCancelButton: false,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Oke',
+                    timer: 2000,
+                    timerProgressBar: true
+                }).then(() => {
+                    if (isNotNull(res.redirect)) {
+                        if (res.redirect != 'reload') {
+                            location.href = res.redirect;
+                        } else {
+                            location.reload();
+                        }
+                    } else {
+                        // location.reload();
+                    }
+                });
+
+                // e.reset();
+                // if (document.getElementsByClassName('select2')) {
+                //     $(".select2").val('').trigger('change');
+                //     $(".select2bs4").val('').trigger('change');
+                // }
+
+                if (res.callback != '') {
+                    eval(res.callback);
+                }
+            } else if (res.status == 203) {
+                // $('.modal').modal('hide');
+
+                let successMessage = "";
+                res.additional.success.forEach((item) => {
+                    console.log("item", item);
+                    successMessage += '<span class="text-success fw-bold">'+(item)+' Berhasil</span><br>';
+                });
+
+                let failMessage = "";
+                res.additional.fail.forEach((item) => {
+                    failMessage += '<span class="text-danger fw-bold">'+(item)+' Tidak Valid</span><br>';
+                });
+
+                Swal.fire({
+                    icon: 'success',
+                    title: res.message,
+                    html: failMessage + successMessage,
+                    showCancelButton: false,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Oke',
+                    timerProgressBar: true
+                }).then(() => {
+                    if (isNotNull(res.redirect)) {
+                        if (res.redirect != 'reload') {
+                            location.href = res.redirect;
+                        } else {
+                            location.reload();
+                        }
+                    } else {
+                        location.reload();
+                    }
+                });
+
+                // e.reset();
+                // if (document.getElementsByClassName('select2')) {
+                //     $(".select2").val('').trigger('change');
+                //     $(".select2bs4").val('').trigger('change');
+                // }
+
+                if (res.callback != '') {
+                    eval(res.callback);
+                }
             } else {
                 for (let i = 0; i < res.errors; i++) {
                     document.getElementById(res.errors[i]).classList.add('is-invalid');
@@ -282,7 +291,7 @@ function submitForm(e, evt) {
 
                 iziToast.error({
                     title: 'Error',
-                    message: res.message,
+                    title: res.message,
                     position: 'topCenter'
                 });
             }

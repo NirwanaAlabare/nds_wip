@@ -18,21 +18,13 @@
         </div>
         <div class="card-body">
             <form action="{{ route("store-bon-loading-line") }}" method="post" onsubmit="storeBonLoading(this, event)" id="bon-loading-form">
-                <div class="d-flex align-items-end justify-content-between">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
+                <div class="d-flex align-items-end justify-content-between gap-3">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-12">
                             <input type="date" class="form-control" name="tanggal_loading" id="tanggal_loading" value="{{ date('Y-m-d') }}">
                         </div>
-                        <div class="col-md-6">
-                            <select class="form-select select2bs4" name="line_id" id="line_id">
-                                <option value="">Pilih Line</option>
-                                @foreach ($lines as $line)
-                                    <option value="{{ $line->line_id }}">{{ $line->FullName }}</option>
-                                @endforeach
-                            </select>
-                        </div>
                     </div>
-                    <div class="row mb-3">
+                    <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <select class="form-select select2bs4" name="year" id="year">
                                 @foreach ($years as $year)
@@ -48,7 +40,16 @@
                 </div>
 
                 <div class="d-flex justify-content-between mb-3">
-                    <button type="button" class="btn btn-primary btn-sm" id="addRow"><i class="fa fa-plus"></i></button>
+                    <div class="d-flex gap-3">
+                        <button type="button" class="btn btn-primary btn-sm" id="addRow"><i class="fa fa-plus"></i></button>
+                        <input type="text" class="form-control" id="no_bon_loading" name="no_bon_loading" placeholder="Nomor...">
+                        <select class="form-select select2bs4" name="line_id" id="line_id">
+                            <option value="">Pilih Line</option>
+                            @foreach ($lines as $line)
+                                <option value="{{ $line->line_id }}">{{ $line->FullName }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <button type="submit" class="btn btn-success btn-sm"><i class="fa fa-save"></i> SIMPAN</button>
                 </div>
 
@@ -198,6 +199,43 @@
                     </table>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div class="card card-sb">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title fw-bold">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Loading Line History
+                </h5>
+                <input type="date" class="form-control form-control-sm w-25" id="tanggal_history" value="{{ date('Y-m-d') }}">
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered" id="loading-line-history">
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Nomor</th>
+                            <th>Line</th>
+                            <th>No. WS</th>
+                            <th>Style</th>
+                            <th>Color</th>
+                            <th>Size</th>
+                            <th>Dest</th>
+                            <th>Stocker</th>
+                            <th>Qty</th>
+                            <th>Year</th>
+                            <th>Year Sequence</th>
+                            <th>Range</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 @endsection
@@ -424,20 +462,35 @@
             let rangeAkhir = document.getElementById("range_akhir_"+element.getAttribute('data-row'));
 
             if (type == 'qty') {
-                if (rangeAwal.value) {
-                    rangeAkhir.value = (Number(rangeAwal.value) + Number(qty.value)) - 1;
+                if (qty.value && qty.value > 0) {
+                    if (rangeAwal.value) {
+                        rangeAkhir.value = (Number(rangeAwal.value) + Number(qty.value)) - 1;
+                    }
+                } else {
+                    rangeAwal.value = '';
+                    rangeAkhir.value = '';
                 }
             } else if (type == 'range_awal') {
-                if (qty.value) {
-                    rangeAkhir.value = (Number(rangeAwal.value) + Number(qty.value)) - 1;
-                } else if (rangeAkhir.value) {
-                    qty.value = (Number(rangeAkhir.value) - Number(rangeAwal.value)) + 1;
+                if (rangeAwal.value && rangeAwal.value > 0) {
+                    if (qty.value) {
+                        rangeAkhir.value = (Number(rangeAwal.value) + Number(qty.value)) - 1;
+                    } else if (rangeAkhir.value) {
+                        qty.value = (Number(rangeAkhir.value) - Number(rangeAwal.value)) + 1;
+                    }
+                } else {
+                    qty.value = '';
+                    rangeAkhir.value = '';
                 }
             } else if (type == 'rangeAkhir') {
-                if (qty.value) {
-                    rangeAwal.value = (Number(rangeAkhir.value) - Number(qty.value)) + 1;
-                } else if (rangeAwal.value) {
-                    qty.value = (Number(rangeAkhir.value) - Number(rangeAwal.value)) + 1;
+                if (rangeAkhir.value && rangeAkhir.value > 0) {
+                    if (qty.value) {
+                        rangeAwal.value = (Number(rangeAkhir.value) - Number(qty.value)) + 1;
+                    } else if (rangeAwal.value) {
+                        qty.value = (Number(rangeAkhir.value) - Number(rangeAwal.value)) + 1;
+                    }
+                } else {
+                    qty.value = '';
+                    rangeAwal.value = '';
                 }
             }
 
@@ -463,7 +516,7 @@
         function storeBonLoading(e, event) {
             event.preventDefault();
 
-            if (document.getElementById("line_id").value) {
+            if (document.getElementById("line_id").value && document.getElementById("no_bon_loading").value) {
                 Swal.fire({
                     icon: "info",
                     title: "Konfirmasi",
@@ -480,8 +533,110 @@
                     }
                 })
             } else {
-                Swal.fire("Harap Pilih Line", "", "error");
+                if (!document.getElementById("line_id").value) {
+                    Swal.fire("Harap Pilih Line", "", "error");
+                }
+
+                if (!document.getElementById("no_bon_loading").value) {
+                    Swal.fire("Harap Isi Nomor", "", "error");
+                }
             }
         }
+
+        // const filters = ["line_filter", "tanggal_filter", "ws_filter", "style_filter", "color_filter", "size_filter", "dest_filter"];
+        $('#loading-line-history thead tr').clone(true).appendTo('#loading-line-history thead');
+        $('#loading-line-history thead tr:eq(1) th').each(function(i) {
+            // if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6) {
+                var title = $(this).text();
+                $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%" />');
+
+                $('input', this).on('keyup change', function() {
+                    if (loadingLineHistory.column(i).search() !== this.value) {
+                        loadingLineHistory
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+                });
+            // } else {
+            //     $(this).empty();
+            // }
+        });
+
+        var loadingLineHistory = $("#loading-line-history").DataTable({
+            ordering: false,
+            processing: true,
+            serverSide: true,
+            pageLength: 100,
+            ajax: {
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                url: '{{ route('bon-loading-line-history') }}',
+                dataType: 'json',
+                dataSrc: 'data',
+                data: function(d) {
+                    d.tanggal = $('#tanggal_history').val();
+                },
+            },
+            columns: [
+                {
+                    data: 'tanggal'
+                },
+                {
+                    data: 'no_bon_loading'
+                },
+                {
+                    data: 'line_id'
+                },
+                {
+                    data: 'ws'
+                },
+                {
+                    data: 'styleno'
+                },
+                {
+                    data: 'color'
+                },
+                {
+                    data: 'size'
+                },
+                {
+                    data: 'dest'
+                },
+                {
+                    data: 'id_qr_stocker'
+                },
+                {
+                    data: 'qty'
+                },
+                {
+                    data: 'year'
+                },
+                {
+                    data: 'year_sequence'
+                },
+                {
+                    data: 'year_sequence_range'
+                },
+                {
+                    data: 'updated_at'
+                }
+            ],
+            columnDefs: [
+                // Text No Wrap
+                {
+                    targets: "_all",
+                    className: "text-nowrap"
+                },
+                {
+                    target: [13],
+                    render: (data, type, row, meta) => {
+                        console.log(data);
+                        return moment(data).format("MM-DD-YYYY HH:mm");
+                    }
+                }
+            ],
+        });
     </script>
 @endsection
