@@ -128,6 +128,8 @@ use App\Http\Controllers\GAPengajuanBahanBakarController;
 use App\Http\Controllers\GAApprovalBahanBakarController;
 
 use App\Http\Controllers\StockOpnameController;
+
+use App\Http\Controllers\ProcurementController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -952,6 +954,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/final-report-so', 'finalreportso')->name('final-report-so');
         Route::get('/list-scan-barcode2', 'listscanbarcode2')->name('list-scan-barcode-so2');
         Route::get('/list-scan-barcode3', 'listscanbarcode3')->name('list-scan-barcode-so3');
+    });
+
+    // stock opname
+    Route::controller(ProcurementController::class)->prefix("procurement")->group(function () {
+        Route::get('procurement/', 'index')->name('procurement');
+        Route::get('/detail-return-sb', 'detailreturnsb')->name('detail-return-sb');
+        Route::get('/export_excel_detail_return_sb', 'export_excel_detailreturn_sb')->name('export_excel_detail_return_sb');
+        Route::get('/simpanedit-returnsb', 'simpaneditreturnsb')->name('simpan-edit-returnsb');
     });
 
     //Penerimaan

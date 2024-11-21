@@ -31,6 +31,21 @@
         <div class="collapse navbar-collapse order-3" id="navbarCollapse">
             <!-- Left navbar links -->
             <ul class="navbar-nav">
+
+                @if ($page == 'procurement')
+                    <li class="nav-item dropdown">
+                        <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false" class="nav-link dropdown-toggle">Proses</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('detail-return-sb') }}" class="dropdown-item">
+                                    List Return
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endif
+
                 @if ($page == 'dashboard-track')
                     <li class="nav-item dropdown">
                         <a id="dropdownSubMenu1" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
