@@ -49,10 +49,11 @@ sum(a.tot_output) tot_output,
 sum(d_rfts.tot_rfts) tot_rfts,
 op.tot_output_line,
 so.curr,
-acm.price cm_price,
-REPLACE(FORMAT(sum(a.tot_output) * acm.price, 2), '.', ',') AS earning,
+if(acm.jenis_rate = 'J', acm.price * konv_sb.rate, acm.price) cm_price,
+REPLACE(FORMAT(sum(a.tot_output) * if(acm.jenis_rate = 'J', acm.price * konv_sb.rate, acm.price), 2), '.', ',') AS earning,
 mkb.kurs_tengah,
-if(so.curr = 'IDR', sum(a.tot_output) * acm.price, sum(a.tot_output) * (acm.price * mkb.kurs_tengah)) tot_earning_rupiah,
+if(so.curr = 'IDR', sum(a.tot_output) * if(acm.jenis_rate = 'J', acm.price * konv_sb.rate, acm.price),
+sum(a.tot_output) * if(acm.jenis_rate = 'J', acm.price * konv_sb.rate, acm.price)) tot_earning_rupiah,
 round((cmp.man_power * (sum(a.tot_output) / op.tot_output_line) * (TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600) * 60),2) mins_avail,
 round(sum(a.tot_output) * mp.smv,2) mins_prod,
 round((((sum(a.tot_output) * mp.smv) / ( (cmp.man_power * (sum(a.tot_output) / op.tot_output_line) * (TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600) * 60)))*100),2) eff_line,
@@ -91,6 +92,9 @@ where updated_at >= '$start_date' and updated_at <= '$end_date' group by created
 left join (
 select * from act_costing_mfg where id_item = '8' group by id_act_cost
 ) acm on ac.id = acm.id_act_cost
+left join (
+select * from masterrate where  curr='USD' and v_codecurr IN('COSTING3','COSTING6','COSTING8','COSTING12') group by tanggal
+)konv_sb on ac.deldate = konv_sb.tanggal
 left join (
  SELECT
 master_plan_id,
