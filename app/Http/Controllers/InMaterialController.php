@@ -97,8 +97,9 @@ class InMaterialController extends Controller
         $arealok = DB::connection('mysql_sb')->table('whs_master_area')->select('id', 'area')->where('status', '=', 'active')->get();
         $unit = DB::connection('mysql_sb')->table('whs_master_unit')->select('id', 'nama_unit')->where('status', '=', 'active')->get();
         $kode_gr = DB::connection('mysql_sb')->select("select CONCAT('GK-IN-', DATE_FORMAT(current_date(), '%Y')) Mattype,IF(MAX(bpbno_int) IS NULL,'00001',LPAD(MAX(SUBSTR(bpbno_int,12,5))+1,5,0)) nomor,CONCAT('GK/IN/',DATE_FORMAT(current_date(), '%m'),DATE_FORMAT(current_date(), '%y'),'/',IF(MAX(bpbno_int) IS NULL,'00001',LPAD(MAX(SUBSTR(bpbno_int,12,5))+1,5,0))) kode FROM bpb WHERE MONTH(bpbdate) = MONTH(current_date()) AND YEAR(bpbdate) = YEAR(current_date()) AND LEFT(bpbno_int,2) = 'GK'");
+        $no_po = DB::connection('mysql_sb')->select("select pono from po_header where podate >= '2024-01-01' and app = 'A' and jenis = 'P'");
 
-        return view('inmaterial.create-inmaterial', ['kode_gr' => $kode_gr,'gr_type' => $gr_type,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit, 'page' => 'dashboard-warehouse']);
+        return view('inmaterial.create-inmaterial', ['kode_gr' => $kode_gr,'gr_type' => $gr_type,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit ,'no_po' => $no_po, 'page' => 'dashboard-warehouse']);
     }
 
     public function lokmaterial($id)
@@ -415,6 +416,11 @@ class InMaterialController extends Controller
     public function store(Request $request)
     {
 
+        $validatedRequest = $request->validate([
+            "txt_type_pch" => "required",
+            "txt_type_bc" => "required",
+        ]);
+
     if (intval($request['jumlah_qty']) > 0) {
 
         $tglbpb = $request['txt_tgl_gr'];
@@ -547,11 +553,16 @@ class InMaterialController extends Controller
                 'deskripsi' => $request['txt_notes'],
                 'status' => 'Pending',
                 'created_by' => Auth::user()->name,
+                'no_po_subkon' => $request['txt_po_sub'],
             ]);
 
             $inmaterialDetailData2 = [];
             for ($i = 0; $i < intval($request['jumlah_data']); $i++) {
             if ($request["qty_good"][$i] > 0 || $request["qty_reject"][$i] > 0) {
+
+                $sql_subkon = DB::connection('mysql_sb')->select("select DISTINCT nilai_barang from (select no_bppb, nilai_barang from whs_bppb_det where id_item = '".$request["det_iditem"][$i]."' and id_jo = '".$request["det_idjo"][$i]."' and status = 'Y') a INNER JOIN (select no_bppb from whs_bppb_h where no_po_subkon = '".$request['txt_po_sub']."') b on b.no_bppb = a.no_bppb");
+                $nilai_subkon =  $sql_subkon ? $sql_subkon[0]->nilai_barang : 0;
+
                 array_push($inmaterialDetailData2, [
                     "no_dok" => $bpbno_int,
                     "tgl_dok" => $tgldok,
@@ -570,6 +581,7 @@ class InMaterialController extends Controller
                     "status" => 'Y',
                     "created_at" => $timestamp,
                     "updated_at" => $timestamp,
+                    "nilai_barang" => $nilai_subkon,
                 ]);
             }
             }

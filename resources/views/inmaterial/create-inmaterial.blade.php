@@ -1,342 +1,356 @@
 @extends('layouts.index')
 
 @section('custom-link')
-    <!-- DataTables -->
-    <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
-    <!-- Select2 -->
-    <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+<!-- DataTables -->
+<link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
+<link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
+<link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
+<!-- Select2 -->
+<link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
+<link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
 @endsection
 
 @section('content')
-    <form action="{{ route('store-inmaterial-fabric') }}" method="post" id="store-inmaterial"
-        onsubmit="submitForm(this, event)">
-        @csrf
-        <div class="card card-sb">
-            <div class="card-header">
-                <h5 class="card-title fw-bold">
-                    Data Header
-                </h5>
-                <div class="card-tools">
-                    <button type="button" class="btn btn-tool" data-card-widget="collapse"><i
-                            class="fas fa-minus"></i></button>
-                </div>
+<form action="{{ route('store-inmaterial-fabric') }}" method="post" id="store-inmaterial"
+onsubmit="submitForm(this, event)">
+@csrf
+<div class="card card-sb">
+    <div class="card-header">
+        <h5 class="card-title fw-bold">
+            Data Header
+        </h5>
+        <div class="card-tools">
+            <button type="button" class="btn btn-tool" data-card-widget="collapse"><i
+                class="fas fa-minus"></i></button>
             </div>
-            <div class="card-body">
-                <div class="form-group row">
-                    <div class="col-6 col-md-4">
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label><small>No BPB</small></label>
-                                        @foreach ($kode_gr as $kodegr)
-                                            <input type="text" class="form-control " id="txt_gr_dok" name="txt_gr_dok"
-                                                value="{{ $kodegr->kode }}" readonly>
-                                        @endforeach
-                                    </div>
+        </div>
+        <div class="card-body">
+            <div class="form-group row">
+                <div class="col-6 col-md-4">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="mb-1">
+                                <div class="form-group">
+                                    <label><small>No BPB</small></label>
+                                    @foreach ($kode_gr as $kodegr)
+                                    <input type="text" class="form-control " id="txt_gr_dok" name="txt_gr_dok"
+                                    value="{{ $kodegr->kode }}" readonly>
+                                    @endforeach
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="col-md-6">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label><small>Tgl BPB</small></label>
-                                        <input type="date" class="form-control form-control" id="txt_tgl_gr"
-                                            name="txt_tgl_gr" value="{{ date('Y-m-d') }}">
-                                    </div>
+                        <div class="col-md-6">
+                            <div class="mb-1">
+                                <div class="form-group">
+                                    <label><small>Tgl BPB</small></label>
+                                    <input type="date" class="form-control form-control" id="txt_tgl_gr"
+                                    name="txt_tgl_gr" value="{{ date('Y-m-d') }}">
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="col-md-6">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label><small>Tgl Pengiriman</small></label>
-                                        <input type="date" class="form-control form-control" id="txt_tgl_ship"
-                                            name="txt_tgl_ship" value="{{ date('Y-m-d') }}">
-                                    </div>
+                        <div class="col-md-6">
+                            <div class="mb-1">
+                                <div class="form-group">
+                                    <label><small>Tgl Pengiriman</small></label>
+                                    <input type="date" class="form-control form-control" id="txt_tgl_ship"
+                                    name="txt_tgl_ship" value="{{ date('Y-m-d') }}">
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="col-md-12">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label><small>Supplier</small></label>
-                                        <select class="form-control select2supp" id="txt_supp" name="txt_supp"
-                                            style="width: 100%;" onchange="settype()">
-                                            <option selected="selected" value="">Pilih Supplier</option>
-                                            @foreach ($msupplier as $msupp)
-                                                <option value="{{ $msupp->id_supplier }}">
-                                                    {{ $msupp->Supplier }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-12">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label><small>Tipe BPB</small></label>
-                                        <select class="form-control select2bs4" id="txt_type_gr" name="txt_type_gr"
-                                            style="width: 100%;" onchange="settype()">
-                                            <option selected="selected" value="">Pilih Tipe</option>
-                                            @foreach ($gr_type as $grtype)
-                                                <option value="{{ $grtype->nama_pilihan }}">
-                                                    {{ $grtype->nama_pilihan }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-12">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label><small>No PO</small></label>
-                                        <select class="form-control select2bs4" id="txt_po" name="txt_po"
-                                            style="width: 100%;" onchange="getlistdata(this.value)">
-                                        </select>
-                                    </div>
-                                </div>
+                        <div class="col-md-12">
+                            <div class="mb-1">
+                                <div class="form-group">
+                                    <label><small>Supplier</small></label>
+                                    <select class="form-control select2supp" id="txt_supp" name="txt_supp"
+                                    style="width: 100%;" onchange="settype()">
+                                    <option selected="selected" value="">Pilih Supplier</option>
+                                    @foreach ($msupplier as $msupp)
+                                    <option value="{{ $msupp->id_supplier }}">
+                                        {{ $msupp->Supplier }}
+                                    </option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
                     </div>
 
-                    <div class="col-6 col-md-3">
-                        <div class="row">
-
-                            <div class="col-md-12">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label><small>WS (Global)</small></label>
-                                        <select class="form-control select2bs4" id="txt_wsglobal" name="txt_wsglobal"
-                                            style="width: 100%;" onchange="getlistdata(this.value)">
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-12">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label><small>Tipe BC</small></label>
-                                        <select class="form-control select2bs4" id="txt_type_bc" name="txt_type_bc"
-                                            style="width: 100%;">
-                                            <option selected="selected" value="">Pilih Tipe</option>
-                                            @foreach ($mtypebc as $bc)
-                                                <option value="{{ $bc->nama_pilihan }}">
-                                                    {{ $bc->nama_pilihan }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-12">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label><small>Tipe Pembelian</small></label>
-                                        <select class="form-control select2bs4" id="txt_type_pch" name="txt_type_pch"
-                                            style="width: 100%;">
-                                            <option selected="selected" value="">Pilih Tipe</option>
-                                            @foreach ($pch_type as $pch)
-                                                <option value="{{ $pch->nama_pilihan }}">
-                                                    {{ $pch->nama_pilihan }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-12">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label><small>Dokumen Asli</small></label>
-                                        <select class="form-control select2bs4" id="txt_oridok" name="txt_oridok"
-                                            style="width: 100%;">
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-12">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label><small>No Invoice</small></label>
-                                        <input type="text" class="form-control " id="txt_invdok" name="txt_invdok"
-                                            value="">
-                                    </div>
-                                </div>
-                            </div>
+                    <div class="col-md-12">
+                        <div class="mb-1">
+                            <div class="form-group">
+                                <label><small>Tipe BPB</small></label>
+                                <select class="form-control select2bs4" id="txt_type_gr" name="txt_type_gr"
+                                style="width: 100%;" onchange="settype()">
+                                <option selected="selected" value="">Pilih Tipe</option>
+                                @foreach ($gr_type as $grtype)
+                                <option value="{{ $grtype->nama_pilihan }}">
+                                    {{ $grtype->nama_pilihan }}
+                                </option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
+                </div>
 
-                    <div class="col-12 col-md-5">
-                        <div class="row">
-
-                            <div class="col-md-7">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label><small>No Aju</small></label>
-                                        <input type="text" class="form-control " id="txt_aju_num" name="txt_aju_num"
-                                            value="">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-5">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label><small>Tgl Aju</small></label>
-                                        <input type="date" class="form-control form-control" id="txt_tgl_aju"
-                                            name="txt_tgl_aju" value="{{ date('Y-m-d') }}">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-7">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label><small>No Daftar</small></label>
-                                        <input type="text" class="form-control " id="txt_reg_num" name="txt_reg_num"
-                                            value="">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-5">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label><small>Tgl Daftar</small></label>
-                                        <input type="date" class="form-control form-control" id="txt_tgl_reg"
-                                            name="txt_tgl_reg" value="{{ date('Y-m-d') }}">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-7">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label><small>No Kontrak</small></label>
-                                        <input type="text" class="form-control " id="txt_kontrak" name="txt_kontrak"
-                                            value="">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-5">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label><small>Jenis Bahan Baku</small></label>
-                                        <!--            <select class="form-control select2bs4" id="txt_tom" name="txt_tom" style="width: 100%;"></select> -->
-                                        <input type="text" class="form-control " id="txt_tom" name="txt_tom"
-                                            value="Fabric" readonly>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-12">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label><small>Catatan</small></label>
-                                        <textarea type="text" rows="4" class="form-control " id="txt_notes" name="txt_notes" value=""> </textarea>
-                                        <input type="hidden" class="form-control" id="jumlah_data" name="jumlah_data"
-                                            readonly>
-                                        <input type="hidden" class="form-control" id="jumlah_qty" name="jumlah_qty"
-                                            readonly>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                <div class="col-md-12">
+                    <div class="mb-1">
+                        <div class="form-group">
+                            <label><small>No PO</small></label>
+                            <select class="form-control select2bs4" id="txt_po" name="txt_po"
+                            style="width: 100%;" onchange="getlistdata(this.value)">
+                        </select>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="card card-sb">
-            <div class="card-header">
-                <h5 class="card-title fw-bold">
-                    Data Detail
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="form-group row">
-                    <div class="d-flex justify-content-between">
-                        <div class="ml-auto">
-                            <span class="input-group-text"><i class="fas fa-search"></i></span>
-                        </div>
-                        <input type="text" id="cari_item" name="cari_item" autocomplete="off"
-                            placeholder="Search Item..." onkeyup="cariitem()">
-                    </div>
-                    <div class="table-responsive"style="max-height: 500px">
-                        <table id="datatable"
-                            class="table table-bordered table-head-fixed table-striped table-sm w-100 text-nowrap">
-                            <thead>
-                                <tr>
-                                    <th class="text-center" style="font-size: 0.6rem;width: 300px;">No WS</th>
-                                    <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID JO</th>
-                                    <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID Barang</th>
-                                    <th class="text-center" style="font-size: 0.6rem;width: 300px;">Kode Barang</th>
-                                    <th class="text-center" style="font-size: 0.6rem;width: 300px;">Produk</th>
-                                    <th class="text-center" style="font-size: 0.6rem;width: 300px;">Deskripsi</th>
-                                    <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty PO</th>
-                                    <th class="text-center" style="font-size: 0.6rem;width: 300px;">PO Unit</th>
-                                    <th class="text-center" style="font-size: 0.6rem;width: 300px;">Balance</th>
-                                    <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty GR</th>
-                                    <th class="text-center" style="font-size: 0.6rem;width: 300px;">GR Unit</th>
-                                    <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Reject</th>
-                                    <th class="text-center" style="font-size: 0.6rem;width: 300px;">Reject Unit</th>
-                                    <th class="text-center" style="font-size: 0.6rem;"></th>
-                                    <th class="text-center" style="font-size: 0.6rem;"></th>
-                                    <th class="text-center" style="font-size: 0.6rem;"></th>
-                                    <th class="text-center" style="font-size: 0.6rem;"></th>
-                                    <th class="text-center" style="font-size: 0.6rem;"></th>
-                                    <th class="text-center" style="font-size: 0.6rem;"></th>
-                                    <th class="text-center" style="font-size: 0.6rem;"></th>
-                                    <th class="text-center" style="font-size: 0.6rem;"></th>
-                                    <th class="text-center" style="font-size: 0.6rem;"></th>
-                                    <th class="text-center" style="font-size: 0.6rem;"></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+    <div class="col-6 col-md-3">
+        <div class="row">
+
+            <div class="col-md-12">
                 <div class="mb-1">
                     <div class="form-group">
-                        <button class="btn btn-sb float-end mt-2 ml-2"><i class="fa-solid fa-floppy-disk"></i>
-                            Simpan</button>
-                        <a href="{{ route('in-material') }}" class="btn btn-danger float-end mt-2">
-                            <i class="fas fa-arrow-circle-left"></i> Kembali</a>
-                    </div>
+                        <label><small>WS (Global)</small></label>
+                        <select class="form-control select2bs4" id="txt_wsglobal" name="txt_wsglobal"
+                        style="width: 100%;" onchange="getlistdata(this.value)">
+                    </select>
                 </div>
             </div>
         </div>
+
+        <div class="col-md-12">
+            <div class="mb-1">
+                <div class="form-group">
+                    <label><small>Tipe BC</small></label>
+                    <select class="form-control select2bs4" id="txt_type_bc" name="txt_type_bc"
+                    style="width: 100%;">
+                    <option selected="selected" value="">Pilih Tipe</option>
+                    @foreach ($mtypebc as $bc)
+                    <option value="{{ $bc->nama_pilihan }}">
+                        {{ $bc->nama_pilihan }}
+                    </option>
+                    @endforeach
+                </select>
+            </div>
         </div>
-    </form>
+    </div>
+
+    <div class="col-md-12">
+        <div class="mb-1">
+            <div class="form-group">
+                <label><small>Tipe Pembelian</small></label>
+                <select class="form-control select2bs4" id="txt_type_pch" name="txt_type_pch"
+                style="width: 100%;">
+                <option selected="selected" value="">Pilih Tipe</option>
+                @foreach ($pch_type as $pch)
+                <option value="{{ $pch->nama_pilihan }}">
+                    {{ $pch->nama_pilihan }}
+                </option>
+                @endforeach
+            </select>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-12">
+    <div class="mb-1">
+        <div class="form-group">
+            <label><small>Dokumen Asli</small></label>
+            <select class="form-control select2bs4" id="txt_oridok" name="txt_oridok"
+            style="width: 100%;">
+        </select>
+    </div>
+</div>
+</div>
+
+<div class="col-md-12">
+    <div class="mb-1">
+        <div class="form-group">
+            <label><small>No Invoice</small></label>
+            <input type="text" class="form-control " id="txt_invdok" name="txt_invdok"
+            value="">
+        </div>
+    </div>
+</div>
+</div>
+</div>
+
+<div class="col-12 col-md-5">
+    <div class="row">
+
+        <div class="col-md-7">
+            <div class="mb-1">
+                <div class="form-group">
+                    <label><small>No Aju</small></label>
+                    <input type="text" class="form-control " id="txt_aju_num" name="txt_aju_num"
+                    value="">
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="mb-1">
+                <div class="form-group">
+                    <label><small>Tgl Aju</small></label>
+                    <input type="date" class="form-control form-control" id="txt_tgl_aju"
+                    name="txt_tgl_aju" value="{{ date('Y-m-d') }}">
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <div class="mb-1">
+                <div class="form-group">
+                    <label><small>No Daftar</small></label>
+                    <input type="text" class="form-control " id="txt_reg_num" name="txt_reg_num"
+                    value="">
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="mb-1">
+                <div class="form-group">
+                    <label><small>Tgl Daftar</small></label>
+                    <input type="date" class="form-control form-control" id="txt_tgl_reg"
+                    name="txt_tgl_reg" value="{{ date('Y-m-d') }}">
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <div class="mb-1">
+                <div class="form-group">
+                    <label><small>No Kontrak</small></label>
+                    <input type="text" class="form-control " id="txt_kontrak" name="txt_kontrak"
+                    value="">
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="mb-1">
+                <div class="form-group">
+                    <label><small>Jenis Bahan Baku</small></label>
+                    <!--            <select class="form-control select2bs4" id="txt_tom" name="txt_tom" style="width: 100%;"></select> -->
+                    <input type="text" class="form-control " id="txt_tom" name="txt_tom"
+                    value="Fabric" readonly>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-12">
+                <div class="form-group">
+                    <label><small>PO Actual Subcont</small></label>
+                    <select class="form-control select2bs4" id="txt_po_sub" name="txt_po_sub" style="width: 100%;">
+                        <option selected="selected" value="">Pilih PO Subcont</option>
+                        @foreach ($no_po as $po)
+                        <option value="{{ $po->pono }}">
+                            {{ $po->pono }}
+                        </option>
+                        @endforeach
+                    </select>
+            </div>
+        </div>
+
+        <div class="col-md-12">
+            <div class="mb-1">
+                <div class="form-group">
+                    <label><small>Catatan</small></label>
+                    <textarea type="text" rows="1" class="form-control " id="txt_notes" name="txt_notes" value=""> </textarea>
+                    <input type="hidden" class="form-control" id="jumlah_data" name="jumlah_data"
+                    readonly>
+                    <input type="hidden" class="form-control" id="jumlah_qty" name="jumlah_qty"
+                    readonly>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="card card-sb">
+    <div class="card-header">
+        <h5 class="card-title fw-bold">
+            Data Detail
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="form-group row">
+            <div class="d-flex justify-content-between">
+                <div class="ml-auto">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                </div>
+                <input type="text" id="cari_item" name="cari_item" autocomplete="off"
+                placeholder="Search Item..." onkeyup="cariitem()">
+            </div>
+            <div class="table-responsive"style="max-height: 500px">
+                <table id="datatable"
+                class="table table-bordered table-head-fixed table-striped table-sm w-100 text-nowrap">
+                <thead>
+                    <tr>
+                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">No WS</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID JO</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">ID Barang</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Kode Barang</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Produk</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Deskripsi</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty PO</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">PO Unit</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Balance</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty GR</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">GR Unit</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Qty Reject</th>
+                        <th class="text-center" style="font-size: 0.6rem;width: 300px;">Reject Unit</th>
+                        <th class="text-center" style="font-size: 0.6rem;"></th>
+                        <th class="text-center" style="font-size: 0.6rem;"></th>
+                        <th class="text-center" style="font-size: 0.6rem;"></th>
+                        <th class="text-center" style="font-size: 0.6rem;"></th>
+                        <th class="text-center" style="font-size: 0.6rem;"></th>
+                        <th class="text-center" style="font-size: 0.6rem;"></th>
+                        <th class="text-center" style="font-size: 0.6rem;"></th>
+                        <th class="text-center" style="font-size: 0.6rem;"></th>
+                        <th class="text-center" style="font-size: 0.6rem;"></th>
+                        <th class="text-center" style="font-size: 0.6rem;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="mb-1">
+        <div class="form-group">
+            <button class="btn btn-sb float-end mt-2 ml-2"><i class="fa-solid fa-floppy-disk"></i>
+            Simpan</button>
+            <a href="{{ route('in-material') }}" class="btn btn-danger float-end mt-2">
+                <i class="fas fa-arrow-circle-left"></i> Kembali</a>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</form>
 @endsection
 
 @section('custom-script')
-    <!-- DataTables  & Plugins -->
-    <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
-    <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
-    <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
-    <!-- Select2 -->
-    <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
-    <!-- Page specific script -->
-    <script>
-        $(document).on('select2:open', () => {
-            document.querySelector('.select2-search__field').focus();
-        });
+<!-- DataTables  & Plugins -->
+<script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
+<script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
+<script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
+<script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+<!-- Select2 -->
+<script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+<!-- Page specific script -->
+<script>
+    $(document).on('select2:open', () => {
+        document.querySelector('.select2-search__field').focus();
+    });
 
         //Initialize Select2 Elements
         $('.select2').select2()
@@ -553,168 +567,168 @@
                 },
             },
             columns: [{
-                    data: 'kpno'
-                },
-                {
-                    data: 'id_jo'
-                },
-                {
-                    data: 'id_item'
-                },
-                {
-                    data: 'goods_code'
-                },
-                {
-                    data: 'produk'
-                },
-                {
-                    data: 'itemdesc'
-                },
-                {
-                    data: 'qty_po'
-                },
-                {
-                    data: 'unit'
-                },
-                {
-                    data: 'qty'
-                },
-                {
-                    data: 'qty'
-                },
-                {
-                    data: 'unit'
-                },
-                {
-                    data: 'qty'
-                },
-                {
-                    data: 'unit'
-                },
-                {
-                    data: 'kpno'
-                },
-                {
-                    data: 'id_jo'
-                },
-                {
-                    data: 'id_item'
-                },
-                {
-                    data: 'goods_code'
-                },
-                {
-                    data: 'produk'
-                },
-                {
-                    data: 'itemdesc'
-                },
-                {
-                    data: 'qty'
-                },
-                {
-                    data: 'unit'
-                },
-                {
-                    data: 'price'
-                },
-                {
-                    data: 'curr'
-                }
+                data: 'kpno'
+            },
+            {
+                data: 'id_jo'
+            },
+            {
+                data: 'id_item'
+            },
+            {
+                data: 'goods_code'
+            },
+            {
+                data: 'produk'
+            },
+            {
+                data: 'itemdesc'
+            },
+            {
+                data: 'qty_po'
+            },
+            {
+                data: 'unit'
+            },
+            {
+                data: 'qty'
+            },
+            {
+                data: 'qty'
+            },
+            {
+                data: 'unit'
+            },
+            {
+                data: 'qty'
+            },
+            {
+                data: 'unit'
+            },
+            {
+                data: 'kpno'
+            },
+            {
+                data: 'id_jo'
+            },
+            {
+                data: 'id_item'
+            },
+            {
+                data: 'goods_code'
+            },
+            {
+                data: 'produk'
+            },
+            {
+                data: 'itemdesc'
+            },
+            {
+                data: 'qty'
+            },
+            {
+                data: 'unit'
+            },
+            {
+                data: 'price'
+            },
+            {
+                data: 'curr'
+            }
             ],
             columnDefs: [{
-                    targets: [13],
-                    className: "d-none",
-                    render: (data, type, row, meta) => '<input type="hidden" id="det_kpno' + meta.row +
-                        '" name="det_kpno[' + meta.row + ']" value="' + data + '" readonly />'
-                },
-                {
-                    targets: [14],
-                    className: "d-none",
-                    render: (data, type, row, meta) => '<input type="hidden" id="det_idjo' + meta.row +
-                        '" name="det_idjo[' + meta.row + ']" value="' + data + '" readonly />'
-                },
-                {
-                    targets: [15],
-                    className: "d-none",
-                    render: (data, type, row, meta) => '<input type="hidden" id="det_iditem' + meta.row +
-                        '" name="det_iditem[' + meta.row + ']" value="' + data + '" readonly />'
-                },
-                {
-                    targets: [16],
-                    className: "d-none",
-                    render: (data, type, row, meta) => '<input type="hidden" id="det_code' + meta.row +
-                        '" name="det_code[' + meta.row + ']" value="' + data + '" readonly />'
-                },
-                {
-                    targets: [17],
-                    className: "d-none",
-                    render: (data, type, row, meta) => '<input type="hidden" id="det_produk' + meta.row +
-                        '" name="det_produk[' + meta.row + ']" value="' + data + '" readonly />'
-                },
-                {
-                    targets: [18],
-                    className: "d-none",
-                    render: (data, type, row, meta) => '<input type="hidden" id="det_itemdesc' + meta.row +
-                        '" name="det_itemdesc[' + meta.row + ']" value="' + data + '" readonly />'
-                },
-                {
-                    targets: [19],
-                    className: "d-none",
-                    render: (data, type, row, meta) => '<input type="hidden" id="det_qty' + meta.row +
-                        '" name="det_qty[' + meta.row + ']" value="' + data + '" readonly />'
-                },
-                {
-                    targets: [20],
-                    className: "d-none",
-                    render: (data, type, row, meta) => '<input type="hidden" id="det_unit' + meta.row +
-                        '" name="det_unit[' + meta.row + ']" value="' + data + '" readonly />'
-                },
-                {
-                    targets: [21],
-                    className: "d-none",
-                    render: (data, type, row, meta) => '<input type="hidden" id="det_price' + meta.row +
-                        '" name="det_price[' + meta.row + ']" value="' + data + '" readonly />'
-                },
-                {
-                    targets: [22],
-                    className: "d-none",
-                    render: (data, type, row, meta) => '<input type="hidden" id="det_curr' + meta.row +
-                        '" name="det_curr[' + meta.row + ']" value="' + data + '" readonly />'
-                },
+                targets: [13],
+                className: "d-none",
+                render: (data, type, row, meta) => '<input type="hidden" id="det_kpno' + meta.row +
+                '" name="det_kpno[' + meta.row + ']" value="' + data + '" readonly />'
+            },
+            {
+                targets: [14],
+                className: "d-none",
+                render: (data, type, row, meta) => '<input type="hidden" id="det_idjo' + meta.row +
+                '" name="det_idjo[' + meta.row + ']" value="' + data + '" readonly />'
+            },
+            {
+                targets: [15],
+                className: "d-none",
+                render: (data, type, row, meta) => '<input type="hidden" id="det_iditem' + meta.row +
+                '" name="det_iditem[' + meta.row + ']" value="' + data + '" readonly />'
+            },
+            {
+                targets: [16],
+                className: "d-none",
+                render: (data, type, row, meta) => '<input type="hidden" id="det_code' + meta.row +
+                '" name="det_code[' + meta.row + ']" value="' + data + '" readonly />'
+            },
+            {
+                targets: [17],
+                className: "d-none",
+                render: (data, type, row, meta) => '<input type="hidden" id="det_produk' + meta.row +
+                '" name="det_produk[' + meta.row + ']" value="' + data + '" readonly />'
+            },
+            {
+                targets: [18],
+                className: "d-none",
+                render: (data, type, row, meta) => '<input type="hidden" id="det_itemdesc' + meta.row +
+                '" name="det_itemdesc[' + meta.row + ']" value="' + data + '" readonly />'
+            },
+            {
+                targets: [19],
+                className: "d-none",
+                render: (data, type, row, meta) => '<input type="hidden" id="det_qty' + meta.row +
+                '" name="det_qty[' + meta.row + ']" value="' + data + '" readonly />'
+            },
+            {
+                targets: [20],
+                className: "d-none",
+                render: (data, type, row, meta) => '<input type="hidden" id="det_unit' + meta.row +
+                '" name="det_unit[' + meta.row + ']" value="' + data + '" readonly />'
+            },
+            {
+                targets: [21],
+                className: "d-none",
+                render: (data, type, row, meta) => '<input type="hidden" id="det_price' + meta.row +
+                '" name="det_price[' + meta.row + ']" value="' + data + '" readonly />'
+            },
+            {
+                targets: [22],
+                className: "d-none",
+                render: (data, type, row, meta) => '<input type="hidden" id="det_curr' + meta.row +
+                '" name="det_curr[' + meta.row + ']" value="' + data + '" readonly />'
+            },
 
-                {
-                    targets: [9],
-                    render: (data, type, row, meta) => {
+            {
+                targets: [9],
+                render: (data, type, row, meta) => {
                         // alert(meta.row)
                         return '<input style="width:100px;" class="form-control-sm" type="text" min="0" max="' +
-                            data + '" id="qty_good' + meta.row + '" name="qty_good[' + meta.row +
-                            ']" onkeyup="tambahqty(this.value)" />';
+                        data + '" id="qty_good' + meta.row + '" name="qty_good[' + meta.row +
+                        ']" onkeyup="tambahqty(this.value)" />';
                     }
 
                 },
                 {
                     targets: [11],
                     render: (data, type, row, meta) =>
-                        '<input style="width:100px;" class="form-control-sm" type="text" min="0" max="' + data +
-                        '" id="qty_reject' + meta.row + '" name="qty_reject[' + meta.row + ']" />'
+                    '<input style="width:100px;" class="form-control-sm" type="text" min="0" max="' + data +
+                    '" id="qty_reject' + meta.row + '" name="qty_reject[' + meta.row + ']" />'
                 }
-            ]
-        });
+                ]
+            });
 
-        function tambahqty($val) {
-            var table = document.getElementById("datatable");
-            var qty = 0;
-            var jml_qty = 0;
+function tambahqty($val) {
+    var table = document.getElementById("datatable");
+    var qty = 0;
+    var jml_qty = 0;
 
-            for (var i = 1; i < (table.rows.length); i++) {
-                qty = document.getElementById("datatable").rows[i].cells[9].children[0].value || 0;
-                jml_qty += parseFloat(qty);
-            }
+    for (var i = 1; i < (table.rows.length); i++) {
+        qty = document.getElementById("datatable").rows[i].cells[9].children[0].value || 0;
+        jml_qty += parseFloat(qty);
+    }
 
-            $('#jumlah_qty').val(jml_qty);
+    $('#jumlah_qty').val(jml_qty);
 
-        }
+}
 
         // function calculateRatio(id) {
         //     let ratio = document.getElementById('ratio-'+id).value;
@@ -798,4 +812,4 @@
             }
         }
     </script>
-@endsection
+    @endsection
