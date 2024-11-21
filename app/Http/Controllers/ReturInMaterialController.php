@@ -344,7 +344,7 @@ class ReturInMaterialController extends Controller
 
      $inmaterialDetailStore2 = InMaterialFabricDet::insert($inmaterialDetailData2);
 
-     $bpb_detail = DB::connection('mysql_sb')->insert("insert into whs_lokasi_inmaterial select '' id, no_barcode,'".$bpbno_int."' no_dok, no_ws, id_jo, id_item, kode_item, item_desc, no_roll, no_roll_buyer, no_lot,qty_sj, qty_aktual, qty_mutasi, qty_out, no_mut, satuan, kode_lok, status,created_by,created_at,updated_at  from whs_lokasi_inmaterial_temp where created_by = '".Auth::user()->name."' GROUP BY no_barcode");
+     $bpb_detail = DB::connection('mysql_sb')->insert("insert into whs_lokasi_inmaterial select a.*,(price_in + nilai_barang) nilai_barang from (select '' id, no_barcode,'".$bpbno_int."' no_dok, no_ws, id_jo, id_item, kode_item, item_desc, no_roll, no_roll_buyer, no_lot,qty_sj, qty_aktual, qty_mutasi, qty_out, no_mut, satuan, kode_lok, status,created_by,created_at,updated_at from whs_lokasi_inmaterial_temp where created_by = '".Auth::user()->name."' GROUP BY no_barcode) a inner join (select id_roll,COALESCE(price_in,0) price_in, COALESCE(nilai_barang,0) nilai_barang from whs_bppb_det where status = 'Y' GROUP BY id_roll) b on b.id_roll = a.no_barcode");
 
     $bpb_temp = InMaterialLokasiTemp::where('created_by',Auth::user()->name)->delete();
 
@@ -723,9 +723,12 @@ public function savebarcoderiscan(Request $request)
             $no_roll_buyer = $sql_data_barcode[0]->no_roll_buyer;
             $no_lot = $sql_data_barcode[0]->no_lot;
             $satuan = $sql_data_barcode[0]->satuan;
+            
+             $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F',(if(kode is null,'19999',kode)  + 1)) kode from (select max(cast(SUBSTR(no_barcode,2,10) as SIGNED)) kode from whs_lokasi_inmaterial where no_barcode like '%F%') a");
+            $barcode = $sql_barcode[0]->kode;
 
             array_push($bpb_det, [
-                "no_barcode" => $request["id_roll"][$i],
+                "no_barcode" => $barcode,
                 "no_dok" => $bpbno_int,
                 "no_ws" => $no_ws,
                 "id_jo" => $id_jo,

@@ -93,7 +93,9 @@ class ReturMaterialController extends Controller
         $no_req = DB::connection('mysql_sb')->select("
             select a.bppbno isi,concat(a.bppbno,'|',ac.kpno,'|',ac.styleno,'|',mb.supplier) tampil from bppb_req a inner join jo_det s on a.id_jo=s.id_jo inner join so on s.id_so=so.id inner join act_costing ac on so.id_cost=ac.id inner join mastersupplier mb on ac.id_buyer=mb.id_supplier and a.cancel='N' and bppbdate >= '2023-01-01' where bppbno like 'RQ-F%' group by bppbno order by bppbdate desc");
 
-        return view('returmaterial.create-returmaterial', ['no_req' => $no_req,'kode_gr' => $kode_gr,'jns_klr' => $jns_klr,'def_type' => $def_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit, 'page' => 'dashboard-warehouse']);
+        $status_replac = DB::connection('mysql_sb')->table('whs_master_pilihan')->select('id', 'nama_pilihan')->where('type_pilihan', '=', 'status_replacement')->get();
+
+        return view('returmaterial.create-returmaterial', ['no_req' => $no_req,'kode_gr' => $kode_gr,'jns_klr' => $jns_klr,'def_type' => $def_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit, 'status_replac' => $status_replac, 'page' => 'dashboard-warehouse']);
     }
 
     public function getNobpb(Request $request)
@@ -558,6 +560,7 @@ select 'RO' id,b.no_bpb,id_item iditem,id_jo idjo,sum(qty_out) qty_out from whs_
             $tgl_reg = $request['txt_tgl_daftar'];
             $catatan = $request['txt_notes'];
             $txt_nows = $request['txt_nows'];
+            $stat_rtn = $request['txt_stat_rtn'];
 
     for ($i = 0; $i < intval($request['jumlah_data']); $i++) {
         if ( $request["input_qty"][$i] > 0) {
@@ -598,6 +601,7 @@ select 'RO' id,b.no_bpb,id_item iditem,id_jo idjo,sum(qty_out) qty_out from whs_
                 'status_retur' => 'Y',
                 'bpbno_ro' => $txtbpbno,
                 'id_jo' => $request["id_jo"][$i],
+                'status_return' => $stat_rtn,
             ]);
 
         $whsdetdata = DB::connection('mysql_sb')->select("select itemdesc from masteritem where id_item ='" . $request["id_item"][$i] . "' GROUP BY id_item ");
@@ -639,6 +643,7 @@ select 'RO' id,b.no_bpb,id_item iditem,id_jo idjo,sum(qty_out) qty_out from whs_
                 'status' => 'Pending',
                 'created_by' => Auth::user()->name,
                 'jns_pemasukan' => $tujuan,
+                'status_return' => $stat_rtn,
             ]);
 
 

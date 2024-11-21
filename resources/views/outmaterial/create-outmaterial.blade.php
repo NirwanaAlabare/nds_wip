@@ -212,8 +212,24 @@
             <div class="col-md-12">
             <div class="mb-1">
                 <div class="form-group">
+                <label><small>PO Subcont</small></label>
+                <select class="form-control select2bs4" id="txt_po_sub" name="txt_po_sub" style="width: 100%;">
+                    <option selected="selected" value="">Pilih PO Subcont</option>
+                        @foreach ($no_po as $po)
+                    <option value="{{ $po->pono }}">
+                                {{ $po->pono }}
+                    </option>
+                        @endforeach
+                </select>
+                </div>
+            </div>
+            </div>
+
+            <div class="col-md-12">
+            <div class="mb-1">
+                <div class="form-group">
                 <label><small>Catatan</small></label>
-                <textarea type="text" rows="4" class="form-control " id="txt_notes" name="txt_notes" value="" > </textarea>
+                <textarea type="text" rows="1" class="form-control " id="txt_notes" name="txt_notes" value="" > </textarea>
                 <input type="hidden" class="form-control" id="jumlah_data" name="jumlah_data" readonly>
                 <input type="hidden" class="form-control" id="jumlah_qty" name="jumlah_qty" readonly>
                 </div>
