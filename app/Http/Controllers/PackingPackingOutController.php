@@ -67,10 +67,21 @@ order by o.created_at desc
         $dest = $cek_po ? $cek_po[0]->dest : null;
 
 
-        $data_carton = DB::select("
-select no_carton isi, no_carton tampil from packing_master_packing_list
-where po = '$po' and dest = '$dest'
-group by no_carton
+        $data_carton = DB::select("SELECT
+        a.no_carton isi, a.no_carton tampil
+        from
+        (
+        select po, no_carton, dest, barcode, qty qty_pl
+        from packing_master_packing_list where po = '$po' and dest = '$dest'
+        ) a
+        left join
+        (
+        select po, no_carton, dest, barcode, count(barcode) qty_scan
+        from packing_packing_out_scan where po = '$po' and dest = '$dest'
+        group by po, no_carton, dest, barcode
+        ) b on a.po = b.po and a.no_carton = b.no_carton and a.dest = b.dest and a.barcode = b.barcode
+        where a.qty_pl - b.qty_scan != '0'
+        group by a.no_carton
         ");
 
         $html = "<option value=''>Pilih No Carton</option>";
@@ -200,12 +211,16 @@ SELECT id, tgl_trans, barcode, po, no_carton,created_at, updated_at, created_by 
     {
         $user = Auth::user()->name;
 
-        $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-90 days'));
+        $tgl_skrg_4_bln = date('Y-m-d', strtotime('-90 days'));
 
-        $data_po = DB::select("SELECT id_ppic_master_so isi,
-concat(po, ' - ', dest, ' ( ', count(distinct(no_carton)), ' ) ') tampil
-from packing_master_packing_list
-group by po, dest");
+        $data_po = DB::select("SELECT
+a.id_ppic_master_so isi,
+concat(a.po, ' - ', a.dest, ' ( ', count(distinct(a.no_carton)), ' ) ') tampil
+from packing_master_packing_list a
+inner join ppic_master_so p on a.id_ppic_master_so = p.id
+where p.tgl_shipment >= '$tgl_skrg_4_bln'
+group by a.po, a.dest
+");
 
 
         // $data_po = DB::select("SELECT p.po isi, concat(p.po, ' - ( ', coalesce(max(m.no_carton),0) , ' ) ') tampil

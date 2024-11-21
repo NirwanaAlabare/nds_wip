@@ -333,6 +333,32 @@
                         data: 'tot_scan',
                     },
                 ],
+
+                // Add createdRow callback
+
+                createdRow: function(row, data, dataIndex) {
+
+                    // Check if qty and tot_scan are equal
+
+                    if (data.qty == data.tot_scan) {
+                        $(row).css({
+                            'color': 'green',
+                            'font-weight': 'bold'
+                        });
+                    } else if (data.qty <= data.tot_scan) {
+                        $(row).css({
+                            'color': 'blue',
+                            'font-weight': 'bold'
+                        });
+                    } else {
+                        $(row).css({
+                            'color': 'black',
+                            'font-weight': 'bold'
+                        });
+                    }
+
+                },
+
             });
         }
 
