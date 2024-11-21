@@ -76,6 +76,7 @@
             </tr>
         @endforeach
     </tbody>
+    {{-- <td>{{ 'Rp. ' . number_format((float) $item->kurs_tengah, 2, ',', '.') }}</td> --}}
 
 </table>
 

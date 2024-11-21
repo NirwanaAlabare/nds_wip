@@ -49,11 +49,19 @@ sum(a.tot_output) tot_output,
 sum(d_rfts.tot_rfts) tot_rfts,
 op.tot_output_line,
 so.curr,
-if(acm.jenis_rate = 'J', acm.price * konv_sb.rate, acm.price) cm_price,
-REPLACE(FORMAT(sum(a.tot_output) * if(acm.jenis_rate = 'J', acm.price * konv_sb.rate, acm.price), 2), '.', ',') AS earning,
+CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * konv_sb.rate, acm.price)
+ELSE acm.price end AS cm_price,
+round(
+sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * konv_sb.rate, acm.price)
+ELSE acm.price end,2) AS earning,
 mkb.kurs_tengah,
-if(so.curr = 'IDR', sum(a.tot_output) * if(acm.jenis_rate = 'J', acm.price * konv_sb.rate, acm.price),
-sum(a.tot_output) * if(acm.jenis_rate = 'J', acm.price * konv_sb.rate, acm.price)) tot_earning_rupiah,
+round(
+if (so.curr = 'IDR',
+sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * konv_sb.rate, acm.price)
+ELSE acm.price end,
+sum(a.tot_output) * CASE when so.curr = 'IDR' THEN if(acm.jenis_rate = 'J', acm.price * konv_sb.rate, acm.price)
+ELSE acm.price end * mkb.kurs_tengah
+),2) tot_earning_rupiah,
 round((cmp.man_power * (sum(a.tot_output) / op.tot_output_line) * (TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600) * 60),2) mins_avail,
 round(sum(a.tot_output) * mp.smv,2) mins_prod,
 round((((sum(a.tot_output) * mp.smv) / ( (cmp.man_power * (sum(a.tot_output) / op.tot_output_line) * (TIME_TO_SEC(TIMEDIFF(TIMEDIFF(jam_akhir_input_line, istirahat), mp.jam_kerja_awal)) / 3600) * 60)))*100),2) eff_line,
