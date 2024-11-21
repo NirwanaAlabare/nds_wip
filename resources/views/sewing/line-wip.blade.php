@@ -313,8 +313,8 @@
                             $(api.column(15).footer()).html((response['total_transfer_garment']).toLocaleString("ID-id"));
                         }
                     },
-                    error: function(request, status, error) {
-                        console.error(error);
+                    error: function(jqXHR) {
+                        console.error(jqXHR);
                     },
                 })
             },

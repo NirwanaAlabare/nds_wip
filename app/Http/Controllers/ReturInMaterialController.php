@@ -727,6 +727,9 @@ public function savebarcoderiscan(Request $request)
              $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F',(if(kode is null,'19999',kode)  + 1)) kode from (select max(cast(SUBSTR(no_barcode,2,10) as SIGNED)) kode from whs_lokasi_inmaterial where no_barcode like '%F%') a");
             $barcode = $sql_barcode[0]->kode;
 
+            $sql_barcode = DB::connection('mysql_sb')->select("select CONCAT('F',(if(kode is null,'19999',kode)  + 1)) kode from (select max(cast(SUBSTR(no_barcode,2,10) as SIGNED)) kode from whs_lokasi_inmaterial where no_barcode like '%F%') a");
+            $barcode = $sql_barcode[0]->kode;
+
             array_push($bpb_det, [
                 "no_barcode" => $barcode,
                 "no_dok" => $bpbno_int,

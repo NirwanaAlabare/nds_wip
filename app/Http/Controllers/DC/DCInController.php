@@ -175,6 +175,8 @@ class DCInController extends Controller
                 left join part_detail pd on s.part_detail_id = pd.id
                 left join part p on pd.part_id = p.id
                 left join master_part mp on mp.id = pd.master_part_id
+            where
+                a.tgl_trans is not null
                 ".$additionalQuery."
         ");
 
