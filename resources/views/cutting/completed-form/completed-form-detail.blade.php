@@ -1309,6 +1309,20 @@
             latestStatus = data.status;
             latestQty = Number(data.qty);
             latestUnit = data.unit;
+
+            tr.onclick = async function() {
+                clearSpreadingForm();
+
+                for (let i = 0; i < summaryItemTableTbody.children.length; i++) {
+                    summaryItemTableTbody.children[i].classList.remove('selected');
+                }
+
+                this.classList.add('selected');
+
+                setSpreadingForm(data, false);
+
+                location.href = '#spreading-form-card';
+            };
         }
 
         function resetSummary() {
