@@ -67,8 +67,8 @@ class ExportLaporanRoll implements FromView, WithEvents, WithColumnWidths, Shoul
             select * from (
                 select
                     COALESCE(scanned_item.qty_in, b.qty) qty_in,
-                    b.created_at waktu_mulai,
-                    b.updated_at waktu_selesai,
+                    a.waktu_mulai,
+                    a.waktu_selesai,
                     b.id,
                     DATE_FORMAT(b.updated_at, '%M') bulan,
                     DATE_FORMAT(b.updated_at, '%d-%m-%Y') tgl_input,
