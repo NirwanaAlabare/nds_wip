@@ -188,8 +188,7 @@
                         <div class="col-6 col-md-3">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>P. Marker</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-fetch"
-                                    value="{{ $formCutInputData->panjang_marker }}" readonly>
+                                <input type="number" class="form-control form-control-sm border-fetch" value="{{ $formCutInputData->panjang_marker }}" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
@@ -310,7 +309,7 @@
                                 <input type="text" class="form-control form-control-sm border-input" name="unit_l_act" id="unit_l_act" value="{{ strtoupper($formCutInputData->unit_lebar_marker) }}" readonly>
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Gramasi</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-fetch" name="gramasi" id="gramasi" value="{{ $formCutInputData->gramasi }}"
@@ -318,27 +317,25 @@
                                     onchange="calculateEstAmpar(undefined, undefined, undefined, this.value);" readonly>
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Cons WS</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="cons_ws"
-                                    id="cons_ws" readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="cons_ws" id="cons_ws" readonly>
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Cons Marker</b></small></label>
-                                <input type="text" class="form-control form-control-sm border-fetch" name="cons_marker" id="cons_marker" value="{{ $formCutInputData->cons_marker }}"
-                                    onkeyup="calculateEstKain(this.value)" onchange="calculateEstKain(this.value)"
-                                    readonly>
+                                <input type="text" class="form-control form-control-sm border-fetch" name="cons_marker" id="cons_marker" value="{{ $formCutInputData->cons_marker }}" readonly
+                                    onkeyup="calculateEstKain(this.value)"
+                                    onchange="calculateEstKain(this.value)"
+                                >
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-calc"><small><b>Cons Act</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-calc" name="cons_act" id="cons_act"
-                                    value="{{ round($formCutInputData->cons_act, 2) > 0 ? $formCutInputData->cons_act : ($totalCutQtyPly > 0 ? round($formCutInputData->p_act / $totalCutQtyPly, 2) : '0') }}"
-                                    step=".01" readonly>
+                                <label class="form-label label-calc"><small><b>Cons. Ampar</b></small></label>
+                                <input type="number" class="form-control form-control-sm border-calc" name="cons_act" id="cons_act" value="{{ round($formCutInputData->cons_act, 2) > 0 ? round($formCutInputData->cons_act, 2) : '0'}}" step=".01" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
@@ -350,7 +347,7 @@
                                 >
                             </div>
                         </div>
-                        <div class="col-6 col-md-6">
+                        <div class="col-6 col-md-6 d-none">
                             <div class="mb-3">
                                 <label class="form-label label-calc"><small><b>Cons 1 Ampar</b></small></label>
                                 <div class="row">
@@ -2029,7 +2026,7 @@
                 let pActualFinal = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
 
                 // consActual = totalQtyCut > 0 ? pActualFinal / totalQtyCut : 0;
-                consActual = totalQtyCut > 0 ? pActualFinal / totalRatio : 0;
+                consActual = totalRatio > 0 ? pActualFinal / totalRatio : 0;
 
                 document.getElementById('cons_act').value = consActual.round(2);
             }

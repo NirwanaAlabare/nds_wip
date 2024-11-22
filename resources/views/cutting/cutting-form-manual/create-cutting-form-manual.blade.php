@@ -306,13 +306,13 @@
                                 <input type="text" class="form-control form-control-sm border-input" name="unit_l_act" id="unit_l_act" value="CM" readonly>
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label label-fetch"><small><b>Cons WS</b></small></label>
                                 <input type="text" class="form-control form-control-sm border-fetch" name="cons_ws" id="cons_ws" value="" readonly>
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Gramasi</b></small></label>
                                 <input type="text" class="form-control form-control-sm" name="gramasi" id="gramasi" value=""
@@ -320,15 +320,15 @@
                                     onchange="calculateConsAmpar();calculateEstAmpar(undefined, undefined, undefined, this.value);">
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><small><b>Cons Marker</b></small></label>
                                 <input type="text" class="form-control form-control-sm" name="cons_marker" id="cons_marker" value="" onkeyup="calculateEstKain(this.value)" onchange="calculateEstKain(this.value)">
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-6">
                             <div class="mb-3">
-                                <label class="form-label label-calc"><small><b>Cons Act</b></small></label>
+                                <label class="form-label label-calc"><small><b>Cons. Ampar</b></small></label>
                                 <input type="number" class="form-control form-control-sm border-calc" name="cons_act" id="cons_act" value="" step=".01" readonly>
                             </div>
                         </div>
@@ -348,7 +348,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-6 col-md-6">
+                        <div class="col-6 col-md-6 d-none">
                             <div class="mb-3">
                                 <label class="form-label label-calc"><small><b>Cons 1 Ampar</b></small></label>
                                 <div class="row">
@@ -1377,7 +1377,7 @@
         }
 
         // Calculate Total Ratio
-        function calculateTotalRatio() {
+        async function calculateTotalRatio() {
             // Get Sizes Count
             let totalSize = document.getElementById('total_size').value;
 
@@ -1396,6 +1396,8 @@
             document.getElementById('total_qty_cut_ply').value = totalQtyCut;
             document.querySelector("table#ratio-datatable tfoot tr th:nth-child(4)").innerText = totalRatio;
             document.querySelector("table#ratio-datatable tfoot tr th:nth-child(5)").innerText = totalQtyCut;
+
+            calculateConsAct();
         }
 
         // Calculate All Cut Qty at Once Based on Spread Qty
@@ -2486,7 +2488,7 @@
                 let pActualFinal = pActualCommaActual(pActualVar, unitPActualVar, commaActualVar);
 
                 // consActual = totalQtyCut > 0 ? pActualFinal / totalQtyCut : 0;
-                consActual = totalQtyCut > 0 ? pActualFinal / totalRatio : 0;
+                consActual = totalRatio > 0 ? pActualFinal / totalRatio : 0;
 
                 document.getElementById('cons_act').value = consActual.round(2);
             }
