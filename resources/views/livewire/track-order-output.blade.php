@@ -52,11 +52,11 @@
     </div>
     <div class="table-responsive">
         @if (!$loadingOrderOutput)
-            <table class="table table-bordered">
+            <table class="sticky-table table table-bordered">
         @else
-            <table class="table table-bordered" wire:poll.30000ms>
+            <table class="sticky-table table table-bordered" wire:poll.30000ms>
         @endif
-            <tbody>
+            <thead>
                 <tr>
                     <th>No. WS</th>
                     <th>Style</th>
@@ -76,6 +76,8 @@
                     ?>
                             <th class="text-center">TOTAL</th>
                         </tr>
+            <thead>
+            <tbody>
                     <?php
 
                             $currentWs = null;
@@ -91,7 +93,7 @@
                                 ?>
                                     <tr>
                                         @if ($dailyGroup->ws != $currentWs)
-                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->count(); }}">{{ $dailyGroup->ws }}</td>
+                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->count(); }}"><span>{{ $dailyGroup->ws }}</span></td>
 
                                             @php
                                                 $currentWs = $dailyGroup->ws;
@@ -101,7 +103,7 @@
                                             @endphp
                                         @endif
                                         @if ($dailyGroup->ws == $currentWs && $dailyGroup->style != $currentStyle)
-                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->count(); }}">{{ $dailyGroup->style }}</td>
+                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->count(); }}"><span>{{ $dailyGroup->style }}</span></td>
 
                                             @php
                                                 $currentStyle = $dailyGroup->style;
@@ -110,7 +112,7 @@
                                             @endphp
                                         @endif
                                         @if ($dailyGroup->ws == $currentWs && $dailyGroup->style == $currentStyle && $dailyGroup->color != $currentColor)
-                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->count(); }}">{{ $dailyGroup->color }}</td>
+                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->count(); }}"><span>{{ $dailyGroup->color }}</span></td>
 
                                             @php
                                                 $currentColor = $dailyGroup->color;
@@ -118,7 +120,7 @@
                                             @endphp
                                         @endif
                                         @if ($dailyGroup->ws == $currentWs && $dailyGroup->style == $currentStyle && $dailyGroup->color == $currentColor && $dailyGroup->sewing_line != $currentLine)
-                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('sewing_line', $dailyGroup->sewing_line)->count(); }}">{{ strtoupper(str_replace('_', ' ', $dailyGroup->sewing_line)) }}</td>
+                                            <td class="text-nowrap" rowspan="{{ $dailyOrderGroup->where('ws', $dailyGroup->ws)->where('style', $dailyGroup->style)->where('color', $dailyGroup->color)->where('sewing_line', $dailyGroup->sewing_line)->count(); }}"><span>{{ strtoupper(str_replace('_', ' ', $dailyGroup->sewing_line)) }}</span></td>
 
                                             @php
                                                 $currentLine = $dailyGroup->sewing_line;

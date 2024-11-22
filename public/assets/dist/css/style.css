@@ -62,6 +62,49 @@ table.vertical tbody td {
     display: block;
 }
 
+/* Sticky Rowspan Table */
+table.sticky-table {
+    display: inline-block;
+    overflow: auto;
+    width: 100%;
+    height: 500px;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+table.sticky-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background-color: #333;
+    color: #fff;
+}
+
+table.sticky-table tfoot {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    background-color: #333;
+    color: #fff;
+}
+
+table.sticky-table thead th {
+    border: 0.1rem solid #fff;
+}
+
+table.sticky-table tbody td[rowspan] span {
+    background-color: #fff;
+    /* border-top: 0.1rem solid #999; */
+    vertical-align: top;
+    position: sticky;
+    top: 3rem;
+    z-index: 1;
+}
+
+table.sticky-table tr th, table.sticky-table tr td {
+    width: 100%;
+}
+
 .hidden {
     display: none !important;
 }
