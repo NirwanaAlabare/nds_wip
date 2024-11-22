@@ -10,7 +10,7 @@
         </div>
     </div>
     <div class="row justify-content-between align-items-end">
-        <div class="col-12 col-lg-6 col-xl-4">
+        <div class="col-12 col-lg-6 col-xl-5">
             <div class="d-flex align-items-center justify-content-start gap-3 mb-3">
                 <div wire:ignore>
                     <input type="date" class="form-control form-control-sm" id="dateFrom" value="{{ $dateFromFilter }}">
@@ -22,7 +22,7 @@
                 <span class="badge bg-sb text-light">{{ strtoupper(str_replace("_", "", ($outputType ? $outputType : "SEWING"))) }}</span>
             </div>
         </div>
-        <div class="col-12 col-lg-6 col-xl-8">
+        <div class="col-12 col-lg-6 col-xl-7">
             <div class="d-flex align-items-end justify-content-end gap-3 mb-3">
                 <button class="btn btn-sb btn-sm" data-bs-toggle="modal" data-bs-target="#filter-modal"><i class="fa fa-filter"></i></button>
                 <div wire:ignore>
@@ -44,7 +44,6 @@
                 <div>
                     <button class="btn btn-success" onclick="exportExcel(this, '{{ $selectedOrder }}', '{{ $selectedSupplier }}')">
                         <i class="fa fa-file-excel fa-sm"></i>
-                        Export
                     </button>
                 </div>
             </div>
