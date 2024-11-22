@@ -24,7 +24,7 @@
                         </div>
                     @endif
                     @admin
-                        {{-- <div class="col-lg-2 col-md-3 col-sm-6">
+                        <div class="col-lg-2 col-md-3 col-sm-6">
                             <a href="{{ route('track-ws') }}" class="home-item">
                                 <div class="card h-100">
                                     <div class="card-body">
@@ -49,8 +49,23 @@
                                     </div>
                                 </div>
                             </a>
-                        </div> --}}
+                        </div>
                     @endadmin
+
+                    @sample
+                        {{-- <div class="col-lg-2 col-md-3 col-sm-6">
+                            <a href="#" class="home-item">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex h-100 flex-column justify-content-between">
+                                            <img src="{{ asset('dist/img/sample.png') }}" class="img-fluid p-3" alt="sample image">
+                                            <p class="text-center fw-bold text-uppercase text-dark">Sample</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div> --}}
+                    @endsample
 
                     @if (auth()->user()->type == 'admin' ||
                             auth()->user()->type == 'superadmin' ||
