@@ -1620,7 +1620,7 @@
             // consActual = totalQtyCut > 0 ? pActualFinal / totalQtyCut : 0;
             consActual = totalQtyCut > 0 ? pActualFinal / totalRatio : 0;
 
-            document.getElementById('cons_act').value = consActual.round(2);
+            document.getElementById('cons_act').value = consActual.round(3);
         }
 
         // -Calculate Est. Piping-

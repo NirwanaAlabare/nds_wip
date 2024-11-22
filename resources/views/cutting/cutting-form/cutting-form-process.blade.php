@@ -335,7 +335,7 @@
                         <div class="col-6 col-md-6">
                             <div class="mb-3">
                                 <label class="form-label label-calc"><small><b>Cons. Ampar</b></small></label>
-                                <input type="number" class="form-control form-control-sm border-calc" name="cons_act" id="cons_act" value="{{ round($formCutInputData->cons_ampar, 2) > 0 ? round($formCutInputData->cons_ampar, 2) : '0'}}" step=".01" readonly>
+                                <input type="number" class="form-control form-control-sm border-calc" name="cons_act" id="cons_act" value="{{ round($formCutInputData->cons_ampar, 3) > 0 ? round($formCutInputData->cons_ampar, 3) : '0'}}" step=".01" readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
@@ -2028,7 +2028,7 @@
                 // consActual = totalQtyCut > 0 ? pActualFinal / totalQtyCut : 0;
                 consActual = totalRatio > 0 ? pActualFinal / totalRatio : 0;
 
-                document.getElementById('cons_act').value = consActual.round(2);
+                document.getElementById('cons_act').value = consActual.round(3);
             }
 
             // -Calculate Est. Piping-
