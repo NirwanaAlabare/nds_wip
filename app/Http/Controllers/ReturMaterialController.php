@@ -629,6 +629,7 @@ select 'RO' id,b.no_bpb,id_item iditem,id_jo idjo,sum(qty_out) qty_out from whs_
         $bppb_header = BppbHeader::create([
                 'no_bppb' => $bppbno_int,
                 'tgl_bppb' => $tgl_ro,
+                'jenis_pengeluaran' => $request['txt_jns_klr'],
                 'no_bpb' => $no_bpb,
                 'jns_defect' => $jenis_def,
                 'tujuan' => $nama_supp,

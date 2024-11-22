@@ -63,9 +63,12 @@
                 <td>{{ $item->tot_output }}</td>
                 <td>{{ $item->curr }}</td>
                 <td>{{ $item->cm_price }}</td>
-                <td>{{ number_format((float) $item->earning, 2, ',', '.') }}</td>
+                <td>{{ $item->earning }}</td>
+                <td>{{ $item->kurs_tengah }}</td>
+                <td>{{ $item->tot_earning_rupiah }}</td>
+                <!-- <td>{{ number_format((float) $item->earning, 2, ',', '.') }}</td>
                 <td>{{ 'Rp. ' . number_format((float) $item->kurs_tengah, 2, ',', '.') }}</td>
-                <td>{{ 'Rp. ' . number_format((float) $item->tot_earning_rupiah, 2, ',', '.') }}</td>
+                <td>{{ 'Rp. ' . number_format((float) $item->tot_earning_rupiah, 2, ',', '.') }}</td> -->
                 <td>{{ $item->mins_prod }}</td>
                 <td>{{ $item->eff_line }}</td>
                 <td>{{ $item->rfts }}</td>
@@ -73,6 +76,7 @@
             </tr>
         @endforeach
     </tbody>
+    {{-- <td>{{ 'Rp. ' . number_format((float) $item->kurs_tengah, 2, ',', '.') }}</td> --}}
 
 </table>
 
